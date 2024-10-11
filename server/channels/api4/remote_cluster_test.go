@@ -249,7 +249,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
@@ -273,7 +273,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithTeamAndPassword.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 }
@@ -358,7 +358,7 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
-		SiteURL: "http://example.com",
+		SiteURL: model.SiteURLPending + model.NewId(),
 		Token:   model.NewId(),
 	}
 
@@ -428,6 +428,18 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, invite.RemoteId)
 		require.Equal(t, rc.Token, invite.Token)
+	})
+
+	t.Run("should return bad request if the cluster is already confirmed", func(t *testing.T) {
+		rc.SiteURL = "http://example.com"
+		savedRC, appErr := th.App.UpdateRemoteCluster(rc)
+		require.Nil(t, appErr)
+		require.Equal(t, rc.SiteURL, savedRC.SiteURL)
+
+		inviteCode, resp, err := th.SystemAdminClient.GenerateRemoteClusterInvite(context.Background(), rc.RemoteId, password)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, inviteCode)
 	})
 }
 

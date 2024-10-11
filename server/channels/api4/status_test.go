@@ -5,13 +5,13 @@ package api4
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestGetUserStatus(t *testing.T) {
@@ -85,7 +85,8 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("get status from logged out user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -173,7 +174,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	})
 
 	t.Run("get statuses from logged out user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.GetUsersStatusesByIds(context.Background(), usersIds)
 		require.Error(t, err)
@@ -236,10 +238,185 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	t.Run("get statuses from logged out user", func(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.UpdateUserStatus(context.Background(), th.BasicUser2.Id, toUpdateUserStatus)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestUpdateUserCustomStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("set custom status", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar", // Use a valid emoji name
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		require.NotNil(t, customStatus)
+		assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus.Emoji)
+		assert.Equal(t, toUpdateCustomStatus.Text, customStatus.Text)
+	})
+
+	t.Run("update custom status with duration", func(t *testing.T) {
+		expiresAt := time.Now().Add(1 * time.Hour)
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji:     "palm_tree", // Use a valid emoji name
+			Text:      "On vacation",
+			Duration:  "date_and_time",
+			ExpiresAt: expiresAt,
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		require.NotNil(t, customStatus)
+		assert.Equal(t, toUpdateCustomStatus.Emoji, customStatus.Emoji)
+		assert.Equal(t, toUpdateCustomStatus.Text, customStatus.Text)
+		assert.Equal(t, toUpdateCustomStatus.Duration, customStatus.Duration)
+
+		require.NotNil(t, customStatus.ExpiresAt, "Expected ExpiresAt to be set")
+		// Check that ExpiresAt is within 5 seconds of the expected time
+		assert.WithinDuration(t, expiresAt, customStatus.ExpiresAt, 5*time.Second)
+	})
+
+	t.Run("attempt to set custom status when disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = true })
+
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+
+		// Assert that the error ID is "api.custom_status.disabled"
+		if appErr, ok := err.(*model.AppError); ok {
+			assert.Equal(t, "api.custom_status.disabled", appErr.Id)
+		} else {
+			t.Errorf("expected *model.AppError, got %T", err)
+		}
+	})
+
+	t.Run("attempt to set custom status for another user", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser2.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("attempt to set custom status with invalid data", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji:     "invalid_emoji",
+			Text:      strings.Repeat("a", 101), // Exceeds max length
+			Duration:  "invalid_duration",
+			ExpiresAt: time.Now().Add(-1 * time.Hour),
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("attempt to set custom status as non-authenticated user", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "palm_tree",
+			Text:  "My custom status",
+		}
+		_, resp, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestRemoveUserCustomStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("remove custom status successfully", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar",
+			Text:  "My custom status",
+		}
+		_, _, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		assert.Nil(t, customStatus)
+	})
+
+	t.Run("attempt to remove custom status when disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableCustomUserStatuses = true })
+
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("attempt to remove custom status for another user", func(t *testing.T) {
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("attempt to remove custom status as non-authenticated user", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("remove non-existent custom status", func(t *testing.T) {
+		th.LoginBasic()
+		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("remove custom status with system admin", func(t *testing.T) {
+		toUpdateCustomStatus := &model.CustomStatus{
+			Emoji: "calendar",
+			Text:  "My custom status",
+		}
+		_, _, err := client.UpdateUserCustomStatus(context.Background(), th.BasicUser.Id, toUpdateCustomStatus)
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, _, err := client.GetUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		customStatus := user.GetCustomStatus()
+		assert.Nil(t, customStatus)
 	})
 }

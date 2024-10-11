@@ -378,12 +378,13 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
 
+	token := model.NewId()
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
 		DisplayName:   rcWithTeamAndPassword.DisplayName,
 		SiteURL:       model.SiteURLPending + model.NewId(),
 		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
-		Token:         model.NewId(),
+		Token:         token,
 		CreatorId:     c.AppContext.Session().UserId,
 	}
 
@@ -401,7 +402,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		password = utils.SecureRandString(16)
 	}
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
+	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, token, password)
 	if iErr != nil {
 		c.Err = iErr
 		return
@@ -530,6 +531,11 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if rc.IsConfirmed() {
+		c.Err = model.NewAppError("generateRemoteClusterInvite", "api.remote_cluster.generate_invite_cluster_is_confirmed", nil, "", http.StatusBadRequest)
 		return
 	}
 
