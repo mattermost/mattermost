@@ -20,6 +20,9 @@ on:
       MM_ENV:
         type: string
         required: false
+      MM_SERVICE_OVERRIDES:
+        type: string
+        required: false
       REPORT_TYPE:
         type: choice
         description: The context this report is being generated in
@@ -33,6 +36,14 @@ on:
           - CLOUD_UNSTABLE
           - NONE
         default: NONE
+      RUN_CYPRESS:
+        type: boolean
+        description: Enable Cypress run
+        default: true
+      RUN_PLAYWRIGHT:
+        type: boolean
+        description: Enable Playwright run
+        default: true
 
 concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
@@ -89,6 +100,7 @@ jobs:
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      MM_SERVICE_OVERRIDES: "${{ inputs.MM_SERVICE_OVERRIDES }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -169,6 +181,16 @@ jobs:
             ### Run sanity assertions after variable generations
             git show-ref --verify "refs/tags/${ROLLING_RELEASE_FROM_TAG}" # 'inputs.ROLLING_RELEASE_FROM_TAG' must be a tag, for release report types
           fi
+          ENABLED_DOCKER_SERVICES="postgres inbucket minio openldap elasticsearch keycloak"
+          for SVC_OP in $MM_SERVICE_OVERRIDES; do
+            OP=$(cut -c1 <<<$SVC_OP)
+            SVC=$(cut -c2- <<<$SVC_OP)
+            case "$OP" in
+              "+") ENABLED_DOCKER_SERVICES="$ENABLED_DOCKER_SERVICES $SVC" ;;
+              "-") ENABLED_DOCKER_SERVICES=$(sed -E "s:(^| )${SVC}( |\$): :g" <<<"$ENABLED_DOCKER_SERVICES") ;;
+              *) echo "Invalid MM_SERVICE_OVERRIDE value: $SVC_OP"; exit 1 ;;
+            esac
+          done
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
@@ -177,7 +199,7 @@ jobs:
           echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
-          echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
+          echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
           echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
@@ -210,6 +232,7 @@ jobs:
     needs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
+    if: ${{ inputs.RUN_CYPRESS }}
     strategy:
       matrix:
         type:
@@ -246,6 +269,7 @@ jobs:
     needs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
+    if: ${{ inputs.RUN_PLAYWRIGHT }}
     strategy:
       matrix:
         type:
