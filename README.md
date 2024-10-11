@@ -1,5 +1,12 @@
 # [![Mattermost logo](https://user-images.githubusercontent.com/7205829/137170381-fe86eef0-bccc-4fdd-8e92-b258884ebdd7.png)](https://mattermost.com)
 
+[![Release](https://img.shields.io/github/v/release/mattermost/mattermost?color=00c3a0&label=Release&logo=mattermost&logoColor=white&style=for-the-badge)](https://github.com/mattermost/mattermost/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mattermost/mattermost/total?color=ff5722&label=Downloads&logo=github&logoColor=white&style=for-the-badge)](https://github.com/mattermost/mattermost/releases)
+[![](https://img.shields.io/badge/License-APACHE_2.0-green.svg?logo=internetarchive&logoColor=white&labelColor=464646&style=for-the-badge)](https://github.com/mattermost/mattermost/blob/main/LICENSE.md)
+[![Stars](https://img.shields.io/github/stars/mattermost/mattermost?label=Stars&color=af68ff&logo=github&logoColor=white&labelColor=464646&style=for-the-badge)](https://github.com/mattermost/mattermost/stargazers)
+[![Forks](https://img.shields.io/github/forks/mattermost/mattermost?label=Forks&color=4caf50&logo=github&logoColor=white&labelColor=2f4f2f&style=for-the-badge)](https://github.com/mattermost/mattermost/network/members)
+[![Watchers](https://img.shields.io/github/watchers/mattermost/mattermost?label=Watchers&color=3182ce&logo=github&logoColor=white&labelColor=1a365d&style=for-the-badge)](https://github.com/mattermost/mattermost/watchers)
+
 [Mattermost](https://mattermost.com) is an open source platform for secure collaboration across the entire software development lifecycle. This repo is the primary source for core development on the Mattermost platform; it's written in Go and React and runs as a single Linux binary with MySQL or PostgreSQL. A new compiled version is released under an MIT license every month on the 16th.
 
 [Deploy Mattermost on-premises](https://mattermost.com/deploy/?utm_source=github-mattermost-server-readme), or [try it for free in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme).
