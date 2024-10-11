@@ -233,10 +233,6 @@ jobs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
     if: ${{ inputs.RUN_CYPRESS }}
-    strategy:
-      matrix:
-        type:
-        - name: PR
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
@@ -270,10 +266,6 @@ jobs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
     if: ${{ inputs.RUN_PLAYWRIGHT }}
-    strategy:
-      matrix:
-        type:
-        - name: PR
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
