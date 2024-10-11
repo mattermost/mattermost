@@ -107,7 +107,11 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
 		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 		if err != nil {
 			c.Err = err
