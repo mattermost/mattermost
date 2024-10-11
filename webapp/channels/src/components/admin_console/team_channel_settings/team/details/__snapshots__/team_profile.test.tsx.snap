@@ -55,24 +55,20 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
             <div
               class="row row-bottom-padding"
             >
-              <span>
-                <strong>
-                  Team Name
-                </strong>
-                :
-              </span>
+              <b>
+                Team Name
+              </b>
+              :
               <br />
               name
             </div>
             <div
               class="row"
             >
-              <span>
-                <strong>
-                  Team Description
-                </strong>
-                :
-              </span>
+              <b>
+                Team Description
+              </b>
+              :
               <br />
               <span
                 class="greyed-out"
@@ -156,24 +152,20 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
             <div
               class="row row-bottom-padding"
             >
-              <span>
-                <strong>
-                  Team Name
-                </strong>
-                :
-              </span>
+              <b>
+                Team Name
+              </b>
+              :
               <br />
               name
             </div>
             <div
               class="row"
             >
-              <span>
-                <strong>
-                  Team Description
-                </strong>
-                :
-              </span>
+              <b>
+                Team Description
+              </b>
+              :
               <br />
               <span
                 class="greyed-out"
@@ -257,24 +249,20 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
             <div
               class="row row-bottom-padding"
             >
-              <span>
-                <strong>
-                  Team Name
-                </strong>
-                :
-              </span>
+              <b>
+                Team Name
+              </b>
+              :
               <br />
               name
             </div>
             <div
               class="row"
             >
-              <span>
-                <strong>
-                  Team Description
-                </strong>
-                :
-              </span>
+              <b>
+                Team Description
+              </b>
+              :
               <br />
               <span
                 class="greyed-out"
@@ -358,24 +346,20 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             <div
               class="row row-bottom-padding"
             >
-              <span>
-                <strong>
-                  Team Name
-                </strong>
-                :
-              </span>
+              <b>
+                Team Name
+              </b>
+              :
               <br />
               name
             </div>
             <div
               class="row"
             >
-              <span>
-                <strong>
-                  Team Description
-                </strong>
-                :
-              </span>
+              <b>
+                Team Description
+              </b>
+              :
               <br />
               <span
                 class="greyed-out"
@@ -471,24 +455,20 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             <div
               class="row row-bottom-padding"
             >
-              <span>
-                <strong>
-                  Team Name
-                </strong>
-                :
-              </span>
+              <b>
+                Team Name
+              </b>
+              :
               <br />
               name
             </div>
             <div
               class="row"
             >
-              <span>
-                <strong>
-                  Team Description
-                </strong>
-                :
-              </span>
+              <b>
+                Team Description
+              </b>
+              :
               <br />
               <span
                 class="greyed-out"

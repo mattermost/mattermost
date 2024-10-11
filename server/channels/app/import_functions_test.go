@@ -3350,7 +3350,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 			Header: ptrStr("Channel Header"),
@@ -3371,10 +3371,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3394,13 +3394,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3420,7 +3420,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3440,10 +3440,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		})
@@ -3485,16 +3485,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3514,13 +3514,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 			},
 		})
@@ -3567,10 +3567,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		})
@@ -3596,11 +3596,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username:     model.NewString(th.BasicUser.Username),
+					Username:     model.NewPointer(th.BasicUser.Username),
 					LastViewedAt: ptrInt64(lastView),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		}
@@ -3626,10 +3626,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 			ShownBy: &[]string{
@@ -3658,13 +3658,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 			},
 			ShownBy: &[]string{
@@ -3698,10 +3698,10 @@ func TestImportImportDirectPost(t *testing.T) {
 	channelData := imports.DirectChannelImportData{
 		Participants: []*imports.DirectChannelMemberImportData{
 			{
-				Username: model.NewString(th.BasicUser.Username),
+				Username: model.NewPointer(th.BasicUser.Username),
 			},
 			{
-				Username: model.NewString(th.BasicUser2.Username),
+				Username: model.NewPointer(th.BasicUser2.Username),
 			},
 		},
 	}
@@ -4161,13 +4161,13 @@ func TestImportImportDirectPost(t *testing.T) {
 	channelData = imports.DirectChannelImportData{
 		Participants: []*imports.DirectChannelMemberImportData{
 			{
-				Username: model.NewString(th.BasicUser.Username),
+				Username: model.NewPointer(th.BasicUser.Username),
 			},
 			{
-				Username: model.NewString(th.BasicUser2.Username),
+				Username: model.NewPointer(th.BasicUser2.Username),
 			},
 			{
-				Username: model.NewString(user3.Username),
+				Username: model.NewPointer(user3.Username),
 			},
 		},
 	}
