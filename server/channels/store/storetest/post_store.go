@@ -4015,8 +4015,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 	require.Equal(t, 1, len(rows))
 	require.Equal(t, 2, len(rows[0].Ids))
 	// Clean up retention ids table
-	err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+	deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 	require.NoError(t, err)
+	require.Equal(t, int64(0), deleted)
 
 	t.Run("with pagination", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
@@ -4040,8 +4041,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.Equal(t, 2, len(rows[0].Ids))
 
 		// Clean up retention ids table
-		err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 		require.NoError(t, err)
+		require.Equal(t, int64(0), deleted)
 
 		deleted, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2, 2, cursor)
 		require.NoError(t, err)
@@ -4053,8 +4055,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.Equal(t, 1, len(rows[0].Ids))
 
 		// Clean up retention ids table
-		err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(rows[0])
 		require.NoError(t, err)
+		require.Equal(t, int64(0), deleted)
 	})
 
 	t.Run("with data retention policies", func(t *testing.T) {
@@ -4127,8 +4130,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 		require.NoError(t, err)
 		for _, row := range rows {
-			err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+			deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 			require.NoError(t, err)
+			require.Equal(t, int64(0), deleted)
 		}
 	})
 
@@ -4203,8 +4207,9 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 
 		// Clean up retention ids table
 		for _, row := range rows {
-			err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+			deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 			require.NoError(t, err)
+			require.Equal(t, int64(0), deleted)
 		}
 	})
 }
@@ -4344,6 +4349,28 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}
 		assert.True(t, found)
 	})
+
+	t.Run("with flagged post", func(t *testing.T) {
+		err := ss.Preference().Save(model.Preferences([]model.Preference{
+			{
+				UserId:   u1.Id,
+				Category: model.PreferenceCategoryFlaggedPost,
+				Name:     p1.Id,
+				Value:    "true",
+			},
+		}))
+		require.NoError(t, err)
+
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		assert.NoError(t, err)
+
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				require.NotNil(t, p.FlaggedBy)
+				assert.Equal(t, model.StringArray([]string{u1.Username}), p.FlaggedBy)
+			}
+		}
+	})
 }
 
 func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4389,7 +4416,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	r1, err := ss.Post().GetRepliesForExport(p1.Id)
 	assert.NoError(t, err)
 
-	assert.Len(t, r1, 1)
+	require.Len(t, r1, 1)
 
 	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
@@ -4404,7 +4431,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	r1, err = ss.Post().GetRepliesForExport(p1.Id)
 	assert.NoError(t, err)
 
-	assert.Len(t, r1, 1)
+	require.Len(t, r1, 1)
 
 	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
