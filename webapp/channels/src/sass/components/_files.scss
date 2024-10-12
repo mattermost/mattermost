@@ -637,12 +637,15 @@
             border: 1px solid;
             border-color: rgba(var(--center-channel-color-rgb), 0.35);
             border-radius: 50%;
+            background: var(--button-bg);
             opacity: 0.7;
             stroke: rgba(var(--center-channel-color-rgb), 0.4);
             transition: all 0.1s linear;
 
             &:hover {
+                border-color: var(--center-channel-color);
                 opacity: 1;
+                stroke: var(--button-color);
             }
         }
     }
