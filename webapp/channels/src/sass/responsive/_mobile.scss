@@ -1204,6 +1204,16 @@
         }
     }
 
+    .post-list__table {
+        .post-list__content {
+            .dropdown-menu {
+                a:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.1);
+                }
+            }
+        }
+    }
+
     .form-control {
         &.min-height {
             min-height: 100px;
@@ -1808,6 +1818,12 @@
                 display: flex;
                 transform: translate3d(0, 0, 0);
             }
+        }
+    }
+
+    .dropdown-menu {
+        & > li > button:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.1);
         }
     }
 

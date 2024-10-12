@@ -1,6 +1,7 @@
 @charset "utf-8";
 
 .dropdown-menu {
+    border-color: rgba(var(--center-channel-color-rgb), 0.2);
     border-radius: 4px;
     background: var(--center-channel-bg);
     color: var(--center-channel-color);
@@ -19,12 +20,24 @@
         }
     }
 
+    div {
+        > a:focus,
+        > a:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.1);
+        }
+    }
+
     > li {
         > a {
             color: inherit;
 
             &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.1);
                 color: inherit;
+            }
+
+            &:focus {
+                background: rgba(var(--center-channel-color-rgb), 0.1);
             }
         }
     }
