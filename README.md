@@ -32,22 +32,28 @@ Table of contents
 
 ## Install Mattermost
 
-- [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
-- [Get started in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost today.
-- [Developer machine setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
+- **Docker**: [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
+- **Omnibus**: [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
+- **Tar**: [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
+- **Ubuntu 20.04 LTS**: [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
+- **Kubernetes**: [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
+- **Helm**: [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
+- **Debian Buster**: [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
+- **RHEL 8**: [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
+
 
 
 Other install guides:
 
-- [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
-- [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
-- [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
-- [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
-- [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
-- [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
-- [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
-- [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
-- [More server install guides](https://docs.mattermost.com/guides/deployment.html)
+- **Docker 🐳**: [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
+- **Omnibus 📦**: [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
+- **Tar 📁**: [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
+- **Ubuntu 🐧**: [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
+- **Kubernetes ☸️**: [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
+- **Helm ⚓**: [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
+- **Debian 🖥️**: [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
+- **RHEL 🎩**: [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
+
 
 ## Native mobile and desktop apps
 
@@ -80,7 +86,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 
 ## Get the latest news
 
-- **X** - Follow [Mattermost on X, formerly Twitter](https://twitter.com/mattermost).
+- **X** - Follow [Mattermost on X (formerly Twitter)](https://twitter.com/mattermost).
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Facebook** - Follow [Mattermost on Facebook](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost on LinkedIn](https://www.linkedin.com/company/mattermost/).
