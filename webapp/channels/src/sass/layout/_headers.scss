@@ -147,14 +147,23 @@
             background: rgba(var(--sidebar-text-rgb), 0.08);
 
             &:hover {
+                border-color: var(--link-color);
+                background: rgba(var(--link-color-rgb), 0.08);
+
                 .fa {
+                    fill: var(--link-color);
                     opacity: 1;
                 }
 
                 svg {
+                    fill: var(--link-color);
                     opacity: 1;
                 }
             }
+        }
+
+        svg {
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
