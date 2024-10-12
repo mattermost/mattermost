@@ -582,3 +582,22 @@ export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentPr
 
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
+
+import Preferences from 'mattermost-redux/constants/preferences';
+
+(window as any).cycleThemes = () => {
+    const remainingThemes = Object.values(Preferences.THEMES);
+    let interval = 0;
+
+    function doCycleThemes() {
+        const theme = remainingThemes.pop()!;
+        console.log('cycling to ' + theme.type);
+        applyTheme(theme);
+
+        if (remainingThemes.length === 0) {
+            clearInterval(interval);
+        }
+    }
+
+    interval = window.setInterval(doCycleThemes, 500);
+};
