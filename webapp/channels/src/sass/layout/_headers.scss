@@ -264,15 +264,6 @@
     }
 }
 
-.header-dropdown__icon {
-    position: relative;
-    top: 0;
-    margin: 0 0 0 4px;
-    color: inherit;
-    font-size: 16px;
-    line-height: 16px;
-}
-
 .channel-header__top,
 .channel-header__bot {
     display: flex;
@@ -329,10 +320,6 @@
         overflow: hidden;
         text-align: left;
         text-overflow: ellipsis;
-    }
-
-    .header-dropdown__icon {
-        flex: 0 0 auto;
     }
 
     .channel-header__title {
@@ -920,18 +907,6 @@
                 padding: 0 1em;
             }
         }
-    }
-}
-
-.channel-header__navbar {
-    font-size: 16px;
-
-    .heading {
-        margin-right: 3px;
-    }
-
-    .header-dropdown__icon {
-        top: 1px;
     }
 }
 
