@@ -89,11 +89,12 @@
     display: flex;
     width: 350px;
     flex-direction: column;
-    border: 1px solid;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
     border-radius: var(--radius-s);
     margin-right: 3px;
     background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    color: var(--center-channel-color);
     user-select: none;
 
     @include clearfix;
@@ -150,6 +151,7 @@
                 &:active,
                 &:focus {
                     background: transparent;
+                    fill: var(--button-bg);
                 }
             }
 
@@ -158,9 +160,11 @@
                     height: 34px;
                     padding-top: 9px;
                     border-radius: 0;
+                    border-bottom-color: var(--button-bg) !important;
                     margin-right: 5px;
                     margin-left: 5px;
                     background: transparent;
+                    fill: var(--button-bg);
                     opacity: 1;
 
                     &:hover,
@@ -235,7 +239,7 @@
     display: none; // only visible < 480px width screen
     width: 100%;
     padding: 13px 10px 13px 15px;
-    border: 1px solid $light-gray;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
     background: $primary-color;
     color: var(--sidebar-header-text-color);
 
@@ -268,7 +272,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-color: transparent !important;
+    border-color: transparent;
     margin: 12px;
 
     .skin-tones-animation {
@@ -442,6 +446,7 @@
         position: absolute;
         padding-top: 8px;
         padding-left: 9px;
+        color: rgba(var(--center-channel-color-rgb), 0.4);
         font-size: 14px;
     }
 
@@ -481,6 +486,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     width: 100%;
     height: 270px;
     padding: 4px 0 4px 12px;
+    border-color: rgba(var(--center-channel-color-rgb), 0.2);
     border-top-width: 1px;
     border-top-style: solid;
     -webkit-overflow-scrolling: touch;

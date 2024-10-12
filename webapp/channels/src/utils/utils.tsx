@@ -318,7 +318,6 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .btn.btn-transparent', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .popover.right>.arrow', 'border-right-color:' + changeOpacity(theme.centerChannelColor, 0.25));
@@ -356,14 +355,7 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items, .app__body .emoji-picker__search-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-        changeCss('.app__body .emoji-picker__item-wrapper:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .icon__postcontent_picker:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-        changeCss('.app__body .emoji-picker .nav-tabs li a', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post .post-collapse__show-more-button', `border-color:${changeOpacity(theme.centerChannelColor, 0.1)}`);
         changeCss('.app__body .post .post-collapse__show-more-line', `background-color:${changeOpacity(theme.centerChannelColor, 0.1)}`);
     }
@@ -381,7 +373,6 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .post .post__reply', 'fill:' + theme.linkColor);
         changeCss('.app__body .post .card-icon__container.active svg, .app__body .post .post__reply', 'fill:' + theme.linkColor);
         changeCss('.app__body .channel-header .dropdown-toggle:hover .heading, .app__body .channel-header__title .open .heading, .app__body .channel-header__title .open .heading, .app__body .channel-header__info .channel-header__title .open .heading', 'color:' + theme.linkColor);
-        changeCss('.emoji-picker__container .icon--emoji.active svg', 'fill:' + theme.linkColor);
         changeCss('.app__body .post .post-collapse__show-more', `color:${theme.linkColor}`);
         changeCss('.app__body .post .post-attachment-collapse__show-more', `color:${theme.linkColor}`);
         changeCss('.app__body .post .post-collapse__show-more-button:hover', `background-color:${theme.linkColor}`);
@@ -390,8 +381,6 @@ export function applyTheme(theme: Theme) {
     if (theme.buttonBg) {
         changeCss('.app__body .modal .settings-modal .profile-img__remove:hover, .app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover:before, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .file-view--single .file__download:hover, .app__body .new-messages__button div, .app__body .tutorial__circles .circle.active', 'background:' + theme.buttonBg);
         changeCss('.app__body .system-notice__logo svg', 'fill:' + theme.buttonBg);
-        changeCss('.app__body .emoji-picker .nav-tabs li.active a, .app__body .emoji-picker .nav-tabs li a:hover', 'fill:' + theme.buttonBg);
-        changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
         changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
         changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
     }
