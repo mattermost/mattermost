@@ -372,7 +372,7 @@ h6.markdown__heading {
     th,
     td {
         padding: 6px 13px;
-        border: 1px solid #ddd;
+        border: 1px solid rgba(var(--center-channel-color-rgb, 0.2));
     }
 
     a {
@@ -384,7 +384,7 @@ h6.markdown__heading {
         background: var(--center-channel-bg);
 
         &:nth-child(2n) {
-            background-color: #f8f8f8;
+            background-color: rgba(var(--center-channel-color-rgb), 0.07);
         }
     }
 }
