@@ -9681,7 +9681,7 @@
   },
   {
     "id": "api.get_site_url_error",
-    "translation": "無法取得實例的網站 URL。"
+    "translation": "無法取得個體站點 URL"
   },
   {
     "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
