@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import SectionNotice from 'components/section_notice';
 
-export default function NotificationPermissionDeniedNotice() {
+export default function NotificationPermissionDeniedSectionNotice() {
     const intl = useIntl();
 
     const handleClick = useCallback(() => {
@@ -29,7 +29,7 @@ export default function NotificationPermissionDeniedNotice() {
                 tertiaryButton={{
                     text: intl.formatMessage({
                         id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.button',
-                        defaultMessage: 'How to enable web browser notifications',
+                        defaultMessage: 'How to enable notifications',
                     }),
                     onClick: handleClick,
                 }}

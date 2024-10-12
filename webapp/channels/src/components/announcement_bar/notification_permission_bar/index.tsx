@@ -13,6 +13,7 @@ import {
     isNotificationAPISupported,
     NotificationPermissionDenied,
     NotificationPermissionNeverGranted,
+    getNotificationPermission,
 } from 'utils/notifications';
 
 export default function NotificationPermissionBar() {
@@ -28,12 +29,12 @@ export default function NotificationPermissionBar() {
     }
 
     // When user has not granted permission, we show the notification bar to request permission
-    if (isNotificationAPISupported() && Notification.permission === NotificationPermissionNeverGranted) {
+    if (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionNeverGranted) {
         return <NotificationPermissionNeverGrantedBar/>;
     }
 
     // When user has denied permission, we don't show since user explicitly denied permission
-    if (isNotificationAPISupported() && Notification.permission === NotificationPermissionDenied) {
+    if (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionDenied) {
         return null;
     }
 

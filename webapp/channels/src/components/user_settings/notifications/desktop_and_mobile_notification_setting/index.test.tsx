@@ -17,6 +17,9 @@ import DesktopNotificationSettings, {
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
+jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice', () => () => <div/>);
+jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag', () => () => <div/>);
+
 describe('DesktopNotificationSettings', () => {
     const baseProps: Props = {
         active: true,

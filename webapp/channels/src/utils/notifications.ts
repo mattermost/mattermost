@@ -105,7 +105,15 @@ export function isNotificationAPISupported() {
     return ('Notification' in window) && (typeof Notification.requestPermission === 'function');
 }
 
-export async function requestNotificationPermission() {
+export function getNotificationPermission(): NotificationPermission | null {
+    if (!isNotificationAPISupported()) {
+        return null;
+    }
+
+    return Notification.permission;
+}
+
+export async function requestNotificationPermission(): Promise<NotificationPermission | null> {
     if (!isNotificationAPISupported()) {
         return null;
     }

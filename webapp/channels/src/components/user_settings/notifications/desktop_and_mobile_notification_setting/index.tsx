@@ -12,11 +12,10 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
+import NotificationPermissionSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice';
+import NotificationPermissionTitleTag from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
-
-import NotificationPermissionSectionNotice from './notification_permission_section_notice';
-import NotificationPermissionTitleTag from './notification_permission_title_tag';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 

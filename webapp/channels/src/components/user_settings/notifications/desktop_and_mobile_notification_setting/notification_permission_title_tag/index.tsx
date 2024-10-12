@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import Tag from 'components/widgets/tag/tag';
 
 import {
+    getNotificationPermission,
     isNotificationAPISupported,
     NotificationPermissionDenied,
     NotificationPermissionNeverGranted,
@@ -16,20 +17,22 @@ export default function NotificationPermissionTitleTag() {
     const {formatMessage} = useIntl();
 
     if (!isNotificationAPISupported()) {
-        <Tag
-            size='sm'
-            variant='danger'
-            icon='alert-outline'
-            text={formatMessage({
-                id: 'user.settings.notifications.desktopAndMobile.notificationSection.noPermissionIssueTag',
-                defaultMessage: 'Not supported',
-            })}
-        />;
+        return (
+            <Tag
+                size='sm'
+                variant='danger'
+                icon='alert-outline'
+                text={formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.noPermissionIssueTag',
+                    defaultMessage: 'Not supported',
+                })}
+            />
+        );
     }
 
     if (
-        (isNotificationAPISupported() && Notification.permission === NotificationPermissionNeverGranted) ||
-        (isNotificationAPISupported() && Notification.permission === NotificationPermissionDenied)
+        (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionNeverGranted) ||
+        (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionDenied)
     ) {
         return (
             <Tag

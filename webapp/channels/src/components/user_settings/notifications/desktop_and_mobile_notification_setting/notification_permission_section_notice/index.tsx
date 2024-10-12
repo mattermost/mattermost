@@ -5,13 +5,14 @@ import React, {useState} from 'react';
 
 import NotificationPermissionDeniedNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice/notification_permission_denied_section_notice';
 import NotificationPermissionNeverGrantedNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice/notification_permission_never_granted_section_notice';
+import NotificationPermissionUnsupportedSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice/notification_permission_unsupported_section_notice';
 
-import {isNotificationAPISupported, NotificationPermissionDenied, NotificationPermissionNeverGranted} from 'utils/notifications';
+import {getNotificationPermission, isNotificationAPISupported, NotificationPermissionDenied, NotificationPermissionNeverGranted} from 'utils/notifications';
 
 export default function NotificationPermissionSectionNotice() {
     const isNotificationSupported = isNotificationAPISupported();
 
-    const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
+    const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission());
 
     function handleRequestNotificationClicked(permission: NotificationPermission | null) {
         if (permission) {
@@ -20,7 +21,7 @@ export default function NotificationPermissionSectionNotice() {
     }
 
     if (!isNotificationSupported) {
-        return null;
+        return <NotificationPermissionUnsupportedSectionNotice/>;
     }
 
     if (isNotificationSupported && notificationPermission === NotificationPermissionNeverGranted) {

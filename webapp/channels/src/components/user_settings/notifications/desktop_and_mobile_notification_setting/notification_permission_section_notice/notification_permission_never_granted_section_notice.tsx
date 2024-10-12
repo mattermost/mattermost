@@ -12,7 +12,7 @@ type Props = {
     onClick: (permission: NotificationPermission | null) => void;
 }
 
-export default function NotificationPermissionNeverGrantedNotice(props: Props) {
+export default function NotificationPermissionNeverGrantedSectionNotice(props: Props) {
     const intl = useIntl();
 
     async function handleClick() {
@@ -26,7 +26,7 @@ export default function NotificationPermissionNeverGrantedNotice(props: Props) {
                 type='danger'
                 title={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.title',
-                    defaultMessage: 'Notifications are disabled',
+                    defaultMessage: 'Web browser notifications are disabled',
                 })}
                 text={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.message',
