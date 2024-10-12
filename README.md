@@ -18,7 +18,7 @@ Other useful resources:
 - [Product documentation](https://docs.mattermost.com/) - Learn how to run a Mattermost instance and take advantage of all the features.
 - [Developer documentation](https://developers.mattermost.com/) - Contribute code to Mattermost or build an integration via APIs, Webhooks, slash commands, Apps, and plugins.
 
-Table of contents
+📚 Table of contents
 =================
 
 - [Install Mattermost](#install-mattermost)
@@ -30,7 +30,7 @@ Table of contents
 - [Get the latest news](#get-the-latest-news)
 - [Contributing](#contributing)
 
-## 🔧🚀 Install Mattermost
+## 📥 Install Mattermost
 
 - [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
 - [Get started in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost today.
@@ -49,7 +49,7 @@ Table of contents
 - **RHEL 🎩**: [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
 
 
-## 📱💻 Native mobile and desktop apps
+## 📱 Native mobile and desktop apps
 
 In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/pl/android-app/), [iOS](https://mattermost.com/pl/ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [macOS](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
 
