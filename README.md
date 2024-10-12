@@ -30,20 +30,14 @@ Table of contents
 - [Get the latest news](#get-the-latest-news)
 - [Contributing](#contributing)
 
-## Install Mattermost
+## 🔧🚀 Install Mattermost
 
-- **Docker**: [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
-- **Omnibus**: [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
-- **Tar**: [Install Mattermost from Tar](https://docs.mattermost.com/install/install-tar.html)
-- **Ubuntu 20.04 LTS**: [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
-- **Kubernetes**: [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
-- **Helm**: [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
-- **Debian Buster**: [Debian Buster](https://docs.mattermost.com/install/install-debian.html)
-- **RHEL 8**: [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
+- [Download and Install Mattermost Self-Hosted](https://docs.mattermost.com/guides/deployment.html) - Deploy a Mattermost Self-hosted instance in minutes via Docker, Ubuntu, or tar.
+- [Get started in the cloud](https://mattermost.com/sign-up/?utm_source=github-mattermost-server-readme) to try Mattermost today.
+- [Developer machine setup](https://developers.mattermost.com/contribute/server/developer-setup) - Follow this guide if you want to write code for Mattermost.
 
 
-
-Other install guides:
+📂💻 Other install guides:
 
 - **Docker 🐳**: [Deploy Mattermost on Docker](https://docs.mattermost.com/install/install-docker.html)
 - **Omnibus 📦**: [Mattermost Omnibus](https://docs.mattermost.com/install/installing-mattermost-omnibus.html)
@@ -55,38 +49,38 @@ Other install guides:
 - **RHEL 🎩**: [RHEL 8](https://docs.mattermost.com/install/install-rhel-8.html)
 
 
-## Native mobile and desktop apps
+## 📱💻 Native mobile and desktop apps
 
 In addition to the web interface, you can also download Mattermost clients for [Android](https://mattermost.com/pl/android-app/), [iOS](https://mattermost.com/pl/ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop-app-install.html#windows-10-windows-8-1), [macOS](https://docs.mattermost.com/install/desktop-app-install.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop-app-install.html#linux).
 
 [<img src="https://user-images.githubusercontent.com/30978331/272826427-6200c98f-7319-42c3-86d4-0b33ae99e01a.png" alt="Get Mattermost on Google Play" height="50px"/>](https://mattermost.com/pl/android-app/)  [<img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Get Mattermost on the App Store" height="50px"/>](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Get Mattermost on Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Get Mattermost on Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Get Mattermost on Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
 
-## Get security bulletins
+## 🔒📢 Get security bulletins
 
 Receive notifications of critical security updates. The sophistication of online attackers is perpetually increasing. If you're deploying Mattermost it's highly recommended you subscribe to the Mattermost Security Bulletin mailing list for updates on critical security releases.
 
 [Subscribe here](https://mattermost.com/security-updates/#sign-up)
 
-## Get involved
+## 🤝🌍 Get involved
 
 - [Contribute to Mattermost](https://handbook.mattermost.com/contributors/contributors/ways-to-contribute)
 - [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
 - [Join Developer Discussion on a Mattermost server for contributors](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [Get Help With Mattermost](https://docs.mattermost.com/guides/get-help.html)
 
-## Learn more
+## 📚🧠 Learn more
 
 - [API options - webhooks, slash commands, drivers, and web service](https://api.mattermost.com/)
 - [See who's using Mattermost](https://mattermost.com/customers/)
 - [Browse over 700 Mattermost integrations](https://mattermost.com/marketplace/)
 
-## License
+## 📜⚖️ License
 
 See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 
-## Get the latest news
+## 📰📡 Get the latest news
 
-- **X** - Follow [Mattermost on X (formerly Twitter)](https://twitter.com/mattermost).
+- **X** - Follow [Mattermost on X, formerly Twitter](https://twitter.com/mattermost).
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Facebook** - Follow [Mattermost on Facebook](https://www.facebook.com/MattermostHQ).
 - **LinkedIn** - Follow [Mattermost on LinkedIn](https://www.linkedin.com/company/mattermost/).
@@ -95,7 +89,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 - **YouTube** -  Subscribe to [Mattermost](https://www.youtube.com/@MattermostHQ).
 
-## Contributing
+## ✍️🤝 Contributing
 
 [![Small Image](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/mattermost/mattermost)
 
