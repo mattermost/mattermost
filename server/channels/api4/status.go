@@ -78,9 +78,7 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	w.Write(js)
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -107,16 +105,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
-		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
-		if err != nil {
-			c.Err = err
-			return
-		}
+	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
+		c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 	}
 
 	switch status.Status {
