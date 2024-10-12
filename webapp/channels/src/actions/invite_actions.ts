@@ -162,28 +162,31 @@ export async function sendGuestInviteForUser(
     const currentUserIsAdmin = isCurrentUserSystemAdmin(state);
 
     if (!isGuest(user.roles)) {
-        if (currentUserIsAdmin) {  
-        return {
-            notSent: {
-                user,
-                reason: defineMessage({
-                    id: 'invite.members.user-is-not-guest',
-                    defaultMessage: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
-                }),
-            },
-        };
-    } else {
-        return {
-            notSent: {
-                user,
-                reason: defineMessage({
-                    id: 'invite.members.user-is-not-guest',
-                    defaultMessage: 'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
-                }),
-            },
-        };
+        if (currentUserIsAdmin) {
+            return {
+                notSent: {
+                    user,
+                    reason: defineMessage({
+                        id: 'invite.members.user-is-not-guest',
+                        defaultMessage:
+                            'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                    }),
+                },
+            };
+        } else {
+            return {
+                notSent: {
+                    user,
+                    reason: defineMessage({
+                        id: 'invite.members.user-is-not-guest-not-admin',
+                        defaultMessage:
+                            'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
+                    }),
+                },
+            };
+        }
     }
-    }
+
     let memberOfAll = true;
     let memberOfAny = false;
 
@@ -213,7 +216,7 @@ export async function sendGuestInviteForUser(
         for (const channel of channels) {
             const member = members && members[channel.id] && members[channel.id][user.id];
             if (!member) {
-                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
+                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name));
             }
         }
     } catch (e) {
@@ -239,12 +242,14 @@ export async function sendGuestInviteForUser(
             },
         };
     }
+
     return {
         sent: {
             user,
             reason: defineMessage({
                 id: 'invite.guests.new-member',
-                defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
+                defaultMessage:
+                    'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
                 values: {
                     count: channels.length,
                 },
@@ -252,6 +257,7 @@ export async function sendGuestInviteForUser(
         },
     };
 }
+
 
 export function sendGuestsInvites(
     teamId: string,

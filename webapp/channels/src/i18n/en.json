@@ -4030,6 +4030,7 @@
   "invite.members.unable-to-add-the-user-to-the-team": "Unable to add the user to the team.",
   "invite.members.user-is-guest": "Contact your admin to make this guest a full member.",
   "invite.members.user-is-not-guest": "This person is already a member of the workspace. Invite them as a member instead of a guest.",
+  "invite.members.user-is-not-guest-not-admin": "This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.",
   "invite.rate-limit-exceeded": "Invite emails rate limit exceeded.",
   "join_team_group_constrained_denied": "You need to be a member of a linked group to join this team.",
   "join_team_group_constrained_denied_admin": "You need to be a member of a linked group to join this team. You can add a group to this team [here]({siteURL}/admin_console/user_management/groups).",
