@@ -216,7 +216,7 @@ export async function sendGuestInviteForUser(
         for (const channel of channels) {
             const member = members && members[channel.id] && members[channel.id][user.id];
             if (!member) {
-                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name));
+                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
             }
         }
     } catch (e) {
