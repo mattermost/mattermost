@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
-@import 'utils/module';
+@import 'utils/mixins';
+@import 'utils/variables';
 
 .TeamIcon__content {
     display: flex;
