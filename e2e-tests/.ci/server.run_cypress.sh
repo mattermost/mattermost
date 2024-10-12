@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2038
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
@@ -39,6 +40,15 @@ else
   # shellcheck disable=SC2086
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress node run_tests.js $TEST_FILTER | tee "../cypress/logs/${LOGFILE_SUFFIX}_cypress.log"
 fi
+
+# Collect run results
+cat > ../cypress/results/summary.json <<EOF
+{
+  "passed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.passes' | jq -s add),
+  "failed": $(find ../cypress/results/mochawesome-report/json/tests/ -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add),
+  "failed_expected": 0
+}
+EOF
 
 # Collect server logs
 ${MME2E_DC_SERVER} logs --no-log-prefix -- server > "../cypress/logs/${LOGFILE_SUFFIX}_mattermost.log" 2>&1

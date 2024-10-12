@@ -26,7 +26,8 @@ Instructions, detailed:
   * The following variables, will be passed over to the server container: `MM_LICENSE` (no enterprise features will be available if this is unset; required when `SERVER=cloud`), and the exploded `MM_ENV` (a comma-separated list of env var specifications)
   * The following variables, which will be passed over to the cypress container: `BRANCH`, `BUILD_ID`, `CI_BASE_URL`, `BROWSER`, `AUTOMATION_DASHBOARD_URL` and `AUTOMATION_DASHBOARD_TOKEN`
   * The `SERVER_IMAGE` variable can also be set if you want to select a custom mattermost-server image. If not specified, the value of the `SERVER_IMAGE_DEFAULT` variable defined in file `.ci/.e2erc` is used.
-  * The `TEST_FILTER` variable can also be set, to customize which tests you want Cypress to run. If not specified, only the smoke tests will run. Please check the `e2e-tests/cypress/run_tests.js` file for details about its format.
+  * The `TEST_FILTER` variable can also be set, to customize which tests you want Cypress/Playwright to run. If not specified, only the smoke tests will run
+    - Its format depends on which tool is used: for Cypress, please check the `e2e-tests/cypress/run_tests.js` file for details. For Playwright, it can simply be populated with arguments you want to give to the `playwright test` command.
   * More variables may be required to configure reporting and cloud interactions. Check the content of the `.ci/report.*.sh` and `.ci/server.cloud_*.sh` scripts for reference.
 2. (optional) `make start-dashboard && make generate-test-cycle`: start the automation dashboard in the background, and initiate a test cycle on it, for the given `BUILD_ID`
   * NB: the `BUILD_ID` value should stay the same across the `make generate-test-cycle` command, and the subsequent `make` (see next step). If you need to initiate a new test cycle on the same dashboard, you'll need to change the `BUILD_ID` value and rerun both `make generate-test-cycle` and `make`.
@@ -41,6 +42,7 @@ Instructions, detailed:
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
   * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machines (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
+  * This script will also parse the local test results, and write a `e2e-tests/${TEST}/results/summary.json` file containing the following keys: `passed`, `failed` and `failed_expected` (the total number of testcases that were run is the sum of these three numbers)
 4. `make stop`: tears down the server (and the dashboard, if running)
   * This will stop and cleanup all of the E2E testing containers, including the database and its persistent volume.
   * This also implicitly runs `make clean`, which also removes any generated environment or docker-compose files.
