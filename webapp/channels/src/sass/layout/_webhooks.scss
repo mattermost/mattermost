@@ -1,14 +1,5 @@
 @charset "utf-8";
 
-.webhooks__container {
-    padding: 0 13px 15px;
-    border: 1px solid;
-    border-radius: 4px;
-    margin-top: 10px;
-
-    @include alpha-property(background, $black, 0.1);
-}
-
 .post-attachment-dropdown {
     .select-suggestion-container {
         &::after {
