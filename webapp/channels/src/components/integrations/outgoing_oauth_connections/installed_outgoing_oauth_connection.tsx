@@ -8,8 +8,6 @@ import {Link} from 'react-router-dom';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import DeleteIntegrationLink from '../delete_integration_link';
 
 export function matchesFilter(outgoingOAuthConnection: OutgoingOAuthConnection, filter?: string | null): boolean {
@@ -144,11 +142,12 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                 <>
                     <div className='item-details__row'>
                         <span className='item-details__token'>
-                            <FormattedMarkdownMessage
-                                id='installed_outgoing_oauth_connections.username'
-                                defaultMessage='Username: **{username}**'
+                            <FormattedMessage
+                                id='installed_outgoing_oauth_connections.username_'
+                                defaultMessage='Username: <b>{username}</b>'
                                 values={{
                                     username: outgoingOAuthConnection.credentials_username,
+                                    b: (chunks: string) => <b>{chunks}</b>
                                 }}
                             />
                         </span>
