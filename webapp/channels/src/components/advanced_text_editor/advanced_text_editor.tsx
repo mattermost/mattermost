@@ -165,6 +165,7 @@ const AdvancedTextEditor = ({
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
+    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -276,6 +277,7 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         location,
         textboxRef,
+        showFormattingBar,
         focusTextbox,
         applyMarkdown,
         handleDraftChange,
@@ -498,8 +500,6 @@ const AdvancedTextEditor = ({
         textboxId = 'modal_textbox';
         break;
     }
-
-    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
