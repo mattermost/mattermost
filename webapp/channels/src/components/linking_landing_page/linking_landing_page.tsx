@@ -3,9 +3,10 @@
 
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 
 import BrowserStore from 'stores/browser_store';
+
+import ExternalLink from 'components/external_link';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
@@ -244,8 +245,14 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         id='getApp.downloadLinkInBrowser'
                         defaultMessage='Or, <a>open this link in your browser</a>.'
                         values={{
-                            link: this.state.location,
-                            a: (chunks: string) => <Link to={this.state.location}>{chunks}</Link>,
+                            a: (chunks: string) => (
+                                <ExternalLink
+                                    href={this.state.location}
+                                    location='get_app'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
                         }}
                     />
                 </div>
