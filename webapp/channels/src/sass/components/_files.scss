@@ -24,7 +24,7 @@
     height: 100px;
     flex-shrink: 0;
     flex-wrap: nowrap;
-    border: 1px solid rgba(var(--center-channel-color), 0.2);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
     margin-right: 10px;
 
     .spinner {
