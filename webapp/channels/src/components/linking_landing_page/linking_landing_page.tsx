@@ -3,9 +3,10 @@
 
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 
 import BrowserStore from 'stores/browser_store';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
@@ -240,12 +241,11 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         if (this.state.redirectPage) {
             return (
                 <div className='get-app__download-link'>
-                    <FormattedMessage
-                        id='getApp.downloadLinkInBrowser'
-                        defaultMessage='Or, <a>open this link in your browser</a>.'
+                    <FormattedMarkdownMessage
+                        id='get_app.openLinkInBrowser'
+                        defaultMessage='Or, [open this link in your browser.](!{link})'
                         values={{
                             link: this.state.location,
-                            a: (chunks: string) => <Link to={this.state.location}>{chunks}</Link>,
                         }}
                     />
                 </div>
