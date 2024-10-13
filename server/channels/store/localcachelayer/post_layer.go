@@ -71,7 +71,7 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
+func (s LocalCachePostStore) GetEtag(channelId string, userId string, allowFromCache, collapsedThreads bool) string {
 	if allowFromCache {
 		var lastTime int64
 		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId, &lastTime); err == nil {
@@ -79,7 +79,7 @@ func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache, collapsed
 		}
 	}
 
-	result := s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads)
+	result := s.PostStore.GetEtag(channelId, userId, allowFromCache, collapsedThreads)
 
 	splittedResult := strings.Split(result, ".")
 
