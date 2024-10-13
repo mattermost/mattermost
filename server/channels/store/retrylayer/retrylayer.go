@@ -7253,9 +7253,9 @@ func (s *RetryLayerPostStore) GetEditHistoryForPost(postId string) ([]*model.Pos
 
 }
 
-func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
+func (s *RetryLayerPostStore) GetEtag(channelID string, userId string, allowFromCache bool, collapsedThreads bool) string {
 
-	return s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
+	return s.PostStore.GetEtag(channelID, userId, allowFromCache, collapsedThreads)
 
 }
 
