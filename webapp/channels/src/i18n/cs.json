@@ -652,6 +652,7 @@
   "admin.customization.customUrlSchemesPlaceholder": "Např.: \"git,smtp\"",
   "admin.customization.enableCustomEmojiDesc": "Umožnit uživatelům vytvářet vlastní emodži pro použití ve zprávách. Pokud je tato funkce povolena, lze k nastavení vlastních emodži přistupovat v kanálech prostřednictvím nástroje pro výběr emodži.",
   "admin.customization.enableCustomEmojiTitle": "Povolit vlastní emoji:",
+  "admin.customization.enableDesktopLandingPageDesc": "Jestli chcete nebo nechcete nabízet uživateli použití Desktopové aplikace při prvním užití Mattermostu.",
   "admin.customization.enableEmojiPickerDesc": "Výběr emodži umožňuje uživatelům vybrat emodži, které chtějí přidat jako reakci nebo použít ve zprávách. Povolení výběru emodži s velkým počtem vlastních emodži může zpomalit výkon.",
   "admin.customization.enableEmojiPickerTitle": "Povolit nabídku emotikonů:",
   "admin.customization.enableGifPickerDesc": "Povolit uživatelům volit GIFy z emodži pickeru.",
