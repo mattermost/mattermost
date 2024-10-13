@@ -5532,7 +5532,7 @@
   "user.settings.notifications.email.everyXMinutes": "每 {count, number} 分鐘",
   "user.settings.notifications.email.immediately": "立即",
   "user.settings.notifications.email.never": "永不",
-  "user.settings.notifications.email.notifyForthreads": "我所關注的討論串中有回覆之餘請通知我。",
+  "user.settings.notifications.email.notifyForthreads": "我所關注的討論串中有回覆時，請通知我",
   "user.settings.notifications.email.send": "傳送電子郵件通知",
   "user.settings.notifications.emailBatchingInfo": "於所選的時間間隔內收到的通知將被合併成一封電子郵件寄送。",
   "user.settings.notifications.emailInfo": "當您離線，或離開超過 5 分鐘後，系統會傳送電子郵件，通知您提及與私人訊息內容。",
