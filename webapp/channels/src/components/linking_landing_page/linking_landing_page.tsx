@@ -248,7 +248,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                             a: (chunks: string) => (
                                 <ExternalLink
                                     href={this.state.location}
-                                    location='get_app'
+                                    location='landingPage'
                                 >
                                     {chunks}
                                 </ExternalLink>
