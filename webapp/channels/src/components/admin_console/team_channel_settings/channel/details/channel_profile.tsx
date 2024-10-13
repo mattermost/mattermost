@@ -58,24 +58,22 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             <div className='group-teams-and-channels AdminChannelDetails'>
                 <div className='group-teams-and-channels--body channel-desc-col'>
                     <div className='channel-name'>
-                        <FormattedMessage
-                            id='admin.channelSettings.channelDetail.channelName'
-                            defaultMessage='<b>Name</b>'
-                            values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
-                            }}
-                        />
+                        <b>
+                            <FormattedMessage
+                                id='admin.channelSettings.channelDetail.channelName'
+                                defaultMessage='Name'
+                            />
+                        </b>
                         <br/>
                         {channel.display_name}
                     </div>
                     <div className='channel-team'>
-                        <FormattedMessage
-                            id='admin.channelSettings.channelDetail.channelTeam'
-                            defaultMessage='<b>Team</b>'
-                            values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
-                            }}
-                        />
+                        <b>
+                            <FormattedMessage
+                                id='admin.channelSettings.channelDetail.channelTeam'
+                                defaultMessage='Team'
+                            />
+                        </b>
                         <br/>
                         {team?.display_name}
                     </div>
