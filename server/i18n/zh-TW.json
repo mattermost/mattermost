@@ -1,51 +1,51 @@
 [
   {
     "id": "April",
-    "translation": "四月"
+    "translation": "4 月"
   },
   {
     "id": "August",
-    "translation": "八月"
+    "translation": "8 月"
   },
   {
     "id": "December",
-    "translation": "十二月"
+    "translation": "12 月"
   },
   {
     "id": "February",
-    "translation": "二月"
+    "translation": "2 月"
   },
   {
     "id": "January",
-    "translation": "一月"
+    "translation": "1 月"
   },
   {
     "id": "July",
-    "translation": "七月"
+    "translation": "7 月"
   },
   {
     "id": "June",
-    "translation": "六月"
+    "translation": "6 月"
   },
   {
     "id": "March",
-    "translation": "三月"
+    "translation": "3 月"
   },
   {
     "id": "May",
-    "translation": "五月"
+    "translation": "5 月"
   },
   {
     "id": "November",
-    "translation": "十一月"
+    "translation": "11 月"
   },
   {
     "id": "October",
-    "translation": "十月"
+    "translation": "10 月"
   },
   {
     "id": "September",
-    "translation": "九月"
+    "translation": "9 月"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -9706,5 +9706,465 @@
   {
     "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
     "translation": "無法使用指定的連線組態憑證。"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "狀態設定無效"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "您沒有管理此類任務類型的權限"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "無法更新工作狀態。設置了無效的狀態"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "上傳的擴充程式大小超出限制。這個限制可於「系統主控台 > 儲存空間 > 檔案大小限制」中變更"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "該私人訊息沒有成員"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "無法儲存該討論串成員資格。"
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "無效的使用者 ID。"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "上傳文件失敗，上傳管道未於遠端共享。"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "無法取得討論串成員以匯出無法。"
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "無效的訊息 ID。"
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "無法更新額外的工作階段內容。"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "無法取得書籤。"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "過去 30 天"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "您的匯出已準備好。CSV 檔案包含 {{.DateRange}} 的使用者資料。請點擊以下連結下載報告。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "批次報告匯出僅適用於專業版和企業版。"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "不支援的報告格式。"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "清除列表功能不能於 Bleve 使用。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "這個伺服器無法使用連外 OAuth 連線。"
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "無效的通訊協定。"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "緩衝區寫入日誌失敗"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "匯入的資料行類型為 \"role\"，但角色對象為空值。"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "寫入 CSV 區塊失敗。"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "無法針對已確認的叢集產生邀請碼"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "取得私人訊息成員失敗"
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "解析請求失敗"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "重新連結擴充應用失敗"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "所有時間"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "您已開始匯出 {{.DateRange}} 的使用者資料。當匯出完成後，CSV 檔案將會通過此私人訊息傳送給您。"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "找不到資訊清單"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "在儲存密碼時發生內部錯誤。"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "寫入 CSV 標頭失敗。"
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "不知員的報告格式。"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "您的密碼必須不得超過 72 個字元。"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "照不到擴充程式重新連線設定"
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "無法建立使用者。使用者數量超過伺服器安全限制。請聯絡您的管理員，並附上錯誤代碼：ERROR_SAFETY_LIMITS_EXCEEDED。"
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "您的 Elasticsearch 頻道索引架構已過期，建議重新生成您的頻道索引。\n請點ㄧ下 [系統管理後台的 Elasticsearch]{{.ElasticsearchSection}} 中的「重建頻道索引」按鈕來修復此問題。 \n有關更多資訊，請參閱 Mattermost 變更記錄。"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "刪除一條 Elasticsearch 索引失敗"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "删除一條所指定的的未知索引失敗"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "無法接受遠端叢集邀請"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "無法解析 base64 的字串"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "遠端叢集無法被刪除"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "遠端叢集無法找到"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "無法使用所提供的密碼解密遠端叢集"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "無法設定自定狀態。"
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "無法啟動使用者。已達伺服器安全使用者限制。附上：ERROR_SAFETY_LIMITS_EXCEEDED 並聯絡您的管理員。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "無效的搜尋後端。必須是 Elasticsearch 或 Opensearch。"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "儲存密碼時發生內部錯誤。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "您的密碼不得超過 72 個字元。"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "讀取文件狀態時發生錯誤：「{{.FilePath}}」"
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "尋找文件時發生錯誤：「{{.FilePath}}」"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "所提供的 Audience 沒有連外 OAuth 連線。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "所提供的 Audience 無效：{{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "所提供的 Audience 已經用於一個連外 OAuth 連線：{{ .Audience }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "建立連外 OAuth 連線時發生錯誤。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "無效的輸入參數。"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "檢查使用者自定義個人檔案圖像發生錯誤。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "無法排序書籤。"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "無法更新書籤。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "無法排序書籤。無效的輸入。"
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "無法排序書籤。未找到排序。"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "過去 6 個月"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "上ㄧ個月"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "缺少報告寄送的使用者 ID"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "該使用者和日期範圍的工作已經存在。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "驗證連外 OAuth 連線時發生錯誤：{{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "所提供的 Audience 已經有連外 OAuth 連線。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "找不到所提供的 Audience 的連外 OAuth 連線。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "取得 Audience 所用的連外 OAuth 連線時發生錯誤。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "無效的頻道 ID。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "建立必須是有效的時間。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "檔案 ID 找不到或者無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "ID 無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "圖像 URL 無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "無法在同一格書籤中設定連結與檔案。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "更新必須為有效的時間。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "擁有者 ID 無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "上層 ID 無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "類型無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "連結 URL 找不到或者無效。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "找不到顯示名稱。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} 和 @{{.LastUsername}} 沒有收到這則提及的通知，因為他們不是該團隊成員。"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} 沒有收到這則提及的通知，因為他們不是該團隊成員。"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "無法新增使用者為成員到此頻道。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "所提供的 Audience 已經有連外 OAuth 連線：{{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "你的授權不允許使用連外 OAuth 連線。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "原始 ID 無效。"
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "取得使用者數失敗"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "無法關閉 zip 文件"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "無法找到匯出文件以開此匯出。"
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "無法刪除書籤。"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "缺少日期範圍"
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "無法取得頁面的架構。"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "無法使用所提供的密碼加密遠端叢集"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms 的值無效。"
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "服務設定中的 URL 最大長度無效。必須為大於零的整數。"
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "頻道索引結構已經過期，頻道自動完成無法啟用。建議重新產生您的頻道引。詳細資訊請見 Mattermost 更新日誌"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "與 Mattermost 客戶入口網站的互動功能已被系統管理員停用。"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "無法儲存書籤。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "所提供的 Audience 無效：{{ .Error }}"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "判斷系統管理員帳號時發生錯誤。"
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "無法降級最後一位系統管理員。"
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "無法判斷該使用者名稱是否已經存在"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "此團隊的 URL 已經存在。"
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "快取類型必須為 lru 或 redis。"
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "無法取得 teamID={{.TeamID}}, userID={{.UserID}} 的 webhook，err={{.Error}}。"
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "對於 Redis 快取類型，必須指定 RedisAddress。"
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis 資料庫的值必須為大於或等於 0。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "您的密碼必須只少有 {{.Min}} 個字元。"
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "此用者不是 OAuth 或 SAML 的使用者。"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "儲存檔案資訊失敗。"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "無法遠端加入頻道"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "無法取得共享頻道遠端連線"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "無法確認頻道是否可遠端共享"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "無法取消遠端加入頻道邀請"
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "無法更新現有書籤。"
   }
 ]
