@@ -112,7 +112,7 @@ const messages = defineMessages({
     },
     toPrivateMessage: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessage',
-        defaultMessage: 'When you convert {displayName} to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link.',
+        defaultMessage: 'When you convert {displayName} to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.',
     },
     toPrivateMessageConfirmation: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageConfirmation',
@@ -128,7 +128,7 @@ const messages = defineMessages({
     },
     toPublicMessage: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessage',
-        defaultMessage: 'When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can by joined by users on the system without invitation.',
+        defaultMessage: 'When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can be joined by users on the system without invitation.',
     },
     toPublicMessageConfirmation: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageConfirmation',
