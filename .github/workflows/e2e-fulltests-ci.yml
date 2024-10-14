@@ -224,8 +224,9 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, service overrides \`${MM_SERVICE_OVERRIDES}\` (Cypress only)}.
           To check the run progress:
-          ${RUN_CYPRESS:+- Cypress: look for commit status \`${STATUS_CHECK_CONTEXT}\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)`.
-          }${RUN_PLAYWRIGHT:+- Playwright: look for commit status \`${STATUS_CHECK_CONTEXT}-playwright\`, or access the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL).}
+          - Cypress: ${RUN_CYPRESS:-will not run}${RUN_CYPRESS:+look for commit status \`${STATUS_CHECK_CONTEXT}\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)`}.
+          - Playwright: ${RUN_PLAYWRIGHT:-will not run}${RUN_PLAYWRIGHT:+look for commit status \`${STATUS_CHECK_CONTEXT}-playwright\`, or access the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL).}
+          
           You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
           EOF
           fi
@@ -322,8 +323,9 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
-          ${RUN_CYPRESS:+- Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
-          }${RUN_PLAYWRIGHT:+- Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)}
+          - Cypress: ${RUN_CYPRESS:-did not run}${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)}
+          - Playwright: ${RUN_PLAYWRIGHT:-did not run}${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)}
+          
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi
