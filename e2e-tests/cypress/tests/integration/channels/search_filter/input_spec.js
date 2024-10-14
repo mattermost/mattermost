@@ -53,49 +53,53 @@ describe('Search Date Filter', () => {
         const today = Cypress.dayjs().format('YYYY-MM-DD');
 
         // # Type before: in search field
-        cy.get('#searchBox').clear().type('before:');
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().find('input').clear().type('before:');
 
         // * Day picker should be visible
-        cy.get('.DayPicker').
+        cy.get('.rdp').
             as('dayPicker').
             should('be.visible');
 
         // # Select today's day
         cy.get('@dayPicker').
-            find('.DayPicker-Day--today').click();
+            find('.rdp-day_today').click();
 
         cy.get('@dayPicker').should('not.exist');
 
         // * Verify date picker output gets put into field as expected date
-        cy.get('#searchBox').should('have.value', `before:${today} `);
+        cy.uiGetSearchBox().find('input').should('have.value', `before:${today} `);
 
         // # Click "x" to the right of the search term
-        cy.get('#searchFormContainer').find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.get('#searchBox').should('have.value', '');
+        cy.uiGetSearchBox().find('input').should('have.value', '');
+
+        cy.uiGetSearchContainer().should('be.visible').click();
     });
 
     it('MM-T3997 Backspace after last character of filter makes calendar reappear', () => {
         const today = Cypress.dayjs().format('YYYY-MM-DD');
 
         // # Type before: in search field
-        cy.get('#searchBox').clear().type('before:');
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().find('input').clear().type('before:');
 
         // * Date picker should be visible
-        cy.get('.DayPicker').
+        cy.get('.rdp').
             as('dayPicker').
             should('be.visible');
 
         // # Select today's day
         cy.get('@dayPicker').
-            find('.DayPicker-Day--today').click();
+            find('.rdp-day_today').click();
 
         // * Date picker should disappear
         cy.get('@dayPicker').should('not.exist');
 
         // # Hit backspace with focus right after the date
-        cy.get('#searchBox').
+        cy.uiGetSearchBox().find('input').
             should('have.value', `before:${today} `).
             focus().
             type('{backspace}');
@@ -122,7 +126,8 @@ describe('Search Date Filter', () => {
         const queryString = `on:${Cypress.dayjs().format('YYYY-MM-DD')} ${commonText}`;
 
         // * Filter can be removed with keyboard
-        cy.get('#searchBox').
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().find('input').
             clear().
             wait(TIMEOUTS.HALF_SEC).
             type(queryString).
@@ -130,10 +135,10 @@ describe('Search Date Filter', () => {
             should('have.value', '');
 
         // # Enter query to search box and then click "x" to the right of the search term
-        cy.get('#searchBox').clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
-        cy.get('#searchFormContainer').find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().find('input').clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
+        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.get('#searchBox').should('have.value', '');
+        cy.uiGetSearchBox().find('input').should('have.value', '');
     });
 });
