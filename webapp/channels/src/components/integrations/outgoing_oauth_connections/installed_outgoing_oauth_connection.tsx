@@ -147,7 +147,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                                 defaultMessage='Username: <b>{username}</b>'
                                 values={{
                                     username: outgoingOAuthConnection.credentials_username,
-                                    b: (chunks: string) => <b>{chunks}</b>
+                                    b: (chunks: string) => <b>{chunks}</b>,
                                 }}
                             />
                         </span>

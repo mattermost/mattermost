@@ -3987,7 +3987,7 @@
   "installed_outgoing_oauth_connections.help.outgoingOauthConnections": "Outgoing OAuth Connections",
   "installed_outgoing_oauth_connections.password": "Password: ********",
   "installed_outgoing_oauth_connections.search": "Search Outgoing OAuth Connections",
-  "installed_outgoing_oauth_connections.username": "Username: **{username}**",
+  "installed_outgoing_oauth_connections.username_": "Username: <b>{username}</b>",
   "installed_outgoing_webhooks.add": "Add Outgoing Webhook",
   "installed_outgoing_webhooks.delete.confirm": "This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?",
   "installed_outgoing_webhooks.empty": "No outgoing webhooks found",
