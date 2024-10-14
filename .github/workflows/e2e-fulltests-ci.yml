@@ -217,14 +217,16 @@ jobs:
           STATUS_CHECK_CONTEXT: "${{steps.generate.outputs.status_check_context}}"
           WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
+          RUN_CYPRESS: "${{inputs.RUN_CYPRESS || ''}}"
+          RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT || ''}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
-          You can check its progress by either:
-          - Looking at the corresponding commit statuses: \`${STATUS_CHECK_CONTEXT}\` and \`${STATUS_CHECK_CONTEXT}-playwright\`.
-          - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
-          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL). (Cypress only)
+          E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, service overrides \`${MM_SERVICE_OVERRIDES}\` (Cypress only)}.
+          To check the run progress:
+          ${RUN_CYPRESS:+- Cypress: look for commit status \`${STATUS_CHECK_CONTEXT}\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)`.
+          }${RUN_PLAYWRIGHT:+- Playwright: look for commit status \`${STATUS_CHECK_CONTEXT}-playwright\`, or access the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL).}
+          You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
           EOF
           fi
 
@@ -311,6 +313,8 @@ jobs:
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
+      RUN_CYPRESS: "${{inputs.RUN_CYPRESS || ''}}"
+      RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT || ''}}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -318,8 +322,8 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
-          - Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
-          - Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)
+          ${RUN_CYPRESS:+- Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
+          }${RUN_PLAYWRIGHT:+- Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)}
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi

@@ -332,6 +332,15 @@ generate_env_files() {
     echo "$env" >>.env.server
   done
 
+  # Generating service-specific env vars
+  for SERVICE in $ENABLED_DOCKER_SERVICES; do
+  case $SERVICE in
+    opensearch)
+      echo "MM_ELASTICSEARCHSETTINGS_BACKEND=opensearch" >>.env.server
+      ;;
+  esac
+  done
+
   # Generating TEST-specific env files
   # Some are defaulted in .e2erc due to being needed to other scripts as well
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
