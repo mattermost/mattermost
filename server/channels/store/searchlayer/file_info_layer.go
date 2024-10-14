@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -74,6 +76,7 @@ func (s SearchFileInfoStore) deleteFileIndexForUser(rctx request.CTX, userID str
 	}
 }
 
+//nolint:unused // Temporarily unused until the post_id is indexed with the file
 func (s SearchFileInfoStore) deleteFileIndexForPost(rctx request.CTX, postID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
@@ -133,12 +136,34 @@ func (s SearchFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, chan
 	return err
 }
 
-func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (string, error) {
-	result, err := s.FileInfoStore.DeleteForPost(rctx, postId)
+func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (string, error) {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return "", fmt.Errorf("failed to get files for post %s: %w", postID, err)
+	}
+	result, err := s.FileInfoStore.DeleteForPost(rctx, postID)
 	if err == nil {
-		s.deleteFileIndexForPost(rctx, postId)
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
 	}
 	return result, err
+}
+
+func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return err
+	}
+	err = s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
+	if err == nil {
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
+	}
+	return err
 }
 
 func (s SearchFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) error {
