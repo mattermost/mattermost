@@ -47,17 +47,13 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        <span>
-          When true, external guest can be invited to channels within teams. Please see 
-          <a
-            href="../user_management/permissions/system_scheme"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Permissions Schemes
-          </a>
-           for which roles can invite guests.
-        </span>
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
       </div>
     </div>
   </div>
@@ -111,17 +107,13 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        <span>
-          When true, external guest can be invited to channels within teams. Please see 
-          <a
-            href="../user_management/permissions/system_scheme"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Permissions Schemes
-          </a>
-           for which roles can invite guests.
-        </span>
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
       </div>
     </div>
   </div>
