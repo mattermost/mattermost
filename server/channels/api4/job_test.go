@@ -38,7 +38,7 @@ func TestCreateJob(t *testing.T) {
 		require.NoError(t, err)
 		defer func() {
 			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
-			require.NoError(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
+			require.NoError(t, appErr, "Failed to delete job (result: %v)", result)
 		}()
 	})
 
@@ -62,9 +62,8 @@ func TestGetJob(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() {
-		if result, appErr := th.App.Srv().Store().Job().Delete(job.Id); appErr != nil {
-			t.Logf("Failed to delete job (result: %v): %v", result, appErr)
-		}
+		result, appErr := th.App.Srv().Store().Job().Delete(job.Id)
+		require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
 	}()
 
 	received, _, err := th.SystemAdminClient.GetJob(context.Background(), job.Id)
@@ -122,9 +121,8 @@ func TestGetJobs(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func(jobId string) {
-			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
-				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
-			}
+			result, appErr := th.App.Srv().Store().Job().Delete(jobId)
+			require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
 		}(job.Id)
 	}
 
@@ -206,9 +204,8 @@ func TestGetJobsByType(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func(jobId string) {
-			if result, appErr := th.App.Srv().Store().Job().Delete(jobId); appErr != nil {
-				t.Logf("Failed to delete job (result: %v): %v", result, appErr)
-			}
+			result, appErr := th.App.Srv().Store().Job().Delete(jobId)
+			require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
 		}(job.Id)
 	}
 
@@ -279,9 +276,8 @@ func TestDownloadJob(t *testing.T) {
 	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
 	defer func() {
-		if _, delErr := th.App.Srv().Store().Job().Delete(job.Id); delErr != nil {
-			t.Logf("Failed to delete job %s: %v", job.Id, delErr)
-		}
+		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
+		require.Nil(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
@@ -341,9 +337,8 @@ func TestDownloadJob(t *testing.T) {
 	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
 	defer func() {
-		if _, delErr := th.App.Srv().Store().Job().Delete(job.Id); delErr != nil {
-			t.Logf("Failed to delete job %s: %v", job.Id, delErr)
-		}
+		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
+		require.Nil(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
 	// System admin shouldn't be able to download since the job type is not message export
@@ -379,12 +374,10 @@ func TestCancelJob(t *testing.T) {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
 		defer func(jobId string) {
-			if _, delErr := th.App.Srv().Store().Job().Delete(jobId); delErr != nil {
-				t.Logf("Failed to delete job %s: %v", jobId, delErr)
-			}
+			_, delErr := th.App.Srv().Store().Job().Delete(jobId)
+			require.Nil(t, delErr, "Failed to delete job %s", jobId)
 		}(job.Id)
 	}
-
 	resp, err := th.Client.CancelJob(context.Background(), jobs[0].Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -436,9 +429,8 @@ func TestUpdateJobStatus(t *testing.T) {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
 		defer func(jobId string) {
-			if _, delErr := th.App.Srv().Store().Job().Delete(jobId); delErr != nil {
-				t.Logf("Failed to delete job %s: %v", jobId, delErr)
-			}
+			_, delErr := th.App.Srv().Store().Job().Delete(jobId)
+			require.Nil(t, delErr, "Failed to delete job %s", jobId)
 		}(job.Id)
 	}
 
