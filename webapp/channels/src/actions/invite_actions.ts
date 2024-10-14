@@ -3,8 +3,8 @@
 
 import {defineMessage} from 'react-intl';
 
-import type { Channel, ChannelMembership } from '@mattermost/types/channels';
-import { GlobalState } from '@mattermost/types/store';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
 import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -176,16 +176,16 @@ export async function sendGuestInviteForUser(
             };
         }
         return {
-                notSent: {
-                    user,
-                    reason: defineMessage({
-                        id: 'invite.members.user-is-not-guest-not-admin',
-                        defaultMessage:
-                            'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
-                    }),
-                },
-            };
-        }
+            notSent: {
+                user,
+                reason: defineMessage({
+                    id: 'invite.members.user-is-not-guest-not-admin',
+                    defaultMessage:
+                        'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
+                }),
+            },
+        };
+    }
 
     let memberOfAll = true;
     let memberOfAny = false;
@@ -216,7 +216,7 @@ export async function sendGuestInviteForUser(
         for (const channel of channels) {
             const member = members && members[channel.id] && members[channel.id][user.id];
             if (!member) {
-                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name));  
+                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
             }
         }
     } catch (e) {
