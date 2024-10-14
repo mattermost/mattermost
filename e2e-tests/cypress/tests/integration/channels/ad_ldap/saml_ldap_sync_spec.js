@@ -14,14 +14,16 @@
 
 // Group: @channels @enterprise @ldap @saml @keycloak
 
-import {LdapUser} from 'tests/support/ldap_server_commands';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
 import {getKeycloakServerSettings} from '../../../utils/config';
 
 describe('AD / LDAP', () => {
-    let samlLdapUser: LdapUser;
-    let testTeamId: string;
+    const admin = getAdminAccount();
+    const samlConfig = getKeycloakServerSettings();
+
+    let samlLdapUser;
+    let testTeamId;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -37,7 +39,6 @@ describe('AD / LDAP', () => {
             testTeamId = team.id;
         });
 
-        const samlConfig = getKeycloakServerSettings();
         cy.apiUpdateConfig(samlConfig).then(() => {
             // # Require keycloak with realm setup
             cy.apiRequireKeycloak();
@@ -51,19 +52,44 @@ describe('AD / LDAP', () => {
 
             // # Wait for the UI to be ready which indicates SAML registration is complete
             cy.findByText('Logout').click();
+
+            // # Add user to team
+            cy.apiAdminLogin();
+            cy.apiGetUserByEmail(samlLdapUser.email).then(({user}) => {
+                cy.apiAddUserToTeam(testTeamId, user.id);
+            });
         });
     });
 
-    beforeEach(() => {
+    it('MM-T3013_1 - SAML LDAP Sync Off, user attributes pulled from SAML', () => {
+        // # Login to Keycloak
+        cy.doKeycloakLogin(samlLdapUser);
+
+        // * Check the user settings
+        cy.verifyAccountNameSettings(samlLdapUser.firstname, samlLdapUser.lastname);
+
+        // # Run LDAP Sync
+        cy.runLdapSync(admin);
+
+        // Refresh make sure user not logged out.
+        cy.reload();
+
+        // * Check the user settings
+        cy.verifyAccountNameSettings(samlLdapUser.firstname, samlLdapUser.lastname);
+    });
+
+    it('MM-T3013_2 - SAML LDAP Sync On, user attributes pulled from LDAP', () => {
+        const testConfig = {
+            ...samlConfig,
+            SamlSettings: {
+                ...samlConfig.SamlSettings,
+                EnableSyncWithLdap: true,
+            },
+        };
         cy.apiAdminLogin();
-        cy.apiGetUserByEmail(samlLdapUser.email).then(({user}) => {
-            cy.apiAddUserToTeam(testTeamId, user.id);
-            cy.apiRevokeUserSessions(user.id);
-        });
-    });
+        cy.apiUpdateConfig(testConfig);
 
-    it('MM-T3666 - SAML / LDAP sync with ID Attribute', () => {
-        // # Login via Keycloak
+        // # Login to Keycloak
         cy.doKeycloakLogin(samlLdapUser);
 
         // * Check the user settings
@@ -78,13 +104,12 @@ describe('AD / LDAP', () => {
             firstname: newFirstName,
             lastname: newLastName,
         });
-        const admin = getAdminAccount();
         cy.runLdapSync(admin);
 
-        // # Reload the page
+        // # Refresh make sure user not logged out.
         cy.reload();
 
-        // * Check the user settings is in sync with the new attributes
+        // * Check the user settings
         cy.verifyAccountNameSettings(newFirstName, newLastName);
     });
 });

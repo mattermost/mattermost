@@ -15,6 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {appsPluginID} from 'utils/apps';
@@ -1215,7 +1216,7 @@ class PluginManagement extends AdminSettings<Props, State> {
                                 <BooleanSetting
                                     id='enableRemoteMarketplace'
                                     label={<FormattedMessage {...messages.enableRemoteMarketplace}/>}
-                                    helpText={<FormattedMessage {...messages.enableRemoteMarketplaceDesc}/>}
+                                    helpText={<FormattedMarkdownMessage {...messages.enableRemoteMarketplaceDesc}/>}
                                     value={this.state.enableRemoteMarketplace}
                                     disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
                                     onChange={this.handleChange}

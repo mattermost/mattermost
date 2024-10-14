@@ -15,14 +15,14 @@
 // Group: @channels @enterprise @ldap @saml @keycloak
 
 import {getAdminAccount} from '../../../support/env';
-import {generateLDAPUser, LdapUser} from '../../../support/ldap_server_commands';
+import {generateLDAPUser} from '../../../support/ldap_server_commands';
 import {getKeycloakServerSettings} from '../../../utils/config';
 
 describe('AD / LDAP', () => {
     const nonLDAPUser = generateLDAPUser();
 
-    let samlLdapUser: LdapUser;
-    let testTeamId: string;
+    let samlLdapUser;
+    let testTeamId;
 
     before(() => {
         cy.createLDAPUser().then((user) => {
