@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {useIntl, defineMessages} from 'react-intl';
 import styled from 'styled-components';
 
@@ -50,7 +52,7 @@ const ExtensionText = styled.span`
     margin-left: 4px;
 `;
 
-const messages: Record<string, {id: string; defaultMessage: string}> =
+const messages: Record<string, MessageDescriptor> =
     defineMessages({
         pdf: {
             id: 'file_type.pdf',
@@ -101,28 +103,24 @@ const messages: Record<string, {id: string; defaultMessage: string}> =
 const SearchFileExtensionSuggestion = React.forwardRef<
 HTMLDivElement,
 SuggestionProps<ExtensionItem>
->((props, ref) => {
+>(({item, onClick, matchedPretext, isSelection}, ref) => {
     const intl = useIntl();
-    const {item, onClick, matchedPretext, isSelection} = props;
 
     const optionClicked = useCallback(() => {
         onClick(item.value, matchedPretext);
     }, [onClick, item.value, matchedPretext]);
 
-    let labelName: React.ReactNode = item.type;
-    labelName = messages[item.type] ?
+    const labelName = messages[item.type] ?
         intl.formatMessage(messages[item.type]) :
         item.type;
 
     return (
         <SearchFileExtensionSuggestionContainer
             ref={ref}
-            className={isSelection ? 'selected' : ''}
+            className={classNames({selected: isSelection})}
             onClick={optionClicked}
         >
-            <div
-                className={'file-icon ' + getCompassIconClassName(item.type)}
-            />
+            <div className={classNames('file-icon', getCompassIconClassName(item.type))}/>
             {labelName}
             <ExtensionText>{`(.${item.value})`}</ExtensionText>
         </SearchFileExtensionSuggestionContainer>

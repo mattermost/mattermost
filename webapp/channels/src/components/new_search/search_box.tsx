@@ -72,10 +72,7 @@ const SearchBox = forwardRef(
         const inputRef = useRef<HTMLInputElement | null>(null);
 
         const getCaretPosition = useCallback(() => {
-            if (inputRef.current) {
-                return inputRef.current.selectionEnd || 0;
-            }
-            return 0;
+            return inputRef.current?.selectionEnd || 0;
         }, []);
 
         const addSearchHint = useCallback((newSearchTerms: string) => {
@@ -148,9 +145,9 @@ const SearchBox = forwardRef(
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
                 setSearchTerms(
                     searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$'), '') +
-                        value +
-                        extraSpace +
-                        searchTerms.slice(caretPosition),
+                    value +
+                    extraSpace +
+                    searchTerms.slice(caretPosition),
                 );
                 focus((caretPosition + value.length + 1) - matchedPretext.length);
             },

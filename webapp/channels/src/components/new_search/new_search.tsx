@@ -200,6 +200,12 @@ const NewSearch = (): JSX.Element => {
         [pluginSearch],
     );
 
+    const onClose = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        dispatch(updateSearchType(''));
+        dispatch(updateSearchTerms(''));
+    }, []);
+
     const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
 
     return (
@@ -237,10 +243,7 @@ const NewSearch = (): JSX.Element => {
                 <CloseIcon
                     data-testid='input-clear'
                     role='button'
-                    onClick={() => {
-                        dispatch(updateSearchType(''));
-                        dispatch(updateSearchTerms(''));
-                    }}
+                    onClick={onClose}
                 >
                     <span
                         className='input-clear-x'

@@ -35,7 +35,7 @@ type Props = {
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
-    providerResults: ProviderResult<unknown>|null;
+    providerResults: ProviderResult<unknown> | null;
     onSearch: (searchType: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }
