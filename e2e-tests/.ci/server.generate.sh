@@ -224,6 +224,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       - "./.env.playwright"
     environment:
       CI: "true"
+      PLAYWRIGHT_SKIP_BROWSER_GC: 1
       PW_BASE_URL: http://localhost:8065
       PW_ADMIN_USERNAME: sysadmin
       PW_ADMIN_PASSWORD: Sys@dmin-sample1
