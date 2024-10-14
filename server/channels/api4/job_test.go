@@ -38,7 +38,7 @@ func TestCreateJob(t *testing.T) {
 		require.NoError(t, err)
 		defer func() {
 			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
-			require.Nil(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
+			require.NoError(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
 		}()
 	})
 
