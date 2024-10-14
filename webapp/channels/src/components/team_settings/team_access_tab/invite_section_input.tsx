@@ -8,8 +8,6 @@ import {useSelector} from 'react-redux';
 import {RefreshIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
-import {Permissions} from 'mattermost-redux/constants';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
