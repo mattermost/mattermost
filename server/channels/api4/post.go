@@ -54,7 +54,7 @@ func postChecks(c *Context, post *model.Post) {
 	// same change for scheduled posts as well in the `scheduledPostChecks()` function
 	// in API layer.
 
-	postPermissionCheck(c, post.ChannelId)
+	userCreatePostPermissionCheck(c, post.ChannelId)
 	if c.Err != nil {
 		return
 	}
@@ -906,9 +906,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	postHardenedModeCheck(c, *post.Props)
-	if c.Err != nil {
-		return
+	if post.Props != nil {
+		postHardenedModeCheck(c, *post.Props)
+		if c.Err != nil {
+			return
+		}
 	}
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored

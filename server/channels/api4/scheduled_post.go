@@ -24,7 +24,7 @@ func (api *API) InitScheduledPost() {
 }
 
 func scheduledPostChecks(c *Context, scheduledPost *model.ScheduledPost) {
-	postPermissionCheck(c, scheduledPost.ChannelId)
+	userCreatePostPermissionCheck(c, scheduledPost.ChannelId)
 	if c.Err != nil {
 		return
 	}

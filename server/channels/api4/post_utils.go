@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func postPermissionCheck(c *Context, channelId string) {
+func userCreatePostPermissionCheck(c *Context, channelId string) {
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost) {
 		hasPermission = true
