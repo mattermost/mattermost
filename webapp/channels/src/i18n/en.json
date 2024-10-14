@@ -2625,7 +2625,7 @@
   "admin.team_channel_settings.convertConfirmModal.toPrivateMessageConfirmation": "Are you sure you want to convert {displayName} to a private channel?",
   "admin.team_channel_settings.convertConfirmModal.toPrivateTitle": "Convert {displayName} to a private channel?",
   "admin.team_channel_settings.convertConfirmModal.toPublicConfirm": "Yes, convert to public channel",
-  "admin.team_channel_settings.convertConfirmModal.toPublicMessage": "When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can by joined by users on the system without invitation.",
+  "admin.team_channel_settings.convertConfirmModal.toPublicMessage": "When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can be joined by users on the system without invitation.",
   "admin.team_channel_settings.convertConfirmModal.toPublicMessageConfirmation": "Are you sure you want to convert {displayName} to a public channel?",
   "admin.team_channel_settings.convertConfirmModal.toPublicTitle": "Convert {displayName} to a public channel?",
   "admin.team_channel_settings.group_list.membersHeader": "Member Count",
