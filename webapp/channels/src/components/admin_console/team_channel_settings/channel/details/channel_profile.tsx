@@ -34,7 +34,7 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                 <b>
                     <FormattedMessage
                         id='admin.channelSettings.channelDetail.channel_organizations'
-                        defaultMessage='Organizations'                      
+                        defaultMessage='Organizations'
                     />
                 </b>
                 <br/>
