@@ -231,14 +231,14 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           <p
             className="signup-body-card-agreement"
           >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
+            <MemoizedFormattedMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
+              id="signup.agreement"
               values={
                 Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
+                  "privacyPolicyLink": [Function],
                   "siteName": "Mattermost",
+                  "termsOfUseLink": [Function],
                 }
               }
             />
@@ -450,14 +450,14 @@ exports[`components/signup/Signup should match snapshot for all signup options e
           <p
             className="signup-body-card-agreement"
           >
-            <FormattedMarkdownMessage
-              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}."
-              id="create_team.agreement"
+            <MemoizedFormattedMessage
+              defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}."
+              id="signup.agreement"
               values={
                 Object {
-                  "PrivacyPolicyLink": "!undefined",
-                  "TermsOfServiceLink": "!undefined",
+                  "privacyPolicyLink": [Function],
                   "siteName": "Mattermost",
+                  "termsOfUseLink": [Function],
                 }
               }
             />

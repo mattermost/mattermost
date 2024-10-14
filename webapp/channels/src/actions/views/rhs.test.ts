@@ -125,6 +125,7 @@ describe('rhs view actions', () => {
             rhs: {
                 rhsState: null,
                 filesSearchExtFilter: [] as string[],
+                searchType: '',
             },
             posts: {
                 editingPost: {
@@ -219,7 +220,12 @@ describe('rhs view actions', () => {
 
     describe('performSearch', () => {
         // timezone offset in seconds
-        const timeZoneOffset = getBrowserUtcOffset() * 60;
+        let timeZoneOffset = getBrowserUtcOffset() * 60;
+
+        // Avoid problems with negative cero
+        if (timeZoneOffset === 0) {
+            timeZoneOffset = 0;
+        }
 
         test('it dispatches searchPosts correctly', () => {
             const terms = '@here test search';
@@ -276,6 +282,7 @@ describe('rhs view actions', () => {
             views: {
                 rhs: {
                     searchTerms: terms,
+                    searchType: 'messages',
                     filesSearchExtFilter: [] as string[],
                 },
             },
@@ -291,6 +298,10 @@ describe('rhs view actions', () => {
             compareStore.dispatch({
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
+            });
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+                searchType: 'messages',
             });
             compareStore.dispatch(performSearch(terms));
 
@@ -861,6 +872,7 @@ describe('rhs view actions', () => {
                 views: {
                     rhs: {
                         searchTerms: terms,
+                        searchType: 'messages',
                         filesSearchExtFilter: [] as string[],
                     },
                 },
@@ -874,6 +886,10 @@ describe('rhs view actions', () => {
             compareStore.dispatch({
                 type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS,
                 terms,
+            });
+            compareStore.dispatch({
+                type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+                searchType: 'messages',
             });
             compareStore.dispatch(performSearch(terms));
 

@@ -286,16 +286,16 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	err = l.SetWithDefaultExpiry("user", user)
 	require.NoError(t, err)
 
-	var u *model.User
+	var u model.User
 	err = l.Get("user", &u)
 	require.NoError(t, err)
 	// msgp returns an empty map instead of a nil map.
 	// This does not make an actual difference in terms of functionality.
 	u.Timezone = nil
-	require.Equal(t, user, u)
+	require.Equal(t, user, &u)
 
 	tt := make(model.UserMap)
-	tt["1"] = u
+	tt["1"] = &u
 	err = l.SetWithDefaultExpiry("mm", tt)
 	require.NoError(t, err)
 
