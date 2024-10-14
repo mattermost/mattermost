@@ -56,13 +56,12 @@ describe('Search Date Filter', () => {
         cy.get('#searchBox').clear().type('before:');
 
         // * Day picker should be visible
-        cy.get('.DayPicker').
+        cy.get('.rdp-table').
             as('dayPicker').
             should('be.visible');
 
         // # Select today's day
-        cy.get('@dayPicker').
-            find('.DayPicker-Day--today').click();
+        cy.get('@dayPicker').find('.rdp-day_today').click();
 
         cy.get('@dayPicker').should('not.exist');
 
@@ -83,13 +82,12 @@ describe('Search Date Filter', () => {
         cy.get('#searchBox').clear().type('before:');
 
         // * Date picker should be visible
-        cy.get('.DayPicker').
+        cy.get('.rdp-table').
             as('dayPicker').
             should('be.visible');
 
         // # Select today's day
-        cy.get('@dayPicker').
-            find('.DayPicker-Day--today').click();
+        cy.get('@dayPicker').find('.rdp-day_today').click();
 
         // * Date picker should disappear
         cy.get('@dayPicker').should('not.exist');

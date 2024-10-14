@@ -28,7 +28,7 @@ declare namespace Cypress {
     type Team = import('@mattermost/types/teams').Team;
     type TeamMembership = import('@mattermost/types/teams').TeamMembership;
     type TermsOfService = import('@mattermost/types/terms_of_service').TermsOfService;
-    type UserProfile = import('@mattermost/types/users').UserProfile;
+    type UserProfile = import('@mattermost/types/users').UserProfile & {email_verified?: boolean | undefined};
     type UserStatus = import('@mattermost/types/users').UserStatus;
     type UserCustomStatus = import('@mattermost/types/users').UserCustomStatus;
     type UserAccessToken = import('@mattermost/types/users').UserAccessToken;
