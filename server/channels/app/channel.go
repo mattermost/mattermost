@@ -2660,7 +2660,7 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 	status, err := a.Srv().Platform().GetStatus(userID)
 
 	oldStatus := model.StatusOffline
-
+	oldChannelID := status.ActiveChannel
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 	} else {
@@ -2676,6 +2676,24 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 
 	if status.Status != oldStatus {
 		a.Srv().Platform().BroadcastStatus(status)
+	}
+
+	if len(channelID) > 0 && oldChannelID != channelID {
+		// is this a read-only channel?
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsReadOnlyChannel(channelID)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it is a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_viewed",
+				map[string]any{
+					"user_actual_id": userID,
+					"channel_id":     channelID,
+				},
+			)
+		}
 	}
 
 	return nil

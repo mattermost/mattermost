@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const (
@@ -76,6 +77,23 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
 				mlog.Err(err),
+			)
+		}
+	}
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it was a post to a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_posted",
+				map[string]any{
+					"user_actual_id": post.UserId,
+					"channel_id":     post.ChannelId,
+				},
 			)
 		}
 	}

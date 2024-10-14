@@ -880,6 +880,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			}
 		}
 	}
+	for groupId, _ := range mentions.GroupMentions {
+		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{"user_actual_id": sender.Id, "group_id": groupId, "group_size": groups[groupId].MemberCount})
+	}
 	return mentionedUsersList, nil
 }
 
