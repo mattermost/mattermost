@@ -29,6 +29,7 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
+import {useScrollOnRender} from 'components/common/hooks/scroll';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
@@ -49,6 +50,7 @@ type Props = {
     displayName: string;
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
+    scrollIntoView?: boolean;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -59,6 +61,7 @@ function DraftRow({
     status,
     displayName,
     isRemote,
+    scrollIntoView,
 }: Props) {
     const intl = useIntl();
 
@@ -245,6 +248,8 @@ function DraftRow({
         }
     }, [thread?.id]);
 
+    const alertRef = useScrollOnRender();
+
     if (!channel) {
         return null;
     }
@@ -270,6 +275,8 @@ function DraftRow({
         <Panel
             onClick={goToMessage}
             hasError={Boolean(postError)}
+            innerRef={scrollIntoView ? alertRef : undefined}
+            className={scrollIntoView ? 'target' : ''}
         >
             {({hover}) => (
                 <>

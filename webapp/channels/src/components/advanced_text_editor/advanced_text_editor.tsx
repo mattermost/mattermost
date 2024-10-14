@@ -432,7 +432,6 @@ const AdvancedTextEditor = ({
         draftRef.current = draft;
     }, [draft]);
 
-
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
 
     // Set the draft from store when changing post or channels, and store the previous one
