@@ -109,7 +109,7 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 			"sp.UserId": userId,
 			"c.TeamId":  teamId,
 		}).
-		OrderBy("sp.ScheduledAt DESC, sp.CreateAt DESC")
+		OrderBy("sp.ScheduledAt, sp.CreateAt")
 
 	var scheduledPosts []*model.ScheduledPost
 
