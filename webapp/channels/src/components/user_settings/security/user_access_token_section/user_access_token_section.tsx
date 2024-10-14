@@ -15,7 +15,6 @@ import Button from 'components/button';
 import SaveButton from 'components/button/save_button';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -276,13 +275,22 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             ),
             confirmMessage: () => (
                 <div className='alert alert-danger'>
-                    <FormattedMarkdownMessage
-                        id='user.settings.tokens.confirmDeleteMessage'
-                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. \n \nAre you sure want to delete the **{description}** token?'
-                        values={{
-                            description: token.description,
-                        }}
-                    />
+                    <p>
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmDelete.description'
+                            defaultMessage={'Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action.'}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='user.settings.tokens.confirmDelete.confirmation'
+                            defaultMessage={'Are you sure you want to delete the <b>{description}</b> token?'}
+                            values={{
+                                description: token.description,
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
+                        />
+                    </p>
                 </div>
             ),
             confirmButton: (
