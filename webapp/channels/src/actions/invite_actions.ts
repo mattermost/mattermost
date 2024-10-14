@@ -22,6 +22,7 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+import { GlobalState } from '@mattermost/types/store';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
@@ -156,7 +157,7 @@ export async function sendGuestInviteForUser(
     teamId: string,
     channels: Channel[],
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
-    getState: () => RootStateOrAny,
+    getState: () => GlobalState,
 ): Promise<({sent: InviteResult} | {notSent: InviteResult})> {
     const state = getState();
     const currentUserIsAdmin = isCurrentUserSystemAdmin(state);
@@ -173,8 +174,9 @@ export async function sendGuestInviteForUser(
                     }),
                 },
             };
-        } else {
-            return {
+        }
+        
+        return {
                 notSent: {
                     user,
                     reason: defineMessage({
@@ -185,7 +187,6 @@ export async function sendGuestInviteForUser(
                 },
             };
         }
-    }
 
     let memberOfAll = true;
     let memberOfAny = false;
@@ -258,7 +259,6 @@ export async function sendGuestInviteForUser(
     };
 }
 
-
 export function sendGuestsInvites(
     teamId: string,
     channels: Channel[],
@@ -271,7 +271,7 @@ export function sendGuestsInvites(
         const sent = [];
         const notSent = [];
         const members = getChannelMembersInChannels(state);
-        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members)));
+        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members, getState)));
 
         for (const result of results) {
             if ('sent' in result && result.sent) {
