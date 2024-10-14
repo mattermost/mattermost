@@ -38,7 +38,7 @@ func Test_getIPFilters(t *testing.T) {
 		th.App.Srv().IPFiltering = ipFiltering
 
 		appErr := th.App.Srv().RemoveLicense()
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -162,7 +162,7 @@ func Test_applyIPFilters(t *testing.T) {
 		th.App.Srv().IPFiltering = ipFiltering
 
 		appErr := th.App.Srv().RemoveLicense()
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -184,6 +184,7 @@ func Test_applyIPFilters(t *testing.T) {
 		th.App.Srv().SetLicense(lic)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
 		require.Error(t, err)
@@ -266,7 +267,7 @@ func Test_getMyIP(t *testing.T) {
 		th.App.Srv().IPFiltering = ipFiltering
 
 		appErr := th.App.Srv().RemoveLicense()
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
