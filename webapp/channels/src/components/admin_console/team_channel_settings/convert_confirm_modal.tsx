@@ -112,14 +112,10 @@ const messages = defineMessages({
     },
     toPrivateMessage: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessage',
-
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
         defaultMessage: 'When you convert {displayName} to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link.',
     },
     toPrivateMessageConfirmation: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageConfirmation',
-
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
         defaultMessage: 'Are you sure you want to convert {displayName} to a private channel?',
     },
     toPrivateTitle: {
@@ -132,14 +128,10 @@ const messages = defineMessages({
     },
     toPublicMessage: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessage',
-
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
         defaultMessage: 'When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can by joined by users on the system without invitation.',
     },
     toPublicMessageConfirmation: {
         id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageConfirmation',
-
-        // eslint-disable-next-line formatjs/no-multiple-whitespaces
         defaultMessage: 'Are you sure you want to convert {displayName} to a public channel?',
     },
     toPublicTitle: {
