@@ -101,11 +101,11 @@ describe('Integrations page', () => {
             const cId = clientID as unknown as string;
             cy.contains('.item-details', cId).within(() => {
                 // * Copy button should exist for Client ID
-                cy.contains('.item-details__token', 'Client ID').within(() => {
+                cy.contains('.item-details__token', 'Client ID').should('exist').within(() => {
                     cy.get('.fa-copy').should('exist');
                 });
 
-                cy.contains('.item-details__token', 'Client Secret').within(() => {
+                cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Client secret should not show
                     cy.contains('*******************').should('exist');
 
@@ -120,7 +120,7 @@ describe('Integrations page', () => {
                 cy.findByText('Hide Secret').should('exist');
                 cy.findByText('Show Secret').should('not.exist');
 
-                cy.contains('.item-details__token', 'Client Secret').within(() => {
+                cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Token should not be obscured
                     cy.contains('*******************').should('not.exist');
 
