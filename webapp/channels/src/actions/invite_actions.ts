@@ -3,7 +3,8 @@
 
 import {defineMessage} from 'react-intl';
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type { Channel, ChannelMembership } from '@mattermost/types/channels';
+import { GlobalState } from '@mattermost/types/store';
 import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -22,7 +23,6 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
-import { GlobalState } from '@mattermost/types/store';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
@@ -175,7 +175,6 @@ export async function sendGuestInviteForUser(
                 },
             };
         }
-        
         return {
                 notSent: {
                     user,
@@ -217,7 +216,7 @@ export async function sendGuestInviteForUser(
         for (const channel of channels) {
             const member = members && members[channel.id] && members[channel.id][user.id];
             if (!member) {
-                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name)); // eslint-disable-line no-await-in-loop
+                await dispatch(joinChannel(user.id, teamId, channel.id, channel.name));  
             }
         }
     } catch (e) {
