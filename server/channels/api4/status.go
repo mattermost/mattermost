@@ -110,7 +110,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Logger.Warn("Failed to get current status", mlog.Err(err))
 	}
-	if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
+	} else if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
 		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 		if err != nil {
 			c.Err = err
