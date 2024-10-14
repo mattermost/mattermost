@@ -5630,6 +5630,8 @@
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.button": "How to enable notifications",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.message": "You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.title": "Web browser notifications permission was denied",
+  "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message": "Please allow Mattermost to notify you to start receiving message and call notifications. You need to enable notifications for Mattermost desktop in your system notification settings.",
+  "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.title": "Desktop notifications permission was denied",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionIssueTag": "Permission required",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.button": "Enable notifications",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.message": "You're missing important message and call notifications from Mattermost. Mattermost notifications are disabled by this web browser.",
