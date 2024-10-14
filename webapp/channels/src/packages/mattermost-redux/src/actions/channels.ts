@@ -15,6 +15,7 @@ import type {
     ChannelStats,
     ChannelWithTeamData,
 } from '@mattermost/types/channels';
+import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
@@ -937,9 +938,9 @@ export function searchChannels(teamId: string, term: string, archived?: boolean)
     };
 }
 
-export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount>;
-export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): ActionFuncAsync<ChannelWithTeamData[]>;
-export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): ActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
+export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): ActionFuncAsync<ChannelsWithTotalCount>;
+export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): ActionFuncAsync<ChannelWithTeamData[]>;
+export function searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}): ActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
@@ -947,6 +948,9 @@ export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): A
         try {
             response = await Client4.searchAllChannels(term, opts);
         } catch (error) {
+            if (opts.signal?.aborted) {
+                return {error};
+            }
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
             dispatch(logError(error));

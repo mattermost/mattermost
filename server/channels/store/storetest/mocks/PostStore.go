@@ -1046,6 +1046,24 @@ func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int,
 	return r0, r1, r2
 }
 
+// PermanentDelete provides a mock function with given fields: rctx, postID
+func (_m *PostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	ret := _m.Called(rctx, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
