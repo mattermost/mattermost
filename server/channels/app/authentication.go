@@ -59,14 +59,13 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, u *model.User, password string, mfaToken string) *model.AppError {
+func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
 	// MM-37585
-	// The user param will have stale info. in case of concurrent failed login attempts by the same user.
-	// So, lock and fetch the updated loginAttempts count.
+	// Use locks to avoid concurrently checking AND updating the failed login attempts.
 	a.ch.loginAttemptsMut.Lock()
 	defer a.ch.loginAttemptsMut.Unlock()
 
-	user, err := a.GetUser(u.Id)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		if err.Id != MissingAccountError {
 			err.StatusCode = http.StatusInternalServerError
@@ -285,7 +284,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user.Id, password, mfaToken); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
 		}

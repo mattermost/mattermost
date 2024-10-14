@@ -89,7 +89,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 		token := fmt.Sprintf("%06d", code)
 
-		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser, password, token)
+		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, token)
 		require.Nil(t, appErr)
 	})
 
@@ -144,7 +144,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 						fetchedWG.Wait()
 
 						// Simulate concurrent failed login checks
-						appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
+						appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, user.Id, tc.password, tc.mfaToken)
 					}(i)
 				}
 
