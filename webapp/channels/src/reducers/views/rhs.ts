@@ -271,6 +271,18 @@ function searchResultsTerms(state = '', action: AnyAction) {
     }
 }
 
+function searchResultsType(state = '', action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE:
+        return action.searchType;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 function isSearchingFlaggedPost(state = false, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
@@ -424,6 +436,7 @@ export default combineReducers({
     searchTeam,
     searchType,
     searchResultsTerms,
+    searchResultsType,
     size,
     pluggableId,
     isSearchingFlaggedPost,

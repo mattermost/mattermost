@@ -107,6 +107,15 @@ func postSliceColumns() []string {
 	return cols
 }
 
+func postSliceColumnsWithName(name string) []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = name + "." + colInfo.Name
+	}
+	return cols
+}
+
 func postSliceCoalesceQuery() string {
 	colInfos := postSliceColumnsWithTypes()
 	cols := make([]string, len(colInfos))
@@ -942,6 +951,13 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		err = s.deleteThread(transaction, postID, time)
 	} else {
 		err = s.updateThreadAfterReplyDeletion(transaction, id.RootId, id.UserId)
+		updatePostQuery := s.getQueryBuilder().
+			Update("Posts").
+			Set("UpdateAt", time).
+			Where(sq.Eq{"Id": id.RootId})
+		if _, err = transaction.ExecBuilder(updatePostQuery); err != nil {
+			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
+		}
 	}
 
 	if err != nil {
@@ -953,6 +969,10 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 	}
 
 	return nil
+}
+
+func (s *SqlPostStore) PermanentDelete(rctx request.CTX, postID string) (err error) {
+	return s.permanentDelete([]string{postID})
 }
 
 func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
@@ -2657,13 +2677,22 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
 		}
 
+		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
+		if s.DriverName() == model.DatabaseDriverMysql {
+			aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
+		}
+		result := []*model.PostForExport{}
+
 		builder := s.getQueryBuilder().
-			Select("p1.*, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName").
+			Select(fmt.Sprintf("%s, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName, %s as FlaggedBy", strings.Join(postSliceColumnsWithName("p1"), ", "), aggFn)).
 			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
+			LeftJoin("Preferences ON p1.Id = Preferences.Name").
+			LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
 			Where(excludeDeletedCond).
+			GroupBy(fmt.Sprintf("%s, Users.Username, Teams.Name, Channels.Name", strings.Join(postSliceColumnsWithName("p1"), ", "))).
 			OrderBy("p1.Id")
 
 		query, args, err := builder.ToSql()
@@ -2671,56 +2700,72 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			return nil, errors.Wrap(err, "postsForExport_toSql")
 		}
 
-		err = s.GetSearchReplicaX().Select(&postsForExport, query, args...)
+		err = s.GetSearchReplicaX().Select(&result, query, args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
 		}
 
-		if len(postsForExport) == 0 {
+		if len(result) == 0 {
 			// All of the posts were in channels or teams that were deleted.
 			// Update the afterId and try again.
 			afterId = rootIds[len(rootIds)-1]
 			continue
 		}
 
-		return postsForExport, nil
+		return result, nil
 	}
 }
 
 func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExport, error) {
-	posts := []*model.ReplyForExport{}
-	err := s.GetSearchReplicaX().Select(&posts, `
-			SELECT
-				Posts.*,
-				Users.Username as Username
-			FROM
-				Posts
-			INNER JOIN
-				Users ON Posts.UserId = Users.Id
-			WHERE
-				Posts.RootId = ?
-				AND Posts.DeleteAt = 0
-			ORDER BY
-				Posts.Id`, rootId)
+	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
+	if s.DriverName() == model.DatabaseDriverMysql {
+		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
+	}
+	result := []*model.ReplyForExport{}
+
+	qb := s.getQueryBuilder().Select(fmt.Sprintf("Posts.*, u2.Username as Username, %s as FlaggedBy", aggFn)).
+		From("Posts").
+		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
+		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
+		Where(sq.And{sq.Eq{"Posts.RootId": rootId}, sq.Eq{"Posts.DeleteAt": 0}}).
+		GroupBy("Posts.Id, u2.Username").
+		OrderBy("Posts.Id")
+
+	query, args, err := qb.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "postsForExport_toSql")
+	}
+
+	err = s.GetSearchReplicaX().Select(&result, query, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
-	return posts, nil
+	return result, nil
 }
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
+	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
+	if s.DriverName() == model.DatabaseDriverMysql {
+		aggFn = "IF (COUNT(u1.Username) = 0, JSON_ARRAY(), JSON_ARRAYAGG(u1.Username))"
+	}
+	result := []*model.DirectPostForExport{}
+
 	query := s.getQueryBuilder().
-		Select("p.*", "Users.Username as User").
+		Select(fmt.Sprintf("p.*, u2.Username as User, %s as FlaggedBy", aggFn)).
 		From("Posts p").
+		LeftJoin("Preferences ON p.Id = Preferences.Name").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		Join("Channels ON p.ChannelId = Channels.Id").
-		Join("Users ON p.UserId = Users.Id").
+		Join("Users u2 ON p.UserId = u2.Id").
 		Where(sq.And{
 			sq.Gt{"p.Id": afterId},
 			sq.Eq{"p.RootId": ""},
 			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
+		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").
 		Limit(uint64(limit))
 
@@ -2735,13 +2780,12 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		return nil, errors.Wrap(err, "post_tosql")
 	}
 
-	posts := []*model.DirectPostForExport{}
-	if err2 := s.GetReplicaX().Select(&posts, queryString, args...); err2 != nil {
+	if err2 := s.GetReplicaX().Select(&result, queryString, args...); err2 != nil {
 		return nil, errors.Wrap(err2, "failed to find Posts")
 	}
 	var channelIds []string
-	for _, post := range posts {
-		channelIds = append(channelIds, post.ChannelId)
+	for _, p := range result {
+		channelIds = append(channelIds, p.ChannelId)
 	}
 	query = s.getQueryBuilder().
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
@@ -2757,13 +2801,13 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	}
 
 	channelMembers := []*model.ChannelMemberForExport{}
-	if err := s.GetReplicaX().Select(&channelMembers, queryString, args...); err != nil {
+	if err = s.GetReplicaX().Select(&channelMembers, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
 
 	// Build a map of channels and their posts
 	postsChannelMap := make(map[string][]*model.DirectPostForExport)
-	for _, post := range posts {
+	for _, post := range result {
 		post.ChannelMembers = &[]string{}
 		postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
 	}
@@ -2780,7 +2824,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			*post.ChannelMembers = channelMembersMap[channelId]
 		}
 	}
-	return posts, nil
+
+	return result, nil
 }
 
 //nolint:unparam

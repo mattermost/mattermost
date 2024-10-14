@@ -31,24 +31,24 @@ export type OwnProps = {
     setSearchFilterType: (filterType: SearchFilterType) => void;
     updateSearchTeam: (teamId: string) => void;
     crossTeamSearchEnabled: boolean;
-}
+};
 
 export type StateProps = {
     results: Post[];
     fileResults: FileInfo[];
     matches: Record<string, string[]>;
     searchTerms: string;
+    searchSelectedType: string;
     isSearchingTerm: boolean;
     isSearchingFlaggedPost: boolean;
     isSearchingPinnedPost: boolean;
     isSearchGettingMore: boolean;
     isSearchAtEnd: boolean;
     isSearchFilesAtEnd: boolean;
-}
+};
 
 export type IntlProps = {
     intl: IntlShape;
-}
+};
 
 export type Props = OwnProps & StateProps & IntlProps;
-

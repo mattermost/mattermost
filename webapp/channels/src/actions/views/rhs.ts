@@ -26,7 +26,15 @@ import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/select
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState, getSearchTeam} from 'selectors/rhs';
+import {
+    getSearchType,
+    getSearchTerms,
+    getRhsState,
+    getPluggableId,
+    getFilesSearchExtFilter,
+    getPreviousRhsState,
+    getSearchTeam,
+} from 'selectors/rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -194,6 +202,13 @@ function updateSearchResultsTerms(terms: string) {
     };
 }
 
+function updateSearchResultsType(searchType: string) {
+    return {
+        type: ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE,
+        searchType,
+    };
+}
+
 export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown, GlobalState> {
     return (dispatch, getState) => {
         let searchTerms = terms;
@@ -250,6 +265,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         if (teamId === null) {
             teamId = getCurrentTeamId(state);
         }
+        const searchType = getSearchType(state);
 
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
@@ -258,6 +274,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
             dispatch(updateRhsState(RHSStates.SEARCH));
         }
         dispatch(updateSearchResultsTerms(searchTerms));
+        dispatch(updateSearchResultsType(searchType));
 
         return dispatch(performSearch(searchTerms, teamId));
     };
