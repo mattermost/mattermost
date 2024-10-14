@@ -99,7 +99,6 @@ issues:
         channels/api4/webhook_test.go|\
         channels/api4/websocket_test.go|\
         channels/app/admin.go|\
-        channels/app/admin_test.go|\
         channels/app/app_test.go|\
         channels/app/authorization_test.go|\
         channels/app/auto_responder_test.go|\
