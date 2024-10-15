@@ -10166,5 +10166,25 @@
   {
     "id": "app.channel.bookmark.get_existing.app_err",
     "translation": "無法更新現有書籤。"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "無法刪除訊息，ServiceSettings.EnableAPIPostDeletion 沒有啟用。"
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "您無法編輯使用者狀態。使用者受 LDAP 所管你"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "尋找檔案或訊息失敗。"
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "永久刪除檔案或訊息失敗。"
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "永久刪除訊息失敗。"
   }
 ]
