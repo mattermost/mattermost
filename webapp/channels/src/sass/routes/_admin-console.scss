@@ -188,6 +188,12 @@
         border: $border-gray;
         margin-top: 14px;
         background-color: white;
+
+        &:has(.LoadingSpinner) {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     }
 
     &.admin {
@@ -1091,6 +1097,28 @@
     // We keep the banner the same width and only expand the content box.
     .banner {
         max-width: 920px;
+    }
+
+    .banner-buttons {
+        display: flex;
+
+        .banner-buttons__log-format {
+            display: flex;
+            align-items: center;
+            margin-right: 28px;
+            gap: 8px;
+
+            label {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 0;
+
+                input[type="radio"] {
+                    margin-top: 0;
+                }
+            }
+        }
     }
 
     > .btn {
