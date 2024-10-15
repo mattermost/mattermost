@@ -2245,6 +2245,10 @@
     "translation": "Could not open license file."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license file content to buffer"
+  },
+  {
     "id": "api.license.add_license.save.app_error",
     "translation": "License did not save properly."
   },
