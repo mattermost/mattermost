@@ -112,7 +112,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
 		err = c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 		if err != nil {
-			c.Logger.Warn(""Failed to disable auto-responder"", mlog.Err(err))
+			c.Logger.Warn("Failed to disable auto-responder", mlog.Err(err))
 		}
 	}
 
