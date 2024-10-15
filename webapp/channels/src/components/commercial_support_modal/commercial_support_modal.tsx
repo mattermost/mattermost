@@ -147,7 +147,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                 <Modal.Body>
                     <div className='CommercialSupportModal'>
                         <FormattedMessage
-                            id='commercial_support.description'
+                            id='commercial_support_modal.description'
                             defaultMessage={'If you\'re experiencing issues, <a>submit a support ticket</a>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
                                 a: (chunks: string) => (
@@ -165,7 +165,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 mode='info'
                                 message={
                                     <FormattedMessage
-                                        id='commercial_support.warning.banner'
+                                        id='commercial_support_modal.warning.banner'
                                         defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <a>here</a>.'
                                         values={{
                                             strong: (chunks: string) => <strong>{chunks}</strong>,
@@ -179,7 +179,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                         <div className='CommercialSupportModal__packet_contents_download'>
                             <strong>
                                 <FormattedMessage
-                                    id='commercial_support.download_contents'
+                                    id='commercial_support_modal.download_contents'
                                     defaultMessage={'Select your Support Packet contents to download'}
                                 />
                             </strong>
