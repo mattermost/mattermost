@@ -333,9 +333,7 @@ func ValidateBotImportData(data *BotImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Owner == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_bot_import_data.owner_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Owner) {
+	if data.Owner != nil && *data.Owner != "" && !model.IsValidUsername(*data.Owner) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 

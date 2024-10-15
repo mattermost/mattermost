@@ -710,14 +710,6 @@ func TestImportValidateBotImportData(t *testing.T) {
 	data.DisplayName = model.NewPointer("Display Name")
 
 	// Invalid Owner Name.
-	data.Owner = nil
-	err = ValidateBotImportData(&data)
-	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
-
-	data.Owner = model.NewPointer("")
-	err = ValidateBotImportData(&data)
-	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
-
 	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateBotImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long OwnerID.")

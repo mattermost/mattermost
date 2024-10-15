@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"errors"
@@ -13,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"sync"
 
@@ -870,7 +872,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	}
 
 	var owner *model.User
-	if data.Owner != nil {
+	if data.Owner != nil && *data.Owner != "" {
 		owner, nErr = a.Srv().Store().User().GetByUsername(*data.Owner)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
@@ -884,6 +886,21 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		} else {
 			bot.OwnerId = owner.Id
 		}
+	} else {
+		// we should have at least one system admin to assign as the owner
+		// and we are going to assign the oldest system admin for that.
+		admins, err := a.getAllSystemAdmins()
+		if err != nil {
+			return err
+		}
+		if len(admins) == 0 {
+			return model.NewAppError("importBot", "app.import.import_bot.no_system_admin.error", nil, "", http.StatusInternalServerError)
+		}
+		slices.SortFunc(admins, func(a, b *model.User) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
+		})
+		bot.OwnerId = admins[0].Id
+		rctx.Logger().Warn("No owner specified for the bot, assigning it to a system administrator.", mlog.String("bot_username", bot.Username), mlog.String("owner", admins[0].Username))
 	}
 
 	var savedBot *model.Bot

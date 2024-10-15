@@ -5666,3 +5666,81 @@ func BenchmarkCompareFilesContent(b *testing.B) {
 		})
 	})
 }
+
+func TestImportBots(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("import bot with valid inputs", func(t *testing.T) {
+		botUsername := model.NewUsername()
+		appErr := th.App.importBot(th.Context, &imports.BotImportData{
+			Username:    model.NewPointer(botUsername),
+			Description: model.NewPointer("Bot description"),
+			Owner:       model.NewPointer(th.SystemAdminUser.Username),
+		}, false)
+		require.Nil(t, appErr)
+
+		user, appErr := th.App.GetUserByUsername(botUsername)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		defer func() {
+			appErr = th.App.PermanentDeleteBot(th.Context, user.Id)
+			require.Nil(t, appErr)
+		}()
+		require.True(t, user.IsBot)
+	})
+
+	t.Run("invalid username", func(t *testing.T) {
+		botUsername := model.NewUsername()
+		appErr := th.App.importBot(th.Context, &imports.BotImportData{
+			Description: model.NewPointer("Bot description"),
+			Owner:       model.NewPointer(th.SystemAdminUser.Username),
+		}, false)
+		require.NotNil(t, appErr)
+
+		user, appErr := th.App.GetUserByUsername(botUsername)
+		require.NotNil(t, appErr)
+		require.Nil(t, user)
+	})
+
+	t.Run("plugin owner", func(t *testing.T) {
+		botUsername := model.NewUsername()
+		appErr := th.App.importBot(th.Context, &imports.BotImportData{
+			Username: model.NewPointer(botUsername),
+			Owner:    model.NewPointer("mattermost-plugin-metrics"),
+		}, false)
+		require.Nil(t, appErr)
+
+		user, appErr := th.App.GetUserByUsername(botUsername)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		defer func() {
+			appErr = th.App.PermanentDeleteBot(th.Context, user.Id)
+			require.Nil(t, appErr)
+		}()
+		require.True(t, user.IsBot)
+	})
+
+	t.Run("no owner specified", func(t *testing.T) {
+		botUsername := model.NewUsername()
+		appErr := th.App.importBot(th.Context, &imports.BotImportData{
+			Username:    model.NewPointer(botUsername),
+			Description: model.NewPointer("Bot description"),
+		}, false)
+		require.Nil(t, appErr)
+
+		user, appErr := th.App.GetUserByUsername(botUsername)
+		require.Nil(t, appErr)
+		require.NotNil(t, user)
+		defer func() {
+			appErr = th.App.PermanentDeleteBot(th.Context, user.Id)
+			require.Nil(t, appErr)
+		}()
+		require.True(t, user.IsBot)
+
+		bot, appErr := th.App.GetBot(th.Context, user.Id, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, bot)
+		require.Equal(t, th.SystemAdminUser.Id, bot.OwnerId)
+	})
+}
