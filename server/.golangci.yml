@@ -302,7 +302,6 @@ issues:
         channels/web/saml.go|\
         channels/web/static.go|\
         channels/web/web.go|\
-        channels/web/web_test.go|\
         channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
         cmd/mattermost/commands/db.go|\
