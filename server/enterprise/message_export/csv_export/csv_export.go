@@ -9,13 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path"
 	"sort"
 	"strconv"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
+	"github.com/mattermost/enterprise/internal/file"
+	"github.com/mattermost/enterprise/message_export/shared"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -31,21 +31,21 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
+func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
 	buf := make([]byte, 1024*1024*2)
 	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.file.creation.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to create temporary CSV export file: %w", err)
 	}
 	defer file.DeleteTemp(rctx.Logger(), temp)
 
 	zipFile := zip.NewWriter(temp)
 	csvFile, err := zipFile.Create("posts.csv")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.zip.creation.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to create the zip export file: %w", err)
 	}
 	csvWriter := csv.NewWriter(csvFile)
 	err = csvWriter.Write([]string{
@@ -70,30 +70,31 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 	})
 
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.header.export.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to add header to the CSV export: %w", err)
 	}
 
-	metadata := common_export.Metadata{
-		Channels:         map[string]*common_export.MetadataChannel{},
+	metadata := shared.Metadata{
+		Channels:         map[string]*shared.MetadataChannel{},
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
 		EndTime:          0,
 	}
 
-	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
+	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 
 	for _, post := range posts {
-		attachments, err := getPostAttachments(db, post)
+		var attachments []*model.FileInfo
+		attachments, err = getPostAttachments(db, post)
 		if err != nil {
 			return warningCount, err
 		}
 
 		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
-			postAuthorsByChannel[*post.ChannelId] = make(map[string]common_export.ChannelMember)
+			postAuthorsByChannel[*post.ChannelId] = make(map[string]shared.ChannelMember)
 		}
 
-		postAuthorsByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
+		postAuthorsByChannel[*post.ChannelId][*post.UserId] = shared.ChannelMember{
 			UserId:   *post.UserId,
 			Username: *post.Username,
 			IsBot:    post.IsBot,
@@ -103,16 +104,17 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 		metadata.Update(post, len(attachments))
 	}
 
-	joinLeavePosts, appErr2 := getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, db)
-	if appErr2 != nil {
-		return warningCount, appErr2
+	var joinLeavePosts []*model.MessageExport
+	joinLeavePosts, err = getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, db)
+	if err != nil {
+		return warningCount, err
 	}
 
 	postsGenerator := mergePosts(joinLeavePosts, posts)
 
 	for post := postsGenerator(); post != nil; post = postsGenerator() {
 		if err = csvWriter.Write(postToRow(post, post.PostCreateAt, *post.PostMessage)); err != nil {
-			return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.post.export.appError", nil, "", 0).Wrap(err)
+			return warningCount, fmt.Errorf("unable to export a post: %w", err)
 		}
 
 		if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
@@ -120,21 +122,21 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
 				if _, ok := props[model.PostPropsDeleteBy]; ok {
 					if err = csvWriter.Write(postToRow(post, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
-						return warningCount, model.NewAppError("CsvExportPost", "ent.compliance.csv.post.export.appError", nil, "", 0).Wrap(err)
+						return warningCount, fmt.Errorf("unable to export a post: %w", err)
 					}
 				}
 			}
 		}
 
 		var attachments []*model.FileInfo
-		attachments, appErr = getPostAttachments(db, post)
-		if appErr != nil {
-			return warningCount, appErr
+		attachments, err = getPostAttachments(db, post)
+		if err != nil {
+			return warningCount, err
 		}
 
 		for _, attachment := range attachments {
 			if err = csvWriter.Write(attachmentToRow(post, attachment)); err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.export.appError", nil, "", 0).Wrap(err)
+				return warningCount, fmt.Errorf("unable to add attachment to the CSV export: %w", err)
 			}
 		}
 	}
@@ -143,7 +145,8 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 
 	var missingFiles []string
 	for _, post := range posts {
-		attachments, err := getPostAttachments(db, post)
+		var attachments []*model.FileInfo
+		attachments, err = getPostAttachments(db, post)
 		if err != nil {
 			return warningCount, err
 		}
@@ -152,15 +155,16 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 			var r io.ReadCloser
 			r, nErr := fileBackend.Reader(attachment.Path)
 			if nErr != nil {
-				missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
+				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
+				rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
 				continue
 			}
 
 			// Probably don't need to be this careful (see actiance_export.go), but may as well be consistent.
-			if err := func() error {
+			if err = func() error {
 				defer r.Close()
-				attachmentDst, err := zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
+				var attachmentDst io.Writer
+				attachmentDst, err = zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
 				if err != nil {
 					return err
 				}
@@ -172,51 +176,50 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 
 				return nil
 			}(); err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
+				return warningCount, fmt.Errorf("unable to copy the attachment into the zip file: %w", err)
 			}
 		}
 	}
 
-	warningCount = int64(len(missingFiles))
+	warningCount = len(missingFiles)
 	if warningCount > 0 {
 		metadataFile, _ := zipFile.Create(CSVWarningFilename)
 		for _, value := range missingFiles {
 			_, err = metadataFile.Write([]byte(value + "\n"))
 			if err != nil {
-				appErr = model.NewAppError("CsvExport", "ent.compliance.csv.warning.appError", nil, "", 0).Wrap(err)
-				return warningCount, appErr
+				return warningCount, fmt.Errorf("unable to create the warning file: %w", err)
 			}
 		}
 	}
 
 	metadataFile, err := zipFile.Create("metadata.json")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.json.zipfile.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to create the zip file: %w", err)
 	}
 	data, err := json.MarshalIndent(metadata, "", "  ")
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.json.marshalling.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to convert metadata to json: %w", err)
 	}
 	_, err = metadataFile.Write(data)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.export.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to add metadata file to the zip file: %w", err)
 	}
 	err = zipFile.Close()
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.close.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to close the zip file: %w", err)
 	}
 
 	_, err = temp.Seek(0, 0)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.seek.appError", nil, "", 0).Wrap(err)
+		return warningCount, fmt.Errorf("unable to seek to start of export file: %w", err)
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
 	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
 	if err != nil {
-		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return warningCount, fmt.Errorf("unable to write the csv file: %w", err)
 	}
-	return warningCount, appErr
+	return warningCount, nil
 }
 
 func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func() *model.MessageExport {
@@ -247,16 +250,16 @@ func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func(
 	}
 }
 
-func getJoinLeavePosts(channels map[string]*common_export.MetadataChannel,
-	postAuthorsByChannel map[string]map[string]common_export.ChannelMember, db store.Store) ([]*model.MessageExport, *model.AppError) {
+func getJoinLeavePosts(channels map[string]*shared.MetadataChannel,
+	postAuthorsByChannel map[string]map[string]shared.ChannelMember, db store.Store) ([]*model.MessageExport, error) {
 	joinLeavePosts := []*model.MessageExport{}
 	for _, channel := range channels {
 		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, []string{channel.ChannelId})
 		if err != nil {
-			return nil, model.NewAppError("getJoinLeavePosts", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, fmt.Errorf("failed to get users in channel during specified time period: %w", err)
 		}
 
-		joins, leaves := common_export.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, postAuthorsByChannel[channel.ChannelId])
+		joins, leaves := shared.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, postAuthorsByChannel[channel.ChannelId])
 
 		for _, join := range joins {
 			enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
@@ -333,7 +336,7 @@ func getJoinLeavePosts(channels map[string]*common_export.MetadataChannel,
 	return joinLeavePosts, nil
 }
 
-func getPostAttachments(db store.Store, post *model.MessageExport) ([]*model.FileInfo, *model.AppError) {
+func getPostAttachments(db store.Store, post *model.MessageExport) ([]*model.FileInfo, error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
 		return []*model.FileInfo{}, nil
@@ -341,7 +344,7 @@ func getPostAttachments(db store.Store, post *model.MessageExport) ([]*model.Fil
 
 	attachments, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
 	if err != nil {
-		return nil, model.NewAppError("getPostAttachments", "ent.message_export.csv_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, fmt.Errorf("failed to get file info for a post: %w", err)
 	}
 	return attachments, nil
 }
@@ -380,7 +383,7 @@ func postToRow(post *model.MessageExport, createTime *int64, message string) []s
 		*post.ChannelId,
 		*post.ChannelName,
 		*post.ChannelDisplayName,
-		common_export.ChannelTypeDisplayName(*post.ChannelType),
+		shared.ChannelTypeDisplayName(*post.ChannelType),
 		*post.UserId,
 		*post.UserEmail,
 		*post.Username,
