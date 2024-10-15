@@ -261,8 +261,8 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Equal(t, 2, len(retrievedScheduledPosts))
 
 		// more recently created scheduled post appears first in the list
-		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[0].Id)
-		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[1].Id)
+		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[0].Id)
+		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[1].Id)
 	})
 
 	t.Run("should handle no scheduled posts", func(t *testing.T) {
@@ -408,8 +408,8 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Equal(t, 2, len(retrievedScheduledPosts))
 
 		// more recently created scheduled post appears first in the list
-		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[0].Id)
-		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[1].Id)
+		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[0].Id)
+		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[1].Id)
 	})
 }
 

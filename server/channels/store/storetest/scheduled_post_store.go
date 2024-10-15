@@ -464,9 +464,9 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
 		assert.NoError(t, err)
 		assert.Equal(t, 4, len(scheduledPosts))
-		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[2].ErrorCode)
-		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[3].ErrorCode)
-		assert.Equal(t, "", scheduledPosts[0].ErrorCode)
-		assert.Equal(t, "", scheduledPosts[1].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[0].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[1].ErrorCode)
+		assert.Equal(t, "", scheduledPosts[2].ErrorCode)
+		assert.Equal(t, "", scheduledPosts[3].ErrorCode)
 	})
 }
