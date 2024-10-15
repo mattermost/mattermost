@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -388,7 +389,10 @@ func (h *Hub) Start() {
 		ticker := time.NewTicker(inactiveConnReaperInterval)
 		defer ticker.Stop()
 
-		connIndex := newHubConnectionIndex(inactiveConnReaperInterval)
+		connIndex := newHubConnectionIndex(inactiveConnReaperInterval,
+			h.platform.Store,
+			h.platform.logger,
+		)
 
 		for {
 			select {
@@ -496,6 +500,7 @@ func (h *Hub) Start() {
 				for _, webConn := range connIndex.ForUser(userID) {
 					webConn.InvalidateCache()
 				}
+				connIndex.InvalidateCMCacheForUser(userID)
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
 					if !webConn.Active.Load() {
@@ -556,8 +561,14 @@ func (h *Hub) Start() {
 						broadcast(webConn)
 						continue
 					}
-				} else if msg.GetBroadcast().UserId != "" {
-					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
+				} else if userID := msg.GetBroadcast().UserId; userID != "" {
+					candidates := connIndex.ForUser(userID)
+					for _, webConn := range candidates {
+						broadcast(webConn)
+					}
+					continue
+				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" {
+					candidates := connIndex.ForChannel(channelID)
 					for _, webConn := range candidates {
 						broadcast(webConn)
 					}
@@ -619,10 +630,13 @@ func areAllInactive(conns []*WebConn) bool {
 // It requires 3 functionalities which need to be very fast:
 // - check if a connection exists or not.
 // - get all connections for a given userID.
+// - get all connections for a given channelID.
 // - get all connections.
 type hubConnectionIndex struct {
 	// byUserId stores the list of connections for a given userID
 	byUserId map[string][]*WebConn
+	// byChannelID stores the list of connections for a given channelID.
+	byChannelID map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
 	byConnection   map[*WebConn]int
@@ -630,19 +644,41 @@ type hubConnectionIndex struct {
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
 	staleThreshold time.Duration
+
+	store  store.Store
+	logger mlog.LoggerIFace
 }
 
-func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
+func newHubConnectionIndex(interval time.Duration,
+	store store.Store,
+	logger mlog.LoggerIFace,
+) *hubConnectionIndex {
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
+		byChannelID:    make(map[string][]*WebConn),
 		byConnection:   make(map[*WebConn]int),
 		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
+		store:          store,
+		logger:         logger,
 	}
 }
 
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
+
+	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
+	if err != nil {
+		// In this case, the map won't be populated. This is effectively the same
+		// as not broadcasting the event, and that's how it was implemented in
+		// platform/web_conn.go
+		i.logger.Warn("Error while getting GetAllChannelMembersForUser", mlog.Err(err))
+	} else {
+		for chID := range cm {
+			i.byChannelID[chID] = append(i.byChannelID[chID], wc)
+		}
+	}
+
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
 	i.byConnectionId[wc.GetConnectionID()] = wc
 }
@@ -655,21 +691,65 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 		return
 	}
 
+	// Remove the wc from i.byUserId
 	// get the conn slice.
 	userConnections := i.byUserId[wc.UserId]
 	// get the last connection.
 	last := userConnections[len(userConnections)-1]
-	// set the slot that we are trying to remove to be the last connection.
+	// https://go.dev/wiki/SliceTricks#delete-without-preserving-order
 	userConnections[userConnIndex] = last
-	// remove the last connection pointer from slice.
 	userConnections[len(userConnections)-1] = nil
-	// remove the last connection from the slice.
 	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
 	// set the index of the connection that was moved to the new index.
 	i.byConnection[last] = userConnIndex
 
+	connectionID := wc.GetConnectionID()
+	// Remove webconns from i.byChannelID
+	// This has O(n) complexity. We are trading off speed while removing
+	// a connection, to improve broadcasting a message.
+	for chID, webConns := range i.byChannelID {
+		// https://go.dev/wiki/SliceTricks#filtering-without-allocating
+		filtered := webConns[:0]
+		for _, conn := range webConns {
+			if conn.GetConnectionID() != connectionID {
+				filtered = append(filtered, conn)
+			}
+		}
+		for i := len(filtered); i < len(webConns); i++ {
+			webConns[i] = nil
+		}
+		i.byChannelID[chID] = filtered
+	}
+
 	delete(i.byConnection, wc)
-	delete(i.byConnectionId, wc.GetConnectionID())
+	delete(i.byConnectionId, connectionID)
+}
+
+func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
+	// Clear out all user entries which belong to channels.
+	for chID, webConns := range i.byChannelID {
+		// https://go.dev/wiki/SliceTricks#filtering-without-allocating
+		filtered := webConns[:0]
+		for _, conn := range webConns {
+			if conn.UserId != userID {
+				filtered = append(filtered, conn)
+			}
+		}
+		for i := len(filtered); i < len(webConns); i++ {
+			webConns[i] = nil
+		}
+		i.byChannelID[chID] = filtered
+	}
+
+	// re-populate the cache
+	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
+	if err != nil {
+		i.logger.Warn("Error while getting GetAllChannelMembersForUser", mlog.Err(err))
+	} else {
+		for chID := range cm {
+			i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
+		}
+	}
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
@@ -689,6 +769,20 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 	// iterating the slice.
 	conns := make([]*WebConn, len(i.byUserId[id]))
 	copy(conns, i.byUserId[id])
+	return conns
+}
+
+// ForChannel returns all connections for a channelID.
+func (i *hubConnectionIndex) ForChannel(channelID string) []*WebConn {
+	if len(i.byChannelID[channelID]) <= 1 {
+		return i.byChannelID[channelID]
+	}
+
+	// Note: this is expensive because usually there will be
+	// more than 1 member for a channel, and broadcasting
+	// is a hot path, but worth it.
+	conns := make([]*WebConn, len(i.byChannelID[channelID]))
+	copy(conns, i.byChannelID[channelID])
 	return conns
 }
 
