@@ -982,7 +982,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "other": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} {{.Day}} 日的新通知"
+      "other": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日的新通知"
     }
   },
   {
