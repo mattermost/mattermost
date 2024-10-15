@@ -56,7 +56,7 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
     >
       <MemoizedFormattedMessage
         defaultMessage="Are you sure you wish to unarchive the <b>{display_name}</b> channel?"
-        id="unarchive_channel_viewArchived.question"
+        id="unarchiveChannelModal.viewArchived.question"
         values={
           Object {
             "b": [Function],

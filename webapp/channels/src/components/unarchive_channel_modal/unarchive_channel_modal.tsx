@@ -69,7 +69,7 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         <FormattedMessage
-                            id='unarchive_channel_viewArchived.question'
+                            id='unarchiveChannelModal.viewArchived.question'
                             defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
                             values={{
                                 display_name: this.props.channel.display_name,
