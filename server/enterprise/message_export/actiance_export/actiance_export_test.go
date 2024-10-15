@@ -4,9 +4,12 @@
 package actiance_export
 
 import (
+	"archive/zip"
 	"bytes"
 	"encoding/xml"
+	"io"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -21,54 +24,21 @@ import (
 )
 
 func TestActianceExport(t *testing.T) {
-	t.Run("no dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
-
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
+	tempDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(tempDir)
 		assert.NoError(t, err)
-
-		runTestActianceExport(t, fileBackend, fileBackend)
 	})
 
-	t.Run("using dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
+	config := filestore.FileBackendSettings{
+		DriverName: model.ImageDriverLocal,
+		Directory:  tempDir,
+	}
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
-		assert.NoError(t, err)
+	fileBackend, err := filestore.NewFileBackend(config)
+	assert.NoError(t, err)
 
-		attachmentTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(attachmentTempDir)
-			assert.NoError(t, err)
-		})
-
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  attachmentTempDir,
-		})
-
-		runTestActianceExport(t, exportBackend, attachmentBackend)
-	})
-}
-
-func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
 	chanTypeDirect := model.ChannelTypeDirect
@@ -523,11 +493,11 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
-						err = attachmentBackend.RemoveFile(attachments[0].Path)
+						err = fileBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -539,16 +509,25 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				}
 			}
 
-			warnings, appErr := ActianceExport(rctx, tt.posts, mockStore, exportBackend, attachmentBackend, "test")
+			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
+			warnings, appErr := ActianceExport(rctx, tt.posts, mockStore, fileBackend, exportFileName)
 			assert.Nil(t, appErr)
 			assert.Equal(t, int64(0), warnings)
 
-			data, nErr := exportBackend.ReadFile("test/actiance_export.xml")
-			assert.NoError(t, nErr)
-			assert.Equal(t, tt.expectedData, string(data))
+			zipBytes, err := fileBackend.ReadFile(exportFileName)
+			assert.NoError(t, err)
+			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+			assert.NoError(t, err)
+			actiancexml, err := zipReader.File[0].Open()
+			require.NoError(t, err)
+			defer actiancexml.Close()
+			xmlData, err := io.ReadAll(actiancexml)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedData, string(xmlData))
 
 			t.Cleanup(func() {
-				err := exportBackend.RemoveFile("test/actiance_export.xml")
+				err = fileBackend.RemoveFile(exportFileName)
 				assert.NoError(t, err)
 			})
 		})
@@ -556,58 +535,25 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 }
 
 func TestMultipleActianceExport(t *testing.T) {
-	t.Run("no dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
-
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
+	tempDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(tempDir)
 		assert.NoError(t, err)
-
-		runTestMultipleActianceExport(t, fileBackend, fileBackend)
 	})
 
-	t.Run("using dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
+	config := filestore.FileBackendSettings{
+		DriverName: model.ImageDriverLocal,
+		Directory:  tempDir,
+	}
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
-		assert.NoError(t, err)
+	fileBackend, err := filestore.NewFileBackend(config)
+	assert.NoError(t, err)
 
-		attachmentTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(attachmentTempDir)
-			assert.NoError(t, err)
-		})
-
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  attachmentTempDir,
-		})
-
-		runTestMultipleActianceExport(t, exportBackend, attachmentBackend)
-	})
-}
-
-func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
 	chanTypeDirect := model.ChannelTypeDirect
-	actianceExportTests := []struct {
+	csvExportTests := []struct {
 		name          string
 		cmhs          map[string][]*model.ChannelMemberHistoryResult
 		posts         map[string][]*model.MessageExport
@@ -849,7 +795,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 		},
 	}
 
-	for _, tt := range actianceExportTests {
+	for _, tt := range csvExportTests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -860,24 +806,41 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 				}
 			}
 
-			warnings, appErr := ActianceExport(rctx, tt.posts["step1"], mockStore, exportBackend, attachmentBackend, "test")
+			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
+			warnings, appErr := ActianceExport(rctx, tt.posts["step1"], mockStore, fileBackend, exportFileName)
 			assert.Nil(t, appErr)
 			assert.Equal(t, int64(0), warnings)
 
-			data, err := exportBackend.ReadFile("test/actiance_export.xml")
+			zipBytes, err := fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedData["step1"], string(data))
+			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+			assert.NoError(t, err)
+			actiancexml, err := zipReader.File[0].Open()
+			require.NoError(t, err)
+			defer actiancexml.Close()
+			xmlData, err := io.ReadAll(actiancexml)
+			assert.NoError(t, err)
 
-			warnings, appErr = ActianceExport(rctx, tt.posts["step2"], mockStore, exportBackend, attachmentBackend, "test")
+			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
+
+			warnings, appErr = ActianceExport(rctx, tt.posts["step2"], mockStore, fileBackend, exportFileName)
 			assert.Nil(t, appErr)
 			assert.Equal(t, int64(0), warnings)
 
-			data, err = exportBackend.ReadFile("test/actiance_export.xml")
+			zipBytes, err = fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedData["step2"], string(data))
+			zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+			assert.NoError(t, err)
+			actiancexml, err = zipReader.File[0].Open()
+			require.NoError(t, err)
+			defer actiancexml.Close()
+			xmlData, err = io.ReadAll(actiancexml)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedData["step2"], string(xmlData))
 
 			t.Cleanup(func() {
-				err = exportBackend.RemoveFile("test/actiance_export.xml")
+				err = fileBackend.RemoveFile(exportFileName)
 				assert.NoError(t, err)
 			})
 		})
@@ -1066,10 +1029,11 @@ func TestWriteExportWarnings(t *testing.T) {
 		Channels: []ChannelExport{},
 	}
 
-	warnings, appErr := writeExport(rctx, export, uploadedFiles, "test", fileBackend, fileBackend)
+	exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
+	warnings, appErr := writeExport(rctx, export, uploadedFiles, fileBackend, exportFileName)
 	assert.Nil(t, appErr)
 	assert.Equal(t, int64(2), warnings)
 
-	err = fileBackend.RemoveFile("test/actiance_export.xml")
+	err = fileBackend.RemoveFile(exportFileName)
 	require.NoError(t, err)
 }

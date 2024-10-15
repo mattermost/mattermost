@@ -4,8 +4,13 @@
 package message_export
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"os"
+	"path"
 	"strconv"
 	"testing"
 	"time"
@@ -54,6 +59,9 @@ func TestRunExportByType(t *testing.T) {
 				PostCreateAt:       model.NewPointer(int64(1)),
 				PostUpdateAt:       model.NewPointer(int64(1)),
 				PostMessage:        model.NewPointer("message"),
+				UserEmail:          model.NewPointer("test@example.com"),
+				Username:           model.NewPointer("Mr. Test"),
+				UserId:             model.NewPointer(model.NewId()),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{},
 			},
@@ -63,7 +71,7 @@ func TestRunExportByType(t *testing.T) {
 		defer mockStore.AssertExpectations(t)
 		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(1), "channel-id").Return([]*model.ChannelMemberHistoryResult{}, nil)
 
-		warnings, err := runExportByType(rctx, model.ComplianceExportTypeActiance, posts, tempDir, mockStore, fileBackend, fileBackend, nil, nil)
+		warnings, err := runExportByType(rctx, model.ComplianceExportTypeActiance, posts, "testZipName", mockStore, fileBackend, nil, nil)
 		require.Nil(t, err)
 		require.Zero(t, warnings)
 	})
@@ -115,11 +123,20 @@ func TestRunExportJob(t *testing.T) {
 	err = th.App.Srv().Jobs.StartSchedulers()
 	require.NoError(t, err)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.MessageExportSettings.EnableExport = true
-	})
-
 	t.Run("conflicting timestamps", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tempDir)
+			assert.NoError(t, err)
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MessageExportSettings.EnableExport = true
+			*cfg.FileSettings.DriverName = model.ImageDriverLocal
+			*cfg.FileSettings.Directory = tempDir
+		})
+
 		time.Sleep(100 * time.Millisecond)
 		now := model.GetMillis()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -128,18 +145,209 @@ func TestRunExportJob(t *testing.T) {
 		})
 
 		for i := 0; i < 3; i++ {
-			_, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			_, err2 := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    model.NewId(),
 				Message:   "zz" + model.NewId() + "b",
 				CreateAt:  now,
 			})
-			require.NoError(t, err)
+			require.NoError(t, err2)
 		}
 
 		job := runJobForTest(t, th)
 		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), numExported)
+	})
+
+	t.Run("actiance -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tempDir)
+			assert.NoError(t, err)
+		})
+
+		config := filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  tempDir,
+		}
+
+		fileBackend, err := filestore.NewFileBackend(config)
+		assert.NoError(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MessageExportSettings.EnableExport = true
+			*cfg.MessageExportSettings.ExportFromTimestamp = 0
+			*cfg.MessageExportSettings.BatchSize = 5
+			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
+			*cfg.FileSettings.DriverName = model.ImageDriverLocal
+			*cfg.FileSettings.Directory = tempDir
+		})
+
+		now := model.GetMillis()
+		attachmentContent := "Hello there"
+		attachmentPath001 := "path/to/attachments/one.txt"
+		_, _ = fileBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath001)
+		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    model.NewId(),
+			Message:   "zz" + model.NewId() + "b",
+			CreateAt:  now - 1,
+			UpdateAt:  now - 1,
+			FileIds:   []string{"test1"},
+		})
+		require.NoError(t, err)
+
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: post.UserId,
+			PostId:    post.Id,
+			CreateAt:  now - 1,
+			UpdateAt:  now - 1,
+			Path:      attachmentPath001,
+		})
+		require.NoError(t, err)
+
+		for i := 0; i < 10; i++ {
+			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    model.NewId(),
+				Message:   "zz" + model.NewId() + "b",
+				CreateAt:  now + int64(i),
+				UpdateAt:  now + int64(i),
+			})
+			require.NoError(t, e)
+		}
+
+		prevUpdatedAt := int64(0)
+		if previousJob, err2 := th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport); err2 == nil && previousJob != nil {
+			if timestamp, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; prevExists {
+				prevUpdatedAt, err2 = strconv.ParseInt(timestamp, 10, 64)
+				require.NoError(t, err2)
+			}
+		}
+
+		job := runJobForTest(t, th)
+		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		require.NoError(t, err)
+		require.Equal(t, int64(11), numExported)
+
+		jobName := job.Data[JobDataName]
+		batch001 := getBatchPath(jobName, prevUpdatedAt, now+3, 1)
+		batch002 := getBatchPath(jobName, now+3, now+8, 2)
+		batch003 := getBatchPath(jobName, now+8, now+9, 3)
+		files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+		require.NoError(t, err)
+		require.ElementsMatch(t, files, []string{batch001, batch002, batch003})
+
+		zipBytes, err := fileBackend.ReadFile(batch001)
+		require.NoError(t, err)
+
+		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+		require.NoError(t, err)
+
+		attachmentInZip, err := zipReader.Open(attachmentPath001)
+		require.NoError(t, err)
+		attachmentInZipContents, err := io.ReadAll(attachmentInZip)
+		require.NoError(t, err)
+
+		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
+	})
+
+	t.Run("csv -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
+		tempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tempDir)
+			assert.NoError(t, err)
+		})
+
+		config := filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  tempDir,
+		}
+
+		fileBackend, err := filestore.NewFileBackend(config)
+		assert.NoError(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MessageExportSettings.EnableExport = true
+			*cfg.MessageExportSettings.ExportFromTimestamp = 0
+			*cfg.MessageExportSettings.BatchSize = 5
+			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeCsv
+			*cfg.FileSettings.DriverName = model.ImageDriverLocal
+			*cfg.FileSettings.Directory = tempDir
+		})
+
+		now := model.GetMillis()
+		attachmentContent := "Hello there"
+		attachmentPath001 := "path/to/attachments/one.txt"
+		_, _ = fileBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath001)
+		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    model.NewId(),
+			Message:   "zz" + model.NewId() + "b",
+			CreateAt:  now - 1,
+			UpdateAt:  now - 1,
+			FileIds:   []string{"test1"},
+		})
+		require.NoError(t, err)
+
+		attachment, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: post.UserId,
+			PostId:    post.Id,
+			CreateAt:  now - 1,
+			UpdateAt:  now - 1,
+			Path:      attachmentPath001,
+		})
+		require.NoError(t, err)
+
+		for i := 0; i < 10; i++ {
+			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    model.NewId(),
+				Message:   "zz" + model.NewId() + "b",
+				CreateAt:  now + int64(i),
+			})
+			require.NoError(t, e)
+		}
+
+		prevUpdatedAt := int64(0)
+		if previousJob, err2 := th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport); err2 == nil && previousJob != nil {
+			if timestamp, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; prevExists {
+				prevUpdatedAt, err2 = strconv.ParseInt(timestamp, 10, 64)
+				require.NoError(t, err2)
+			}
+		}
+
+		job := runJobForTest(t, th)
+		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		require.NoError(t, err)
+		require.Equal(t, int64(11), numExported)
+
+		jobName := job.Data[JobDataName]
+		batch001 := getBatchPath(jobName, prevUpdatedAt, now+3, 1)
+		batch002 := getBatchPath(jobName, now+3, now+8, 2)
+		batch003 := getBatchPath(jobName, now+8, now+9, 3)
+		files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+		require.NoError(t, err)
+		require.ElementsMatch(t, files, []string{batch001, batch002, batch003})
+
+		zipBytes, err := fileBackend.ReadFile(batch001)
+		require.NoError(t, err)
+
+		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+		require.NoError(t, err)
+
+		csvZipFilePath := path.Join("files", post.Id, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path)))
+
+		attachmentInZip, err := zipReader.Open(csvZipFilePath)
+		require.NoError(t, err)
+		attachmentInZipContents, err := io.ReadAll(attachmentInZip)
+		require.NoError(t, err)
+
+		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
 	})
 }
