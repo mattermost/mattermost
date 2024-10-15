@@ -60,7 +60,7 @@ func postChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
-	postHardenedModeCheckWithContext(c, post.GetProps())
+	postHardenedModeCheckWithContext(where, c, post.GetProps())
 	if c.Err != nil {
 		return
 	}
@@ -840,7 +840,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postHardenedModeCheckWithContext(c, post.GetProps())
+	postHardenedModeCheckWithContext("UpdatePost", c, post.GetProps())
 	if c.Err != nil {
 		return
 	}
@@ -908,7 +908,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if post.Props != nil {
-		postHardenedModeCheckWithContext(c, *post.Props)
+		postHardenedModeCheckWithContext("patchPost", c, *post.Props)
 		if c.Err != nil {
 			return
 		}
