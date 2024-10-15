@@ -4,14 +4,12 @@
 package message_export
 
 import (
-	"archive/zip"
-	"bytes"
 	"context"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	tmock "github.com/stretchr/testify/mock"
@@ -26,8 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestInitJobDataNoJobData(t *testing.T) {
@@ -68,7 +64,7 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	worker.initJobData(logger, job)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
 }
 
@@ -119,7 +115,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	worker.initJobData(logger, job)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
 }
 
@@ -171,7 +167,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	worker.initJobData(logger, job)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[JOB_DATA_BatchSize])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, previousJob.Data[JobDataBatchStartTimestamp], job.Data[JobDataBatchStartTimestamp])
 }
 
@@ -271,13 +267,33 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	// no previous job, data will be loaded from config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
 
-	// no posts found to export
+	messages := []*model.MessageExport{
+		{
+			TeamId:       model.NewPointer(model.NewId()),
+			ChannelId:    model.NewPointer(model.NewId()),
+			ChannelName:  model.NewPointer(model.NewId()),
+			UserId:       model.NewPointer(model.NewId()),
+			UserEmail:    model.NewPointer(model.NewId()),
+			Username:     model.NewPointer(model.NewId()),
+			PostId:       model.NewPointer(model.NewId()),
+			PostCreateAt: model.NewPointer[int64](123),
+			PostUpdateAt: model.NewPointer[int64](123),
+			PostDeleteAt: model.NewPointer[int64](123),
+			PostMessage:  model.NewPointer(model.NewId()),
+		},
+	}
+
+	// need to export at least one post to make an export directory and file
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+		messages, model.MessageExportCursor{}, nil,
+	).Once()
 	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
 		make([]*model.MessageExport, 0), model.MessageExportCursor{}, nil,
-	)
+	).Once()
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(1), nil,
 	)
 
 	// job completed successfully
@@ -426,74 +442,35 @@ func TestDoJobCancel(t *testing.T) {
 	worker.Stop()
 }
 
-func TestCreateZipFile(t *testing.T) {
-	rctx := request.TestContext(t)
-
-	tempDir, ioErr := os.MkdirTemp("", "")
-	require.NoError(t, ioErr)
-	defer os.RemoveAll(tempDir)
-
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
+func Test_getBatchPath(t *testing.T) {
+	tests := []struct {
+		name             string
+		jobName          string
+		prevPostUpdateAt int64
+		lastPostUpdateAt int64
+		batchNumber      int
+		want             string
+	}{
+		{
+			name:             "all args given",
+			jobName:          "test_job_name",
+			prevPostUpdateAt: 123,
+			lastPostUpdateAt: 456,
+			batchNumber:      21,
+			want:             model.ComplianceExportPath + "/test_job_name/batch021-123-456.zip",
+		},
+		{
+			name:             "jobName blank",
+			jobName:          "",
+			prevPostUpdateAt: 12345,
+			lastPostUpdateAt: 456789,
+			batchNumber:      921,
+			want:             model.ComplianceExportPath + "/" + time.Now().Format(model.ComplianceExportDirectoryFormat) + "/batch921-12345-456789.zip",
+		},
 	}
-
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
-	_ = fileBackend
-
-	b := []byte("test")
-	path1 := path.Join(exportPath, "19700101")
-	path2 := path.Join(exportPath, "19800101/subdir")
-
-	// We test with a mock to test the Hitachi HCP case
-	// where ListDirectory returns the dir itself as the first entry.
-	// Note: If the mocks fail, that means the logic in createZipFile has
-	// gone wrong and needs to be verified.
-	mock := &fmocks.FileBackend{}
-	defer mock.AssertExpectations(t)
-
-	mock.On("WriteFile", tmock.Anything, tmock.AnythingOfType("string")).Return(int64(4), nil)
-	mock.On("FileSize", tmock.Anything).Return(int64(4), nil)
-	mock.On("FileSize", tmock.Anything).Return(int64(4), nil)
-	mock.On("Reader", path.Join(path1, "testid")).Return(mockReadSeekCloser{bytes.NewReader([]byte("test"))}, nil)
-	mock.On("Reader", path.Join(path2, "testid")).Return(mockReadSeekCloser{bytes.NewReader([]byte("test"))}, nil)
-	mock.On("ListDirectoryRecursively", path1).Return([]string{path1, path.Join(path1, "testid")}, nil)
-	mock.On("ListDirectoryRecursively", path2).Return([]string{path2, path.Join(path2, "testid")}, nil)
-
-	for i, backend := range []filestore.FileBackend{fileBackend, mock} {
-		written, err := backend.WriteFile(bytes.NewReader(b), path1+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
-
-		written, err = backend.WriteFile(bytes.NewReader(b), path2+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
-
-		written, err = backend.WriteFile(bytes.NewReader(b), path2+"/"+model.NewId())
-		assert.NoError(t, err)
-		assert.Equal(t, int64(len(b)), written)
-
-		err = createZipFile(rctx, backend, "testjob", []string{path1, path2})
-		assert.NoError(t, err)
-
-		// Skip checking the zip file in mock case.
-		if i == 1 {
-			continue
-		}
-		r, err := zip.OpenReader(path.Join(tempDir, exportPath) + "/testjob.zip")
-		assert.NoError(t, err)
-		err = r.Close()
-		require.NoError(t, err)
-
-		assert.Equal(t, 3, len(r.File))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, getBatchPath(tt.jobName, tt.prevPostUpdateAt, tt.lastPostUpdateAt, tt.batchNumber), "getBatchPath(%v, %v, %v, %v)", tt.jobName, tt.prevPostUpdateAt, tt.lastPostUpdateAt, tt.batchNumber)
+		})
 	}
-}
-
-type mockReadSeekCloser struct {
-	*bytes.Reader
-}
-
-func (r mockReadSeekCloser) Close() error {
-	return nil
 }
