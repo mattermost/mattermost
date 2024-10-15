@@ -206,22 +206,40 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
 
         if (this.props.role.name === Constants.PERMISSIONS_SYSTEM_CUSTOM_GROUP_ADMIN) {
             return (
-                <FormattedMessage
-                    id='admin.permissions.roles.system_custom_group_admin.detail_text'
-                    defaultMessage="The built-in Custom Group Manager role can be used to delegate the administration of <a>Custom Groups</a> to users other than the System Admin.{br}{br}Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System console > User Management > Permissions.{br}{br}This role has permission to create, edit, and delete custom user groups by selecting <b>User groups</b> from the Products menu."
-                    values={{
-                        a: (chunks: string) => (
-                            <ExternalLink
-                                href='https://docs.mattermost.com/welcome/manage-custom-groups.html'
-                                location='manage-custom-groups'
-                            >
-                                {chunks}
-                            </ExternalLink>
-                        ),
-                        b: (chunks: string) => <b>{chunks}</b>,
-                        br: <br/>,
-                    }}
-                />
+                <>
+                    <p>
+                        <FormattedMessage
+                            id='admin.permissions.roles.system_custom_group_admin.introduction'
+                            defaultMessage='The built-in Custom Group Manager role can be used to delegate the administration of <a>Custom Groups</a> to users other than the System Admin.'
+                            values={{
+                                a: (chunks: string) => (
+                                    <ExternalLink
+                                        href='https://docs.mattermost.com/welcome/manage-custom-groups.html'
+                                        location='manage-custom-groups'
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='admin.permissions.roles.system_custom_group_admin.deauthorize_reminder'
+                            defaultMessage="Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System console > User Management > Permissions."
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='admin.permissions.roles.system_custom_group_admin.permissions_info'
+                            defaultMessage='This role has permission to create, edit, and delete custom user groups by selecting <b>User groups</b> from the Products menu.'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
+                        />
+                    </p>
+                </>
+
             );
         }
 
