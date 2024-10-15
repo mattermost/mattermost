@@ -28,19 +28,21 @@ const (
 	EnterPostType            = "enter"
 	LeavePostType            = "leave"
 	PreviouslyJoinedPostType = "previously-joined"
-	CSVExportFilename        = "csv_export.zip"
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
-	dest, err := os.CreateTemp("", CSVExportFilename)
+func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
+	// Write this batch to a tmp zip, then copy the zip to the export directory.
+	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
+	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
+	buf := make([]byte, 1024*1024*2)
+	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.file.creation.appError", nil, "", 0).Wrap(err)
 	}
-	defer os.Remove(dest.Name())
+	defer file.DeleteTemp(rctx.Logger(), temp)
 
-	zipFile := zip.NewWriter(dest)
-
+	zipFile := zip.NewWriter(temp)
 	csvFile, err := zipFile.Create("posts.csv")
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.zip.creation.appError", nil, "", 0).Wrap(err)
@@ -147,22 +149,29 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, e
 		}
 
 		for _, attachment := range attachments {
-			var attachmentSrc io.ReadCloser
-			attachmentSrc, nErr := fileAttachmentBackend.Reader(attachment.Path)
+			var r io.ReadCloser
+			r, nErr := fileBackend.Reader(attachment.Path)
 			if nErr != nil {
 				missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
 				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("PostId", *post.PostId), mlog.String("FileName", attachment.Path))
 				continue
 			}
-			defer attachmentSrc.Close()
 
-			attachmentDst, err := zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
-			if err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
-			}
+			// Probably don't need to be this careful (see actiance_export.go), but may as well be consistent.
+			if err := func() error {
+				defer r.Close()
+				attachmentDst, err := zipFile.Create(path.Join("files", *post.PostId, fmt.Sprintf("%s-%s", attachment.Id, path.Base(attachment.Path))))
+				if err != nil {
+					return err
+				}
 
-			_, err = io.Copy(attachmentDst, attachmentSrc)
-			if err != nil {
+				_, err = io.CopyBuffer(attachmentDst, r, buf)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}(); err != nil {
 				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
 			}
 		}
@@ -197,12 +206,13 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, e
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.metadata.close.appError", nil, "", 0).Wrap(err)
 	}
 
-	_, err = dest.Seek(0, 0)
+	_, err = temp.Seek(0, 0)
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.seek.appError", nil, "", 0).Wrap(err)
 	}
+
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, dest, path.Join(exportDirectory, CSVExportFilename))
+	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
