@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"sort"
@@ -100,7 +101,7 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
-func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
+func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
 	// sort the posts into buckets based on the channel in which they appeared
 	membersByChannel := common_export.MembersByChannel{}
 	metadata := common_export.Metadata{
@@ -174,7 +175,7 @@ func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Sto
 		Channels: channelExports,
 	}
 
-	return writeExport(rctx, export, allUploadedFiles, exportDirectory, fileBackend)
+	return writeExport(rctx, export, allUploadedFiles, exportDirectory, exportBackend, fileAttachmentBackend)
 }
 
 func postToExportEntry(post *model.MessageExport, createTime *int64, message string) *PostExport {
@@ -309,7 +310,7 @@ func buildChannelExport(channel common_export.MetadataChannel, members common_ex
 	return &channelExport, nil
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportDirectory string, fileBackend filestore.FileBackend) (warningCount int64, appErr *model.AppError) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportDirectory string, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend) (warningCount int64, appErr *model.AppError) {
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
 	xmlData.WriteString(xml.Header)
@@ -322,21 +323,31 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	enc.Flush()
 
 	// Try to disable the write timeout if the backend supports it
-	if _, err := filestore.TryWriteFileContext(rctx.Context(), fileBackend, xmlData, path.Join(exportDirectory, ActianceExportFilename)); err != nil {
+	if _, err := filestore.TryWriteFileContext(rctx.Context(), exportBackend, xmlData, path.Join(exportDirectory, ActianceExportFilename)); err != nil {
 		return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(err)
 	}
 
 	var missingFiles []string
 	for _, fileInfo := range uploadedFiles {
-		destPath := path.Join(exportDirectory, fileInfo.Path)
-		if err := fileBackend.CopyFile(fileInfo.Path, destPath); err != nil {
+		var attachmentSrc io.ReadCloser
+		attachmentSrc, nErr := fileAttachmentBackend.Reader(fileInfo.Path)
+		if nErr != nil {
 			missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - "+fileInfo.Path)
 			rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("FileName", fileInfo.Path))
+			continue
+		}
+		defer attachmentSrc.Close()
+
+		destPath := path.Join(exportDirectory, fileInfo.Path)
+
+		_, nErr = exportBackend.WriteFile(attachmentSrc, destPath)
+		if nErr != nil {
+			return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(nErr)
 		}
 	}
 	warningCount = int64(len(missingFiles))
 	if warningCount > 0 {
-		_, err := filestore.TryWriteFileContext(rctx.Context(), fileBackend, strings.NewReader(strings.Join(missingFiles, "\n")), path.Join(exportDirectory, ActianceWarningFilename))
+		_, err := filestore.TryWriteFileContext(rctx.Context(), exportBackend, strings.NewReader(strings.Join(missingFiles, "\n")), path.Join(exportDirectory, ActianceWarningFilename))
 		if err != nil {
 			appErr = model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(err)
 		}

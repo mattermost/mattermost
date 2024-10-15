@@ -32,7 +32,7 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
+func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
 	dest, err := os.CreateTemp("", CSVExportFilename)
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.file.creation.appError", nil, "", 0).Wrap(err)
@@ -148,7 +148,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 
 		for _, attachment := range attachments {
 			var attachmentSrc io.ReadCloser
-			attachmentSrc, nErr := fileBackend.Reader(attachment.Path)
+			attachmentSrc, nErr := fileAttachmentBackend.Reader(attachment.Path)
 			if nErr != nil {
 				missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
 				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("PostId", *post.PostId), mlog.String("FileName", attachment.Path))
@@ -202,7 +202,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.seek.appError", nil, "", 0).Wrap(err)
 	}
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, dest, path.Join(exportDirectory, CSVExportFilename))
+	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, dest, path.Join(exportDirectory, CSVExportFilename))
 	if err != nil {
 		return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

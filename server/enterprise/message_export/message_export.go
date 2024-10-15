@@ -107,10 +107,10 @@ func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType stri
 	}
 
 	exportDirectory := getOutputDirectoryPath(since, model.GetMillis())
-	return runExportByType(rctx, exportType, postsToExport, exportDirectory, m.Server.Store(), fileBackend, t, m.Server.Config())
+	return runExportByType(rctx, exportType, postsToExport, exportDirectory, m.Server.Store(), fileBackend, fileBackend, t, m.Server.Config())
 }
 
-func runExportByType(rctx request.CTX, exportType string, postsToExport []*model.MessageExport, exportDirectory string, db store.Store, fileBackend filestore.FileBackend, htmlTemplates *templates.Container, config *model.Config) (warningCount int64, appErr *model.AppError) {
+func runExportByType(rctx request.CTX, exportType string, postsToExport []*model.MessageExport, exportDirectory string, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, htmlTemplates *templates.Container, config *model.Config) (warningCount int64, appErr *model.AppError) {
 	// go through all the posts and if the post's props contain 'from_bot' - override the IsBot field, since it's possible that the sender is not a user, but was a Bot and vise-versa
 	for _, post := range postsToExport {
 		if post.PostProps != nil {
@@ -182,11 +182,11 @@ func runExportByType(rctx request.CTX, exportType string, postsToExport []*model
 	switch exportType {
 	case model.ComplianceExportTypeCsv:
 		rctx.Logger().Debug("Exporting CSV")
-		return csv_export.CsvExport(rctx, postsToExport, db, fileBackend, exportDirectory)
+		return csv_export.CsvExport(rctx, postsToExport, db, exportBackend, fileAttachmentBackend, exportDirectory)
 
 	case model.ComplianceExportTypeActiance:
 		rctx.Logger().Debug("Exporting Actiance")
-		return actiance_export.ActianceExport(rctx, postsToExport, db, fileBackend, exportDirectory)
+		return actiance_export.ActianceExport(rctx, postsToExport, db, exportBackend, fileAttachmentBackend, exportDirectory)
 
 	case model.ComplianceExportTypeGlobalrelay, model.ComplianceExportTypeGlobalrelayZip:
 		rctx.Logger().Debug("Exporting GlobalRelay")
@@ -197,7 +197,7 @@ func runExportByType(rctx request.CTX, exportType string, postsToExport []*model
 		defer f.Close()
 		defer os.Remove(f.Name())
 
-		attachmentsRemovedPostIDs, warnings, appErr := global_relay_export.GlobalRelayExport(rctx, postsToExport, db, fileBackend, f, htmlTemplates)
+		attachmentsRemovedPostIDs, warnings, appErr := global_relay_export.GlobalRelayExport(rctx, postsToExport, db, fileAttachmentBackend, f, htmlTemplates)
 		if appErr != nil {
 			return warningCount, appErr
 		}
@@ -209,7 +209,7 @@ func runExportByType(rctx request.CTX, exportType string, postsToExport []*model
 
 		if exportType == model.ComplianceExportTypeGlobalrelayZip {
 			// Try to disable the write timeout for the potentially big export file.
-			_, nErr := filestore.TryWriteFileContext(rctx.Context(), fileBackend, f, path.Join(exportDirectory, GlobalRelayExportFilename))
+			_, nErr := filestore.TryWriteFileContext(rctx.Context(), exportBackend, f, path.Join(exportDirectory, GlobalRelayExportFilename))
 			if nErr != nil {
 				return warningCount, model.NewAppError("runExportByType", "ent.compliance.global_relay.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}

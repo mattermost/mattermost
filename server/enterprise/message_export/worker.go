@@ -154,7 +154,8 @@ func (worker *MessageExportWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
-func (worker *MessageExportWorker) getFileBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
+// getExportBackend returns the file backend where the export will be created.
+func (worker *MessageExportWorker) getExportBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
 	config := worker.jobServer.Config()
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 
@@ -167,6 +168,20 @@ func (worker *MessageExportWorker) getFileBackend(rctx request.CTX) (filestore.F
 
 		return backend, nil
 	}
+
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
+	if err != nil {
+		return nil, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return backend, nil
+}
+
+// getFileAttachmentBackend returns the file backend where file attachments are
+// located for messages that will be exported. This may be the same backend
+// where the export will be created.
+func (worker *MessageExportWorker) getFileAttachmentBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
+	config := worker.jobServer.Config()
+	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 
 	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
 	if err != nil {
@@ -291,13 +306,13 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 
 				// Create downloadable zip file of all batches.
 				if job.Data[JobDataExportType] != model.ComplianceExportTypeGlobalrelay {
-					fileBackend, err := worker.getFileBackend(rctx)
+					exportBackend, err := worker.getExportBackend(rctx)
 					if err != nil {
 						worker.setJobError(logger, job, err)
 						return
 					}
 
-					zipErr := createZipFile(rctx, fileBackend, job.Id, directories)
+					zipErr := createZipFile(rctx, exportBackend, job.Id, directories)
 					if zipErr != nil {
 						logger.Error("Error creating zip file for export", mlog.Err(zipErr))
 						job.Data[JobDataIsDownloadable] = "false"
@@ -313,7 +328,13 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			fileBackend, err := worker.getFileBackend(rctx)
+			exportBackend, err := worker.getExportBackend(rctx)
+			if err != nil {
+				worker.setJobError(logger, job, err)
+				return
+			}
+
+			fileAttachmentBackend, err := worker.getFileAttachmentBackend(rctx)
 			if err != nil {
 				worker.setJobError(logger, job, err)
 				return
@@ -326,7 +347,8 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 				postsExported,
 				batchDirectory,
 				worker.jobServer.Store,
-				fileBackend,
+				exportBackend,
+				fileAttachmentBackend,
 				worker.htmlTemplateWatcher,
 				worker.jobServer.Config(),
 			)

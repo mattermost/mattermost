@@ -63,7 +63,7 @@ func TestRunExportByType(t *testing.T) {
 		defer mockStore.AssertExpectations(t)
 		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(1), "channel-id").Return([]*model.ChannelMemberHistoryResult{}, nil)
 
-		warnings, err := runExportByType(rctx, model.ComplianceExportTypeActiance, posts, tempDir, mockStore, fileBackend, nil, nil)
+		warnings, err := runExportByType(rctx, model.ComplianceExportTypeActiance, posts, tempDir, mockStore, fileBackend, fileBackend, nil, nil)
 		require.Nil(t, err)
 		require.Zero(t, warnings)
 	})
