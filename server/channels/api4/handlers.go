@@ -239,14 +239,7 @@ func requireLicense(c *Context) *model.AppError {
 }
 
 func minimumProfessionalLicense(c *Context) *model.AppError {
-	return minimumProfessionalProvidedLicense(c.App.Srv().License())
-}
-
-func minimumProfessionalProvidedLicense(license *model.License) *model.AppError {
-	if license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
-		return model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
-	}
-	return nil
+	return model.MinimumProfessionalProvidedLicense(c.App.Srv().License())
 }
 
 func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {

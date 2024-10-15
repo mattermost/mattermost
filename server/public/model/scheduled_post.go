@@ -18,6 +18,7 @@ const (
 	ScheduledPostErrorNoChannelMember         = "no_channel_member"
 	ScheduledPostErrorThreadDeleted           = "thread_deleted"
 	ScheduledPostErrorUnableToSend            = "unable_to_send"
+	ScheduledPostErrorInvalidPost             = "invalid_post"
 )
 
 // allow scheduled posts to be created up to

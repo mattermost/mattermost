@@ -49,10 +49,11 @@ func (api *API) InitPost() {
 }
 
 func postChecks(where string, c *Context, post *model.Post) {
-	// Add post creation checks here.
-	// If you make any change here, please make sure to apply the
-	// same change for scheduled posts as well in the `scheduledPostChecks()` function
-	// in API layer.
+	// ***************************************************************
+	// NOTE - if you make any change here, please make sure to apply the
+	//	      same change for scheduled posts as well in the `scheduledPostChecks()` function
+	//	      in API layer.
+	// ***************************************************************
 
 	userCreatePostPermissionCheckWithContext(c, post.ChannelId)
 	if c.Err != nil {

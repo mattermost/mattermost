@@ -24,6 +24,12 @@ func (api *API) InitScheduledPost() {
 }
 
 func scheduledPostChecks(where string, c *Context, scheduledPost *model.ScheduledPost) {
+	// ***************************************************************
+	// NOTE - if you make any change here, please make sure to apply the
+	//	      same change for scheduled posts job as well in the `canPostScheduledPost()` function
+	//	      in app layer.
+	// ***************************************************************
+
 	userCreatePostPermissionCheckWithContext(c, scheduledPost.ChannelId)
 	if c.Err != nil {
 		return
