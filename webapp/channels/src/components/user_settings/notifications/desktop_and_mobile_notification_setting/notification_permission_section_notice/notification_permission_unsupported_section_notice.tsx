@@ -10,8 +10,7 @@ export default function NotificationPermissionUnsupportedSectionNotice() {
     const intl = useIntl();
 
     const handleClick = useCallback(async () => {
-        // TODO: Change to permalink
-        window.open('https://docs.mattermost.com/install/software-hardware-requirements.html#pc-web', '_blank', 'noopener,noreferrer');
+        window.open('https://mattermost.com/pl/pc-web-requirements', '_blank', 'noopener,noreferrer');
     }, []);
 
     return (
