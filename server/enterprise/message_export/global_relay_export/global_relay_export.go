@@ -80,9 +80,9 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 
 	zipFile := zip.NewWriter(dest)
 
-	membersByChannel := common_export.MembersByChannel{}
+	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
 	metadata := common_export.Metadata{
-		Channels:         map[string]common_export.MetadataChannel{},
+		Channels:         map[string]*common_export.MetadataChannel{},
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
@@ -90,18 +90,18 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 	}
 
 	for _, post := range posts {
-		if _, ok := membersByChannel[*post.ChannelId]; !ok {
-			membersByChannel[*post.ChannelId] = common_export.ChannelMembers{}
+		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
+			postAuthorsByChannel[*post.ChannelId] = make(map[string]common_export.ChannelMember)
 		}
 
-		membersByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
+		postAuthorsByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
 			UserId:   *post.UserId,
 			Username: *post.Username,
 			IsBot:    post.IsBot,
 			Email:    *post.UserEmail,
 		}
 
-		attachments := []*model.FileInfo{}
+		var attachments []*model.FileInfo
 		if len(post.PostFileIds) > 0 {
 			var err error
 			attachments, err = db.FileInfo().GetForPost(*post.PostId, true, true, false)
@@ -118,7 +118,7 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
-			participants, appErr := getParticipants(db, channelExport, membersByChannel[channelExport.ChannelId])
+			participants, appErr := getParticipants(db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
 			if appErr != nil {
 				return nil, warningCount, appErr
 			}
@@ -202,14 +202,15 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 	return attachmentsRemovedPostIDs
 }
 
-func getParticipants(db store.Store, channelExport *ChannelExport, members common_export.ChannelMembers) ([]ParticipantRow, *model.AppError) {
+func getParticipants(db store.Store, channelExport *ChannelExport,
+	postAuthors map[string]common_export.ChannelMember) ([]ParticipantRow, *model.AppError) {
 	participantsMap := map[string]ParticipantRow{}
-	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, channelExport.ChannelId)
+	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, []string{channelExport.ChannelId})
 	if err != nil {
 		return nil, model.NewAppError("getParticipants", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	joins, leaves := common_export.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, members)
+	joins, leaves := common_export.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, postAuthors)
 
 	for _, join := range joins {
 		userType := "user"
@@ -295,7 +296,7 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
 			reader, appErr := fileBackend.Reader(path)
 			if appErr != nil {
-				rctx.Logger().Warn("File not found for export", mlog.String("Filename", path))
+				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))
 				warningCount += 1
 				return nil
 			}

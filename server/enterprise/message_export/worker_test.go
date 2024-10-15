@@ -48,11 +48,13 @@ func TestInitJobDataNoJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -99,11 +101,13 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -151,11 +155,13 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 				Cfg: &model.Config{
 					// mock config
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -194,8 +200,12 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	// no previous job, data will be loaded from config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
 
+	// no channels with activity
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return(make([]string, 0), nil)
+
 	// no posts found to export
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
 		make([]*model.MessageExport, 0), model.MessageExportCursor{}, nil,
 	)
 
@@ -225,11 +235,13 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 						Directory:  model.NewPointer(tempDir),
 					},
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -267,11 +279,15 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	// no previous job, data will be loaded from config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
 
+	channelId := model.NewId()
+	channelName := model.NewId()
+	channelDisplayName := model.NewId()
+	channelType := model.ChannelTypeOpen
 	messages := []*model.MessageExport{
 		{
 			TeamId:       model.NewPointer(model.NewId()),
-			ChannelId:    model.NewPointer(model.NewId()),
-			ChannelName:  model.NewPointer(model.NewId()),
+			ChannelId:    model.NewPointer(channelId),
+			ChannelName:  model.NewPointer(channelName),
 			UserId:       model.NewPointer(model.NewId()),
 			UserEmail:    model.NewPointer(model.NewId()),
 			Username:     model.NewPointer(model.NewId()),
@@ -284,10 +300,21 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	}
 
 	// need to export at least one post to make an export directory and file
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return([]string{*messages[0].ChannelId}, nil)
+	mockStore.ChannelStore.On("GetMany", []string{channelId}, true).
+		Return(model.ChannelList{{
+			Id:          channelId,
+			DisplayName: channelDisplayName,
+			Name:        channelName,
+			Type:        channelType,
+		}}, nil)
+
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
 		messages, model.MessageExportCursor{}, nil,
 	).Once()
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Return(
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Return(
 		make([]*model.MessageExport, 0), model.MessageExportCursor{}, nil,
 	).Once()
 	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
@@ -325,11 +352,13 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 						ExportDirectory:      model.NewPointer(tempDedicatedDir),
 					},
 					MessageExportSettings: model.MessageExportSettings{
-						EnableExport:        model.NewPointer(true),
-						ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-						DailyRunTime:        model.NewPointer("01:00"),
-						ExportFromTimestamp: model.NewPointer(int64(0)),
-						BatchSize:           model.NewPointer(10000),
+						EnableExport:            model.NewPointer(true),
+						ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+						DailyRunTime:            model.NewPointer("01:00"),
+						ExportFromTimestamp:     model.NewPointer(int64(0)),
+						BatchSize:               model.NewPointer(10000),
+						ChannelBatchSize:        model.NewPointer(100),
+						ChannelHistoryBatchSize: model.NewPointer(100),
 					},
 				},
 			},
@@ -384,11 +413,13 @@ func TestDoJobCancel(t *testing.T) {
 							Directory:  model.NewPointer(tempDir),
 						},
 						MessageExportSettings: model.MessageExportSettings{
-							EnableExport:        model.NewPointer(true),
-							ExportFormat:        model.NewPointer(model.ComplianceExportTypeActiance),
-							DailyRunTime:        model.NewPointer("01:00"),
-							ExportFromTimestamp: model.NewPointer(int64(0)),
-							BatchSize:           model.NewPointer(10000),
+							EnableExport:            model.NewPointer(true),
+							ExportFormat:            model.NewPointer(model.ComplianceExportTypeActiance),
+							DailyRunTime:            model.NewPointer("01:00"),
+							ExportFromTimestamp:     model.NewPointer(int64(0)),
+							BatchSize:               model.NewPointer(10000),
+							ChannelBatchSize:        model.NewPointer(100),
+							ChannelHistoryBatchSize: model.NewPointer(100),
 						},
 					},
 				},
@@ -408,9 +439,24 @@ func TestDoJobCancel(t *testing.T) {
 	// No previous job, data will be loaded from config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
 
+	// Job updates the system console UI, once for getting channels, once for getting activity
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil).Times(2)
+
+	// a few calls pass
+	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+		Return([]string{"channel-id"}, nil)
+	mockStore.ChannelStore.On("GetMany", []string{"channel-id"}, true).
+		Return(model.ChannelList{{
+			Id:          "channel-id",
+			DisplayName: "channel-display-name",
+			Name:        "channel-name",
+			Type:        model.ChannelTypeDirect,
+		}}, nil)
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", mock.Anything, mock.Anything, []string{"channel-id"}).Return([]*model.ChannelMemberHistoryResult{}, nil)
+
 	cancelled := make(chan struct{})
 	// Cancel the worker and return an error
-	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10000).Run(func(args tmock.Arguments) {
+	mockStore.ComplianceStore.On("MessageExport", mock.Anything, mock.AnythingOfType("model.MessageExportCursor"), 10001).Run(func(args tmock.Arguments) {
 		worker.cancel()
 
 		rctx, ok := args.Get(0).(request.CTX)

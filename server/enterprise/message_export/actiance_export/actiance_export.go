@@ -102,52 +102,70 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
-func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
-	// sort the posts into buckets based on the channel in which they appeared
-	membersByChannel := common_export.MembersByChannel{}
+type Params struct {
+	ChannelMetadata        map[string]*common_export.MetadataChannel
+	Posts                  []*model.MessageExport
+	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
+	BatchPath              string
+	BatchStartTime         int64
+	BatchEndTime           int64
+	Db                     store.Store
+	FileBackend            filestore.FileBackend
+}
+
+func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *model.AppError) {
+	// postAuthorsByChannel is a map so that we don't store duplicate authors
+	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
 	metadata := common_export.Metadata{
-		Channels:         map[string]common_export.MetadataChannel{},
+		Channels:         p.ChannelMetadata,
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
 		EndTime:          0,
 	}
-	elementsByChannel := map[string][]any{}
-	allUploadedFiles := []*model.FileInfo{}
+	elementsByChannel := make(map[string][]any)
+	allUploadedFiles := make([]*model.FileInfo, 0)
+	channelsInThisBatch := make(map[string]bool)
 
-	for _, post := range posts {
+	for _, post := range p.Posts {
 		if post == nil {
 			rctx.Logger().Warn("ignored a nil post reference in the list")
 			continue
 		}
-		elementsByChannel[*post.ChannelId] = append(elementsByChannel[*post.ChannelId], postToExportEntry(post, post.PostCreateAt, *post.PostMessage))
+
+		channelId := *post.ChannelId
+		channelsInThisBatch[channelId] = true
+
+		elementsByChannel[channelId] = append(elementsByChannel[channelId], postToExportEntry(post, post.PostCreateAt, *post.PostMessage))
 
 		if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
-			props := map[string]any{}
+			props := make(map[string]any)
 			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
 				if _, ok := props[model.PostPropsDeleteBy]; ok {
-					elementsByChannel[*post.ChannelId] = append(elementsByChannel[*post.ChannelId], postToExportEntry(post,
+					elementsByChannel[channelId] = append(elementsByChannel[channelId], postToExportEntry(post,
 						post.PostDeleteAt, "delete "+*post.PostMessage))
 				}
 			}
 		}
 
-		startUploads, stopUploads, uploadedFiles, deleteFileMessages, err := postToAttachmentsEntries(post, db)
-		if err != nil {
-			return warningCount, err
+		startUploads, stopUploads, uploadedFiles, deleteFileMessages, appErr := postToAttachmentsEntries(post, p.Db)
+		if appErr != nil {
+			return warningCount, appErr
 		}
-		elementsByChannel[*post.ChannelId] = append(elementsByChannel[*post.ChannelId], startUploads...)
-		elementsByChannel[*post.ChannelId] = append(elementsByChannel[*post.ChannelId], stopUploads...)
-		elementsByChannel[*post.ChannelId] = append(elementsByChannel[*post.ChannelId], deleteFileMessages...)
+		elementsByChannel[channelId] = append(elementsByChannel[channelId], startUploads...)
+		elementsByChannel[channelId] = append(elementsByChannel[channelId], stopUploads...)
+		elementsByChannel[channelId] = append(elementsByChannel[channelId], deleteFileMessages...)
 
 		allUploadedFiles = append(allUploadedFiles, uploadedFiles...)
 
-		metadata.Update(post, len(uploadedFiles))
-
-		if _, ok := membersByChannel[*post.ChannelId]; !ok {
-			membersByChannel[*post.ChannelId] = common_export.ChannelMembers{}
+		if err := metadata.UpdateCounts(channelId, len(uploadedFiles)); err != nil {
+			return warningCount, model.NewAppError("ActianceExport", model.NoTranslation, nil, "", http.StatusInternalServerError)
 		}
-		membersByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
+
+		if _, ok := postAuthorsByChannel[channelId]; !ok {
+			postAuthorsByChannel[channelId] = make(map[string]common_export.ChannelMember)
+		}
+		postAuthorsByChannel[channelId][*post.UserId] = common_export.ChannelMember{
 			Email:    *post.UserEmail,
 			UserId:   *post.UserId,
 			IsBot:    post.IsBot,
@@ -155,19 +173,27 @@ func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Sto
 		}
 	}
 
-	rctx.Logger().Info("Exported data for channels", mlog.Int("number_of_channels", len(metadata.Channels)))
-
-	channelExports := []ChannelExport{}
-	for _, channel := range metadata.Channels {
-		channelExport, err := buildChannelExport(
-			channel,
-			membersByChannel[channel.ChannelId],
-			elementsByChannel[channel.ChannelId],
-			db,
-		)
-		if err != nil {
-			return warningCount, err
+	// If the channel is not in channelsInThisBatch (i.e. if it didn't have a post), we need to check if it had
+	// user activity between this batch's startTime-endTime. If so, add it to the channelsInThisBatch.
+	for id := range p.ChannelMetadata {
+		if !channelsInThisBatch[id] {
+			if channelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
+				channelsInThisBatch[id] = true
+			}
 		}
+	}
+
+	// Build the channel exports for the channels that had post or user join/leave activity this batch.
+	channelExports := make([]ChannelExport, 0, len(channelsInThisBatch))
+	for id := range channelsInThisBatch {
+		channelExport := buildChannelExport(
+			p.BatchStartTime,
+			p.BatchEndTime,
+			metadata.Channels[id],
+			p.ChannelMemberHistories[id],
+			postAuthorsByChannel[id],
+		)
+		channelExport.Elements = elementsByChannel[id]
 		channelExports = append(channelExports, *channelExport)
 	}
 
@@ -176,7 +202,17 @@ func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Sto
 		Channels: channelExports,
 	}
 
-	return writeExport(rctx, export, allUploadedFiles, fileBackend, batchPath)
+	return writeExport(rctx, export, allUploadedFiles, p.FileBackend, p.BatchPath)
+}
+
+func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
+	for _, cmh := range cmhs {
+		if (cmh.JoinTime >= startTime && cmh.JoinTime <= endTime) ||
+			(cmh.LeaveTime != nil && *cmh.LeaveTime >= startTime && *cmh.LeaveTime <= endTime) {
+			return true
+		}
+	}
+	return false
 }
 
 func postToExportEntry(post *model.MessageExport, createTime *int64, message string) *PostExport {
@@ -204,11 +240,11 @@ func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any,
 		return nil, nil, nil, nil, model.NewAppError("postToAttachmentsEntries", "ent.message_export.actiance_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	startUploads := []any{}
-	stopUploads := []any{}
-	deleteFileMessages := []any{}
+	var startUploads []any
+	var stopUploads []any
+	var deleteFileMessages []any
 
-	uploadedFiles := []*model.FileInfo{}
+	var uploadedFiles []*model.FileInfo
 	for _, fileInfo := range fileInfos {
 		// insert a record of the file upload into the export file
 		// path to exported file is relative to the xml file, so it's just the name of the exported file
@@ -236,21 +272,17 @@ func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any,
 	return startUploads, stopUploads, uploadedFiles, deleteFileMessages, nil
 }
 
-func buildChannelExport(channel common_export.MetadataChannel, members common_export.ChannelMembers, elements []any, db store.Store) (*ChannelExport, *model.AppError) {
+func buildChannelExport(startTime int64, endTime int64, channel *common_export.MetadataChannel,
+	channelMembersHistory []*model.ChannelMemberHistoryResult, postAuthors map[string]common_export.ChannelMember) *ChannelExport {
 	channelExport := ChannelExport{
 		ChannelId:   channel.ChannelId,
 		RoomId:      fmt.Sprintf("%v - %v - %v", common_export.ChannelTypeDisplayName(channel.ChannelType), channel.ChannelName, channel.ChannelId),
-		StartTime:   channel.StartTime,
-		EndTime:     channel.EndTime,
+		StartTime:   startTime,
+		EndTime:     endTime,
 		Perspective: channel.ChannelDisplayName,
 	}
 
-	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, channel.ChannelId)
-	if err != nil {
-		return nil, model.NewAppError("buildChannelExport", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	joins, leaves := common_export.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, members)
+	joins, leaves := common_export.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
 	type StillJoinedInfo struct {
 		Time int64
 		Type string
@@ -293,12 +325,19 @@ func buildChannelExport(channel common_export.MetadataChannel, members common_ex
 
 	for email := range stillJoined {
 		channelExport.LeaveEvents = append(channelExport.LeaveEvents, LeaveExport{
-			LeaveTime:        channel.EndTime,
+			LeaveTime:        endTime,
 			UserEmail:        email,
 			UserType:         stillJoined[email].Type,
 			CorporateEmailID: email,
 		})
 	}
+
+	sort.Slice(channelExport.JoinEvents, func(i, j int) bool {
+		if channelExport.JoinEvents[i].JoinTime == channelExport.JoinEvents[j].JoinTime {
+			return channelExport.JoinEvents[i].UserEmail < channelExport.JoinEvents[j].UserEmail
+		}
+		return channelExport.JoinEvents[i].JoinTime < channelExport.JoinEvents[j].JoinTime
+	})
 
 	sort.Slice(channelExport.LeaveEvents, func(i, j int) bool {
 		if channelExport.LeaveEvents[i].LeaveTime == channelExport.LeaveEvents[j].LeaveTime {
@@ -307,8 +346,7 @@ func buildChannelExport(channel common_export.MetadataChannel, members common_ex
 		return channelExport.LeaveEvents[i].LeaveTime < channelExport.LeaveEvents[j].LeaveTime
 	})
 
-	channelExport.Elements = elements
-	return &channelExport, nil
+	return &channelExport
 }
 
 func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
@@ -350,7 +388,7 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 		r, err = fileBackend.Reader(fileInfo.Path)
 		if err != nil {
 			missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - "+fileInfo.Path)
-			rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("FileName", fileInfo.Path))
+			rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("filename", fileInfo.Path))
 			continue
 		}
 

@@ -74,14 +74,14 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 	}
 
 	metadata := common_export.Metadata{
-		Channels:         map[string]common_export.MetadataChannel{},
+		Channels:         map[string]*common_export.MetadataChannel{},
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
 		EndTime:          0,
 	}
 
-	membersByChannel := make(common_export.MembersByChannel)
+	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
 
 	for _, post := range posts {
 		attachments, err := getPostAttachments(db, post)
@@ -89,11 +89,11 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 			return warningCount, err
 		}
 
-		if _, ok := membersByChannel[*post.ChannelId]; !ok {
-			membersByChannel[*post.ChannelId] = common_export.ChannelMembers{}
+		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
+			postAuthorsByChannel[*post.ChannelId] = make(map[string]common_export.ChannelMember)
 		}
 
-		membersByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
+		postAuthorsByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
 			UserId:   *post.UserId,
 			Username: *post.Username,
 			IsBot:    post.IsBot,
@@ -103,7 +103,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 		metadata.Update(post, len(attachments))
 	}
 
-	joinLeavePosts, appErr2 := getJoinLeavePosts(metadata.Channels, membersByChannel, db)
+	joinLeavePosts, appErr2 := getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, db)
 	if appErr2 != nil {
 		return warningCount, appErr2
 	}
@@ -153,7 +153,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, f
 			r, nErr := fileBackend.Reader(attachment.Path)
 			if nErr != nil {
 				missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("PostId", *post.PostId), mlog.String("FileName", attachment.Path))
+				rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
 				continue
 			}
 
@@ -247,15 +247,16 @@ func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func(
 	}
 }
 
-func getJoinLeavePosts(channels map[string]common_export.MetadataChannel, membersByChannel common_export.MembersByChannel, db store.Store) ([]*model.MessageExport, *model.AppError) {
+func getJoinLeavePosts(channels map[string]*common_export.MetadataChannel,
+	postAuthorsByChannel map[string]map[string]common_export.ChannelMember, db store.Store) ([]*model.MessageExport, *model.AppError) {
 	joinLeavePosts := []*model.MessageExport{}
 	for _, channel := range channels {
-		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, channel.ChannelId)
+		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, []string{channel.ChannelId})
 		if err != nil {
 			return nil, model.NewAppError("getJoinLeavePosts", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		joins, leaves := common_export.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, membersByChannel[channel.ChannelId])
+		joins, leaves := common_export.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, postAuthorsByChannel[channel.ChannelId])
 
 		for _, join := range joins {
 			enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
