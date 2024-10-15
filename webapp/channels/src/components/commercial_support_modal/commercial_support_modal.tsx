@@ -16,6 +16,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
 import ExternalLink from 'components/external_link';
+import { Link } from 'react-router-dom';
 
 type Props = {
 
@@ -152,8 +153,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 a: (chunks: string) => (
                                     <ExternalLink
                                         href={supportLink}
-                                        //TODO: check what location is and where it should
-                                        location='supportLink'
+                                        location='commercialSupportModal'
                                     >
                                         {chunks}
                                     </ExternalLink>
@@ -166,9 +166,10 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 message={
                                     <FormattedMessage
                                         id='commercial_support.warning.banner'
-                                        defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> [here](!/admin_console/environment/logging).'
+                                        defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <a>here</a>.'
                                         values={{
                                             strong: (chunks: string) => <strong>{chunks}</strong>,
+                                            a: (chunks: string) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
                                         }}
                                     />
                                 }
@@ -176,13 +177,12 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             />
                         }
                         <div className='CommercialSupportModal__packet_contents_download'>
-                            <FormattedMessage
-                                id='commercial_support.download_contents'
-                                defaultMessage={'<strong>Select your Support Packet contents to download</strong>'}
-                                values={{
-                                    strong: (chunks: string) => <strong>{chunks}</strong>,
-                                }}
-                            />
+                            <strong>
+                                <FormattedMessage
+                                    id='commercial_support.download_contents'
+                                    defaultMessage={'Select your Support Packet contents to download'}
+                                />
+                            </strong>
                         </div>
                         {this.state.packetContents.map((item, index) => (
                             <div
