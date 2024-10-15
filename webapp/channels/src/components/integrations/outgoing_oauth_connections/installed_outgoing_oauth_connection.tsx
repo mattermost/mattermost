@@ -122,11 +122,12 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
         <>
             <div className='item-details__row'>
                 <span className='item-details__token'>
-                    <FormattedMarkdownMessage
-                        id='installed_integrations.client_id'
-                        defaultMessage='Client ID: **{clientId}**'
+                    <FormattedMessage
+                        id='installedIntegrations.clientId'
+                        defaultMessage='Client ID: <b>{clientId}</b>'
                         values={{
                             clientId: outgoingOAuthConnection.client_id,
+                            b: (chunks: string) => <b>{chunks}</b>,
                         }}
                     />
                 </span>

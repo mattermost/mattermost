@@ -10172,5 +10172,9 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Es ist nicht möglich, die zusätzlichen Eigenschaften der Sitzung zu aktualisieren."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kann keinen Einladungscode für einen bestätigten Cluster erzeugen"
   }
 ]
