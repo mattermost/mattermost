@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-
+import {Link} from 'react-router-dom';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
 
@@ -186,10 +186,7 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
     };
 
     renderTitle() {
-        return (<FormattedMessage {...messages.termsOfServiceTitle} 
-            values={{
-            b: (chunks) => <b>{chunks}</b>,
-        }}/>);
+        return (<FormattedMessage {...messages.termsOfServiceTitle} />);
     }
 
     renderSettings = () => {
@@ -202,16 +199,11 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                 <BooleanSetting
                     key={'customTermsOfServiceEnabled'}
                     id={'SupportSettings.CustomTermsOfServiceEnabled'}
-                    label={<FormattedMessage
-                        {...messages.enableTermsOfServiceTitle}
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />}
+                    label={<FormattedMessage {...messages.enableTermsOfServiceTitle} />}
                     helpText={<FormattedMessage
                         {...messages.enableTermsOfServiceHelp}
                         values={{
-                            b: (chunks) => <b>{chunks}</b>,
+                            a: (chunks: string) => <Link to='/admin_console/site_config/customization'>{chunks}</Link>,
                         }}
                     />}
                     value={Boolean(this.state.termsEnabled)}
@@ -223,18 +215,8 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceText'}
                     id={'SupportSettings.CustomTermsOfServiceText'}
                     type={'textarea'}
-                    label={<FormattedMessage
-                        {...messages.termsOfServiceTextTitle}
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />}
-                    helpText={<FormattedMessage
-                        {...messages.termsOfServiceTextHelp}
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />}
+                    label={<FormattedMessage  {...messages.termsOfServiceTextTitle} />}
+                    helpText={<FormattedMessage {...messages.termsOfServiceTextHelp}  />}
                     onChange={this.handleTermsTextChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceText')}
                     value={this.state.termsText}
@@ -245,18 +227,8 @@ export default class CustomTermsOfServiceSettings extends AdminSettings<Props, S
                     key={'customTermsOfServiceReAcceptancePeriod'}
                     id={'SupportSettings.CustomTermsOfServiceReAcceptancePeriod'}
                     type={'number'}
-                    label={<FormattedMessage
-                        {...messages.termsOfServiceReAcceptanceTitle}
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />}
-                    helpText={<FormattedMessage
-                        {...messages.termsOfServiceReAcceptanceHelp}
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />}
+                    label={<FormattedMessage {...messages.termsOfServiceReAcceptanceTitle} />}
+                    helpText={<FormattedMessage {...messages.termsOfServiceReAcceptanceHelp} />}
                     value={this.state.reAcceptancePeriod || ''}
                     onChange={this.handleReAcceptancePeriodChange}
                     setByEnv={this.isSetByEnv('SupportSettings.CustomTermsOfServiceReAcceptancePeriod')}
