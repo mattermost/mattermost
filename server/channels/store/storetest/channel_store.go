@@ -1036,7 +1036,7 @@ func testChannelStoreGetDeleted(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, nErr)
 
 	o4 := model.Channel{
-		TeamId:      model.NewId(),
+		TeamId:      teamID,
 		DisplayName: "Channel4",
 		Name:        NewTestID(),
 		Type:        model.ChannelTypePrivate,
