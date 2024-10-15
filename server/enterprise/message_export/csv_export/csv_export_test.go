@@ -392,19 +392,19 @@ func TestGetJoinLeavePosts(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	channels := map[string]common_export.MetadataChannel{"bad-request": {StartTime: 1, EndTime: 2, ChannelId: "bad-request"}}
+	channels := map[string]*common_export.MetadataChannel{"bad-request": {StartTime: 1, EndTime: 2, ChannelId: "bad-request"}}
 
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), "bad-request").Return(nil, model.NewAppError("Test", "test", nil, "", 400))
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), []string{"bad-request"}).Return(nil, model.NewAppError("Test", "test", nil, "", 400))
 
 	_, appErr := getJoinLeavePosts(channels, nil, mockStore)
 	assert.NotNil(t, appErr)
 
-	channels = map[string]common_export.MetadataChannel{
+	channels = map[string]*common_export.MetadataChannel{
 		"good-request-1": {StartTime: 1, EndTime: 7, ChannelId: "good-request-1", TeamId: model.NewPointer("test1"), TeamName: model.NewPointer("test1"), TeamDisplayName: model.NewPointer("test1"), ChannelName: "test1", ChannelDisplayName: "test1", ChannelType: "O"},
 		"good-request-2": {StartTime: 2, EndTime: 7, ChannelId: "good-request-2", TeamId: model.NewPointer("test2"), TeamName: model.NewPointer("test2"), TeamDisplayName: model.NewPointer("test2"), ChannelName: "test2", ChannelDisplayName: "test2", ChannelType: "P"},
 	}
 
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-1"].StartTime, channels["good-request-1"].EndTime, "good-request-1").Return(
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-1"].StartTime, channels["good-request-1"].EndTime, []string{"good-request-1"}).Return(
 		[]*model.ChannelMemberHistoryResult{
 			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
 			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
@@ -413,7 +413,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		nil,
 	)
 
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-2"].StartTime, channels["good-request-2"].EndTime, "good-request-2").Return(
+	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-2"].StartTime, channels["good-request-2"].EndTime, []string{"good-request-2"}).Return(
 		[]*model.ChannelMemberHistoryResult{
 			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
 			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
@@ -891,7 +891,6 @@ func TestCsvExport(t *testing.T) {
 
 			if len(tt.attachments) > 0 {
 				for post_id, attachments := range tt.attachments {
-					attachments := attachments // TODO: Remove once go1.22 is used
 					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(3)
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
@@ -907,7 +906,7 @@ func TestCsvExport(t *testing.T) {
 
 			if len(tt.cmhs) > 0 {
 				for channelId, cmhs := range tt.cmhs {
-					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100), channelId).Return(cmhs, nil)
+					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100), []string{channelId}).Return(cmhs, nil)
 				}
 			}
 
@@ -1047,7 +1046,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	for channelId, cmhs := range cmhs {
-		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), channelId).Return(cmhs, nil)
+		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), []string{channelId}).Return(cmhs, nil)
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")

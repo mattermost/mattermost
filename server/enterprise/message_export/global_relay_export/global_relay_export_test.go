@@ -1261,7 +1261,6 @@ func TestGlobalRelayExport(t *testing.T) {
 
 			if len(tt.attachments) > 0 {
 				for post_id, attachments := range tt.attachments {
-					attachments := attachments // TODO: Remove once go1.22 is used
 					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false)
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
@@ -1280,7 +1279,7 @@ func TestGlobalRelayExport(t *testing.T) {
 
 			if len(tt.cmhs) > 0 {
 				for channelId, cmhs := range tt.cmhs {
-					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100000), channelId).Return(cmhs, nil)
+					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100000), []string{channelId}).Return(cmhs, nil)
 				}
 			}
 
