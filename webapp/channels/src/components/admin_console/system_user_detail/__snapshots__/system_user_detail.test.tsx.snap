@@ -197,12 +197,9 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"
@@ -409,12 +406,9 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"
@@ -621,12 +615,9 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"
@@ -838,12 +829,9 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"
@@ -1050,12 +1038,9 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"
@@ -1265,12 +1250,9 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
-        id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
-        </span>
+        Save
       </button>
       <div
         class="error-message"

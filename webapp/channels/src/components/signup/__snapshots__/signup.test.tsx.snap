@@ -201,6 +201,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               }
               disabled={true}
               emphasis="primary"
+              fullWidth={true}
               onClick={[Function]}
               saving={false}
               savingMessage={
@@ -385,6 +386,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               }
               disabled={true}
               emphasis="primary"
+              fullWidth={true}
               onClick={[Function]}
               saving={false}
               savingMessage={
