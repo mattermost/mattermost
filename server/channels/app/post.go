@@ -118,7 +118,7 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
@@ -357,7 +357,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Error resolving persistent notification",
 				mlog.String("sender_id", rpost.UserId),
 				mlog.String("post_id", post.RootId),
@@ -488,7 +488,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
 				mlog.String("status", model.NotificationStatusError),
@@ -693,7 +693,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewString(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string
@@ -783,7 +783,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	if !model.IsValidId(previewedPostID) {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonParseError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Invalid post prop id for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -798,7 +798,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	previewedPost, err := a.GetSinglePost(c, previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("permalink post not found",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -815,7 +815,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 
 	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
 	if nErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Cannot get channel members",
 			mlog.String("type", model.NotificationTypeWebsocket),
 			mlog.String("post_id", post.Id),
@@ -830,7 +830,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError)
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 			a.NotificationsLog().Error("Cannot get channel",
 				mlog.String("type", model.NotificationTypeWebsocket),
 				mlog.String("post_id", post.Id),
@@ -1361,23 +1361,22 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	return postList, nil
 }
 
-func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(c), postID, false)
+func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	channel, appErr := a.GetChannel(c, post.ChannelId)
+	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	if channel.DeleteAt != 0 {
-		appErr := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, appErr
+		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
-	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
+	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1388,60 +1387,18 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
-			return nil, appErr
-		}
-	}
-
-	postJSON, err := json.Marshal(post)
-	if err != nil {
-		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	userMessage.Add("post", string(postJSON))
-	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(userMessage)
-
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
-	adminMessage.Add("delete_by", deleteByID)
-	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
-
 	if len(post.FileIds) > 0 {
 		a.Srv().Go(func() {
-			a.deletePostFiles(c, post.Id)
+			a.deletePostFiles(rctx, post.Id)
 		})
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
-	a.Srv().Go(func() {
-		a.deleteFlaggedPosts(c, post.Id)
-	})
 
-	pluginPost := post.ForPlugin()
-	pluginContext := pluginContext(c)
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
-			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenDeletedID)
-	})
-
-	a.Srv().Go(func() {
-		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
-		}
-	})
-
-	// delete drafts associated with the post when deleting the post
-	a.Srv().Go(func() {
-		a.deleteDraftsAssociatedWithPost(c, channel, post)
-	})
-
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	return post, nil
 }
@@ -1467,9 +1424,11 @@ func (a *App) deletePostFiles(c request.CTX, postID string) {
 }
 
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
-	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
+	cleanChannelName := strings.TrimLeft(channelName, "~")
+
+	if strings.HasPrefix(cleanChannelName, "@") && strings.Contains(cleanChannelName, ",") {
 		var userIDs []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
+		users, err := a.GetUsersByUsernames(strings.Split(cleanChannelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1484,8 +1443,8 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	if strings.HasPrefix(channelName, "@") && !strings.Contains(channelName, ",") {
-		user, err := a.GetUserByUsername(channelName[1:])
+	if strings.HasPrefix(cleanChannelName, "@") && !strings.Contains(cleanChannelName, ",") {
+		user, err := a.GetUserByUsername(cleanChannelName[1:])
 		if err != nil {
 			return nil, err
 		}
@@ -1496,7 +1455,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		return channel, nil
 	}
 
-	channel, err := a.GetChannelByName(c, channelName, teamID, includeDeleted)
+	channel, err := a.GetChannelByName(c, cleanChannelName, teamID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1556,7 +1515,7 @@ func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, 
 
 func (a *App) convertUserNameToUserIds(c request.CTX, usernames []string) []string {
 	for idx, username := range usernames {
-		user, err := a.GetUserByUsername(username)
+		user, err := a.GetUserByUsername(strings.TrimLeft(username, "@"))
 		if err != nil {
 			c.Logger().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
 			continue
@@ -2087,7 +2046,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+	if !a.SessionHasPermissionToReadChannel(c, *session, channel) {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
@@ -2642,5 +2601,88 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 	}
 
 	c.Logger().Info(msg)
+	return nil
+}
+
+func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError {
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, true)
+	if err != nil {
+		return model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if len(post.FileIds) > 0 {
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		if appErr != nil {
+			return appErr
+		}
+	}
+
+	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
+	if err != nil {
+		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(c, post); appErr != nil {
+			return appErr
+		}
+	}
+
+	postJSON, err := json.Marshal(post)
+	if err != nil {
+		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	userMessage.Add("post", string(postJSON))
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
+	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
+
+	a.Srv().Go(func() {
+		a.deleteFlaggedPosts(c, post.Id)
+	})
+
+	pluginPost := post.ForPlugin()
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+			return true
+		}, plugin.MessageHasBeenDeletedID)
+	})
+
+	a.Srv().Go(func() {
+		if err = a.RemoveNotifications(c, post, channel); err != nil {
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
+		}
+	})
+
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
+	a.invalidateCacheForChannelPosts(post.ChannelId)
+
 	return nil
 }

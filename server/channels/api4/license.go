@@ -17,11 +17,11 @@ import (
 )
 
 func (api *API) InitLicense() {
-	api.BaseRoutes.APIRoot.Handle("/trial-license", api.APISessionRequired(requestTrialLicense)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, handlerParamFileAPI)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods("DELETE")
-	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/trial-license", api.APISessionRequired(requestTrialLicense)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/trial-license/prev", api.APISessionRequired(getPrevTrialLicense)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(addLicense, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods(http.MethodDelete)
+	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods(http.MethodGet)
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -212,7 +212,12 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
 	}
-	json.Unmarshal(b, &trialRequest)
+
+	err = json.Unmarshal(b, &trialRequest)
+	if err != nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 
 	var appErr *model.AppError
 	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.

@@ -48,7 +48,6 @@ function mapStateToProps(state: GlobalState) {
         canManageSystem: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         canJoinPublicTeams: haveISystemPermission(state, {permission: Permissions.JOIN_PUBLIC_TEAMS}),
         canJoinPrivateTeams: haveISystemPermission(state, {permission: Permissions.JOIN_PRIVATE_TEAMS}),
-        siteURL: config.SiteURL,
         totalTeamsCount: state.entities.teams.totalCount || 0,
         isCloud,
         isFreeTrial,

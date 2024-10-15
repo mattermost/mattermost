@@ -20,6 +20,7 @@ import {
     AppsTypes,
     CloudTypes,
     HostedCustomerTypes,
+    ChannelBookmarkTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -30,6 +31,7 @@ import {
     getChannelStats,
     markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
+    fetchAllMyChannelMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -65,7 +67,7 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
     getChannelMembersInChannels,
@@ -229,11 +231,12 @@ export function reconnect() {
         const mostRecentId = getMostRecentPostIdInChannel(state, currentChannelId);
         const mostRecentPost = getPost(state, mostRecentId);
 
-        if (appsFeatureFlagEnabled(state)) {
+        if (appsEnabled(state)) {
             dispatch(handleRefreshAppsBindings());
         }
 
         dispatch(loadChannelsForCurrentUser());
+        dispatch(fetchAllMyChannelMembers());
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
@@ -245,7 +248,7 @@ export function reconnect() {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPoll());
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
@@ -430,6 +433,22 @@ export function handleEvent(msg) {
 
     case SocketEvents.CHANNEL_MEMBER_UPDATED:
         handleChannelMemberUpdatedEvent(msg);
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_CREATED:
+        dispatch(handleChannelBookmarkCreated(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_UPDATED:
+        dispatch(handleChannelBookmarkUpdated(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_DELETED:
+        dispatch(handleChannelBookmarkDeleted(msg));
+        break;
+
+    case SocketEvents.CHANNEL_BOOKMARK_SORTED:
+        dispatch(handleChannelBookmarkSorted(msg));
         break;
 
     case SocketEvents.DIRECT_ADDED:
@@ -1663,7 +1682,7 @@ function handleThreadUpdated(msg) {
             threadData.is_following = true;
         }
 
-        if (isThreadOpen(state, threadData.id) && !isThreadManuallyUnread(state, threadData.id)) {
+        if (isThreadOpen(state, threadData.id) && window.isActive && !isThreadManuallyUnread(state, threadData.id)) {
             lastViewedAt = Date.now();
 
             // Sometimes `Date.now()` was generating a timestamp before the
@@ -1753,5 +1772,52 @@ function handleHostedCustomerSignupProgressUpdated(msg) {
     return {
         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
         data: msg.data.progress,
+    };
+}
+
+function handleChannelBookmarkCreated(msg) {
+    const bookmark = JSON.parse(msg.data.bookmark);
+
+    return {
+        type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+        data: bookmark,
+    };
+}
+
+function handleChannelBookmarkUpdated(msg) {
+    return async (doDispatch) => {
+        const {updated, deleted} = JSON.parse(msg.data.bookmarks);
+
+        if (updated) {
+            doDispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+                data: updated,
+            });
+        }
+
+        if (deleted) {
+            doDispatch({
+                type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+                data: deleted,
+            });
+        }
+    };
+}
+
+function handleChannelBookmarkDeleted(msg) {
+    const bookmark = JSON.parse(msg.data.bookmark);
+
+    return {
+        type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+        data: bookmark,
+    };
+}
+
+function handleChannelBookmarkSorted(msg) {
+    const bookmarks = JSON.parse(msg.data.bookmarks);
+
+    return {
+        type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+        data: {channelId: msg.broadcast.channel_id, bookmarks},
     };
 }

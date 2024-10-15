@@ -12,7 +12,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
     />
   }
   emptyTextSearch={
-    <FormattedMarkdownMessage
+    <Memo(MemoizedFormattedMessage)
       defaultMessage="No OAuth 2.0 Applications match {searchTerm}"
       id="installed_oauth_apps.emptySearch"
     />
@@ -29,7 +29,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
       id="installed_oauth_apps.help"
       values={
         Object {
-          "appDirectory": <ExternalLink
+          "appDirectory": <ForwardRef
             href="https://mattermost.com/marketplace/"
             location="installed_oauth_apps"
           >
@@ -37,8 +37,8 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               defaultMessage="App Directory"
               id="installed_oauth_apps.help.appDirectory"
             />
-          </ExternalLink>,
-          "oauthApplications": <ExternalLink
+          </ForwardRef>,
+          "oauthApplications": <ForwardRef
             href="https://mattermost.com/pl/setup-oauth-2.0"
             location="installed_oauth_apps"
           >
@@ -46,7 +46,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               defaultMessage="OAuth 2.0 applications"
               id="installed_oauth_apps.help.oauthApplications"
             />
-          </ExternalLink>,
+          </ForwardRef>,
         }
       }
     />

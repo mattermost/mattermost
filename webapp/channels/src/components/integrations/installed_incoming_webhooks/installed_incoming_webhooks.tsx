@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -14,28 +14,31 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
-import {Constants, DeveloperLinks} from 'utils/constants';
+import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+const PAGE_SIZE = 200;
 
 type Props = {
     team: Team;
     user: UserProfile;
-    canManageOthersWebhooks: boolean;
-    incomingWebhooks: IncomingWebhook[];
+    incomingHooks: IncomingWebhook[];
+    incomingHooksTotalCount: number;
     channels: IDMappedObjects<Channel>;
     users: IDMappedObjects<UserProfile>;
+    canManageOthersWebhooks: boolean;
     enableIncomingWebhooks: boolean;
     actions: {
         removeIncomingHook: (hookId: string) => Promise<ActionResult>;
         loadIncomingHooksAndProfilesForTeam: (teamId: string, startPageNumber: number,
-            pageSize: number) => Promise<ActionResult>;
+            pageSize: number, includeTotalCount: boolean) => Promise<ActionResult<IncomingWebhook[] | IncomingWebhooksWithCount>>;
     };
 }
 
 type State = {
+    page: number;
     loading: boolean;
 }
 
@@ -44,24 +47,41 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
         super(props);
 
         this.state = {
+            page: 0,
             loading: true,
         };
     }
 
     componentDidMount() {
-        if (this.props.enableIncomingWebhooks) {
-            this.props.actions.loadIncomingHooksAndProfilesForTeam(
-                this.props.team.id,
-                Constants.Integrations.START_PAGE_NUM,
-                Constants.Integrations.PAGE_SIZE,
-            ).then(
-                () => this.setState({loading: false}),
-            );
-        }
+        this.loadPage(0);
     }
 
     deleteIncomingWebhook = (incomingWebhook: IncomingWebhook) => {
         this.props.actions.removeIncomingHook(incomingWebhook.id);
+    };
+
+    loadPage = async (pageToLoad: number) => {
+        if (this.props.enableIncomingWebhooks) {
+            this.setState({loading: true},
+                async () => {
+                    await this.props.actions.loadIncomingHooksAndProfilesForTeam(
+                        this.props.team.id,
+                        pageToLoad,
+                        PAGE_SIZE,
+                        true,
+                    );
+                    this.setState({page: pageToLoad, loading: false});
+                },
+            );
+        }
+    };
+
+    nextPage = () => {
+        this.loadPage(this.state.page + 1);
+    };
+
+    previousPage = () => {
+        this.loadPage(this.state.page - 1);
     };
 
     incomingWebhookCompare = (a: IncomingWebhook, b: IncomingWebhook) => {
@@ -71,16 +91,15 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = Utils.localizeMessage('installed_incoming_webhooks.unknown_channel', 'A Private Webhook');
+                displayNameA = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
 
         const displayNameB = b.display_name;
-
         return displayNameA.localeCompare(displayNameB);
     };
 
-    incomingWebhooks = (filter: string) => this.props.incomingWebhooks.
+    incomingWebhooks = (filter: string) => this.props.incomingHooks.
         sort(this.incomingWebhookCompare).
         filter((incomingWebhook: IncomingWebhook) => matchesFilter(incomingWebhook, this.props.channels[incomingWebhook.channel_id], filter)).
         map((incomingWebhook: IncomingWebhook) => {
@@ -123,7 +142,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_incoming_webhooks.emptySearch'
                         defaultMessage='No incoming webhooks match {searchTerm}'
                     />
@@ -158,8 +177,13 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage('installed_incoming_webhooks.search', 'Search Incoming Webhooks')}
+                searchPlaceholder={Utils.localizeMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'})}
                 loading={this.state.loading}
+                nextPage={this.nextPage}
+                previousPage={this.previousPage}
+                page={this.state.page}
+                pageSize={PAGE_SIZE}
+                total={this.props.incomingHooksTotalCount}
             >
                 {(filter: string) => {
                     const children = this.incomingWebhooks(filter);

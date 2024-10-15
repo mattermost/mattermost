@@ -15,6 +15,7 @@ import type {
     ChannelStats,
     ChannelWithTeamData,
 } from '@mattermost/types/channels';
+import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
@@ -464,32 +465,43 @@ export function fetchChannelsAndMembers(teamId: string): ActionFuncAsync<{channe
     };
 }
 
-export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFuncAsync {
+export function fetchAllMyChannelMembers(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
-        let channels;
+
         let channelsMembers: ChannelMembership[] = [];
-        let allMembers = true;
+        let hasMoreMembers = true;
         let page = 0;
-        do {
-            try {
+        try {
+            while (hasMoreMembers) {
+                // Expected to disable since we don't have number of pages, so we can't use Promise.all
                 // eslint-disable-next-line no-await-in-loop
-                await Client4.getAllChannelsMembers(currentUserId, page, 200).then(
-                    // eslint-disable-next-line no-loop-func
-                    (data) => {
-                        channelsMembers = [...channelsMembers, ...data];
-                        page++;
-                        if (data.length < 200) {
-                            allMembers = false;
-                        }
-                    });
-            } catch (error) {
-                forceLogoutIfNecessary(error, dispatch, getState);
-                dispatch(logError(error));
-                return {error};
+                const data = await Client4.getAllChannelsMembers(currentUserId, page, 200);
+                channelsMembers = [...channelsMembers, ...data];
+                if (data.length < 200) {
+                    hasMoreMembers = false;
+                }
+                page++;
             }
-        } while (allMembers && page <= 2);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: channelsMembers,
+            currentUserId,
+        });
+        return {data: channelsMembers};
+    };
+}
+
+export function fetchAllMyTeamsChannels(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let channels;
         try {
             channels = await Client4.getAllTeamsChannels();
         } catch (error) {
@@ -498,18 +510,11 @@ export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFuncAsync 
             return {error};
         }
 
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_ALL_CHANNELS,
-                data: channels,
-            },
-            {
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelsMembers,
-                currentUserId,
-            },
-        ]));
-        return {data: {channels, channelsMembers}};
+        dispatch({
+            type: ChannelTypes.RECEIVED_ALL_CHANNELS,
+            data: channels,
+        });
+        return {data: channels};
     };
 }
 
@@ -933,9 +938,9 @@ export function searchChannels(teamId: string, term: string, archived?: boolean)
     };
 }
 
-export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount>;
-export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): ActionFuncAsync<ChannelWithTeamData[]>;
-export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): ActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
+export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): ActionFuncAsync<ChannelsWithTotalCount>;
+export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): ActionFuncAsync<ChannelWithTeamData[]>;
+export function searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}): ActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
@@ -943,6 +948,9 @@ export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): A
         try {
             response = await Client4.searchAllChannels(term, opts);
         } catch (error) {
+            if (opts.signal?.aborted) {
+                return {error};
+            }
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_ALL_CHANNELS_FAILURE, error});
             dispatch(logError(error));
@@ -1045,6 +1053,45 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
         }
 
         return {data: member};
+    };
+}
+
+export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFuncAsync {
+    const batchSize = 1000;
+    return async (dispatch, getState) => {
+        const channelMembers: ChannelMembership[] = [];
+        try {
+            for (let i = 0; i < userIds.length; i += batchSize) {
+                // eslint-disable-next-line no-await-in-loop
+                const cm = await Client4.addToChannels(userIds.slice(i, i + batchSize), channelId, postRootId);
+                channelMembers.push(...cm);
+            }
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        Client4.trackEvent('action', 'action_channels_add_member', {channel_id: channelId});
+
+        const ids = channelMembers.map((member) => ({id: member.user_id}));
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_PROFILES_IN_CHANNEL,
+                id: channelId,
+                data: ids,
+            },
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL_MEMBERS,
+                data: channelMembers,
+            },
+            {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: channelId,
+                count: channelMembers.length,
+            },
+        ], 'ADD_CHANNEL_MEMBERS.BATCH'));
+        return {data: channelMembers};
     };
 }
 
@@ -1400,6 +1447,7 @@ export default {
     searchGroupChannels,
     getChannelStats,
     addChannelMember,
+    addChannelMembers,
     removeChannelMember,
     markChannelAsRead,
     favoriteChannel,

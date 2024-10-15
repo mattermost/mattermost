@@ -6,6 +6,7 @@ import {combineReducers} from 'redux';
 import admin from './admin';
 import apps from './apps';
 import bots from './bots';
+import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
 import channels from './channels';
 import cloud from './cloud';
@@ -53,4 +54,5 @@ export default combineReducers({
     cloud,
     usage,
     hostedCustomer,
+    channelBookmarks,
 });

@@ -114,6 +114,94 @@ describe('channels', () => {
         });
     });
 
+    describe('RECEIVED_CHANNEL_STATS', () => {
+        test("should store a channel's stats", () => {
+            const state = deepFreeze(channelsReducer({}, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).not.toBe(nextState);
+            expect(nextState.stats).toEqual({
+                channel1: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+        });
+
+        test("should update a channel's stats", () => {
+            const state = deepFreeze(channelsReducer({
+                stats: {
+                    channel1: {
+                        channel_id: 'channel1',
+                        member_count: 1,
+                        guest_count: 1,
+                        pinnedpost_count: 1,
+                        files_count: 1,
+                    },
+                },
+            }, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).not.toBe(nextState);
+            expect(nextState.stats).toEqual({
+                channel1: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+        });
+
+        test("should return the same object when a channel's stats are unchanged", () => {
+            const state = deepFreeze(channelsReducer({
+                stats: {
+                    channel1: {
+                        channel_id: 'channel1',
+                        member_count: 2,
+                        guest_count: 3,
+                        pinnedpost_count: 4,
+                        files_count: 5,
+                    },
+                },
+            }, {}));
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+                data: {
+                    channel_id: 'channel1',
+                    member_count: 2,
+                    guest_count: 3,
+                    pinnedpost_count: 4,
+                    files_count: 5,
+                },
+            });
+
+            expect(state).toBe(nextState);
+        });
+    });
+
     describe('INCREMENT_FILE_COUNT', () => {
         test('should change channel file count stats', () => {
             const state = deepFreeze(channelsReducer({
@@ -132,6 +220,36 @@ describe('channels', () => {
 
             expect(nextState).not.toBe(state);
             expect(nextState.stats.channel1.files_count).toEqual(4);
+        });
+    });
+
+    describe('ADD_CHANNEL_MEMBER_SUCCESS', () => {
+        const state = deepFreeze(channelsReducer({
+            stats: {
+                channel1: {
+                    id: 'channel1',
+                    member_count: 1,
+                },
+            },
+        }, {}));
+        test('should increment by 1 default', () => {
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: 'channel1',
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.stats.channel1.member_count).toEqual(2);
+        });
+        test('should increment by number passed', () => {
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
+                id: 'channel1',
+                count: 100,
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.stats.channel1.member_count).toEqual(101);
         });
     });
 
@@ -772,6 +890,101 @@ describe('channels', () => {
                         },
                     ],
                 },
+            });
+
+            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(5);
+            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_timezones_count).toEqual(2);
+
+            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_count).toEqual(1002);
+            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(133);
+
+            expect(nextState.channelMemberCountsByGroup.channel1['group-3'].channel_member_count).toEqual(12);
+            expect(nextState.channelMemberCountsByGroup.channel1['group-3'].channel_member_timezones_count).toEqual(13);
+        });
+    });
+
+    describe('RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST', () => {
+        test('Should add new channel member counts', () => {
+            const state = deepFreeze(channelsReducer({
+                channels: {
+                    channel1: {
+                        id: 'channel1',
+                        team_id: 'team',
+                    },
+                },
+            }, {}));
+
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
+                sync: true,
+                channelId: 'channel1',
+                teamId: 'team',
+                data: [
+                    {
+                        id: 'group-1',
+                        member_count: 1,
+                        channel_member_timezones_count: 1,
+                    },
+                    {
+                        id: 'group-2',
+                        member_count: 999,
+                        channel_member_timezones_count: 131,
+                    },
+                ],
+            });
+
+            console.log(nextState.channelMemberCountsByGroup.channel1);
+
+            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(1);
+            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_timezones_count).toEqual(1);
+
+            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_count).toEqual(999);
+            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(131);
+        });
+        test('Should replace existing channel member counts', () => {
+            const state = deepFreeze(channelsReducer({
+                channels: {
+                    channel1: {
+                        id: 'channel1',
+                        team_id: 'team',
+                    },
+                },
+                channelMemberCountsByGroup: {
+                    'group-1': {
+                        id: 'group-1',
+                        member_count: 1,
+                        channel_member_timezones_count: 1,
+                    },
+                    'group-2': {
+                        id: 'group-2',
+                        member_count: 999,
+                        channel_member_timezones_count: 131,
+                    },
+                },
+            }, {}));
+
+            const nextState = channelsReducer(state, {
+                type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
+                sync: true,
+                channelId: 'channel1',
+                teamId: 'team',
+                data: [
+                    {
+                        id: 'group-1',
+                        member_count: 5,
+                        channel_member_timezones_count: 2,
+                    },
+                    {
+                        id: 'group-2',
+                        member_count: 1002,
+                        channel_member_timezones_count: 133,
+                    },
+                    {
+                        id: 'group-3',
+                        member_count: 12,
+                        channel_member_timezones_count: 13,
+                    },
+                ],
             });
 
             expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(5);

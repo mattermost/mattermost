@@ -10,6 +10,7 @@ import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/type
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
@@ -25,7 +26,7 @@ import type {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
     Address,
@@ -86,6 +87,7 @@ import type {
     CommandResponse,
     DialogSubmission,
     IncomingWebhook,
+    IncomingWebhooksWithCount,
     OAuthApp,
     OutgoingOAuthConnection,
     OutgoingWebhook,
@@ -108,12 +110,14 @@ import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageRe
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {Reaction} from '@mattermost/types/reactions';
+import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -138,7 +142,7 @@ import type {
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
 } from '@mattermost/types/users';
-import type {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
+import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -314,9 +318,23 @@ export default class Client4 {
     getChannelSchemeRoute(channelId: string) {
         return `${this.getChannelRoute(channelId)}/scheme`;
     }
+    getChannelBookmarksRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks`;
+    }
+    getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
+    }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
         return `${this.getBaseRoute()}/users/${userId}/teams/${teamId}/channels/categories`;
+    }
+
+    getRemoteClustersRoute() {
+        return `${this.getBaseRoute()}/remotecluster`;
+    }
+
+    getRemoteClusterRoute(remoteId: string) {
+        return `${this.getRemoteClustersRoute()}/${remoteId}`;
     }
 
     getPostsRoute() {
@@ -1017,8 +1035,8 @@ export default class Client4 {
         );
     };
 
-    startUsersBatchExport = (dateRange: string) => {
-        const queryString = buildQueryString({date_range: dateRange});
+    startUsersBatchExport = (filter: UserReportFilter) => {
+        const queryString = buildQueryString(filter);
         return this.doFetch<StatusOK>(
             `${this.getReportsRoute()}/users/export${queryString}`,
             {method: 'post'},
@@ -1605,7 +1623,15 @@ export default class Client4 {
         includeDeleted: boolean | undefined,
         excludePolicyConstrained: boolean | undefined
     ): Promise<ChannelsWithTotalCount>;
-    getAllChannels(page = 0, perPage = PER_PAGE_DEFAULT, notAssociatedToGroup = '', excludeDefaultChannels = false, includeTotalCount = false, includeDeleted = false, excludePolicyConstrained = false) {
+    getAllChannels(
+        page = 0,
+        perPage = PER_PAGE_DEFAULT,
+        notAssociatedToGroup = '',
+        excludeDefaultChannels = false,
+        includeTotalCount = false,
+        includeDeleted = false,
+        excludePolicyConstrained = false,
+    ) {
         const queryData = {
             page,
             per_page: perPage,
@@ -1811,6 +1837,16 @@ export default class Client4 {
         );
     };
 
+    addToChannels = (userIds: string[], channelId: string, postRootId = '') => {
+        this.trackEvent('api', 'api_channels_add_members', {channel_id: channelId});
+
+        const members = {user_ids: userIds, channel_id: channelId, post_root_id: postRootId};
+        return this.doFetch<ChannelMembership[]>(
+            `${this.getChannelMembersRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(members)},
+        );
+    };
+
     addToChannel = (userId: string, channelId: string, postRootId = '') => {
         this.trackEvent('api', 'api_channels_add_member', {channel_id: channelId});
 
@@ -1916,9 +1952,9 @@ export default class Client4 {
         );
     };
 
-    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): Promise<ChannelsWithTotalCount>;
-    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): Promise<ChannelWithTeamData[]>;
-    searchAllChannels(term: string, opts: ChannelSearchOpts = {}) {
+    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): Promise<ChannelsWithTotalCount>;
+    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): Promise<ChannelWithTeamData[]>;
+    searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}) {
         const body = {
             term,
             ...opts,
@@ -1932,7 +1968,7 @@ export default class Client4 {
         }
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}/search${buildQueryString(queryParams)}`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'post', body: JSON.stringify(body), signal: opts.signal},
         );
     }
 
@@ -1951,7 +1987,44 @@ export default class Client4 {
         );
     };
 
-    // Channel Category Routes
+    // Channel Bookmark Routes
+
+    getChannelBookmarks = (channelId: string, bookmarksSince?: number) => {
+        return this.doFetch<ChannelBookmark[]>(
+            `${this.getChannelBookmarksRoute(channelId)}${buildQueryString({bookmarks_since: bookmarksSince})}`,
+            {method: 'get'},
+        );
+    };
+
+    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate, connectionId: string) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarksRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(channelBookmark), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    deleteChannelBookmark = (channelId: string, channelBookmarkId: string, connectionId: string) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
+        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number, connectionId: string) => {
+        return this.doFetch<ChannelBookmark[]>(
+            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
+            {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    //  Channel Category Routes
 
     getChannelCategories = (userId: string, teamId: string) => {
         return this.doFetch<OrderedChannelCategories>(
@@ -2006,6 +2079,89 @@ export default class Client4 {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}`,
             {method: 'delete'},
+        );
+    };
+
+    // Remote Clusters Routes
+
+    getRemoteClusters = (options: {excludePlugins: boolean}) => {
+        return this.doFetch<RemoteCluster[]>(
+            `${this.getRemoteClustersRoute()}${buildQueryString({exclude_plugins: options.excludePlugins})}`,
+            {method: 'GET'},
+        );
+    };
+
+    getRemoteCluster = (remoteId: string) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'GET'},
+        );
+    };
+
+    createRemoteCluster = (remoteCluster: PartialExcept<RemoteClusterWithPassword, 'name' | 'display_name'>) => {
+        return this.doFetch<{invite: string; password: string; remote_cluster: RemoteCluster}>(
+            `${this.getRemoteClustersRoute()}`,
+            {method: 'POST', body: JSON.stringify(remoteCluster)},
+        );
+    };
+
+    patchRemoteCluster = (remoteId: string, patch: Partial<RemoteClusterPatch>) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    deleteRemoteCluster = (remoteId: string) => {
+        return this.doFetch(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    acceptInviteRemoteCluster = (remoteClusterAcceptInvite: RemoteClusterAcceptInvite) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClustersRoute()}/accept_invite`,
+            {method: 'POST', body: JSON.stringify(remoteClusterAcceptInvite)},
+        );
+    };
+
+    generateInviteRemoteCluster = (remoteId: string, remoteCluster: Partial<Pick<RemoteClusterWithPassword, 'password'>>) => {
+        return this.doFetch<string>(
+            `${this.getRemoteClusterRoute(remoteId)}/generate_invite`,
+            {method: 'POST', body: JSON.stringify(remoteCluster)},
+        );
+    };
+
+    // Shared Channels Routes
+
+    getSharedChannelRemotes = (
+        remoteId: string,
+        filters: {
+            exclude_remote?: boolean;
+            exclude_home?: boolean;
+            include_deleted?: boolean;
+            include_unconfirmed?: boolean;
+            exclude_confirmed?: boolean;
+        },
+    ) => {
+        return this.doFetch<SharedChannelRemote[]>(
+            `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(filters)}`,
+            {method: 'GET'},
+        );
+    };
+
+    sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
+            {method: 'POST'},
+        );
+    };
+
+    sharedChannelRemoteUninvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
+            {method: 'POST'},
         );
     };
 
@@ -2373,7 +2529,7 @@ export default class Client4 {
         return url;
     }
 
-    uploadFile = (fileFormData: any) => {
+    uploadFile = (fileFormData: any, isBookmark?: boolean) => {
         this.trackEvent('api', 'api_files_upload');
         const request: any = {
             method: 'post',
@@ -2381,7 +2537,7 @@ export default class Client4 {
         };
 
         return this.doFetch<FileUploadResponse>(
-            `${this.getFilesRoute()}`,
+            `${this.getFilesRoute()}${buildQueryString({bookmark: isBookmark})}`,
             request,
         );
     };
@@ -2429,6 +2585,13 @@ export default class Client4 {
         );
     };
 
+    getUserPreferences = (userId: string) => {
+        return this.doFetch<PreferenceType[]>(
+            `${this.getPreferencesRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
     deletePreferences = (userId: string, preferences: PreferenceType[]) => {
         return this.doFetch<StatusOK>(
             `${this.getPreferencesRoute(userId)}/delete`,
@@ -2444,6 +2607,7 @@ export default class Client4 {
             ActiveSearchBackend: string;
             database_status: string;
             filestore_status: string;
+            root_status: boolean;
         }>(
             `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId, use_rest_semantics: true})}`,
             {method: 'get'},
@@ -2556,17 +2720,18 @@ export default class Client4 {
         );
     };
 
-    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getIncomingWebhooks = (teamId = '', page = 0, perPage = PER_PAGE_DEFAULT, includeTotalCount = false) => {
         const queryParams: any = {
             page,
             per_page: perPage,
+            include_total_count: includeTotalCount,
         };
 
         if (teamId) {
             queryParams.team_id = teamId;
         }
 
-        return this.doFetch<IncomingWebhook[]>(
+        return this.doFetch<IncomingWebhook[] | IncomingWebhooksWithCount>(
             `${this.getIncomingHooksRoute()}${buildQueryString(queryParams)}`,
             {method: 'get'},
         );
@@ -4068,8 +4233,8 @@ export default class Client4 {
 
     getAncillaryPermissions = (subsectionPermissions: string[]) => {
         return this.doFetch<string[]>(
-            `${this.getPermissionsRoute()}/ancillary?subsection_permissions=${subsectionPermissions.join(',')}`,
-            {method: 'get'},
+            `${this.getPermissionsRoute()}/ancillary`,
+            {method: 'post', body: JSON.stringify(subsectionPermissions)},
         );
     };
 
@@ -4108,7 +4273,11 @@ export default class Client4 {
 
         let data;
         try {
-            data = await response.json();
+            if (headers.get('Content-Type') === 'application/json') {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
         } catch (err) {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',

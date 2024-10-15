@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
@@ -54,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
@@ -304,11 +306,13 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(i18n.T)
 
 	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -497,6 +501,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 func (s *Server) runJobs() {
 	s.runLicenseExpirationCheckJob()
+
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
@@ -528,6 +533,9 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runConfigCleanupJob(s)
+	})
+	s.Go(func() {
+		runCloudUserCountReportJob(s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -582,7 +590,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableRemoteClusterService && !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -611,7 +619,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channels Service disabled via config")
 		return nil
 	}
@@ -1233,6 +1241,13 @@ func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
 
+// Reports activated user count to the CWS every 24 hours
+func runCloudUserCountReportJob(s *Server) {
+	model.CreateRecurringTask("Report user count for cloud subscription", func() {
+		s.doReportUserCountForCloudSubscriptionJob()
+	}, time.Hour*24)
+}
+
 func doTokenCleanup(s *Server) {
 	expiry := model.GetMillis() - model.MaxTokenExipryTime
 
@@ -1331,6 +1346,26 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	}
 
 	return nil
+}
+
+func (s *Server) doReportUserCountForCloudSubscriptionJob() {
+	s.LoadLicense()
+
+	if !s.License().IsCloud() {
+		return
+	}
+
+	mlog.Debug("Reporting daily user count for cloud subscription.")
+
+	appInstance := New(ServerConnector(s.Channels()))
+
+	_, err := appInstance.SendSubscriptionHistoryEvent("")
+
+	if err != nil {
+		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
+	}
+
+	mlog.Debug("Daily user count reported for cloud subscription.")
 }
 
 func (s *Server) doLicenseExpirationCheck() {
@@ -1532,6 +1567,12 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeMobileSessionMetadata,
+		mobile_session_metadata.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		mobile_session_metadata.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
 		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
@@ -1602,6 +1643,11 @@ func (s *Server) initJobs() {
 		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil,
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteDmsPreferencesMigration,
+		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.platform.Jobs = s.Jobs
 }

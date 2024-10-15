@@ -86,7 +86,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
             >
                 <LoadingWrapper
                     loading={this.props.installing}
-                    text={localizeMessage('marketplace_modal.installing', 'Installing...')}
+                    text={localizeMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
                 >
                     {actionButton}
                 </LoadingWrapper>

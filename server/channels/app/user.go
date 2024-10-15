@@ -295,7 +295,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		a.sendUpdatedUserEvent(*nUser)
 	}
 
-	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
+	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryRecommendedNextSteps, Name: model.PreferenceNameRecommendedNextStepsHide, Value: "false"}
 	tutorialStepPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: ruser.Id, Value: "0"}
 	gmASdmPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategorySystemNotice, Name: "GMasDM", Value: "true"}
 
@@ -318,20 +318,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			return true
 		}, plugin.UserHasBeenCreatedID)
 	})
-
-	// For cloud yearly subscriptions, if the current user count of the workspace exceeds the number of seats initially purchased
-	// (plus the “threshold” of 10%), then a subscriptionHistoryEvent object would need to be created and added to the subscriptionHistory
-	// table in CWS. This is then used to calculate how much the customers have to pay in addition for the extra users. If the
-	// workspace is currently on a monthly plan, then this function will not do anything.
-
-	if a.Channels().License().IsCloud() && !ruser.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(ruser.Id)
-	}
 
 	userLimits, limitErr := a.GetServerLimits()
 	if limitErr != nil {
@@ -864,7 +850,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	updatedUser.SanitizeProfile(options)
+	updatedUser.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", updatedUser)
@@ -1117,7 +1103,7 @@ func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, asAdmin)
 }
 
 func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
@@ -1355,15 +1341,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
-	if a.Channels().License().IsCloud() && prev.IsRemote() && !user.IsRemote() {
-		go func(userId string) {
-			_, err := a.SendSubscriptionHistoryEvent(userId)
-			if err != nil {
-				c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(err))
-			}
-		}(user.Id)
-	}
-
 	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
@@ -1445,7 +1422,11 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	hashedPassword := model.HashPassword(newPassword)
+	hashedPassword, err := model.HashPassword(newPassword)
+	if err != nil {
+		// can't be password length (checked in IsPasswordValid)
+		return model.NewAppError("UpdatePassword", "api.user.update_password.password_hash.app_error", nil, "user_id="+user.Id, http.StatusInternalServerError).Wrap(err)
+	}
 
 	if err := a.Srv().Store().User().UpdatePassword(user.Id, hashedPassword); err != nil {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1778,13 +1759,13 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
-func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError {
-	c.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
+func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
+	rctx.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SystemAdminRoleId) {
-		c.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
+		rctx.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
-	if _, err := a.UpdateActive(c, user, false); err != nil {
+	if _, err := a.UpdateActive(rctx, user, false); err != nil {
 		return err
 	}
 
@@ -1816,7 +1797,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(c, user.Id); err != nil {
+	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1824,7 +1805,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(c, user.Id); err != nil {
+	if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1844,35 +1825,10 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
 	if err != nil {
-		c.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
+		rctx.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
 	}
 
-	for _, info := range infos {
-		res, err := a.FileExists(info.Path)
-		if err != nil {
-			c.Logger().Warn(
-				"Error checking existence of file",
-				mlog.String("path", info.Path),
-				mlog.Err(err),
-			)
-			continue
-		}
-
-		if !res {
-			c.Logger().Warn("File not found", mlog.String("path", info.Path))
-			continue
-		}
-
-		err = a.RemoveFile(info.Path)
-
-		if err != nil {
-			c.Logger().Warn(
-				"Unable to remove file",
-				mlog.String("path", info.Path),
-				mlog.Err(err),
-			)
-		}
-	}
+	a.RemoveFilesFromFileStore(rctx, infos)
 
 	// delete directory containing user's profile image
 	profileImageDirectory := getProfileImageDirectory(user.Id)
@@ -1883,7 +1839,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 	if errProfileImageExists != nil {
 		fileHandlingErrorsFound = true
-		c.Logger().Warn(
+		rctx.Logger().Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
 			mlog.Err(errProfileImageExists),
@@ -1895,7 +1851,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true
-			c.Logger().Warn(
+			rctx.Logger().Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
 				mlog.Err(errRemoveDirectory),
@@ -1903,11 +1859,11 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		}
 	}
 
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(c, user.Id); err != nil {
+	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().User().PermanentDelete(c, user.Id); err != nil {
+	if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1915,7 +1871,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(c, user.Id); err != nil {
+	if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1925,7 +1881,7 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
 	}
 
-	c.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
 
 	return nil
 }
@@ -2462,7 +2418,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2506,7 +2462,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2554,7 +2510,7 @@ func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	}
 
 	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
+	user.SanitizeProfile(options, false)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", user)
@@ -2850,13 +2806,10 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		return nil, err
 	}
 
-	opts := store.ThreadMembershipOpts{
-		Following:       true,
-		UpdateFollowing: true,
-	}
-	membership, storeErr := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
-	if storeErr != nil {
-		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	// If the thread doesn't have a membership, we shouldn't try to mark it as unread
+	membership, err := a.GetThreadMembershipForUser(userID, threadID)
+	if err != nil {
+		return nil, err
 	}
 
 	previousUnreadMentions := membership.UnreadMentions

@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3012,20 +3012,12 @@
     "translation": "Elasticsearch är redan stoppad."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att starta Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka Elasticsearch-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Det gick inte att hämta Elasticsearch-serverns versionsnummer."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Misslyckades att skapa Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -7876,7 +7868,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Säker anslutning | Visningsnamn | AnslutningsID | SajtURL | Inbjudan accepterad | Online | Senast ping  |"
+    "translation": "| Säker anslutning | Visningsnamn | AnslutningsID | SajtURL | Standardteam | Inbjudan accepterad | Online | Senast ping | Raderad |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -7933,10 +7925,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Inbjudan från säker anslutning"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Kunde inte dekryptera inbjudan. Felaktigt lösenord eller skadad inbjudan: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -8972,10 +8960,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Kunde inte öppna CA-filen för Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Avkodningen av CA för Elasticsearch misslyckades"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10040,5 +10024,153 @@
   {
     "id": "app.user.save.groupname.app_error",
     "translation": "Kan inte avgöra om användarnamnet redan finns"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Det går inte att uppdatera status på jobb. Ogiltig status inställd"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Du har inte behörighet att hantera denna typ av jobb"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Ogiltig status inställd"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Misslyckades med att skriva loggar till buffert"
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ditt lösenord kan inte innehålla fler än 72 tecken."
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Det uppstod ett internt fel när lösenordet sparades."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Hittade inte instansens URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Kunde inte acceptera inbjudan till fjärrklustret"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Kunde inte avkoda base64-strängen"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Fjärrklustret har inte tagits bort"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Det gick inte att kryptera inbjudan till fjärrklustret med det angivna lösenordet"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Fjärrkluster hittades inte"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Det gick inte att dekryptera fjärrklusterinbjudan med det angivna lösenordet"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Kan inte ange anpassad status."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Kan inte hantera begäran. Request body är för stor."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache-typ måste vara antingen lru eller redis."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Kunde inte få fram webhook för teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Ogiltig sök-funktion i backend. Måste vara antingen elasticsearch eller opensearch."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Ogiltigt värde för limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress måste anges för cachetypen redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB måste ha ett värde som är noll eller större."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Ogiltig maxlängd för URL för serviceinställningar. Måste vara ett heltal större än noll."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Ditt konto är inte ett OAuth eller SAML-konto."
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Storleken på uppladdat plugin överskrider gränsen. Denna gräns kan ändras i systemkonsolen via Fillagring > Maximal filstorlek"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Det går inte att hämta trådens medlemmar för export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Ogiltigt meddelande-ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Ogiltigt användar-ID."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Misslyckades med att ladda upp filen. Uppladdningskanalen delas inte med den andra servern."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Misslyckades med att få fram kanalmedlemmar för direktkanal"
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Det går inte att uppdatera sessionens extra-egenskaper."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Kunde inte spara trådens medlemsskap."
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Det gick inte att bjuda in den andra servern till kanalen"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Det gick inte att koppla bort den andra servern från kanalen"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Det finns inga medlemmar i direktkanalen"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Det gick inte att hämta delad kanal från den andra servern"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Det gick inte att avgöra om kanalen delas med den andra servern"
   }
 ]

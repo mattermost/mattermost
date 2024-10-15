@@ -2893,11 +2893,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verzió 14.1+"
+    "translation": "Verzió 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -2905,11 +2905,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verzió 118+"
+    "translation": "Verzió 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 118+"
+    "translation": "Verzió 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3264,20 +3264,12 @@
     "translation": "Az Elasticsearch már leállt."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült elindítani az Elasticsearch tömeges feldolgozót."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nem sikerült értelmezni az Elasticsearch szerver verzióját."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Nem sikerült lekérni az Elasticsearch szerver verzióját."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nem sikerült létrehozni az Elasticsearch tömeges feldolgozót."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4453,7 +4445,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nem sikerült frissíteni a websocket kapcsolatot."
+    "translation": "URL blokkolva CORS miatt. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -6648,7 +6640,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Biztonságos kapcsolat | Megjelenített név | Kapcsolat azonosító | Rendszer URL | Meghívó elfogadva | Elérhető | Utolsó ping  |"
+    "translation": "| Biztonságos kapcsolat | Megjelenített név | Kapcsolat azonosító | Rendszer URL | Alapértelmezett csapat | Meghívó elfogadva | Elérhető | Utolsó ping | Törölt |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -6705,10 +6697,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Meghívás biztonságos kapcsolatból"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nem sikerült visszafejteni a meghívót. Helytelen jelszó vagy sérült meghívó: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",

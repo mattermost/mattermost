@@ -45,6 +45,76 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/remotecluster/{remote_id}/sharedchannelremotes":
+    get:
+      tags:
+        - shared channels
+      summary: Get shared channel remotes by remote cluster.
+      description: |
+        Get a list of the channels shared with a given remote cluster
+        and their status.
+
+        ##### Permissions
+        `manage_secure_connections`
+      operationId: GetSharedChannelRemotesByRemoteCluster
+      parameters:
+        - name: remote_id
+          in: path
+          description: The remote cluster GUID
+          required: true
+          schema:
+            type: string
+        - name: include_unconfirmed
+          in: query
+          description: Include those Shared channel remotes that are unconfirmed
+          schema:
+            type: boolean
+        - name: exclude_confirmed
+          in: query
+          description: Show only those Shared channel remotes that are not confirmed yet
+          schema:
+            type: boolean
+        - name: exclude_home
+          in: query
+          description: Show only those Shared channel remotes that were shared with this server
+          schema:
+            type: boolean
+        - name: exclude_remote
+          in: query
+          description: Show only those Shared channel remotes that were shared from this server
+          schema:
+            type: boolean
+        - name: include_deleted
+          in: query
+          description: Include those Shared channel remotes that have been deleted
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: The number of shared channels per page
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shared channel remotes fetch successful. Result might be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedChannelRemote"
+
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   "/api/v4/sharedchannels/remote_info/{remote_id}":
     get:
       tags:
@@ -80,3 +150,79 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  "/api/v4/remotecluster/{remote_id}/channels/{channel_id}/invite":
+    post:
+      tags:
+        - shared channels
+      summary: Invites a remote cluster to a channel.
+      description: |
+        Invites a remote cluster to a channel, sharing the channel if
+        needed. If the remote cluster was already invited to the
+        channel, calling this endpoint will have no effect.
+
+        ##### Permissions
+        `manage_shared_channels`
+      operationId: InviteRemoteClusterToChannel
+      parameters:
+        - name: remote_id
+          in: path
+          description: The remote cluster GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: The channel GUID to invite the remote cluster to
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote cluster invited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/remotecluster/{remote_id}/channels/{channel_id}/uninvite":
+    post:
+      tags:
+        - shared channels
+      summary: Uninvites a remote cluster to a channel.
+      description: |
+        Stops sharing a channel with a remote cluster. If the channel
+        was not shared with the remote, calling this endpoint will
+        have no effect.
+
+        ##### Permissions
+        `manage_shared_channels`
+      operationId: UninviteRemoteClusterToChannel
+      parameters:
+        - name: remote_id
+          in: path
+          description: The remote cluster GUID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: The channel GUID to uninvite the remote cluster to
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote cluster uninvited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

@@ -145,10 +145,10 @@ func ExampleClient4_PatchChannel() {
 
 	channelId := "channel_id"
 	patch := &model.ChannelPatch{
-		Name:        model.NewString("new_name"),
-		DisplayName: model.NewString("New Display Name"),
-		Header:      model.NewString("New header"),
-		Purpose:     model.NewString("New purpose"),
+		Name:        model.NewPointer("new_name"),
+		DisplayName: model.NewPointer("New Display Name"),
+		Header:      model.NewPointer("New header"),
+		Purpose:     model.NewPointer("New purpose"),
 	}
 
 	_, _, err := client.PatchChannel(context.Background(), channelId, patch)

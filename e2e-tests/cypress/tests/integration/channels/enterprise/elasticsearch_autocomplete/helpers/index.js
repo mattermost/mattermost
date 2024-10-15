@@ -53,13 +53,8 @@ function createChannel(channelType, teamId, userToAdd = null) {
         if (userToAdd) {
             // # Get user profile by email
             return cy.apiGetUserByEmail(userToAdd.email).then(({user}) => {
-                // # Add user to team
-                cy.externalRequest({
-                    user: admin,
-                    method: 'post',
-                    path: `channels/${channel.id}/members`,
-                    data: {user_id: user.id},
-                }).then(() => {
+                // # Add user to channel
+                cy.externalAddUserToChannel(user.id, channel.id).then(() => {
                     // # Explicitly wait to give some time to index before searching
                     cy.wait(TIMEOUTS.TWO_SEC);
                     return cy.wrap(channel);
@@ -87,15 +82,14 @@ module.exports = {
         // # Enable elastic search via the API
         cy.apiUpdateConfig({
             ElasticsearchSettings: {
-                EnableAutocomplete: true,
                 EnableIndexing: true,
                 EnableSearching: true,
-                Sniff: false,
             },
         });
 
         // # Navigate to the elastic search setting page
         cy.visit('/admin_console/environment/elasticsearch');
+        cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
 
         // * Test the connection and verify that we are successful
         cy.contains('button', 'Test Connection').click();

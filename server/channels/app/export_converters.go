@@ -40,17 +40,17 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportD
 	}
 }
 
-func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy []string) *imports.LineImportData {
-	channelMembers := *channel.Members
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy, shownBy []string) *imports.LineImportData {
+	channelMembers := channel.Members
 	if len(channelMembers) == 1 {
-		channelMembers = []string{channelMembers[0], channelMembers[0]}
+		channelMembers = []*model.ChannelMemberForExport{channelMembers[0], channelMembers[0]}
 	}
 
 	line := &imports.LineImportData{
 		Type: "direct_channel",
 		DirectChannel: &imports.DirectChannelImportData{
-			Header:  &channel.Header,
-			Members: &channelMembers,
+			Header:       &channel.Header,
+			Participants: importDirectChannelMembersFromChannelMembers(channelMembers),
 		},
 	}
 
@@ -58,7 +58,80 @@ func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favorite
 		line.DirectChannel.FavoritedBy = &favoritedBy
 	}
 
+	if len(shownBy) != 0 {
+		line.DirectChannel.ShownBy = &shownBy
+	}
+
 	return line
+}
+
+func importDirectChannelMembersFromChannelMembers(members []*model.ChannelMemberForExport) []*imports.DirectChannelMemberImportData {
+	importedMembers := make([]*imports.DirectChannelMemberImportData, len(members))
+	for i, member := range members {
+		props := member.NotifyProps
+		notifyProps := imports.UserChannelNotifyPropsImportData{}
+
+		desktop, exist := props[model.DesktopNotifyProp]
+		if exist {
+			notifyProps.Desktop = &desktop
+		}
+		mobile, exist := props[model.PushNotifyProp]
+		if exist {
+			notifyProps.Mobile = &mobile
+		}
+		email, exist := props[model.EmailNotifyProp]
+		if exist {
+			notifyProps.Email = &email
+		}
+		ignoreMentions, exist := props[model.IgnoreChannelMentionsNotifyProp]
+		if exist {
+			notifyProps.IgnoreChannelMentions = &ignoreMentions
+		}
+		channelAutoFallow, exist := props[model.ChannelAutoFollowThreads]
+		if exist {
+			notifyProps.ChannelAutoFollowThreads = &channelAutoFallow
+		}
+		markUnread, exist := props[model.MarkUnreadNotifyProp]
+		if exist {
+			notifyProps.MarkUnread = &markUnread
+		}
+
+		dcm := &imports.DirectChannelMemberImportData{
+			Username:    &member.Username,
+			NotifyProps: &notifyProps,
+		}
+
+		if member.SchemeUser {
+			dcm.SchemeUser = &member.SchemeUser
+		}
+		if member.SchemeAdmin {
+			dcm.SchemeAdmin = &member.SchemeAdmin
+		}
+		if member.SchemeGuest {
+			dcm.SchemeGuest = &member.SchemeGuest
+		}
+		if member.LastViewedAt != 0 {
+			dcm.LastViewedAt = &member.LastViewedAt
+		}
+		if member.MentionCount != 0 {
+			dcm.MentionCount = &member.MentionCount
+		}
+		if member.MentionCountRoot != 0 {
+			dcm.MentionCountRoot = &member.MentionCountRoot
+		}
+		if member.MsgCount != 0 {
+			dcm.MsgCount = &member.MsgCount
+		}
+		if member.MsgCountRoot != 0 {
+			dcm.MsgCountRoot = &member.MsgCountRoot
+		}
+		if member.UrgentMentionCount != 0 {
+			dcm.UrgentMentionCount = &member.UrgentMentionCount
+		}
+
+		importedMembers[i] = dcm
+	}
+	return importedMembers
 }
 
 func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {
@@ -71,28 +144,35 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 	return &imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			Username:           &user.Username,
-			Email:              &user.Email,
-			AuthService:        authService,
-			AuthData:           user.AuthData,
-			Nickname:           &user.Nickname,
-			FirstName:          &user.FirstName,
-			LastName:           &user.LastName,
-			Position:           &user.Position,
-			Roles:              &user.Roles,
-			Locale:             &user.Locale,
-			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
-			UseFormatting:      exportedPrefs["UseFormatting"],
-			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
-			Theme:              exportedPrefs["Theme"],
-			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
-			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
-			MessageDisplay:     exportedPrefs["MessageDisplay"],
-			ColorizeUsernames:  exportedPrefs["ColorizeUsernames"],
-			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
-			TutorialStep:       exportedPrefs["TutorialStep"],
-			EmailInterval:      exportedPrefs["EmailInterval"],
-			DeleteAt:           &user.DeleteAt,
+			Username:                 &user.Username,
+			Email:                    &user.Email,
+			AuthService:              authService,
+			AuthData:                 user.AuthData,
+			Nickname:                 &user.Nickname,
+			FirstName:                &user.FirstName,
+			LastName:                 &user.LastName,
+			Position:                 &user.Position,
+			Roles:                    &user.Roles,
+			Locale:                   &user.Locale,
+			UseMarkdownPreview:       exportedPrefs["UseMarkdownPreview"],
+			UseFormatting:            exportedPrefs["UseFormatting"],
+			ShowUnreadSection:        exportedPrefs["ShowUnreadSection"],
+			Theme:                    exportedPrefs["Theme"],
+			UseMilitaryTime:          exportedPrefs["UseMilitaryTime"],
+			CollapsePreviews:         exportedPrefs["CollapsePreviews"],
+			MessageDisplay:           exportedPrefs["MessageDisplay"],
+			ColorizeUsernames:        exportedPrefs["ColorizeUsernames"],
+			ChannelDisplayMode:       exportedPrefs["ChannelDisplayMode"],
+			TutorialStep:             exportedPrefs["TutorialStep"],
+			EmailInterval:            exportedPrefs["EmailInterval"],
+			NameFormat:               exportedPrefs["NameFormat"],
+			SendOnCtrlEnter:          exportedPrefs["SendOnCtrlEnter"],
+			ShowJoinLeave:            exportedPrefs["ShowJoinLeave"],
+			SyncDrafts:               exportedPrefs["SyncDrafts"],
+			ShowUnreadScrollPosition: exportedPrefs["ShowUnreadScrollPosition"],
+			LimitVisibleDmsGms:       exportedPrefs["LimitVisibleDmsGms"],
+			CodeBlockCtrlEnter:       exportedPrefs["CodeBlockCtrlEnter"],
+			DeleteAt:                 &user.DeleteAt,
 		},
 	}
 }
@@ -165,17 +245,20 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 }
 
 func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "post",
 		Post: &imports.PostImportData{
-			Team:     &post.TeamName,
-			Channel:  &post.ChannelName,
-			User:     &post.Username,
-			Type:     &post.Type,
-			Message:  &post.Message,
-			Props:    &post.Props,
-			CreateAt: &post.CreateAt,
-			EditAt:   &post.EditAt,
+			Team:      &post.TeamName,
+			Channel:   &post.ChannelName,
+			User:      &post.Username,
+			Type:      &post.Type,
+			Message:   &post.Message,
+			Props:     &post.Props,
+			CreateAt:  &post.CreateAt,
+			EditAt:    &post.EditAt,
+			IsPinned:  &post.IsPinned,
+			FlaggedBy: &f,
 		},
 	}
 }
@@ -185,6 +268,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
+	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "direct_post",
 		DirectPost: &imports.DirectPostImportData{
@@ -195,17 +279,22 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
 			EditAt:         &post.EditAt,
+			IsPinned:       &post.IsPinned,
+			FlaggedBy:      &f,
 		},
 	}
 }
 
 func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
+	f := []string(post.FlaggedBy)
 	return &imports.ReplyImportData{
-		User:     &post.Username,
-		Type:     &post.Type,
-		Message:  &post.Message,
-		CreateAt: &post.CreateAt,
-		EditAt:   &post.EditAt,
+		User:      &post.Username,
+		Type:      &post.Type,
+		Message:   &post.Message,
+		CreateAt:  &post.CreateAt,
+		EditAt:    &post.EditAt,
+		IsPinned:  &post.IsPinned,
+		FlaggedBy: &f,
 	}
 }
 
@@ -267,5 +356,13 @@ func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role)
 	return &imports.LineImportData{
 		Type:   "scheme",
 		Scheme: data,
+	}
+}
+
+func ImportFollowerFromThreadMember(threadMember *model.ThreadMembershipForExport) *imports.ThreadFollowerImportData {
+	return &imports.ThreadFollowerImportData{
+		User:           &threadMember.Username,
+		LastViewed:     &threadMember.LastViewed,
+		UnreadMentions: &threadMember.UnreadMentions,
 	}
 }

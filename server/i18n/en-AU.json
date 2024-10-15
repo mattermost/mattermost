@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 122+"
+    "translation": "Version 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3216,20 +3216,12 @@
     "translation": "Elasticsearch is already stopped."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse Elasticsearch server version."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -6662,10 +6654,6 @@
     "translation": "Invitation from secure connection"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },
@@ -8036,7 +8024,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite Accepted | Online | Last Ping |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8941,10 +8929,6 @@
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Decoding of the CA for Elasticsearch failed"
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -10025,5 +10009,165 @@
   {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "A team with this URL already exists."
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Invalid status set"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Unable to update job status. Invalid status set"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Error determining number of System Admin accounts."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Cannot demote last System Admin."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Unable to determine if that username already exists"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "You do not have permission to manage this job type"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Failed to write logs to buffer"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Your password must contain no more than 72 characters."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Could not retrieve the instance site URL"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Could not accept the remote cluster invitation"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Could not decode the base64 string"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Remote cluster has not been deleted"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Could not encrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Remote Cluster not found"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Could not decrypt the remote cluster invite using the provided password"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Unable to set custom status."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "An internal error occurred while saving the password."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Unable to process request. Request body too large."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Invalid value for limit_visible_dms_gms."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Unable to save thread membership for post."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Unable to get thread members for export."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "User is not an OAuth or SAML user."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Could not fetch shared channel remotes"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Could not determine if channel is shared with the remote"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Could not invite remote to channel"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Could not uninvite remote to channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
   }
 ]
