@@ -276,7 +276,7 @@ function DraftRow({
             onClick={goToMessage}
             hasError={Boolean(postError)}
             innerRef={scrollIntoView ? alertRef : undefined}
-            className={scrollIntoView ? 'target' : ''}
+            isHighlighted={scrollIntoView}
         >
             {({hover}) => (
                 <>

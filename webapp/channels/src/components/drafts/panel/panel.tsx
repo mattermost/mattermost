@@ -13,7 +13,7 @@ type Props = {
     onClick: () => void;
     hasError: boolean;
     innerRef?: React.Ref<HTMLElement>;
-    className?: string;
+    isHighlighted?: boolean;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
@@ -23,7 +23,7 @@ function Panel({
     onClick,
     hasError,
     innerRef,
-    className,
+    isHighlighted,
 }: Props) {
     const [hover, setHover] = useState(false);
 
@@ -45,9 +45,9 @@ function Panel({
         <article
             className={classNames(
                 'Panel',
-                className,
                 {
                     draftError: hasError,
+                    highlighted: isHighlighted,
                 },
             )}
             onMouseOver={handleMouseOver}
