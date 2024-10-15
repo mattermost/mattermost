@@ -10172,5 +10172,9 @@
   {
     "id": "api.shared_channel.has_remote_error",
     "translation": "Det gick inte att avgöra om kanalen delas med den andra servern"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Det går inte att generera en inbjudningskod för ett bekräftat kluster"
   }
 ]
