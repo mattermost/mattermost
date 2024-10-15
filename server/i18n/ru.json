@@ -7917,7 +7917,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | URL сайта | Приглашение принято | Онлайн | Последний пинг |"
+    "translation": "| Безопасное соединение | Отображаемое имя | Идентификатор подключения | Адрес сайта | Команда по умолчанию | Приглашение принято | Онлайн | Последний пинг | Удалено |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10126,5 +10126,21 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "Размер загруженного плагина превышает лимит. Этот лимит можно изменить в Системной консоли через File Storage > Maximum File Size"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Для канала личных сообщений нет участников"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Не удалось загрузить файл. Канал загрузки не используется совместно с удаленным."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Невозможно сгенерировать код приглашения для подтвержденного кластера"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Не удалось определить, является ли канал общим с удаленным"
   }
 ]
