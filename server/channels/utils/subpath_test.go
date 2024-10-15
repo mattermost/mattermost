@@ -32,7 +32,8 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 		err := os.Setenv("IS_CI", "true")
 		require.NoError(t, err)
 		defer func() {
-			os.Unsetenv("IS_CI")
+			err := os.Unsetenv("IS_CI")
+			require.NoError(t, err)
 		}()
 
 		err = utils.UpdateAssetsSubpathFromConfig(nil)
@@ -42,8 +43,12 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	t.Run("no config", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
-		os.Chdir(tempDir)
+		defer func() {
+			err := os.RemoveAll(tempDir)
+			require.NoError(t, err)
+		}()
+		err = os.Chdir(tempDir)
+		require.NoError(t, err)
 
 		err = utils.UpdateAssetsSubpathFromConfig(nil)
 		require.Error(t, err)
@@ -54,8 +59,12 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 	t.Run("no client dir", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
-		os.Chdir(tempDir)
+		defer func() {
+			err := os.RemoveAll(tempDir)
+			require.NoError(t, err)
+		}()
+		err = os.Chdir(tempDir)
+		require.NoError(t, err)
 
 		err = utils.UpdateAssetsSubpath("/")
 		require.Error(t, err)
@@ -64,8 +73,12 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
-		os.Chdir(tempDir)
+		defer func() {
+			err := os.RemoveAll(tempDir)
+			require.NoError(t, err)
+		}()
+		err = os.Chdir(tempDir)
+		require.NoError(t, err)
 
 		err = os.Mkdir(model.ClientDir, 0700)
 		require.NoError(t, err)
@@ -162,9 +175,9 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700)
-				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700)
-				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700)
+				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700))
+				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700))
+				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700))
 				err := utils.UpdateAssetsSubpath(testCase.Subpath)
 				if testCase.ExpectedError != nil {
 					require.Equal(t, testCase.ExpectedError, err)
