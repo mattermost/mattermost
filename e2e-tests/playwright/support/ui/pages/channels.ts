@@ -12,6 +12,7 @@ export default class ChannelsPage {
 
     readonly globalHeader;
     readonly centerView;
+    readonly scheduledDraftDropdown;
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly appBar;
@@ -46,6 +47,8 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
+
     }
 
     async toBeVisible() {

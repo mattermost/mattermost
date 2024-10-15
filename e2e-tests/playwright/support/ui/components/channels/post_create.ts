@@ -5,12 +5,12 @@ import {expect, Locator} from '@playwright/test';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
-
     readonly input;
 
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
+    readonly scheduleDraftMessageButton;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -24,6 +24,8 @@ export default class ChannelsPostCreate {
         this.attachmentButton = container.getByLabel('attachment');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
+        this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
+
     }
 
     async toBeVisible() {
@@ -64,6 +66,20 @@ export default class ChannelsPostCreate {
         await expect(this.sendMessageButton).toBeEnabled();
 
         await this.sendMessageButton.click();
+    }
+
+    /**
+     * Click on Scheduled Draft button to open options
+     */
+    async clickOnScheduleDraftDropdownButton() {
+        await expect(this.input).toBeVisible();
+        const messageInputValue = await this.getInputValue();
+        expect(messageInputValue).not.toBe('');
+
+        await expect(this.scheduleDraftMessageButton).toBeVisible();
+        await expect(this.scheduleDraftMessageButton).toBeEnabled();
+
+        await this.scheduleDraftMessageButton.click();
     }
 
     /**

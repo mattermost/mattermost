@@ -12,12 +12,14 @@ export default class ChannelsCenterView {
 
     readonly header;
     readonly postCreate;
+    readonly scheduledDraftsOptions;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
+        this.scheduledDraftsOptions = new components.ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
     }
 
     async toBeVisible() {
