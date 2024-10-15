@@ -123,7 +123,9 @@ type ClusterMock struct {
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
-	json.Unmarshal(msg.Data, &sbs)
+	if err := json.Unmarshal(msg.Data, &sbs); err != nil {
+		return
+	}
 	c.Busy.ClusterEventChanged(&sbs)
 }
 

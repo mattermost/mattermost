@@ -101,7 +101,6 @@ issues:
         channels/app/bot.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
-        channels/app/busy_test.go|\
         channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
         channels/app/channel_category_test.go|\
