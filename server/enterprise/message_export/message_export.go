@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/mattermost/enterprise/internal/file"
+	"github.com/mattermost/enterprise/message_export/actiance_export"
+	"github.com/mattermost/enterprise/message_export/csv_export"
+	"github.com/mattermost/enterprise/message_export/global_relay_export"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"strconv"
 
@@ -20,21 +23,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
+	"github.com/mattermost/enterprise/message_export/shared"
 )
 
-const (
-	GlobalRelayExportFilename = "global-relay.zip"
-)
+const GlobalRelayExportFilename = "global-relay.zip"
 
 type MessageExportInterfaceImpl struct {
 	Server *app.Server
@@ -86,143 +83,211 @@ func (m *MessageExportInterfaceImpl) StartSynchronizeJob(rctx request.CTX, expor
 	return job, nil
 }
 
-func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType string, since int64, limit int) (warningCount int64, appErr *model.AppError) {
-	if limit < 0 {
-		limit = math.MaxInt64
+func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType string, since int64, limit int) (warningCount int, appErr *model.AppError) {
+	var err error
+	data := shared.JobData{
+		ExportType:              exportType,
+		BatchStartTime:          since,
+		BatchEndTime:            model.GetMillis(),
+		ChannelBatchSize:        *m.Server.Config().MessageExportSettings.ChannelBatchSize,
+		ChannelHistoryBatchSize: *m.Server.Config().MessageExportSettings.ChannelHistoryBatchSize,
 	}
-
-	jobEndTime := model.GetMillis()
-
-	var channelMetadata map[string]*common_export.MetadataChannel
-	var channelMemberHistories map[string][]*model.ChannelMemberHistoryResult
-	if exportType == model.ComplianceExportTypeActiance {
-		var err error
-		reportProgress := func(message string) {
-			rctx.Logger().Debug(message)
-		}
-		channelMetadata, channelMemberHistories, err = common_export.CalculateChannelExports(rctx, common_export.ChannelExportsParams{
-			Store:                   m.Server.Store(),
-			ExportPeriodStartTime:   since,
-			ExportPeriodEndTime:     jobEndTime,
-			ChannelBatchSize:        *m.Server.Config().MessageExportSettings.ChannelBatchSize,
-			ChannelHistoryBatchSize: *m.Server.Config().MessageExportSettings.ChannelHistoryBatchSize,
-			ReportProgressMessage:   reportProgress,
-		})
-		if err != nil {
-			return warningCount, model.NewAppError("RunExport", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	reportProgress := func(message string) {
+		rctx.Logger().Debug(message)
 	}
-
-	postsToExport, _, err := m.Server.Store().Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: since}, limit)
+	data, err = shared.GetInitialExportPeriodData(rctx, m.Server.Store(), data, reportProgress)
 	if err != nil {
-		return warningCount, model.NewAppError("RunExport", "ent.message_export.run_export.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return warningCount, model.NewAppError("RunExport", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	rctx.Logger().Debug("Found posts to export", mlog.Int("num_posts", len(postsToExport)))
 
 	fileBackend := m.Server.FileBackend()
 	templatesDir, ok := fileutils.FindDir("templates")
 	if !ok {
 		return warningCount, model.NewAppError("RunExport", "ent.compliance.run_export.template_watcher.appError", nil, "", http.StatusAccepted)
 	}
-
-	t, err2 := templates.New(templatesDir)
-	if err2 != nil {
-		return warningCount, model.NewAppError("RunExport", "ent.compliance.run_export.template_watcher.appError", nil, "", http.StatusAccepted).Wrap(err2)
+	t, err := templates.New(templatesDir)
+	if err != nil {
+		return warningCount, model.NewAppError("RunExport", "ent.compliance.run_export.template_watcher.appError", nil, "", http.StatusAccepted).Wrap(err)
+	}
+	jobParams := shared.BackendParams{
+		Config:        m.Server.Config(),
+		Store:         m.Server.Store(),
+		FileBackend:   fileBackend,
+		HtmlTemplates: t,
 	}
 
-	batchPath := getBatchPath("", since, model.GetMillis(), 1)
-	return runExportByType(rctx, exportParams{
-		exportType:             exportType,
-		channelMetadata:        channelMetadata,
-		channelMemberHistories: channelMemberHistories,
-		postsToExport:          postsToExport,
-		batchPath:              batchPath,
-		batchStartTime:         since,
-		batchEndTime:           jobEndTime,
-		db:                     m.Server.Store(),
-		fileBackend:            fileBackend,
-		htmlTemplates:          t,
-		config:                 m.Server.Config(),
-	})
+	data, err = GetDataForBatch(rctx, data, jobParams)
+	if err != nil {
+		return warningCount, model.NewAppError("RunExport", "ent.message_export.run_export.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var res shared.RunExportResults
+	res, err = RunExportByType(rctx, ExportParams{
+		ExportType:             exportType,
+		ChannelMetadata:        data.ChannelMetadata,
+		ChannelMemberHistories: data.ChannelMemberHistories,
+		PostsToExport:          data.PostsToExport,
+		BatchPath:              data.BatchPath,
+		BatchStartTime:         data.BatchStartTime,
+		BatchEndTime:           data.BatchEndTime,
+	}, jobParams)
+
+	if err != nil {
+		appErr = model.NewAppError("RunExport", "ent.message_export.run_export.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return res.NumWarnings, appErr
 }
 
-type exportParams struct {
-	exportType             string
-	channelMetadata        map[string]*common_export.MetadataChannel
-	channelMemberHistories map[string][]*model.ChannelMemberHistoryResult
-	postsToExport          []*model.MessageExport
-	batchPath              string
-	batchStartTime         int64
-	batchEndTime           int64
-	db                     store.Store
-	fileBackend            filestore.FileBackend
-	htmlTemplates          *templates.Container
-	config                 *model.Config
+func RunBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams) (shared.RunExportResults, shared.JobData, error) {
+	var err error
+	var res shared.RunExportResults
+	data, err = GetDataForBatch(rctx, data, params)
+	if err != nil {
+		return res, data, err
+	}
+
+	if data.Finished {
+		return res, data, nil
+	}
+
+	// Now write the data to the export type.
+	res, err = RunExportByType(rctx, DataToExportParams(data), params)
+	if err != nil {
+		return res, data, err
+	}
+
+	data.TotalWarningCount += res.NumWarnings
+	data.BatchStartTime = data.BatchEndTime
+
+	return res, data, err
 }
 
-func runExportByType(rctx request.CTX, p exportParams) (warningCount int64, appErr *model.AppError) {
-	preparePosts(rctx, p.postsToExport)
+// GetDataForBatch gets the posts for this batch and updates JobData with the current state.
+func GetDataForBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams) (shared.JobData, error) {
+	var err error
+	// Using BatchSize+1 is a trick to test whether or not we've reached the final batch.
+	data.PostsToExport, data.Cursor, err = params.Store.Compliance().MessageExport(rctx, data.Cursor, data.BatchSize+1)
+	if err != nil {
+		return data, err
+	}
 
-	switch p.exportType {
+	if len(data.PostsToExport) == data.BatchSize+1 {
+		// We still have posts after this current batch.
+		// Remove the last post, we have to leave it for the next batch.
+		lastPostIdx := len(data.PostsToExport) - 1
+		data.PostsToExport = data.PostsToExport[:lastPostIdx]
+		lastPostIdx = len(data.PostsToExport) - 1
+		data.Cursor.LastPostUpdateAt = *data.PostsToExport[lastPostIdx].PostUpdateAt
+		data.Cursor.LastPostId = *data.PostsToExport[lastPostIdx].PostId
+		data.BatchEndTime = data.Cursor.LastPostUpdateAt
+	} else {
+		// We've reached the final batch; we need to include all join/leave events that occur after the lastpost.
+		// This will let us also pick up the joins/leaves that occur after lastPostUpdateAt but before JobEndTime.
+		data.BatchEndTime = data.JobEndTime
+	}
+
+	if len(data.PostsToExport) == 0 {
+		data.Finished = true
+		return data, nil
+	}
+
+	rctx.Logger().Debug("Found posts to export", mlog.Int("num_posts", len(data.PostsToExport)))
+	data.TotalPostsExported += len(data.PostsToExport)
+	data.BatchNumber++
+	data.BatchPath = shared.GetBatchPath(data.ExportDir, data.BatchStartTime, data.BatchEndTime, data.BatchNumber)
+
+	return data, nil
+}
+
+type ExportParams struct {
+	ExportType             string
+	ChannelMetadata        map[string]*shared.MetadataChannel
+	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
+	PostsToExport          []*model.MessageExport
+	BatchPath              string
+	BatchStartTime         int64
+	BatchEndTime           int64
+}
+
+func DataToExportParams(data shared.JobData) ExportParams {
+	return ExportParams{
+		ExportType:             data.ExportType,
+		ChannelMetadata:        data.ChannelMetadata,
+		ChannelMemberHistories: data.ChannelMemberHistories,
+		PostsToExport:          data.PostsToExport,
+		BatchPath:              data.BatchPath,
+		BatchStartTime:         data.BatchStartTime,
+		BatchEndTime:           data.BatchEndTime,
+	}
+}
+
+func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (results shared.RunExportResults, err error) {
+	preparePosts(rctx, p.PostsToExport)
+
+	switch p.ExportType {
 	case model.ComplianceExportTypeCsv:
 		rctx.Logger().Debug("Exporting CSV")
-		return csv_export.CsvExport(rctx, p.postsToExport, p.db, p.fileBackend, p.batchPath)
+		results.NumWarnings, err = csv_export.CsvExport(rctx, p.PostsToExport, b.Store, b.FileBackend, p.BatchPath)
+		return results, err
 
 	case model.ComplianceExportTypeActiance:
 		rctx.Logger().Debug("Exporting Actiance")
 		return actiance_export.ActianceExport(rctx, actiance_export.Params{
-			ChannelMetadata:        p.channelMetadata,
-			Posts:                  p.postsToExport,
-			ChannelMemberHistories: p.channelMemberHistories,
-			BatchPath:              p.batchPath,
-			BatchStartTime:         p.batchStartTime,
-			BatchEndTime:           p.batchEndTime,
-			Db:                     p.db,
-			FileBackend:            p.fileBackend,
+			ChannelMetadata:        p.ChannelMetadata,
+			Posts:                  p.PostsToExport,
+			ChannelMemberHistories: p.ChannelMemberHistories,
+			BatchPath:              p.BatchPath,
+			BatchStartTime:         p.BatchStartTime,
+			BatchEndTime:           p.BatchEndTime,
+			Db:                     b.Store,
+			FileBackend:            b.FileBackend,
 		})
 
 	case model.ComplianceExportTypeGlobalrelay, model.ComplianceExportTypeGlobalrelayZip:
 		rctx.Logger().Debug("Exporting GlobalRelay")
 		f, err := os.CreateTemp("", "")
 		if err != nil {
-			return warningCount, model.NewAppError("RunExport", "ent.compliance.global_relay.open_temporary_file.appError", nil, "", http.StatusAccepted).Wrap(err)
+			return results, fmt.Errorf("unable to open the temporary export file: %w", err)
 		}
 		defer file.DeleteTemp(rctx.Logger(), f)
 
-		attachmentsRemovedPostIDs, warnings, appErr := global_relay_export.GlobalRelayExport(rctx, p.postsToExport, p.db, p.fileBackend, f, p.htmlTemplates)
-		if appErr != nil {
-			return warningCount, appErr
-		}
-		warningCount = warnings
-		_, err = f.Seek(0, 0)
+		var attachmentsRemovedPostIDs []string
+		attachmentsRemovedPostIDs, results.NumWarnings, err = global_relay_export.GlobalRelayExport(rctx, p.PostsToExport, b.Store, b.FileBackend, f, b.HtmlTemplates)
 		if err != nil {
-			return warningCount, model.NewAppError("RunExport", "ent.compliance.global_relay.rewind_temporary_file.appError", nil, "", http.StatusAccepted).Wrap(err)
+			return results, err
 		}
 
-		if p.exportType == model.ComplianceExportTypeGlobalrelayZip {
+		_, err = f.Seek(0, 0)
+		if err != nil {
+			return results, fmt.Errorf("unable to re-read the Global Relay temporary export file: %w", err)
+		}
+
+		if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
 			// Try to disable the write timeout for the potentially big export file.
-			_, nErr := filestore.TryWriteFileContext(rctx.Context(), p.fileBackend, f, p.batchPath)
-			if nErr != nil {
-				return warningCount, model.NewAppError("runExportByType", "ent.compliance.global_relay.write_file.appError", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			_, err = filestore.TryWriteFileContext(rctx.Context(), b.FileBackend, f, p.BatchPath)
+			if err != nil {
+				return results, fmt.Errorf("unable to write the global relay file: %w", err)
 			}
 		} else {
-			appErr = global_relay_export.Deliver(f, p.config)
-			if appErr != nil {
-				return warningCount, appErr
+			err = global_relay_export.Deliver(f, b.Config)
+			if err != nil {
+				return results, err
 			}
 		}
 
 		if len(attachmentsRemovedPostIDs) > 0 {
-			rctx.Logger().Debug("Global Relay Attachments Removed because they were too large to send to Global Relay", mlog.Array("attachment_ids", attachmentsRemovedPostIDs))
-			description := fmt.Sprintf("Attachments to post IDs %v were removed because they were too large to send to Global Relay.", attachmentsRemovedPostIDs)
-			appErr = model.NewAppError("RunExport", "ent.compliance.global_relay.attachments_removed.appError", map[string]any{"Description": description}, description, http.StatusAccepted)
-			return warningCount, appErr
+			rctx.Logger().Warn("Global Relay Attachments Removed because they were too large to send to Global Relay",
+				mlog.Int("number_of_attachments_removed", len(attachmentsRemovedPostIDs)))
+			rctx.Logger().Warn("List of posts which had attachments removed",
+				mlog.Array("post_ids", attachmentsRemovedPostIDs))
+			return results, nil
 		}
 	default:
-		err := errors.New("Unknown output format " + p.exportType)
-		return warningCount, model.NewAppError("RunExport", "ent.compliance.bad_export_type.appError", map[string]any{"ExportType": p.exportType}, "", http.StatusBadRequest).Wrap(err)
+		return results, errors.New("Unknown output format: " + p.ExportType)
 	}
-	return warningCount, nil
+
+	return results, nil
 }
 
 func preparePosts(rctx request.CTX, postsToExport []*model.MessageExport) {

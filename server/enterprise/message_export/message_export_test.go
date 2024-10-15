@@ -17,15 +17,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/enterprise/message_export/common_export"
-
+	"github.com/mattermost/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"github.com/stretchr/testify/assert"
@@ -115,8 +115,8 @@ func TestRunExportByType(t *testing.T) {
 		myMockReporter.On("ReportProgressMessage", "Exporting channel information for 1 channels.")
 		myMockReporter.On("ReportProgressMessage", "Calculating channel activity: 0/1 channels completed.")
 
-		channelMetadata, channelMemberHistories, err := common_export.CalculateChannelExports(rctx,
-			common_export.ChannelExportsParams{
+		channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
+			shared.ChannelExportsParams{
 				Store:                   mockStore,
 				ExportPeriodStartTime:   1,
 				ExportPeriodEndTime:     1,
@@ -126,21 +126,22 @@ func TestRunExportByType(t *testing.T) {
 			})
 		assert.NoError(t, err)
 
-		warnings, appErr := runExportByType(rctx, exportParams{
-			exportType:             model.ComplianceExportTypeActiance,
-			channelMetadata:        channelMetadata,
-			channelMemberHistories: channelMemberHistories,
-			postsToExport:          posts,
-			batchPath:              "testZipName",
-			batchStartTime:         1,
-			batchEndTime:           1,
-			db:                     mockStore,
-			fileBackend:            fileBackend,
-			htmlTemplates:          nil,
-			config:                 nil,
+		res, err := RunExportByType(rctx, ExportParams{
+			ExportType:             model.ComplianceExportTypeActiance,
+			ChannelMetadata:        channelMetadata,
+			ChannelMemberHistories: channelMemberHistories,
+			PostsToExport:          posts,
+			BatchPath:              "testZipName",
+			BatchStartTime:         1,
+			BatchEndTime:           1,
+		}, shared.BackendParams{
+			Store:         mockStore,
+			FileBackend:   fileBackend,
+			HtmlTemplates: nil,
+			Config:        nil,
 		})
-		require.Nil(t, appErr)
-		require.Zero(t, warnings)
+		require.NoError(t, err)
+		require.Zero(t, res.NumWarnings)
 	})
 }
 
@@ -168,13 +169,14 @@ func checkJobForStatus(t *testing.T, th *api4.TestHelper, id string, status stri
 	}()
 	select {
 	case <-doneChan:
-	case <-time.After(3 * time.Second):
+	case <-time.After(5 * time.Second):
 		require.True(t, false, "expected job's status to be %s, got %s", status, job.Status)
 	}
 }
 
-func runJobForTest(t *testing.T, th *api4.TestHelper) *model.Job {
-	job, _, err := th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: "message_export"})
+func runJobForTest(t *testing.T, th *api4.TestHelper, jobData map[string]string) *model.Job {
+	job, _, err := th.SystemAdminClient.CreateJob(context.Background(),
+		&model.Job{Type: "message_export", Data: jobData})
 	require.NoError(t, err)
 	// poll until completion
 	checkJobForStatus(t, th, job.Id, "success")
@@ -196,6 +198,16 @@ func setup(t *testing.T) *api4.TestHelper {
 	require.NoError(t, err)
 
 	return th
+}
+
+// jobDataInvariantsShouldBeEqual tests that the parts of the job.Data that shouldn't change, don't change.
+func jobDataInvariantsShouldBeEqual(t *testing.T, expected map[string]string, received map[string]string) {
+	require.Equal(t, expected[JobDataExportType], received[JobDataExportType])
+	require.Equal(t, expected[jobDataBatchSize], received[jobDataBatchSize])
+	require.Equal(t, expected[jobDataChannelBatchSize], received[jobDataChannelBatchSize])
+	require.Equal(t, expected[jobDataChannelHistoryBatchSize], received[jobDataChannelHistoryBatchSize])
+	require.Equal(t, expected[JobDataExportDir], received[JobDataExportDir])
+	require.Equal(t, expected[JobDataEndTimestamp], received[JobDataEndTimestamp])
 }
 
 func TestRunExportJob(t *testing.T) {
@@ -237,8 +249,8 @@ func TestRunExportJob(t *testing.T) {
 			require.NoError(t, err2)
 		}
 
-		job := runJobForTest(t, th)
-		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		job := runJobForTest(t, th, nil)
+		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), numExported)
 	})
@@ -309,18 +321,18 @@ func TestRunExportJob(t *testing.T) {
 			require.NoError(t, e)
 		}
 
-		job := runJobForTest(t, th)
-		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		job := runJobForTest(t, th, nil)
+		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(11), numExported)
 
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
-		jobName := job.Data[JobDataName]
-		batch001 := getBatchPath(jobName, jobStart, now+3, 1)
-		batch002 := getBatchPath(jobName, now+3, now+8, 2)
-		batch003 := getBatchPath(jobName, now+8, jobEnd, 3)
-		files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+		exportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(exportDir, jobStart, now+3, 1)
+		batch002 := shared.GetBatchPath(exportDir, now+3, now+8, 2)
+		batch003 := shared.GetBatchPath(exportDir, now+8, jobEnd, 3)
+		files, err := fileBackend.ListDirectory(exportDir)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
@@ -338,6 +350,72 @@ func TestRunExportJob(t *testing.T) {
 		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
 	})
 
+	t.Run("actiance -- multiple batches, using UntilUpdateAt", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		tempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(tempDir)
+			assert.NoError(t, err)
+		})
+
+		config := filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  tempDir,
+		}
+
+		fileBackend, err := filestore.NewFileBackend(config)
+		assert.NoError(t, err)
+
+		time.Sleep(10 * time.Millisecond)
+		now := model.GetMillis()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MessageExportSettings.EnableExport = true
+			*cfg.MessageExportSettings.BatchSize = 3
+			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
+			*cfg.FileSettings.DriverName = model.ImageDriverLocal
+			*cfg.FileSettings.Directory = tempDir
+		})
+
+		for i := 0; i < 10; i++ {
+			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    model.NewId(),
+				Message:   "zz" + model.NewId() + "b",
+				CreateAt:  now + int64(i),
+				UpdateAt:  now + int64(i),
+			})
+			require.NoError(t, e)
+		}
+
+		// start at the 2nd post and get till the 7th post (inclusive) = 6 posts
+		job := runJobForTest(t, th, map[string]string{
+			JobDataBatchStartTimestamp: strconv.Itoa(int(now) + 1),
+			JobDataEndTimestamp:        strconv.Itoa(int(now) + 6),
+		})
+		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		numExpected, err := strconv.ParseInt(job.Data[JobDataTotalPostsExpected], 0, 64)
+		require.NoError(t, err)
+		// test that we only exported 6 (because the JobDataEndTimestamp was translated to the cursor's UntilUpdateAt)
+		require.Equal(t, 6, int(numExported))
+		// test that we were reporting that correctly in the UI
+		require.Equal(t, 6, int(numExpected))
+
+		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
+		require.NoError(t, err)
+		require.Equal(t, now+6, jobEnd)
+		exportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(exportDir, now+1, now+3, 1)
+		// lastPostUpdateAt will be post#4 (now+3), even though we exported it above, because LastPostId will exclude it
+		batch002 := shared.GetBatchPath(exportDir, now+3, now+6, 2)
+		files, err := fileBackend.ListDirectory(exportDir)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{batch001, batch002}, files)
+	})
+
 	t.Run("actiance e2e", func(t *testing.T) {
 		tests := []struct {
 			name         string
@@ -350,7 +428,7 @@ func TestRunExportJob(t *testing.T) {
 			{
 				name: "full tests, stopped and resumed",
 				// This uses the same output as the previous e2e test, but tests that the job can be stopped and
-				// resumed with no change to the directory, files, or file contents.
+				// resumed with no change to the directory, files, file contents, or job.Data that shouldn't change.
 				// We want to be confident that jobs can resume without data missing or added from the original run.
 				testStopping: true,
 			},
@@ -375,7 +453,7 @@ func TestRunExportJob(t *testing.T) {
 				//    - attachments are recorded with correct names in the xml and content in the files
 				//    - a post from a user who wasn't a member in the channel creates a record for the user entering the channel at the start of the batch and leaving at the end of the batch (to be discussed with end user, this seems wrong)
 
-				// Also tests the `batchSize+1` logic in the worker, because we have 9 posts and batch size of 3.
+				// Also tests the `BatchSize+1` logic in the worker, because we have 9 posts and batch size of 3.
 
 				tempDir, err := os.MkdirTemp("", "")
 				require.NoError(t, err)
@@ -619,6 +697,7 @@ func TestRunExportJob(t *testing.T) {
 				// Now run the exports
 				var job *model.Job
 				if tt.testStopping {
+					var jobData map[string]string
 					// manually create the job (which will start right away, so we need to wait for it below, after we use its id.
 					job, _, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: "message_export"})
 					require.NoError(t, err)
@@ -628,6 +707,9 @@ func TestRunExportJob(t *testing.T) {
 					testEndOfBatchCb = func(worker *MessageExportWorker) {
 						batchCount++
 						if batchCount == 2 {
+							job = getMostRecentJobWithId(t, th, job.Id)
+							jobData = job.Data
+
 							// let the job continue, but stop Worker, check we went back to Pending, then start the Worker.
 							go func() {
 								worker.Stop()
@@ -642,15 +724,16 @@ func TestRunExportJob(t *testing.T) {
 					checkJobForStatus(t, th, job.Id, model.JobStatusSuccess)
 					job = getMostRecentJobWithId(t, th, job.Id)
 					testEndOfBatchCb = nil
+					jobDataInvariantsShouldBeEqual(t, jobData, job.Data)
 				} else {
-					job = runJobForTest(t, th)
+					job = runJobForTest(t, th, nil)
 				}
 
-				numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+				numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
 				require.NoError(t, err)
 				require.Equal(t, 9, int(numExported))
 
-				jobName := job.Data[JobDataName]
+				exportDir := job.Data[JobDataExportDir]
 				jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 				require.NoError(t, err)
 
@@ -696,10 +779,10 @@ func TestRunExportJob(t *testing.T) {
 <FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 %s%s</FileDump>`, batch3ch4, batch3ch2)
 
-				batch001 := getBatchPath(jobName, prevUpdatedAt, createUpdateTimes[2], 1)
-				batch002 := getBatchPath(jobName, createUpdateTimes[2], createUpdateTimes[5], 2)
-				batch003 := getBatchPath(jobName, createUpdateTimes[5], jobEndTime, 3)
-				files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+				batch001 := shared.GetBatchPath(exportDir, prevUpdatedAt, createUpdateTimes[2], 1)
+				batch002 := shared.GetBatchPath(exportDir, createUpdateTimes[2], createUpdateTimes[5], 2)
+				batch003 := shared.GetBatchPath(exportDir, createUpdateTimes[5], jobEndTime, 3)
+				files, err := fileBackend.ListDirectory(exportDir)
 				require.NoError(t, err)
 				batches := []string{batch001, batch002, batch003}
 				require.ElementsMatch(t, batches, files)
@@ -877,12 +960,12 @@ func TestRunExportJob(t *testing.T) {
 		time.Sleep(30 * time.Millisecond)
 
 		// Now run the exports
-		job := runJobForTest(t, th)
-		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		job := runJobForTest(t, th, nil)
+		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, 2, int(numExported))
 
-		jobName := job.Data[JobDataName]
+		exportDir := job.Data[JobDataExportDir]
 		jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 		require.NoError(t, err)
 
@@ -936,8 +1019,8 @@ func TestRunExportJob(t *testing.T) {
 			createUpdateTimes[0], createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
 
-		batch001 := getBatchPath(jobName, prevUpdatedAt, jobEndTime, 1)
-		files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+		batch001 := shared.GetBatchPath(exportDir, prevUpdatedAt, jobEndTime, 1)
+		files, err := fileBackend.ListDirectory(exportDir)
 		require.NoError(t, err)
 		batches := []string{batch001}
 		require.ElementsMatch(t, batches, files)
@@ -1020,18 +1103,18 @@ func TestRunExportJob(t *testing.T) {
 			require.NoError(t, e)
 		}
 
-		job := runJobForTest(t, th)
-		numExported, err := strconv.ParseInt(job.Data["messages_exported"], 0, 64)
+		job := runJobForTest(t, th, nil)
+		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(11), numExported)
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
 
-		jobName := job.Data[JobDataName]
-		batch001 := getBatchPath(jobName, jobStart, now+3, 1)
-		batch002 := getBatchPath(jobName, now+3, now+8, 2)
-		batch003 := getBatchPath(jobName, now+8, jobEnd, 3)
-		files, err := fileBackend.ListDirectory(path.Join(model.ComplianceExportPath, jobName))
+		exportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(exportDir, jobStart, now+3, 1)
+		batch002 := shared.GetBatchPath(exportDir, now+3, now+8, 2)
+		batch003 := shared.GetBatchPath(exportDir, now+8, jobEnd, 3)
+		files, err := fileBackend.ListDirectory(exportDir)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
