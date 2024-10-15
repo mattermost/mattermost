@@ -29,7 +29,7 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
-import {useScrollOnRender} from 'components/common/hooks/scroll';
+import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
