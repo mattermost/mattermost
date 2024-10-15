@@ -92,6 +92,7 @@ issues:
         channels/api4/team_test.go|\
         channels/api4/user.go|\
         channels/api4/user_test.go|\
+        channels/api4/websocket_test.go|\
         channels/app/admin.go|\
         channels/app/app_test.go|\
         channels/app/authorization_test.go|\
