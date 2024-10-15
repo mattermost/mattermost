@@ -11,10 +11,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/enterprise/internal/file"
-	"github.com/mattermost/enterprise/message_export/actiance_export"
-	"github.com/mattermost/enterprise/message_export/csv_export"
-	"github.com/mattermost/enterprise/message_export/global_relay_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
+
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"strconv"
@@ -28,7 +29,7 @@ import (
 	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
-	"github.com/mattermost/enterprise/message_export/shared"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 )
 
 const GlobalRelayExportFilename = "global-relay.zip"
