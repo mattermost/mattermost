@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -17,8 +16,7 @@ import (
 	"github.com/jaytaylor/html2text"
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
-
+	"github.com/mattermost/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -73,16 +71,16 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int64, *model.AppError) {
-	var warningCount int64
-	attachmentsRemovedPostIDs := []string{}
+func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
+	var warningCount int
+	var attachmentsRemovedPostIDs []string
 	allExports := make(map[string][]*ChannelExport)
 
 	zipFile := zip.NewWriter(dest)
 
-	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
-	metadata := common_export.Metadata{
-		Channels:         map[string]*common_export.MetadataChannel{},
+	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
+	metadata := shared.Metadata{
+		Channels:         map[string]*shared.MetadataChannel{},
 		MessagesCount:    0,
 		AttachmentsCount: 0,
 		StartTime:        0,
@@ -91,10 +89,10 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 
 	for _, post := range posts {
 		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
-			postAuthorsByChannel[*post.ChannelId] = make(map[string]common_export.ChannelMember)
+			postAuthorsByChannel[*post.ChannelId] = make(map[string]shared.ChannelMember)
 		}
 
-		postAuthorsByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
+		postAuthorsByChannel[*post.ChannelId][*post.UserId] = shared.ChannelMember{
 			UserId:   *post.UserId,
 			Username: *post.Username,
 			IsBot:    post.IsBot,
@@ -106,7 +104,7 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 			var err error
 			attachments, err = db.FileInfo().GetForPost(*post.PostId, true, true, false)
 			if err != nil {
-				return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, warningCount, fmt.Errorf("failed to get file info for a post: %w", err)
 			}
 		}
 
@@ -118,27 +116,27 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
-			participants, appErr := getParticipants(db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
-			if appErr != nil {
-				return nil, warningCount, appErr
+			participants, err := getParticipants(db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
+			if err != nil {
+				return nil, warningCount, err
 			}
 			channelExport.Participants = participants
 			channelExport.ExportedOn = time.Now().Unix() * 1000
 
 			channelExportFile, err := zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
 			if err != nil {
-				return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.create_file_in_zip.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, warningCount, fmt.Errorf("unable to create the eml file: %w", err)
 			}
 
-			if appErr, warningCount = generateEmail(rctx, fileBackend, channelExport, templates, channelExportFile); appErr != nil {
-				return nil, warningCount, appErr
+			if warningCount, err = generateEmail(rctx, fileBackend, channelExport, templates, channelExportFile); err != nil {
+				return nil, warningCount, err
 			}
 		}
 	}
 
 	err := zipFile.Close()
 	if err != nil {
-		return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.close_zip_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, warningCount, fmt.Errorf("unable to close the zip file: %w", err)
 	}
 
 	return attachmentsRemovedPostIDs, warningCount, nil
@@ -203,14 +201,14 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 }
 
 func getParticipants(db store.Store, channelExport *ChannelExport,
-	postAuthors map[string]common_export.ChannelMember) ([]ParticipantRow, *model.AppError) {
+	postAuthors map[string]shared.ChannelMember) ([]ParticipantRow, error) {
 	participantsMap := map[string]ParticipantRow{}
 	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, []string{channelExport.ChannelId})
 	if err != nil {
-		return nil, model.NewAppError("getParticipants", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, fmt.Errorf("failed to get users in channel during specified time period: %w", err)
 	}
 
-	joins, leaves := common_export.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, postAuthors)
+	joins, leaves := shared.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, postAuthors)
 
 	for _, join := range joins {
 		userType := "user"
@@ -246,8 +244,8 @@ func getParticipants(db store.Store, channelExport *ChannelExport,
 	return participants, nil
 }
 
-func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (*model.AppError, int64) {
-	var warningCount int64
+func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
+	var warningCount int
 	participantEmailAddresses := getParticipantEmails(channelExport)
 
 	// GlobalRelay expects the email to come from the person that initiated the conversation.
@@ -259,7 +257,7 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 
 	htmlBody, err := channelExportToHTML(rctx, channelExport, templates)
 	if err != nil {
-		return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.generate_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err), warningCount
+		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
 	}
 
 	subject := fmt.Sprintf("Mattermost Compliance Export: %s", channelExport.ChannelName)
@@ -281,7 +279,7 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 		GlobalRelayMsgTypeHeader:     {"Mattermost"},
 		GlobalRelayChannelNameHeader: {encodeRFC2047Word(channelExport.ChannelName)},
 		GlobalRelayChannelIDHeader:   {encodeRFC2047Word(channelExport.ChannelId)},
-		GlobalRelayChannelTypeHeader: {encodeRFC2047Word(common_export.ChannelTypeDisplayName(channelExport.ChannelType))},
+		GlobalRelayChannelTypeHeader: {encodeRFC2047Word(shared.ChannelTypeDisplayName(channelExport.ChannelType))},
 	}
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
@@ -294,8 +292,9 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 		path := fileInfo.Path
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			reader, appErr := fileBackend.Reader(path)
-			if appErr != nil {
+			var reader filestore.ReadCloseSeeker
+			reader, err = fileBackend.Reader(path)
+			if err != nil {
 				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))
 				warningCount += 1
 				return nil
@@ -304,7 +303,7 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 
 			_, err = io.Copy(writer, reader)
 			if err != nil {
-				return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.attach_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return fmt.Errorf("unable to add attachment to the Global Relay export: %w", err)
 			}
 			return nil
 		}))
@@ -312,9 +311,9 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 
 	_, err = m.WriteTo(w)
 	if err != nil {
-		return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.generate_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err), warningCount
+		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
 	}
-	return nil, warningCount
+	return warningCount, nil
 }
 
 func getParticipantEmails(channelExport *ChannelExport) []string {

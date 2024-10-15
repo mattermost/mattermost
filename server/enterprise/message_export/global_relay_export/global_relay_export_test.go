@@ -1287,9 +1287,9 @@ func TestGlobalRelayExport(t *testing.T) {
 			assert.NoError(t, err)
 			defer os.Remove(dest.Name())
 
-			_, warningCount, appErr := GlobalRelayExport(rctx, tt.posts, mockStore, fileBackend, dest, templatesContainer)
-			assert.Nil(t, appErr)
-			assert.Equal(t, int64(tt.expectedWarnings), warningCount)
+			_, warningCount, err := GlobalRelayExport(rctx, tt.posts, mockStore, fileBackend, dest, templatesContainer)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedWarnings, warningCount)
 
 			_, err = dest.Seek(0, 0)
 			assert.NoError(t, err)

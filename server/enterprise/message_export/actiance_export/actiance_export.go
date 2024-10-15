@@ -10,13 +10,12 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
-
+	"github.com/mattermost/enterprise/internal/file"
+	"github.com/mattermost/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -103,7 +102,7 @@ type FileUploadStopExport struct {
 }
 
 type Params struct {
-	ChannelMetadata        map[string]*common_export.MetadataChannel
+	ChannelMetadata        map[string]*shared.MetadataChannel
 	Posts                  []*model.MessageExport
 	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
 	BatchPath              string
@@ -113,10 +112,10 @@ type Params struct {
 	FileBackend            filestore.FileBackend
 }
 
-func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *model.AppError) {
+func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error) {
 	// postAuthorsByChannel is a map so that we don't store duplicate authors
-	postAuthorsByChannel := make(map[string]map[string]common_export.ChannelMember)
-	metadata := common_export.Metadata{
+	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
+	metadata := shared.Metadata{
 		Channels:         p.ChannelMetadata,
 		MessagesCount:    0,
 		AttachmentsCount: 0,
@@ -126,13 +125,16 @@ func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *mod
 	elementsByChannel := make(map[string][]any)
 	allUploadedFiles := make([]*model.FileInfo, 0)
 	channelsInThisBatch := make(map[string]bool)
+	results := shared.RunExportResults{}
 
 	for _, post := range p.Posts {
 		if post == nil {
+			results.IgnoredPosts++
 			rctx.Logger().Warn("ignored a nil post reference in the list")
 			continue
 		}
 
+		isDeleted := false
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
@@ -142,15 +144,16 @@ func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *mod
 			props := make(map[string]any)
 			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
 				if _, ok := props[model.PostPropsDeleteBy]; ok {
+					isDeleted = true
 					elementsByChannel[channelId] = append(elementsByChannel[channelId], postToExportEntry(post,
 						post.PostDeleteAt, "delete "+*post.PostMessage))
 				}
 			}
 		}
 
-		startUploads, stopUploads, uploadedFiles, deleteFileMessages, appErr := postToAttachmentsEntries(post, p.Db)
-		if appErr != nil {
-			return warningCount, appErr
+		startUploads, stopUploads, uploadedFiles, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
+		if err != nil {
+			return results, err
 		}
 		elementsByChannel[channelId] = append(elementsByChannel[channelId], startUploads...)
 		elementsByChannel[channelId] = append(elementsByChannel[channelId], stopUploads...)
@@ -158,18 +161,26 @@ func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *mod
 
 		allUploadedFiles = append(allUploadedFiles, uploadedFiles...)
 
-		if err := metadata.UpdateCounts(channelId, len(uploadedFiles)); err != nil {
-			return warningCount, model.NewAppError("ActianceExport", model.NoTranslation, nil, "", http.StatusInternalServerError)
+		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
+			return results, err
 		}
 
 		if _, ok := postAuthorsByChannel[channelId]; !ok {
-			postAuthorsByChannel[channelId] = make(map[string]common_export.ChannelMember)
+			postAuthorsByChannel[channelId] = make(map[string]shared.ChannelMember)
 		}
-		postAuthorsByChannel[channelId][*post.UserId] = common_export.ChannelMember{
+		postAuthorsByChannel[channelId][*post.UserId] = shared.ChannelMember{
 			Email:    *post.UserEmail,
 			UserId:   *post.UserId,
 			IsBot:    post.IsBot,
 			Username: *post.Username,
+		}
+
+		if isDeleted {
+			results.DeletedPosts++
+		} else if *post.PostUpdateAt > *post.PostCreateAt {
+			results.UpdatedPosts++
+		} else {
+			results.CreatedPosts++
 		}
 	}
 
@@ -202,7 +213,10 @@ func ActianceExport(rctx request.CTX, p Params) (warningCount int64, appErr *mod
 		Channels: channelExports,
 	}
 
-	return writeExport(rctx, export, allUploadedFiles, p.FileBackend, p.BatchPath)
+	var err error
+	results.NumWarnings, err = writeExport(rctx, export, allUploadedFiles, p.FileBackend, p.BatchPath)
+	results.NumChannels = len(channelsInThisBatch)
+	return results, err
 }
 
 func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
@@ -229,7 +243,7 @@ func postToExportEntry(post *model.MessageExport, createTime *int64, message str
 	}
 }
 
-func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any, []any, []*model.FileInfo, []any, *model.AppError) {
+func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any, []any, []*model.FileInfo, []any, error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
 		return nil, nil, nil, nil, nil
@@ -237,7 +251,7 @@ func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any,
 
 	fileInfos, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
 	if err != nil {
-		return nil, nil, nil, nil, model.NewAppError("postToAttachmentsEntries", "ent.message_export.actiance_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, nil, nil, err
 	}
 
 	var startUploads []any
@@ -272,17 +286,17 @@ func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any,
 	return startUploads, stopUploads, uploadedFiles, deleteFileMessages, nil
 }
 
-func buildChannelExport(startTime int64, endTime int64, channel *common_export.MetadataChannel,
-	channelMembersHistory []*model.ChannelMemberHistoryResult, postAuthors map[string]common_export.ChannelMember) *ChannelExport {
+func buildChannelExport(startTime int64, endTime int64, channel *shared.MetadataChannel,
+	channelMembersHistory []*model.ChannelMemberHistoryResult, postAuthors map[string]shared.ChannelMember) *ChannelExport {
 	channelExport := ChannelExport{
 		ChannelId:   channel.ChannelId,
-		RoomId:      fmt.Sprintf("%v - %v - %v", common_export.ChannelTypeDisplayName(channel.ChannelType), channel.ChannelName, channel.ChannelId),
+		RoomId:      fmt.Sprintf("%v - %v - %v", shared.ChannelTypeDisplayName(channel.ChannelType), channel.ChannelName, channel.ChannelId),
 		StartTime:   startTime,
 		EndTime:     endTime,
 		Perspective: channel.ChannelDisplayName,
 	}
 
-	joins, leaves := common_export.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
+	joins, leaves := shared.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
 	type StillJoinedInfo struct {
 		Time int64
 		Type string
@@ -349,7 +363,7 @@ func buildChannelExport(startTime int64, endTime int64, channel *common_export.M
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, fileBackend filestore.FileBackend, batchPath string) (int, error) {
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
 	xmlData.WriteString(xml.Header)
@@ -357,10 +371,10 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
 	if err := enc.Encode(export); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.marshalToXml.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, fmt.Errorf("unable to convert export to XML: %w", err)
 	}
 	if err := enc.Flush(); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.flush.xml.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, fmt.Errorf("unable to flush the XML encoder: %w", err)
 	}
 
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
@@ -369,17 +383,17 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	buf := make([]byte, 1024*1024*2)
 	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
 	if err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.batch.create.temp.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, fmt.Errorf("unable to create the batch temporary file: %w", err)
 	}
 	defer file.DeleteTemp(rctx.Logger(), temp)
 
 	zipFile := zip.NewWriter(temp)
 	w, err := zipFile.Create(ActianceExportFilename)
 	if err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.creation.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, fmt.Errorf("unable to create the xml file in the zipFile created with the batch temporary file: %w", err)
 	}
 	if _, err = io.CopyBuffer(w, xmlData, buf); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 	}
 
 	var missingFiles []string
@@ -387,8 +401,8 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 		var r io.ReadCloser
 		r, err = fileBackend.Reader(fileInfo.Path)
 		if err != nil {
-			missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - "+fileInfo.Path)
-			rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("filename", fileInfo.Path))
+			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - "+fileInfo.Path)
+			rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("filename", fileInfo.Path))
 			continue
 		}
 
@@ -408,36 +422,36 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 			return nil
 		}(); err != nil {
-			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+			return 0, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 		}
 	}
 
-	warningCount = int64(len(missingFiles))
+	warningCount := len(missingFiles)
 	if warningCount > 0 {
 		var w io.Writer
 		w, err = zipFile.Create(ActianceWarningFilename)
 		if err != nil {
-			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.creation.warning.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+			return warningCount, fmt.Errorf("unable to create the warning file in the zipFile created with the batch temporary file: %w", err)
 		}
 		r := strings.NewReader(strings.Join(missingFiles, "\n"))
 		if _, err = io.CopyBuffer(w, r, buf); err != nil {
-			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+			return warningCount, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 		}
 	}
 
 	if err = zipFile.Close(); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.close.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return warningCount, fmt.Errorf("unable to close the zipFile created with the batch temporary file: %w", err)
 	}
 
 	_, err = temp.Seek(0, io.SeekStart)
 	if err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.temp.seek.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return warningCount, fmt.Errorf("unable to seek to the beginning of the the batch temporary file: %w", err)
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
 	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
 	if err != nil {
-		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.write.dest.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		return warningCount, fmt.Errorf("unable to transfer the batch zip to the file backend: %w", err)
 	}
 
 	return warningCount, nil
