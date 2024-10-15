@@ -5,11 +5,12 @@ package message_export
 
 import (
 	"context"
-	"net/http"
+	"errors"
 	"os"
 	"strconv"
 	"testing"
-	"time"
+
+	"github.com/mattermost/enterprise/message_export/shared"
 
 	"github.com/stretchr/testify/assert"
 	tmock "github.com/stretchr/testify/mock"
@@ -39,7 +40,7 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	}
 
 	// mock job store doesn't return a previously successful job, forcing fallback to config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
 
 	worker := &MessageExportWorker{
 		jobServer: &jobs.JobServer{
@@ -198,7 +199,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
 
 	// no channels with activity
 	mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
@@ -210,7 +211,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(shared.EstimatedPostCount), nil,
 	)
 
 	// job completed successfully
@@ -277,7 +278,7 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// no previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
 
 	channelId := model.NewId()
 	channelName := model.NewId()
@@ -437,7 +438,7 @@ func TestDoJobCancel(t *testing.T) {
 	mockMetrics.On("IncrementJobActive", model.JobTypeMessageExport)
 
 	// No previous job, data will be loaded from config
-	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, model.NewAppError("", "", nil, "", http.StatusBadRequest))
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
 
 	// Job updates the system console UI, once for getting channels, once for getting activity
 	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil).Times(2)
@@ -470,7 +471,7 @@ func TestDoJobCancel(t *testing.T) {
 	)
 
 	mockStore.PostStore.On("AnalyticsPostCount", mock.Anything).Return(
-		int64(estimatedPostCount), nil,
+		int64(shared.EstimatedPostCount), nil,
 	)
 
 	// Job marked as pending
@@ -486,37 +487,4 @@ func TestDoJobCancel(t *testing.T) {
 
 	// Cleanup
 	worker.Stop()
-}
-
-func Test_getBatchPath(t *testing.T) {
-	tests := []struct {
-		name             string
-		jobName          string
-		prevPostUpdateAt int64
-		lastPostUpdateAt int64
-		batchNumber      int
-		want             string
-	}{
-		{
-			name:             "all args given",
-			jobName:          "test_job_name",
-			prevPostUpdateAt: 123,
-			lastPostUpdateAt: 456,
-			batchNumber:      21,
-			want:             model.ComplianceExportPath + "/test_job_name/batch021-123-456.zip",
-		},
-		{
-			name:             "jobName blank",
-			jobName:          "",
-			prevPostUpdateAt: 12345,
-			lastPostUpdateAt: 456789,
-			batchNumber:      921,
-			want:             model.ComplianceExportPath + "/" + time.Now().Format(model.ComplianceExportDirectoryFormat) + "/batch921-12345-456789.zip",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, getBatchPath(tt.jobName, tt.prevPostUpdateAt, tt.lastPostUpdateAt, tt.batchNumber), "getBatchPath(%v, %v, %v, %v)", tt.jobName, tt.prevPostUpdateAt, tt.lastPostUpdateAt, tt.batchNumber)
-		})
-	}
 }

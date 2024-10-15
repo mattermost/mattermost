@@ -14,6 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/enterprise/message_export/shared"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -424,6 +427,7 @@ func TestActianceExport(t *testing.T) {
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(1)),
+					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -442,6 +446,7 @@ func TestActianceExport(t *testing.T) {
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(100)),
+					PostUpdateAt:       model.NewPointer(int64(100)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -813,8 +818,8 @@ func TestActianceExport(t *testing.T) {
 				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.activity_message")
 			}
 
-			channelMetadata, channelMemberHistories, err := common_export.CalculateChannelExports(rctx,
-				common_export.ChannelExportsParams{
+			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
+				shared.ChannelExportsParams{
 					Store:                   mockStore,
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
@@ -825,7 +830,7 @@ func TestActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			warnings, appErr := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, Params{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts,
 				ChannelMemberHistories: channelMemberHistories,
@@ -835,8 +840,8 @@ func TestActianceExport(t *testing.T) {
 				Db:                     mockStore,
 				FileBackend:            fileBackend,
 			})
-			assert.Nil(t, appErr)
-			assert.Equal(t, int64(0), warnings)
+			assert.NoError(t, err)
+			assert.Equal(t, 0, res.NumWarnings)
 
 			zipBytes, err := fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
@@ -1215,8 +1220,8 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.activity_message")
 			}
 
-			channelMetadata, channelMemberHistories, err := common_export.CalculateChannelExports(rctx,
-				common_export.ChannelExportsParams{
+			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
+				shared.ChannelExportsParams{
 					Store:                   mockStore,
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
@@ -1238,7 +1243,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 				exportFileName := path.Join("export", "jobName",
 					fmt.Sprintf("jobName-batch00%d.zip", batch+1))
 
-				warnings, appErr := ActianceExport(rctx, Params{
+				res, err := ActianceExport(rctx, Params{
 					ChannelMetadata:        channelMetadata,
 					Posts:                  tt.posts[batch],
 					ChannelMemberHistories: channelMemberHistories,
@@ -1248,8 +1253,8 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					Db:                     mockStore,
 					FileBackend:            fileBackend,
 				})
-				assert.Nil(t, appErr)
-				assert.Equal(t, int64(0), warnings)
+				assert.NoError(t, err)
+				assert.Equal(t, 0, res.NumWarnings)
 
 				zipBytes, err := fileBackend.ReadFile(exportFileName)
 				assert.NoError(t, err)
@@ -1588,8 +1593,8 @@ func TestMultipleActianceExport(t *testing.T) {
 				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.activity_message")
 			}
 
-			channelMetadata, channelMemberHistories, err := common_export.CalculateChannelExports(rctx,
-				common_export.ChannelExportsParams{
+			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
+				shared.ChannelExportsParams{
 					Store:                   mockStore,
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
@@ -1600,7 +1605,7 @@ func TestMultipleActianceExport(t *testing.T) {
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			warnings, appErr := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, Params{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step1"],
 				ChannelMemberHistories: channelMemberHistories,
@@ -1611,8 +1616,8 @@ func TestMultipleActianceExport(t *testing.T) {
 				FileBackend:            fileBackend,
 			})
 
-			assert.Nil(t, appErr)
-			assert.Equal(t, int64(0), warnings)
+			assert.NoError(t, err)
+			assert.Equal(t, 0, res.NumWarnings)
 
 			zipBytes, err := fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
@@ -1626,7 +1631,7 @@ func TestMultipleActianceExport(t *testing.T) {
 
 			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
 
-			warnings, appErr = ActianceExport(rctx, Params{
+			res, err = ActianceExport(rctx, Params{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step2"],
 				ChannelMemberHistories: channelMemberHistories,
@@ -1636,8 +1641,8 @@ func TestMultipleActianceExport(t *testing.T) {
 				Db:                     mockStore,
 				FileBackend:            fileBackend,
 			})
-			assert.Nil(t, appErr)
-			assert.Equal(t, int64(0), warnings)
+			assert.NoError(t, err)
+			assert.Equal(t, 0, res.NumWarnings)
 
 			zipBytes, err = fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
@@ -1799,9 +1804,9 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 			}
 			uploadStarts, uploadStops, files, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, mockStore)
 			if tc.expectError {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			} else {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			}
 			assert.Equal(t, tc.expectedStarts, uploadStarts)
 			assert.Equal(t, tc.expectedStops, uploadStops)
@@ -1843,9 +1848,9 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-	warnings, appErr := writeExport(rctx, export, uploadedFiles, fileBackend, exportFileName)
-	assert.Nil(t, appErr)
-	assert.Equal(t, int64(2), warnings)
+	warnings, err := writeExport(rctx, export, uploadedFiles, fileBackend, exportFileName)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, warnings)
 
 	err = fileBackend.RemoveFile(exportFileName)
 	require.NoError(t, err)
