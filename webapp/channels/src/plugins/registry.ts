@@ -126,6 +126,25 @@ export default class PluginRegistry {
         return dispatchPluginComponentAction('PostMessageAttachment', this.id, component);
     });
 
+    // Register components for search.
+    // Accepts React components. Returns a unique identifier.
+    registerSearchComponents = ({buttonComponent, suggestionsComponent, hintsComponent, action}: any) => {
+        const id = generateId();
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'SearchButtons',
+            data: {
+                id,
+                pluginId: this.id,
+                component: buttonComponent,
+                action,
+            },
+        });
+        dispatchPluginComponentAction('SearchSuggestions', this.id, suggestionsComponent, id);
+        dispatchPluginComponentAction('SearchHints', this.id, hintsComponent, id);
+        return id;
+    };
+
     // Register a component to show as a tooltip when a user hovers on a link in a post.
     // Accepts a React component. Returns a unique identifier.
     // The component will be passed the following props:
