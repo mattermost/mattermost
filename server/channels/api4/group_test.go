@@ -60,7 +60,8 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.GetGroup(context.Background(), group.Id, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -168,7 +169,8 @@ func TestCreateGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), g)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -347,7 +349,8 @@ func TestPatchGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.PatchGroup(context.Background(), group.Id, gp)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -440,7 +443,8 @@ func TestLinkGroupTeam(t *testing.T) {
 	})
 
 	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
-		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		_, _, err = th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		require.NoError(t, err)
 		groupSyncable, response, err = th.SystemManagerClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
@@ -564,7 +568,8 @@ func TestLinkGroupChannel(t *testing.T) {
 	})
 
 	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
-		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		_, _, err = th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		require.NoError(t, err)
 		groupSyncable, response, err = th.SystemManagerClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
@@ -684,7 +689,8 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	})
 
 	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
-		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		_, _, err = th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		require.NoError(t, err)
 		response, err = th.SystemManagerClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -802,7 +808,8 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	})
 
 	t.Run("System manager without invite_user are allowed to link", func(t *testing.T) {
-		th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		_, _, err = th.SystemManagerClient.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
+		require.NoError(t, err)
 		response, err = th.SystemManagerClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -881,7 +888,8 @@ func TestGetGroupTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.GetGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -943,7 +951,8 @@ func TestGetGroupChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.GetGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -996,7 +1005,8 @@ func TestGetGroupTeams(t *testing.T) {
 
 	assert.Len(t, groupSyncables, 10)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeTeam, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -1048,7 +1058,8 @@ func TestGetGroupChannels(t *testing.T) {
 
 	assert.Len(t, groupSyncables, 10)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.GetGroupSyncables(context.Background(), g.Id, model.GroupSyncableTypeChannel, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -1120,7 +1131,8 @@ func TestPatchGroupTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -1203,7 +1215,8 @@ func TestPatchGroupChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.SystemAdminClient.Logout(context.Background())
+	_, err = th.SystemAdminClient.Logout(context.Background())
+	require.NoError(t, err)
 	_, response, err = th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
@@ -1380,8 +1393,10 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	t.Run("should return forbidden when the user doesn't have the right permissions", func(t *testing.T) {
 		require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
-		defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
-
+		defer func() {
+			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, appErr)
+		}()
 		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -1426,7 +1441,8 @@ func TestGetGroupsByTeam(t *testing.T) {
 		CheckBadRequestStatus(t, response)
 	})
 
-	th.App.Srv().RemoveLicense()
+	appErr := th.App.Srv().RemoveLicense()
+	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
@@ -1487,7 +1503,10 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 		t.Run("user can't fetch groups if it's not part of the team", func(t *testing.T) {
 			require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
-			defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			defer func() {
+				_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+				require.Nil(t, appErr)
+			}()
 
 			groups, _, response, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
 			require.Error(t, err)
@@ -1580,7 +1599,8 @@ func TestGetGroups(t *testing.T) {
 	assert.Equal(t, groups[0].Id, group.Id)
 
 	// delete group, should still return
-	th.App.DeleteGroup(group.Id)
+	_, appErr = th.App.DeleteGroup(group.Id)
+	require.Nil(t, appErr)
 	groups, _, err = th.Client.GetGroups(context.Background(), opts)
 	assert.NoError(t, err)
 	assert.Len(t, groups, 1)
@@ -1721,14 +1741,18 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
 	// test permissions
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+	require.NoError(t, err)
 	_, response, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), user1.Email, user1.Password)
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	_, _, err = th.Client.Login(context.Background(), user1.Email, user1.Password)
+	require.NoError(t, err)
 	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
@@ -1823,7 +1847,8 @@ func TestGetGroupStats(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Requires manage system permission to access group stats", func(t *testing.T) {
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 		_, response, err := th.Client.GetGroupStats(context.Background(), group.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
