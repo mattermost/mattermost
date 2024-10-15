@@ -2599,7 +2599,7 @@ func (s *OpenTracingLayerChannelStore) UpdateMemberNotifyProps(channelID string,
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
+func (s *OpenTracingLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateMembersRole")
 	s.Root.Store.SetContext(newCtx)
@@ -2608,13 +2608,13 @@ func (s *OpenTracingLayerChannelStore) UpdateMembersRole(channelID string, userI
 	}()
 
 	defer span.Finish()
-	err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+	result, err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
@@ -4094,6 +4094,24 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, u
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.PermanentDeleteForPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
@@ -6910,6 +6928,24 @@ func (s *OpenTracingLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*m
 	return result, resultVar1, err
 }
 
+func (s *OpenTracingLayerPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDelete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.PermanentDelete(rctx, postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteBatch")
@@ -7684,7 +7720,7 @@ func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string)
 	return err
 }
 
-func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteOrphanedRowsByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -7693,13 +7729,13 @@ func (s *OpenTracingLayerReactionStore) DeleteOrphanedRowsByIds(r *model.Retenti
 	}()
 
 	defer span.Finish()
-	err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
+	result, err := s.ReactionStore.DeleteOrphanedRowsByIds(r)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
@@ -10590,7 +10626,7 @@ func (s *OpenTracingLayerTeamStore) UpdateMember(rctx request.CTX, member *model
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.UpdateMembersRole")
 	s.Root.Store.SetContext(newCtx)
@@ -10599,13 +10635,13 @@ func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []s
 	}()
 
 	defer span.Finish()
-	err := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+	result, err := s.TeamStore.UpdateMembersRole(teamID, adminIDs)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {

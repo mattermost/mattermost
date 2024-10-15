@@ -95,6 +95,11 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
         />
       }
       onClick={[Function]}
+      trailingElements={
+        <CheckIcon
+          size={16}
+        />
+      }
     />
     <MenuItem
       id="sortByMostRecent-test_category_id"
@@ -105,6 +110,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
         />
       }
       onClick={[Function]}
+      trailingElements={null}
     />
     <MenuItem
       id="sortManual-test_category_id"
@@ -115,6 +121,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
         />
       }
       onClick={[Function]}
+      trailingElements={null}
     />
   </SubMenu>
   <MenuItemSeparator />
