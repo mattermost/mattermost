@@ -4,13 +4,14 @@
 package actiance_export
 
 import (
+	"archive/zip"
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
-	"path"
+	"os"
 	"sort"
 	"strings"
 
@@ -101,7 +102,7 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
-func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, exportDirectory string) (warningCount int64, appErr *model.AppError) {
+func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
 	// sort the posts into buckets based on the channel in which they appeared
 	membersByChannel := common_export.MembersByChannel{}
 	metadata := common_export.Metadata{
@@ -175,7 +176,7 @@ func ActianceExport(rctx request.CTX, posts []*model.MessageExport, db store.Sto
 		Channels: channelExports,
 	}
 
-	return writeExport(rctx, export, allUploadedFiles, exportDirectory, exportBackend, fileAttachmentBackend)
+	return writeExport(rctx, export, allUploadedFiles, fileBackend, batchPath)
 }
 
 func postToExportEntry(post *model.MessageExport, createTime *int64, message string) *PostExport {
@@ -310,7 +311,7 @@ func buildChannelExport(channel common_export.MetadataChannel, members common_ex
 	return &channelExport, nil
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportDirectory string, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend) (warningCount int64, appErr *model.AppError) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, fileBackend filestore.FileBackend, batchPath string) (warningCount int64, appErr *model.AppError) {
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
 	xmlData.WriteString(xml.Header)
@@ -318,39 +319,88 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
 	if err := enc.Encode(export); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.marshalToXml.appError", nil, "", 0).Wrap(err)
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.marshalToXml.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	enc.Flush()
+	if err := enc.Flush(); err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.flush.xml.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
-	// Try to disable the write timeout if the backend supports it
-	if _, err := filestore.TryWriteFileContext(rctx.Context(), exportBackend, xmlData, path.Join(exportDirectory, ActianceExportFilename)); err != nil {
-		return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(err)
+	// Write this batch to a tmp zip, then copy the zip to the export directory.
+	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
+	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
+	buf := make([]byte, 1024*1024*2)
+	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
+	if err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.batch.create.temp.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	defer file.DeleteTemp(rctx.Logger(), temp)
+
+	zipFile := zip.NewWriter(temp)
+	w, err := zipFile.Create(ActianceExportFilename)
+	if err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.creation.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if _, err = io.CopyBuffer(w, xmlData, buf); err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var missingFiles []string
 	for _, fileInfo := range uploadedFiles {
-		var attachmentSrc io.ReadCloser
-		attachmentSrc, nErr := fileAttachmentBackend.Reader(fileInfo.Path)
-		if nErr != nil {
+		var r io.ReadCloser
+		r, err = fileBackend.Reader(fileInfo.Path)
+		if err != nil {
 			missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - "+fileInfo.Path)
 			rctx.Logger().Warn(common_export.MissingFileMessage, mlog.String("FileName", fileInfo.Path))
 			continue
 		}
-		defer attachmentSrc.Close()
 
-		destPath := path.Join(exportDirectory, fileInfo.Path)
+		// There could be many uploadedFiles, so be careful about closing readers.
+		if err = func() error {
+			defer r.Close()
+			var w io.Writer
+			w, err = zipFile.Create(fileInfo.Path)
+			if err != nil {
+				return err
+			}
 
-		_, nErr = exportBackend.WriteFile(attachmentSrc, destPath)
-		if nErr != nil {
-			return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(nErr)
+			// CopyBuffer works with dirty buffers, no need to clear it.
+			if _, err = io.CopyBuffer(w, r, buf); err != nil {
+				return err
+			}
+
+			return nil
+		}(); err != nil {
+			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
 	warningCount = int64(len(missingFiles))
 	if warningCount > 0 {
-		_, err := filestore.TryWriteFileContext(rctx.Context(), exportBackend, strings.NewReader(strings.Join(missingFiles, "\n")), path.Join(exportDirectory, ActianceWarningFilename))
+		var w io.Writer
+		w, err = zipFile.Create(ActianceWarningFilename)
 		if err != nil {
-			appErr = model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(err)
+			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.creation.warning.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		r := strings.NewReader(strings.Join(missingFiles, "\n"))
+		if _, err = io.CopyBuffer(w, r, buf); err != nil {
+			return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.write.appError", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-	return warningCount, appErr
+
+	if err = zipFile.Close(); err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.zip.close.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	_, err = temp.Seek(0, io.SeekStart)
+	if err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.temp.seek.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Try to write the file without a timeout due to the potential size of the file.
+	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
+	if err != nil {
+		return warningCount, model.NewAppError("ActianceExport.ActianceExport", "ent.actiance.export.writeExport.write.dest.appError", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return warningCount, nil
 }
