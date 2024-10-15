@@ -110,7 +110,8 @@ type Params struct {
 	BatchStartTime         int64
 	BatchEndTime           int64
 	Db                     store.Store
-	FileBackend            filestore.FileBackend
+	FileAttachmentBackend  filestore.FileBackend
+	ExportBackend          filestore.FileBackend
 }
 
 func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error) {
@@ -215,7 +216,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	}
 
 	var err error
-	results.NumWarnings, err = writeExport(rctx, export, allUploadedFiles, p.FileBackend, p.BatchPath)
+	results.NumWarnings, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)
 	results.NumChannels = len(channelsInThisBatch)
 	return results, err
 }
@@ -364,7 +365,7 @@ func buildChannelExport(startTime int64, endTime int64, channel *shared.Metadata
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, fileBackend filestore.FileBackend, batchPath string) (int, error) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (int, error) {
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
 	xmlData.WriteString(xml.Header)
@@ -399,8 +400,8 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 	var missingFiles []string
 	for _, fileInfo := range uploadedFiles {
-		var r io.ReadCloser
-		r, err = fileBackend.Reader(fileInfo.Path)
+		var attachmentReader io.ReadCloser
+		attachmentReader, err = fileAttachmentBackend.Reader(fileInfo.Path)
 		if err != nil {
 			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - "+fileInfo.Path)
 			rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("filename", fileInfo.Path))
@@ -409,15 +410,15 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 		// There could be many uploadedFiles, so be careful about closing readers.
 		if err = func() error {
-			defer r.Close()
-			var w io.Writer
-			w, err = zipFile.Create(fileInfo.Path)
+			defer attachmentReader.Close()
+			var zipWriter io.Writer
+			zipWriter, err = zipFile.Create(fileInfo.Path)
 			if err != nil {
 				return err
 			}
 
 			// CopyBuffer works with dirty buffers, no need to clear it.
-			if _, err = io.CopyBuffer(w, r, buf); err != nil {
+			if _, err = io.CopyBuffer(zipWriter, attachmentReader, buf); err != nil {
 				return err
 			}
 
@@ -450,7 +451,7 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
+	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, temp, batchPath)
 	if err != nil {
 		return warningCount, fmt.Errorf("unable to transfer the batch zip to the file backend: %w", err)
 	}

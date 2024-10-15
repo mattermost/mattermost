@@ -111,10 +111,11 @@ func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType stri
 		return warningCount, model.NewAppError("RunExport", "ent.compliance.run_export.template_watcher.appError", nil, "", http.StatusAccepted).Wrap(err)
 	}
 	jobParams := shared.BackendParams{
-		Config:        m.Server.Config(),
-		Store:         m.Server.Store(),
-		FileBackend:   fileBackend,
-		HtmlTemplates: t,
+		Config:                m.Server.Config(),
+		Store:                 m.Server.Store(),
+		FileAttachmentBackend: fileBackend,
+		ExportBackend:         fileBackend,
+		HtmlTemplates:         t,
 	}
 
 	data, err = GetDataForBatch(rctx, data, jobParams)
@@ -229,7 +230,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 	switch p.ExportType {
 	case model.ComplianceExportTypeCsv:
 		rctx.Logger().Debug("Exporting CSV")
-		results.NumWarnings, err = csv_export.CsvExport(rctx, p.PostsToExport, b.Store, b.FileBackend, p.BatchPath)
+		results.NumWarnings, err = csv_export.CsvExport(rctx, p.PostsToExport, b.Store, b.ExportBackend, b.FileAttachmentBackend, p.BatchPath)
 		return results, err
 
 	case model.ComplianceExportTypeActiance:
@@ -242,7 +243,8 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 			BatchStartTime:         p.BatchStartTime,
 			BatchEndTime:           p.BatchEndTime,
 			Db:                     b.Store,
-			FileBackend:            b.FileBackend,
+			FileAttachmentBackend:  b.FileAttachmentBackend,
+			ExportBackend:          b.ExportBackend,
 		})
 
 	case model.ComplianceExportTypeGlobalrelay, model.ComplianceExportTypeGlobalrelayZip:
@@ -254,7 +256,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 		defer file.DeleteTemp(rctx.Logger(), f)
 
 		var attachmentsRemovedPostIDs []string
-		attachmentsRemovedPostIDs, results.NumWarnings, err = global_relay_export.GlobalRelayExport(rctx, p.PostsToExport, b.Store, b.FileBackend, f, b.HtmlTemplates)
+		attachmentsRemovedPostIDs, results.NumWarnings, err = global_relay_export.GlobalRelayExport(rctx, p.PostsToExport, b.Store, b.FileAttachmentBackend, f, b.HtmlTemplates)
 		if err != nil {
 			return results, err
 		}
@@ -266,7 +268,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 
 		if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
 			// Try to disable the write timeout for the potentially big export file.
-			_, err = filestore.TryWriteFileContext(rctx.Context(), b.FileBackend, f, p.BatchPath)
+			_, err = filestore.TryWriteFileContext(rctx.Context(), b.FileAttachmentBackend, f, p.BatchPath)
 			if err != nil {
 				return results, fmt.Errorf("unable to write the global relay file: %w", err)
 			}

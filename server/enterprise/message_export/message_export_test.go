@@ -56,21 +56,54 @@ func (mr *MyReporter) ReportProgressMessage(message string) {
 }
 
 func TestRunExportByType(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		testRunExportByType(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	require.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		testRunExportByType(t, exportBackend, attachmentBackend)
+	})
+}
+
+func testRunExportByType(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
 	chanTypeDirect := model.ChannelTypeDirect
@@ -135,10 +168,11 @@ func TestRunExportByType(t *testing.T) {
 			BatchStartTime:         1,
 			BatchEndTime:           1,
 		}, shared.BackendParams{
-			Store:         mockStore,
-			FileBackend:   fileBackend,
-			HtmlTemplates: nil,
-			Config:        nil,
+			Store:                 mockStore,
+			FileAttachmentBackend: attachmentBackend,
+			ExportBackend:         exportBackend,
+			HtmlTemplates:         nil,
+			Config:                nil,
 		})
 		require.NoError(t, err)
 		require.Zero(t, res.NumWarnings)
