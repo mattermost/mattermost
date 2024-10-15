@@ -60,7 +60,7 @@ describe('channels > run dialog', {testIsolation: true}, () => {
             cy.findByText('Start run').should('exist');
 
             // # Attempt to submit
-            cy.get('#interactiveDialogSubmit').click();
+            cy.findByTestId('interactiveDialogSubmit').click();
         });
 
         // * Verify it didn't submit
@@ -84,7 +84,7 @@ describe('channels > run dialog', {testIsolation: true}, () => {
             cy.findByText('Start run').should('exist');
 
             // # Attempt to submit
-            cy.get('#interactiveDialogSubmit').click();
+            cy.findByTestId('interactiveDialogSubmit').click();
         });
 
         // * Verify it didn't submit

@@ -157,7 +157,7 @@ describe('System Console - after subscription scenarios', () => {
             cy.get('#input_postalCode').clear().type('3333');
 
             // # Click Save Credit Card button
-            cy.get('#saveSetting').should('be.enabled').click();
+            cy.findByTestId('saveSetting').should('be.enabled').click();
 
             cy.wait(['@payment', '@confirm']);
 
@@ -202,14 +202,14 @@ describe('System Console - after subscription scenarios', () => {
             cy.get('#input_postalCode').should('be.enabled').clear().type('3333');
 
             // * Check for disabling of Save Credit Card button
-            cy.get('#saveSetting').should('not.be.enabled');
+            cy.findByTestId('saveSetting').should('not.be.enabled');
 
             cy.get('#input_name').should('be.enabled').clear().type('test newname');
             cy.get('#input_address').should('be.enabled').clear().type('testnewaddress');
             cy.get('#input_address').should('be.enabled').clear().type('testcity');
 
             // * Check for enabling of Save Credit Card button
-            cy.get('#saveSetting').should('be.enabled');
+            cy.findByTestId('saveSetting').should('be.enabled');
         });
 
         it('MM-T4172 Cancelling the edit payment info', () => {
@@ -314,7 +314,7 @@ describe('System Console - after subscription scenarios', () => {
             cy.get('#input_postalCode').type('5555');
 
             // # Click Save Info button
-            cy.get('#saveSetting').should('be.enabled').click();
+            cy.findByTestId('saveSetting').should('be.enabled').click();
 
             // * Check name of the company after editing it
             cy.get('.CompanyInfoDisplay__companyInfo-name').should('have.text', 'test company name');
@@ -351,7 +351,7 @@ describe('System Console - after subscription scenarios', () => {
             cy.findByText('Same as Billing Address').prev().should('not.be.checked').click().should('be.checked');
 
             // # Click Save Info button
-            cy.get('#saveSetting').should('be.enabled').click();
+            cy.findByTestId('saveSetting').should('be.enabled').click();
 
             // * Check for address details
             cy.get('.CompanyInfoDisplay__companyInfo-address').within(() => {

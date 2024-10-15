@@ -143,7 +143,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.get('#interactiveDialogModalLabel').should('exist');
 
             // # Confirm finish
-            cy.get('#interactiveDialogSubmit').click();
+            cy.findByTestId('interactiveDialogSubmit').click();
 
             // * Verify that the run is finished.
             cy.get('#rhsContainer').findByTestId('badge').contains('Finished');
@@ -485,7 +485,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.get('#interactiveDialogModalLabel').should('exist');
 
             // # Confirm finish
-            cy.get('#interactiveDialogSubmit').click();
+            cy.findByTestId('interactiveDialogSubmit').click();
 
             // * Verify that the run is finished.
             cy.get('#rhsContainer').findByTestId('badge').contains('Finished');

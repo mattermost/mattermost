@@ -146,7 +146,7 @@ describe('User Management', () => {
         // # Type email and password.
         cy.get('#input_loginId').type(testUser.email);
         cy.get('#input_password-input').type(testUser.password);
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         // * Verify that logging in with the old e-mail works but requires e-mail verification.
         cy.url().should('include', 'should_verify_email');

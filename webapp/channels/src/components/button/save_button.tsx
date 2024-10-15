@@ -19,6 +19,7 @@ type Props = {
     size?: ComponentProps<typeof Button>['size'];
     testId?: ComponentProps<typeof Button>['testId'];
     destructive?: ComponentProps<typeof Button>['destructive'];
+    fullWidth?: ComponentProps<typeof Button>['fullWidth'];
 };
 
 const messages = defineMessages({
@@ -44,6 +45,7 @@ const SaveButton: React.FC<Props> = ({
     size,
     testId,
     destructive,
+    fullWidth,
 }) => {
     return (
         <Button
@@ -58,6 +60,7 @@ const SaveButton: React.FC<Props> = ({
             trailingIcon={trailingIcon}
             size={size}
             destructive={destructive}
+            fullWidth={fullWidth}
         />
     );
 };

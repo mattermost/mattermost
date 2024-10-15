@@ -413,6 +413,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                         emphasis='primary'
                                         label={messages.save}
                                         buttonType='submit'
+                                        testId={'saveSetting'}
                                     />
                                     <Button
                                         emphasis='tertiary'

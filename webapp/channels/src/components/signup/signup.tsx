@@ -875,6 +875,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onClick={handleSubmit}
                                         defaultMessage={messages.createAccount}
                                         savingMessage={messages.creatingAccount}
+                                        fullWidth={true}
                                     />
                                 </div>
                             )}

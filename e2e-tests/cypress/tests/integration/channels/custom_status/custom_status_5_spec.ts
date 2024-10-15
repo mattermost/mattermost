@@ -27,7 +27,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
     });
 
     it('MM-T3850_1 set a status', () => {
-        cy.uiOpenUserMenu('Set a Custom Status');
+        cy.uiOpenUserMenu('Set a custom status');
 
         // # Type the custom status text in the custom status modal input
         cy.findByPlaceholderText('Set a status').type(customStatus.text, {force: true});
@@ -63,7 +63,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
         cy.get('.post.current--user .post__header').should('be.visible').first().get('.post-menu button[aria-label="reply"]').should('exist').click({force: true});
 
         // * Custom status emoji should be visible in the RHS post header
-        cy.get('#rhsContainer .post-right__content .post.current--user.thread__root .post__header span.emoticon').should('exist').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
+        cy.get('#rhsContainer .post-right__content .post.current--user .post__header span.emoticon').should('exist').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
 
         // # Close the RHS sidebar
         cy.get('#rhsCloseButton').click();
@@ -72,16 +72,19 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
     it('MM-T3850_5 should show full custom status in the user popover', () => {
         // # Click on the post header of the last post by the current user and open profile popover
         cy.get('.post.current--user .post__header .user-popover').first().click();
-        cy.get('#user-profile-popover').should('exist');
+        cy.get('.user-profile-popover').should('exist');
 
         // * Check if the profile popover contains custom status text and emoji
-        cy.get('#user-profile-popover #user-popover-status').should('contain', customStatus.text);
-        cy.get('#user-profile-popover #user-popover-status span.emoticon').should('exist').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
+        cy.get('.user-profile-popover #user-popover-status').should('contain', customStatus.text);
+        cy.get('.user-profile-popover #user-popover-status span.emoticon').should('exist').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
+
+        // # Close the popover
+        cy.findByLabelText('Close user profile popover').click();
     });
 
     it('MM-T3850_6 should show custom status emoji next to username in the channel members popover', () => {
         // # Click on the Members icon in the channel header and open the Member list popover
-        cy.get('#member_popover').should('exist').click();
+        cy.get('#member_rhs').should('exist').click();
         cy.get('#member-list-popover').should('exist');
 
         // * Custom status emoji should be visible next to username of the current user which is first in the list

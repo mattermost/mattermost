@@ -54,7 +54,7 @@ describe('Edit bot', () => {
                 cy.get('#description').clear().type(description);
 
                 // # Click update button
-                cy.get('#saveBot').click();
+                cy.findByTestId('saveBot').click();
             }
         });
 
@@ -75,7 +75,7 @@ describe('Edit bot', () => {
 
         // # Fill and submit form
         cy.get('#username').type(userName);
-        cy.get('#saveBot').click();
+        cy.findByTestId('saveBot').click();
 
         // * Verify confirmation page
         cy.url().

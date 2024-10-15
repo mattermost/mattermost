@@ -78,7 +78,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         });
 
         // # Click on the Save Settings
-        cy.get('#saveSetting').should('be.visible').click();
+        cy.findByTestId('saveSetting').should('be.visible').click();
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
@@ -93,7 +93,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('.error-message').should('be.visible');
 
         // # Click on the Save Settings, confirm and wait for some time to complete successful save
-        cy.get('#saveSetting').should('be.visible').click();
+        cy.findByTestId('saveSetting').should('be.visible').click();
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Visit the chat facing application

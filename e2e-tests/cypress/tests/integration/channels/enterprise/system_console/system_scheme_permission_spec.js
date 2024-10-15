@@ -70,8 +70,8 @@ const setUserTeamAndChannelMemberships = (user, team, channel, channelAdmin = fa
 };
 
 const saveConfig = () => {
-    cy.get('#saveSetting').click();
-    cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+    cy.findByTestId('saveSetting').click();
+    cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
         return el[0].innerText === 'Save';
     }));
 };

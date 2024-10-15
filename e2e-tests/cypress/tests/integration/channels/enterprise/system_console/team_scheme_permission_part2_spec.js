@@ -44,14 +44,14 @@ describe('Team Scheme', () => {
         cy.get('#multiSelectList div.more-modal__row.clickable').eq(0).click().wait(TIMEOUTS.HALF_SEC);
 
         // # Save scheme
-        cy.get('#saveItems').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('saveItems').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Modify the permissions scheme
         const checkId = 'all_users-public_channel-create_public_channel-checkbox';
         cy.findByTestId(checkId).click();
 
         // # Save scheme
-        cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
+        cy.findByTestId('saveSetting').click().wait(TIMEOUTS.TWO_SEC);
 
         // * Verify user is returned to the `Permission Schemes` page
         cy.url().should('include', '/admin_console/user_management/permissions');

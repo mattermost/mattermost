@@ -57,7 +57,7 @@ describe('Settings > Display > Channel Display Mode', () => {
         // * Check the max setting view if each element is present and contains expected text values
         cy.get('#channel_display_modeFormatA').should('be.visible');
         cy.get('#channel_display_modeFormatB').should('be.visible');
-        cy.get('#saveSetting').should('contain', 'Save');
+        cy.findByTestId('saveSetting').should('contain', 'Save');
         cy.get('#cancelSetting').should('contain', 'Cancel');
         cy.get('#accountSettingsHeader > .close').should('be.visible');
     });

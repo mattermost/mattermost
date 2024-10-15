@@ -17,7 +17,7 @@ const goToSessionLengths = () => {
 
 // # Wait's until the Saving text becomes Save
 const waitUntilConfigSave = () => {
-    cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+    cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
         return el[0].innerText === 'Save';
     }));
 };
@@ -27,7 +27,7 @@ const waitUntilConfigSave = () => {
 // Usually we need to wait unless we are doing this in team override scheme
 const saveConfig = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
     // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
-    cy.get('#saveSetting').then((btn) => {
+    cy.findByTestId('saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
         }

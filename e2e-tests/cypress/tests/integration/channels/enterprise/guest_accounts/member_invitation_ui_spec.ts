@@ -137,7 +137,7 @@ describe('Guest Account - Member Invitation Flow', () => {
             // # Login as user
             cy.get('#input_loginId').type(testUser.username);
             cy.get('#input_password-input').type('passwd');
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Verify if user is added to the invited team
             cy.get(`#${testTeam.name}TeamButton`).as('teamButton').should('be.visible').within(() => {

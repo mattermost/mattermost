@@ -55,7 +55,7 @@ describe('User Management', () => {
         // # Login as otherUser
         cy.get('#input_loginId').should('be.visible').type(otherUser.username);
         cy.get('#input_password-input').should('be.visible').type(otherUser.password);
-        cy.get('#saveSetting').should('be.visible').click();
+        cy.findByTestId('saveSetting').should('be.visible').click();
 
         // * Verify appropriate error message is displayed for deactivated user
         cy.findByText('Login failed because your account has been deactivated. Please contact an administrator.').should('exist').and('be.visible');

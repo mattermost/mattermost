@@ -86,7 +86,7 @@ describe('Elasticsearch system console', () => {
         cy.get('#enableAutocompletefalse').check().should('be.checked');
 
         // # Save the settings
-        cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
+        cy.findByTestId('saveSetting').click().wait(TIMEOUTS.TWO_SEC);
 
         // * Get config from API and verify that EnableAutocomplete setting is false
         cy.apiGetConfig().then(({config}) => {

@@ -14,7 +14,7 @@ export function createBotInteractive(team, username = `bot-${getRandomId()}`) {
     // # Fill and submit form
     cy.get('#username').type(username);
     cy.get('#displayName').type('Test Bot');
-    cy.get('#saveBot').click();
+    cy.findByTestId('saveBot').click();
 
     // * Verify confirmation page
     cy.url({timeout: TIMEOUTS.ONE_MIN}).

@@ -49,7 +49,7 @@ Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
         usernameList.forEach((username) => {
             cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);
         });
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
         cy.get('#addUsersToChannelModal').should('not.exist');
     }
 });
@@ -89,5 +89,5 @@ Cypress.Commands.add('goToDm', (username) => {
         typeWithForce('{enter}');
 
     // # Save the selected item
-    return cy.get('#saveItems').click().wait(TIMEOUTS.HALF_SEC);
+    return cy.findByTestId('saveItems').click().wait(TIMEOUTS.HALF_SEC);
 });

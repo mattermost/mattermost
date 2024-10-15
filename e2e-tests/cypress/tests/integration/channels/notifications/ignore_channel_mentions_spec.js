@@ -102,7 +102,7 @@ function addNumberOfUsersToChannel(num = 1) {
     });
 
     // # Click the button "Add" to add user to a channel
-    cy.get('#saveItems').click();
+    cy.findByTestId('saveItems').click();
 
     // # Wait for the modal to disappear
     cy.get('#addUsersToChannelModal').should('not.exist');

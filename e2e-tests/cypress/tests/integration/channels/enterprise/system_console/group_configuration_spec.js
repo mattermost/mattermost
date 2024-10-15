@@ -541,7 +541,7 @@ function addGroupSyncable(type, callback) {
         const name = $elements[0].innerText;
 
         cy.get('#multiSelectList').find('.more-modal__row').first().click();
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // * Check that the team or channel was added to the view
         teamOrChannelIsPresent(name);
@@ -556,8 +556,8 @@ function changeRole(teamOrChannel, newRole) {
 }
 
 function savePage() {
-    cy.get('#saveSetting', {timeout: TIMEOUTS.TWO_SEC}).click();
-    cy.get('#saveSetting', {timeout: TIMEOUTS.TWO_SEC}).should('be.disabled');
+    cy.findByTestId('saveSetting', {timeout: TIMEOUTS.TWO_SEC}).click();
+    cy.findByTestId('saveSetting', {timeout: TIMEOUTS.TWO_SEC}).should('be.disabled');
 }
 
 function removeAndConfirm(name) {

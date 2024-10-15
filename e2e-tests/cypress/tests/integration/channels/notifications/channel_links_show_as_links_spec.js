@@ -91,7 +91,7 @@ describe('Notifications', () => {
             cy.visit(testChannelUrl);
             cy.get('#confirmModalButton').
                 should('be.visible').
-                and('have.text', 'Yes, set my status to "Online"').
+                and('have.text', 'Set status to "Online"').
                 click();
 
             cy.getRecentEmail(receiver).then((data) => {

@@ -71,7 +71,7 @@ describe('Revoke Bookmarks Permissions', () => {
         cy.get('#scheme-description').type('description');
 
         // # Save scheme
-        cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
+        cy.findByTestId('saveSetting').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Edit the schema
         cy.findByTestId('custom test schema-edit').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);

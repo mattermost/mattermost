@@ -73,7 +73,7 @@ describe('Channel members test', () => {
         cy.get('#channelMembers .UserGrid_removeRow a').should('be.visible').click();
 
         // # Attempt to save
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Assert that confirmation modal contains the right message
         cy.get('#confirmModalBody').should('be.visible').and('contain', '1 user will be removed.').and('contain', 'Are you sure you wish to remove this user?');
@@ -89,7 +89,7 @@ describe('Channel members test', () => {
         cy.get('#channelMembers .UserGrid_removeRow a').should('be.visible').click();
 
         // # Attempt to save
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Assert that confirmation modal contains the right message
         cy.get('#confirmModalBody').should('be.visible').and('contain', '2 users will be removed.').and('contain', 'Are you sure you wish to remove these users?');
@@ -122,7 +122,7 @@ describe('Channel members test', () => {
         cy.findByRole('textbox', {name: 'Search for people or groups'}).typeWithForce(`${user1.email}{enter}${user2.email}{enter}`);
 
         // # Confirm add the users
-        cy.get('#addUsersToChannelModal #saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Search for user1
         searchFor(user1.email);
@@ -191,7 +191,7 @@ describe('Channel members test', () => {
 
 function saveConfig() {
     // # Click save
-    cy.get('#saveSetting').click();
+    cy.findByTestId('saveSetting').click();
 
     // # Check that the members block is no longer visible meaning that the save has succeeded and we were redirected out
     cy.get('#channelMembers').should('not.exist');

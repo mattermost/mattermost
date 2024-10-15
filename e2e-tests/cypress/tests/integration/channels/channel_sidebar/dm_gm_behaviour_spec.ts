@@ -40,7 +40,7 @@ describe('DM category', () => {
             cy.get(`#displayedUserName${user.username}`).click().wait(TIMEOUTS.HALF_SEC);
 
             // # Click Go
-            cy.findByTestId('saveSetting').should('be.visible').click();
+            cy.findByTestId('saveItems').should('be.visible').click();
 
             // * Verify that a DM channel shows up in the sidebar
             cy.get(`.SidebarLink:contains(${user.username})`).should('be.visible');
@@ -130,7 +130,7 @@ describe('DM category', () => {
                 cy.get(`#displayedUserName${user2.username}`).click().wait(TIMEOUTS.HALF_SEC);
 
                 // # Click Go
-                cy.findByTestId('saveSetting').should('be.visible').click();
+                cy.findByTestId('saveItems').should('be.visible').click();
 
                 // * Verify that a GM channel shows up in the sidebar
                 cy.get(`.SidebarLink:contains(${user.username})`).should('contain', user2.username).should('be.visible');
@@ -226,7 +226,7 @@ describe('DM category', () => {
                     cy.get(`#displayedUserName${user2.username}`).click().wait(TIMEOUTS.HALF_SEC);
 
                     // # Click Go
-                    cy.findByTestId('saveSetting').should('be.visible').click();
+                    cy.findByTestId('saveItems').should('be.visible').click();
 
                     // * Verify that the GM is in the original category and that it hasn't duplicated in the DM category
                     cy.get(`.SidebarChannelGroup:contains(Category ${user.username})`).find(`#sidebarItem_${channel.name}`).should('be.visible');

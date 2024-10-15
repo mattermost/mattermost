@@ -26,12 +26,12 @@ Cypress.Commands.add('uiResetPermissionsToDefault', () => {
 
 Cypress.Commands.add('uiSaveConfig', ({confirm = true} = {}) => {
     // # Save settings
-    cy.get('#saveSetting').should('be.enabled').click();
+    cy.findByTestId('saveSetting').should('be.enabled').click();
     cy.wait(TIMEOUTS.HALF_SEC);
 
     if (confirm) {
         // # Wait until the UI shows the saving is done and revert the text to "Save"
-        cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+        cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
             return el[0].innerText === 'Save';
         }));
     } else {

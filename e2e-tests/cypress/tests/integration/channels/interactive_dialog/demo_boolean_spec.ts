@@ -244,7 +244,7 @@ describe('Interactive Dialogs', () => {
 
             // # Submit the form of the interactive dialog.
             cy.intercept('/api/v4/actions/dialogs/submit').as('submitAction');
-            cy.get('#interactiveDialogSubmit').click();
+            cy.findByTestId('interactiveDialogSubmit').click();
         });
 
         // * The interactive dialog should not be visible anymore.

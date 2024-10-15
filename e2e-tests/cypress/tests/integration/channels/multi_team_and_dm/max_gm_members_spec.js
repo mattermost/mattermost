@@ -48,7 +48,7 @@ describe('Multi-user group messages', () => {
         cy.get('.react-select__multi-value').should('have.length', 7);
 
         // # Click on "Go" in the group message's dialog to begin the conversation
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // * Check that the number of users in the group message is 8
         cy.get('#channelMemberCountText').
@@ -125,15 +125,15 @@ const addUsersToGMViaModal = (userCountToAdd) => {
  * @param {number} expectedUsersLeftToAdd
  */
 const expectCannotAddUsersMessage = (expectedUsersLeftToAdd) => {
-    const maxUsersGMNote = "You've reached the maximum number of people for this conversation. Consider creating a private channel instead.";
+    const maxUsersGMNote = "You can't add more than 7 people.";
 
     // * Check that the help section indicates we cannot add anymore users
-    cy.get('#multiSelectHelpMemberInfo').
-        should('be.visible').
-        and('contain.text', `You can add ${expectedUsersLeftToAdd} more ${expectedUsersLeftToAdd === 1 ? 'person' : 'people'}`);
-
     if (expectedUsersLeftToAdd === 0) {
         // * Check that a note in the help section suggests creating a private channel instead
-        cy.get('#multiSelectMessageNote').should('contain.text', maxUsersGMNote);
+        cy.get('#multiSelectHelpMemberInfo').should('contain.text', maxUsersGMNote);
+    } else {
+        cy.get('#multiSelectHelpMemberInfo').
+            should('be.visible').
+            and('contain.text', `You can add ${expectedUsersLeftToAdd} more ${expectedUsersLeftToAdd === 1 ? 'person' : 'people'}`);
     }
 };

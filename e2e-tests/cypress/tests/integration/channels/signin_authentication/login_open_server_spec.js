@@ -56,7 +56,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').should('exist').and('be.visible');
 
         // * Verify sign in button is present
-        cy.get('#saveSetting').should('exist').and('be.visible');
+        cy.findByTestId('saveSetting').should('exist').and('be.visible');
 
         // * Verify forget password link is present
         cy.findByText('Forgot your password?').should('exist').and('be.visible').should('have.attr', 'href', '/reset_password');
@@ -105,7 +105,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear();
 
         // # Verify Log in button enabled
-        cy.get('#saveSetting').should('not.be.disabled');
+        cy.findByTestId('saveSetting').should('not.be.disabled');
     });
 
     it('MM-T3306_4 Should keep enable Log in button when empty email/username field', () => {
@@ -116,7 +116,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear().type('samplepassword');
 
         // # Verify Log in button enabled
-        cy.get('#saveSetting').should('not.be.disabled');
+        cy.findByTestId('saveSetting').should('not.be.disabled');
     });
 
     it('MM-T3306_5 Should keep enable Log in button when empty password field', () => {
@@ -127,7 +127,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear();
 
         // # Verify Log in button enabled
-        cy.get('#saveSetting').should('not.be.disabled');
+        cy.findByTestId('saveSetting').should('not.be.disabled');
     });
 
     it('MM-T3306_6 Should show error with invalid email/username and password', () => {
@@ -147,7 +147,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear().type(invalidPassword);
 
         // # Verify Log in button enabled and click
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         // * Verify appropriate error message is displayed for incorrect email/username and password
         cy.findByText('The email/username or password is invalid.').should('exist').and('be.visible');
@@ -166,7 +166,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear().type(invalidPassword);
 
         // # Verify Log in button enabled and click
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         // * Verify appropriate error message is displayed for incorrect email/username and password
         cy.findByText('The email/username or password is invalid.').should('exist').and('be.visible');
@@ -180,7 +180,7 @@ describe('Login page with open server', () => {
         cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
         // # Verify Log in button enabled and click
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         // * Check that it login successfully and it redirects into the main channel page
         cy.url().should('include', '/channels/town-square');

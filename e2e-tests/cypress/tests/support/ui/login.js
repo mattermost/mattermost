@@ -7,5 +7,5 @@ Cypress.Commands.add('uiLogin', (user = {}) => {
     // # Type email and password, then Sign in
     cy.get('#input_loginId').should('be.visible').type(user.email);
     cy.get('#input_password-input').should('be.visible').type(user.password);
-    cy.get('#saveSetting').should('not.be.disabled').click();
+    cy.findByTestId('saveSetting').should('not.be.disabled').click();
 });

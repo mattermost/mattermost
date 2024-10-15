@@ -127,7 +127,7 @@ describe('Multi-user group messages', () => {
         cy.get('#selectItems input').typeWithForce('{enter}');
 
         // # Click Go
-        cy.get('button#saveItems').click({force: true});
+        cy.findByTestId('saveItems').click({force: true});
 
         // * Modal closes
         cy.get('#moreDmModal').should('not.exist');

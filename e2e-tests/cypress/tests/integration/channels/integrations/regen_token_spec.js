@@ -31,7 +31,7 @@ describe('Integrations', () => {
         cy.get('#trigger').type('regen');
         cy.get('#url').type('http://hidden-peak-21733.herokuapp.com/test_inchannel');
         cy.get('#autocomplete').check();
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Grab token 1
         let generatedToken;

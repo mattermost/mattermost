@@ -44,7 +44,7 @@ describe('Settings > Display > Theme > Custom Theme Colors', () => {
             verifyLastPostStyle(theme);
 
             // # Save and close settings modal
-            cy.get('#saveSetting').click().wait(TIMEOUTS.HALF_SEC);
+            cy.findByTestId('saveSetting').click().wait(TIMEOUTS.HALF_SEC);
             cy.uiClose();
 
             // * Verify that the styles remain after saving and closing modal

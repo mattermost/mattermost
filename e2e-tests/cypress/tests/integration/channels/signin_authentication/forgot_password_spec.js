@@ -96,7 +96,7 @@ describe('Signin/Authentication', () => {
             // # Type email and new password, then click login button
             cy.get('#input_loginId').should('be.visible').type(testUser.username);
             cy.get('#input_password-input').should('be.visible').type(newPassword);
-            cy.get('#saveSetting').click();
+            cy.findByTestId('saveSetting').click();
 
             // * Verify that it successfully logged in and redirects to /channels/town-square
             cy.url().should('contain', `/${teamName}/channels/town-square`);

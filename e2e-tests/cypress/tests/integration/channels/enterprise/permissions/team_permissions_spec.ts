@@ -41,7 +41,7 @@ const createTeamOverrideSchemeWithPermission = (name, team, permissionId, permis
     cy.get('#multiSelectList div.more-modal__row.clickable').eq(0).click().wait(TIMEOUTS.HALF_SEC);
 
     // # Save scheme
-    cy.get('#saveItems').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+    cy.findByTestId('saveItems').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
     // # Modify the permissions scheme
     cy.findByTestId(permissionId).then((el) => {
@@ -51,7 +51,7 @@ const createTeamOverrideSchemeWithPermission = (name, team, permissionId, permis
     });
 
     // # Save scheme
-    cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
+    cy.findByTestId('saveSetting').click().wait(TIMEOUTS.TWO_SEC);
     cy.apiLogout();
 };
 
@@ -176,7 +176,7 @@ describe('Team Permissions', () => {
             cy.get('#multiSelectList div').eq(0).click();
 
             // # Click `Save` button
-            cy.get('#saveItems').should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
+            cy.findByTestId('saveItems').should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
 
             // # Open channel header menu
             cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);

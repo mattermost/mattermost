@@ -34,7 +34,7 @@ describe('Header', () => {
                 type(bot.username, {force: true}).
                 type('{enter}', {force: true});
             cy.get('#selectItems').contains(bot.username);
-            cy.get('#saveItems').click();
+            cy.findByTestId('saveItems').click();
 
             // * Verify Channel Header is visible
             cy.get('#channelHeaderInfo').should('be.visible');
@@ -55,7 +55,7 @@ describe('Header', () => {
             typeWithForce('matterpoll').wait(TIMEOUTS.ONE_SEC).
             typeWithForce('{enter}');
         cy.get('#selectItems').contains('matterpoll');
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // * Verify Channel Header is visible
         cy.get('#channelHeaderInfo').should('be.visible');

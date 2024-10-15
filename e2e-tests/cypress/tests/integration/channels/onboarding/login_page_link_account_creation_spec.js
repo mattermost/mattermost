@@ -85,7 +85,7 @@ describe('Onboarding', () => {
         cy.get('#input_password-input').should('be.visible').and('be.focused').type(password);
 
         // # Click on the login button
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // # Close the onboarding tutorial
         cy.uiCloseOnboardingTaskList();

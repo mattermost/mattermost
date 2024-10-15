@@ -41,7 +41,7 @@ describe('Multi-user group messages', () => {
         cy.get('.react-select__multi-value').should('have.length', 3);
 
         // # Click on "Go" in the group message's dialog to begin the conversation
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Click channel dropdown icon to open menu
         cy.get('#channelHeaderDropdownIcon').click();

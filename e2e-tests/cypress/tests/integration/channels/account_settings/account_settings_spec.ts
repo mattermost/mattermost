@@ -92,7 +92,7 @@ describe('Account Settings', () => {
                     // * Check if email updated
                     cy.visit(`/${testTeam.name}/messages/@${testUser.username}`);
                     cy.get('#channelIntro .user-popover').should('be.visible').click();
-                    cy.get('#user-profile-popover').should('be.visible').should('contain', oldEMail);
+                    cy.get('.user-profile-popover').should('be.visible').should('contain', oldEMail);
                 });
             });
         });

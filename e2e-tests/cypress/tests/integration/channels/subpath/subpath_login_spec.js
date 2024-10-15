@@ -43,7 +43,7 @@ describe('Cookie with Subpath', () => {
                 // # Login as testUser
                 cy.get('#input_loginId').should('be.visible').type(testUser.username);
                 cy.get('#input_password-input').should('be.visible').type(testUser.password);
-                cy.get('#saveSetting').should('be.visible').click();
+                cy.findByTestId('saveSetting').should('be.visible').click();
 
                 // * Check login success
                 cy.get('#channel_view').should('be.visible');

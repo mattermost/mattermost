@@ -21,6 +21,7 @@ type ButtonProps = {
     autoFocus?: ButtonHTMLAttributes<HTMLButtonElement>['autoFocus'];
     disabled?: ButtonHTMLAttributes<HTMLButtonElement>['disabled'];
     buttonType?: ButtonHTMLAttributes<HTMLButtonElement>['type'];
+    fullWidth?: boolean;
 }
 
 const emphasisClasses = {
@@ -52,6 +53,7 @@ const Button = ({
     disabled,
     loading = false,
     buttonType = 'button',
+    fullWidth = false,
 }: ButtonProps) => {
     const intl = useIntl();
     const leading = leadingIcon ? (<i className={classNames('icon', leadingIcon)}/>) : null;
@@ -69,6 +71,7 @@ const Button = ({
                 'pull-left': pull === 'left',
                 'pull-right': pull === 'right',
                 'btn-danger': destructive,
+                'btn-full': fullWidth,
             })}
             autoFocus={autoFocus}
             data-testid={testId}

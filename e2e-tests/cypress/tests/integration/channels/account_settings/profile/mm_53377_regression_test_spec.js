@@ -51,7 +51,7 @@ describe('MM-53377 Regression tests', () => {
         cy.contains('.mention-link', `@${testUser.username}`).click();
 
         // * Ensure that all fields are visible for the current user
-        cy.get('#user-profile-popover').within(() => {
+        cy.get('.user-profile-popover').within(() => {
             cy.findByText(`@${testUser.username}`).should('exist');
             cy.findByText(`${testUser.first_name} ${testUser.last_name}`).should('exist');
             cy.findByText(testUser.email).should('exist');
@@ -64,7 +64,7 @@ describe('MM-53377 Regression tests', () => {
         cy.contains('.mention-link', `@${testUser2.username}`).click();
 
         // * Ensure that only the username is visible for another user
-        cy.get('#user-profile-popover').within(() => {
+        cy.get('.user-profile-popover').within(() => {
             cy.findByText(`@${testUser2.username}`).should('exist');
             cy.findByText(`${testUser2.first_name} ${testUser2.last_name}`).should('not.exist');
             cy.findByText(testUser2.email).should('not.exist');
@@ -85,7 +85,7 @@ describe('MM-53377 Regression tests', () => {
         cy.contains('.mention-link', `@${testUser.username}`).click();
 
         // * Ensure that all fields are still visible for the current user
-        cy.get('#user-profile-popover').within(() => {
+        cy.get('.user-profile-popover').within(() => {
             cy.findByText(`@${testUser.username}`).should('exist');
             cy.findByText(`${testUser.first_name} ${testUser.last_name}`).should('exist');
             cy.findByText(testUser.email).should('exist');

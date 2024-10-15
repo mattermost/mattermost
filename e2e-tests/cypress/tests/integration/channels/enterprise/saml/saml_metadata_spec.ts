@@ -80,6 +80,6 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
         });
 
         // * Verify that we can successfully save the settings (we have not affected previous state)
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
     });
 });

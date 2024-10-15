@@ -18,6 +18,6 @@ export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
     cy.findByTestId('ServiceSettings.EnablePostIconOverride' + enableIcon).check({force: true});
 
     // # Save the settings
-    cy.get('#saveSetting').should('be.enabled').click({force: true});
-    cy.get('#saveSetting').should('be.disabled');
+    cy.findByTestId('saveSetting').should('be.enabled').click({force: true});
+    cy.findByTestId('saveSetting').should('be.disabled');
 }

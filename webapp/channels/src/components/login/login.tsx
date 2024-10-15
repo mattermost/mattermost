@@ -889,12 +889,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             disabled={isWaiting}
                                         />
                                         {getResetPasswordLink()}
+                                        <div className='login-body-card-form-login-button-separator'/>
                                         <SaveButton
                                             size='large'
                                             saving={isWaiting}
                                             onClick={preSubmit}
                                             defaultMessage={messages.logIn}
                                             savingMessage={messages.loggingIn}
+                                            fullWidth={true}
                                         />
                                     </div>
                                 </form>

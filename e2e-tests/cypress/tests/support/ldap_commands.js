@@ -26,7 +26,7 @@ Cypress.Commands.add('performLDAPLogin', (settings = {}, useEmail = false) => {
     cy.get('#input_password-input').type(settings.user.password);
 
     //click the login button
-    cy.get('#saveSetting').should('not.be.disabled').click();
+    cy.findByTestId('saveSetting').should('not.be.disabled').click();
 });
 
 Cypress.Commands.add('doLDAPLogout', (settings = {}) => {
