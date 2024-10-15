@@ -117,7 +117,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         className='channel-archived__message'
                     >
                         <FormattedMessage
-                            id='createPost.deactivated'
+                            id='channelView.archivedChannelWithDeactivatedUser'
                             defaultMessage='You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.'
                             values={{
                                 b: (chunks: string) => <b>{chunks}</b>,
@@ -146,7 +146,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         className='channel-archived__message'
                     >
                         <FormattedMessage
-                            id='archivedChannel_Message'
+                            id='channelView.archivedChannel'
                             defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
                             values={{
                                 b: (chunks: string) => <b>{chunks}</b>,
