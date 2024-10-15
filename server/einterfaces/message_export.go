@@ -10,5 +10,4 @@ import (
 
 type MessageExportInterface interface {
 	StartSynchronizeJob(rctx request.CTX, exportFromTimestamp int64) (*model.Job, *model.AppError)
-	RunExport(rctx request.CTX, format string, since int64, limit int) (int, *model.AppError)
 }
