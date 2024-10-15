@@ -395,6 +395,7 @@ export type ServiceSettings = {
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
     MaximumPayloadSizeBytes: number;
+    EnableAPIPostDeletion: boolean;
     MaximumURLLength: number;
 };
 
@@ -507,6 +508,13 @@ export type WranglerSettings = {
     MoveThreadFromDirectMessageChannelEnable: boolean;
     MoveThreadFromGroupMessageChannelEnable: boolean;
 };
+
+export type ConnectedWorkspacesSettings = {
+    EnableSharedChannels: boolean;
+    EnableRemoteClusterService: boolean;
+    DisableSharedChannelsStatusSync: boolean;
+    MaxPostsPerSync: number;
+}
 
 export type FileSettings = {
     EnableFileAttachments: boolean;
@@ -980,6 +988,7 @@ export type AdminConfig = {
     ImportSettings: ImportSettings;
     ExportSettings: ExportSettings;
     WranglerSettings: WranglerSettings;
+    ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
 };
 
 export type ReplicaLagSetting = {
