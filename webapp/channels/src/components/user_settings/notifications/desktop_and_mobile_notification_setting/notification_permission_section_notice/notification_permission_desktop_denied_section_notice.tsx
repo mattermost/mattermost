@@ -10,8 +10,7 @@ export default function NotificationPermissionDesktopDeniedSectionNotice() {
     const intl = useIntl();
 
     const handleClick = useCallback(() => {
-        // TODO: Change to permalink of desktop
-        window.open('https://docs.mattermost.com/preferences/manage-your-notifications.html', '_blank', 'noopener,noreferrer');
+        window.open('https://mattermost.com/pl/manage-notifications', '_blank', 'noopener,noreferrer');
     }, []);
 
     return (
