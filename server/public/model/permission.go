@@ -2604,6 +2604,10 @@ func init() {
 }
 
 func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	return MakePermissionErrorForUser(s.UserId, permissions)
+}
+
+func MakePermissionErrorForUser(userId string, permissions []*Permission) *AppError {
 	permissionsStr := "permission="
 	for i, permission := range permissions {
 		permissionsStr += permission.Id
@@ -2611,5 +2615,5 @@ func MakePermissionError(s *Session, permissions []*Permission) *AppError {
 			permissionsStr += ","
 		}
 	}
-	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr, http.StatusForbidden)
 }

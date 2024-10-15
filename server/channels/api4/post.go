@@ -48,23 +48,23 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 }
 
-func postChecks(c *Context, post *model.Post) {
+func postChecks(where string, c *Context, post *model.Post) {
 	// Add post creation checks here.
 	// If you make any change here, please make sure to apply the
 	// same change for scheduled posts as well in the `scheduledPostChecks()` function
 	// in API layer.
 
-	userCreatePostPermissionCheck(c, post.ChannelId)
+	userCreatePostPermissionCheckWithContext(c, post.ChannelId)
 	if c.Err != nil {
 		return
 	}
 
-	postHardenedModeCheck(c, post.GetProps())
+	postHardenedModeCheckWithContext(c, post.GetProps())
 	if c.Err != nil {
 		return
 	}
 
-	postPriorityCheck(c, post.GetPriority(), post.RootId)
+	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -85,7 +85,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	postChecks(c, &post)
+	postChecks("Api4.createPost", c, &post)
 	if c.Err != nil {
 		return
 	}
@@ -839,7 +839,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postHardenedModeCheck(c, post.GetProps())
+	postHardenedModeCheckWithContext(c, post.GetProps())
 	if c.Err != nil {
 		return
 	}
@@ -907,7 +907,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if post.Props != nil {
-		postHardenedModeCheck(c, *post.Props)
+		postHardenedModeCheckWithContext(c, *post.Props)
 		if c.Err != nil {
 			return
 		}
