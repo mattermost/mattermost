@@ -4,13 +4,9 @@
 package message_export
 
 import (
-	"archive/zip"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"sync"
@@ -32,17 +28,16 @@ const (
 	JobDataStartTimestamp   = "start_timestamp"
 	JobDataStartId          = "start_id"
 	JobDataExportType       = "export_type"
-	JOB_DATA_BatchSize      = "batch_size"
+	jobDataBatchSize        = "batch_size"
 	JobDataMessagesExported = "messages_exported"
 	JobDataWarningCount     = "warning_count"
 	JobDataIsDownloadable   = "is_downloadable"
-	JobDirectories          = "job_directories"
+	JobDataName             = "job_name"
+	JobDataBatchNumber      = "job_batch_number"
 	TimeBetweenBatches      = 100
 
 	estimatedPostCount = 10_000_000
 )
-
-const exportPath = "export"
 
 type MessageExportWorker struct {
 	name string
@@ -154,8 +149,7 @@ func (worker *MessageExportWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
-// getExportBackend returns the file backend where the export will be created.
-func (worker *MessageExportWorker) getExportBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
+func (worker *MessageExportWorker) getFileBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
 	config := worker.jobServer.Config()
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 
@@ -168,20 +162,6 @@ func (worker *MessageExportWorker) getExportBackend(rctx request.CTX) (filestore
 
 		return backend, nil
 	}
-
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
-	if err != nil {
-		return nil, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return backend, nil
-}
-
-// getFileAttachmentBackend returns the file backend where file attachments are
-// located for messages that will be exported. This may be the same backend
-// where the export will be created.
-func (worker *MessageExportWorker) getFileAttachmentBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
-	config := worker.jobServer.Config()
-	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 
 	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
 	if err != nil {
@@ -231,20 +211,19 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 	}
 	jobStartId := job.Data[JobDataStartId]
 
-	batchSize, err := strconv.Atoi(job.Data[JOB_DATA_BatchSize])
+	batchSize, err := strconv.Atoi(job.Data[jobDataBatchSize])
+	if err != nil {
+		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
+		return
+	}
+
+	batchNumber, err := strconv.Atoi(job.Data[JobDataBatchNumber])
 	if err != nil {
 		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
 		return
 	}
 
 	totalPostsExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 10, 64)
-	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
-		return
-	}
-
-	var directories []string
-	err = json.Unmarshal([]byte(job.Data[JobDirectories]), &directories)
 	if err != nil {
 		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
 		return
@@ -300,55 +279,25 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 			job.Data[JobDataBatchStartId] = cursor.LastPostId
 
 			if len(postsExported) == 0 {
-				job.Data[JobDataWarningCount] = strconv.FormatInt(totalWarningCount, 10)
-				// we've exported everything up to the current time
-				logger.Debug("FormatExport complete")
-
-				// Create downloadable zip file of all batches.
-				if job.Data[JobDataExportType] != model.ComplianceExportTypeGlobalrelay {
-					exportBackend, err := worker.getExportBackend(rctx)
-					if err != nil {
-						worker.setJobError(logger, job, err)
-						return
-					}
-
-					zipErr := createZipFile(rctx, exportBackend, job.Id, directories)
-					if zipErr != nil {
-						logger.Error("Error creating zip file for export", mlog.Err(zipErr))
-						job.Data[JobDataIsDownloadable] = "false"
-					} else {
-						job.Data[JobDataIsDownloadable] = "true"
-					}
-				}
-				if totalWarningCount > 0 {
-					worker.setJobWarning(logger, job)
-				} else {
-					worker.setJobSuccess(logger, job)
-				}
+				worker.finishExport(rctx, logger, job, totalWarningCount)
 				return
 			}
 
-			exportBackend, err := worker.getExportBackend(rctx)
+			fileBackend, err := worker.getFileBackend(rctx)
 			if err != nil {
 				worker.setJobError(logger, job, err)
 				return
 			}
 
-			fileAttachmentBackend, err := worker.getFileAttachmentBackend(rctx)
-			if err != nil {
-				worker.setJobError(logger, job, err)
-				return
-			}
-
-			batchDirectory := getOutputDirectoryPath(prevPostUpdateAt, cursor.LastPostUpdateAt)
+			batchNumber++
+			batchPath := getBatchPath(job.Data[JobDataName], prevPostUpdateAt, cursor.LastPostUpdateAt, batchNumber)
 			warningCount, err := runExportByType(
 				rctx,
 				job.Data[JobDataExportType],
 				postsExported,
-				batchDirectory,
+				batchPath,
 				worker.jobServer.Store,
-				exportBackend,
-				fileAttachmentBackend,
+				fileBackend,
 				worker.htmlTemplateWatcher,
 				worker.jobServer.Config(),
 			)
@@ -358,14 +307,7 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 			}
 
 			totalWarningCount += warningCount
-
-			directories = append(directories, batchDirectory)
-			directoriesBytes, e := json.Marshal(directories)
-			if e != nil {
-				worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap((e)))
-				return
-			}
-			job.Data[JobDirectories] = string(directoriesBytes)
+			job.Data[JobDataBatchNumber] = strconv.Itoa(batchNumber)
 
 			// also saves the last post create time
 			if err := worker.jobServer.SetJobProgress(job, getJobProgress(totalPostsExported, totalPosts)); err != nil {
@@ -376,97 +318,18 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 	}
 }
 
-func createZipFile(rctx request.CTX, fileBackend filestore.FileBackend, jobId string, directories []string) error {
-	zipFileName := jobId + ".zip"
+func (worker *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger, job *model.Job, totalWarningCount int64) {
+	job.Data[JobDataWarningCount] = strconv.FormatInt(totalWarningCount, 10)
+	// we've exported everything up to the current time
+	logger.Debug("FormatExport complete")
 
-	dest, err := os.CreateTemp("", zipFileName)
-	if err != nil {
-		return err
+	job.Data[JobDataIsDownloadable] = "false"
+
+	if totalWarningCount > 0 {
+		worker.setJobWarning(logger, job)
+	} else {
+		worker.setJobSuccess(logger, job)
 	}
-	defer os.Remove(dest.Name())
-
-	// Create a new zip archive.
-	w := zip.NewWriter(dest)
-
-	// create a 32 KiB buffer for copying files
-	buf := make([]byte, 32*1024)
-
-	// Add directories to the archive.
-	for _, directory := range directories {
-		err = addFiles(w, fileBackend, directory, buf)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Make sure to check the error on Close.
-	err = w.Close()
-	if err != nil {
-		return fmt.Errorf("error closing zip file: %s %v", dest.Name(), err)
-	}
-
-	_, err = dest.Seek(0, 0)
-	if err != nil {
-		return fmt.Errorf("error seeking zip file: %s %v", dest.Name(), err)
-	}
-
-	zipPath := path.Join(exportPath, zipFileName)
-
-	// If the file backend allows it, we want to upload without a timeout
-	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, dest, zipPath)
-	return err
-}
-
-func addFiles(w *zip.Writer, fileBackend filestore.FileBackend, basePath string, buf []byte) error {
-	// Open the Directory
-	files, err := fileBackend.ListDirectoryRecursively(basePath)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		err = addFile(w, fileBackend, file, basePath, buf)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func addFile(w *zip.Writer, fileBackend filestore.FileBackend, file, basePath string, buf []byte) error {
-	// In some storage backends like Hitachi HCP, the first entry
-	// from a ListObjects API is always the dir entry itself.
-	if file == basePath {
-		return nil
-	}
-
-	size, err := fileBackend.FileSize(file)
-	if err != nil {
-		return fmt.Errorf("error reading file size for %s: %w", file, err)
-	}
-	if size == 0 {
-		// skip empty files
-		return nil
-	}
-
-	r, err := fileBackend.Reader(file)
-	if err != nil {
-		return fmt.Errorf("error opening file %s: %w", file, err)
-	}
-	defer r.Close()
-
-	// Add some files to the archive.
-	f, err := w.Create(file)
-	if err != nil {
-		return fmt.Errorf("error creating file %s in the archive: %w", file, err)
-	}
-	_, err = io.CopyBuffer(f, r, buf)
-	if err != nil {
-		return fmt.Errorf("error copying file %s into the archive: %w", file, err)
-	}
-
-	return nil
 }
 
 // initializes job data if it's missing, allows us to recover from failed or improperly configured jobs
@@ -477,18 +340,22 @@ func (worker *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *mod
 	if _, exists := job.Data[JobDataMessagesExported]; !exists {
 		job.Data[JobDataMessagesExported] = "0"
 	}
-	if _, exists := job.Data[JobDirectories]; !exists {
-		// json null value
-		job.Data[JobDirectories] = "null"
-	}
 	if _, exists := job.Data[JobDataExportType]; !exists {
-		// for now, we'll default to Actiance. When we support multiple export types, we'll have to fetch it from config instead
 		logger.Info("Worker: Defaulting to configured export format")
 		job.Data[JobDataExportType] = *worker.jobServer.Config().MessageExportSettings.ExportFormat
 	}
-	if _, exists := job.Data[JOB_DATA_BatchSize]; !exists {
+	if _, exists := job.Data[jobDataBatchSize]; !exists {
 		logger.Info("Worker: Defaulting to configured batch size")
-		job.Data[JOB_DATA_BatchSize] = strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize)
+		job.Data[jobDataBatchSize] = strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize)
+	}
+	if _, exists := job.Data[JobDataName]; !exists {
+		logger.Info("Worker: JobDataName does not exist, using current datetime")
+		now := time.Now()
+		job.Data[JobDataName] = now.Format(model.ComplianceExportDirectoryFormat)
+	}
+	if _, exists := job.Data[JobDataBatchNumber]; !exists {
+		logger.Info("Worker: JobDataBatchNumber does not exist, starting at 0")
+		job.Data[JobDataBatchNumber] = "0"
 	}
 	if _, exists := job.Data[JobDataBatchStartTimestamp]; !exists {
 		previousJob, err := worker.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
@@ -574,6 +441,10 @@ func (worker *MessageExportWorker) SetJobPending(logger mlog.LoggerIFace, job *m
 	}
 }
 
-func getOutputDirectoryPath(exportStartTime int64, exportEndTime int64) string {
-	return path.Join(exportPath, strconv.FormatInt(exportStartTime, 10)+"-"+strconv.FormatInt(exportEndTime, 10))
+func getBatchPath(jobName string, prevPostUpdateAt int64, lastPostUpdateAt int64, batchNumber int) string {
+	if jobName == "" {
+		jobName = time.Now().Format(model.ComplianceExportDirectoryFormat)
+	}
+	return path.Join(model.ComplianceExportPath, jobName,
+		fmt.Sprintf("batch%03d-%d-%d.zip", batchNumber, prevPostUpdateAt, lastPostUpdateAt))
 }

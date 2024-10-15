@@ -73,7 +73,7 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int64, *model.AppError) {
+func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int64, *model.AppError) {
 	var warningCount int64
 	attachmentsRemovedPostIDs := []string{}
 	allExports := make(map[string][]*ChannelExport)
@@ -130,7 +130,7 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 				return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.create_file_in_zip.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
-			if appErr, warningCount = generateEmail(rctx, fileAttachmentBackend, channelExport, templates, channelExportFile); appErr != nil {
+			if appErr, warningCount = generateEmail(rctx, fileBackend, channelExport, templates, channelExportFile); appErr != nil {
 				return nil, warningCount, appErr
 			}
 		}
@@ -245,7 +245,7 @@ func getParticipants(db store.Store, channelExport *ChannelExport, members commo
 	return participants, nil
 }
 
-func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (*model.AppError, int64) {
+func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (*model.AppError, int64) {
 	var warningCount int64
 	participantEmailAddresses := getParticipantEmails(channelExport)
 
@@ -293,7 +293,7 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 		path := fileInfo.Path
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			reader, appErr := fileAttachmentBackend.Reader(path)
+			reader, appErr := fileBackend.Reader(path)
 			if appErr != nil {
 				rctx.Logger().Warn("File not found for export", mlog.String("Filename", path))
 				warningCount += 1

@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -597,54 +598,21 @@ func TestGetJoinLeavePosts(t *testing.T) {
 }
 
 func TestCsvExport(t *testing.T) {
-	t.Run("no dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
-
-		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
+	tempDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(tempDir)
 		assert.NoError(t, err)
-
-		runTestCsvExportDedicatedExportFilestore(t, fileBackend, fileBackend)
 	})
 
-	t.Run("using dedicated export filestore", func(t *testing.T) {
-		exportTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(exportTempDir)
-			assert.NoError(t, err)
-		})
+	config := filestore.FileBackendSettings{
+		DriverName: model.ImageDriverLocal,
+		Directory:  tempDir,
+	}
 
-		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  exportTempDir,
-		})
-		assert.NoError(t, err)
+	fileBackend, err := filestore.NewFileBackend(config)
+	assert.NoError(t, err)
 
-		attachmentTempDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(attachmentTempDir)
-			assert.NoError(t, err)
-		})
-
-		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
-			DriverName: model.ImageDriverLocal,
-			Directory:  attachmentTempDir,
-		})
-
-		runTestCsvExportDedicatedExportFilestore(t, exportBackend, attachmentBackend)
-	})
-}
-
-func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
 	header := "Post Creation Time,Team Id,Team Name,Team Display Name,Channel Id,Channel Name,Channel Display Name,Channel Type,User Id,User Email,Username,Post Id,Edited By Post Id,Replied to Post Id,Post Message,Post Type,User Type,Previews Post Id\n"
@@ -928,10 +896,10 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
 					})
-					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 					t.Cleanup(func() {
-						err = attachmentBackend.RemoveFile(attachments[0].Path)
+						err = fileBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -943,14 +911,15 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				}
 			}
 
-			warningCount, appErr := CsvExport(rctx, tt.posts, mockStore, exportBackend, attachmentBackend, "test")
+			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
+			warningCount, appErr := CsvExport(rctx, tt.posts, mockStore, fileBackend, exportFileName)
 			assert.Nil(t, appErr)
 			assert.Equal(t, int64(0), warningCount)
 
-			zipBytes, err := exportBackend.ReadFile("test/csv_export.zip")
+			zipBytes, err := fileBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			t.Cleanup(func() {
-				err = exportBackend.RemoveFile("test/csv_export.zip")
+				err = fileBackend.RemoveFile(exportFileName)
 				require.NoError(t, err)
 			})
 
@@ -1081,15 +1050,16 @@ func TestWriteExportWarnings(t *testing.T) {
 		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), channelId).Return(cmhs, nil)
 	}
 
-	warningCount, appErr := CsvExport(rctx, posts, mockStore, fileBackend, fileBackend, "test")
+	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
+	warningCount, appErr := CsvExport(rctx, posts, mockStore, fileBackend, exportFileName)
 	assert.Nil(t, appErr)
 	assert.Equal(t, int64(2), warningCount)
 
-	zipBytes, err := fileBackend.ReadFile("test/csv_export.zip")
+	zipBytes, err := fileBackend.ReadFile(exportFileName)
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {
-		err = fileBackend.RemoveFile("test/csv_export.zip")
+		err = fileBackend.RemoveFile(exportFileName)
 		assert.NoError(t, err)
 	})
 
