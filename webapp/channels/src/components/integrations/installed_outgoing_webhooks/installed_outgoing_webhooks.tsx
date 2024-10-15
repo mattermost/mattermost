@@ -14,7 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
@@ -185,9 +184,12 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='installed_outgoing_webhooks.emptySearch'
-                        defaultMessage='No outgoing webhooks match {searchTerm}'
+                    <FormattedMessage
+                        id='installed_outgoing_webhooks.search.empty'
+                        defaultMessage='No outgoing webhooks match <b>{searchTerm}</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 }
                 helpText={
