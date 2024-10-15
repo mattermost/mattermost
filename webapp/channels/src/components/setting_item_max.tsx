@@ -45,6 +45,7 @@ type Props = {
     submitExtra?: ReactNode;
     saving?: boolean;
     title?: ReactNode;
+    extraContentBeforeSettingList?: ReactNode;
     isFullWidth?: boolean;
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
@@ -59,6 +60,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         saving: false,
         section: '',
         containerStyle: '',
+        extraContentBeforeSettingList: null,
     };
 
     constructor(props: Props) {
@@ -224,6 +226,7 @@ export default class SettingItemMax extends React.PureComponent<Props> {
                 className={`section-max form-horizontal ${this.props.containerStyle}`}
             >
                 {title}
+                {this.props.extraContentBeforeSettingList}
                 <div
                     className={classNames('sectionContent', {
                         'col-sm-12': this.props.isFullWidth,

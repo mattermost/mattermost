@@ -16,6 +16,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 exports[`components/user_settings/advanced/JoinLeaveSection should match snapshot 2`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   infoPosition="bottom"
   inputs={
     Array [

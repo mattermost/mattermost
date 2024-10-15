@@ -18,6 +18,7 @@ type Props = {
     text?: string;
     primaryButton?: Button;
     secondaryButton?: Button;
+    tertiaryButton?: Button;
     linkButton?: Button;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning';
     isDismissable?: boolean;
@@ -37,6 +38,7 @@ const SectionNotice = ({
     text,
     primaryButton,
     secondaryButton,
+    tertiaryButton,
     linkButton,
     type = 'info',
     isDismissable,
@@ -53,7 +55,7 @@ const SectionNotice = ({
                 <div className='sectionNoticeBody'>
                     <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome', noText: !text})}>{title}</h4>
                     {text && <Markdown message={text}/>}
-                    {(primaryButton || secondaryButton || linkButton) && (
+                    {(primaryButton || secondaryButton || tertiaryButton || linkButton) && (
                         <div className='sectionNoticeActions'>
                             {primaryButton && (
                                 <button
@@ -69,6 +71,14 @@ const SectionNotice = ({
                                     className={classNames(buttonClass, 'btn-secondary')}
                                 >
                                     {secondaryButton.text}
+                                </button>
+                            )}
+                            {tertiaryButton && (
+                                <button
+                                    onClick={tertiaryButton.onClick}
+                                    className={classNames(buttonClass, 'btn-tertiary')}
+                                >
+                                    {tertiaryButton.text}
                                 </button>
                             )}
                             {linkButton && (

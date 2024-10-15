@@ -267,6 +267,12 @@
                         line-height: 20px;
                     }
 
+                    .extraContentBeforeSettingList {
+                        display: inline-block;
+                        width: 100%;
+                        padding-block-start: 20px;
+                    }
+
                     .sectionContent {
                         padding: 20px 0 0 0;
 
@@ -774,10 +780,13 @@
 }
 
 .section-min__title {
+    display: flex;
+    flex-direction: row;
     padding-right: 50px;
     margin: 0 0 5px;
     font-size: 14px;
     font-weight: 600;
+    gap: 8px;
     line-height: 20px;
 
     &.isDisabled {

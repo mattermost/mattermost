@@ -92,6 +92,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -351,6 +352,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"
@@ -669,6 +671,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -931,6 +934,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"
@@ -1252,6 +1256,7 @@ Object {
                 id="desktopAndMobileTitle"
               >
                 Desktop and mobile notifications
+                <div />
               </h4>
               <button
                 aria-expanded="false"
@@ -1476,6 +1481,7 @@ Object {
               id="desktopAndMobileTitle"
             >
               Desktop and mobile notifications
+              <div />
             </h4>
             <button
               aria-expanded="false"

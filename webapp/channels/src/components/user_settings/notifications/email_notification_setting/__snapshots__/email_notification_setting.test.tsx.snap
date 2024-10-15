@@ -26,6 +26,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 >
   <SettingItemMax
     containerStyle=""
+    extraContentBeforeSettingList={null}
     infoPosition="bottom"
     inputs={
       Array [
@@ -347,6 +348,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 >
   <SettingItemMax
     containerStyle=""
+    extraContentBeforeSettingList={null}
     infoPosition="bottom"
     inputs={
       Array [
@@ -698,6 +700,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, not send email notifications 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   infoPosition="bottom"
   inputs={
     Array [
@@ -727,6 +730,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, on serverError 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   infoPosition="bottom"
   inputs={
     Array [
@@ -807,6 +811,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to immediately 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   infoPosition="bottom"
   inputs={
     Array [
@@ -908,6 +913,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to never 1`] = `
 <SettingItemMax
   containerStyle=""
+  extraContentBeforeSettingList={null}
   infoPosition="bottom"
   inputs={
     Array [
