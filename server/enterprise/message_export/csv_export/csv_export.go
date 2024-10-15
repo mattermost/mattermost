@@ -14,8 +14,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/mattermost/enterprise/internal/file"
-	"github.com/mattermost/enterprise/message_export/shared"
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
+
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"

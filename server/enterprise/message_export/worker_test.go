@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/mattermost/enterprise/message_export/shared"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
 	"github.com/stretchr/testify/assert"
 	tmock "github.com/stretchr/testify/mock"
