@@ -361,7 +361,6 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term="asdfasdf"
     total={2}
@@ -730,7 +729,6 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term="asdfasdf"
     total={2}
