@@ -61,7 +61,6 @@ issues:
       path: "\
         channels/api4/apitestlib.go|\
         channels/api4/bot_test.go|\
-        channels/api4/channel.go|\
         channels/api4/channel_test.go|\
         channels/api4/cloud.go|\
         channels/api4/cloud_test.go|\
@@ -87,7 +86,6 @@ issues:
         channels/api4/scheme.go|\
         channels/api4/scheme_test.go|\
         channels/api4/shared_channel.go|\
-        channels/api4/status.go|\
         channels/api4/system.go|\
         channels/api4/system_local.go|\
         channels/api4/team_local.go|\
@@ -95,7 +93,6 @@ issues:
         channels/api4/user.go|\
         channels/api4/user_test.go|\
         channels/api4/webhook_test.go|\
-        channels/api4/websocket_test.go|\
         channels/app/admin.go|\
         channels/app/app_test.go|\
         channels/app/authorization_test.go|\

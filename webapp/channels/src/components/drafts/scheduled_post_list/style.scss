@@ -22,4 +22,19 @@
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
+
+    @keyframes borderColorAnimation {
+        0% {
+            background: rgba(var(--mention-highlight-bg-rgb), 0.5);
+        }
+        100% {
+            background: initial;
+        }
+    }
+
+    .Panel.highlighted {
+        animation: borderColorAnimation 10s;
+    }
+
+
 }

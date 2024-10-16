@@ -37,6 +37,9 @@ export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: stri
                 directChannelScheduledPostsIDs.forEach(extractor);
             }
 
+            // Most recently upcoming post shows up first.
+            scheduledPosts.sort((a, b) => a.scheduled_at - b.scheduled_at || a.create_at - b.create_at);
+
             return scheduledPosts;
         },
     );
