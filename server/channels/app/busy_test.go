@@ -119,7 +119,7 @@ func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 // ClusterMock simulates the busy state of a cluster.
 type ClusterMock struct {
 	Busy *Busy
-	t *testing.T
+	t    *testing.T
 }
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
