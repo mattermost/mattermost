@@ -98,12 +98,11 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		if _, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, file); appErr != nil {
-			assert.Nil(t, appErr)
-		}
+		_, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		assert.NoError(t, appErr)
 		defer func() {
 			err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		}()
 
 		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
@@ -126,15 +125,13 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		if _, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, file2); appErr != nil {
-			assert.Nil(t, appErr)
-		}
-		if appErr := th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner); appErr != nil {
-			assert.Nil(t, appErr)
-		}
+		_, appErr = th.App.Srv().Store().FileInfo().Save(th.Context, file2)
+		assert.NoError(t, appErr)
+		appErr = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
+		assert.NoError(t, appErr)
 		defer func() {
 			err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		}()
 
 		bookmark2.FileId = file2.Id
@@ -259,9 +256,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	if _, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, ""); appErr != nil {
-		assert.Nil(t, appErr)
-	}
+	_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	assert.Nil(t, appErr)
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
@@ -278,12 +274,11 @@ func TestGetChannelBookmarks(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	if _, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, file); appErr != nil {
-		assert.Nil(t, appErr)
-	}
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	assert.NoError(t, err)
 	defer func() {
 		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}()
 
 	bookmark2 := &model.ChannelBookmark{
@@ -374,7 +369,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		appErr := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 	}()
 
 	bookmark2 := &model.ChannelBookmark{
