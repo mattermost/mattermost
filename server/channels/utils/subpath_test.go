@@ -32,7 +32,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 		err := os.Setenv("IS_CI", "true")
 		require.NoError(t, err)
 		defer func() {
-			err := os.Unsetenv("IS_CI")
+			err = os.Unsetenv("IS_CI")
 			require.NoError(t, err)
 		}()
 
@@ -44,7 +44,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer func() {
-			err := os.RemoveAll(tempDir)
+			err = os.RemoveAll(tempDir)
 			require.NoError(t, err)
 		}()
 		err = os.Chdir(tempDir)
@@ -60,7 +60,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer func() {
-			err := os.RemoveAll(tempDir)
+			err = os.RemoveAll(tempDir)
 			require.NoError(t, err)
 		}()
 		err = os.Chdir(tempDir)
@@ -74,7 +74,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer func() {
-			err := os.RemoveAll(tempDir)
+			err = os.RemoveAll(tempDir)
 			require.NoError(t, err)
 		}()
 		err = os.Chdir(tempDir)
