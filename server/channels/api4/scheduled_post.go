@@ -47,6 +47,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	scheduledPost.UserId = c.AppContext.Session().UserId
+	scheduledPost.CreateAt = 0
 
 	auditRec := c.MakeAuditRecord("createSchedulePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
