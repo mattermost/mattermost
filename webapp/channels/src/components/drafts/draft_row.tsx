@@ -12,7 +12,6 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {getChannel} from 'mattermost-redux/actions/channels';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
@@ -138,16 +137,6 @@ function DraftRow({
         }
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
-
-    useEffect(() => {
-        // For scheduled posts, we want to show channel name.
-        // If it's a public channel, we'll be able to fetch the channel,
-        // if it's a private channel and the user is not an admin, the API call will fail and we'll
-        // show a placeholder text.
-        if (!channel && isScheduledPost) {
-            dispatch(getChannel(channelId));
-        }
-    }, [channel, channelId, dispatch, isScheduledPost]);
 
     // TODO LOL verify the types and handled it better
     const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
