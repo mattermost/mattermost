@@ -81,7 +81,8 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*newConfig.LogSettings.ConsoleJson = false
 	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	memoryStore.Set(newConfig)
+	_, _, err := memoryStore.Set(newConfig)
+	require.NoError(tb, err)
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
@@ -161,14 +162,15 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(t *testing.T) *TestHelper {
 	th.SystemAdminUser, _ = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
 
 	user, _ := th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
 
 	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
 
-	th.App.JoinUserToTeam(th.Context, team, user, "")
+	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
+	require.Nil(t, err)
 
 	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
@@ -179,11 +181,11 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) TearDown() {
+func (th *TestHelper) TearDown(t *testing.T) {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
-
+		err := th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, err)
 	}
 	th.Server.Shutdown()
 }
@@ -283,11 +285,11 @@ func TestPublicFilesRequest(t *testing.T) {
 	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer func() {
-		err := os.RemoveAll(pluginDir)
+		err = os.RemoveAll(pluginDir)
 		require.NoError(t, err)
 	}()
 	defer func() {
-		err := os.RemoveAll(webappPluginDir)
+		err = os.RemoveAll(webappPluginDir)
 		require.NoError(t, err)
 	}()
 
@@ -378,7 +380,8 @@ func TestStaticFilesCaching(t *testing.T) {
 	wd, _ := os.Getwd()
 	cmd := exec.Command("ls", path.Join(wd, "client", "plugins"))
 	cmd.Stdout = os.Stdout
-	cmd.Run()
+	err := cmd.Run()
+	require.NoError(t, err)
 
 	fakeMainBundleName := "main.1234ab.js"
 	fakeRootHTML := `<html>
@@ -389,7 +392,7 @@ func TestStaticFilesCaching(t *testing.T) {
 	fakeMainBundle := `module.exports = 'main';`
 	fakeRemoteEntry := `module.exports = 'remote';`
 
-	err := os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
+	err = os.WriteFile("./client/root.html", []byte(fakeRootHTML), 0600)
 	require.NoError(t, err)
 	err = os.WriteFile("./client/"+fakeMainBundleName, []byte(fakeMainBundle), 0600)
 	require.NoError(t, err)
