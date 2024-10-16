@@ -62,12 +62,13 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       />
       <AlertBanner
         message={
-          <MemoizedFormattedMessage
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>."
             id="commercial_support_modal.warning.banner"
             values={
               Object {
                 "debugLink": [Function],
+                "strong": [Function],
               }
             }
           />
