@@ -98,7 +98,6 @@ issues:
         channels/app/authorization_test.go|\
         channels/app/auto_responder_test.go|\
         channels/app/bot.go|\
-        channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/busy_test.go|\
         channels/app/channel.go|\
