@@ -353,6 +353,16 @@ func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveDesktopCpuUsage provides a mock function with given fields: platform, version, process, usage
+func (_m *MetricsInterface) ObserveDesktopCpuUsage(platform string, version string, process string, usage float64) {
+	_m.Called(platform, version, process, usage)
+}
+
+// ObserveDesktopMemoryUsage provides a mock function with given fields: platform, version, process, usage
+func (_m *MetricsInterface) ObserveDesktopMemoryUsage(platform string, version string, process string, usage float64) {
+	_m.Called(platform, version, process, usage)
+}
+
 // ObserveEnabledUsers provides a mock function with given fields: users
 func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 	_m.Called(users)
