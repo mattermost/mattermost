@@ -10,10 +10,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -72,10 +77,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -209,10 +219,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -334,10 +349,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -459,10 +479,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -584,10 +609,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -744,10 +774,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -995,10 +1030,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -1246,10 +1286,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -1406,10 +1451,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
@@ -1469,10 +1519,15 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
     <div
       className="group-list-search"
     >
-      <input
+      <LocalizedPlaceholderInput
         onChange={[Function]}
         onKeyUp={[Function]}
-        placeholder="Search"
+        placeholder={
+          Object {
+            "defaultMessage": "Search",
+            "id": "search_bar.search",
+          }
+        }
         type="text"
         value=""
       />
