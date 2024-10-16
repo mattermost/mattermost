@@ -5,6 +5,7 @@ import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,11 +13,10 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
+import ExternalLink from 'components/external_link';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
-import ExternalLink from 'components/external_link';
-import { Link } from 'react-router-dom';
 
 type Props = {
 
