@@ -983,12 +983,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.LinkUserToTeam(user, team)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
-	_, _, err = th.Client.Login(context.Background(), user.Id, user.Password)
+	_, _, err = th.Client.Login(context.Background(), user.Username, user.Password)
 	require.Error(t, err)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
 		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), createdHook)
 		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
@@ -1263,12 +1263,12 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	th.LinkUserToTeam(user, team)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
-	_, _, err = th.Client.Login(context.Background(), user.Id, user.Password)
+	_, _, err = th.Client.Login(context.Background(), user.Username, user.Password)
 	require.Error(t, err)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
 		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), createdHook)
 		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
