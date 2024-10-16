@@ -43,7 +43,6 @@ export default class ScheduledDraftModal {
 
     async selectTime() {
         await this.timeLocator.click();
-        // Construct the locator to select the time element by its position
         const timeButton = this.timeDropdownOptions.first();
         await expect(timeButton).toBeVisible();
         await timeButton.click();

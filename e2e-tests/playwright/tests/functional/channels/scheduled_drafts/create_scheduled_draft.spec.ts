@@ -45,12 +45,13 @@ test('Should create a scheduled draft from a channel', async ({pw, pages}) => {
 
     const scheduledMessagePageInfo = await scheduledMessagePage.scheduledMessagePageInfo.innerHTML();
 
+    // # Verify time shown in channel is same as that shown in the scheduled tab
     const timeInChannel = scheduledMessageChannelInfo.match(scheduledMessagePage.datePattern);
     const timeInSchedulePage = scheduledMessagePageInfo
         .replace(/<\/?[^>]+(>|$)/g, '')
         .match(scheduledMessagePage.datePattern);
 
-    // Ensure both elements have matched the expected pattern
+    // # Ensure both elements have matched the expected pattern
     if (!timeInChannel || !timeInSchedulePage) {
         throw new Error('Could not extract date and time from one or both elements.');
     }
@@ -58,17 +59,18 @@ test('Should create a scheduled draft from a channel', async ({pw, pages}) => {
     const firstElementTime = timeInChannel[0];
     const secondElementTime = timeInSchedulePage[0];
 
-    // Compare the extracted date and time parts
+    // # Compare the extracted date and time parts
     expect(firstElementTime).toBe(secondElementTime);
 
-    // Hover and verify options
+    // # Hover and verify options
     await scheduledMessagePage.verifyOnHoverActionItems(draftMessage);
 
-    // Go back and wait for message to arrive
+    // # Go back and wait for message to arrive
     await page.goBack();
     await wait(duration.half_min);
     await page.reload();
 
+    // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelPage.centerView.scheduledMessageChannelInfoMessage).not.toBeVisible();
     await expect(channelPage.sidebarLeft.scheduledMessageCountonLHS).not.toBeVisible();
     await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
