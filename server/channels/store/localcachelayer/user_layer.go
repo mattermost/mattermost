@@ -173,7 +173,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	toPass := allocateCacheTargets[*model.User](len(userIds))
+	toPass := allocateCacheTargets[model.User](len(userIds))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, userIds, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -190,7 +190,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 			s.userProfileByIdsMut.Unlock()
 			remainingUserIds = append(remainingUserIds, userIds[i])
 		} else {
-			gotUser := *(toPass[i].(**model.User))
+			gotUser := toPass[i].(*model.User)
 			if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
 				users = append(users, gotUser)
 			} else if gotUser == nil {
@@ -221,9 +221,9 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
 func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
-	var cacheItem *model.User
+	var cacheItem model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
-		return cacheItem, nil
+		return &cacheItem, nil
 	}
 
 	// If it was invalidated, then we need to query master.
@@ -255,7 +255,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	toPass := allocateCacheTargets[*model.User](len(uniqIDs))
+	toPass := allocateCacheTargets[model.User](len(uniqIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, uniqIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -272,7 +272,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 			s.userProfileByIdsMut.Unlock()
 			notCachedUserIds = append(notCachedUserIds, uniqIDs[i])
 		} else {
-			gotUser := *(toPass[i].(**model.User))
+			gotUser := toPass[i].(*model.User)
 			if gotUser != nil {
 				cachedUsers = append(cachedUsers, gotUser)
 			} else {

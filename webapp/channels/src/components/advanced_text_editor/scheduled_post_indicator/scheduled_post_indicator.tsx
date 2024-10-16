@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-import {type match} from 'react-router-dom';
-import {NavLink, useRouteMatch} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 import {showChannelOrThreadScheduledPostIndicator} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {
     ShortScheduledPostIndicator,
@@ -36,18 +36,9 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     // when opening from center channel.
     const id = location === Locations.RHS_COMMENT ? postId : channelId;
     const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
-    const match: match<{team: string}> = useRouteMatch();
 
-    const scheduledPostLinkURL = `/${match.params.team}/scheduled_posts`;
-
-    const link = useMemo(() => (
-        <NavLink to={scheduledPostLinkURL}>
-            <FormattedMessage
-                id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
-                defaultMessage='See all scheduled messages'
-            />
-        </NavLink>
-    ), [scheduledPostLinkURL]);
+    const currentTeamName = useSelector((state: GlobalState) => getCurrentTeam(state)?.name);
+    const scheduledPostLinkURL = `/${currentTeamName}/scheduled_posts?target_id=${id}`;
 
     if (!scheduledPostData?.count) {
         return null;
@@ -104,7 +95,12 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
                 className='icon icon-draft-indicator icon-clock-send-outline'
             />
             {scheduledPostText}
-            {link}
+            <Link to={scheduledPostLinkURL}>
+                <FormattedMessage
+                    id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
+                    defaultMessage='See all scheduled messages'
+                />
+            </Link>
         </div>
     );
 }

@@ -129,6 +129,7 @@ const initialState = {
         rhs: {
             rhsState: null,
             searchTerms: '',
+            searchType: '',
         },
     },
 };
@@ -150,6 +151,7 @@ describe('executeCommand', () => {
                 {type: 'UPDATE_RHS_SEARCH_TERMS', terms: 'foo bar'},
                 {type: 'UPDATE_RHS_STATE', state: 'search'},
                 {type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS', terms: ''},
+                {type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE', searchType: ''},
                 {type: 'SEARCH_POSTS_REQUEST', isGettingMore: false},
                 {type: 'SEARCH_FILES_REQUEST', isGettingMore: false},
             ]);

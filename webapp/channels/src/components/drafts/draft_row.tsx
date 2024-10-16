@@ -30,6 +30,7 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
+import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
@@ -52,6 +53,7 @@ type Props = {
     displayName: string;
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
+    scrollIntoView?: boolean;
 }
 
 const mockLastBlurAt = {current: 0};
@@ -62,6 +64,7 @@ function DraftRow({
     status,
     displayName,
     isRemote,
+    scrollIntoView,
 }: Props) {
     const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
@@ -259,6 +262,8 @@ function DraftRow({
         }
     }, [thread?.id]);
 
+    const alertRef = useScrollOnRender();
+
     if (!channel && !isScheduledPost) {
         return null;
     }
@@ -301,6 +306,8 @@ function DraftRow({
         <Panel
             onClick={goToMessage}
             hasError={Boolean(postError)}
+            innerRef={scrollIntoView ? alertRef : undefined}
+            isHighlighted={scrollIntoView}
         >
             {({hover}) => (
                 <>

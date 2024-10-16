@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {NavLink} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 import type {ChannelScheduledPostIndicatorData} from 'mattermost-redux/selectors/entities/scheduled_posts';
 
@@ -25,9 +25,9 @@ export function ShortScheduledPostIndicator({scheduledPostData, scheduledPostLin
                 values={{
                     count: scheduledPostData.count,
                     a: (chunks) => (
-                        <NavLink to={scheduledPostLinkURL}>
+                        <Link to={scheduledPostLinkURL}>
                             {chunks}
-                        </NavLink>
+                        </Link>
                     ),
                 }}
             />

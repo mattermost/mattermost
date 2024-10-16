@@ -74,6 +74,24 @@ func (_m *ScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost,
 	return r0, r1
 }
 
+// GetMaxMessageSize provides a mock function with given fields:
+func (_m *ScheduledPostStore) GetMaxMessageSize() int {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMaxMessageSize")
+	}
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
 // GetPendingScheduledPosts provides a mock function with given fields: beforeTime, afterTime, lastScheduledPostId, perPage
 func (_m *ScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 	ret := _m.Called(beforeTime, afterTime, lastScheduledPostId, perPage)

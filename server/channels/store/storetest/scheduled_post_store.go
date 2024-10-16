@@ -63,7 +63,9 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 		assert.Equal(t, scheduledPost.Id, scheduledPostsFromDatabase[0].Id)
 	})
 
-	t.Run("scheduling in past should not be allowed", func(t *testing.T) {
+	t.Run("scheduling in past SHOULD BE allowed", func(t *testing.T) {
+		// this is only allowed in store layer and user won't be able to do so as the checks
+		// in app layer would stop them.
 		userId := model.NewId()
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -76,26 +78,11 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 		}
 
 		_, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
-		assert.Error(t, err)
-	})
+		assert.NoError(t, err)
 
-	t.Run("cannot save an empty post", func(t *testing.T) {
-		userId := model.NewId()
-
-		// a post with no message and no files is an empty post
-		scheduledPost := &model.ScheduledPost{
-			Draft: model.Draft{
-				CreateAt:  model.GetMillis(),
-				UserId:    userId,
-				ChannelId: createdChannel.Id,
-				Message:   "",
-			},
-			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
-		}
-
-		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
-		assert.Error(t, err)
-		assert.Nil(t, createdScheduledPost)
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{scheduledPost.Id})
+		}()
 	})
 }
 
@@ -286,7 +273,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 				ChannelId: createdChannel.Id,
 				Message:   "this is a scheduled post",
 			},
-			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+			ScheduledAt: model.GetMillis(),
 		}
 
 		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
@@ -299,7 +286,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		fileID1 := model.NewId()
 		fileID2 := model.NewId()
 
-		newScheduledAt := model.GetMillis() + 500000
+		newScheduledAt := model.GetMillis()
 		newUserId := model.NewId()
 
 		updateSchedulePost := &model.ScheduledPost{
@@ -342,6 +329,36 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.Equal(t, createdScheduledPost.Id, userScheduledPosts[0].Id)
 		assert.Equal(t, userId, userScheduledPosts[0].UserId)
 		assert.Equal(t, channel.Id, userScheduledPosts[0].ChannelId)
+	})
+
+	t.Run("it should update old scheduled post", func(t *testing.T) {
+		userId := model.NewId()
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() - (24 * 60 * 60 * 1000), // 1 day in the past
+		}
+
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdScheduledPost.Id)
+
+		// now we'll update the scheduled post
+		processedAt := model.GetMillis()
+		scheduledPost.ProcessedAt = processedAt
+		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
+
+		err = ss.ScheduledPost().UpdatedScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+
+		updatedScheduledPost, err := ss.ScheduledPost().Get(scheduledPost.Id)
+		assert.NoError(t, err)
+		assert.Equal(t, processedAt, updatedScheduledPost.ProcessedAt)
+		assert.Equal(t, model.ScheduledPostErrorUnknownError, updatedScheduledPost.ErrorCode)
 	})
 }
 
@@ -447,9 +464,9 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
 		assert.NoError(t, err)
 		assert.Equal(t, 4, len(scheduledPosts))
-		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[2].ErrorCode)
-		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[3].ErrorCode)
-		assert.Equal(t, "", scheduledPosts[0].ErrorCode)
-		assert.Equal(t, "", scheduledPosts[1].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[0].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[1].ErrorCode)
+		assert.Equal(t, "", scheduledPosts[2].ErrorCode)
+		assert.Equal(t, "", scheduledPosts[3].ErrorCode)
 	})
 }

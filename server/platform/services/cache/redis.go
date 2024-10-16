@@ -169,22 +169,6 @@ func (r *Redis) Get(key string, value any) error {
 		return err
 	}
 
-	// This is ugly and makes the cache package aware of the model package.
-	// But this is due to 2 things.
-	// 1. The msgp package works on methods on structs rather than functions.
-	// 2. Our cache interface passes pointers to empty pointers, and not pointers
-	// to values. This is mainly how all our model structs are passed around.
-	// It might be technically possible to use values _just_ for hot structs
-	// like these and then return a pointer while returning from the cache function,
-	// but it will make the codebase inconsistent, and has some edge-cases to take care of.
-	switch v := value.(type) {
-	case **model.User:
-		var u model.User
-		_, err := u.UnmarshalMsg(bytesVal)
-		*v = &u
-		return err
-	}
-
 	// Slow path for other structs.
 	return msgpack.Unmarshal(bytesVal, value)
 }
@@ -252,15 +236,6 @@ func (r *Redis) GetMulti(keys []string, values []any) []error {
 		// We use a fast path for hot structs.
 		if msgpVal, ok := values[i].(msgp.Unmarshaler); ok {
 			_, err := msgpVal.UnmarshalMsg(bytesVal)
-			errs[i] = err
-			continue
-		}
-
-		switch v := values[i].(type) {
-		case **model.User:
-			var u model.User
-			_, err := u.UnmarshalMsg(bytesVal)
-			*v = &u
 			errs[i] = err
 			continue
 		}
