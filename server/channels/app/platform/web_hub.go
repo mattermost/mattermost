@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"fmt"
 	"hash/maphash"
 	"runtime"
 	"runtime/debug"
@@ -667,12 +668,9 @@ func newHubConnectionIndex(interval time.Duration,
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 
-	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
+	cm, err := i.getChannelMembersForUser(wc.UserId)
 	if err != nil {
-		// In this case, the map won't be populated. This is effectively the same
-		// as not broadcasting the event, and that's how it was implemented in
-		// platform/web_conn.go
-		i.logger.Warn("Error while getting GetAllChannelMembersForUser", mlog.Err(err))
+		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
 	} else {
 		for chID := range cm {
 			i.byChannelID[chID] = append(i.byChannelID[chID], wc)
@@ -742,14 +740,35 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
 	}
 
 	// re-populate the cache
-	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
+	cm, err := i.getChannelMembersForUser(userID)
 	if err != nil {
-		i.logger.Warn("Error while getting GetAllChannelMembersForUser", mlog.Err(err))
+		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
 	} else {
 		for chID := range cm {
 			i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
 		}
 	}
+}
+
+const numRetries = 2
+
+// getChannelMembersForUser is a wrapper around the store method which retries
+// for numRetries times. After that we panic, to fail loudly because it is even
+// worse to continue without the channel membership data.
+// Note: the hub has internal recovery mechanism to auto-restart in case of a panic.
+// So only one hub out of numCPU hubs will be affected.
+func (i *hubConnectionIndex) getChannelMembersForUser(userID string) (map[string]string, error) {
+	var cm map[string]string
+	var err error
+	for ind := 0; ind < numRetries; ind++ {
+		cm, err = i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
+		if err == nil {
+			return cm, nil
+		}
+		// It is imperative that we don't block the hub
+		time.Sleep(time.Millisecond)
+	}
+	return cm, err
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
