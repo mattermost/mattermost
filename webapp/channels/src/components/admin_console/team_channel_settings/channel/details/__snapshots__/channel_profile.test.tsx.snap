@@ -25,30 +25,24 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="<b>Name</b>"
-          id="admin.channelSettings.channelDetail.channelName"
-          values={
-            Object {
-              "b": [Function],
-            }
-          }
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="admin.channelSettings.channelDetail.channelName"
+          />
+        </b>
         <br />
         test
       </div>
       <div
         className="channel-team"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="<b>Team</b>"
-          id="admin.channelSettings.channelDetail.channelTeam"
-          values={
-            Object {
-              "b": [Function],
-            }
-          }
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Team"
+            id="admin.channelSettings.channelDetail.channelTeam"
+          />
+        </b>
         <br />
         test
       </div>
@@ -98,30 +92,24 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="<b>Name</b>"
-          id="admin.channelSettings.channelDetail.channelName"
-          values={
-            Object {
-              "b": [Function],
-            }
-          }
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="admin.channelSettings.channelDetail.channelName"
+          />
+        </b>
         <br />
         test
       </div>
       <div
         className="channel-team"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="<b>Team</b>"
-          id="admin.channelSettings.channelDetail.channelTeam"
-          values={
-            Object {
-              "b": [Function],
-            }
-          }
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Team"
+            id="admin.channelSettings.channelDetail.channelTeam"
+          />
+        </b>
         <br />
         test
       </div>
