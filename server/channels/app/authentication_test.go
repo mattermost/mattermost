@@ -116,7 +116,6 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				// Reset login attempts
-				th.App.Srv()
 				err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, 0)
 				require.NoError(t, err)
 
