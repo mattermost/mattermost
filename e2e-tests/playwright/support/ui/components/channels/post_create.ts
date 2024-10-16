@@ -25,7 +25,6 @@ export default class ChannelsPostCreate {
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
-
     }
 
     async toBeVisible() {

@@ -13,16 +13,15 @@ export default class ChannelsSidebarLeft {
 
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
         this.scheduledMessageCountonLHS = container.locator('span.scheduledPostBadge');
-
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    async verifyScheduledMessageCountLHS() {
+    async assertScheduledMessageCountLHS(count: string) {
         await expect(this.scheduledMessageCountonLHS).toBeVisible();
-        await expect(this.scheduledMessageCountonLHS).toHaveText('1');
+        await expect(this.scheduledMessageCountonLHS).toHaveText(count);
     }
 
     /**

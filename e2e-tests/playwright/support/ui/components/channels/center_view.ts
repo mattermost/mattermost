@@ -24,7 +24,9 @@ export default class ChannelsCenterView {
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
-        this.scheduledMessageOptions = new components.ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
+        this.scheduledMessageOptions = new components.ChannelsPostCreate(
+            container.locator('#dropdown_send_post_options'),
+        );
         this.scheduledMessageChannelInfo = container.locator('div.postBoxIndicator');
         this.scheduledMessageChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledMessageChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');

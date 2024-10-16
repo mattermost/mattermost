@@ -29,73 +29,48 @@ test('Should create a scheduled draft from a channel', async ({pw, pages}) => {
     await channelPage.scheduledDraftModal.selectDay();
     await channelPage.scheduledDraftModal.selectTime();
     await channelPage.scheduledDraftModal.confirm();
-    
+
     await channelPage.centerView.verifyScheduledMessageChannelInfo();
-    
+
     const scheduledMessageChannelInfo = await channelPage.centerView.scheduledMessageChannelInfoMessageText.innerText();
-    
+
     await channelPage.centerView.clickOnSeeAllScheduledMessages();
-    
-    await expect(page).toHaveURL(/.*scheduled_posts/);
+    await channelPage.sidebarLeft.assertScheduledMessageCountLHS('1');
 
-    await channelPage.sidebarLeft.verifyScheduledMessageCountLHS();
+    const scheduledMessagePage = new pages.ScheduledMessagePage(page);
+    await scheduledMessagePage.toBeVisible();
+    await scheduledMessagePage.assertBadgeCountOnTab('1');
 
+    await scheduledMessagePage.assertScheduledMessageBody(draftMessage);
 
-    // const scheduledMessageBody = page.locator('div.post__body')
-    // await expect(scheduledMessageBody).toBeVisible();
-    // await expect(scheduledMessageBody).toHaveText(draftMessage);
-    // const scheduledMessagePageInfo = await page.locator('span:has-text("Send on")').innerText();
+    const scheduledMessagePageInfo = await scheduledMessagePage.scheduledMessagePageInfo.innerHTML();
 
-    // // Extract the relevant date and time (e.g., "Today at 10:45 PM")
-    // const firstElementMatch = scheduledMessageChannelInfo.match(/(Today|Tomorrow) at \d{1,2}:\d{2} [APM]{2}/);
-    // const secondElementMatch = scheduledMessagePageInfo.match(/(Today|Tomorrow) at \d{1,2}:\d{2} [APM]{2}/);
+    const timeInChannel = scheduledMessageChannelInfo.match(scheduledMessagePage.datePattern);
+    const timeInSchedulePage = scheduledMessagePageInfo
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .match(scheduledMessagePage.datePattern);
 
-    // // Ensure both elements have matched the expected pattern
-    // if (!firstElementMatch || !secondElementMatch) {
-    //     throw new Error('Could not extract date and time from one or both elements.');
-    // }
+    // Ensure both elements have matched the expected pattern
+    if (!timeInChannel || !timeInSchedulePage) {
+        throw new Error('Could not extract date and time from one or both elements.');
+    }
 
-    // const firstElementTime = firstElementMatch[0];
-    // const secondElementTime = secondElementMatch[0];
+    const firstElementTime = timeInChannel[0];
+    const secondElementTime = timeInSchedulePage[0];
 
-    // // Compare the extracted date and time parts
-    // expect(firstElementTime).toBe(secondElementTime);
+    // Compare the extracted date and time parts
+    expect(firstElementTime).toBe(secondElementTime);
 
-    // // Hover and verify options
-    // const panelElement = page.locator('article.Panel');
-    // await panelElement.hover();
+    // Hover and verify options
+    await scheduledMessagePage.verifyOnHoverActionItems(draftMessage);
 
-    // // Verify the 'trash-can' icon is visible and hover over it
-    // const deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
-    // await expect(deleteIcon).toBeVisible();
-    // await deleteIcon.hover();
+    // Go back and wait for message to arrive
+    await page.goBack();
+    await wait(duration.half_min);
+    await page.reload();
 
-    // // Verify the tooltip for the 'trash-can' icon
-    // const deleteTooltip = page.locator('text=Delete scheduled post');
-    // await expect(deleteTooltip).toBeVisible();
-
-    // // Verify the 'reschedule' icon is visible and hover over it
-    // const rescheduleIcon = page.locator('#draft_icon-clock-send-outline_reschedule');
-    // await expect(rescheduleIcon).toBeVisible();
-    // await rescheduleIcon.hover();
-
-    // // Verify the tooltip for the 'reschedule' icon
-    // const rescheduleTooltip = page.locator('text=Reschedule post');
-    // await expect(rescheduleTooltip).toBeVisible();
-
-    // // Go back and wait for message to arrive
-    // await page.goBack();
-    // await wait(duration.half_min);
-    // await page.reload();
-
-    // await expect(messageLocator).not.toBeVisible();
-    // await expect(scheduledCountbadge).not.toBeVisible();
-
-    // const lastPostText = page.locator('div.post-message__text').last();
-    // lastPostText.isVisible();
-    // await expect(lastPostText).toHaveText(draftMessage);
-
-    // await page.goForward();
-    // expect(panelElement).not.toBeVisible();
+    await expect(channelPage.centerView.scheduledMessageChannelInfoMessage).not.toBeVisible();
+    await expect(channelPage.sidebarLeft.scheduledMessageCountonLHS).not.toBeVisible();
+    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
+    await expect(scheduledMessagePage.scheduledMessagePanel(draftMessage)).not.toBeVisible();
 });
-

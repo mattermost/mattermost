@@ -18,10 +18,9 @@ export default class ScheduledDraftMenu {
         await expect(this.container).toBeVisible();
     }
 
-    async selectCustomTime(){
+    async selectCustomTime() {
         await this.scheduleDraftMessageCustomTimeOption.click();
     }
-
 }
 
 export {ScheduledDraftMenu};

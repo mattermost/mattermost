@@ -22,6 +22,7 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly settingsModal;
 
+    readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
 
@@ -51,10 +52,16 @@ export default class ChannelsPage {
         this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
 
+        // Posts
+        this.postContainer = page.locator('div.post-message__text');
     }
 
     async toBeVisible() {
         await this.centerView.toBeVisible();
+    }
+
+    async getLastPost() {
+        return this.postContainer.last();
     }
 
     async goto(teamName = '', channelName = '') {
