@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
-import {duration, wait} from '@e2e-support/util';
 
 export default class ScheduledDraftMenu {
     readonly container: Locator;
@@ -13,16 +12,14 @@ export default class ScheduledDraftMenu {
         this.container = container;
 
         this.scheduleDraftMessageCustomTimeOption = container.getByText('Choose a custom time');
-
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    async chooseCustomTime(){
+    async selectCustomTime(){
         await this.scheduleDraftMessageCustomTimeOption.click();
-
     }
 
 }

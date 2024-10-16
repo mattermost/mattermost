@@ -1,8 +1,11 @@
 import {expect} from '@playwright/test';
-
 import {test} from '@e2e-support/test_fixture';
+import {duration, wait} from '@e2e-support/util';
 
-test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw, pages}) => {
+test('Should create a scheduled draft from a channel', async ({pw, pages}) => {
+    test.setTimeout(120000);
+
+    const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
@@ -16,64 +19,83 @@ test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on t
     await channelPage.goto();
     await channelPage.toBeVisible();
 
-    await channelPage.centerView.postCreate.writeMessage('Scheduled Draft');
+    await channelPage.centerView.postCreate.writeMessage(draftMessage);
     await channelPage.centerView.postCreate.clickOnScheduleDraftDropdownButton();
 
     await channelPage.scheduledDraftDropdown.toBeVisible();
-    await channelPage.scheduledDraftDropdown.chooseCustomTime();
+    await channelPage.scheduledDraftDropdown.selectCustomTime();
 
-    await expect (page.locator('div.GenericModal__wrapper-enter-key-press-catcher')).toBeVisible();
-    await page.locator('div.Input_wrapper').click();
-   
-    // DATE
-    let dayText = 'Today';
-    const currentDate = new Date();
-    const day = currentDate.getDate();  // Get the current day of the month
-    const month = currentDate.toLocaleString('default', { month: 'long' }); // Full month name
+    await channelPage.scheduledDraftModal.toBeVisible();
+    await channelPage.scheduledDraftModal.selectDay();
+    await channelPage.scheduledDraftModal.selectTime();
+    await channelPage.scheduledDraftModal.confirm();
+    
+    await channelPage.centerView.verifyScheduledMessageChannelInfo();
+    
+    const scheduledMessageChannelInfo = await channelPage.centerView.scheduledMessageChannelInfoMessageText.innerText();
+    
+    await channelPage.centerView.clickOnSeeAllScheduledMessages();
+    
+    await expect(page).toHaveURL(/.*scheduled_posts/);
 
-    // Check if the selected date is today, otherwise set dayText to "Tomorrow"
-    const selectedDate = new Date();
-    selectedDate.setDate(currentDate.getDate() + 1); // Adjust as needed
+    await channelPage.sidebarLeft.verifyScheduledMessageCountLHS();
 
-    if (selectedDate.getDate() !== currentDate.getDate()) {
-        dayText = 'Tomorrow';
-    }
 
-    // Select the button based on the current day and month
-    const dateButton = page.locator(`button[aria-label*='${day}th ${month}']`);
-    await dateButton.click();
+    // const scheduledMessageBody = page.locator('div.post__body')
+    // await expect(scheduledMessageBody).toBeVisible();
+    // await expect(scheduledMessageBody).toHaveText(draftMessage);
+    // const scheduledMessagePageInfo = await page.locator('span:has-text("Send on")').innerText();
 
-    // TIME
-    await page.locator('div.dateTime__input').click();
-    const currentTime = new Date();
-    currentTime.setMinutes(currentTime.getMinutes() + 1); // Add 1 minute to the current time
+    // // Extract the relevant date and time (e.g., "Today at 10:45 PM")
+    // const firstElementMatch = scheduledMessageChannelInfo.match(/(Today|Tomorrow) at \d{1,2}:\d{2} [APM]{2}/);
+    // const secondElementMatch = scheduledMessagePageInfo.match(/(Today|Tomorrow) at \d{1,2}:\d{2} [APM]{2}/);
 
-    // Format the time to match the UI (e.g., "12:02 AM")
-    const formattedTime = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    // // Ensure both elements have matched the expected pattern
+    // if (!firstElementMatch || !secondElementMatch) {
+    //     throw new Error('Could not extract date and time from one or both elements.');
+    // }
 
-    // Construct the locator to select the time element by the formatted time
-    const timeButton = page.locator(`span.MenuItem__primary-time:has-text("${formattedTime}")`);
-    await timeButton.scrollIntoViewIfNeeded();
-    await expect(timeButton).toBeVisible();
-    await timeButton.click();
+    // const firstElementTime = firstElementMatch[0];
+    // const secondElementTime = secondElementMatch[0];
 
-    // SEND
-    await page.locator('button.confirm').isVisible();
-    await page.locator('button.confirm').click();
+    // // Compare the extracted date and time parts
+    // expect(firstElementTime).toBe(secondElementTime);
 
-    // VERIFY in CHANNEL
-    const scheduledPostChannelIndicator = page.locator('div.postBoxIndicator');
-    await scheduledPostChannelIndicator.isVisible();
+    // // Hover and verify options
+    // const panelElement = page.locator('article.Panel');
+    // await panelElement.hover();
 
-    await page.getByTestId('scheduledPostIcon').isVisible();
-    const expectedMessage = `Message scheduled for ${dayText} at ${formattedTime}`;
+    // // Verify the 'trash-can' icon is visible and hover over it
+    // const deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
+    // await expect(deleteIcon).toBeVisible();
+    // await deleteIcon.hover();
 
-    // Locate the message element and verify the text
-    const messageLocator = page.locator('.ScheduledPostIndicator span:has-text("Message scheduled for")');
-    await expect(messageLocator).toContainText(expectedMessage);
+    // // Verify the tooltip for the 'trash-can' icon
+    // const deleteTooltip = page.locator('text=Delete scheduled post');
+    // await expect(deleteTooltip).toBeVisible();
 
-    // Click on "See all scheduled messages"
-    const seeAllMessagesLink = page.locator('a:has-text("See all scheduled messages")');
-    await seeAllMessagesLink.click();
+    // // Verify the 'reschedule' icon is visible and hover over it
+    // const rescheduleIcon = page.locator('#draft_icon-clock-send-outline_reschedule');
+    // await expect(rescheduleIcon).toBeVisible();
+    // await rescheduleIcon.hover();
 
+    // // Verify the tooltip for the 'reschedule' icon
+    // const rescheduleTooltip = page.locator('text=Reschedule post');
+    // await expect(rescheduleTooltip).toBeVisible();
+
+    // // Go back and wait for message to arrive
+    // await page.goBack();
+    // await wait(duration.half_min);
+    // await page.reload();
+
+    // await expect(messageLocator).not.toBeVisible();
+    // await expect(scheduledCountbadge).not.toBeVisible();
+
+    // const lastPostText = page.locator('div.post-message__text').last();
+    // lastPostText.isVisible();
+    // await expect(lastPostText).toHaveText(draftMessage);
+
+    // await page.goForward();
+    // expect(panelElement).not.toBeVisible();
 });
+

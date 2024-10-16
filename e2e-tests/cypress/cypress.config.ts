@@ -8,7 +8,7 @@ export default defineConfig({
     defaultCommandTimeout: 30000,
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
-    numTestsKeptInMemory: 0,
+    numTestsKeptInMemory: 10,
     screenshotsFolder: 'tests/screenshots',
     taskTimeout: 20000,
     video: true,

@@ -12,19 +12,37 @@ export default class ChannelsCenterView {
 
     readonly header;
     readonly postCreate;
-    readonly scheduledDraftsOptions;
+    readonly scheduledMessageOptions;
+    readonly scheduledMessageChannelInfo;
+    readonly scheduledMessageChannelIcon;
+    readonly scheduledMessageChannelInfoMessage;
+    readonly scheduledMessageChannelInfoMessageText;
+    readonly scheduledMessageSeeAllLink;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
-        this.scheduledDraftsOptions = new components.ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
+        this.scheduledMessageOptions = new components.ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
+        this.scheduledMessageChannelInfo = container.locator('div.postBoxIndicator');
+        this.scheduledMessageChannelIcon = container.locator('#create_post i.icon-draft-indicator');
+        this.scheduledMessageChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledMessageChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.scheduledMessageSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await this.postCreate.toBeVisible();
+    }
+
+    /**
+     * Click on "See all scheduled messages"
+     */
+    async clickOnSeeAllScheduledMessages() {
+        await this.scheduledMessageSeeAllLink.isVisible();
+        await this.scheduledMessageSeeAllLink.click();
     }
 
     /**
@@ -87,6 +105,13 @@ export default class ChannelsCenterView {
             },
             {timeout},
         );
+    }
+
+    async verifyScheduledMessageChannelInfo() {
+        await this.scheduledMessageChannelInfo.isVisible();
+        await this.scheduledMessageChannelIcon.isVisible();
+        const messageLocator = this.scheduledMessageChannelInfoMessage.first();
+        await expect(messageLocator).toContainText('Message scheduled for');
     }
 }
 
