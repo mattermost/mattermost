@@ -458,25 +458,25 @@ func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, 
 	return r0, r1
 }
 
-// GetAllChannelMembersForUser provides a mock function with given fields: userID, allowFromCache, includeDeleted
-func (_m *ChannelStore) GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
-	ret := _m.Called(userID, allowFromCache, includeDeleted)
+// GetAllChannelMembersForUser provides a mock function with given fields: rctx, userID, allowFromCache, includeDeleted
+func (_m *ChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+	ret := _m.Called(rctx, userID, allowFromCache, includeDeleted)
 
 	var r0 map[string]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool, bool) (map[string]string, error)); ok {
-		return rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) (map[string]string, error)); ok {
+		return rf(rctx, userID, allowFromCache, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool, bool) map[string]string); ok {
-		r0 = rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, bool, bool) map[string]string); ok {
+		r0 = rf(rctx, userID, allowFromCache, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
-		r1 = rf(userID, allowFromCache, includeDeleted)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, bool, bool) error); ok {
+		r1 = rf(rctx, userID, allowFromCache, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1903,13 +1903,13 @@ func (_m *ChannelStore) InvalidatePinnedPostCount(channelID string) {
 	_m.Called(channelID)
 }
 
-// IsUserInChannelUseCache provides a mock function with given fields: userID, channelID
-func (_m *ChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-	ret := _m.Called(userID, channelID)
+// IsUserInChannelUseCache provides a mock function with given fields: rctx, userID, channelID
+func (_m *ChannelStore) IsUserInChannelUseCache(rctx request.CTX, userID string, channelID string) bool {
+	ret := _m.Called(rctx, userID, channelID)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
-		r0 = rf(userID, channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
+		r0 = rf(rctx, userID, channelID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}

@@ -2172,7 +2172,7 @@ func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	}
 }
 
-func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
+func (s SqlChannelStore) IsUserInChannelUseCache(rctx request.CTX, userId string, channelId string) bool {
 	var ids map[string]string
 	if err := allChannelMembersForUserCache.Get(userId, &ids); err == nil {
 		if s.metrics != nil {
@@ -2188,7 +2188,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
+	ids, err := s.GetAllChannelMembersForUser(rctx, userId, true, false)
 	if err != nil {
 		mlog.Error("Error getting all channel members for user", mlog.Err(err))
 		return false
@@ -2251,7 +2251,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeA
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
 	cache_key := userId
 	if includeDeleted {
 		cache_key += "_deleted"
@@ -2295,7 +2295,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	rows, err := s.SqlStore.DBXFromContext(rctx.Context()).Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
 	}

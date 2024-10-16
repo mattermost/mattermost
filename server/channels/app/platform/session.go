@@ -82,7 +82,7 @@ func (ps *PlatformService) ClearAllUsersSessionCacheLocal() {
 }
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
-	ps.ClearUserSessionCacheLocal(userID)
+	ps.ClearSessionCacheForUserSkipClusterSend(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{

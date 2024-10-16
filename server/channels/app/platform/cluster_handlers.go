@@ -132,7 +132,7 @@ func (ps *PlatformService) invalidateCacheForChannelByNameSkipClusterSend(teamID
 
 func (ps *PlatformService) InvalidateCacheForUserSkipClusterSend(userID string) {
 	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.ClearUserSessionCache(userID)
 }
 
 func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
