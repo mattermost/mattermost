@@ -67,9 +67,10 @@ const ChannelInfoButton = ({channel}: Props) => {
             buttonClass={buttonClass}
             buttonId='channel-info-btn'
             onClick={toggleRHS}
-            iconComponent={<Icon className='icon-information-outline'/>}
             tooltip={tooltip}
-        />
+        >
+            <Icon className='icon-information-outline'/>
+        </HeaderIconWrapper>
     );
 };
 

@@ -32,7 +32,8 @@ func TestGetLatestVersion(t *testing.T) {
 	require.NoError(t, jsonErr)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(validJSON)
+		_, err := w.Write(validJSON)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
@@ -63,7 +64,8 @@ func TestGetLatestVersion(t *testing.T) {
 		require.NoError(t, jsonErr)
 
 		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write(updatedJSON)
+			_, err := w.Write(updatedJSON)
+			require.NoError(t, err)
 		}))
 		defer ts.Close()
 
@@ -79,11 +81,12 @@ func TestGetLatestVersion(t *testing.T) {
 
 		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 				{
 					"message": "internal server error"
 				}
 			`))
+			require.NoError(t, err)
 		}))
 		defer ts.Close()
 
