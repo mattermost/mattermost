@@ -21,7 +21,7 @@ export function addNewCommand(team, trigger, url) {
         cy.get('#url').type(urlToType);
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify we are at setup successful URL
         cy.url().should('include', '/integrations/commands/confirm');

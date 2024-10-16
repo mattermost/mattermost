@@ -77,7 +77,7 @@ describe('Profile popover', () => {
             cy.get('#add-user-to-channel-modal__user-is-member').should('have.text', `${testUser.first_name} ${testUser.last_name} is already a member of that channel`);
 
             // * And verify that button is disabled
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
         });
     });
 
@@ -109,7 +109,7 @@ describe('Profile popover', () => {
             cy.get('input').should('be.visible').type('private').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // # Verify that button is disabled
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
         });
     });
 
@@ -138,13 +138,13 @@ describe('Profile popover', () => {
             cy.get('input').should('be.visible').type('Town').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * And verify that button is disabled
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
 
             // # Clear text box, type "Test Channel" and press enter.
             cy.get('input').should('be.visible').clear().type('Test Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify that button is enabled
-            cy.get('#add-user-to-channel-modal__add-button').should('not.be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('not.be.disabled');
         });
     });
 
@@ -193,19 +193,19 @@ describe('Profile popover', () => {
             cy.get('input').should('be.visible').type('Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * And verify that button is enabled
-            cy.get('#add-user-to-channel-modal__add-button').should('not.be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('not.be.disabled');
 
             // # Clear text box, type "private" and press enter.
             cy.get('input').should('be.visible').clear().type('private').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify that button is disabled.
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
 
             // # Clear text box, type "Channel" and press enter.
             cy.get('input').clear().type('Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // # Now click the Add button
-            cy.get('#add-user-to-channel-modal__add-button').click();
+            cy.findByTestId('add-user-to-channel-modal__add-button').click();
         });
 
         // * Now verify that popup is gone
@@ -270,16 +270,16 @@ describe('Profile popover', () => {
             cy.get('input').should('be.visible').type('Public').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * And verify that button is disabled
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
 
             // # Clear text box, type "Test Channel" and press enter.
             cy.get('input').should('be.visible').clear().type('Test Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify that button is enabled.
-            cy.get('#add-user-to-channel-modal__add-button').should('not.be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('not.be.disabled');
 
             // # Now click the Add button
-            cy.get('#add-user-to-channel-modal__add-button').click();
+            cy.findByTestId('add-user-to-channel-modal__add-button').click();
         });
 
         // * Now verify that popup is gone
@@ -323,22 +323,22 @@ describe('Profile popover', () => {
             cy.get('input').should('be.visible').type('No Member').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify that button is disabled.
-            cy.get('#add-user-to-channel-modal__add-button').should('be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('be.disabled');
 
             // # Clear text box, type "Test Channel" and press enter.
             cy.get('input').should('be.visible').clear().type('Test Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * Verify that button is enabled.
-            cy.get('#add-user-to-channel-modal__add-button').should('not.be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('not.be.disabled');
 
             // # Type "Channel" and press enter.
             cy.get('input').should('be.visible').clear().type('Channel').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
             // * And verify that button is enabled
-            cy.get('#add-user-to-channel-modal__add-button').should('not.be.disabled');
+            cy.findByTestId('add-user-to-channel-modal__add-button').should('not.be.disabled');
 
             // # Now click the Add button
-            cy.get('#add-user-to-channel-modal__add-button').click();
+            cy.findByTestId('add-user-to-channel-modal__add-button').click();
         });
 
         // * Now verify that popup is gone

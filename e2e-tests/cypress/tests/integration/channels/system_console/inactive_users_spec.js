@@ -43,14 +43,14 @@ describe('System Console', () => {
                     // * - number of users should match the remainder
                     // * - no next button since no more inactive users to load
                     cy.findAllByTestId('userListRow').should('have.length', remainder);
-                    cy.get('#searchableUserListNextBtn').should('not.exist');
+                    cy.findByTestId('searchableUserListNextBtn').should('not.exist');
                 } else {
                     // * There are still next page to load, so:
                     // * - number of users should match per page
                     // * - next button is visible
                     // # Click "Next" to load more.
                     cy.findAllByTestId('userListRow').should('have.length', perPage);
-                    cy.get('#searchableUserListNextBtn').should('be.visible').click();
+                    cy.findByTestId('searchableUserListNextBtn').should('be.visible').click();
                 }
             });
         });

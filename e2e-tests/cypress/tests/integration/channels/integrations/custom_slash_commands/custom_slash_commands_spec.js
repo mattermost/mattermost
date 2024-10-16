@@ -171,7 +171,7 @@ describe('Slash commands', () => {
         // # click on last added command's(first child) edit action
         cy.get('.backstage-list').find('.backstage-list__item').first().findByText('Edit').click();
         cy.get('#username').type('newname');
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Go back to home channel
         cy.visit(`/${team1.name}/channels/town-square`);
@@ -207,7 +207,7 @@ describe('Slash commands', () => {
         cy.get('.backstage-list').find('.backstage-list__item').first().findByText('Edit').click();
         const iconURL = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
         cy.get('#iconUrl').type(iconURL);
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Go back to home channel
         cy.visit(`/${team1.name}/channels/town-square`);
@@ -244,7 +244,7 @@ describe('Slash commands', () => {
 
         // since there are two selectors with the same id 'description' we pick one which is the 10-th child
         cy.get(':nth-child(10) > .col-md-5 > #description').type(desc);
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Go back to home channel
         cy.visit(`/${team1.name}/channels/town-square`);
@@ -271,7 +271,7 @@ describe('Slash commands', () => {
         // # click on last added command's(first child) edit action
         cy.get('.backstage-list').find('.backstage-list__item').first().findByText('Edit').click();
         cy.get('#autocomplete').click();
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Go back to home channel
         cy.visit(`/${team1.name}/channels/town-square`);
