@@ -134,7 +134,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={0}
@@ -283,7 +282,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={1}
@@ -514,7 +512,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={0}
@@ -668,7 +665,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={1}
@@ -899,7 +895,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={0}
@@ -1048,7 +1043,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={1}
@@ -1279,7 +1273,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   },
                 ]
               }
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={0}
@@ -1358,7 +1351,6 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               page={0}
               previousPage={[Function]}
               rows={Array []}
-              searchPlaceholder=""
               startCount={1}
               term=""
               total={0}
