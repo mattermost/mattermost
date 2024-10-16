@@ -93,6 +93,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [props.searchTerms]);
 
     useEffect(() => {
+        setSearchType(props.searchSelectedType);
+    }, [props.searchSelectedType]);
+
+    useEffect(() => {
         // reset search type when switching views
         setSearchType(props.searchType);
     }, [props.isFlaggedPosts, props.isPinnedPosts, props.isMentionSearch]);
@@ -263,7 +267,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
                 <div className='sidebar--right__loading'>
-                    <LoadingSpinner text={Utils.localizeMessage('search_header.loading', 'Searching')}/>
+                    <LoadingSpinner text={Utils.localizeMessage({id: 'search_header.loading', defaultMessage: 'Searching'})}/>
                 </div>
             </div>
         );

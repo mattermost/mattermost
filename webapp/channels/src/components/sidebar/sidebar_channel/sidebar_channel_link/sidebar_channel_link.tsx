@@ -10,9 +10,9 @@ import type {Channel} from '@mattermost/types/channels';
 import {mark, trackEvent} from 'actions/telemetry_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
+import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
@@ -62,6 +62,7 @@ type Props = {
     hasUrgent: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+    isSharedChannel?: boolean;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -118,20 +119,17 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         if (unreadMentions === 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage('accessibility.sidebar.types.mention', 'mention')}`;
+            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
         } else if (unreadMentions > 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage('accessibility.sidebar.types.mentions', 'mentions')}`;
+            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
-            ariaLabel += ` ${localizeMessage('accessibility.sidebar.types.unread', 'unread')}`;
+            ariaLabel += ` ${localizeMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
         }
 
         return ariaLabel.toLowerCase();
     };
-
-    // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
-    removeTooltipLink = (): void => this.labelRef.current?.removeAttribute?.('aria-describedby');
 
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
         mark(Mark.ChannelLinkClicked);
@@ -201,20 +199,14 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             </span>
         );
         if (this.state.showTooltip) {
-            const displayNameToolTip = (
-                <Tooltip id='channel-displayname__tooltip'>
-                    {label}
-                </Tooltip>
-            );
             labelElement = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={displayNameToolTip}
-                    onEntering={this.removeTooltipLink}
+                <WithTooltip
+                    id='channel-displayname__tooltip'
+                    title={label}
+                    placement={'top'}
                 >
                     {labelElement}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -233,6 +225,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
             />
         ) : null;
 
+        const sharedChannelIcon = this.props.isSharedChannel ? (
+            <SharedChannelIndicator
+                className='icon'
+                withTooltip={true}
+            />
+        ) : null;
+
         const content = (
             <>
                 <SidebarChannelIcon
@@ -248,6 +247,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
                         pluggableName='SidebarChannelLinkLabel'
                         channel={this.props.channel}
                     />
+                    {sharedChannelIcon}
                 </div>
                 <ChannelPencilIcon id={channel.id}/>
                 <ChannelMentionBadge

@@ -62,7 +62,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{Name: "test"}
+		remoteCluster := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test", DefaultTeamId: model.NewId()}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -83,6 +83,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			Type:   invitation.Type,
 		}
 
+		mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, remoteCluster.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
 		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
 		mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
@@ -93,8 +94,8 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 		updateMap := model.ChannelModeratedRolesPatch{
-			Guests:  model.NewBool(false),
-			Members: model.NewBool(false),
+			Guests:  model.NewPointer(false),
+			Members: model.NewPointer(false),
 		}
 
 		mockApp.On("CreateChannelWithUser", mockTypeReqContext, mockTypeChannel, mockTypeString).Return(channel, nil)
@@ -127,7 +128,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		}
 
 		mockStore := &mocks.Store{}
-		remoteCluster := &model.RemoteCluster{Name: "test2"}
+		remoteCluster := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test2"}
 		invitation := channelInviteMsg{
 			ChannelId: model.NewId(),
 			TeamId:    model.NewId(),
@@ -144,9 +145,18 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		channel := &model.Channel{
 			Id: invitation.ChannelId,
 		}
+		mockTeamStore := mocks.TeamStore{}
+		team := &model.Team{
+			Id: model.NewId(),
+		}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
 
+		mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, remoteCluster.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
 		mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, &store.ErrNotFound{})
+		mockTeamStore.On("GetAllPage", 0, 1, mock.Anything).Return([]*model.Team{team}, nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
@@ -159,6 +169,96 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.Error(t, err)
 		assert.Equal(t, fmt.Sprintf("cannot make channel readonly `%s`: foo: bar, boom", invitation.ChannelId), err.Error())
+	})
+
+	t.Run("When invitation points to a deleted shared channel remote", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{
+			server: mockServer,
+			app:    mockApp,
+		}
+
+		mockStore := &mocks.Store{}
+		remoteCluster := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test", DefaultTeamId: model.NewId()}
+		invitation := channelInviteMsg{
+			ChannelId: model.NewId(),
+			TeamId:    model.NewId(),
+			Type:      model.ChannelTypeOpen,
+		}
+		payload, err := json.Marshal(invitation)
+		require.NoError(t, err)
+
+		msg := model.RemoteClusterMsg{
+			Payload: payload,
+		}
+		mockChannelStore := mocks.ChannelStore{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		channel := &model.Channel{
+			Id:     invitation.ChannelId,
+			TeamId: invitation.TeamId,
+			Type:   invitation.Type,
+		}
+		sharedChannelRemote := &model.SharedChannelRemote{
+			ChannelId: invitation.ChannelId,
+			RemoteId:  remoteCluster.RemoteId,
+			DeleteAt:  1234,
+		}
+
+		mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, mock.Anything).Return(sharedChannelRemote, nil)
+		mockChannelStore.On("Get", invitation.ChannelId, true).Return(channel, nil)
+		mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
+		mockSharedChannelStore.On("UpdateRemote", mock.Anything).Return(nil, nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+
+		mockServer.On("GetStore").Return(mockStore)
+		defer mockApp.AssertExpectations(t)
+
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
+		require.NoError(t, err)
+	})
+
+	t.Run("When invitation points to an existing shared channel remote", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{
+			server: mockServer,
+			app:    mockApp,
+		}
+
+		mockStore := &mocks.Store{}
+		remoteCluster := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test", DefaultTeamId: model.NewId()}
+		invitation := channelInviteMsg{
+			ChannelId: model.NewId(),
+			TeamId:    model.NewId(),
+			Type:      model.ChannelTypeOpen,
+		}
+		payload, err := json.Marshal(invitation)
+		require.NoError(t, err)
+
+		msg := model.RemoteClusterMsg{
+			Payload: payload,
+		}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		sharedChannelRemote := &model.SharedChannelRemote{
+			ChannelId: invitation.ChannelId,
+			RemoteId:  remoteCluster.RemoteId,
+			DeleteAt:  0,
+		}
+
+		mockServer.On("GetStore").Return(mockStore)
+		mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, remoteCluster.RemoteId).Return(sharedChannelRemote, nil)
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+
+		defer mockApp.AssertExpectations(t)
+
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
+		require.NoError(t, err)
 	})
 
 	t.Run("DM channels", func(t *testing.T) {
@@ -175,7 +275,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 			{"two remotes", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, true, false},
 			{"two locals", &model.User{Id: model.NewId()}, &model.User{Id: model.NewId()}, true, false},
 			{"can't see", &model.User{Id: model.NewId(), RemoteId: &testRemoteID}, &model.User{Id: model.NewId()}, false, false},
-			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewString("bogus")}, &model.User{Id: model.NewId()}, true, false},
+			{"invalid remoteid", &model.User{Id: model.NewId(), RemoteId: model.NewPointer("bogus")}, &model.User{Id: model.NewId()}, true, false},
 		}
 
 		for _, tc := range testCases {
@@ -190,7 +290,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				}
 
 				mockStore := &mocks.Store{}
-				remoteCluster := &model.RemoteCluster{Name: "test3", CreatorId: model.NewId(), RemoteId: testRemoteID}
+				remoteCluster := &model.RemoteCluster{RemoteId: testRemoteID, Name: "test3", CreatorId: model.NewId()}
 				invitation := channelInviteMsg{
 					ChannelId:            model.NewId(),
 					TeamId:               model.NewId(),
@@ -219,6 +319,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				mockChannelStore.On("Get", invitation.ChannelId, true).Return(nil, errors.New("boom"))
 				mockChannelStore.On("GetByName", "", mockTypeString, true).Return(nil, &store.ErrNotFound{})
 
+				mockSharedChannelStore.On("GetRemoteByIds", invitation.ChannelId, remoteCluster.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
 				mockSharedChannelStore.On("Save", mock.Anything).Return(nil, nil)
 				mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 				mockStore.On("Channel").Return(&mockChannelStore)

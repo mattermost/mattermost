@@ -1339,7 +1339,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Secure connection | Display name | Connection ID | Site URL | Invite accepted | Online | Last ping  |"
+    "translation": "| Secure connection | Display name | Connection ID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -2225,6 +2225,10 @@
     "translation": "Empty array under 'license' in request."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license."
+  },
+  {
     "id": "api.license.add_license.expired.app_error",
     "translation": "License is either expired or has not yet started."
   },
@@ -2449,6 +2453,10 @@
     "translation": "Unable to open file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit. This limit can be changed in the System Console via File Storage > Maximum File Size"
+  },
+  {
     "id": "api.plugin.upload.no_file.app_error",
     "translation": "Missing file in multipart/form request."
   },
@@ -2511,6 +2519,10 @@
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
     "translation": "Can not delete a post in a deleted channel."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Cannot delete post, ServiceSettings.EnableAPIPostDeletion is not enabled."
   },
   {
     "id": "api.post.disabled_all",
@@ -2751,6 +2763,10 @@
     "translation": "Could not encrypt the remote cluster invite using the provided password"
   },
   {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Cannot generate invite code for a confirmed cluster"
+  },
+  {
     "id": "api.remote_cluster.get.app_error",
     "translation": "We encountered an error retrieving a secure connection."
   },
@@ -2873,6 +2889,22 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Could not fetch shared channel remotes"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Could not determine if channel is shared with the remote"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Could not invite remote to channel"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Could not uninvite remote to channel"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -3739,6 +3771,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Failed to upload file. Upload channel is not shared with remote."
+  },
+  {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "Unable to upload file. File is too large."
   },
@@ -4067,6 +4103,10 @@
     "translation": "AD/LDAP not available on this server."
   },
   {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "User is not an OAuth or SAML user."
+  },
+  {
     "id": "api.user.oauth_to_email.context.app_error",
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
@@ -4141,6 +4181,10 @@
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "You cannot modify user status. User is managed by LDAP"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -5051,6 +5095,10 @@
     "translation": "Could not decode gif."
   },
   {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Failed to find files for post."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
   },
@@ -5061,6 +5109,10 @@
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
     "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Failed to permanently delete file for post."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -5169,6 +5221,14 @@
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Failed to create group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "There are no members for the direct channel"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -6187,12 +6247,20 @@
     "translation": "Unable to select the posts to delete for the user."
   },
   {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Failed to permanently delete post."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
   {
     "id": "app.post.save.existing.app_error",
     "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Unable to save thread membership for post."
   },
   {
     "id": "app.post.search.app_error",
@@ -6455,6 +6523,10 @@
     "translation": "Unable to update existing session."
   },
   {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Unable to update the extra session properties."
+  },
+  {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
   },
@@ -6689,6 +6761,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Unable to get thread members for export."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -7045,6 +7121,10 @@
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
     "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
@@ -8531,6 +8611,10 @@
     "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Cache type must be either lru or redis."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -8643,6 +8727,10 @@
     "translation": "Invalid connection security for email settings. Must be '', 'TLS', or 'STARTTLS'."
   },
   {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress must be specified for redis cache type."
+  },
+  {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
@@ -8681,6 +8769,10 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB must have a value greater or equal to zero."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -9613,6 +9705,14 @@
   {
     "id": "model.team_member.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
   },
   {
     "id": "model.token.is_valid.expiry",

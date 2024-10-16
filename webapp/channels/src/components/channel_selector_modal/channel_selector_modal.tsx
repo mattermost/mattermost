@@ -10,7 +10,6 @@ import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
@@ -208,7 +207,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             />
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
+        const buttonSubmitText = localizeMessage({id: 'multiselect.add', defaultMessage: 'Add'});
 
         let options = this.state.channels.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
         if (this.props.alreadySelected) {
@@ -236,9 +235,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='channelSelectorModalLabel'
                     >
-                        <FormattedMarkdownMessage
-                            id='add_channels_to_scheme.title'
-                            defaultMessage='Add Channels to **Channel Selection** List'
+                        <FormattedMessage
+                            id='channelSelectorModal.title'
+                            defaultMessage='Add Channels to <b>Channel Selection</b> List'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>
@@ -261,7 +263,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         buttonSubmitText={buttonSubmitText}
                         saving={false}
                         loading={this.state.loadingChannels}
-                        placeholderText={localizeMessage('multiselect.addChannelsPlaceholder', 'Search and add channels')}
+                        placeholderText={localizeMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
                     />
                 </Modal.Body>
             </Modal>

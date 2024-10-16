@@ -5792,11 +5792,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 120+"
+    "translation": "Sürüm 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 120+"
+    "translation": "Sürüm 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5804,11 +5804,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Sürüm 16.2+"
+    "translation": "Sürüm 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -7984,7 +7984,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Varsayılan takım | Davet kabul edildi | Çevrim içi | Son iletişim | Silindi |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -9956,5 +9956,221 @@
   {
     "id": "app.report.date_range.last_6_months",
     "translation": "son 6 ay"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Bu görev türünü yönetme izniniz yok"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Durum kümesi geçersiz"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Görev durumu güncellenemedi. Ayarlanan durum geçersiz"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Günlük kayıtları ara belleğe yazılamadı"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "E-posta ile ya da kullanıcı adı ile oturum açma seçeneği açık olmadığı için kimlik doğrulama aktarımı kullanılamaz."
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "E-posta ile hesap açma seçeneği kapalı olduğu için kimlik doğrulama aktarımı kullanılamaz."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "İşleme isteği yerine getirilemedi"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Parola kaydedilirken bir iç sorun çıktı."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Uzak küme daveti kabul edilemedi"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Kopyanın site adresi alınamadı"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Uzak küme daveti belirtilen parola ile şifrelenemedi"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Uzak küme bulunamadı"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Uzak küme davetinin şifresi belirtilen parola ile çözülemedi"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Özel durum ayarlanamadı."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Parolanız en fazla 72 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Arama arka yüzü geçersiz. elasticsearch ya da opensearch olmalıdır."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Parola kaydedilirken bir iç sorun çıktı."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Parolanız en fazla 72 karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Dosya durumu okunurken sorun çıktı: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Dosya taranırken sorun çıktı: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Kullanıcı sayısı alınamadı"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Uygulama eki yeniden eklenemedi"
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "ZIP dosyası kapatılamadı"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Dışa aktarım dosyasının başlangıcına gidilemedi."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "İsteğiniz yerine getirilemedi. İstek içeriği çok büyük."
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Uzak küme silinmedi"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Base64 dizgesinin kodu çözülemedi"
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "limit_visible_dms_gms değeri geçersiz."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Sistem yöneticisi hesabı sayısının belirlenmesinde sorun çıktı."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Son sistem yöneticisinin yetkileri alınamaz."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Envanter eksik"
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Uygulama eki yeniden ekleme yapılandırması eksik"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Aynı adresi kullanan bir takım zaten var."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Kullanıcı adının var olup olmadığı denetlenemedi"
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Ön bellek türü lru ya da redis olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "Redis ön belleği türü için RedisAddress belirtilmelidir."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB değeri sıfıra eşit ya da büyük olmalıdır."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}} için İnternet kancası alınamadı."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Hizmet ayarları için en fazla adres uzunluğu. Sıfırdan büyük bir tam sayı olmalıdır."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "Kullanıcı bir OAuth ya da SAML kullanıcısı değil."
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Uzak taraf kanala davet edilemedi"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Kanal uzak taraf ile paylaşılmış mı belirlenemedi"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Uzak taraf kanal daveti kaldırılamadı"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Gönderinin konu üyeliği kaydedilemedi."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Dışa aktarımın konu üyeleri alınamadı."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Gönderi kimliği geçersiz."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kimliği geçersiz."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Paylaşılan kanalın uzak tarafları alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Doğrudan kanalın kanal üyeleri alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Doğrudan kanalın herhangi bir üyesi yok"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Yüklenen uygulama eki boyut sınırını aşıyor. Bu sınır sistem panosundan Dosya depolama alanı > En büyük dosya boyutu bölümünden değiştirilebilir"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Dosya yüklenemedi. Yükleme kanalı uzak taraf ile paylaşılmıyor."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Ek oturum özellikleri güncellenemedi."
   }
 ]

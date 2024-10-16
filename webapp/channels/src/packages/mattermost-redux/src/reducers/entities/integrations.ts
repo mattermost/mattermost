@@ -52,6 +52,19 @@ function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: Any
     }
 }
 
+function incomingHooksTotalCount(state: number = 0, action: AnyAction) {
+    switch (action.type) {
+    case IntegrationTypes.RECEIVED_INCOMING_HOOKS_TOTAL_COUNT: {
+        return action.data;
+    }
+    case IntegrationTypes.DELETED_INCOMING_HOOK: {
+        return Math.max(state - 1, 0);
+    }
+    default:
+        return state;
+    }
+}
+
 function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OUTGOING_HOOK: {
@@ -305,6 +318,9 @@ export default combineReducers({
 
     // object where every key is the hook id and has an object with the incoming hook details
     incomingHooks,
+
+    // object to represent total amount of incoming hooks
+    incomingHooksTotalCount,
 
     // object where every key is the hook id and has an object with the outgoing hook details
     outgoingHooks,

@@ -33,6 +33,8 @@ const (
 
 var (
 	validRemoteNameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-\_]+$`)
+
+	ErrOfflineRemote = errors.New("remote is offline")
 )
 
 type Bitmask uint32
@@ -50,33 +52,37 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 }
 
 type RemoteCluster struct {
-	RemoteId     string  `json:"remote_id"`
-	RemoteTeamId string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
-	Name         string  `json:"name"`
-	DisplayName  string  `json:"display_name"`
-	SiteURL      string  `json:"site_url"`
-	CreateAt     int64   `json:"create_at"`
-	LastPingAt   int64   `json:"last_ping_at"`
-	Token        string  `json:"token"`
-	RemoteToken  string  `json:"remote_token"`
-	Topics       string  `json:"topics"`
-	CreatorId    string  `json:"creator_id"`
-	PluginID     string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
-	Options      Bitmask `json:"options"`   // bit-flag set of options
+	RemoteId      string  `json:"remote_id"`
+	RemoteTeamId  string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
+	Name          string  `json:"name"`
+	DisplayName   string  `json:"display_name"`
+	SiteURL       string  `json:"site_url"`
+	DefaultTeamId string  `json:"default_team_id"`
+	CreateAt      int64   `json:"create_at"`
+	DeleteAt      int64   `json:"delete_at"`
+	LastPingAt    int64   `json:"last_ping_at"`
+	Token         string  `json:"token"`
+	RemoteToken   string  `json:"remote_token"`
+	Topics        string  `json:"topics"`
+	CreatorId     string  `json:"creator_id"`
+	PluginID      string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	Options       Bitmask `json:"options"`   // bit-flag set of options
 }
 
 func (rc *RemoteCluster) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"remote_id":      rc.RemoteId,
-		"remote_team_id": rc.RemoteTeamId,
-		"name":           rc.Name,
-		"display_name":   rc.DisplayName,
-		"site_url":       rc.SiteURL,
-		"create_at":      rc.CreateAt,
-		"last_ping_at":   rc.LastPingAt,
-		"creator_id":     rc.CreatorId,
-		"plugin_id":      rc.PluginID,
-		"options":        rc.Options,
+		"remote_id":       rc.RemoteId,
+		"remote_team_id":  rc.RemoteTeamId,
+		"name":            rc.Name,
+		"display_name":    rc.DisplayName,
+		"site_url":        rc.SiteURL,
+		"default_team_id": rc.DefaultTeamId,
+		"create_at":       rc.CreateAt,
+		"delete_at":       rc.DeleteAt,
+		"last_ping_at":    rc.LastPingAt,
+		"creator_id":      rc.CreatorId,
+		"plugin_id":       rc.PluginID,
+		"options":         rc.Options,
 	}
 }
 
@@ -123,6 +129,11 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	if !IsValidId(rc.CreatorId) {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
+
+	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "default_team_id="+rc.DefaultTeamId, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -132,18 +143,24 @@ func (rc *RemoteCluster) Sanitize() {
 }
 
 type RemoteClusterPatch struct {
-	DisplayName *string `json:"display_name"`
+	DisplayName   *string `json:"display_name"`
+	DefaultTeamId *string `json:"default_team_id"`
 }
 
 func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"display_name": rcp.DisplayName,
+		"display_name":    rcp.DisplayName,
+		"default_team_id": rcp.DefaultTeamId,
 	}
 }
 
 func (rc *RemoteCluster) Patch(patch *RemoteClusterPatch) {
 	if patch.DisplayName != nil {
 		rc.DisplayName = *patch.DisplayName
+	}
+
+	if patch.DefaultTeamId != nil {
+		rc.DefaultTeamId = *patch.DefaultTeamId
 	}
 }
 
@@ -155,6 +172,7 @@ type RemoteClusterWithPassword struct {
 type RemoteClusterWithInvite struct {
 	RemoteCluster *RemoteCluster `json:"remote_cluster"`
 	Invite        string         `json:"invite"`
+	Password      string         `json:"password,omitempty"`
 }
 
 func newIDFromBytes(b []byte) string {
@@ -257,6 +275,7 @@ func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
+		DeleteAt:    rc.DeleteAt,
 		LastPingAt:  rc.LastPingAt,
 	}
 }
@@ -270,6 +289,7 @@ type RemoteClusterInfo struct {
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
+	DeleteAt    int64  `json:"delete_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 }
 
@@ -443,4 +463,5 @@ type RemoteClusterQueryFilter struct {
 	OnlyPlugins    bool
 	ExcludePlugins bool
 	RequireOptions Bitmask
+	IncludeDeleted bool
 }

@@ -28,6 +28,11 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// ClearMobileClientSessionMetadata provides a mock function with given fields:
+func (_m *MetricsInterface) ClearMobileClientSessionMetadata() {
+	_m.Called()
+}
+
 // DecrementHTTPWebSockets provides a mock function with given fields: originClient
 func (_m *MetricsInterface) DecrementHTTPWebSockets(originClient string) {
 	_m.Called(originClient)
@@ -298,9 +303,9 @@ func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method s
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
-// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
 // ObserveClientCumulativeLayoutShift provides a mock function with given fields: platform, agent, elapsed
@@ -333,9 +338,9 @@ func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent 
 	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
 // ObserveClientTimeToFirstByte provides a mock function with given fields: platform, agent, elapsed
@@ -373,6 +378,11 @@ func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, ela
 	_m.Called(platform, elapsed)
 }
 
+// ObserveMobileClientSessionMetadata provides a mock function with given fields: version, platform, value, notificationDisabled
+func (_m *MetricsInterface) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	_m.Called(version, platform, value, notificationDisabled)
+}
+
 // ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, elapsed
 func (_m *MetricsInterface) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
 	_m.Called(platform, elapsed)
@@ -401,6 +411,11 @@ func (_m *MetricsInterface) ObservePluginMultiHookIterationDuration(pluginID str
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveRedisEndpointDuration provides a mock function with given fields: cacheName, operation, elapsed
+func (_m *MetricsInterface) ObserveRedisEndpointDuration(cacheName string, operation string, elapsed float64) {
+	_m.Called(cacheName, operation, elapsed)
 }
 
 // ObserveRemoteClusterClockSkew provides a mock function with given fields: remoteID, skew

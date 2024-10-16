@@ -140,7 +140,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -240,7 +242,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(status)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {

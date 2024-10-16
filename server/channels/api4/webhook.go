@@ -51,7 +51,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -184,6 +184,8 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		hooks  []*model.IncomingWebhook
 		appErr *model.AppError
+		js     []byte
+		err    error
 	)
 
 	if teamID != "" {
@@ -217,13 +219,28 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(hooks)
+	if c.Params.IncludeTotalCount {
+		totalCount, appErr := c.App.GetIncomingWebhooksCount(teamID, userID)
+
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		hooksWithCount := model.IncomingWebhooksWithCount{Webhooks: hooks, TotalCount: totalCount}
+		js, err = json.Marshal(hooksWithCount)
+	} else {
+		js, err = json.Marshal(hooks)
+	}
+
 	if err != nil {
 		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -513,7 +530,9 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
@@ -62,7 +63,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewInt(2), MaxBurst: model.NewInt(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
@@ -74,7 +75,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(attachDeviceId)).Methods(http.MethodPut)
+	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(handleDeviceProps)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods(http.MethodPost)
@@ -1539,6 +1540,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.AuthService == model.UserAuthServiceLdap {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
+		return
+	}
+
 	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
 		c.Err = err
 		return
@@ -1979,7 +1985,15 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, false, false)
+	isOAuthUser := user.IsOAuthUser()
+	isSamlUser := user.IsSAMLUser()
+
+	if !isOAuthUser && !isSamlUser {
+		c.Err = model.NewAppError("loginWithDesktopToken", "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error", nil, "", http.StatusUnauthorized)
+		return
+	}
+
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, isOAuthUser, isSamlUser)
 	if err != nil {
 		c.Err = err
 		return
@@ -2202,15 +2216,49 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	ReturnStatusOK(w)
 }
 
-func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJSON(r.Body)
+func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
+	receivedProps := model.MapFromJSON(r.Body)
+	deviceId := receivedProps["device_id"]
 
-	deviceId := props["device_id"]
-	if deviceId == "" {
-		c.SetInvalidParam("device_id")
+	newProps := map[string]string{}
+
+	deviceNotificationsDisabled := receivedProps[model.SessionPropDeviceNotificationDisabled]
+	if deviceNotificationsDisabled != "" {
+		if deviceNotificationsDisabled != "false" && deviceNotificationsDisabled != "true" {
+			c.SetInvalidParam(model.SessionPropDeviceNotificationDisabled)
+			return
+		}
+
+		newProps[model.SessionPropDeviceNotificationDisabled] = deviceNotificationsDisabled
+	}
+
+	mobileVersion := receivedProps[model.SessionPropMobileVersion]
+	if mobileVersion != "" {
+		if _, err := semver.Parse(mobileVersion); err != nil {
+			c.SetInvalidParam(model.SessionPropMobileVersion)
+			return
+		}
+		newProps[model.SessionPropMobileVersion] = mobileVersion
+	}
+
+	if deviceId != "" {
+		attachDeviceId(c, w, r, deviceId)
+	}
+
+	if c.Err != nil {
 		return
 	}
 
+	if err := c.App.SetExtraSessionProps(c.AppContext.Session(), newProps); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
+	ReturnStatusOK(w)
+}
+
+func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string) {
 	auditRec := c.MakeAuditRecord("attachDeviceId", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "device_id", deviceId)
@@ -2258,8 +2306,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("")
-
-	ReturnStatusOK(w)
 }
 
 func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3300,6 +3346,14 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// We want to make sure the thread is followed when marking as unread
+	// https://mattermost.atlassian.net/browse/MM-36430
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
+	if err != nil {
+		c.Err = err
 		return
 	}
 

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {getAdminAccount} from 'tests/support/env';
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -8,10 +10,16 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @messaging
+// Group: @channels @deleting_messages
 
 describe('Message deletion', () => {
     before(() => {
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                EnableAPIPostDeletion: true,
+            },
+        });
+
         // # Login as test user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
             cy.visit(offTopicUrl);
@@ -43,10 +51,10 @@ describe('Message deletion', () => {
                 cy.get('#deletePostModal').should('be.visible');
 
                 // * Check that confirmation dialog contains correct text
-                cy.get('#deletePostModal').should('contain', 'Are you sure you want to delete this Post?');
+                cy.get('#deletePostModal').should('contain', 'Are you sure you want to delete this message?');
 
                 // * Check that confirmation dialog shows that the post has one comment on it
-                cy.get('#deletePostModal').should('contain', 'This post has 1 comment on it.');
+                cy.get('#deletePostModal').should('contain', 'This message has 1 comment on it.');
 
                 // # Confirm deletion.
                 cy.get('#deletePostModalButton').click();
@@ -68,6 +76,19 @@ describe('Message deletion', () => {
                 // * Check that last message do not contain (message deleted)
                 cy.get(`#post_${replyMessageId}`).should('not.contain', '(message deleted)');
             });
+        });
+    });
+
+    it('Permanently delete a post and ensure it\'s reflected in the UI', () => {
+        // # Post message in center.
+        cy.postMessage('test message deletion');
+
+        cy.getLastPostId().then((parentMessageId) => {
+            const admin = getAdminAccount();
+
+            cy.apiDeletePost(parentMessageId, admin, true);
+
+            cy.get(`#post_${parentMessageId}`).should('contain', '(message deleted)');
         });
     });
 });

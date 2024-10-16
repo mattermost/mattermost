@@ -55,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
@@ -305,11 +306,13 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(i18n.T)
 
 	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -587,7 +590,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService && !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableRemoteClusterService && !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -616,7 +619,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platform.Config().ConnectedWorkspacesSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channels Service disabled via config")
 		return nil
 	}
@@ -1561,6 +1564,12 @@ func (s *Server) initJobs() {
 		model.JobTypeActiveUsers,
 		active_users.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeMobileSessionMetadata,
+		mobile_session_metadata.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		mobile_session_metadata.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(

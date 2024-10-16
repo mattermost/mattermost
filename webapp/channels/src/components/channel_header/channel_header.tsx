@@ -18,12 +18,11 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import Markdown from 'components/markdown';
-import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import Timestamp from 'components/timestamp';
-import Tooltip from 'components/tooltip';
 import Popover from 'components/widgets/popover';
+import WithTooltip from 'components/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
@@ -375,6 +374,19 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             />
         );
 
+        const pinnedButton = this.props.pinnedPostsCount ? (
+            <HeaderIconWrapper
+                buttonClass={pinnedIconClass}
+                buttonId={'channelHeaderPinButton'}
+                onClick={this.showPinnedPosts}
+                tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
+            >
+                {pinnedIcon}
+            </HeaderIconWrapper>
+        ) : (
+            null
+        );
+
         let memberListButton = null;
         if (!isDirect) {
             const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
@@ -410,12 +422,13 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
             memberListButton = (
                 <HeaderIconWrapper
-                    iconComponent={membersIcon}
                     tooltip={this.props.intl.formatMessage({id: 'channel_header.channelMembers', defaultMessage: 'Members'})}
                     buttonClass={membersIconClass}
                     buttonId={'member_rhs'}
                     onClick={this.toggleChannelMembersRHS}
-                />
+                >
+                    {membersIcon}
+                </HeaderIconWrapper>
             );
         }
 
@@ -547,22 +560,18 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             );
         }
 
-        const channelMutedTooltip = (
-            <Tooltip id='channelMutedTooltip'>
-                <FormattedMessage
-                    id='channelHeader.unmute'
-                    defaultMessage='Unmute'
-                />
-            </Tooltip>
-        );
-
         let muteTrigger;
         if (channelMuted) {
             muteTrigger = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='channelMutedTooltip'
                     placement='bottom'
-                    overlay={channelMutedTooltip}
+                    title={
+                        <FormattedMessage
+                            id='channelHeader.unmute'
+                            defaultMessage='Unmute'
+                        />
+                    }
                 >
                     <button
                         id='toggleMute'
@@ -572,7 +581,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     >
                         <i className={'icon icon-bell-off-outline'}/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 
@@ -604,21 +613,16 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                 >
                                     {muteTrigger}
                                     {memberListButton}
-                                    <HeaderIconWrapper
-                                        iconComponent={pinnedIcon}
-                                        buttonClass={pinnedIconClass}
-                                        buttonId={'channelHeaderPinButton'}
-                                        onClick={this.showPinnedPosts}
-                                        tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
-                                    />
+                                    {pinnedButton}
                                     {this.props.isFileAttachmentsEnabled &&
                                         <HeaderIconWrapper
-                                            iconComponent={channelFilesIcon}
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
                                             tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
-                                        />
+                                        >
+                                            {channelFilesIcon}
+                                        </HeaderIconWrapper>
                                     }
                                 </div>
                                 {headerTextContainer}

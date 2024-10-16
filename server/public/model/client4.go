@@ -572,6 +572,14 @@ func (c *Client4) remoteClusterRoute() string {
 	return "/remotecluster"
 }
 
+func (c *Client4) sharedChannelRemotesRoute(remoteId string) string {
+	return fmt.Sprintf("%s/%s/sharedchannelremotes", c.remoteClusterRoute(), remoteId)
+}
+
+func (c *Client4) channelRemoteRoute(remoteId, channelId string) string {
+	return fmt.Sprintf("%s/%s/channels/%s", c.remoteClusterRoute(), remoteId, channelId)
+}
+
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
@@ -844,6 +852,25 @@ func (c *Client4) login(ctx context.Context, m map[string]string) (*User, *Respo
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		return nil, nil, NewAppError("login", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &user, BuildResponse(r), nil
+}
+
+func (c *Client4) LoginWithDesktopToken(ctx context.Context, token, deviceId string) (*User, *Response, error) {
+	m := make(map[string]string)
+	m["token"] = token
+	m["deviceId"] = deviceId
+	r, err := c.DoAPIPost(ctx, "/users/login/desktop_token", MapToJSON(m))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	c.AuthToken = r.Header.Get(HeaderToken)
+	c.AuthType = HeaderBearer
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return nil, nil, NewAppError("loginWithDesktopToken", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &user, BuildResponse(r), nil
 }
@@ -1700,10 +1727,9 @@ func (c *Client4) RevokeSessionsFromAllUsers(ctx context.Context) (*Response, er
 	return BuildResponse(r), nil
 }
 
-// AttachDeviceId attaches a mobile device ID to the current session.
-func (c *Client4) AttachDeviceId(ctx context.Context, deviceId string) (*Response, error) {
-	requestBody := map[string]string{"device_id": deviceId}
-	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(requestBody))
+// AttachDeviceProps attaches a mobile device ID to the current session and other props.
+func (c *Client4) AttachDeviceProps(ctx context.Context, newProps map[string]string) (*Response, error) {
+	r, err := c.DoAPIPut(ctx, c.usersRoute()+"/sessions/device", MapToJSON(newProps))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -2317,10 +2343,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewInt(0)
+		search.Page = NewPointer(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewInt(100)
+		search.PerPage = NewPointer(100)
 	}
 	buf, err := json.Marshal(search)
 	if err != nil {
@@ -3995,6 +4021,16 @@ func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
+// PermanentDeletePost permanently deletes a post and its files from the provided post id string.
+func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postId)+"?permanent="+c.boolString(true))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	url := c.postRoute(postId) + "/thread"
@@ -4979,6 +5015,24 @@ func (c *Client4) GetIncomingWebhooks(ctx context.Context, page int, perPage int
 	}
 	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
 		return nil, nil, NewAppError("GetIncomingWebhooks", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return iwl, BuildResponse(r), nil
+}
+
+// GetIncomingWebhooksWithCount returns a page of incoming webhooks on the system including the total count. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooksWithCount(ctx context.Context, page int, perPage int, etag string) (*IncomingWebhooksWithCount, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count="+c.boolString(true), page, perPage)
+	r, err := c.DoAPIGet(ctx, c.incomingWebhooksRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var iwl *IncomingWebhooksWithCount
+	if r.StatusCode == http.StatusNotModified {
+		return iwl, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&iwl); err != nil {
+		return nil, nil, NewAppError("GetIncomingWebhooksWithCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return iwl, BuildResponse(r), nil
 }
@@ -8737,6 +8791,9 @@ func (c *Client4) GetRemoteClusters(ctx context.Context, page, perPage int, filt
 	if filter.ExcludePlugins {
 		v.Set("exclude_plugins", "true")
 	}
+	if filter.IncludeDeleted {
+		v.Set("include_deleted", "true")
+	}
 	url := c.remoteClusterRoute()
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -8801,11 +8858,12 @@ func (c *Client4) GenerateRemoteClusterInvite(ctx context.Context, remoteCluster
 	}
 	defer closeBody(r)
 
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	var inviteCode string
+	if err := json.NewDecoder(r.Body).Decode(&inviteCode); err != nil {
+		return "", nil, NewAppError("GenerateRemoteClusterInvite", "api.unmarshall_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return string(b), BuildResponse(r), nil
+
+	return inviteCode, BuildResponse(r), nil
 }
 
 func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) (*RemoteCluster, *Response, error) {
@@ -8816,7 +8874,9 @@ func (c *Client4) GetRemoteCluster(ctx context.Context, remoteClusterId string) 
 	defer closeBody(r)
 
 	var rc *RemoteCluster
-	json.NewDecoder(r.Body).Decode(&rc)
+	if err := json.NewDecoder(r.Body).Decode(&rc); err != nil {
+		return nil, nil, NewAppError("GetRemoteCluster", "api.unmarshall_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return rc, BuildResponse(r), nil
 }
@@ -8843,6 +8903,66 @@ func (c *Client4) PatchRemoteCluster(ctx context.Context, remoteClusterId string
 
 func (c *Client4) DeleteRemoteCluster(ctx context.Context, remoteClusterId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.remoteClusterRoute(), remoteClusterId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, remoteId string, filter SharedChannelRemoteFilterOpts, page, perPage int) ([]*SharedChannelRemote, *Response, error) {
+	v := url.Values{}
+	if filter.IncludeUnconfirmed {
+		v.Set("include_unconfirmed", "true")
+	}
+	if filter.ExcludeConfirmed {
+		v.Set("exclude_confirmed", "true")
+	}
+	if filter.ExcludeHome {
+		v.Set("exclude_home", "true")
+	}
+	if filter.ExcludeRemote {
+		v.Set("exclude_remote", "true")
+	}
+	if filter.IncludeDeleted {
+		v.Set("include_deleted", "true")
+	}
+	if page != 0 {
+		v.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		v.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	url := c.sharedChannelRemotesRoute(remoteId)
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var scs []*SharedChannelRemote
+	json.NewDecoder(r.Body).Decode(&scs)
+
+	return scs, BuildResponse(r), nil
+}
+
+func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/invite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UninviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
+	url := fmt.Sprintf("%s/uninvite", c.channelRemoteRoute(remoteId, channelId))
+	r, err := c.DoAPIPost(ctx, url, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8992,7 +9112,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
-func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
 	channelBookmarkJSON, err := json.Marshal(channelBookmark)
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9002,7 +9122,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var cb ChannelBookmark
+	var cb ChannelBookmarkWithFileInfo
 	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

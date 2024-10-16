@@ -95,13 +95,24 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	// Enabling Redis with Postgres.
+	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		*memoryConfig.CacheSettings.CacheType = model.CacheTypeRedis
+		redisHost := "localhost"
+		if os.Getenv("IS_CI") == "true" {
+			redisHost = "redis"
+		}
+		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
+		*memoryConfig.CacheSettings.DisableClientCache = true
+		*memoryConfig.CacheSettings.RedisDB = 0
+	}
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -212,7 +223,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {
@@ -866,7 +877,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
 	patch := []*model.ChannelModerationPatch{{
 		Name:  &name,
-		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(val)},
 	}}
 
 	channel, err := th.App.GetChannel(th.Context, channelId)
@@ -981,10 +992,10 @@ func (th *TestHelper) GenerateTestEmail() string {
 func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        model.NewString("n-" + id),
+		Name:        model.NewPointer("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)

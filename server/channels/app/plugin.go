@@ -378,6 +378,25 @@ func (ch *Channels) ShutDownPlugins() {
 	}
 }
 
+func (a *App) getPluginManifests() ([]*model.Manifest, error) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("GetPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get list of available plugins")
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
+	}
+
+	return manifests, nil
+}
+
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -651,6 +670,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	isEnterpriseLicense := a.License() != nil && a.License().IsE20OrEnterprise()
 	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
 		if prepackaged.Manifest == nil {
 			continue
@@ -663,6 +683,22 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 				ReleaseNotesURL: prepackaged.Manifest.ReleaseNotesURL,
 				Manifest:        prepackaged.Manifest,
 			},
+		}
+
+		// If not enterprise, check version.
+		// Playbooks is not listed in the marketplace, this only handles prepackaged.
+		if !isEnterpriseLicense {
+			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
+				version, err := semver.Parse(prepackaged.Manifest.Version)
+				if err != nil {
+					mlog.Error("Unable to verify prepackaged playbooks version", mlog.Err(err))
+					continue
+				}
+				// Do not show playbooks >=v2 if we do not have an enterprise license
+				if version.GTE(SemVerV2) {
+					continue
+				}
+			}
 		}
 
 		// If not available in marketplace, add the prepackaged
@@ -950,7 +986,7 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	prepackagedPlugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 	transitionallyPrepackagedPlugins := make([]*plugin.PrepackagedPlugin, 0)
 	for p := range plugins {
-		if ch.pluginIsTransitionallyPrepackaged(p.Manifest.Id) {
+		if ch.pluginIsTransitionallyPrepackaged(p.Manifest) {
 			if ch.shouldPersistTransitionallyPrepackagedPlugin(availablePluginsMap, p) {
 				transitionallyPrepackagedPlugins = append(transitionallyPrepackagedPlugins, p)
 			}
@@ -997,13 +1033,19 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 		if err != nil {
 			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
 		}
-		if version.GTE(SemVerV2) {
-			license := ch.License()
-			canUsePlaybookv2 := license != nil && license.IsE20OrEnterprise()
-			if !canUsePlaybookv2 {
-				logger.Info("Skip installing prepackaged playbooks because the license does not allow it")
-				return plugin, nil
-			}
+		license := ch.License()
+		hasEnterpriseLicense := license != nil && license.IsE20OrEnterprise()
+
+		// Do not install playbooks >=v2 if we do not have an enterprise license
+		if version.GTE(SemVerV2) && !hasEnterpriseLicense {
+			logger.Info("Skip installing prepackaged playbooks >=v2 because the license does not allow it")
+			return plugin, nil
+		}
+
+		// Do not install playbooks <v2 if we have an enterprise license
+		if version.LT(SemVerV2) && hasEnterpriseLicense {
+			logger.Info("Skip installing prepackaged playbooks <v2 because the license allows v2")
+			return plugin, nil
 		}
 	}
 
@@ -1040,18 +1082,39 @@ var transitionallyPrepackagedPlugins = []string{
 	"com.mattermost.plugin-todo",
 	"com.mattermost.welcomebot",
 	"com.mattermost.apps",
+	"playbooks",
 }
 
 // pluginIsTransitionallyPrepackaged identifies plugin ids that are currently prepackaged but
 // slated for future removal.
-func (ch *Channels) pluginIsTransitionallyPrepackaged(pluginID string) bool {
+func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
 	for _, id := range transitionallyPrepackagedPlugins {
-		if id == pluginID {
+		if id == m.Id {
+			if m.Id == model.PluginIdPlaybooks {
+				return ch.playbooksIsTransitionallyPrepackaged(m)
+			}
+
 			return true
 		}
 	}
 
 	return false
+}
+
+// playbooksIsTransitionallyPrepackaged determines if the playbooks plugin is transitionally prepackaged.
+// conditions are:
+// - the server is not enterprise licensed
+// - the playbooks version is <v2
+func (ch *Channels) playbooksIsTransitionallyPrepackaged(m *model.Manifest) bool {
+	license := ch.srv.License()
+	isNotEnterpriseLicensed := !(license != nil && license.IsE20OrEnterprise())
+	version, err := semver.Parse(m.Version)
+	if err != nil {
+		ch.srv.Log().Warn("unable to parse prepackaged playbooks version - not marking it as transitional.", mlog.String("version", m.Version), mlog.Err(err))
+		return false
+	}
+
+	return isNotEnterpriseLicensed && version.LT(SemVerV2)
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin

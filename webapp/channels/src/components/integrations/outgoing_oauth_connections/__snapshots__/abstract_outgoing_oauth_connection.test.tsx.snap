@@ -392,8 +392,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <div
                 className="backstage-form__footer"
               >
-                <FormError
-                  error={null}
+                <Memo(FormError)
                   errors={
                     Array [
                       "",
@@ -960,8 +959,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <div
                 className="backstage-form__footer"
               >
-                <FormError
-                  error={null}
+                <Memo(FormError)
                   errors={
                     Array [
                       "serverError",
@@ -989,7 +987,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                       </FormattedMessage>
                     </label>
                   </div>
-                </FormError>
+                </Memo(FormError)>
                 <Link
                   className="btn btn-tertiary"
                   to="/test/integrations/outgoing-oauth2-connections"

@@ -174,7 +174,7 @@ func createRetentionPolicyWithTeamAndChannelIds(displayName string, teamIDs, cha
 	return &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      displayName,
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: model.NewPointer(int64(30)),
 		},
 		TeamIDs:    teamIDs,
 		ChannelIDs: channelIDs,
@@ -254,7 +254,7 @@ func testRetentionPolicyStorePatch(t *testing.T, rctx request.CTX, ss store.Stor
 		patch := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               policy.ID,
-				PostDurationDays: model.NewInt64(10000),
+				PostDurationDays: model.NewPointer(int64(10000)),
 			},
 		}
 		_, err := ss.RetentionPolicy().Patch(patch)
@@ -264,7 +264,7 @@ func testRetentionPolicyStorePatch(t *testing.T, rctx request.CTX, ss store.Stor
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		// Store a negative value (= infinity)
-		patch.PostDurationDays = model.NewInt64(-1)
+		patch.PostDurationDays = model.NewPointer(int64(-1))
 		_, err = ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected = copyRetentionPolicyWithTeamAndChannelIds(policy)

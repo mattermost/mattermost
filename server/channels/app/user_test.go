@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/http"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -58,14 +57,14 @@ func TestCreateOAuthUser(t *testing.T) {
 		dbUser := th.BasicUser
 
 		// mock oAuth Provider, return data
-		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
+		mockUser := &model.User{Id: "abcdef", AuthData: model.NewPointer("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
 		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
 		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
-		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewPointer("e711000764be43d898404a7e9c26b710"), "", false)
 		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
@@ -1903,7 +1902,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(th.BasicUser.Username),
+			Username: model.NewPointer(th.BasicUser.Username),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1912,7 +1911,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch with a email already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Email: model.NewString(th.BasicUser.Email),
+			Email: model.NewPointer(th.BasicUser.Email),
 		}, true)
 
 		require.NotNil(t, err)
@@ -1921,7 +1920,7 @@ func TestPatchUser(t *testing.T) {
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
 		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
-			Username: model.NewString(model.NewUsername()),
+			Username: model.NewPointer(model.NewUsername()),
 		}, true)
 
 		require.Nil(t, err)
@@ -1930,7 +1929,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
+	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1947,48 +1946,13 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Zero(t, threads.Total)
 
 		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
-		require.Nil(t, appErr)
-
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Nil(t, appErr)
-		assert.NotZero(t, threads.Total)
-
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, threadMembership)
-		assert.True(t, threadMembership.Following)
-
-		_, appErr = th.App.GetThreadMembershipForUser(th.BasicUser.Id, "notfound")
 		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
-	})
 
-	t.Run("Ensure no panic on error", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
-
-		mockThreadStore := storemocks.ThreadStore{}
-		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
-
-		var err error
-		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-			UserStore:    &mockUserStore,
-			SessionStore: &storemocks.SessionStore{},
-			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.ch.srv.platform.Config,
-			LicenseFn:    th.App.ch.srv.License,
-		})
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser.Id, rootPost.Id, store.ThreadMembershipOpts{Following: true, UpdateFollowing: true})
 		require.NoError(t, err)
-		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", "user1", "team1", "postid", 100)
-		require.Error(t, err)
+		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		require.Nil(t, appErr)
 	})
 }
 

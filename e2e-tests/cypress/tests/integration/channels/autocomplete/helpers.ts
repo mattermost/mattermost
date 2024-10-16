@@ -210,14 +210,14 @@ function startAtMention(string: string) {
     cy.get('#suggestionList').should('be.visible');
 }
 
-function verifySuggestionAtPostTextbox(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtPostTextbox(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.uiVerifyAtMentionSuggestion(user);
     });
 }
 
-function verifySuggestionAtChannelSwitcher(...expectedUsers: Cypress.UserProfile[]) {
+function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     expectedUsers.forEach((user) => {
         cy.findByTestId(user.username).
             should('be.visible').
@@ -243,13 +243,8 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
         if (userToAdd) {
             // # Get user profile by email
             return cy.apiGetUserByEmail(userToAdd.email).then(({user}) => {
-                // # Add user to team
-                cy.externalRequest({
-                    user: getAdminAccount(),
-                    method: 'post',
-                    path: `channels/${channel.id}/members`,
-                    data: {user_id: user.id},
-                }).then(() => {
+                // # Add user to channel
+                cy.externalAddUserToChannel(user.id, channel.id).then(() => {
                     // # Explicitly wait to give some time to index before searching
                     cy.wait(TIMEOUTS.TWO_SEC);
                     return cy.wrap(channel);

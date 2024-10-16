@@ -18,7 +18,7 @@ body {
     }
 
     &.admin-onboarding {
-        background-image: url('images/admin-onboarding-background.jpg');
+        background-image: url("images/admin-onboarding-background.jpg");
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -101,7 +101,7 @@ body.admin-onboarding #root {
 
 .app__body {
     #root.channel-view {
-        &:has(.backstage-body){
+        &:has(.backstage-body) {
             background-color: $bg--gray;
         }
     }
@@ -131,12 +131,11 @@ body.app__body #root {
         padding-bottom: 0;
         padding-right: 0;
         grid-template:
-            'announcement announcement' min-content
-            'admin-announcement admin-announcement' min-content
-            'header header' min-content
-            'lhs center'
-            'footer footer' min-content
-        ;
+            "announcement announcement" min-content
+            "admin-announcement admin-announcement" min-content
+            "header header" min-content
+            "lhs center"
+            "footer footer" min-content;
         grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
 
@@ -164,41 +163,38 @@ body.app__body #root {
     .main-wrapper {
         position: relative;
         display: grid;
-        overflow:hidden;
+        overflow: hidden;
         background-color: var(--sidebar-bg);
         border: var(--border-light);
         margin: 0 4px 4px 4px;
         border-radius: var(--radius-l);
         grid-area: main;
-        grid-template:
-            'lhs center rhs'
-        ;
+        grid-template: "lhs center rhs";
         grid-template-columns: min-content minmax(385px, 1fr) min-content;
 
-        &:has(.backstage-body){
+        &:has(.backstage-body) {
             background: inherit;
             padding: 0;
-            margin:0;
+            margin: 0;
             border-radius: 0;
             grid-template:
-                'header' min-content
-                'main'
-            ;
+                "header" min-content
+                "main";
         }
 
-        &:has(#playbooks-backstageRoot){
-            margin:0;
+        &:has(#playbooks-backstageRoot) {
+            margin: 0;
             border-radius: 0;
         }
     }
 
-    &:has(.app-bar){
+    &:has(.app-bar) {
         .main-wrapper {
-            margin-right:0;
+            margin-right: 0;
         }
     }
 
-    &:has(.team-sidebar){
+    &:has(.team-sidebar) {
         .main-wrapper {
             margin-left: 0;
         }
@@ -212,6 +208,10 @@ body.app__body #root {
     .product-wrapper {
         grid-area: center;
         overflow: visible;
+    }
+
+    .product-wrapper {
+        overflow: auto;
     }
 
     .sidebar--right--width-holder {
@@ -237,26 +237,24 @@ body.app__body #root {
             padding-right: 0;
             z-index: 17;
             grid-template:
-                'announcement' min-content
-                'header' min-content
-                'main' auto
-                'footer' min-content
-                / auto
-            ;
+                "announcement" min-content
+                "admin-announcement" min-content
+                "header" min-content
+                "main" auto
+                "footer" min-content / auto;
             .team-sidebar,
             .app-bar {
                 grid-area: main;
             }
+
             #SidebarContainer.move--right {
                 position: relative;
             }
 
             .main-wrapper {
                 margin: 0;
-                grid-template:
-                    'main'
-                ;
-                padding:0;
+                grid-template: "main";
+                padding: 0;
                 border-radius: 0;
 
                 #channel_view,
@@ -281,14 +279,18 @@ body.app__body #root {
             .sidebar--right--width-holder {
                 display: none;
             }
+
             #sidebar-right {
                 position: absolute;
                 width: 100%;
                 grid-area: center;
-                transition: width .25s ease-in-out;
+                transition: width 0.25s ease-in-out;
+                border-radius: var(--radius-l);
             }
-            --columns: min-content auto min-content;
+
+            --columns: min-content 1fr min-content;
         }
+
         #sidebar-right {
             transition: none;
         }

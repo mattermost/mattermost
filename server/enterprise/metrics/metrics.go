@@ -156,6 +156,7 @@ type MetricsInterfaceImpl struct {
 	SearchFileSearchesDuration prometheus.Histogram
 	StoreTimesHistograms       *prometheus.HistogramVec
 	APITimesHistograms         *prometheus.HistogramVec
+	RedisTimesHistograms       *prometheus.HistogramVec
 	SearchPostIndexCounter     prometheus.Counter
 	SearchFileIndexCounter     prometheus.Counter
 	SearchUserIndexCounter     prometheus.Counter
@@ -214,6 +215,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientLoadDuration          *prometheus.HistogramVec
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
+	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
 }
 
 func init() {
@@ -466,7 +468,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForChannel,
 		model.ClusterEventInvalidateCacheForChannelGuestCount,
 		model.ClusterEventInvalidateCacheForUser,
-		model.ClusterEventInvalidateCacheForUserTeams,
+		model.ClusterEventInvalidateWebConnCacheForUser,
 		model.ClusterEventClearSessionCacheForUser,
 		model.ClusterEventInvalidateCacheForRoles,
 		model.ClusterEventInvalidateCacheForRolePermissions,
@@ -763,6 +765,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"handler", "method", "status_code", "origin_client", "page_load_context"},
 	)
 	m.Registry.MustRegister(m.APITimesHistograms)
+
+	m.RedisTimesHistograms = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemDB,
+			Name:        "cache_time",
+			Help:        "Time to execute the cache handler",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"cache_name", "operation"},
+	)
+	m.Registry.MustRegister(m.RedisTimesHistograms)
 
 	m.SearchPostIndexCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace:   MetricsNamespace,
@@ -1249,7 +1263,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "channel_switch",
 			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "fresh"},
 	)
 	m.Registry.MustRegister(m.ClientChannelSwitchDuration)
 
@@ -1260,7 +1274,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "team_switch",
 			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "fresh"},
 	)
 	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
 
@@ -1321,6 +1335,17 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform"},
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
+
+	m.MobileClientSessionMetadataGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_session_metadata",
+			Help:      "The number of mobile sessions in each version, platform and whether they have the notifications disabled",
+		},
+		[]string{"version", "platform", "notifications_disabled"},
+	)
+	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
 
 	return m
 }
@@ -1497,6 +1522,13 @@ func (mi *MetricsInterfaceImpl) ObserveStoreMethodDuration(method string, succes
 
 func (mi *MetricsInterfaceImpl) ObserveAPIEndpointDuration(handler, method, statusCode, originClient, pageLoadContext string, elapsed float64) {
 	mi.APITimesHistograms.With(prometheus.Labels{"handler": handler, "method": method, "status_code": statusCode, "origin_client": originClient, "page_load_context": pageLoadContext}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveRedisEndpointDuration(cacheName, operation string, elapsed float64) {
+	mi.RedisTimesHistograms.With(prometheus.Labels{
+		"cache_name": cacheName,
+		"operation":  operation,
+	}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementClusterEventType(eventType model.ClusterEvent) {
@@ -1802,12 +1834,12 @@ func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent st
 	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64) {
-	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64) {
-	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
@@ -1828,6 +1860,14 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platfor
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
+}
+
+func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
+	mi.MobileClientSessionMetadataGauge.Reset()
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

@@ -235,17 +235,20 @@ type PostForExport struct {
 	ChannelName string
 	Username    string
 	ReplyCount  int
+	FlaggedBy   StringArray
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      StringArray
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy StringArray
 }
 
 type PostForIndexing struct {
@@ -310,7 +313,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewBool(*o.IsFollowing)
+		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -507,7 +510,11 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewString("")
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {

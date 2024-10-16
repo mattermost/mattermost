@@ -25,16 +25,16 @@ func TestGetClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
+					EmailNotificationContentsType: model.NewPointer(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewBool(false),
+					AllowCustomThemes: model.NewPointer(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        model.NewString("ws://mattermost.example.com:8065"),
-					WebsocketPort:       model.NewInt(80),
-					WebsocketSecurePort: model.NewInt(443),
+					WebsocketURL:        model.NewPointer("ws://mattermost.example.com:8065"),
+					WebsocketPort:       model.NewPointer(80),
+					WebsocketSecurePort: model.NewPointer(443),
 				},
 			},
 			"",
@@ -53,17 +53,17 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed, but not for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
+					EmailNotificationContentsType: model.NewPointer(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewBool(false),
+					AllowCustomThemes: model.NewPointer(false),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: model.NewBool(false),
+					ThemeManagement: model.NewPointer(false),
 				},
 			},
 			map[string]string{
@@ -76,16 +76,16 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for theme management",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
+					EmailNotificationContentsType: model.NewPointer(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
-					AllowCustomThemes: model.NewBool(false),
+					AllowCustomThemes: model.NewPointer(false),
 				},
 			},
 			"tag2",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: model.NewBool(true),
+					ThemeManagement: model.NewPointer(true),
 				},
 			},
 			map[string]string{
@@ -98,13 +98,13 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for enforcement",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnforceMultifactorAuthentication: model.NewBool(true),
+					EnforceMultifactorAuthentication: model.NewPointer(true),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					MFA: model.NewBool(true),
+					MFA: model.NewPointer(true),
 				},
 			},
 			map[string]string{
@@ -115,7 +115,7 @@ func TestGetClientConfig(t *testing.T) {
 			"default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceURL: model.NewString(model.PluginSettingsDefaultMarketplaceURL),
+					MarketplaceURL: model.NewPointer(model.PluginSettingsDefaultMarketplaceURL),
 				},
 			},
 			"tag1",
@@ -128,7 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			"non-default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceURL: model.NewString("http://example.com"),
+					MarketplaceURL: model.NewPointer("http://example.com"),
 				},
 			},
 			"tag1",
@@ -141,7 +141,7 @@ func TestGetClientConfig(t *testing.T) {
 			"enable ShowFullName prop",
 			&model.Config{
 				PrivacySettings: model.PrivacySettings{
-					ShowFullName: model.NewBool(true),
+					ShowFullName: model.NewPointer(true),
 				},
 			},
 			"tag1",
@@ -189,14 +189,14 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels other license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
-					EnableSharedChannels: model.NewBool(true),
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
+					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewBool(false),
+					SharedChannels: model.NewPointer(false),
 				},
 				SkuShortName: "other",
 			},
@@ -207,14 +207,14 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"licensed for shared channels",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
-					EnableSharedChannels: model.NewBool(true),
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
+					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewBool(true),
+					SharedChannels: model.NewPointer(true),
 				},
 				SkuShortName: "other",
 			},
@@ -225,14 +225,14 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels professional license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
-					EnableSharedChannels: model.NewBool(true),
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
+					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewBool(false),
+					SharedChannels: model.NewPointer(false),
 				},
 				SkuShortName: model.LicenseShortSkuProfessional,
 			},
@@ -244,7 +244,7 @@ func TestGetClientConfig(t *testing.T) {
 			"disable EnableUserStatuses",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnableUserStatuses: model.NewBool(false),
+					EnableUserStatuses: model.NewPointer(false),
 				},
 			},
 			"",
@@ -256,14 +256,14 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels enterprise license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
-					EnableSharedChannels: model.NewBool(true),
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
+					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewBool(false),
+					SharedChannels: model.NewPointer(false),
 				},
 				SkuShortName: model.LicenseShortSkuEnterprise,
 			},
@@ -275,7 +275,7 @@ func TestGetClientConfig(t *testing.T) {
 			"Disable App Bar",
 			&model.Config{
 				ExperimentalSettings: model.ExperimentalSettings{
-					DisableAppBar: model.NewBool(true),
+					DisableAppBar: model.NewPointer(true),
 				},
 			},
 			"",
@@ -297,7 +297,7 @@ func TestGetClientConfig(t *testing.T) {
 			"disable EnableJoinLeaveMessage",
 			&model.Config{
 				TeamSettings: model.TeamSettings{
-					EnableJoinLeaveMessageByDefault: model.NewBool(false),
+					EnableJoinLeaveMessageByDefault: model.NewPointer(false),
 				},
 			},
 			"tag1",
@@ -310,7 +310,7 @@ func TestGetClientConfig(t *testing.T) {
 			"test key for GiphySdkKey",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					GiphySdkKey: model.NewString(""),
+					GiphySdkKey: model.NewPointer(""),
 				},
 			},
 			"",
@@ -322,7 +322,6 @@ func TestGetClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 
@@ -355,16 +354,16 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"unlicensed",
 			&model.Config{
 				EmailSettings: model.EmailSettings{
-					EmailNotificationContentsType: model.NewString(model.EmailNotificationContentsFull),
+					EmailNotificationContentsType: model.NewPointer(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewBool(false),
+					AllowCustomThemes: model.NewPointer(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        model.NewString("ws://mattermost.example.com:8065"),
-					WebsocketPort:       model.NewInt(80),
-					WebsocketSecurePort: model.NewInt(443),
+					WebsocketURL:        model.NewPointer("ws://mattermost.example.com:8065"),
+					WebsocketPort:       model.NewPointer(80),
+					WebsocketSecurePort: model.NewPointer(443),
 				},
 			},
 			"",
@@ -381,11 +380,11 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"password settings",
 			&model.Config{
 				PasswordSettings: model.PasswordSettings{
-					MinimumLength: model.NewInt(15),
-					Lowercase:     model.NewBool(true),
-					Uppercase:     model.NewBool(true),
-					Number:        model.NewBool(true),
-					Symbol:        model.NewBool(false),
+					MinimumLength: model.NewPointer(15),
+					Lowercase:     model.NewPointer(true),
+					Uppercase:     model.NewPointer(true),
+					Number:        model.NewPointer(true),
+					Symbol:        model.NewPointer(false),
 				},
 			},
 			"",
@@ -414,7 +413,6 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 

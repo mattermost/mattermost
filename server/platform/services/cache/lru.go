@@ -27,17 +27,6 @@ type LRU struct {
 	invalidateClusterEvent model.ClusterEvent
 }
 
-// LRUOptions contains options for initializing LRU cache
-type LRUOptions struct {
-	Name                   string
-	Size                   int
-	DefaultExpiry          time.Duration
-	InvalidateClusterEvent model.ClusterEvent
-	// StripedBuckets is used only by LRUStriped and shouldn't be greater than the number
-	// of CPUs available on the machine running this cache.
-	StripedBuckets int
-}
-
 // entry is used to hold a value in the evictList.
 type entry struct {
 	key        string
@@ -47,7 +36,7 @@ type entry struct {
 }
 
 // NewLRU creates an LRU of the given size.
-func NewLRU(opts LRUOptions) Cache {
+func NewLRU(opts *CacheOptions) Cache {
 	return &LRU{
 		name:                   opts.Name,
 		size:                   opts.Size,
@@ -68,12 +57,6 @@ func (l *LRU) Purge() error {
 	return nil
 }
 
-// Set adds the given key and value to the store without an expiry. If the key already exists,
-// it will overwrite the previous value.
-func (l *LRU) Set(key string, value any) error {
-	return l.SetWithExpiry(key, value, 0)
-}
-
 // SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
 // the key already exists, it will overwrite the previous value
 func (l *LRU) SetWithDefaultExpiry(key string, value any) error {
@@ -92,6 +75,15 @@ func (l *LRU) Get(key string, value any) error {
 	return l.get(key, value)
 }
 
+func (l *LRU) GetMulti(keys []string, values []any) []error {
+	errs := make([]error, 0, len(values))
+	for i, key := range keys {
+		errs = append(errs, l.get(key, values[i]))
+	}
+
+	return errs
+}
+
 // Remove deletes the value for a key.
 func (l *LRU) Remove(key string) error {
 	l.lock.Lock()
@@ -103,11 +95,27 @@ func (l *LRU) Remove(key string) error {
 	return nil
 }
 
-// Keys returns a slice of the keys in the cache.
-func (l *LRU) Keys() ([]string, error) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
+func (l *LRU) RemoveMulti(keys []string) error {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 
+	// Note, this is a copy of l.Remove. But we want to avoid
+	// fine-grained locking for every single removal. Therefore,
+	// we copy a bit of code for simplicity.
+	for _, key := range keys {
+		if ent, ok := l.items[key]; ok {
+			l.removeElement(ent)
+		}
+	}
+
+	return nil
+}
+
+// Scan passes the whole slice of keys to the callback in LRU mode.
+// We don't need this callback style for LRU, but since we share
+// the same interface with Redis, we maintain parity.
+func (l *LRU) Scan(f func([]string) error) error {
+	l.lock.RLock()
 	keys := make([]string, l.len)
 	i := 0
 	for ent := l.evictList.Back(); ent != nil; ent = ent.Prev() {
@@ -117,7 +125,9 @@ func (l *LRU) Keys() ([]string, error) {
 			i++
 		}
 	}
-	return keys, nil
+	l.lock.RUnlock()
+
+	return f(keys)
 }
 
 // Len returns the number of items in the cache.
@@ -193,27 +203,6 @@ func (l *LRU) get(key string, value any) error {
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
 		_, err := msgpVal.UnmarshalMsg(val)
-		return err
-	}
-
-	// This is ugly and makes the cache package aware of the model package.
-	// But this is due to 2 things.
-	// 1. The msgp package works on methods on structs rather than functions.
-	// 2. Our cache interface passes pointers to empty pointers, and not pointers
-	// to values. This is mainly how all our model structs are passed around.
-	// It might be technically possible to use values _just_ for hot structs
-	// like these and then return a pointer while returning from the cache function,
-	// but it will make the codebase inconsistent, and has some edge-cases to take care of.
-	switch v := value.(type) {
-	case **model.User:
-		var u model.User
-		_, err := u.UnmarshalMsg(val)
-		*v = &u
-		return err
-	case *map[string]*model.User:
-		var u model.UserMap
-		_, err := u.UnmarshalMsg(val)
-		*v = u
 		return err
 	}
 

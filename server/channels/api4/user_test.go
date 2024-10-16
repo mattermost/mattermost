@@ -138,7 +138,7 @@ func TestCreateUser(t *testing.T) {
 		email := th.GenerateTestEmail()
 		newUser := &model.User{
 			Id:            model.NewId(),
-			RemoteId:      model.NewString(model.NewId()),
+			RemoteId:      model.NewPointer(model.NewId()),
 			Email:         email,
 			Password:      "Password1",
 			Username:      GenerateTestUsername(),
@@ -160,6 +160,137 @@ func TestCreateUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, *createdUser.RemoteId)
 	}, "Should not be able to define the RemoteID of a user through the API")
+}
+
+func TestCreateUserPasswordValidation(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	ruser := model.User{
+		Nickname:      "Corey Hulen",
+		Password:      "hello1",
+		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		EmailVerified: true,
+	}
+
+	for name, tc := range map[string]struct {
+		Password      string
+		Settings      *model.PasswordSettings
+		ExpectedError string
+	}{
+		"Short": {
+			Password: strings.Repeat("x", 5),
+			Settings: &model.PasswordSettings{
+				MinimumLength: model.NewPointer(5),
+				Lowercase:     model.NewPointer(false),
+				Uppercase:     model.NewPointer(false),
+				Number:        model.NewPointer(false),
+				Symbol:        model.NewPointer(false),
+			},
+		},
+		"Long": {
+			Password: strings.Repeat("x", model.PasswordMaximumLength),
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
+			},
+		},
+		"TooShort": {
+			Password: strings.Repeat("x", 2),
+			Settings: &model.PasswordSettings{
+				MinimumLength: model.NewPointer(5),
+				Lowercase:     model.NewPointer(false),
+				Uppercase:     model.NewPointer(false),
+				Number:        model.NewPointer(false),
+				Symbol:        model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
+		},
+		"TooLong": {
+			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
+		},
+		"MissingLower": {
+			Password: "AAAAAAAAAAASD123!@#",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
+		},
+		"MissingUpper": {
+			Password: "aaaaaaaaaaaaasd123!@#",
+			Settings: &model.PasswordSettings{
+				Uppercase: model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
+		},
+		"MissingNumber": {
+			Password: "asasdasdsadASD!@#",
+			Settings: &model.PasswordSettings{
+				Number:    model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Symbol:    model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_number.app_error",
+		},
+		"MissingSymbol": {
+			Password: "asdasdasdasdasdASD123",
+			Settings: &model.PasswordSettings{
+				Symbol:    model.NewPointer(true),
+				Lowercase: model.NewPointer(false),
+				Uppercase: model.NewPointer(false),
+				Number:    model.NewPointer(false),
+			},
+			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
+		},
+		"MissingMultiple": {
+			Password: "asdasdasdasdasdasd",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(true),
+				Number:    model.NewPointer(true),
+				Symbol:    model.NewPointer(true),
+			},
+			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+		},
+		"Everything": {
+			Password: "asdASD!@#123",
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewPointer(true),
+				Uppercase: model.NewPointer(true),
+				Number:    model.NewPointer(true),
+				Symbol:    model.NewPointer(true),
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.PasswordSettings = *tc.Settings })
+			ruser.Email = th.GenerateTestEmail()
+			ruser.Password = tc.Password
+			ruser.Username = GenerateTestUsername()
+			if _, resp, err := th.Client.CreateUser(context.Background(), &ruser); tc.ExpectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				CheckErrorID(t, err, tc.ExpectedError)
+				CheckBadRequestStatus(t, resp)
+			}
+		})
+	}
 }
 
 func TestCreateUserAudit(t *testing.T) {
@@ -281,7 +412,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestriction@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999099"),
+					AuthData:    model.NewPointer("999099"),
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -293,7 +424,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewString("999100"),
+					AuthData:    model.NewPointer("999100"),
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -698,12 +829,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -717,12 +848,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		th.BasicTeam.GroupConstrained = model.NewPointer(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			th.BasicTeam.GroupConstrained = model.NewPointer(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -1381,10 +1512,10 @@ func TestSearchUsers(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1421,10 +1552,10 @@ func TestSearchUsers(t *testing.T) {
 	id = model.NewId()
 	group, appErr = th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -2061,10 +2192,10 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewString("testpassword")
-	patch.Nickname = model.NewString("Joram Wilander")
-	patch.FirstName = model.NewString("Joram")
-	patch.LastName = model.NewString("Wilander")
+	patch.Password = model.NewPointer("testpassword")
+	patch.Nickname = model.NewPointer("Joram Wilander")
+	patch.FirstName = model.NewPointer("Joram")
+	patch.LastName = model.NewPointer("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -2099,19 +2230,19 @@ func TestPatchUser(t *testing.T) {
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	patch.Password = model.NewString(currentPassword)
+	patch.Password = model.NewPointer(currentPassword)
 	ruser, _, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 
 	require.Equal(t, *patch.Email, ruser.Email, "Email should update properly")
 
-	patch.Username = model.NewString(th.BasicUser2.Username)
+	patch.Username = model.NewPointer(th.BasicUser2.Username)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -2135,7 +2266,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2164,7 +2295,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient()
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString("newemail@test.com")
+	patch.Email = model.NewPointer("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2183,7 +2314,7 @@ func TestPatchAdminUser(t *testing.T) {
 	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	patch := &model.UserPatch{}
-	patch.Email = model.NewString(th.GenerateTestEmail())
+	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
 	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -2244,9 +2375,9 @@ func TestUserUnicodeNames(t *testing.T) {
 		client.Login(context.Background(), user.Email, user.Password)
 
 		patch := &model.UserPatch{}
-		patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
-		patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
-		patch.LastName = model.NewString("\u2028Wiggin\u2029")
+		patch.Nickname = model.NewPointer("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = model.NewPointer("\U0001d173Andrew\U0001d17a")
+		patch.LastName = model.NewPointer("\u2028Wiggin\u2029")
 
 		ruser, _, err := client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2279,7 +2410,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = model.NewString("test@test.com")
+	userAuth.AuthData = model.NewPointer("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -2684,6 +2815,31 @@ func TestUpdateUserActive(t *testing.T) {
 			require.NoError(t, err)
 		})
 	})
+
+	t.Run("update active status of LDAP user should fail", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		ldapUser := &model.User{
+			Email:         "ldapuser@mattermost-customer.com",
+			Username:      "ldapuser",
+			Password:      "Password123",
+			AuthService:   model.UserAuthServiceLdap,
+			EmailVerified: true,
+		}
+		user, appErr := th.App.CreateUser(th.Context, ldapUser)
+		require.Nil(t, appErr)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			resp, err := client.UpdateUserActive(context.Background(), user.Id, false)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			resp, err = client.UpdateUserActive(context.Background(), user.Id, true)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
 }
 
 func TestGetUsers(t *testing.T) {
@@ -3068,20 +3224,20 @@ func TestGetUsersInGroup(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
 	cid := model.NewId()
 	customGroup, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + cid,
-		Name:        model.NewString("name" + cid),
+		Name:        model.NewPointer("name" + cid),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + cid,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3145,10 +3301,10 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3691,7 +3847,7 @@ func TestAttachDeviceId(t *testing.T) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
 				})
 
-				resp, err := th.Client.AttachDeviceId(context.Background(), deviceId)
+				resp, err := th.Client.AttachDeviceProps(context.Background(), map[string]string{"device_id": deviceId})
 				require.NoError(t, err)
 
 				cookies := resp.Header.Get("Set-Cookie")
@@ -3704,18 +3860,87 @@ func TestAttachDeviceId(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid device id", func(t *testing.T) {
-		resp, err := th.Client.AttachDeviceId(context.Background(), "")
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
 	t.Run("not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
 
-		resp, err := th.Client.AttachDeviceId(context.Background(), "")
+		resp, err := th.Client.AttachDeviceProps(context.Background(), map[string]string{})
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+
+	// Props related tests
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(client)
+
+	resetSession := func(session *model.Session) {
+		session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
+		session.AddProp(model.SessionPropMobileVersion, "")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	t.Run("No props will return ok and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Unknown props will be ignored, returning ok and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{"unknownProp": "foo"})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Invalid disabled notification prop will return an error and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropDeviceNotificationDisabled: "foo"})
+		assert.Error(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Invalid version will return an error and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropMobileVersion: "foo"})
+		assert.Error(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
+	t.Run("Will update props", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropDeviceNotificationDisabled: "true", model.SessionPropMobileVersion: "2.19.0"})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, "true", updatedSession.Props[model.SessionPropDeviceNotificationDisabled])
+		assert.Equal(t, "true", storeSession.Props[model.SessionPropDeviceNotificationDisabled])
+		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
+		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
 	})
 }
 
@@ -3930,7 +4155,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewPointer("remote-id")}
 		ruser, appErr := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, appErr)
 
@@ -4702,7 +4927,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		// make a remote user
 		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
 			Username: "remoteuser",
-			RemoteId: model.NewString(model.NewId()),
+			RemoteId: model.NewPointer(model.NewId()),
 			Password: model.NewId(),
 			Email:    "remoteuser@example.com",
 		})
@@ -6415,7 +6640,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6442,7 +6667,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testReply",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6462,7 +6687,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			Message:   "testMsg",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -6786,29 +7011,6 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 	})
 
-	resp, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-
-	t.Run("Listed for follow event", func(t *testing.T) {
-		var caught bool
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
-						caught = true
-						require.Equal(t, ev.GetData()["state"], false)
-						require.Equal(t, ev.GetData()["reply_count"], float64(1))
-					}
-				case <-time.After(2 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
-	})
-
 	_, resp, err = th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, replyPost.CreateAt+1)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -6838,6 +7040,31 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
 	})
 
+	resp, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	t.Run("Listed for follow event", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadFollowChanged {
+						caught = true
+						require.Equal(t, ev.GetData()["state"], false)
+						require.Equal(t, ev.GetData()["reply_count"], float64(1))
+					}
+				case <-time.After(2 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadFollowChanged)
+	})
+
+	_, err = th.Client.UpdateThreadFollowForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, true)
+	require.NoError(t, err)
 	_, resp, err = th.Client.SetThreadUnreadByPostId(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -7235,7 +7462,7 @@ func TestSingleThreadGet(t *testing.T) {
 			Message:   "testMsg2",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString(model.PostPriorityUrgent),
+					Priority: model.NewPointer(model.PostPriorityUrgent),
 				},
 			},
 		})
@@ -7588,7 +7815,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			model.ServiceOpenid,
 		} {
 			user := th.CreateUserWithAuth(authService)
-			patch := &model.UserPatch{Username: model.NewString("something new")}
+			patch := &model.UserPatch{Username: model.NewPointer("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
@@ -7774,5 +8001,77 @@ func TestUserUpdateEvents(t *testing.T) {
 			// assert eventUser.NotifyProps is an empty map
 			require.Empty(t, eventUser.NotifyProps, "user event for non-source users should be sanitized")
 		})
+	})
+}
+
+func TestLoginWithDesktopToken(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("login SAML User with desktop token", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), samlUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, samlUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "true", sessions[0].Props["isSaml"])
+		assert.Equal(t, "false", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login OAuth User with desktop token", func(t *testing.T) {
+		gitlabUser := th.CreateUserWithAuth(model.UserAuthServiceGitlab)
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), gitlabUser)
+		assert.Nil(t, appErr)
+
+		user, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.NoError(t, err)
+		assert.Equal(t, gitlabUser.Id, user.Id)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), gitlabUser.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 1)
+		assert.Equal(t, "false", sessions[0].Props["isSaml"])
+		assert.Equal(t, "true", sessions[0].Props["isOAuthUser"])
+	})
+
+	t.Run("login email user with desktop token", func(t *testing.T) {
+		// Sleep to avoid rate limit error
+		time.Sleep(time.Second)
+		user := th.CreateUser()
+
+		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("invalid desktop token on login", func(t *testing.T) {
+		user := th.CreateUser()
+
+		_, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
+		assert.Nil(t, appErr)
+
+		invalidToken := "testinvalidToken"
+		token := &invalidToken
+
+		_, _, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+		require.Error(t, err)
+
+		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), user.Id, "")
+		require.NoError(t, err)
+
+		assert.Len(t, sessions, 0)
 	})
 }

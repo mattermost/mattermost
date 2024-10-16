@@ -46,6 +46,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, rctx, ss, s) })
 	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, rctx, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, rctx, ss) })
+	t.Run("AnalyticsGetInactiveUsersCountIgnoreBots", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t, rctx, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
 	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
 	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
@@ -101,6 +102,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
 	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
+	t.Run("MfaUsedTimestamps", func(t *testing.T) { testMfaUsedTimestamps(t, rctx, ss) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1605,10 +1607,10 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewString("n_" + model.NewId()),
+		Name:        model.NewPointer("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -2357,7 +2359,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, s
 
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
-			user.Id, model.UserAuthServiceSaml, model.NewString("some-id"), "", false)
+			user.Id, model.UserAuthServiceSaml, model.NewPointer("some-id"), "", false)
 		require.NoError(t, err)
 	}
 	resetAuthDataToID()
@@ -3694,28 +3696,28 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewString("")
+	nilAuthData := model.NewPointer("")
 
 	u1.AuthData = nilAuthData
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3837,28 +3839,28 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := model.NewString("")
+	nilAuthData := model.NewPointer("")
 
 	u1.AuthData = nilAuthData
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(NewTestId()),
+		Name:        model.NewPointer(NewTestId()),
 		DisplayName: NewTestId(),
 		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(NewTestId()),
+		RemoteId:    model.NewPointer(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -4471,7 +4473,30 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) })
+
+	count, err := ss.User().AnalyticsGetInactiveUsersCount()
+	require.NoError(t, err)
+	require.Equal(t, count, int64(0), "No users should have been inactive yet")
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.DeleteAt = model.GetMillis()
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) })
+
+	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
+	require.NoError(t, err)
+	require.Equal(t, count, newCount-1, "Expected 1 more inactive users but found otherwise.")
+}
+
+func testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) })
 
 	count, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
@@ -4481,11 +4506,22 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX,
 	u2.DeleteAt = model.GetMillis()
 	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+
+	t.Cleanup(func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) })
+
+	_, nErr := ss.Bot().Save(&model.Bot{
+		UserId:   u2.Id,
+		Username: u2.Username,
+		OwnerId:  u2.Id,
+	})
+	require.NoError(t, nErr)
+	u2.IsBot = true
+
+	t.Cleanup(func() { require.NoError(t, ss.Bot().PermanentDelete(u2.Id)) })
 
 	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
 	require.NoError(t, err)
-	require.Equal(t, count, newCount-1, "Expected 1 more inactive users but found otherwise.")
+	require.Equal(t, count, newCount, "Expected same inactive users but found otherwise.")
 }
 
 func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4764,10 +4800,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewString("n_" + model.NewId()),
+		Name:        model.NewPointer("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -5084,10 +5120,10 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewString("n_" + id),
+			Name:        model.NewPointer("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewString("ri_" + id),
+			RemoteId:    model.NewPointer("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5123,7 +5159,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	team, err = ss.Team().Update(team)
 	require.NoError(t, err)
 
@@ -5205,10 +5241,10 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewString("n_" + id),
+			Name:        model.NewPointer("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewString("ri_" + id),
+			RemoteId:    model.NewPointer("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5244,7 +5280,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
@@ -6612,4 +6648,25 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		require.NoError(t, err)
 		require.Len(t, userReport, 11)
 	})
+}
+
+func testMfaUsedTimestamps(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:    "ben@invalid.mattermost.com",
+		Username: "u1" + model.NewId(),
+	})
+
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+
+	tss, err := ss.User().GetMfaUsedTimestamps(u1.Id)
+	require.NoError(t, err)
+	require.Empty(t, tss)
+
+	err = ss.User().StoreMfaUsedTimestamps(u1.Id, []int{1, 2, 3})
+	require.NoError(t, err)
+
+	tss, err = ss.User().GetMfaUsedTimestamps(u1.Id)
+	require.NoError(t, err)
+	require.Equal(t, []int{1, 2, 3}, tss)
 }

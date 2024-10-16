@@ -572,9 +572,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-			if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
-				continue
-			}
+			continue
 		}
 
 		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
@@ -628,13 +626,28 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	permanent := c.Params.Permanent
+
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "permanent", permanent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	if err != nil {
-		c.SetPermissionError(model.PermissionDeletePost)
+	includeDeleted := permanent
+
+	if permanent && !*c.App.Config().ServiceSettings.EnableAPIPostDeletion {
+		c.Err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+c.Params.PostId, http.StatusNotImplemented)
+		return
+	}
+
+	if permanent && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(post)
@@ -652,8 +665,14 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	if _, err := c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId); err != nil {
-		c.Err = err
+	if permanent {
+		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+	} else {
+		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+	}
+
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1074,7 +1093,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	patch := &model.PostPatch{}
-	patch.IsPinned = model.NewBool(isPinned)
+	patch.IsPinned = model.NewPointer(isPinned)
 
 	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
 	if err != nil {
@@ -1129,7 +1148,9 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1286,7 +1307,9 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1307,7 +1330,9 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model.ChannelMember) bool {

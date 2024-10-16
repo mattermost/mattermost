@@ -41,7 +41,8 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assert.NotEmpty(th.t, poir.TriggerId)
 	assert.Equal(th.t, "button", poir.Type)
 	assert.Equal(th.t, "test-value", poir.Context["test-key"])
-	w.Write([]byte("{}"))
+	_, err = w.Write([]byte("{}"))
+	require.NoError(th.t, err)
 	w.WriteHeader(200)
 }
 
@@ -272,7 +273,7 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		time.Sleep(2 * time.Second)
