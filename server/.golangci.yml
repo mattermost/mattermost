@@ -113,7 +113,6 @@ issues:
         channels/app/channel_category_test.go|\
         channels/app/channel_test.go|\
         channels/app/config_test.go|\
-        channels/app/desktop_login.go|\
         channels/app/email/email_test.go|\
         channels/app/email/helper_test.go|\
         channels/app/export.go|\
