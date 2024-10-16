@@ -4,8 +4,9 @@
 package main
 
 import (
+	"log"
 	"os"
-
+	"github.com/joho/godotenv"
 	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	// Import and register app layer slash commands
 	_ "github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
@@ -17,6 +18,10 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, skipping...")
+	}
+
 	if err := commands.Run(os.Args[1:]); err != nil {
 		os.Exit(1)
 	}

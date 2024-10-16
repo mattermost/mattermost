@@ -33,6 +33,7 @@ import AddChannelsCtaButton from '../add_channels_cta_button';
 import InviteMembersButton from '../invite_members_button';
 import {SidebarCategoryHeader} from '../sidebar_category_header';
 import SidebarChannel from '../sidebar_channel';
+import { getSlackChannels, SlackChannel } from 'utils/slack/get_channels';
 
 type Props = {
     category: ChannelCategory;
@@ -53,6 +54,8 @@ type Props = {
 
 type State = {
     isMenuOpen: boolean;
+    slackChannels: SlackChannel[];
+    slackChannelIds: string[];
 }
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
@@ -69,6 +72,8 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         this.state = {
             isMenuOpen: false,
+            slackChannels: [],
+            slackChannelIds: []
         };
 
         this.a11yKeyDownRegistered = false;
@@ -83,7 +88,16 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     componentDidMount() {
         this.categoryTitleRef.current?.addEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
         this.categoryTitleRef.current?.addEventListener(A11yCustomEventTypes.DEACTIVATE, this.handleA11yDeactivateEvent);
+        this.getSlackChannels();
     }
+
+    getSlackChannels = async () => {
+        const url = `${process.env.REACT_APP_BASE_URL}/users/slack/channels`;
+        const channels: SlackChannel[] = await getSlackChannels(url);
+        const channelIds = channels.map(channel => channel.id);
+        this.setState({ slackChannelIds: channelIds });
+        this.setState({ slackChannels: channels });
+    };
 
     componentWillUnmount() {
         this.categoryTitleRef.current?.removeEventListener(A11yCustomEventTypes.ACTIVATE, this.handleA11yActivateEvent);
@@ -112,7 +126,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
     };
 
-    renderChannel = (channelId: string, index: number) => {
+        renderChannel = (channelId: string, index: number) => {
         const {setChannelRef, category, draggingState} = this.props;
         return (
             <SidebarChannel

@@ -12,20 +12,25 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"os"
 	"github.com/blang/semver/v4"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
+	"database/sql"
+	_ "github.com/lib/pq"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/slack-go/slack"
+	"math/rand"
 )
 
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("", api.APISessionRequired(getUsers)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/slack/channels", api.APISessionRequired(getSlackChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers)).Methods(http.MethodGet)
@@ -108,6 +113,410 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
+}
+
+type Channel struct {
+	ID                string `json:"id"`
+	CreateAt          int64  `json:"createat"`
+	UpdateAt          int64  `json:"updateat"`
+	DeleteAt          int64  `json:"deleteat"`
+	TeamID            string `json:"teamid"`
+	Type              string `json:"type"`
+	DisplayName       string `json:"displayname"`
+	Name              string `json:"name"`
+	Header            string `json:"header"`
+	Purpose           string `json:"purpose"`
+	LastPostAt        int64  `json:"lastpostat"`
+	TotalMsgCount     int    `json:"totalmsgcount"`
+	ExtraUpdateAt     int64  `json:"extraupdateat"`
+	CreatorID         string `json:"creatorid"`
+	SchemeID          string `json:"schemeid"`
+	GroupConstrained  bool   `json:"groupconstrained"`
+	Shared            bool   `json:"shared"`
+	TotalMsgCountRoot int    `json:"totalmsgcountroot"`
+	LastRootPostAt    int64  `json:"lastrootpostat"`
+}
+
+type ChannelMember struct {
+	ChannelId          string    `json:"channel_id"`
+	UserId             string    `json:"user_id"`
+	Roles              string    `json:"roles"`
+	LastViewedAt       int64     `json:"last_viewed_at"`
+	MsgCount           int64     `json:"msg_count"`
+	MentionCount       int64     `json:"mention_count"`
+	MentionCountRoot   int64     `json:"mention_count_root"`
+	UrgentMentionCount int64     `json:"urgent_mention_count"`
+	MsgCountRoot       int64     `json:"msg_count_root"`
+	NotifyProps        StringMap `json:"notify_props"`
+	LastUpdateAt       int64     `json:"last_update_at"`
+	SchemeGuest        bool      `json:"scheme_guest"`
+	SchemeUser         bool      `json:"scheme_user"`
+	SchemeAdmin        bool      `json:"scheme_admin"`
+	ExplicitRoles      string    `json:"explicit_roles"`
+}
+
+type StringMap map[string]string
+
+type SidebarChannel struct {
+	ChannelId  string `json:"channel_id"`
+	UserId     string `json:"user_id"`
+	CategoryId string `json:"category_id"`
+	SortOrder  int64  `json:"-"`
+}
+
+func getSlackChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	slackToken := os.Getenv("SLACK_TOKEN")
+	if slackToken == "" {
+		fmt.Println("Error: SLACK_TOKEN environment variable is not set.")
+		return
+	}
+	api := slack.New(slackToken)
+
+	params := &slack.GetConversationsParameters{
+		Types: []string{"public_channel", "private_channel"}, // Include both public and private channels
+		Limit: 100,
+	}
+
+	var convertedChannels []Channel
+
+	slackChannels, _, err := api.GetConversations(params)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error fetching Slack channels: %s", err), http.StatusInternalServerError) // Return error response
+		return
+	}
+	connStr := "postgres://mmuser:mostest@localhost:5432/mattermost_test"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error connection into database: %s", err), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	for _, slackChannel := range slackChannels {
+		createdAt := slackChannel.Created.Time()
+
+		createdAtMillis := createdAt.Unix() * 1000
+		convertedChannel := Channel{
+			ID:                slackChannel.ID,
+			CreateAt:          createdAtMillis, // Convert seconds to milliseconds
+			UpdateAt:          createdAtMillis, // Use created time for updated time
+			DeleteAt:          0,               // Set deleteAt to 0
+			TeamID:            "1nxuufadyjg1prj8gy7h3bmqjc",
+			Type:              "O",               // Set type to "O"
+			DisplayName:       slackChannel.Name, // Use channel name for display name
+			Name:              slackChannel.Name, // Use channel name for name
+			Header:            "",
+			Purpose:           slackChannel.Purpose.Value,   // Assuming Purpose is a struct with a Value field
+			LastPostAt:        createdAtMillis,              // Convert seconds to milliseconds
+			TotalMsgCount:     0,                            // Assuming total message count is 0
+			ExtraUpdateAt:     0,                            // Assuming extra update at is 0
+			CreatorID:         "xm44bmxi8jnktmpzo5s16snh1o", // Use the creator ID from Slack channel
+			SchemeID:          "",                           // Assuming scheme ID is not present
+			GroupConstrained:  false,                        // Assuming this is a boolean
+			Shared:            false,                        // Assuming this is a boolean
+			TotalMsgCountRoot: 0,                            // Assuming total message count root is 0
+			LastRootPostAt:    createdAtMillis,              // Convert seconds to milliseconds
+		}
+		convertedChannels = append(convertedChannels, convertedChannel)
+
+		// Delete logic
+		var channelExists bool
+		errr := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM channels WHERE id = $1)`, convertedChannel.ID).Scan(&channelExists)
+		if errr != nil {
+			http.Error(w, fmt.Sprintf("Error checking if channel exists: %s", errr), http.StatusInternalServerError)
+			return
+		}
+
+		// If it exists, delete the existing channel
+		if channelExists {
+			_, err := db.Exec(`DELETE FROM channels WHERE id = $1`, convertedChannel.ID)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error deleting existing channel: %s", err), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// Insert into the database
+		_, err := db.Exec(`INSERT INTO channels (id, createat, updateat, deleteat, teamid, type, displayname, name, header, purpose, lastpostat, totalmsgcount, extraupdateat, creatorid, schemeid, groupconstrained, shared, totalmsgcountroot, lastrootpostat)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+			convertedChannel.ID,
+			convertedChannel.CreateAt,
+			convertedChannel.UpdateAt,
+			convertedChannel.DeleteAt,
+			convertedChannel.TeamID,
+			convertedChannel.Type,
+			convertedChannel.DisplayName,
+			convertedChannel.Name,
+			convertedChannel.Header,
+			convertedChannel.Purpose,
+			convertedChannel.LastPostAt,
+			convertedChannel.TotalMsgCount,
+			convertedChannel.ExtraUpdateAt,
+			convertedChannel.CreatorID,
+			convertedChannel.SchemeID,
+			convertedChannel.GroupConstrained,
+			convertedChannel.Shared,
+			convertedChannel.TotalMsgCountRoot,
+			convertedChannel.LastRootPostAt,
+		)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error inserting channel into database: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		channelID := convertedChannel.ID
+
+		// Insert into the ChannelMembers table
+		userID := "xm44bmxi8jnktmpzo5s16snh1o" // Use the user ID you want to associate with the channel
+		roles := ""                            // Assuming roles are empty
+		lastViewedAt := createdAtMillis        // Use the created time for last viewed
+		msgCount := 0                          // Example message count
+		mentionCount := 0                      // Example mention count
+		notifyProps := `{"push": "default", "email": "default", "desktop": "default", "mark_unread": "all", "ignore_channel_mentions": "default", "channel_auto_follow_threads": "off"}`
+		lastUpdateAt := createdAtMillis // Use the created time for last update
+		schemeUser := true              // Example value
+		schemeAdmin := false            // Example value
+		schemeGuest := false            // Example value
+		mentionCountRoot := 0           // Example value
+		msgCountRoot := 0               // Example value
+		urgentMentionCount := 0         // Example value
+
+		var membersExists bool
+		err = db.QueryRow(`SELECT EXISTS(SELECT 1 FROM ChannelMembers WHERE channelid = $1 AND userid = $2)`, channelID, userID).Scan(&membersExists)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error checking if channel member exists: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		// If it does not exist, insert the new ChannelMember record
+		if !membersExists {
+			_, err = db.Exec(`INSERT INTO ChannelMembers (channelid, userid, roles, lastviewedat, msgcount, mentioncount, notifyprops, lastupdateat, schemeuser, schemeadmin, schemeguest, mentioncountroot, msgcountroot, urgentmentioncount)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+				channelID,
+				userID,
+				roles,
+				lastViewedAt,
+				msgCount,
+				mentionCount,
+				notifyProps,
+				lastUpdateAt,
+				schemeUser,
+				schemeAdmin,
+				schemeGuest,
+				mentionCountRoot,
+				msgCountRoot,
+				urgentMentionCount,
+			)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error inserting channel member into database: %s", err), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		var lastSortOrder int64
+		err = db.QueryRow(`SELECT COALESCE(MAX(sortorder), 0) FROM SidebarChannels WHERE userid = $1`, userID).Scan(&lastSortOrder)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error fetching last sort order: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		newSortOrder := lastSortOrder + 10 // Calculate new sort order
+
+		// Check for existing SidebarChannel record
+		var exists bool
+		err = db.QueryRow(`SELECT EXISTS(SELECT 1 FROM SidebarChannels WHERE channelid = $1 AND userid = $2)`, convertedChannel.ID, userID).Scan(&exists)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error checking if sidebar channel exists: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		if !exists {
+
+			// Insert into SidebarChannel
+			_, err = db.Exec(`INSERT INTO SidebarChannels (channelid, userid, categoryid, sortorder) 
+			VALUES ($1, $2, $3, $4)`,
+				channelID,
+				userID,
+				"channels_xm44bmxi8jnktmpzo5s16snh1o_1nxuufadyjg1prj8gy7h3bmqjc",
+				newSortOrder,
+			)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error inserting sidebar channel into database: %s", err), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		fetchMessages(api, channelID, db)
+
+	}
+
+	w.Header().Set("Content-Type", "application/json") // Set content type for JSON response
+	if err := json.NewEncoder(w).Encode(convertedChannels); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func fetchMessages(api *slack.Client, channelID string, db *sql.DB) {
+	params := &slack.GetConversationHistoryParameters{
+		ChannelID: channelID,
+		Limit:     100, // Adjust the limit as needed
+	}
+
+	history, err := api.GetConversationHistory(params)
+	if err != nil {
+		fmt.Printf("Error fetching messages for channel %s: %s\n", channelID, err)
+		return
+	}
+
+	// Process the messages as needed
+	for _, message := range history.Messages {
+		convertedMessage := convertSlackMessageToCustomFormat(message, channelID)
+		fmt.Printf("Converted Message: %+v\n", convertedMessage)
+
+		// Check if the message already exists in the posts table
+		exists, err := checkMessageExists(convertedMessage.CreateAt, channelID, db)
+		if err != nil {
+			fmt.Printf("Error checking for existing message: %s\n", err)
+			continue
+		}
+		
+		fmt.Printf("Message exist: %+v\n", exists)
+		if !exists {
+			err = insertPostIntoDatabase(convertedMessage, db)
+			if err != nil {
+				fmt.Printf("Error inserting post into database: %s\n", err)
+			}
+		} else {
+			fmt.Printf("Message already exists for timestamp %d in channel %s, skipping insertion.\n", convertedMessage.CreateAt, channelID)
+		}
+	}
+}
+
+func checkMessageExists(createAt int64, channelID string, db *sql.DB) (bool, error) {
+	var exists bool
+	err := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM posts WHERE createat = $1 AND channelid = $2)`, createAt, channelID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func insertPostIntoDatabase(message ConvertedMessage, db *sql.DB) error {
+	var fileNamesJSON []byte
+	var fileIDsJSON []byte
+
+	if len(message.FileNames) == 0 {
+		fileNamesJSON = []byte("[]") // Set to an empty JSON array
+	} else {
+		var err error
+		fileNamesJSON, err = json.Marshal(message.FileNames)
+		if err != nil {
+			return fmt.Errorf("error marshaling file names: %w", err)
+		}
+	}
+
+	if len(message.FileIDs) == 0 {
+		fileIDsJSON = []byte("[]") // Set to an empty JSON array
+	} else {
+		var err error
+		fileIDsJSON, err = json.Marshal(message.FileIDs)
+		if err != nil {
+			return fmt.Errorf("error marshaling file IDs: %w", err)
+		}
+	}
+
+	_, err := db.Exec(`INSERT INTO posts (id, createat, updateat, deleteat, userid, channelid, rootid, originalid, message, type, props, hashtags, filenames, fileids, hasreactions, editat, ispinned, remoteid) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+		message.ID,
+		message.CreateAt,
+		message.UpdateAt,
+		message.DeleteAt,
+		message.UserID,
+		message.ChannelID,
+		message.RootID,
+		message.OriginalID,
+		message.Message,
+		message.Type,
+		message.Props,
+		message.Hashtags,
+		fileNamesJSON, // Use the JSON string for filenames
+		fileIDsJSON,   // Use the JSON string for fileids
+		message.HasReactions,
+		message.EditAt,
+		message.IsPinned,
+		message.RemoteID,
+	)
+	return err
+}
+
+type ConvertedMessage struct {
+	ID           string          `json:"id"`
+	CreateAt     int64           `json:"createat"`
+	UpdateAt     int64           `json:"updateat"`
+	DeleteAt     int64           `json:"deleteat"`
+	UserID       string          `json:"userid"`
+	ChannelID    string          `json:"channelid"`
+	RootID       string          `json:"rootid"`
+	OriginalID   string          `json:"originalid"`
+	Message      string          `json:"message"`
+	Type         string          `json:"type"`
+	Props        json.RawMessage `json:"props"`
+	Hashtags     string          `json:"hashtags"`
+	FileNames    StringArray        `json:"filenames"`
+	FileIDs      StringArray        `json:"fileids"`
+	HasReactions bool            `json:"hasreactions"`
+	EditAt       int64           `json:"editat"`
+	IsPinned     bool            `json:"ispinned"`
+	RemoteID     string          `json:"remoteid"`
+}
+
+type StringArray []string
+
+func convertSlackMessageToCustomFormat(message slack.Message, channelID string) ConvertedMessage {
+	// Generate a random ID (you can customize this logic)
+	randomID := generateRandomID()
+
+	// Use the timestamp from the message for createat and updateat
+	timestamp, _ := strconv.ParseFloat(message.Timestamp, 64)
+	createdAtMillis := int64(timestamp * 1000) // Convert to milliseconds
+
+	var messageType string
+	if message.SubType == "channel_join" {
+		messageType = "system_join_team"
+	} else {
+		messageType = ""
+	}
+
+	return ConvertedMessage{
+		ID:           randomID,
+		CreateAt:     createdAtMillis,
+		UpdateAt:     createdAtMillis,
+		DeleteAt:     0,
+		UserID:       "xm44bmxi8jnktmpzo5s16snh1o",
+		ChannelID:    channelID,
+		RootID:       "", // Set as needed
+		OriginalID:   "", // Set as needed
+		Message:      message.Text,
+		Type:         messageType,
+		Props:        json.RawMessage(`{"disable_group_highlight": true}`), // Example props
+		Hashtags:     "", // Set as needed
+		FileNames:    StringArray{}, // Populate if there are files
+		FileIDs:      StringArray{}, // Populate if there are file IDs
+		HasReactions: false, // Set based on your logic
+		EditAt:       0, // Set as needed
+		IsPinned:     false, // Set as needed
+		RemoteID:     "", // Set as needed
+	}
+}
+
+func generateRandomID() string {
+	// Generate a random string of a specific length (similar to the ID format)
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, 24) // Adjust length as needed
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {

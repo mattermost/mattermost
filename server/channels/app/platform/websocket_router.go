@@ -5,11 +5,57 @@ package platform
 
 import (
 	"net/http"
-
+	"os"
+	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/slack-go/slack"
 )
+
+// SlackMessage represents a message from Slack to be sent over WebSocket
+type SlackMessage struct {
+	Type    string `json:"type"`
+	Channel string `json:"channel"`
+	User    string `json:"user"`
+	Text    string `json:"text"`
+}
+
+// EventType returns the event type for the SlackMessage
+func (m *SlackMessage) EventType() string {
+	return m.Type
+}
+
+func connectToSlackRTM(token string) (*slack.RTM, error) {
+	api := slack.New(token)
+	rtm := api.NewRTM()
+	go rtm.ManageConnection() // Start managing the connection
+	return rtm, nil           // Return the RTM instance
+}
+
+func handleSlackMessages(rtm *slack.RTM, hub *Hub, conn *WebConn) {
+    for msg := range rtm.IncomingEvents {
+        switch evt := msg.Data.(type) {
+        case *slack.MessageEvent:
+            fmt.Printf("Received message from Slack: User: %s, Channel: %s, Text: %s\n", evt.User, evt.Channel, evt.Text)
+
+			responseData := map[string]any{
+                "type":    "slack_message",
+                "channel": evt.Channel,
+                "user":    evt.User,
+                "text":    evt.Text,
+            }
+
+            response := model.NewWebSocketResponse(model.StatusOk, 0, responseData)
+
+            if hub != nil {
+                hub.SendMessage(conn, response)
+            } else {
+                fmt.Println("Error: Hub is nil")
+            }
+        }
+    }
+}
 
 type webSocketHandler interface {
 	ServeWebSocket(*WebConn, *model.WebSocketRequest)
@@ -27,6 +73,18 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		returnWebSocketError(conn.Platform, conn, r, err)
+		return
+	}
+	slackToken := os.Getenv("SLACK_TOKEN")
+	if slackToken == "" {
+		fmt.Println("Error: SLACK_TOKEN environment variable is not set.")
+		return
+	}
+	rtm, err := connectToSlackRTM(slackToken)
+	hub := conn.Platform.GetHubForUserId(conn.UserId)
+	go handleSlackMessages(rtm, hub, conn)
+	if err != nil {
+		fmt.Println("Error connecting to Slack RTM:", err)
 		return
 	}
 
