@@ -56,7 +56,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
         id="commercial_support_modal.description"
         values={
           Object {
-            "supportLink": "https://support.mattermost.com/hc/en-us/requests/new",
+            "supportLink": [Function],
           }
         }
       />
@@ -67,7 +67,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
             id="commercial_support_modal.warning.banner"
             values={
               Object {
-                "debugLink": "/admin_console/environment/logging"
+                "debugLink": [Function],
               }
             }
           />
