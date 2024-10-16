@@ -24,12 +24,14 @@ func TestDataRetentionGetPolicy(t *testing.T) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 }
+
 func TestGetPolicies(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -56,14 +58,14 @@ func TestGetPolicies(t *testing.T) {
 		Policies:   samplePolicies,
 		TotalCount: int64(len(samplePolicies)),
 	}
-	mockDataRetentionInterface.On("GetPolicies", mock.Anything, mock.Anything).Return(samplePolicyList, nil)
+
+	// Set up mock expectations
+	mockDataRetentionInterface.On("GetPolicies", mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(samplePolicyList, nil)
 
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetPolicies_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("as system admin", func(t *testing.T) {
 		policies, resp, err := th.SystemAdminClient.GetDataRetentionPolicies(context.Background(), 0, 100)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -75,8 +77,19 @@ func TestGetPolicies(t *testing.T) {
 		assert.Equal(t, int64(1), policies.Policies[0].TeamCount, "TeamCount should be 1")
 	})
 
-	t.Run("GetPolicies_Forbidden", func(t *testing.T) {
-		th.LoginBasic()
+	t.Run("with different page and per_page", func(t *testing.T) {
+		page := 1
+		perPage := 50
+		t.Logf("Calling GetDataRetentionPolicies with page=%d, perPage=%d", page, perPage)
+		policies, resp, err := th.SystemAdminClient.GetDataRetentionPolicies(context.Background(), page, perPage)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policies, "Policies should not be nil")
+		require.NotEmpty(t, policies.Policies, "Policies should not be empty")
+		require.Len(t, policies.Policies, 1, "Should return 1 policy")
+	})
+
+	t.Run("as regular user", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
@@ -86,9 +99,10 @@ func TestGetPolicies(t *testing.T) {
 		assert.Nil(t, policies, "Policies should be nil on forbidden access")
 	})
 
-	t.Run("GetPolicies_Unauthorized", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("without login", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
 		policies, resp, err := th.Client.GetDataRetentionPolicies(context.Background(), 0, 100)
 		require.Error(t, err)
@@ -102,8 +116,8 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	license := model.NewTestLicense("data_retention")
-	th.App.Srv().SetLicense(license)
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -118,10 +132,10 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 	mockDataRetentionInterface.On("GetPoliciesCount").Return(int64(3), (*model.AppError)(nil))
 
 	// Set the mock on the app
-	th.App.Channels().DataRetention = (mockDataRetentionInterface)
+	th.App.Channels().DataRetention = mockDataRetentionInterface
 	t.Run("get policies count without permissions", func(t *testing.T) {
-		th.LoginBasic()
-		_, resp, err := th.Client.GetDataRetentionPoliciesCount(context.Background())
+		count, resp, err := th.Client.GetDataRetentionPoliciesCount(context.Background())
+		require.Equal(t, int64(0), count, "Expected count to be 0")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -129,7 +143,6 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 	t.Run("get policies count with permissions", func(t *testing.T) {
 		// Add necessary permissions
 		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
-		th.LoginBasic()
 
 		count, resp, err := th.Client.GetDataRetentionPoliciesCount(context.Background())
 		require.NoError(t, err)
@@ -138,8 +151,6 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 	})
 
 	t.Run("get policies count as system admin", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
 		count, resp, err := th.SystemAdminClient.GetDataRetentionPoliciesCount(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -152,7 +163,8 @@ func TestGetPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -182,15 +194,8 @@ func TestGetPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("Success", func(t *testing.T) {
 		policy, resp, err := th.SystemAdminClient.GetDataRetentionPolicyByID(context.Background(), validPolicyId)
-		if err != nil {
-			t.Logf("Error: %v", err)
-			t.Logf("Response Status Code: %d", resp.StatusCode)
-			t.Logf("Response Error: %v", resp.Etag)
-		}
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, policy, "Policy should not be nil")
@@ -201,17 +206,14 @@ func TestGetPolicy(t *testing.T) {
 		assert.Equal(t, int64(2), policy.TeamCount, "TeamCount should match")
 	})
 
-	t.Run("GetPolicy_NonExistent", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("NonExistent", func(t *testing.T) {
 		policy, resp, err := th.SystemAdminClient.GetDataRetentionPolicyByID(context.Background(), nonExistentPolicyId)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.Nil(t, policy, "Policy should be nil for non-existent ID")
 	})
 
-	t.Run("GetPolicy_Forbidden", func(t *testing.T) {
-		th.LoginBasic()
+	t.Run("Forbidden", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
@@ -221,9 +223,10 @@ func TestGetPolicy(t *testing.T) {
 		assert.Nil(t, policy, "Policy should be nil on forbidden access")
 	})
 
-	t.Run("GetPolicy_Unauthorized", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("Unauthorized", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
 		policy, resp, err := th.Client.GetDataRetentionPolicyByID(context.Background(), validPolicyId)
 		require.Error(t, err)
@@ -231,9 +234,7 @@ func TestGetPolicy(t *testing.T) {
 		assert.Nil(t, policy, "Policy should be nil on unauthorized access")
 	})
 
-	t.Run("GetPolicy_InvalidID", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("InvalidID", func(t *testing.T) {
 		policy, resp, err := th.SystemAdminClient.GetDataRetentionPolicyByID(context.Background(), "invalid_id!")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -245,8 +246,8 @@ func TestCreatePolicy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -276,9 +277,7 @@ func TestCreatePolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("CreatePolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("Success", func(t *testing.T) {
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "Test Policy",
@@ -299,8 +298,7 @@ func TestCreatePolicy(t *testing.T) {
 		assert.Equal(t, int64(1), policy.TeamCount, "TeamCount should be 1")
 	})
 
-	t.Run("CreatePolicy_Forbidden", func(t *testing.T) {
-		th.LoginBasic()
+	t.Run("Forbidden", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
@@ -317,9 +315,10 @@ func TestCreatePolicy(t *testing.T) {
 		assert.Nil(t, policy, "Policy should be nil on forbidden access")
 	})
 
-	t.Run("CreatePolicy_Unauthorized", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("Unauthorized", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
@@ -340,7 +339,8 @@ func TestPatchPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -368,10 +368,7 @@ func TestPatchPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("PatchPolicy_Success", func(t *testing.T) {
-		// Login as system admin
-		th.LoginSystemAdmin()
-
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -397,9 +394,7 @@ func TestPatchPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("PatchPolicy_InvalidPolicyID", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("InvalidPolicyID", func(t *testing.T) {
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               "invalid_id!", // Invalid ID
@@ -414,9 +409,7 @@ func TestPatchPolicy(t *testing.T) {
 		assert.Nil(t, policy, "Policy should be nil for invalid policy ID")
 	})
 
-	t.Run("PatchPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               validPolicyId,
@@ -431,9 +424,10 @@ func TestPatchPolicy(t *testing.T) {
 		assert.Nil(t, policy, "Policy should be nil when user has no permission")
 	})
 
-	t.Run("PatchPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
@@ -455,7 +449,8 @@ func TestDeletePolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -475,8 +470,7 @@ func TestDeletePolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("DeletePolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -488,8 +482,7 @@ func TestDeletePolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("DeletePolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -501,19 +494,18 @@ func TestDeletePolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("DeletePolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		resp, err := th.Client.DeleteDataRetentionPolicy(context.Background(), validPolicyId)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("DeletePolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		resp, err := th.Client.DeleteDataRetentionPolicy(context.Background(), validPolicyId)
+		resp, err = th.Client.DeleteDataRetentionPolicy(context.Background(), validPolicyId)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -524,7 +516,8 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -557,10 +550,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetTeamPoliciesForUser_OwnPolicies", func(t *testing.T) {
-		th.LoginBasic()
-
-		// Update the call to use 60 as the limit
+	t.Run("OwnPolicies", func(t *testing.T) {
 		policies, resp, err := th.Client.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -570,11 +560,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 		assert.Equal(t, int64(30), policies.Policies[0].PostDurationDays, "First policy PostDurationDays should match")
 	})
 
-	// ... (rest of the test cases remain the same, but update the limit to 60 in each call)
-
-	t.Run("GetTeamPoliciesForUser_AsSystemAdmin", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("AsSystemAdmin", func(t *testing.T) {
 		policies, resp, err := th.SystemAdminClient.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -582,7 +568,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 		require.Len(t, policies.Policies, 2, "Should return 2 policies")
 	})
 
-	t.Run("GetTeamPoliciesForUser_AsOtherUser", func(t *testing.T) {
+	t.Run("AsOtherUser", func(t *testing.T) {
 		th.LoginBasic2()
 
 		policies, resp, err := th.Client.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
@@ -591,18 +577,17 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 		assert.Nil(t, policies, "Policies should be nil for forbidden access")
 	})
 
-	t.Run("GetTeamPoliciesForUser_NonexistentUser", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("NonexistentUser", func(t *testing.T) {
 		policies, resp, err := th.SystemAdminClient.GetTeamPoliciesForUser(context.Background(), "nonexistent_user", 0, 60)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.Nil(t, policies, "Policies should be nil for non-existent user")
 	})
 
-	t.Run("GetTeamPoliciesForUser_Unauthorized", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("Unauthorized", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		policies, resp, err := th.Client.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -610,12 +595,14 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 		assert.Nil(t, policies, "Policies should be nil on unauthorized access")
 	})
 }
+
 func TestGetChannelPoliciesForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -648,9 +635,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetChannelPoliciesForUser_OwnPolicies", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("OwnPolicies", func(t *testing.T) {
 		policies, resp, err := th.Client.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -660,9 +645,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 		assert.Equal(t, int64(30), policies.Policies[0].PostDurationDays, "First policy PostDurationDays should match")
 	})
 
-	t.Run("GetChannelPoliciesForUser_AsSystemAdmin", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("AsSystemAdmin", func(t *testing.T) {
 		policies, resp, err := th.SystemAdminClient.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -670,7 +653,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 		require.Len(t, policies.Policies, 2, "Should return 2 policies")
 	})
 
-	t.Run("GetChannelPoliciesForUser_AsOtherUser", func(t *testing.T) {
+	t.Run("AsOtherUser", func(t *testing.T) {
 		th.LoginBasic2()
 
 		policies, resp, err := th.Client.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
@@ -679,18 +662,17 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 		assert.Nil(t, policies, "Policies should be nil for forbidden access")
 	})
 
-	t.Run("GetChannelPoliciesForUser_NonexistentUser", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
+	t.Run("NonexistentUser", func(t *testing.T) {
 		policies, resp, err := th.SystemAdminClient.GetChannelPoliciesForUser(context.Background(), "nonexistent_user", 0, 60)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		assert.Nil(t, policies, "Policies should be nil for non-existent user")
 	})
 
-	t.Run("GetChannelPoliciesForUser_Unauthorized", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("Unauthorized", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		policies, resp, err := th.Client.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -704,7 +686,8 @@ func TestGetTeamsForPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -739,8 +722,7 @@ func TestGetTeamsForPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetTeamsForPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -757,8 +739,7 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("GetTeamsForPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -771,18 +752,17 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("GetTeamsForPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		teams, resp, err := th.Client.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		assert.Nil(t, teams, "Teams should be nil when user has no permission")
 	})
 
-	t.Run("GetTeamsForPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		teams, resp, err := th.Client.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
@@ -796,7 +776,8 @@ func TestAddTeamsToPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -819,8 +800,7 @@ func TestAddTeamsToPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("AddTeamsToPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -832,8 +812,7 @@ func TestAddTeamsToPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("AddTeamsToPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -844,19 +823,19 @@ func TestAddTeamsToPolicy(t *testing.T) {
 		// Clean up: remove the permission after the test
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
-	t.Run("AddTeamsToPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
 
+	t.Run("NoPermission", func(t *testing.T) {
 		resp, err := th.Client.AddTeamsToRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("AddTeamsToPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		resp, err := th.Client.AddTeamsToRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
+		resp, err = th.Client.AddTeamsToRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -867,7 +846,8 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -890,8 +870,7 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("RemoveTeamsFromPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -903,8 +882,7 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("RemoveTeamsFromPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -916,19 +894,18 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("RemoveTeamsFromPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		resp, err := th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("RemoveTeamsFromPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		resp, err := th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
+		resp, err = th.Client.RemoveTeamsFromRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -939,7 +916,8 @@ func TestGetChannelsForPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -984,8 +962,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("GetChannelsForPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1002,8 +979,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("GetChannelsForPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1016,18 +992,17 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("GetChannelsForPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		channels, resp, err := th.Client.GetChannelsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		assert.Nil(t, channels, "Channels should be nil when user has no permission")
 	})
 
-	t.Run("GetChannelsForPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		channels, resp, err := th.Client.GetChannelsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.Error(t, err)
@@ -1041,7 +1016,8 @@ func TestAddChannelsToPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1101,8 +1077,7 @@ func TestAddChannelsToPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("AddChannelsToPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1114,8 +1089,7 @@ func TestAddChannelsToPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("AddChannelsToPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1127,8 +1101,7 @@ func TestAddChannelsToPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("AddChannelsToPolicy_InvalidChannelIDs", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("InvalidChannelIDs", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1140,19 +1113,18 @@ func TestAddChannelsToPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("AddChannelsToPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		resp, err := th.Client.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("AddChannelsToPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		resp, err := th.Client.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
+		resp, err = th.Client.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -1163,7 +1135,8 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 	defer th.TearDown()
 
 	// Set up a test license with Data Retention enabled
-	th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	ok := th.App.Srv().SetLicense(model.NewTestLicense("data_retention"))
+	require.True(t, ok, "SetLicense should return true")
 
 	// Ensure the enterprise features are enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1205,8 +1178,7 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 	// Set the mock on the app
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
-	t.Run("RemoveChannelsFromPolicy_Success", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1218,8 +1190,7 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("RemoveChannelsFromPolicy_NonExistentPolicy", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1231,8 +1202,7 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("RemoveChannelsFromPolicy_InvalidChannelIDs", func(t *testing.T) {
-		th.LoginSystemAdmin()
+	t.Run("InvalidChannelIDs", func(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
@@ -1244,19 +1214,18 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
-	t.Run("RemoveChannelsFromPolicy_NoPermission", func(t *testing.T) {
-		th.LoginBasic()
-
+	t.Run("NoPermission", func(t *testing.T) {
 		resp, err := th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("RemoveChannelsFromPolicy_NotLoggedIn", func(t *testing.T) {
-		_, err := th.Client.Logout(context.Background())
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		resp, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-		resp, err := th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
+		resp, err = th.Client.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
