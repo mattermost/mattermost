@@ -42,8 +42,8 @@ func TestListExports(t *testing.T) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
-			removeErr := os.RemoveAll(exportDir)
-			require.NoError(t, removeErr)
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
 		}()
 
 		f, err := os.Create(filepath.Join(exportDir, "export.zip"))
@@ -66,8 +66,8 @@ func TestListExports(t *testing.T) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
-			removeErr := os.RemoveAll(exportDir)
-			require.NoError(t, removeErr)
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
 		}()
 
 		exports, _, err := c.ListExports(context.Background())
@@ -104,8 +104,8 @@ func TestDeleteExport(t *testing.T) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
-			removeErr := os.RemoveAll(exportDir)
-			require.NoError(t, removeErr)
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
 		}()
 		exportName := "export.zip"
 		f, err := os.Create(filepath.Join(exportDir, exportName))
@@ -159,8 +159,8 @@ func TestDownloadExport(t *testing.T) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
-			removeErr := os.RemoveAll(exportDir)
-			require.NoError(t, removeErr)
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
 		}()
 
 		data := randomBytes(t, 1024*1024)
@@ -179,8 +179,8 @@ func TestDownloadExport(t *testing.T) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
 		defer func() {
-			removeErr := os.RemoveAll(exportDir)
-			require.NoError(t, removeErr)
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
 		}()
 
 		data := randomBytes(t, 1024*1024)
@@ -208,8 +208,8 @@ func BenchmarkDownloadExport(b *testing.B) {
 	err := os.Mkdir(exportDir, 0700)
 	require.NoError(b, err)
 	defer func() {
-		removeErr := os.RemoveAll(exportDir)
-		require.NoError(b, removeErr)
+		err = os.RemoveAll(exportDir)
+		require.NoError(b, err)
 	}()
 
 	exportName := "export.zip"
@@ -226,8 +226,8 @@ func BenchmarkDownloadExport(b *testing.B) {
 		outFilePath := filepath.Join(dataDir, fmt.Sprintf("export%d.zip", i))
 		outFile, err := os.Create(outFilePath)
 		require.NoError(b, err)
-		_, _, downloadErr := th.SystemAdminClient.DownloadExport(context.Background(), exportName, outFile, 0)
-		require.NoError(b, downloadErr)
+		_, _, err = th.SystemAdminClient.DownloadExport(context.Background(), exportName, outFile, 0)
+		require.NoError(b, err)
 		err = outFile.Close()
 		require.NoError(b, err)
 		err = os.Remove(outFilePath)
