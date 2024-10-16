@@ -12,11 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
-
-	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const (
@@ -55,7 +53,7 @@ type JobData struct {
 
 type BackendParams struct {
 	Config        *model.Config
-	Store         store.Store
+	Store         MessageExportStore
 	FileBackend   filestore.FileBackend
 	HtmlTemplates *templates.Container
 }
@@ -160,7 +158,7 @@ func (metadata *Metadata) UpdateCounts(channelId string, numMessages int, numAtt
 }
 
 // GetInitialExportPeriodData calculates and caches the channel memberships, channel metadata, and the TotalPostsExpected.
-func GetInitialExportPeriodData(rctx request.CTX, store store.Store, data JobData, reportProgress func(string)) (JobData, error) {
+func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data JobData, reportProgress func(string)) (JobData, error) {
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the job anyway. The only issue is that the progress % reporting will be inaccurate.
 	// Note: we're not using JobEndTime here because totalPosts is an estimate.
@@ -203,7 +201,7 @@ func GetInitialExportPeriodData(rctx request.CTX, store store.Store, data JobDat
 }
 
 type ChannelExportsParams struct {
-	Store                   store.Store
+	Store                   MessageExportStore
 	ExportPeriodStartTime   int64
 	ExportPeriodEndTime     int64
 	ChannelBatchSize        int

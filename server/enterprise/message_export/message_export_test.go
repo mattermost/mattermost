@@ -117,7 +117,7 @@ func TestRunExportByType(t *testing.T) {
 
 		channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
 			shared.ChannelExportsParams{
-				Store:                   mockStore,
+				Store:                   shared.NewMessageExportStore(mockStore),
 				ExportPeriodStartTime:   1,
 				ExportPeriodEndTime:     1,
 				ChannelBatchSize:        100,
@@ -135,7 +135,7 @@ func TestRunExportByType(t *testing.T) {
 			BatchStartTime:         1,
 			BatchEndTime:           1,
 		}, shared.BackendParams{
-			Store:         mockStore,
+			Store:         shared.NewMessageExportStore(mockStore),
 			FileBackend:   fileBackend,
 			HtmlTemplates: nil,
 			Config:        nil,

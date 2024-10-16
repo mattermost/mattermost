@@ -819,7 +819,7 @@ func TestActianceExport(t *testing.T) {
 
 			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
 				shared.ChannelExportsParams{
-					Store:                   mockStore,
+					Store:                   shared.NewMessageExportStore(mockStore),
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
 					ChannelBatchSize:        100,
@@ -836,7 +836,7 @@ func TestActianceExport(t *testing.T) {
 				BatchPath:              exportFileName,
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
-				Db:                     mockStore,
+				Db:                     shared.NewMessageExportStore(mockStore),
 				FileBackend:            fileBackend,
 			})
 			assert.NoError(t, err)
@@ -1221,7 +1221,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 
 			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
 				shared.ChannelExportsParams{
-					Store:                   mockStore,
+					Store:                   shared.NewMessageExportStore(mockStore),
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
 					ChannelBatchSize:        100,
@@ -1249,7 +1249,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					BatchPath:              exportFileName,
 					BatchStartTime:         batchStartTime,
 					BatchEndTime:           batchEndTime,
-					Db:                     mockStore,
+					Db:                     shared.NewMessageExportStore(mockStore),
 					FileBackend:            fileBackend,
 				})
 				assert.NoError(t, err)
@@ -1594,7 +1594,7 @@ func TestMultipleActianceExport(t *testing.T) {
 
 			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
 				shared.ChannelExportsParams{
-					Store:                   mockStore,
+					Store:                   shared.NewMessageExportStore(mockStore),
 					ExportPeriodStartTime:   1,
 					ExportPeriodEndTime:     tt.jobEndTime,
 					ChannelBatchSize:        100,
@@ -1611,7 +1611,7 @@ func TestMultipleActianceExport(t *testing.T) {
 				BatchPath:              exportFileName,
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
-				Db:                     mockStore,
+				Db:                     shared.NewMessageExportStore(mockStore),
 				FileBackend:            fileBackend,
 			})
 
@@ -1637,7 +1637,7 @@ func TestMultipleActianceExport(t *testing.T) {
 				BatchPath:              exportFileName,
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
-				Db:                     mockStore,
+				Db:                     shared.NewMessageExportStore(mockStore),
 				FileBackend:            fileBackend,
 			})
 			assert.NoError(t, err)
@@ -1801,7 +1801,7 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 					call.Return(tc.attachments, nil)
 				})
 			}
-			uploadStarts, uploadStops, files, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, mockStore)
+			uploadStarts, uploadStops, files, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, shared.NewMessageExportStore(mockStore))
 			if tc.expectError {
 				assert.Error(t, err)
 			} else {

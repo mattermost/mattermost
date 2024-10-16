@@ -96,7 +96,7 @@ func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType stri
 	reportProgress := func(message string) {
 		rctx.Logger().Debug(message)
 	}
-	data, err = shared.GetInitialExportPeriodData(rctx, m.Server.Store(), data, reportProgress)
+	data, err = shared.GetInitialExportPeriodData(rctx, shared.NewMessageExportStore(m.Server.Store()), data, reportProgress)
 	if err != nil {
 		return warningCount, model.NewAppError("RunExport", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -112,7 +112,7 @@ func (m *MessageExportInterfaceImpl) RunExport(rctx request.CTX, exportType stri
 	}
 	jobParams := shared.BackendParams{
 		Config:        m.Server.Config(),
-		Store:         m.Server.Store(),
+		Store:         shared.NewMessageExportStore(m.Server.Store()),
 		FileBackend:   fileBackend,
 		HtmlTemplates: t,
 	}

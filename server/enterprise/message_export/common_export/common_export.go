@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -107,7 +107,7 @@ func (metadata *Metadata) UpdateCounts(channelId string, attachments int) error 
 }
 
 type ChannelExportsParams struct {
-	Store                   store.Store
+	Store                   shared.MessageExportStore
 	ExportPeriodStartTime   int64
 	ExportPeriodEndTime     int64
 	ChannelBatchSize        int
