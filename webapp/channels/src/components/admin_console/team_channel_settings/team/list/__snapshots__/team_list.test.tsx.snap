@@ -140,7 +140,6 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         "minHeight": "80px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}
@@ -747,7 +746,6 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         "minHeight": "800px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={30}
