@@ -884,8 +884,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		publicChannel2 := &model.Channel{Name: "publicChannelName2"}
 		publicChannels := []*model.Channel{publicChannel1, publicChannel2}
 
-		privateChannel1 := &model.Channel{Name: "archivedChannelName1"}
-		privateChannel2 := &model.Channel{Name: "archivedChannelName2"}
+		privateChannel1 := &model.Channel{Name: "privateChannel1"}
+		privateChannel2 := &model.Channel{Name: "privateChannel2"}
 		privateChannels := []*model.Channel{privateChannel1, privateChannel2}
 		userChannels := []*model.Channel{}
 
@@ -964,8 +964,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		archivedChannel1 := &model.Channel{Name: "archivedChannelName1"}
 		publicChannel1 := &model.Channel{Name: "publicChannelName1"}
 
-		privateChannel1 := &model.Channel{Name: "archivedChannelName1", Type: model.ChannelTypePrivate}
-		privateChannel2 := &model.Channel{Name: "archivedChannelName2", Type: model.ChannelTypePrivate}
+		privateChannel1 := &model.Channel{Name: "privateChannel1", Type: model.ChannelTypePrivate}
+		privateChannel2 := &model.Channel{Name: "privateChannel2", Type: model.ChannelTypePrivate}
 		userChannels := []*model.Channel{archivedChannel1, publicChannel1, privateChannel1, privateChannel2}
 
 		mockError := errors.New("user does not have permissions to list all private channels in team")
