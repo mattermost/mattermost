@@ -10,6 +10,7 @@ import configureStore from 'store';
 
 import {reset as resetUserAgent, setPlatform, set as setUserAgent} from 'tests/helpers/user_agent_mocks';
 import {waitForObservations} from 'tests/performance_mock';
+import {DesktopAppAPI} from 'utils/desktop_api';
 
 import PerformanceReporter from './reporter';
 
@@ -389,7 +390,7 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
                 currentUserId: loggedIn ? 'currentUserId' : '',
             },
         },
-    }));
+    }), new DesktopAppAPI());
 
     return {
         client,

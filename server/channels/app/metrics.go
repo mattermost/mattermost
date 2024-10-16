@@ -72,6 +72,10 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveMobileClientChannelSwitchDuration(commonLabels["platform"], h.Value/1000)
 		case model.MobileClientTeamSwitchDuration:
 			a.Metrics().ObserveMobileClientTeamSwitchDuration(commonLabels["platform"], h.Value/1000)
+		case model.DesktopClientCpuUsage:
+			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktopAppVersion"], h.Labels["process"], h.Value)
+		case model.DesktopClientMemoryUsage:
+			a.Metrics().ObserveDesktopMemoryUsage(commonLabels["platform"], commonLabels["desktopAppVersion"], h.Labels["process"], h.Value/1000)
 		default:
 			// we intentionally skip unknown metrics
 		}
