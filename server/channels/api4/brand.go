@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -23,16 +24,24 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	img, err := c.App.GetBrandImage(c.AppContext)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write(nil)
+		if _, err := w.Write(nil); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error discarding request body", mlog.Err(err))
+		}
+	}()
 
 	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
