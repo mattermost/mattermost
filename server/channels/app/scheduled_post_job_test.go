@@ -202,10 +202,10 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
-		assert.Equal(t, model.ScheduledPostErrorNoChannelMember, scheduledPosts[0].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[0].ErrorCode)
 		assert.Greater(t, scheduledPosts[0].ProcessedAt, int64(0))
 
-		assert.Equal(t, model.ScheduledPostErrorNoChannelMember, scheduledPosts[1].ErrorCode)
+		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[1].ErrorCode)
 		assert.Greater(t, scheduledPosts[1].ProcessedAt, int64(0))
 	})
 }
