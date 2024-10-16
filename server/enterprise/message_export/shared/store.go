@@ -43,6 +43,9 @@ type SparseStore struct {
 	store.Store
 }
 
+// NewMessageExportStore returns a wrapped store.Store. Why? Because the CLI tool needs to "override" the GetForPost
+// method in FileStore. Non-CLI code only needs to use the store.Store's methods. This can be removed when we deprecate
+// the CLI tool. Tracked at MM-61139.
 func NewMessageExportStore(s store.Store) SparseStore {
 	return SparseStore{s}
 }
