@@ -6,15 +6,22 @@ import {expect, Locator} from '@playwright/test';
 export default class ChannelsSidebarLeft {
     readonly container: Locator;
     readonly findChannelButton;
+    readonly scheduledMessageCountonLHS;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
+        this.scheduledMessageCountonLHS = container.locator('span.scheduledPostBadge');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async assertScheduledMessageCountLHS(count: string) {
+        await expect(this.scheduledMessageCountonLHS).toBeVisible();
+        await expect(this.scheduledMessageCountonLHS).toHaveText(count);
     }
 
     /**

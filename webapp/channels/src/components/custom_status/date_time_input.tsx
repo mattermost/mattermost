@@ -28,7 +28,7 @@ import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
-const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
+const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 1;
 
 const DATE_FORMAT = 'yyyy-MM-dd';
 

@@ -8,12 +8,22 @@ import {components} from '@e2e-support/ui/components';
 export default class ChannelsSidebarRight {
     readonly container: Locator;
 
-    readonly postCreate;
     readonly closeButton;
+    readonly postCreate;
+    readonly rhsPostBody;
+    readonly scheduledMessageChannelInfo;
+    readonly scheduledMessageChannelInfoMessage;
+    readonly scheduledMessageSeeAllLink;
+    readonly scheduledMessageChannelInfoMessageText;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.scheduledMessageChannelInfo = container.locator('div.postBoxIndicator');
+        this.scheduledMessageChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledMessageSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledMessageChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
     }
@@ -49,6 +59,11 @@ export default class ChannelsSidebarRight {
         await this.closeButton.click();
 
         await expect(this.container).not.toBeVisible();
+    }
+
+    async clickOnSeeAllScheduledMessages() {
+        await this.scheduledMessageSeeAllLink.isVisible();
+        await this.scheduledMessageSeeAllLink.click();
     }
 }
 
