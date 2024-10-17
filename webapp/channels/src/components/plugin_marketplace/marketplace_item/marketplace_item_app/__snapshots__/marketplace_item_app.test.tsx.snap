@@ -17,7 +17,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -89,7 +94,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -129,7 +139,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -170,7 +185,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -208,7 +228,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -246,7 +271,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -294,7 +324,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Try Again"
@@ -334,7 +369,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
@@ -387,7 +427,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"

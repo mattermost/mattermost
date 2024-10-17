@@ -674,6 +674,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         day="numeric"
         dispatch={[Function]}
         hourCycle="h12"
+        timeZone="UTC"
         units={
           Array [
             "now",
@@ -736,6 +737,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           relNearest={1}
           second="numeric"
           style="long"
+          timeZone="UTC"
           timeZoneName="short"
           units={
             Array [
@@ -1520,6 +1522,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         day="numeric"
         dispatch={[Function]}
         hourCycle="h12"
+        timeZone="UTC"
         units={
           Array [
             "now",
@@ -1582,6 +1585,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           relNearest={1}
           second="numeric"
           style="long"
+          timeZone="UTC"
           timeZoneName="short"
           units={
             Array [
