@@ -14,9 +14,9 @@ type PostPriorityStore struct {
 	mock.Mock
 }
 
-// GetForPost provides a mock function with given fields: postId
-func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
-	ret := _m.Called(postId)
+// GetForPost provides a mock function with given fields: postID
+func (_m *PostPriorityStore) GetForPost(postID string) (*model.PostPriority, error) {
+	ret := _m.Called(postID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForPost")
@@ -25,10 +25,10 @@ func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, err
 	var r0 *model.PostPriority
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) (*model.PostPriority, error)); ok {
-		return rf(postId)
+		return rf(postID)
 	}
 	if rf, ok := ret.Get(0).(func(string) *model.PostPriority); ok {
-		r0 = rf(postId)
+		r0 = rf(postID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostPriority)
@@ -36,7 +36,7 @@ func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, err
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(postId)
+		r1 = rf(postID)
 	} else {
 		r1 = ret.Error(1)
 	}

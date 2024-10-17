@@ -14,9 +14,9 @@ type AuditStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: user_id, offset, limit
-func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
-	ret := _m.Called(user_id, offset, limit)
+// Get provides a mock function with given fields: userID, offset, limit
+func (_m *AuditStore) Get(userID string, offset int, limit int) (model.Audits, error) {
+	ret := _m.Called(userID, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -25,10 +25,10 @@ func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, 
 	var r0 model.Audits
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int, int) (model.Audits, error)); ok {
-		return rf(user_id, offset, limit)
+		return rf(userID, offset, limit)
 	}
 	if rf, ok := ret.Get(0).(func(string, int, int) model.Audits); ok {
-		r0 = rf(user_id, offset, limit)
+		r0 = rf(userID, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Audits)
@@ -36,7 +36,7 @@ func (_m *AuditStore) Get(user_id string, offset int, limit int) (model.Audits, 
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
-		r1 = rf(user_id, offset, limit)
+		r1 = rf(userID, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

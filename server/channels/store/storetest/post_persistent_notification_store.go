@@ -24,7 +24,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
-	p1.Message = NewTestId()
+	p1.Message = NewTestID()
 	p1.CreateAt = 10
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
@@ -37,7 +37,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	p2 := model.Post{}
 	p2.ChannelId = p1.ChannelId
 	p2.UserId = model.NewId()
-	p2.Message = NewTestId()
+	p2.Message = NewTestID()
 	p2.CreateAt = 20
 	p2.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
@@ -51,14 +51,14 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	p3 := model.Post{}
 	p3.ChannelId = p1.ChannelId
 	p3.UserId = model.NewId()
-	p3.Message = NewTestId()
+	p3.Message = NewTestID()
 	p3.CreateAt = 30
 
 	// Invalid - Notification is false
 	p4 := model.Post{}
 	p4.ChannelId = p1.ChannelId
 	p4.UserId = model.NewId()
-	p4.Message = NewTestId()
+	p4.Message = NewTestID()
 	p4.CreateAt = 40
 	p4.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
@@ -71,7 +71,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	p5 := model.Post{}
 	p5.ChannelId = p1.ChannelId
 	p5.UserId = model.NewId()
-	p5.Message = NewTestId()
+	p5.Message = NewTestID()
 	p5.CreateAt = 50
 	p5.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
@@ -146,7 +146,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
-	p1.Message = NewTestId()
+	p1.Message = NewTestID()
 	p1.CreateAt = 10
 	p1.Metadata = &model.PostMetadata{
 		Priority: &model.PostPriority{
@@ -199,7 +199,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
 		p1.UserId = model.NewId()
-		p1.Message = NewTestId()
+		p1.Message = NewTestID()
 		p1.CreateAt = 10
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -212,7 +212,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p2 := model.Post{}
 		p2.ChannelId = p1.ChannelId
 		p2.UserId = model.NewId()
-		p2.Message = NewTestId()
+		p2.Message = NewTestID()
 		p2.CreateAt = 20
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -225,7 +225,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p3 := model.Post{}
 		p3.ChannelId = p1.ChannelId
 		p3.UserId = model.NewId()
-		p3.Message = NewTestId()
+		p3.Message = NewTestID()
 		p3.CreateAt = 30
 		p3.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -259,7 +259,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
 		p1.UserId = model.NewId()
-		p1.Message = NewTestId()
+		p1.Message = NewTestID()
 		p1.CreateAt = 10
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -272,7 +272,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p2 := model.Post{}
 		p2.ChannelId = p1.ChannelId
 		p2.UserId = model.NewId()
-		p2.Message = NewTestId()
+		p2.Message = NewTestID()
 		p2.CreateAt = 20
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -285,7 +285,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p3 := model.Post{}
 		p3.ChannelId = p1.ChannelId
 		p3.UserId = model.NewId()
-		p3.Message = NewTestId()
+		p3.Message = NewTestID()
 		p3.CreateAt = 30
 		p3.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -298,7 +298,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p4 := model.Post{}
 		p4.ChannelId = model.NewId()
 		p4.UserId = model.NewId()
-		p4.Message = NewTestId()
+		p4.Message = NewTestID()
 		p4.CreateAt = 40
 		p4.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -311,7 +311,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p5 := model.Post{}
 		p5.ChannelId = p4.ChannelId
 		p5.UserId = model.NewId()
-		p5.Message = NewTestId()
+		p5.Message = NewTestID()
 		p5.CreateAt = 50
 		p5.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -343,10 +343,10 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 	})
 
 	t.Run("Delete By Team", func(t *testing.T) {
-		t1 := &model.Team{DisplayName: "t1", Name: NewTestId(), Email: MakeEmail(), Type: model.TeamOpen}
+		t1 := &model.Team{DisplayName: "t1", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen}
 		_, err := ss.Team().Save(t1)
 		require.NoError(t, err)
-		t2 := &model.Team{DisplayName: "t2", Name: NewTestId(), Email: MakeEmail(), Type: model.TeamOpen}
+		t2 := &model.Team{DisplayName: "t2", Name: NewTestID(), Email: MakeEmail(), Type: model.TeamOpen}
 		_, err = ss.Team().Save(t2)
 		require.NoError(t, err)
 
@@ -363,7 +363,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p1 := model.Post{}
 		p1.ChannelId = c1.Id
 		p1.UserId = model.NewId()
-		p1.Message = NewTestId()
+		p1.Message = NewTestID()
 		p1.CreateAt = 10
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -376,7 +376,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p2 := model.Post{}
 		p2.ChannelId = p1.ChannelId
 		p2.UserId = model.NewId()
-		p2.Message = NewTestId()
+		p2.Message = NewTestID()
 		p2.CreateAt = 20
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -389,7 +389,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p3 := model.Post{}
 		p3.ChannelId = c2.Id
 		p3.UserId = model.NewId()
-		p3.Message = NewTestId()
+		p3.Message = NewTestID()
 		p3.CreateAt = 30
 		p3.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -402,7 +402,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p4 := model.Post{}
 		p4.ChannelId = c3.Id
 		p4.UserId = model.NewId()
-		p4.Message = NewTestId()
+		p4.Message = NewTestID()
 		p4.CreateAt = 40
 		p4.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
@@ -415,7 +415,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		p5 := model.Post{}
 		p5.ChannelId = p4.ChannelId
 		p5.UserId = model.NewId()
-		p5.Message = NewTestId()
+		p5.Message = NewTestID()
 		p5.CreateAt = 50
 		p5.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
