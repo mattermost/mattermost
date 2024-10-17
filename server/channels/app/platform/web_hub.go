@@ -671,10 +671,9 @@ func (i *hubConnectionIndex) Add(wc *WebConn) {
 	cm, err := i.getChannelMembersForUser(wc.UserId)
 	if err != nil {
 		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
-	} else {
-		for chID := range cm {
-			i.byChannelID[chID] = append(i.byChannelID[chID], wc)
-		}
+	}
+	for chID := range cm {
+		i.byChannelID[chID] = append(i.byChannelID[chID], wc)
 	}
 
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
@@ -743,10 +742,9 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
 	cm, err := i.getChannelMembersForUser(userID)
 	if err != nil {
 		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
-	} else {
-		for chID := range cm {
-			i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
-		}
+	}
+	for chID := range cm {
+		i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
 	}
 }
 
