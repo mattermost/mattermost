@@ -169,7 +169,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 		LastIconUpdate: 0,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(sysBot.UserId)) }()
-	defer func() { require.NoError(t, ss.User().PermanentDelete(sysBot.UserId)) }()
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, sysBot.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
 	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
