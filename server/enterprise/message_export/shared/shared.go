@@ -48,6 +48,12 @@ type JobData struct {
 	PostsToExport          []*model.MessageExport
 	BatchEndTime           int64
 	BatchPath              string
+	MessageExportMs        []int64
+	ProcessingPostsMs      []int64
+	ProcessingXmlMs        []int64
+	TransferringFilesMs    []int64
+	TransferringZipMs      []int64
+	TotalBatchMs           []int64
 	Finished               bool
 }
 
@@ -58,13 +64,21 @@ type BackendParams struct {
 	HtmlTemplates *templates.Container
 }
 
+type WriteExportResult struct {
+	TransferringFilesMs int64
+	ProcessingXmlMs     int64
+	TransferringZipMs   int64
+	NumWarnings         int
+}
+
 type RunExportResults struct {
-	CreatedPosts int
-	UpdatedPosts int
-	DeletedPosts int
-	IgnoredPosts int
-	NumChannels  int
-	NumWarnings  int
+	CreatedPosts      int
+	UpdatedPosts      int
+	DeletedPosts      int
+	IgnoredPosts      int
+	NumChannels       int
+	ProcessingPostsMs int64
+	WriteExportResult
 }
 
 type ChannelMemberJoin struct {
@@ -255,6 +269,8 @@ func CalculateChannelExports(rctx request.CTX, opt ChannelExportsParams) (map[st
 
 	historiesByChannelId := make(map[string][]*model.ChannelMemberHistoryResult, len(activeChannelIds))
 
+	var batchTimes []int64
+
 	// Now that we have metadata, get channelMemberHistories for each channel.
 	// Use batches to reduce total db load and network waste.
 	for pos := 0; pos < len(activeChannelIds); pos += opt.ChannelHistoryBatchSize {
@@ -265,6 +281,8 @@ func CalculateChannelExports(rctx request.CTX, opt ChannelExportsParams) (map[st
 		})
 		opt.ReportProgressMessage(message)
 
+		start := time.Now()
+
 		upTo := min(pos+opt.ChannelHistoryBatchSize, len(activeChannelIds))
 		batch := activeChannelIds[pos:upTo]
 		channelMemberHistories, err := opt.Store.ChannelMemberHistory().GetUsersInChannelDuring(opt.ExportPeriodStartTime, opt.ExportPeriodEndTime, batch)
@@ -272,11 +290,15 @@ func CalculateChannelExports(rctx request.CTX, opt ChannelExportsParams) (map[st
 			return nil, nil, err
 		}
 
+		batchTimes = append(batchTimes, time.Since(start).Milliseconds())
+
 		// collect the channelMemberHistories by channelId
 		for _, entry := range channelMemberHistories {
 			historiesByChannelId[entry.ChannelId] = append(historiesByChannelId[entry.ChannelId], entry)
 		}
 	}
+
+	rctx.Logger().Info("GetUsersInChannelDuring batch times", mlog.Array("batch_times", batchTimes))
 
 	return channelMetadata, historiesByChannelId, nil
 }
