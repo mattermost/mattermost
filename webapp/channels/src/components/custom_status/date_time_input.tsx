@@ -27,6 +27,7 @@ import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
+import classNames from "classnames";
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -174,7 +175,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                             value={formatDate(time)}
                             id='customStatus__calendar-input'
                             readOnly={true}
-                            className='dateTime__calendar-input'
+                            className={classNames('dateTime__calendar-input', {isOpen: isPopperOpen})}
                             label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                             onClick={() => handlePopperOpenState(true)}
                             tabIndex={-1}

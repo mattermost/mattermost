@@ -7,13 +7,7 @@
 
     .dateTime__calendar-input {
         width: 100%;
-        border: 2px solid var(--button-bg);
         font-size: 14px;
-
-        &:hover {
-            border: 2px solid var(--button-bg);
-            cursor: pointer;
-        }
 
         &:focus-within {
             box-shadow: 0;
@@ -43,6 +37,22 @@
                     cursor: pointer;
                 }
             }
+        }
+    }
+
+    .dateTime__time-menu .dateTime__input, .dateTime__calendar-input {
+        border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        &:hover, &.isOpen {
+            border: 2px solid var(--button-bg);
+            cursor: pointer;
+        }
+    }
+
+    .dateTime__time-menu.MenuWrapper--open {
+        .dateTime__input {
+            border: 2px solid var(--button-bg);
+            cursor: pointer;
         }
     }
 
