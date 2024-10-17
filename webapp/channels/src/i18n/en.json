@@ -5343,7 +5343,7 @@
   "unarchive_channel.cancel": "Cancel",
   "unarchive_channel.confirm": "Confirm UNARCHIVE Channel",
   "unarchive_channel.del": "Unarchive",
-  "unarchive_channel.viewArchived.question": "Are you sure you wish to unarchive the **{display_name}** channel?",
+  "unarchiveChannelModal.viewArchived.question": "Are you sure you wish to unarchive the <b>{display_name}</b> channel?",
   "update_command.confirm": "Edit Slash Command",
   "update_command.question": "Your changes may break the existing slash command. Are you sure you would like to update it?",
   "update_command.update": "Update",
