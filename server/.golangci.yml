@@ -87,7 +87,6 @@ issues:
         channels/api4/system_local.go|\
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
-        channels/api4/user.go|\
         channels/api4/user_test.go|\
         channels/api4/webhook_test.go|\
         channels/app/admin.go|\
@@ -261,7 +260,6 @@ issues:
         channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
         channels/utils/subpath_test.go|\
-        channels/web/handlers.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
         channels/web/response_writer_wrapper_test.go|\
