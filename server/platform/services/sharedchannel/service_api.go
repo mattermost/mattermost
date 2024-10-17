@@ -236,7 +236,7 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 			if err != nil {
 				return fmt.Errorf("channel is not shared: %w", err)
 			}
-		} else if err != nil {
+		} else {
 			return fmt.Errorf("cannot find channel: %w", err)
 		}
 	}
