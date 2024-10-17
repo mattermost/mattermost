@@ -107,7 +107,10 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
           className="btn btn-tertiary"
           onClick={[Function]}
         >
-          Back
+          <MemoizedFormattedMessage
+            defaultMessage="Back"
+            id="multiselect.backButton"
+          />
         </button>
         <SaveButton
           defaultMessage="Save Details"
