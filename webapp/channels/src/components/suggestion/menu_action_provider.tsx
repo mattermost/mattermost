@@ -8,7 +8,7 @@ import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
-interface MenuAction {
+export interface MenuAction {
     text: string;
     value: string;
 }
@@ -29,13 +29,15 @@ MenuActionSuggestion.displayName = 'MenuActionSuggestion';
 
 export default class MenuActionProvider extends Provider {
     private options: MenuAction[];
+    private enableTermToBeOptionItem?: boolean;
 
-    constructor(options: MenuAction[]) {
+    constructor(options: MenuAction[], enableTermToBeOptionItem?: boolean) {
         super();
         this.options = options;
+        this.enableTermToBeOptionItem = enableTermToBeOptionItem;
     }
 
-    handlePretextChanged(prefix: string, resultsCallback: ResultsCallback<MenuAction>) {
+    handlePretextChanged(prefix: string, resultsCallback: ResultsCallback<MenuAction>): boolean {
         if (prefix.length === 0) {
             this.displayAllOptions(resultsCallback);
             return true;
@@ -50,7 +52,7 @@ export default class MenuActionProvider extends Provider {
     }
 
     async displayAllOptions(resultsCallback: ResultsCallback<MenuAction>) {
-        const terms = this.options.map((option) => option.text);
+        const terms = this.enableTermToBeOptionItem ? this.options : this.options.map((option) => option.text);
 
         resultsCallback({
             matchedPretext: '',
@@ -61,8 +63,8 @@ export default class MenuActionProvider extends Provider {
     }
 
     async filterOptions(prefix: string, resultsCallback: ResultsCallback<MenuAction>) {
-        const filteredOptions = this.options.filter((option) => option.text.toLowerCase().indexOf(prefix.toLowerCase()) >= 0);
-        const terms = filteredOptions.map((option) => option.text);
+        const filteredOptions = this.options.filter((option) => option.text.toLowerCase().includes(prefix.toLowerCase()) || option.value.toLowerCase().includes(prefix.toLowerCase()));
+        const terms = this.enableTermToBeOptionItem ? filteredOptions : filteredOptions.map((option) => option.text);
 
         resultsCallback({
             matchedPretext: prefix,
