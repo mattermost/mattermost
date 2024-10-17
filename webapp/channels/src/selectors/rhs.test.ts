@@ -68,7 +68,9 @@ describe('Selectors.Rhs', () => {
 
     describe('should return the search team', () => {
         test.each([
+            [undefined, 'currentTeamId'],
             [null, 'currentTeamId'],
+            ['', ''],
             ['searchTeamId', 'searchTeamId'],
         ])('%p gives %p', (searchTeam, expected) => {
             const state = {

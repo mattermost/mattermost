@@ -126,7 +126,7 @@ export function getSearchTerms(state: GlobalState): string {
 
 export function getSearchTeam(state: GlobalState): string {
     const searchTeam = state.views.rhs.searchTeam;
-    if (!searchTeam) {
+    if (searchTeam === undefined || searchTeam === null) {
         return getCurrentTeamId(state);
     }
     return searchTeam;
