@@ -93,7 +93,7 @@ export function submitPost(
             const scheduledPost: ScheduledPost = {
                 id: '',
                 scheduled_at: schedulingInfo.scheduled_at,
-                create_at: post.create_at,
+                create_at: 0,
                 update_at: post.update_at,
                 user_id: userId,
                 channel_id: post.channel_id,
@@ -214,7 +214,6 @@ export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boole
         return dispatch(PostActions.setEditingPost(
             lastPostId,
             rootId ? 'reply_textbox' : 'post_textbox',
-            '', // title is no longer used
             Boolean(rootId),
         ));
     };
