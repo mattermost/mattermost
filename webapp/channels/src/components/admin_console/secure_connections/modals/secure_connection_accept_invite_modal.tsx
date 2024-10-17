@@ -138,6 +138,7 @@ function SecureConnectionAcceptInviteModal({
                             tagName={ModalParagraph}
                         />
                         <TeamSelector
+                            testId='destination-team-input'
                             value={defaultTeamId}
                             teamsById={teamsById}
                             onChange={setDefaultTeamId}

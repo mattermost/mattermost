@@ -84,6 +84,9 @@ describe('Connected Workspaces', () => {
                 cy.findByText('Accept a secure connection from another server');
                 cy.findByText('Enter the encrypted invitation code shared to you by the admin of the server you are connecting with.');
 
+                // * Verify accept disabled
+                cy.uiGetButton('Accept').should('be.disabled');
+
                 // # Enter org name
                 cy.findByRole('textbox', {name: 'Organization name'}).type(orgDisplayName);
 
@@ -92,6 +95,13 @@ describe('Connected Workspaces', () => {
 
                 // # Enter bad password
                 cy.findByRole('textbox', {name: 'Password'}).type('123abc');
+
+                // * Verify accept still disabled
+                cy.uiGetButton('Accept').should('be.disabled');
+
+                // # Select team
+                cy.findByTestId('destination-team-input').click().
+                    findByRole('textbox').type(`${testTeam2.display_name}{enter}`);
 
                 // # Try accept
                 cy.uiGetButton('Accept').click();
