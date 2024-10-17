@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import cn from 'classnames';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,6 +13,7 @@ import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
+import {isToday} from "utils/datetime";
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
@@ -48,6 +49,8 @@ function PanelHeader({
     title,
     error,
 }: Props) {
+    const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
+
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -86,7 +89,7 @@ function PanelHeader({
                             Boolean(timestamp) && kind === 'scheduledPost' && (
                                 <FormattedMessage
                                     id='scheduled_post.panel.header.time'
-                                    defaultMessage='Send on {scheduledDateTime}'
+                                    defaultMessage='Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}'
                                     values={{
                                         scheduledDateTime: (
                                             <Timestamp
@@ -96,6 +99,7 @@ function PanelHeader({
                                                 useTime={scheduledPostTimeFormat}
                                             />
                                         ),
+                                        isTodayOrTomorrow: isToday(timestampDateObject),
                                     }}
                                 />
                             )
