@@ -48,6 +48,8 @@ import type {PropsFromRedux} from './index';
 
 import 'plugins/export.js';
 
+const isDevelopment = process.env.NODE_ENV !== 'production'; // eslint-disable-line no-process-env
+
 const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => import('components/mobile_view_watcher')));
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
@@ -78,6 +80,7 @@ const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('compone
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
+const ComponentLibrary = isDevelopment ? makeAsyncComponent('AppBar', lazy(() => import('components/component_library'))) : () => null;
 
 const noop = () => {};
 
@@ -438,6 +441,12 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/landing'}
                         component={LinkingLandingPage}
                     />
+                    {isDevelopment && (
+                        <Route
+                            path={'/component_library'}
+                            component={ComponentLibrary}
+                        />
+                    )}
                     <Route
                         path={'/admin_console'}
                     >
