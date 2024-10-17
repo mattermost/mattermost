@@ -70,6 +70,7 @@ type sqlxDBWrapper struct {
 	queryTimeout time.Duration
 	trace        bool
 	isOnline     *atomic.Bool
+	stmtCache    *StmtCache
 }
 
 func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWrapper {
@@ -80,6 +81,7 @@ func newSqlxDBWrapper(db *sqlx.DB, timeout time.Duration, trace bool) *sqlxDBWra
 		isOnline:     &atomic.Bool{},
 	}
 	w.isOnline.Store(true)
+	w.stmtCache = NewStmtCache(w)
 	return w
 }
 
@@ -110,13 +112,18 @@ func (w *sqlxDBWrapper) Get(dest any, query string, args ...any) error {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return err
+	}
+
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
 		}(time.Now())
 	}
 
-	return w.checkErr(w.DB.GetContext(ctx, dest, query, args...))
+	return w.checkErr(stmt.GetContext(ctx, dest, args...))
 }
 
 func (w *sqlxDBWrapper) GetBuilder(dest any, builder Builder) error {
@@ -162,13 +169,18 @@ func (w *sqlxDBWrapper) ExecBuilder(builder Builder) (sql.Result, error) {
 func (w *sqlxDBWrapper) ExecNoTimeout(query string, args ...any) (sql.Result, error) {
 	query = w.DB.Rebind(query)
 
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
 		}(time.Now())
 	}
 
-	return w.checkErrWithResult(w.DB.ExecContext(context.Background(), query, args...))
+	return w.checkErrWithResult(stmt.ExecContext(context.Background(), args...))
 }
 
 // ExecRaw is like Exec but without any rebinding of params. You need to pass
@@ -177,13 +189,18 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
 		}(time.Now())
 	}
 
-	return w.checkErrWithResult(w.DB.ExecContext(ctx, query, args...))
+	return w.checkErrWithResult(stmt.ExecContext(ctx, args...))
 }
 
 func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
@@ -213,7 +230,12 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 		}(time.Now())
 	}
 
-	return w.DB.QueryRowxContext(ctx, query, args...)
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return w.DB.QueryRowxContext(ctx, query, args...)
+	}
+
+	return stmt.QueryRowxContext(ctx, args...)
 }
 
 func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
@@ -221,13 +243,18 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
 		}(time.Now())
 	}
 
-	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args))
+	return w.checkErrWithRows(stmt.QueryxContext(ctx, args))
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
@@ -239,13 +266,18 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 	ctx, cancel := context.WithTimeout(ctx, w.queryTimeout)
 	defer cancel()
 
+	stmt, err := w.stmtCache.Preparex(query)
+	if err != nil {
+		return err
+	}
+
 	if w.trace {
 		defer func(then time.Time) {
 			printArgs(query, time.Since(then), args)
 		}(time.Now())
 	}
 
-	return w.checkErr(w.DB.SelectContext(ctx, dest, query, args...))
+	return w.checkErr(stmt.SelectContext(ctx, dest, args...))
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
