@@ -46,9 +46,6 @@ import {getMissingProfilesByIds} from './users';
 
 import {General, Preferences} from '../constants';
 
-const missingChannelWait = 100;
-const maxMissingChannelsBatchSize = 1; // max batch size is 1 because we don't have an API to get multiple channels by IDs
-
 export function selectChannel(channelId: string) {
     return {
         type: ChannelTypes.SELECT_CHANNEL,
@@ -1437,8 +1434,8 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
                 fetchBatch: (channelIDs) => {
                     return channelIDs.length ? dispatch(getChannel(channelIDs[0])) : Promise.resolve();
                 },
-                maxBatchSize: maxMissingChannelsBatchSize,
-                wait: missingChannelWait,
+                maxBatchSize: 1,
+                wait: 100,
             });
         }
 
@@ -1446,7 +1443,8 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
         const missingChannelIDs = channelIDs.filter((channelId) => !getChannelSelector(state, channelId));
 
         if (missingChannelIDs.length > 0) {
-            await loaders.missingChannelLoader.queueAndWait(missingChannelIDs);
+            const loader = loaders.missingChannelLoader as DelayedDataLoader<Channel['id']>;
+            loader.queue(missingChannelIDs);
         }
 
         return {
