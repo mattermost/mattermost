@@ -72,8 +72,6 @@ export default class ChannelsPostCreate {
      */
     async clickOnScheduleDraftDropdownButton() {
         await expect(this.input).toBeVisible();
-        const messageInputValue = await this.getInputValue();
-        expect(messageInputValue).not.toBe('');
 
         await expect(this.scheduleDraftMessageButton).toBeVisible();
         await expect(this.scheduleDraftMessageButton).toBeEnabled();

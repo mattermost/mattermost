@@ -10,6 +10,7 @@ export default class ScheduledMessagePage {
     readonly datePattern;
     readonly deleteIcon;
     readonly deleteIconToolTip;
+    readonly noScheduledMessageIcon;
     readonly rescheduleIcon;
     readonly rescheduleIconToolTip;
     readonly scheduledMessageBody;
@@ -30,6 +31,7 @@ export default class ScheduledMessagePage {
         this.deleteIconToolTip = page.locator('text=Delete scheduled post');
         this.rescheduleIcon = page.locator('#draft_icon-clock-send-outline_reschedule');
         this.rescheduleIconToolTip = page.locator('text=Reschedule post');
+        this.noScheduledMessageIcon = page.locator('.no-results__wrapper');
     }
 
     async toBeVisible() {

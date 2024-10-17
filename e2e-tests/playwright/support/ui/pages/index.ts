@@ -19,4 +19,4 @@ const pages = {
     SystemConsolePage,
 };
 
-export {pages, ChannelsPage, LandingLoginPage, LoginPage, SignupPage};
+export {pages, ChannelsPage, LandingLoginPage, LoginPage, SignupPage, ScheduledMessagePage};
