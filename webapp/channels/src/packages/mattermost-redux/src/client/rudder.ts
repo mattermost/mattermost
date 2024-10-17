@@ -16,7 +16,7 @@ const TrackProfessionalSKU = 'professional';
 const TrackEnterpriseSKU = 'enterprise';
 
 const featureSKUs: {[feature: string]: string[]} = {
-  [TrackGroupsFeature]: [TrackProfessionalSKU, TrackEnterpriseSKU],
+    [TrackGroupsFeature]: [TrackProfessionalSKU, TrackEnterpriseSKU],
 };
 
 export class RudderTelemetryHandler implements TelemetryHandler {
@@ -45,27 +45,26 @@ export class RudderTelemetryHandler implements TelemetryHandler {
     }
 
     trackPaidFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
-	console.log('XXX tracking paid feature ' + featureName + ':' + event);
         // TODO: add installation id to context.traits.installationId?
         const properties = Object.assign({
-            category: "paid_feature",
+            category: 'paid_feature',
             type: event,
             user_actual_id: userId,
-	    user_actual_role: getActualRoles(userRoles),
+            user_actual_role: getActualRoles(userRoles),
         }, props);
         const options = {
             context: {
-	        extra: {
-	            feature: {
-		        name: featureName,
-         skus: getSKUs(featureName),
-		    },
-		},
+                extra: {
+                    feature: {
+                        name: featureName,
+                        skus: getSKUs(featureName),
+                    },
+                },
             },
         };
 
         rudderAnalytics.track(event, properties, options);
-  }
+    }
 
     pageVisited(userId: string, userRoles: string, category: string, name: string) {
         rudderAnalytics.page(
@@ -95,10 +94,10 @@ function getActualRoles(userRoles: string) {
 }
 
 function getSKUs(featureName: string) {
-    let skus: string[] = featureSKUs[featureName] || [];
-    if (skus.length == 0) {
-	console.log('Paid feature ' + featureName + ' has no SKUs attached: ' + skus);
-	console.log(featureSKUs);
-  }
-  return skus;
+    const skus: string[] = featureSKUs[featureName] || [];
+    if (skus.length === 0) {
+        // eslint-disable-next-line
+        console.warn('Paid feature ' + featureName + ' has no SKUs attached');
+    }
+    return skus;
 }

@@ -4330,7 +4330,7 @@ export default class Client4 {
         if (this.telemetryHandler) {
             this.telemetryHandler.trackPaidFeatureEvent(this.userId, this.userRoles, featureName, event, props);
         }
-  }
+    }
 
     pageVisited(category: string, name: string) {
         if (this.telemetryHandler) {
