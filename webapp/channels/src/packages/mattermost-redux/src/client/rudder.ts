@@ -11,6 +11,14 @@ import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
 
+const TrackGroupsFeature: string = 'custom_groups';
+const TrackProfessionalSKU = 'professional';
+const TrackEnterpriseSKU = 'enterprise';
+
+const featureSKUs: {[feature: string]: string[]} = {
+  TrackGroupsFeature: [TrackProfessionalSKU, TrackEnterpriseSKU],
+};
+
 export class RudderTelemetryHandler implements TelemetryHandler {
     trackEvent(userId: string, userRoles: string, category: string, event: string, props?: any) {
         const properties = Object.assign({
@@ -35,6 +43,28 @@ export class RudderTelemetryHandler implements TelemetryHandler {
 
         rudderAnalytics.track('event', properties, options);
     }
+
+    trackPaidFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
+        // TODO: add installation id to context.traits.installationId?
+        const properties = Object.assign({
+            category: "paid_feature",
+            type: event,
+            user_actual_id: userId,
+	    user_actual_role: getActualRoles(userRoles),
+        }, props);
+        const options = {
+            context: {
+	        extra: {
+	            feature: {
+		        name: featureName,
+         skus: getSKUs(featureName),
+		    },
+		},
+            },
+        };
+
+        rudderAnalytics.track('event', properties, options);
+  }
 
     pageVisited(userId: string, userRoles: string, category: string, name: string) {
         rudderAnalytics.page(
@@ -61,4 +91,12 @@ export class RudderTelemetryHandler implements TelemetryHandler {
 
 function getActualRoles(userRoles: string) {
     return userRoles && isSystemAdmin(userRoles) ? 'system_admin, system_user' : 'system_user';
+}
+
+function getSKUs(featureName: string) {
+    let skus: string[] = featureSKUs[featureName] || [];
+    if (skus.length == 0) {
+	console.log("Paid feature ${featureName} has no SKUs attached");
+  }
+  return skus;
 }
