@@ -1,11 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store';
+import type {DesktopNotificationArgs} from 'types/store/plugins';
+
+import type {NewPostMessageProps} from './new_post';
+
 /**
  * @param {Post} originalPost
  * @returns {ActionFuncAsync<Post>}
  */
-export function runMessageWillBePostedHooks(originalPost) {
+export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync<Post, GlobalState> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBePosted;
         if (!hooks || hooks.length === 0) {
@@ -15,7 +26,8 @@ export function runMessageWillBePostedHooks(originalPost) {
         let post = originalPost;
 
         for (const hook of hooks) {
-            const result = await hook.hook(post); // eslint-disable-line no-await-in-loop
+            // TODO fix types for this hook
+            const result: any = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
@@ -32,7 +44,7 @@ export function runMessageWillBePostedHooks(originalPost) {
     };
 }
 
-export function runSlashCommandWillBePostedHooks(originalMessage, originalArgs) {
+export function runSlashCommandWillBePostedHooks(originalMessage: string, originalArgs: CommandArgs): ActionFuncAsync<{message: string; args: CommandArgs}, GlobalState> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.SlashCommandWillBePosted;
         if (!hooks || hooks.length === 0) {
@@ -43,7 +55,8 @@ export function runSlashCommandWillBePostedHooks(originalMessage, originalArgs) 
         let args = originalArgs;
 
         for (const hook of hooks) {
-            const result = await hook.hook(message, args); // eslint-disable-line no-await-in-loop
+            // TODO fix types for this hook
+            const result: any = await hook.hook?.(message as any, args as any); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
@@ -67,7 +80,7 @@ export function runSlashCommandWillBePostedHooks(originalMessage, originalArgs) 
     };
 }
 
-export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
+export function runMessageWillBeUpdatedHooks(newPost: Post, oldPost: Post): ActionFuncAsync<Post, GlobalState> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBeUpdated;
         if (!hooks || hooks.length === 0) {
@@ -77,7 +90,8 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
         let post = newPost;
 
         for (const hook of hooks) {
-            const result = await hook.hook(post, oldPost); // eslint-disable-line no-await-in-loop
+            // TODO fix types for this hook
+            const result: any = await hook.hook?.(post, oldPost as any); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
@@ -94,11 +108,11 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
     };
 }
 
-export function runDesktopNotificationHooks(post, msgProps, channel, teamId, args) {
+export function runDesktopNotificationHooks(post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs): ActionFuncAsync<DesktopNotificationArgs, GlobalState> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.DesktopNotificationHooks;
         if (!hooks || hooks.length === 0) {
-            return {args};
+            return {data: args};
         }
 
         let nextArgs = args;
@@ -118,6 +132,6 @@ export function runDesktopNotificationHooks(post, msgProps, channel, teamId, arg
             }
         }
 
-        return {args: nextArgs};
+        return {data: nextArgs};
     };
 }

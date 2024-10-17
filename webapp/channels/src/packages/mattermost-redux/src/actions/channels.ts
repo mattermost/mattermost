@@ -212,15 +212,15 @@ export function createGroupChannel(userIds: string[]): ActionFuncAsync<Channel> 
         // posts is because it existed before.
         if (created.total_msg_count > 0) {
             const storeMember = getMyChannelMemberSelector(getState(), created.id);
-            if (storeMember === null) {
+            if (storeMember) {
+                member = storeMember;
+            } else {
                 try {
                     member = await Client4.getMyChannelMember(created.id);
                 } catch (error) {
                     // Log the error and keep going with the generated membership.
                     dispatch(logError(error));
                 }
-            } else {
-                member = storeMember;
             }
         }
 
@@ -1232,7 +1232,7 @@ export function actionsToMarkChannelAsRead(getState: GetStateFunc, channelId: st
     return actions;
 }
 
-export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string[], fetchedChannelMember = false, isRoot = false, priority = '') {
+export function actionsToMarkChannelAsUnread(getState: GetStateFunc, teamId: string, channelId: string, mentions: string, fetchedChannelMember = false, isRoot = false, priority = '') {
     const state = getState();
     const {myMembers} = state.entities.channels;
     const {currentUserId} = state.entities.users;

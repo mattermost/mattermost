@@ -348,7 +348,7 @@ describe('notification_actions', () => {
                 team_id: 'team_id',
             };
             return store.dispatch(sendDesktopNotification(newPost, newMsgProps)).then((result) => {
-                expect(result).toEqual({status: 'success'});
+                expect(result).toEqual({data: {status: 'success'}});
                 expect(spy).toHaveBeenCalledWith({
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
