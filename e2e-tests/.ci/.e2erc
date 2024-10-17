@@ -103,8 +103,13 @@ case "${TEST:-$TEST_DEFAULT}" in
 esac
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
+  linux )
+    export IS_LINUX="-linux"
+    ;;
   darwin )
-    BROWSER_DEFAULT="electron" ;;
+    export BROWSER_DEFAULT="electron"
+    export IS_LINUX=""
+    ;;
   * )
 esac
 
