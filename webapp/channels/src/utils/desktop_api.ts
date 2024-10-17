@@ -13,9 +13,10 @@ declare global {
     }
 }
 
-class DesktopAppAPI {
+export class DesktopAppAPI {
     private name?: string;
     private version?: string | null;
+    private prereleaseVersion?: string;
     private dev?: boolean;
 
     /**
@@ -32,6 +33,7 @@ class DesktopAppAPI {
         this.getDesktopAppInfo().then(({name, version}) => {
             this.name = name;
             this.version = semver.valid(semver.coerce(version));
+            this.prereleaseVersion = version?.split('-')?.[1];
 
             // Legacy Desktop App version, used by some plugins
             if (!window.desktop) {
@@ -61,6 +63,10 @@ class DesktopAppAPI {
 
     getAppVersion = () => {
         return this.version;
+    };
+
+    getPrereleaseVersion = () => {
+        return this.prereleaseVersion;
     };
 
     isDev = () => {
@@ -150,6 +156,10 @@ class DesktopAppAPI {
         this.addPostMessageListener('history-button-return', legacyListener);
 
         return () => this.removePostMessageListener('history-button-return', legacyListener);
+    };
+
+    onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
+        return window.desktopAPI?.onSendMetrics?.(listener);
     };
 
     /**
