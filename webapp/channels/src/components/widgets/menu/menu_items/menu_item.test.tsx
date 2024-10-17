@@ -49,7 +49,6 @@ describe('components/MenuItem', () => {
                     >
                       test-text
                     </div>
-                    test-text
                   </React.Fragment>
                 }
               />
