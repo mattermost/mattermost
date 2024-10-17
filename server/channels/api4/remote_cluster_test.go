@@ -280,9 +280,10 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
-		Name:     "remotecluster",
-		Invite:   "myinvitecode",
-		Password: "mysupersecret",
+		Name:          "remotecluster",
+		Invite:        "myinvitecode",
+		Password:      "mysupersecret",
+		DefaultTeamId: "",
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -297,6 +298,8 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
+
+	rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
 
 	remoteId := model.NewId()
 	invite := &model.RemoteClusterInvite{
@@ -320,9 +323,29 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	t.Run("should fail if the parameters are not valid", func(t *testing.T) {
+	t.Run("should fail if the name parameter is not valid", func(t *testing.T) {
 		rcAcceptInvite.Name = ""
 		defer func() { rcAcceptInvite.Name = "remotecluster" }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team parameter is empty", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = ""
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team provided doesn't exist", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = model.NewId()
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
 
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckBadRequestStatus(t, resp)

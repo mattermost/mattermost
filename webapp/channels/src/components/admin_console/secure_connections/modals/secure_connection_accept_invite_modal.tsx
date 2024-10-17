@@ -13,12 +13,13 @@ import LoadingScreen from 'components/loading_screen';
 import Input from 'components/widgets/inputs/input/input';
 
 import {ModalFieldset, ModalParagraph} from '../controls';
-import {isErrorState, isPendingState} from '../utils';
+import TeamSelector from '../team_selector';
+import {isErrorState, isPendingState, useTeamOptions} from '../utils';
 
 type Props = {
     creating?: boolean;
     password?: string;
-    onConfirm: (accept: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'invite' | 'password'>) => Promise<RemoteCluster>;
+    onConfirm: (accept: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'default_team_id' | 'invite' | 'password'>) => Promise<RemoteCluster>;
     onCancel?: () => void;
     onExited: () => void;
     onHide: () => void;
@@ -34,12 +35,16 @@ function SecureConnectionAcceptInviteModal({
 }: Props) {
     const {formatMessage} = useIntl();
     const [displayName, setDisplayName] = useState('');
+    const [defaultTeamId, setDefaultTeamId] = useState('');
     const [inviteCode, setInviteCode] = useState('');
     const [password, setPassword] = useState('');
     const [saving, setSaving] = useState<boolean | ClientError>(false);
 
+    const teamsById = useTeamOptions();
+
     const need = {
         displayName: !displayName,
+        defaultTeamId: !defaultTeamId,
         inviteCode: !inviteCode,
         password: !password,
     };
@@ -50,7 +55,12 @@ function SecureConnectionAcceptInviteModal({
         setSaving(true);
 
         try {
-            await onConfirm({display_name: displayName, invite: inviteCode, password});
+            await onConfirm({
+                display_name: displayName,
+                default_team_id: defaultTeamId,
+                invite: inviteCode,
+                password,
+            });
             setSaving(false);
             onHide();
         } catch (err) {
@@ -90,6 +100,7 @@ function SecureConnectionAcceptInviteModal({
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
+            bodyOverflowVisible={true}
             autoCloseOnConfirmButton={false}
             errorText={isErrorState(saving) && (
                 <FormattedMessage
@@ -120,6 +131,23 @@ function SecureConnectionAcceptInviteModal({
                             onChange={handleDisplayNameChange}
                             data-testid='display-name'
                         />
+
+                        <FormattedMessage
+                            id={'admin.secure_connections.accept_invite.select_team'}
+                            defaultMessage={'Please select the destination team where channels will be placed.'}
+                            tagName={ModalParagraph}
+                        />
+                        <TeamSelector
+                            testId='destination-team-input'
+                            value={defaultTeamId}
+                            teamsById={teamsById}
+                            onChange={setDefaultTeamId}
+                            legend={formatMessage({
+                                id: 'admin.secure_connections.accept_invite.select_team.legend',
+                                defaultMessage: 'Select a team',
+                            })}
+                        />
+
                         <FormattedMessage
                             id={'admin.secure_connections.accept_invite.prompt_invite_password'}
                             defaultMessage={'Enter the encrypted invitation code shared to you by the admin of the server you are connecting with.'}

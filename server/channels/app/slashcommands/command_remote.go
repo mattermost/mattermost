@@ -190,7 +190,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef(args.T("api.command_remote.site_url_not_set"))
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url)
+	rc, err := rcs.AcceptInvitation(invite, name, displayname, args.UserId, url, "")
 	if err != nil {
 		return responsef(args.T("api.command_remote.accept_invitation.error", map[string]any{"Error": err.Error()}))
 	}

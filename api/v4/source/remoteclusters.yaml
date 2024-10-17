@@ -274,6 +274,7 @@
               required:
                 - invite
                 - name
+                - default_team_id
                 - password
               properties:
                 invite:
@@ -281,6 +282,8 @@
                 name:
                   type: string
                 display_name:
+                  type: string
+                default_team_id:
                   type: string
                 password:
                   type: string

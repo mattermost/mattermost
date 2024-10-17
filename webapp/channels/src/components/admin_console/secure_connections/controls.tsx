@@ -156,6 +156,14 @@ export const ModalFieldsetWrapper = styled.div`
         background: none !important;
         height: 34px !important;
     }
+
+    .Input_container {
+        margin-bottom: 10px;
+    }
+
+    .DropdownInput.Input_container {
+        margin-top: 0;
+    }
 `;
 
 const ModalLegend = styled.legend`

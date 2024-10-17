@@ -116,7 +116,7 @@ export const useRemoteClusterAcceptInvite = () => {
                 modalId: ModalIdentifiers.SECURE_CONNECTION_ACCEPT_INVITE,
                 dialogType: SecureConnectionAcceptInviteModal,
                 dialogProps: {
-                    onConfirm: async (acceptInvite: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'invite' | 'password'>) => {
+                    onConfirm: async (acceptInvite: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'default_team_id' | 'invite' | 'password'>) => {
                         try {
                             setSaving(true);
                             const rc = await Client4.acceptInviteRemoteCluster({
