@@ -21,13 +21,6 @@ import {getHistory} from 'utils/browser_history';
 
 import './global_policy_form.scss';
 
-const messages = defineMessages({
-    save: {
-        id: 'admin.data_retention.custom_policy.save',
-        defaultMessage: 'Save',
-    },
-});
-
 type ValueType = {
     label: string | JSX.Element;
     value: string;
@@ -310,5 +303,9 @@ const messages = defineMessages({
     fileRetention: {
         id: 'admin.data_retention.form.fileRetention',
         defaultMessage: 'File retention',
+    },
+    save: {
+        id: 'admin.data_retention.custom_policy.save',
+        defaultMessage: 'Save',
     },
 });

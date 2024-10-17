@@ -33,13 +33,6 @@ import {ItemStatus} from 'utils/constants';
 
 import './custom_policy_form.scss';
 
-const messages = defineMessages({
-    save: {
-        id: 'admin.data_retention.custom_policy.save',
-        defaultMessage: 'Save',
-    },
-});
-
 type Props = {
     policyId?: string;
     policy?: DataRetentionCustomPolicy | null;
@@ -577,5 +570,9 @@ const messages = defineMessages({
     policyName: {
         id: 'admin.data_retention.custom_policy.form.input',
         defaultMessage: 'Policy name',
+    },
+    save: {
+        id: 'admin.data_retention.custom_policy.save',
+        defaultMessage: 'Save',
     },
 });
