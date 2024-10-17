@@ -123,17 +123,18 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 	// set the channel `shared` flag if needed
 	if shareIfNotShared {
+		mlog.Info("shareIfNotShared is true")
 		sc := &model.SharedChannel{
 			ChannelId: channelID,
 			CreatorId: userID,
 			Home:      true,
 			RemoteId:  "", // channel originates locally
 		}
-		if _, err = scs.ShareChannel(sc); err != nil {
+		if sc, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
 		}
-		if err = scs.CheckChannelIsShared(channelID); err != nil {
+		if err = scs.CheckChannelIsShared(sc.ChannelId); err != nil {
 			mlog.Error("Failed First retreival", mlog.Err(err))
 		}
 	} else {
