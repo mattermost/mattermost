@@ -216,6 +216,11 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	return users, nil
 }
 
+func (s *LocalCacheUserStore) UpdateFailedPasswordAttempts(userID string, attempts int) error {
+	s.InvalidateProfileCacheForUser(userID)
+	return s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
+}
+
 // Get is a cache wrapper around the SqlStore method to get a user profile by id.
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the

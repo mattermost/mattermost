@@ -59,12 +59,25 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
+func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
+	// MM-37585
+	// Use locks to avoid concurrently checking AND updating the failed login attempts.
+	a.ch.loginAttemptsMut.Lock()
+	defer a.ch.loginAttemptsMut.Unlock()
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		if err.Id != MissingAccountError {
+			err.StatusCode = http.StatusInternalServerError
+			return err
+		}
+		err.StatusCode = http.StatusBadRequest
 		return err
 	}
 
-	defer a.Srv().Store().User().InvalidateProfileCacheForUser(user.Id)
+	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
+		return err
+	}
 
 	if err := users.CheckUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
@@ -271,7 +284,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user.Id, password, mfaToken); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
 		}
