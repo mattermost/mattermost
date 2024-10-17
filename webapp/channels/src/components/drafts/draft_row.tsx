@@ -230,6 +230,10 @@ function DraftRow({
 
     const afterCreatePostFromScheduledPost = useCallback(async () => {
         await dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
+
+        // because we also show scheduled posts from channels you are no longer a member of,
+        // we check if there is a channel member loaded currently so we don't end up
+        // making the user join the channel unintentionally.
         if (channelMember) {
             goToMessage();
         }
@@ -238,7 +242,6 @@ function DraftRow({
     const handleScheduledPostOnSend = useCallback(async () => {
         const scheduledPost = item as ScheduledPost;
         const post = scheduledPostToPost(scheduledPost);
-
         await dispatch(createPost(post, scheduledPost.metadata?.files || [], afterCreatePostFromScheduledPost));
     }, [afterCreatePostFromScheduledPost, dispatch, item]);
 
