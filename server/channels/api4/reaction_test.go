@@ -131,8 +131,10 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("react-as-other-user", func(t *testing.T) {
 		reaction.EmojiName = "smile"
 		otherUser := th.CreateUser()
-		client.Logout(context.Background())
-		client.Login(context.Background(), otherUser.Email, otherUser.Password)
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
+		require.NoError(t, err)
 
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
@@ -140,7 +142,8 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("react-being-not-logged-in", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -260,7 +263,8 @@ func TestGetReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.GetReactions(context.Background(), postId)
 		require.Error(t, err)
@@ -312,7 +316,8 @@ func TestDeleteReaction(t *testing.T) {
 	}()
 
 	t.Run("delete-reaction", func(t *testing.T) {
-		th.App.SaveReactionForPost(th.Context, r1)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
+		assert.Nil(t, appErr)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(reactions), "didn't save reaction correctly")
@@ -326,8 +331,10 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-when-post-has-multiple-reactions", func(t *testing.T) {
-		th.App.SaveReactionForPost(th.Context, r1)
-		th.App.SaveReactionForPost(th.Context, r2)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
+		assert.Nil(t, appErr)
+		_, appErr = th.App.SaveReactionForPost(th.Context, r2)
+		assert.Nil(t, appErr)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, len(reactions), 2, "didn't save reactions correctly")
@@ -342,7 +349,8 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-when-plus-one-reaction-name", func(t *testing.T) {
-		th.App.SaveReactionForPost(th.Context, r3)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r3)
+		assert.Nil(t, appErr)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(reactions), "didn't save reactions correctly")
@@ -358,7 +366,8 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("delete-reaction-made-by-another-user", func(t *testing.T) {
 		th.LoginBasic2()
-		th.App.SaveReactionForPost(th.Context, r4)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r4)
+		assert.Nil(t, appErr)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(reactions), "didn't save reaction correctly")
@@ -424,7 +433,8 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-as-anonymous-user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		r1.EmojiName = "smile"
 
 		resp, err := client.DeleteReaction(context.Background(), r1)
@@ -448,7 +458,8 @@ func TestDeleteReaction(t *testing.T) {
 		th.LoginBasic()
 
 		th.RemovePermissionFromRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
-		th.App.SaveReactionForPost(th.Context, r1)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
+		assert.Nil(t, appErr)
 
 		resp, err := client.DeleteReaction(context.Background(), r1)
 		require.Error(t, err)
@@ -462,7 +473,8 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("unable-to-delete-others-reactions-without-permissions", func(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
-		th.App.SaveReactionForPost(th.Context, r1)
+		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
+		assert.Nil(t, appErr)
 
 		resp, err := th.SystemAdminClient.DeleteReaction(context.Background(), r1)
 		require.Error(t, err)
@@ -577,7 +589,8 @@ func TestGetBulkReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.GetBulkReactions(context.Background(), postIds)
 		require.Error(t, err)

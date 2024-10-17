@@ -2,13 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {localizeMessage} from 'utils/utils';
 
 import MarketplaceItem from '../marketplace_item';
 
@@ -86,7 +84,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
             >
                 <LoadingWrapper
                     loading={this.props.installing}
-                    text={localizeMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
+                    text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
                 >
                     {actionButton}
                 </LoadingWrapper>
