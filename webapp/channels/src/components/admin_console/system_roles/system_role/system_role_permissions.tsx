@@ -215,7 +215,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                                 a: (chunks: string) => (
                                     <ExternalLink
                                         href='https://docs.mattermost.com/welcome/manage-custom-groups.html'
-                                        location='manage-custom-groups'
+                                        location='adminConsoleSystemRoles'
                                     >
                                         {chunks}
                                     </ExternalLink>
