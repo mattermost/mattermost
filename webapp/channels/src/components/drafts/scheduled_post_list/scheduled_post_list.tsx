@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
 import {hasScheduledPostError} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -44,6 +45,11 @@ export default function ScheduledPostList({
     const query = useQuery();
     const targetId = query.get('target_id');
     const targetScheduledPostId = useRef<string>();
+
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(fetchMissingChannels(scheduledPosts.map((post) => post.channel_id)));
+    }, []);
 
     return (
         <div className='ScheduledPostList'>
