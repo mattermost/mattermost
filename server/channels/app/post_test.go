@@ -1514,12 +1514,12 @@ func TestUpdatePost(t *testing.T) {
 
 		testPost, err = th.App.CreatePost(th.Context, testPost, channelForTestPost, false, false)
 		require.Nil(t, err)
-		assert.Equal(t, testPost.GetProps(), model.StringInterface{})
+		assert.Equal(t, model.StringInterface{}, testPost.GetProps())
 
 		testPost.Message = permalink
 		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
 		require.Nil(t, err)
-		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
+		assert.Equal(t, model.StringInterface{model.PostPropsPreviewedPost: referencedPost.Id}, testPost.GetProps())
 	})
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
