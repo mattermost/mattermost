@@ -2249,7 +2249,7 @@ func TestAddTeamMember(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	err = th.App.Srv().InvalidateAllCaches()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2264,7 +2264,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	err = th.App.Srv().InvalidateAllCaches()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2469,7 +2469,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 			team := th.CreateTeam()
 			team.AllowOpenInvite = tc.Public
 			_, err2 := th.App.UpdateTeam(team)
-			require.NoError(t, err2)
+			require.Nil(t, err2)
 			if tc.PublicPermission {
 				th.AddPermissionToRole(model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
 			} else {
@@ -2562,7 +2562,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	guestUser := th.CreateUser()
 	_, err2 := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
-	require.NoError(t, err2)
+	require.Nil(t, err2)
 	guestList := []string{
 		guestUser.Id,
 	}
@@ -2652,7 +2652,7 @@ func TestAddTeamMembers(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	err = th.App.Srv().InvalidateAllCaches()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	// Should work as a team admin.
