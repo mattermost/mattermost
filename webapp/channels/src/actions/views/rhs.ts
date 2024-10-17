@@ -262,9 +262,6 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
 
         const searchTerms = getSearchTerms(state);
         let teamId = getSearchTeam(state);
-        if (teamId === null) {
-            teamId = getCurrentTeamId(state);
-        }
         const searchType = getSearchType(state);
 
         if (isMentionSearch) {

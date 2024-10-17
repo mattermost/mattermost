@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {getSearchTeam} from 'selectors/rhs';
 
@@ -37,11 +37,7 @@ type Props = {
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     const teams = useSelector((state: GlobalState) => getMyTeams(state));
-    const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
-    let searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
-    if (searchTeam === null || searchTeam === undefined) {
-        searchTeam = currentTeam!.id;
-    }
+    const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
 
     const options = [{value: '', label: 'All teams', selected: searchTeam === ''}];
     for (const team of teams) {

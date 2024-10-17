@@ -65,4 +65,20 @@ describe('Selectors.Rhs', () => {
             expect(Selectors.getPreviousRhsState(state)).toEqual(previous);
         });
     });
+
+    describe('should return the search team', () => {
+        test.each([
+            [null, 'currentTeamId'],
+            ['searchTeamId', 'searchTeamId'],
+        ])('%p gives %p', (searchTeam, expected) => {
+            const state = {
+                entities: {teams: {currentTeamId: 'currentTeamId'}},
+                views: {rhs: {
+                    searchTeam,
+                }} as any,
+            } as GlobalState;
+
+            expect(Selectors.getSearchTeam(state)).toEqual(expected);
+        });
+    });
 });

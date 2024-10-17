@@ -6,6 +6,7 @@ import type {Post, PostType} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getGlobalItem, makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
@@ -123,8 +124,12 @@ export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }
 
-export function getSearchTeam(state: GlobalState): string | null {
-    return state.views.rhs.searchTeam;
+export function getSearchTeam(state: GlobalState): string {
+    const searchTeam = state.views.rhs.searchTeam;
+    if (!searchTeam) {
+        return getCurrentTeamId(state);
+    }
+    return searchTeam;
 }
 
 export function getSearchType(state: GlobalState): SearchType {
