@@ -154,6 +154,7 @@ export default function SecureConnectionDetail(props: Props) {
                                 >
                                     <Input
                                         type='text'
+                                        data-testid='organization-name-input'
                                         value={remoteCluster?.display_name ?? ''}
                                         onChange={handleNameChange}
                                         autoFocus={isCreating}
@@ -170,6 +171,7 @@ export default function SecureConnectionDetail(props: Props) {
                                     })}
                                 >
                                     <TeamSelector
+                                        testId='destination-team-input'
                                         value={remoteCluster.default_team_id ?? ''}
                                         teamsById={teamsById}
                                         onChange={handleTeamChange}

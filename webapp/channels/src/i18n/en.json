@@ -2208,6 +2208,7 @@
   "admin.secure_connection_detail.shared_channels.table.remote_actions.remove": "Remove",
   "admin.secure_connection_detail.shared_channels.table.team_home": "Current Team",
   "admin.secure_connection_detail.shared_channels.table.team_remote": "Destination Team",
+  "admin.secure_connection_row.menu-button.aria_label": "Connection options for {connection}",
   "admin.secure_connection_row.menu.aria_label": "secure connection row menu",
   "admin.secure_connection_row.menu.delete": "Delete",
   "admin.secure_connection_row.menu.edit": "Edit",
