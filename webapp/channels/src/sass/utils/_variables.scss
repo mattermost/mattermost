@@ -5,12 +5,12 @@
 // Color Variables
 $primary-color: #166de0;
 $primary-color--hover: color.adjust($primary-color, $lightness: -10%);
-$bg--gray: rgb(245, 245, 245);
+$bg--gray: rgb(244, 244, 246);
 $white: rgb(255, 255, 255);
 $black: rgb(0, 0, 0);
 $red: rgb(214, 73, 70);
 $yellow: rgb(255, 255, 0);
-$light-gray: rgba(0, 0, 0, 0.15);
+$light-gray: rgba(63, 67, 80, 0.12);
 $gray: rgba(0, 0, 0, 0.3);
 $dark-gray: rgba(0, 0, 0, 0.5);
 $link-color: rgb(35, 137, 215);
