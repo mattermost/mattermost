@@ -91,7 +91,7 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 
 func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {

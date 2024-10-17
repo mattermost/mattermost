@@ -244,7 +244,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 			ch.syncPluginsActiveState()
 		}
 
-		ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			if err := hooks.OnConfigurationChange(); err != nil {
 				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 			}

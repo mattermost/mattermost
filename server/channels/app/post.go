@@ -268,7 +268,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
 		if rejectionReason != "" {
 			id := "Post rejected by plugin. " + rejectionReason
@@ -341,7 +341,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// and to remove the non-GOB-encodable Metadata from it.
 	pluginPost := rpost.ForPlugin()
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 			return true
 		}, plugin.MessageHasBeenPostedID)
@@ -698,7 +698,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	var rejectionReason string
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
 		return newPost != nil
 	}, plugin.MessageWillBeUpdatedID)
@@ -723,7 +723,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
 			return true
 		}, plugin.MessageHasBeenUpdatedID)
@@ -2328,7 +2328,7 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 	for _, post := range posts {
 		postsSlice = append(postsSlice, post.ForPlugin())
 	}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
 		for _, postReplacement := range postReplacements {
 			posts[postReplacement.Id] = postReplacement
@@ -2343,7 +2343,7 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 	}
 
 	ps := []*model.Post{*post}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		rp := hooks.MessagesWillBeConsumed(ps)
 		if len(rp) > 0 {
 			(*post) = rp[0]
@@ -2665,7 +2665,7 @@ func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteBy
 	pluginPost := post.ForPlugin()
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
 			return true
 		}, plugin.MessageHasBeenDeletedID)
