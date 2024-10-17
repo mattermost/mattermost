@@ -16,7 +16,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	isNotBusy := func() bool {
@@ -124,9 +124,8 @@ type ClusterMock struct {
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
-	if err := json.Unmarshal(msg.Data, &sbs); err != nil {
-		require.NoError(c.t, err)
-	}
+	err := json.Unmarshal(msg.Data, &sbs)
+	require.NoError(c.t, err)
 	c.Busy.ClusterEventChanged(&sbs)
 }
 
