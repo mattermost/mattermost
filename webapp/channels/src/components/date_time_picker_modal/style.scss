@@ -49,10 +49,13 @@
         }
     }
 
-    .dateTime__time-menu.MenuWrapper--open {
-        .dateTime__input {
-            border: 2px solid var(--button-bg);
-            cursor: pointer;
+    .dateTime__time-menu {
+
+        &.MenuWrapper--open {
+            .dateTime__input {
+                border: 2px solid var(--button-bg);
+                cursor: pointer;
+            }
         }
     }
 
