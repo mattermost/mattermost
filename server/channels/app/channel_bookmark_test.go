@@ -102,8 +102,12 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		th.App.Srv().Store().FileInfo().Save(th.Context, file)
-		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		_, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		assert.NoError(t, appErr)
+		defer func() {
+			err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+			assert.NoError(t, err)
+		}()
 
 		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
@@ -125,9 +129,14 @@ func TestUpdateBookmark(t *testing.T) {
 			HasPreviewImage: true,
 		}
 
-		th.App.Srv().Store().FileInfo().Save(th.Context, file2)
-		th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
-		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+		_, appErr = th.App.Srv().Store().FileInfo().Save(th.Context, file2)
+		assert.NoError(t, appErr)
+		appErr = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
+		assert.NoError(t, appErr)
+		defer func() {
+			err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+			assert.NoError(t, err)
+		}()
 
 		bookmark2.FileId = file2.Id
 		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
@@ -251,7 +260,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	assert.Nil(t, appErr)
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
@@ -268,8 +278,12 @@ func TestGetChannelBookmarks(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	th.App.Srv().Store().FileInfo().Save(th.Context, file)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	assert.NoError(t, err)
+	defer func() {
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		assert.NoError(t, err)
+	}()
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -279,7 +293,9 @@ func TestGetChannelBookmarks(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	if _, appErr := th.App.CreateChannelBookmark(th.Context, bookmark2, ""); appErr != nil {
+		assert.Nil(t, appErr)
+	}
 
 	t.Run("get bookmarks of a channel", func(t *testing.T) {
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
@@ -290,7 +306,9 @@ func TestGetChannelBookmarks(t *testing.T) {
 
 	t.Run("get bookmarks of a channel after one is deleted (aka only return the changed bookmarks)", func(t *testing.T) {
 		now := model.GetMillis()
-		th.App.DeleteChannelBookmark(bookmark1.Id, "")
+		if _, appErr := th.App.DeleteChannelBookmark(bookmark1.Id, ""); appErr != nil {
+			assert.Nil(t, appErr)
+		}
 
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
 		require.Nil(t, err)
@@ -353,7 +371,10 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+	defer func() {
+		appErr := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+		require.NoError(t, appErr)
+	}()
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -437,7 +458,9 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
 
 		// now reset order
-		th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
+		if _, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), ""); appErr != nil {
+			assert.Nil(t, appErr)
+		}
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
