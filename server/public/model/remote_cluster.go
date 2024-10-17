@@ -445,10 +445,11 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 }
 
 type RemoteClusterAcceptInvite struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Invite      string `json:"invite"`
-	Password    string `json:"password"`
+	Name          string `json:"name"`
+	DisplayName   string `json:"display_name"`
+	DefaultTeamId string `json:"default_team_id"`
+	Invite        string `json:"invite"`
+	Password      string `json:"password"`
 }
 
 // RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
