@@ -111,9 +111,19 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
     renderRow = (item: Group, listModal: ListModal) => {
         let title;
         if (item.scheme_admin) {
-            title = Utils.localizeMessage({id: 'team_members_dropdown.teamAdmins', defaultMessage: 'Team Admins'});
+            title = (
+                <FormattedMessage
+                    id='team_members_dropdown.teamAdmins'
+                    defaultMessage='Team Admins'
+                />
+            );
         } else {
-            title = Utils.localizeMessage({id: 'team_members_dropdown.teamMembers', defaultMessage: 'Team Members'});
+            title = (
+                <FormattedMessage
+                    id='team_members_dropdown.teamMembers'
+                    defaultMessage='Team Members'
+                />
+            );
         }
 
         return (

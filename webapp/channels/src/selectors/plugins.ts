@@ -6,6 +6,7 @@ import type {AppBinding} from '@mattermost/types/apps';
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
@@ -108,3 +109,39 @@ export function showNewChannelWithBoardPulsatingDot(state: GlobalState): boolean
     const showPulsatingDot = pulsatingDotState !== '' && JSON.parse(pulsatingDotState)[Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED] === false;
     return showPulsatingDot;
 }
+
+export const getSearchPluginSuggestions = createSelector(
+    'getSearchPluginSuggestions',
+    getLicense,
+    (state: GlobalState) => state.plugins.components.SearchSuggestions,
+    (license, components = []) => {
+        if (license.IsLicensed !== 'true') {
+            return [];
+        }
+        return components;
+    },
+);
+
+export const getSearchBoxHints = createSelector(
+    'getSearchBoxHints',
+    getLicense,
+    (state: GlobalState) => state.plugins.components.SearchHints,
+    (license, components = []) => {
+        if (license.IsLicensed !== 'true') {
+            return [];
+        }
+        return components;
+    },
+);
+
+export const getSearchButtons = createSelector(
+    'getSearchButtons',
+    getLicense,
+    (state: GlobalState) => state.plugins.components.SearchButtons,
+    (license, components = []) => {
+        if (license.IsLicensed !== 'true') {
+            return [];
+        }
+        return components;
+    },
+);
