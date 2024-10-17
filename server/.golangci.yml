@@ -261,7 +261,6 @@ issues:
         channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
         channels/utils/subpath_test.go|\
-        channels/web/handlers.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
         channels/web/response_writer_wrapper_test.go|\
