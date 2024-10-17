@@ -129,9 +129,14 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			Home:      true,
 			RemoteId:  "", // channel originates locally
 		}
-		if _, err = scs.ShareChannel(sc); err != nil {
+		if sc, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
+		}
+		mlog.Info("SHARED CHANNEL ", mlog.String("ID", sc.ChannelId))
+		err = scs.CheckChannelIsShared(sc.ChannelId)
+		if err != nil {
+			mlog.Error("Could not immediately retrieve", mlog.Err(err))
 		}
 	} else {
 		if err = scs.CheckChannelIsShared(channelID); err != nil {
