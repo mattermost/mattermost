@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"unicode/utf8"
 )
 
 type ChannelBookmarkType string
@@ -14,6 +15,8 @@ const (
 	ChannelBookmarkFile    ChannelBookmarkType = "file"
 	BookmarkFileOwner                          = "bookmark"
 	MaxBookmarksPerChannel                     = 50
+	DisplayNameMaxRunes                        = 64
+	LinkMaxRunes                               = 1024
 )
 
 type ChannelBookmark struct {
@@ -90,7 +93,7 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.owner_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if o.DisplayName == "" {
+	if o.DisplayName == "" || utf8.RuneCountInString(o.DisplayName) > DisplayNameMaxRunes {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -98,11 +101,19 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Type == ChannelBookmarkLink && (o.LinkUrl == "" || !IsValidHTTPURL(o.LinkUrl)) {
+	if o.Type == ChannelBookmarkLink && o.FileId != "" {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type == ChannelBookmarkFile && o.LinkUrl != "" {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if o.Type == ChannelBookmarkLink && o.ImageUrl != "" && !IsValidHTTPURL(o.ImageUrl) {
+	if o.Type == ChannelBookmarkLink && (o.LinkUrl == "" || !IsValidHTTPURL(o.LinkUrl) || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes) {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type == ChannelBookmarkLink && o.ImageUrl != "" && (!IsValidHTTPURL(o.ImageUrl) || utf8.RuneCountInString(o.ImageUrl) > LinkMaxRunes) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.image_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
