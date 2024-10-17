@@ -10,18 +10,20 @@ import {useHistory} from 'react-router-dom';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {scheduledPostToPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 
+import {createPost} from 'actions/post_actions';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
 import {getConnectionId} from 'selectors/general';
@@ -99,6 +101,8 @@ function DraftRow({
     });
 
     const connectionId = useSelector(getConnectionId);
+
+    const channelMember = useSelector((state: GlobalState) => getChannelMember(state, channelId, user.id));
 
     let postError = '';
 
@@ -224,6 +228,20 @@ function DraftRow({
         };
     }, [item, dispatch, connectionId]);
 
+    const afterCreatePostFromScheduledPost = useCallback(async () => {
+        await dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
+        if (channelMember) {
+            goToMessage();
+        }
+    }, [channelMember, connectionId, dispatch, goToMessage, item]);
+
+    const handleScheduledPostOnSend = useCallback(async () => {
+        const scheduledPost = item as ScheduledPost;
+        const post = scheduledPostToPost(scheduledPost);
+
+        await dispatch(createPost(post, scheduledPost.metadata?.files || [], afterCreatePostFromScheduledPost));
+    }, [afterCreatePostFromScheduledPost, dispatch, item]);
+
     const scheduledPostActions = useMemo(() => {
         if (!channel) {
             return null;
@@ -235,13 +253,14 @@ function DraftRow({
                 channelDisplayName={channel.display_name}
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
-                onSend={() => {}}
+                onSend={handleScheduledPostOnSend}
             />
         );
     }, [
         channel,
         handleSchedulePostOnDelete,
         handleSchedulePostOnReschedule,
+        handleScheduledPostOnSend,
         item,
     ]);
 
