@@ -300,17 +300,20 @@ export default function FileAttachment(props: Props) {
                     >
                         {fileInfo.name}
                     </span>
-                    {fileInfo.archived ? <span className={'post-image__archived'}>
-
-                        <FormattedMessage
-                            id='workspace_limits.archived_file.archived'
-                            defaultMessage='This file is archived'
-                        />
-                    </span> : <>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                    </>
-                    }
+                    {fileInfo.extra_info && <span className={'post-image__extra-info'}>{fileInfo.extra_info}</span>}
+                    {fileInfo.archived ? (
+                        <span className={'post-image__archived'}>
+                            <FormattedMessage
+                                id='workspace_limits.archived_file.archived'
+                                defaultMessage='This file is archived'
+                            />
+                        </span>
+                    ) : (
+                        <>
+                            <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
+                            <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
+                        </>
+                    )}
                 </div>
             </div>
         );
