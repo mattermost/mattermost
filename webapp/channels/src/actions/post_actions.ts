@@ -317,7 +317,7 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean, GlobalState>
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = false): ActionFunc<boolean> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -339,7 +339,7 @@ export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = 
         if (canEditNow) {
             dispatch({
                 type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, title, isRHS, show: true},
+                data: {postId, refocusId, isRHS, show: true},
             });
         }
 
