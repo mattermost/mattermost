@@ -185,7 +185,6 @@ func TestCreateRemoteCluster(t *testing.T) {
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
 			Name:          "remotecluster",
-			SiteURL:       "http://example.com",
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
@@ -222,13 +221,29 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
+	t.Run("Should not work if no default team id is provided", func(t *testing.T) {
+		rcWithoutDefaultTeamId := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:  "remotecluster-nodefaultteamid",
+				Token: model.NewId(),
+			},
+			Password: "",
+		}
+
+		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithoutDefaultTeamId)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "remote_cluster.default_team_id")
+		require.Zero(t, rcWithInvite)
+	})
+
 	t.Run("Should generate a password if none is given", func(t *testing.T) {
 		// clean the password and check the response
 		rcWithTeamNoPassword := &model.RemoteClusterWithPassword{
 			RemoteCluster: &model.RemoteCluster{
-				Name:    "remotecluster-nopasswd",
-				SiteURL: "http://no-passwd.example.com",
-				Token:   model.NewId(),
+				Name:          "remotecluster-nopasswd",
+				DefaultTeamId: model.NewId(),
+				Token:         model.NewId(),
 			},
 			Password: "",
 		}

@@ -86,10 +86,13 @@
               type: object
               required:
                 - name
+                - default_team_id
               properties:
                 name:
                   type: string
                 display_name:
+                  type: string
+                default_team_id:
                   type: string
                 password:
                   type: string
