@@ -1,4 +1,4 @@
-name: BuildEnv Docker Image
+name: Opensearch Docker Image
 
 on:
   push:
