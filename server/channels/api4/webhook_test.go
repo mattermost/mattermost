@@ -984,7 +984,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	_, _, err = th.Client.Login(context.Background(), user.Username, user.Password)
-	require.Error(t, err)
+	require.NoError(t, err)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
 		_, resp, err := th.Client.UpdateIncomingWebhook(context.Background(), createdHook)
 		require.Error(t, err)
@@ -1264,7 +1264,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	_, _, err = th.Client.Login(context.Background(), user.Username, user.Password)
-	require.Error(t, err)
+	require.NoError(t, err)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
 		_, resp, err := th.Client.UpdateOutgoingWebhook(context.Background(), createdHook)
 		require.Error(t, err)
