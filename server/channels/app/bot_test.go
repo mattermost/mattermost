@@ -659,7 +659,7 @@ func TestDisableUserBots(t *testing.T) {
 	defer func() {
 		for _, bot := range bots {
 			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
-			require.NoError(t, err)
+			require.Nil(t, err)
 		}
 	}()
 
@@ -717,7 +717,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	defer func() {
 		for _, bot := range userBots {
 			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
-			require.NoError(t, err)
+			require.Nil(t, err)
 		}
 	}()
 
@@ -731,7 +731,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
@@ -742,7 +742,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{
