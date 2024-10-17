@@ -121,13 +121,10 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
             <div className='item-details__row'>
                 <span className='item-details__token'>
                     <FormattedMessage
-                        id='installedIntegrations.clientId'
-                        defaultMessage='Client ID: <b>{clientId}</b>'
-                        values={{
-                            clientId: outgoingOAuthConnection.client_id,
-                            b: (chunks: string) => <b>{chunks}</b>,
-                        }}
+                        id='installed_integrations.client_id'
+                        defaultMessage='Client ID: '
                     />
+                    <strong>{outgoingOAuthConnection.client_id}</strong>
                 </span>
             </div>
             <div className='item-details__row'>
@@ -150,6 +147,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                                     b: (chunks: string) => <b>{chunks}</b>,
                                 }}
                             />
+                            <strong>{outgoingOAuthConnection.credentials_username}</strong>
                         </span>
                     </div>
                     <div className='item-details__row'>

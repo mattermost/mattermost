@@ -199,7 +199,10 @@ export default class TeamList extends React.PureComponent<Props, State> {
                             }}
                             href='#'
                         >
-                            {Utils.localizeMessage({id: 'admin.data_retention.custom_policy.teams.remove', defaultMessage: 'Remove'})}
+                            <FormattedMessage
+                                id='admin.data_retention.custom_policy.teams.remove'
+                                defaultMessage='Remove'
+                            />
                         </a>
                     ),
                 },
