@@ -60,11 +60,6 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, err
 	}
 
-	_, err = scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
-	if err != nil {
-		mlog.Error("Error attempting to get")
-	}
-
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(true)
@@ -129,19 +124,15 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 	// set the channel `shared` flag if needed
 	if shareIfNotShared {
-		mlog.Info("shareIfNotShared is true " + channelID)
 		sc := &model.SharedChannel{
 			ChannelId: channelID,
 			CreatorId: userID,
 			Home:      true,
 			RemoteId:  "", // channel originates locally
 		}
-		if sc, err = scs.ShareChannel(sc); err != nil {
+		if _, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
-		}
-		if err = scs.CheckChannelIsShared(sc.ChannelId); err != nil {
-			mlog.Error("Failed First retreival", mlog.Err(err))
 		}
 	} else {
 		if err = scs.CheckChannelIsShared(channelID); err != nil {
@@ -223,7 +214,6 @@ func (scs *Service) CheckChannelNotShared(channelID string) error {
 // CheckChannelIsShared returns nil only if the channel is shared. Otherwise a store.ErrNotFound is returned
 // or database error.
 func (scs *Service) CheckChannelIsShared(channelID string) error {
-	mlog.Info("CheckChannelIsShared", mlog.String("Channel", channelID))
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
@@ -239,18 +229,12 @@ func (scs *Service) CheckChannelIsShared(channelID string) error {
 // - block cyclic invitations
 // - the channel must exist
 func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
-	mlog.Info("CheckCanInviteToSharedChannel", mlog.String("Channel", channelId))
 	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
 	if err != nil {
 		if isNotFoundError(err) {
-			// retry one time
-			sc, err = scs.server.GetStore().SharedChannel().Get(channelId)
-			if err != nil {
-				return fmt.Errorf("channel is not shared: %w", err)
-			}
-		} else {
-			return fmt.Errorf("cannot find channel: %w", err)
+			return fmt.Errorf("channel is not shared: %w", err)
 		}
+		return fmt.Errorf("cannot find channel: %w", err)
 	}
 
 	if !sc.Home {
