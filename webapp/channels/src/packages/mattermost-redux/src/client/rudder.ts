@@ -11,12 +11,12 @@ import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
 
-const TrackGroupsFeature: string = 'custom_groups';
+export const TrackGroupsFeature: string = 'custom_groups';
 const TrackProfessionalSKU = 'professional';
 const TrackEnterpriseSKU = 'enterprise';
 
 const featureSKUs: {[feature: string]: string[]} = {
-  TrackGroupsFeature: [TrackProfessionalSKU, TrackEnterpriseSKU],
+  [TrackGroupsFeature]: [TrackProfessionalSKU, TrackEnterpriseSKU],
 };
 
 export class RudderTelemetryHandler implements TelemetryHandler {
@@ -45,6 +45,7 @@ export class RudderTelemetryHandler implements TelemetryHandler {
     }
 
     trackPaidFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
+	console.log('XXX tracking paid feature ' + featureName + ':' + event);
         // TODO: add installation id to context.traits.installationId?
         const properties = Object.assign({
             category: "paid_feature",
@@ -63,7 +64,7 @@ export class RudderTelemetryHandler implements TelemetryHandler {
             },
         };
 
-        rudderAnalytics.track('event', properties, options);
+        rudderAnalytics.track(event, properties, options);
   }
 
     pageVisited(userId: string, userRoles: string, category: string, name: string) {
@@ -96,7 +97,8 @@ function getActualRoles(userRoles: string) {
 function getSKUs(featureName: string) {
     let skus: string[] = featureSKUs[featureName] || [];
     if (skus.length == 0) {
-	console.log("Paid feature ${featureName} has no SKUs attached");
+	console.log('Paid feature ' + featureName + ' has no SKUs attached: ' + skus);
+	console.log(featureSKUs);
   }
   return skus;
 }
