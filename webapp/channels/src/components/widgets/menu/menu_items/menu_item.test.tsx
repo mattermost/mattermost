@@ -44,6 +44,11 @@ describe('components/MenuItem', () => {
                     >
                       test-icon
                     </span>
+                    <div
+                      className="text"
+                    >
+                      test-text
+                    </div>
                     test-text
                   </React.Fragment>
                 }
