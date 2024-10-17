@@ -15,6 +15,7 @@ export type Props = {
     teamsById: IDMappedObjects<Team>;
     onChange: (teamId: string) => void;
     testId: string;
+    legend?: string;
 }
 
 const TeamSelector = (props: Props): JSX.Element => {
@@ -40,6 +41,7 @@ const TeamSelector = (props: Props): JSX.Element => {
             value={value ? {label: value.display_name, value: value.id} : undefined}
             options={teamValues}
             name='team_selector'
+            legend={props.legend}
         />
     );
 };

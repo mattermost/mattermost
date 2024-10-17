@@ -47,7 +47,7 @@ import {
 import {useRemoteClusterCreate, useSharedChannelsAdd, useSharedChannelsRemove} from './modals/modal_utils';
 import TeamSelector from './team_selector';
 import type {SharedChannelRemoteRow} from './utils';
-import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows} from './utils';
+import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows, useTeamOptions} from './utils';
 
 import {AdminConsoleListTable} from '../list_table';
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
@@ -73,6 +73,8 @@ export default function SecureConnectionDetail(props: Props) {
 
     const {promptCreate, saving: creating} = useRemoteClusterCreate();
 
+    const teamsById = useTeamOptions();
+
     useEffect(() => {
         // keep history cache up to date
         history.replace({...location, state: currentRemoteCluster});
@@ -87,8 +89,6 @@ export default function SecureConnectionDetail(props: Props) {
         applyPatch({display_name: value});
     };
 
-    const teams = useSelector(getActiveTeamsList);
-    const teamsById = useMemo(() => teams.reduce<IDMappedObjects<Team>>((teams, team) => ({...teams, [team.id]: team}), {}), [teams]);
     const handleTeamChange = (teamId: string) => {
         applyPatch({default_team_id: teamId});
     };
