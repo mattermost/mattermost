@@ -25,9 +25,14 @@ type Props = {
 export default function SecureConnectionRow(props: Props) {
     const {remoteCluster: rc} = props;
 
+    const titleId = `${rc.remote_id}-title`;
+
     return (
-        <RowLink to={getEditLocation(rc)}>
-            <Title>{rc.display_name}</Title>
+        <RowLink
+            to={getEditLocation(rc)}
+            aria-labelledby={titleId}
+        >
+            <Title id={titleId}>{rc.display_name}</Title>
             <Detail>
                 <ConnectionStatusLabel rc={rc}/>
                 <RowMenu {...props}/>
@@ -59,10 +64,11 @@ const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
     return (
         <Menu.Container
             menuButton={{
-                id: `${menuId}-button`,
-                class: classNames('btn btn-tertiary btn-sm', {disabled}),
+                id: `${menuId}-button-${rc.remote_id}`,
+                class: classNames('btn btn-tertiary btn-sm connection-row-menu-button', {disabled}),
                 disabled,
                 children: !disabled && <DotsHorizontalIcon size={16}/>,
+                'aria-label': formatMessage({id: 'admin.secure_connection_row.menu-button.aria_label', defaultMessage: 'Connection options for {connection}'}, {connection: rc.display_name}),
             }}
             menu={{
                 id: menuId,
@@ -126,7 +132,7 @@ const RowLink = styled(Link<RemoteCluster>).attrs({className: 'secure-connection
         border-bottom: 0;
     }
 
-    #${menuId}-button {
+    .connection-row-menu-button {
         padding: 0px 8px;
     }
 `;
