@@ -12,11 +12,8 @@ import styled from 'styled-components';
 
 import {GlobeIcon, LockIcon, PlusIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
-import type {Team} from '@mattermost/types/teams';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
