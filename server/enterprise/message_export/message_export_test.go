@@ -240,7 +240,7 @@ func jobDataInvariantsShouldBeEqual(t *testing.T, expected map[string]string, re
 	require.Equal(t, expected[JobDataEndTimestamp], received[JobDataEndTimestamp])
 }
 
-func TestRunExportJobByType(t *testing.T) {
+func TestRunExportJobE2EByType(t *testing.T) {
 	t.Run("no dedicated export filestore", func(t *testing.T) {
 		exportTempDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
@@ -251,7 +251,7 @@ func TestRunExportJobByType(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		testRunExportJobByType(t, fileBackend, exportTempDir, fileBackend, exportTempDir)
+		testRunExportJobE2E(t, fileBackend, exportTempDir, fileBackend, exportTempDir)
 	})
 
 	t.Run("using dedicated export filestore", func(t *testing.T) {
@@ -273,11 +273,11 @@ func TestRunExportJobByType(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		testRunExportJobByType(t, exportBackend, exportTempDir, attachmentBackend, attachmentTempDir)
+		testRunExportJobE2E(t, exportBackend, exportTempDir, attachmentBackend, attachmentTempDir)
 	})
 }
 
-func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, exportDir string,
+func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, exportDir string,
 	attachmentBackend filestore.FileBackend, attachmentDir string) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -286,12 +286,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 	t.Run("conflicting timestamps", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
-		t.Cleanup(func() {
+		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
 			err = os.RemoveAll(attachmentDir)
 			assert.NoError(t, err)
-		})
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MessageExportSettings.EnableExport = true
@@ -336,12 +336,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 	t.Run("actiance -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
-		t.Cleanup(func() {
+		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
 			err = os.RemoveAll(attachmentDir)
 			assert.NoError(t, err)
-		})
+		}()
 
 		time.Sleep(10 * time.Millisecond)
 		now := model.GetMillis()
@@ -408,11 +408,11 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
-		exportDir2 := job.Data[JobDataExportDir]
-		batch001 := shared.GetBatchPath(exportDir2, jobStart, now+3, 1)
-		batch002 := shared.GetBatchPath(exportDir2, now+3, now+8, 2)
-		batch003 := shared.GetBatchPath(exportDir2, now+8, jobEnd, 3)
-		files, err := exportBackend.ListDirectory(exportDir2)
+		jobExportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(jobExportDir, jobStart, now+3, 1)
+		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+8, 2)
+		batch003 := shared.GetBatchPath(jobExportDir, now+8, jobEnd, 3)
+		files, err := exportBackend.ListDirectory(jobExportDir)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
@@ -433,12 +433,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 	t.Run("actiance -- multiple batches, using UntilUpdateAt", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
-		t.Cleanup(func() {
+		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
 			err = os.RemoveAll(attachmentDir)
 			assert.NoError(t, err)
-		})
+		}()
 
 		time.Sleep(10 * time.Millisecond)
 		now := model.GetMillis()
@@ -485,11 +485,11 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, now+6, jobEnd)
-		exportDir = job.Data[JobDataExportDir]
-		batch001 := shared.GetBatchPath(exportDir, now+1, now+3, 1)
+		jobExportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(jobExportDir, now+1, now+3, 1)
 		// lastPostUpdateAt will be post#4 (now+3), even though we exported it above, because LastPostId will exclude it
-		batch002 := shared.GetBatchPath(exportDir, now+3, now+6, 2)
-		files, err := exportBackend.ListDirectory(exportDir)
+		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+6, 2)
+		files, err := exportBackend.ListDirectory(jobExportDir)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002}, files)
 	})
@@ -515,12 +515,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 			t.Run(tt.name, func(t *testing.T) {
 				th := setup(t)
 				defer th.TearDown()
-				t.Cleanup(func() {
+				defer func() {
 					err := os.RemoveAll(exportDir)
 					assert.NoError(t, err)
 					err = os.RemoveAll(attachmentDir)
 					assert.NoError(t, err)
-				})
+				}()
 
 				// This tests (reading the files exported and testing the exported xml):
 				//  - job system exports the complete time from beginning to end; i.e., it doesn't use the post updateAt values as the bounds, it uses the start time and end time of the job.
@@ -812,7 +812,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 				require.NoError(t, err)
 				require.Equal(t, 9, numExported)
 
-				exportDir = job.Data[JobDataExportDir]
+				jobExportDir := job.Data[JobDataExportDir]
 				jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 				require.NoError(t, err)
 
@@ -858,10 +858,10 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 <FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 %s%s</FileDump>`, batch3ch4, batch3ch2)
 
-				batch001 := shared.GetBatchPath(exportDir, prevUpdatedAt, createUpdateTimes[2], 1)
-				batch002 := shared.GetBatchPath(exportDir, createUpdateTimes[2], createUpdateTimes[5], 2)
-				batch003 := shared.GetBatchPath(exportDir, createUpdateTimes[5], jobEndTime, 3)
-				files, err := exportBackend.ListDirectory(exportDir)
+				batch001 := shared.GetBatchPath(jobExportDir, prevUpdatedAt, createUpdateTimes[2], 1)
+				batch002 := shared.GetBatchPath(jobExportDir, createUpdateTimes[2], createUpdateTimes[5], 2)
+				batch003 := shared.GetBatchPath(jobExportDir, createUpdateTimes[5], jobEndTime, 3)
+				files, err := exportBackend.ListDirectory(jobExportDir)
 				require.NoError(t, err)
 				batches := []string{batch001, batch002, batch003}
 				require.ElementsMatch(t, batches, files)
@@ -912,12 +912,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 	t.Run("actiance e2e - post from user not in channel", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
-		t.Cleanup(func() {
+		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
 			err = os.RemoveAll(attachmentDir)
 			assert.NoError(t, err)
-		})
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MessageExportSettings.EnableExport = true
@@ -1046,7 +1046,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 		require.NoError(t, err)
 		require.Equal(t, 2, int(numExported))
 
-		exportDir = job.Data[JobDataExportDir]
+		jobExportDir := job.Data[JobDataExportDir]
 		jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 		require.NoError(t, err)
 
@@ -1100,8 +1100,8 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 			createUpdateTimes[0], createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
 
-		batch001 := shared.GetBatchPath(exportDir, prevUpdatedAt, jobEndTime, 1)
-		files, err := exportBackend.ListDirectory(exportDir)
+		batch001 := shared.GetBatchPath(jobExportDir, prevUpdatedAt, jobEndTime, 1)
+		files, err := exportBackend.ListDirectory(jobExportDir)
 		require.NoError(t, err)
 		batches := []string{batch001}
 		require.ElementsMatch(t, batches, files)
@@ -1122,12 +1122,12 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 	t.Run("csv -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
-		t.Cleanup(func() {
+		defer func() {
 			err := os.RemoveAll(exportDir)
 			assert.NoError(t, err)
 			err = os.RemoveAll(attachmentDir)
 			assert.NoError(t, err)
-		})
+		}()
 
 		time.Sleep(10 * time.Millisecond)
 		now := model.GetMillis()
@@ -1193,11 +1193,11 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
 
-		exportDir := job.Data[JobDataExportDir]
-		batch001 := shared.GetBatchPath(exportDir, jobStart, now+3, 1)
-		batch002 := shared.GetBatchPath(exportDir, now+3, now+8, 2)
-		batch003 := shared.GetBatchPath(exportDir, now+8, jobEnd, 3)
-		files, err := exportBackend.ListDirectory(exportDir)
+		jobExportDir := job.Data[JobDataExportDir]
+		batch001 := shared.GetBatchPath(jobExportDir, jobStart, now+3, 1)
+		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+8, 2)
+		batch003 := shared.GetBatchPath(jobExportDir, now+8, jobEnd, 3)
+		files, err := exportBackend.ListDirectory(jobExportDir)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
