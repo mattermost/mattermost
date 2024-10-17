@@ -80,7 +80,7 @@ export function runSlashCommandWillBePostedHooks(originalMessage: string, origin
     };
 }
 
-export function runMessageWillBeUpdatedHooks(newPost: Post, oldPost: Post): ActionFuncAsync<Post, GlobalState> {
+export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Post): ActionFuncAsync<Partial<Post>, GlobalState> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBeUpdated;
         if (!hooks || hooks.length === 0) {
@@ -91,7 +91,7 @@ export function runMessageWillBeUpdatedHooks(newPost: Post, oldPost: Post): Acti
 
         for (const hook of hooks) {
             // TODO fix types for this hook
-            const result: any = await hook.hook?.(post, oldPost as any); // eslint-disable-line no-await-in-loop
+            const result: any = await hook.hook?.(post as any, oldPost as any); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
