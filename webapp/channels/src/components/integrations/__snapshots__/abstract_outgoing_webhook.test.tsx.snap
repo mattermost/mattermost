@@ -332,7 +332,12 @@ callbackUrl2.com
           id="saveWebhook"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "loading_id",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

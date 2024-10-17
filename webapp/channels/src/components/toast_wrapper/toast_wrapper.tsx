@@ -20,7 +20,6 @@ import Constants from 'utils/constants';
 import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost} from 'utils/post_utils';
-import {localizeMessage} from 'utils/utils';
 
 import './toast__wrapper.scss';
 
@@ -461,7 +460,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 width,
                 onDismiss: this.hideArchiveToast,
                 onClick: this.scrollToLatestMessages,
-                onClickMessage: localizeMessage({id: 'postlist.toast.scrollToBottom', defaultMessage: 'Jump to recents'}),
+                onClickMessage: (
+                    <FormattedMessage
+                        id='postlist.toast.scrollToBottom'
+                        defaultMessage='Jump to recents'
+                    />
+                ),
                 showActions: true,
                 extraClasses: 'toast__history',
             };
