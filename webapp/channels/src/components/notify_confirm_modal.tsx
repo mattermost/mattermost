@@ -64,7 +64,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                     notifyAllMessage = (
                         <FormattedMessage
                             id='notifyAll.questionTimezoneOneGroup'
-                            defaultMessage='By using <b>{mention}</b> you are about to send notifications of up to <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
+                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
                             values={{
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
@@ -77,7 +77,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                     notifyAllMessage = (
                         <FormattedMessage
                             id='notifyAll.questionOneGroup'
-                            defaultMessage='By using <b>{mention}</b> you are about to send notifications of up to <b>{totalMembers} people</b>. Are you sure you want to do this?'
+                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to <b>{totalMembers} people</b>. Are you sure you want to do this?'
                             values={{
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
@@ -90,7 +90,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                 notifyAllMessage = (
                     <FormattedMessage
                         id='notifyAll.questionTimezoneGroups'
-                        defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications of up to <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
+                        defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications to at least <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
                         values={{
                             mentions: mentions.slice(0, -1).join(', '),
                             finalMention: mentions[mentions.length - 1],
@@ -104,7 +104,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                 notifyAllMessage = (
                     <FormattedMessage
                         id='notifyAll.questionGroups'
-                        defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications of up to <b>{totalMembers} people</b>. Are you sure you want to do this?'
+                        defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications to at least <b>{totalMembers} people</b>. Are you sure you want to do this?'
                         values={{
                             mentions: mentions.slice(0, -1).join(', '),
                             finalMention: mentions[mentions.length - 1],
