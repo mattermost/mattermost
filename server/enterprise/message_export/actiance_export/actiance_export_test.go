@@ -36,26 +36,59 @@ func (mr *MyReporter) ReportProgressMessage(message string) {
 }
 
 func TestActianceExport(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestActianceExport(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestActianceExport(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
 	chanTypeDirect := model.ChannelTypeDirect
-	csvExportTests := []struct {
+	actianceExportTests := []struct {
 		name          string
 		jobEndTime    int64
 		activity      []string
@@ -770,7 +803,7 @@ func TestActianceExport(t *testing.T) {
 		},
 	}
 
-	for _, tt := range csvExportTests {
+	for _, tt := range actianceExportTests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -781,11 +814,11 @@ func TestActianceExport(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
-						err = fileBackend.RemoveFile(attachments[0].Path)
+						err = attachmentBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -837,12 +870,13 @@ func TestActianceExport(t *testing.T) {
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
 				Db:                     mockStore,
-				FileBackend:            fileBackend,
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, 0, res.NumWarnings)
 
-			zipBytes, err := fileBackend.ReadFile(exportFileName)
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 			assert.NoError(t, err)
@@ -855,7 +889,7 @@ func TestActianceExport(t *testing.T) {
 			assert.Equal(t, tt.expectedData, string(xmlData))
 
 			t.Cleanup(func() {
-				err = fileBackend.RemoveFile(exportFileName)
+				err = exportBackend.RemoveFile(exportFileName)
 				assert.NoError(t, err)
 			})
 		})
@@ -863,21 +897,54 @@ func TestActianceExport(t *testing.T) {
 }
 
 func TestActianceExportMultipleBatches(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestActianceExportMultipleBatches(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestActianceExportMultipleBatches(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -1183,11 +1250,11 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
-						err = fileBackend.RemoveFile(attachments[0].Path)
+						err = attachmentBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -1250,12 +1317,13 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					BatchStartTime:         batchStartTime,
 					BatchEndTime:           batchEndTime,
 					Db:                     mockStore,
-					FileBackend:            fileBackend,
+					FileAttachmentBackend:  attachmentBackend,
+					ExportBackend:          exportBackend,
 				})
 				assert.NoError(t, err)
 				assert.Equal(t, 0, res.NumWarnings)
 
-				zipBytes, err := fileBackend.ReadFile(exportFileName)
+				zipBytes, err := exportBackend.ReadFile(exportFileName)
 				assert.NoError(t, err)
 				zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 				assert.NoError(t, err)
@@ -1270,7 +1338,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 				batchStartTime = *tt.posts[batch][len(tt.posts[batch])-1].PostUpdateAt
 
 				t.Cleanup(func() {
-					err = fileBackend.RemoveFile(exportFileName)
+					err = exportBackend.RemoveFile(exportFileName)
 					assert.NoError(t, err)
 				})
 			}
@@ -1279,21 +1347,54 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 }
 
 func TestMultipleActianceExport(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestMultipleActianceExport(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestMultipleActianceExport(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -1612,13 +1713,14 @@ func TestMultipleActianceExport(t *testing.T) {
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
 				Db:                     mockStore,
-				FileBackend:            fileBackend,
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
 			})
 
 			assert.NoError(t, err)
 			assert.Equal(t, 0, res.NumWarnings)
 
-			zipBytes, err := fileBackend.ReadFile(exportFileName)
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 			assert.NoError(t, err)
@@ -1638,12 +1740,13 @@ func TestMultipleActianceExport(t *testing.T) {
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
 				Db:                     mockStore,
-				FileBackend:            fileBackend,
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, 0, res.NumWarnings)
 
-			zipBytes, err = fileBackend.ReadFile(exportFileName)
+			zipBytes, err = exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 			assert.NoError(t, err)
@@ -1656,7 +1759,7 @@ func TestMultipleActianceExport(t *testing.T) {
 			assert.Equal(t, tt.expectedData["step2"], string(xmlData))
 
 			t.Cleanup(func() {
-				err = fileBackend.RemoveFile(exportFileName)
+				err = exportBackend.RemoveFile(exportFileName)
 				assert.NoError(t, err)
 			})
 		})
@@ -1847,7 +1950,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-	warnings, err := writeExport(rctx, export, uploadedFiles, fileBackend, exportFileName)
+	warnings, err := writeExport(rctx, export, uploadedFiles, fileBackend, fileBackend, exportFileName)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, warnings)
 

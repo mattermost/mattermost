@@ -209,9 +209,14 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		Store:         w.jobServer.Store,
 		HtmlTemplates: w.htmlTemplateWatcher,
 	}
-	jobParams.FileBackend, err = shared.GetFileBackend(rctx, w.jobServer.Config())
+	jobParams.FileAttachmentBackend, err = shared.GetFileAttachmentBackend(rctx, w.jobServer.Config())
 	if err != nil {
-		w.setJobError(logger, job, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+		w.setJobError(logger, job, model.NewAppError("GetFileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+		return
+	}
+	jobParams.ExportBackend, err = shared.GetExportBackend(rctx, w.jobServer.Config())
+	if err != nil {
+		w.setJobError(logger, job, model.NewAppError("GetExportBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 
