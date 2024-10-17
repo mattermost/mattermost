@@ -111,11 +111,11 @@ const messages = defineMessages({
         defaultMessage: 'Yes, convert to private channel',
     },
     toPrivateMessage: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessage',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageFirstLine',
         defaultMessage: 'When you convert {displayName} to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.',
     },
     toPrivateMessageConfirmation: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageConfirmation',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPrivateMessageSecondLine',
         defaultMessage: 'Are you sure you want to convert {displayName} to a private channel?',
     },
     toPrivateTitle: {
@@ -127,11 +127,11 @@ const messages = defineMessages({
         defaultMessage: 'Yes, convert to public channel',
     },
     toPublicMessage: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessage',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageFirstLine',
         defaultMessage: 'When you convert {displayName} to a public channel, history and membership are preserved. Public channels are discoverable and can be joined by users on the system without invitation.',
     },
     toPublicMessageConfirmation: {
-        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageConfirmation',
+        id: 'admin.team_channel_settings.convertConfirmModal.toPublicMessageSecondLine',
         defaultMessage: 'Are you sure you want to convert {displayName} to a public channel?',
     },
     toPublicTitle: {
