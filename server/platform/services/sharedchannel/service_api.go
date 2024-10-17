@@ -59,6 +59,12 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
+	if err != nil {
+		mlog.Error("Error attempting to get")
+	}
+
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(true)
@@ -123,7 +129,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 
 	// set the channel `shared` flag if needed
 	if shareIfNotShared {
-		mlog.Info("shareIfNotShared is true")
+		mlog.Info("shareIfNotShared is true " + channelID)
 		sc := &model.SharedChannel{
 			ChannelId: channelID,
 			CreatorId: userID,
