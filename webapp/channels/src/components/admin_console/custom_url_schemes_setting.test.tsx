@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import CustomURLSchemesSetting from 'components/admin_console/custom_url_schemes_setting';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
+import CustomURLSchemesSetting from './custom_url_schemes_setting';
 
 describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
     const baseProps = {

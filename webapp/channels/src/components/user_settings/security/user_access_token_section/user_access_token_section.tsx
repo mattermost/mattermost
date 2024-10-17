@@ -22,7 +22,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
@@ -51,7 +50,7 @@ type State = {
     showConfirmModal: boolean;
     newToken?: UserAccessToken | null;
     tokenCreationState?: string;
-    tokenError?: string;
+    tokenError?: React.ReactNode;
     serverError?: string|null;
     saving?: boolean;
     confirmTitle?: React.ReactNode;
@@ -126,7 +125,14 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const description = this.newtokendescriptionRef ? this.newtokendescriptionRef.current!.value : '';
 
         if (description === '') {
-            this.setState({tokenError: Utils.localizeMessage({id: 'user.settings.tokens.nameRequired', defaultMessage: 'Please enter a description.'})});
+            this.setState({
+                tokenError: (
+                    <FormattedMessage
+                        id='user.settings.tokens.nameRequired'
+                        defaultMessage='Please enter a description.'
+                    />
+                ),
+            });
             return;
         }
 
@@ -324,11 +330,21 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         let tokenListClass = '';
 
         if (!this.props.active) {
-            const describe = Utils.localizeMessage({id: 'user.settings.tokens.clickToEdit', defaultMessage: "Click 'Edit' to manage your personal access tokens"});
+            const describe = (
+                <FormattedMessage
+                    id='user.settings.tokens.clickToEdit'
+                    defaultMessage="Click 'Edit' to manage your personal access tokens"
+                />
+            );
 
             return (
                 <SettingItemMin
-                    title={Utils.localizeMessage({id: 'user.settings.tokens.title', defaultMessage: 'Personal Access Tokens'})}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.tokens.title'
+                            defaultMessage='Personal Access Tokens'
+                        />
+                    }
                     describe={describe}
                     section={SECTION_TOKENS}
                     updateSection={this.props.updateSection}
@@ -629,7 +645,12 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         return (
             <div>
                 <SettingItemMax
-                    title={Utils.localizeMessage({id: 'user.settings.tokens.title', defaultMessage: 'Personal Access Tokens'})}
+                    title={
+                        <FormattedMessage
+                            id='user.settings.tokens.title'
+                            defaultMessage='Personal Access Tokens'
+                        />
+                    }
                     inputs={inputs}
                     extraInfo={extraInfo}
                     infoPosition='top'
