@@ -143,7 +143,7 @@
   "add_incoming_webhook.icon_url.help": "Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.",
   "add_incoming_webhook.save": "Save",
   "add_incoming_webhook.saving": "Saving...",
-  "add_incoming_webhook.url": "**URL**: {url}",
+  "add_incoming_webhook.url": "<strong>URL</strong>: {url}",
   "add_incoming_webhook.username": "Username",
   "add_incoming_webhook.username.help": "Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols \"-\", \"_\", and \".\" . If left blank, the name specified by the webhook creator is used.",
   "add_oauth_app.callbackUrls.help": "Specify the URIs to which the service redirects users after accepting or denying them authorization to your application, and handles authorization codes or access tokens. It must start with http:// or https://.",
