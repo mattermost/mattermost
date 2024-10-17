@@ -129,7 +129,6 @@ function SelfHostedContent(props: ContentProps) {
     const trialButton = () => {
         return (
             <StartTrialBtn
-                message={formatMessage({id: 'pricing_modal.btn.tryDays', defaultMessage: 'Try free for {days} days'}, {days: '30'})}
                 telemetryId='start_trial_from_self_hosted_pricing_modal'
                 renderAsButton={true}
                 disabled={isSelfHostedEnterpriseTrial}
