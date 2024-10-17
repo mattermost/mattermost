@@ -55,7 +55,7 @@ services:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
      - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-h", "localhost" ]
+      test: pg_isready -U mmuser -d mattermost_test
       interval: 5s
       timeout: 10s
       retries: 3
