@@ -86,6 +86,7 @@ func TestRunExportByType(t *testing.T) {
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
+		require.NoError(t, err)
 
 		testRunExportByType(t, exportBackend, exportTempDir, attachmentBackend, attachmentTempDir)
 	})
@@ -270,6 +271,7 @@ func TestRunExportJobByType(t *testing.T) {
 			DriverName: model.ImageDriverLocal,
 			Directory:  attachmentTempDir,
 		})
+		require.NoError(t, err)
 
 		testRunExportJobByType(t, exportBackend, exportTempDir, attachmentBackend, attachmentTempDir)
 	})
@@ -472,6 +474,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 			JobDataEndTimestamp:        strconv.Itoa(int(now) + 6),
 		})
 		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		require.NoError(t, err)
 		numExpected, err := strconv.ParseInt(job.Data[JobDataTotalPostsExpected], 0, 64)
 		require.NoError(t, err)
 		// test that we only exported 6 (because the JobDataEndTimestamp was translated to the cursor's UntilUpdateAt)
@@ -482,7 +485,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, now+6, jobEnd)
-		exportDir := job.Data[JobDataExportDir]
+		exportDir = job.Data[JobDataExportDir]
 		batch001 := shared.GetBatchPath(exportDir, now+1, now+3, 1)
 		// lastPostUpdateAt will be post#4 (now+3), even though we exported it above, because LastPostId will exclude it
 		batch002 := shared.GetBatchPath(exportDir, now+3, now+6, 2)
@@ -809,7 +812,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 				require.NoError(t, err)
 				require.Equal(t, 9, numExported)
 
-				exportDir := job.Data[JobDataExportDir]
+				exportDir = job.Data[JobDataExportDir]
 				jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 				require.NoError(t, err)
 
@@ -1043,7 +1046,7 @@ func testRunExportJobByType(t *testing.T, exportBackend filestore.FileBackend, e
 		require.NoError(t, err)
 		require.Equal(t, 2, int(numExported))
 
-		exportDir := job.Data[JobDataExportDir]
+		exportDir = job.Data[JobDataExportDir]
 		jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
 		require.NoError(t, err)
 
