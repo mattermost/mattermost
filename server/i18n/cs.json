@@ -7982,5 +7982,193 @@
   {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
     "translation": "Nepodařilo se seřadit záložku. Vstup je neplatný."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "V nastavení emailu jsou prázdné hodnoty."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Nelze najít zabezpečené connectionID {{.RemoteId}}."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "chyba při počítání skupin"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Otevřít Mattermost"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Nebylo možné ověřit jestli je možné začít zkušební verzi"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Uživatele nelze najít."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Neplatné nebo chybějící tělo požadavku."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP není nakonfigurováno v Systémové Konzoli"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Přihlaste se do zákaznického portálu pro resetování IP filtrování"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Neplatné vstupní parametry."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Není možné uložit rozepsanou zprávu do smazaného kanálu"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Ukládání rozepsaných zpráv je vypnuto."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Nemohu se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "V nastavení úložného prostoru jsou chybějící hodnoty."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Nemohu skrýt zároveň aktivní i neaktivní uživatele."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Neplatný pracovní email pro zkušební verzi"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Neplatný email_token"
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Služba je k dispozici pouze v Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty uživatelem system admin."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server není k dispozici."
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "CWS Server selhal při nastavení odebírání novinek."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Účty návštěvníků jsou zakázané"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Chyba při odesílání emailu"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Neplatné tělo požadavku."
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Překročen limit při kontrole obrázku. Rozlišení je příliš velké."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Neplatná úprava člena týmu: Návštěvnický účet nemůže být členem týmu, nebo administrátorem týmu, prosím nejprve změňte na běžného uživatele."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Ujistěte se, že máte odkaz uložený nebo v záložkách pro budoucí použití."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "mobilní a desktopové aplikace"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "pro nejlepší uživatelskou zkušenost na systémech Windows, Linux, Mac, iOS a Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Máte otázky ohledně toho jak začít? Napište nám email na"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Gratulace!"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontaktujte podporu"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Zkontrolujte změny"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Vaše licence nepodporuje návštěvnické účty"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Otevřít Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Díky za vytvoření "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Stáhněte aplikaci Mattermost"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Odešlete email na {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Podívejte se dolů pro souhrn vašich nových zpráv."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "Máte nové zprávy"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Nemohu vrátit takové množství emotikonů podle názvu. Najednou můžete požadovat pouze {{.MaxNames}} emotikonů."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Zadáno neplatné team id."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Velikost stránky je neplatná nebo příliš velká."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Prohlédnout tuto zprávu"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Požadavek nelze zpracovat. Požadavek je příliš obsáhlý."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Chyba nebylo poskytnuto jméno organizace pro svépomocné nasazení."
   }
 ]

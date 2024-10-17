@@ -65,13 +65,15 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-team-1"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}
@@ -144,7 +146,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id0"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -180,7 +185,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id1"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -216,7 +224,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id2"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -252,7 +263,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id3"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -288,7 +302,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id4"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -324,7 +341,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id5"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -360,7 +380,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id6"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -396,7 +419,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id7"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -432,7 +458,10 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id8"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
@@ -468,13 +497,15 @@ exports[`components/admin_console/data_retention_settings/team_list should match
               id="remove-team-id9"
               onClick={[Function]}
             >
-              Remove
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove"
+                id="admin.data_retention.custom_policy.teams.remove"
+              />
             </a>,
           },
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={30}
