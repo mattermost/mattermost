@@ -48,7 +48,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 }
 
-func postChecks(where string, c *Context, post *model.Post) {
+func createPostChecks(where string, c *Context, post *model.Post) {
 	// ***************************************************************
 	// NOTE - if you make any change here, please make sure to apply the
 	//	      same change for scheduled posts as well in the `scheduledPostChecks()` function
@@ -86,7 +86,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	postChecks("Api4.createPost", c, &post)
+	createPostChecks("Api4.createPost", c, &post)
 	if c.Err != nil {
 		return
 	}
