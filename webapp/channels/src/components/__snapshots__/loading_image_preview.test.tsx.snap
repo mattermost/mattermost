@@ -8,7 +8,8 @@ exports[`components/LoadingImagePreview should match snapshot 1`] = `
   <span
     className="loader-percent"
   >
-    Loading 50%
+    Loading
+     50%
   </span>
 </div>
 `;
@@ -21,7 +22,8 @@ exports[`components/LoadingImagePreview should match snapshot 2`] = `
   <span
     className="loader-percent"
   >
-    Loading 90%
+    Loading
+     90%
   </span>
 </div>
 `;

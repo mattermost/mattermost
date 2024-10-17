@@ -35,7 +35,6 @@
   "activity_log.moreInfo": "מידע נוסף",
   "activity_log.os": "מערכת הפעלה: {os}",
   "activity_log.sessionsDescription": "סשנים נוצרים כשאתה מתחבר דרך דפדפן חדש במכשיר. סשנים מאפשרים לך להשתמש ב- Mattermost מבלי שתצטרך להיכנס שוב לתקופת זמן שצוינה על ידי מנהל המערכת. כדי לסיים את ההפעלה מוקדם יותר, השתמש בלחצן 'התנתק'.",
-  "add_channels_to_scheme.title": "הוסף ערוצים לרשימת **ערוצים שנבחרו**",
   "add_command.autocomplete": "השלמה אוטומטית",
   "add_command.autocompleteDescription": "תיאור השלמה אוטומטית",
   "admin.channel_settings.channel_moderation.manageMembers": "ניהול חברים",

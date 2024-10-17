@@ -181,7 +181,6 @@ export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boole
         return dispatch(PostActions.setEditingPost(
             lastPostId,
             rootId ? 'reply_textbox' : 'post_textbox',
-            '', // title is no longer used
             Boolean(rootId),
         ));
     };

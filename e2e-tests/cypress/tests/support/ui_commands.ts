@@ -638,7 +638,7 @@ declare global {
              * @example
              *  cy.uiPostMessageQuickly('Hello world')
              */
-            uiPostMessageQuickly(message: string): void;
+            uiPostMessageQuickly(message: string): ChainableT<void>;
 
             /**
              * Clicks on a visible emoji in the emoji picker.
