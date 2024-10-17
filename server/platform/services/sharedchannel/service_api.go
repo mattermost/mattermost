@@ -129,14 +129,9 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			Home:      true,
 			RemoteId:  "", // channel originates locally
 		}
-		if sc, err = scs.ShareChannel(sc); err != nil {
+		if _, err = scs.ShareChannel(sc); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
-		}
-		mlog.Info("SHARED CHANNEL ", mlog.String("ID", sc.ChannelId))
-		err = scs.CheckChannelIsShared(sc.ChannelId)
-		if err != nil {
-			mlog.Error("Could not immediately retrieve", mlog.Err(err))
 		}
 	} else {
 		if err = scs.CheckChannelIsShared(channelID); err != nil {
@@ -236,7 +231,11 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
 	if err != nil {
 		if isNotFoundError(err) {
-			return fmt.Errorf("channel is not shared: %w", err)
+			// retry one time
+			sc, err = scs.server.GetStore().SharedChannel().Get(channelId)
+			if err != nil {
+				return fmt.Errorf("channel is not shared: %w", err)
+			}
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
