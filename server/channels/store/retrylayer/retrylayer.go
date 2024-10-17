@@ -596,6 +596,48 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 
 }
 
+func (s *RetryLayerBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotStore.GetAllAfter(limit, afterId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotStore) GetByUsername(username string) (*model.Bot, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotStore.GetByUsername(username)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerBotStore) PermanentDelete(userID string) error {
 
 	tries := 0
