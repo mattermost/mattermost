@@ -13,7 +13,7 @@ import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
-import {isToday} from "utils/datetime";
+import {isToday} from 'utils/datetime';
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',

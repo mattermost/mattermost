@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
@@ -27,7 +28,6 @@ import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-import classNames from "classnames";
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
