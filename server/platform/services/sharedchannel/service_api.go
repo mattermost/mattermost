@@ -59,7 +59,6 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
-
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(true)
