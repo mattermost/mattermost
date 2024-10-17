@@ -203,7 +203,6 @@ issues:
         channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
-        channels/jobs/batch_migration_worker.go|\
         channels/jobs/batch_report_worker.go|\
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
