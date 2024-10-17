@@ -2225,6 +2225,10 @@
     "translation": "Empty array under 'license' in request."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license."
+  },
+  {
     "id": "api.license.add_license.expired.app_error",
     "translation": "License is either expired or has not yet started."
   },
