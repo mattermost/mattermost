@@ -133,6 +133,9 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.share_channel.error",
 				map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
 		}
+		if err = scs.CheckChannelIsShared(channelID); err != nil {
+			mlog.Error("Failed First retreival", mlog.Err(err))
+		}
 	} else {
 		if err = scs.CheckChannelIsShared(channelID); err != nil {
 			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_not_shared.error",
@@ -213,6 +216,7 @@ func (scs *Service) CheckChannelNotShared(channelID string) error {
 // CheckChannelIsShared returns nil only if the channel is shared. Otherwise a store.ErrNotFound is returned
 // or database error.
 func (scs *Service) CheckChannelIsShared(channelID string) error {
+	mlog.Info("CheckChannelIsShared", mlog.String("Channel", channelID))
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
@@ -228,6 +232,7 @@ func (scs *Service) CheckChannelIsShared(channelID string) error {
 // - block cyclic invitations
 // - the channel must exist
 func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
+	mlog.Info("CheckCanInviteToSharedChannel", mlog.String("Channel", channelId))
 	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
 	if err != nil {
 		if isNotFoundError(err) {
