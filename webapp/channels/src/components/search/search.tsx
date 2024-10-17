@@ -208,7 +208,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     const handleUpdateSearchTeam = async (teamId: string) => {
-        await actions.updateSearchTeam(teamId);
+        actions.updateSearchTeam(teamId);
         handleSearch().then(() => {
             setKeepInputFocused(false);
             setFocused(false);
