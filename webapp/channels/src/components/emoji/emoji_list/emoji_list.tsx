@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, ChangeEventHandler} from 'react';
-import {defineMessages, FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -15,6 +15,7 @@ import Button from 'components/button';
 import SaveButton from 'components/button/save_button';
 import EmojiListItem from 'components/emoji/emoji_list_item';
 import LoadingScreen from 'components/loading_screen';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 const EMOJI_PER_PAGE = 50;
@@ -42,7 +43,6 @@ export interface Props {
      * Function to scroll list to top.
      */
     scrollToTop: () => void;
-    intl: IntlShape;
     actions: {
 
         /**
@@ -66,7 +66,7 @@ interface State {
     missingPages: boolean;
 }
 
-class EmojiList extends React.PureComponent<Props, State> {
+export default class EmojiList extends React.PureComponent<Props, State> {
     private searchTimeout: NodeJS.Timeout | null;
 
     constructor(props: Props) {
@@ -264,10 +264,10 @@ class EmojiList extends React.PureComponent<Props, State> {
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
                         <SearchIcon/>
-                        <input
+                        <LocalizedPlaceholderInput
                             type='search'
                             className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+                            placeholder={defineMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
                             onChange={this.onSearchChange}
                             style={style.search}
                         />
@@ -332,5 +332,3 @@ class EmojiList extends React.PureComponent<Props, State> {
 const style = {
     search: {flexGrow: 0, flexShrink: 0},
 };
-
-export default injectIntl(EmojiList);

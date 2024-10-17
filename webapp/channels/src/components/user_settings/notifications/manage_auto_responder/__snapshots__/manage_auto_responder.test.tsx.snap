@@ -210,12 +210,17 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           <div
             className="pt-2"
           >
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               id="autoResponderMessageInput"
               maxLength={200}
               onChange={[Function]}
-              placeholder="Message"
+              placeholder={
+                Object {
+                  "defaultMessage": "Message",
+                  "id": "user.settings.notifications.autoResponderPlaceholder",
+                }
+              }
               rows={5}
               style={
                 Object {
@@ -303,12 +308,17 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               <div
                 className="pt-2"
               >
-                <textarea
+                <LocalizedPlaceholderTextarea
                   className="form-control"
                   id="autoResponderMessageInput"
                   maxLength={200}
                   onChange={[Function]}
-                  placeholder="Message"
+                  placeholder={
+                    Object {
+                      "defaultMessage": "Message",
+                      "id": "user.settings.notifications.autoResponderPlaceholder",
+                    }
+                  }
                   rows={5}
                   style={
                     Object {
@@ -316,7 +326,22 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                     }
                   }
                   value="Hello World!"
-                />
+                >
+                  <textarea
+                    className="form-control"
+                    id="autoResponderMessageInput"
+                    maxLength={200}
+                    onChange={[Function]}
+                    placeholder="Message"
+                    rows={5}
+                    style={
+                      Object {
+                        "resize": "none",
+                      }
+                    }
+                    value="Hello World!"
+                  />
+                </LocalizedPlaceholderTextarea>
               </div>
             </div>
             <div

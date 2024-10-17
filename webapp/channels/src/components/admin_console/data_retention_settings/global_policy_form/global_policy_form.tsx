@@ -18,7 +18,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 
 import {getHistory} from 'utils/browser_history';
-import * as Utils from 'utils/utils';
 
 import './global_policy_form.scss';
 
@@ -50,8 +49,8 @@ type State = {
     fileRetentionInputValue: string;
     saveNeeded: boolean;
     saving: boolean;
-    serverError: JSX.Element | string | null;
-    formErrorText: string;
+    serverError: React.ReactNode;
+    formErrorText: React.ReactNode;
 }
 
 export default class GlobalPolicyForm extends React.PureComponent<Props, State> {
@@ -110,7 +109,15 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         this.setState({saving: true});
 
         if ((messageRetentionDropdownValue.value !== FOREVER && parseInt(messageRetentionInputValue, 10) < 1) || (fileRetentionDropdownValue.value !== FOREVER && parseInt(fileRetentionInputValue, 10) < 1)) {
-            this.setState({formErrorText: Utils.localizeMessage({id: 'admin.data_retention.global_policy.form.numberError', defaultMessage: 'You must add a number greater than or equal to 1.'}), saving: false});
+            this.setState({
+                formErrorText: (
+                    <FormattedMessage
+                        id='admin.data_retention.global_policy.form.numberError'
+                        defaultMessage='You must add a number greater than or equal to 1.'
+                    />
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -192,7 +199,12 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                 <div
                                     className='global_policy'
                                 >
-                                    <p>{Utils.localizeMessage({id: 'admin.data_retention.form.text', defaultMessage: 'Applies to all teams and channels, but does not apply to custom retention policies.'})}</p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.data_retention.form.text'
+                                            defaultMessage='Applies to all teams and channels, but does not apply to custom retention policies.'
+                                        />
+                                    </p>
                                     <div id='global_direct_message_dropdown'>
                                         <DropdownInputHybrid
                                             onDropdownChange={(value) => {
@@ -212,8 +224,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             disabled={this.isMessageRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
-                                            legend={Utils.localizeMessage({id: 'admin.data_retention.form.channelAndDirectMessageRetention', defaultMessage: 'Channel & direct message retention'})}
-                                            placeholder={Utils.localizeMessage({id: 'admin.data_retention.form.channelAndDirectMessageRetention', defaultMessage: 'Channel & direct message retention'})}
+                                            legend={messages.channelAndMessageRetention}
+                                            placeholder={messages.channelAndMessageRetention}
                                             name={'channel_message_retention'}
                                             inputType={'number'}
                                             dropdownClassNamePrefix={'channel_message_retention_dropdown'}
@@ -240,8 +252,8 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             disabled={this.isFileRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
-                                            legend={Utils.localizeMessage({id: 'admin.data_retention.form.fileRetention', defaultMessage: 'File retention'})}
-                                            placeholder={Utils.localizeMessage({id: 'admin.data_retention.form.fileRetention', defaultMessage: 'File retention'})}
+                                            legend={messages.fileRetention}
+                                            placeholder={messages.fileRetention}
                                             name={'file_retention'}
                                             inputType={'number'}
                                             dropdownClassNamePrefix={'file_retention_dropdown'}
@@ -289,3 +301,14 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         );
     };
 }
+
+const messages = defineMessages({
+    channelAndMessageRetention: {
+        id: 'admin.data_retention.form.channelAndDirectMessageRetention',
+        defaultMessage: 'Channel & direct message retention',
+    },
+    fileRetention: {
+        id: 'admin.data_retention.form.fileRetention',
+        defaultMessage: 'File retention',
+    },
+});

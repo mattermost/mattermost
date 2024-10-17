@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -17,7 +18,6 @@ import type {
 import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
-import * as Utils from 'utils/utils';
 
 const HistoryButtonsContainer = styled.nav`
     display: flex;
@@ -30,6 +30,7 @@ const HistoryButtonsContainer = styled.nav`
 
 const HistoryButtons = (): JSX.Element => {
     const history = useHistory();
+    const intl = useIntl();
 
     const [canGoBack, setCanGoBack] = useState(true);
     const [canGoForward, setCanGoForward] = useState(true);
@@ -83,7 +84,7 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoBack}
-                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
+                    aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 />
             </WithTooltip>
             <WithTooltip
@@ -98,7 +99,7 @@ const HistoryButtons = (): JSX.Element => {
                     compact={true}
                     inverted={true}
                     disabled={!canGoForward}
-                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
+                    aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />
             </WithTooltip>
         </HistoryButtonsContainer>

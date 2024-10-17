@@ -15,7 +15,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ItemStatus} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -98,7 +97,7 @@ const UpdateUserGroupModal = ({
         const displayName = name;
 
         if (!displayName || !displayName.trim()) {
-            setNameInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}));
+            setNameInputErrorText(formatMessage({id: 'user_groups_modal.nameIsEmpty', defaultMessage: 'Name is a required field.'}));
             setSaving(false);
             return;
         }
@@ -108,20 +107,20 @@ const UpdateUserGroupModal = ({
         }
 
         if (newMention.length < 1) {
-            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionIsEmpty', defaultMessage: 'Mention is a required field.'}));
             setSaving(false);
             return;
         }
 
         if (Constants.SPECIAL_MENTIONS.includes(newMention.toLowerCase())) {
-            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionReservedWord', defaultMessage: 'Mention contains a reserved word.'}));
             setSaving(false);
             return;
         }
 
         const mentionRegEx = new RegExp(/^[a-z0-9.\-_]+$/);
         if (!mentionRegEx.test(newMention)) {
-            setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}));
+            setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionInvalidError', defaultMessage: 'Invalid character in mention.'}));
             setSaving(false);
             return;
         }
@@ -133,10 +132,10 @@ const UpdateUserGroupModal = ({
         const data = await actions.patchGroup(groupId, group);
         if (data?.error) {
             if (data.error?.server_error_id === 'app.custom_group.unique_name') {
-                setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'}));
+                setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionNotUnique', defaultMessage: 'Mention needs to be unique.'}));
                 setSaving(false);
             } else if (data.error?.server_error_id === 'app.group.username_conflict') {
-                setMentionInputErrorText(Utils.localizeMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'}));
+                setMentionInputErrorText(formatMessage({id: 'user_groups_modal.mentionUsernameConflict', defaultMessage: 'A username already exists with this name. Mention must be unique.'}));
                 setSaving(false);
             } else {
                 setShowUnknownError(true);
@@ -204,7 +203,7 @@ const UpdateUserGroupModal = ({
                     <div className='group-name-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
+                            placeholder={formatMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                             onChange={updateNameState}
                             value={name}
                             data-testid='nameInput'
@@ -215,7 +214,7 @@ const UpdateUserGroupModal = ({
                     <div className='group-mention-input-wrapper'>
                         <Input
                             type='text'
-                            placeholder={Utils.localizeMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
+                            placeholder={formatMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                             onChange={updateMentionState}
                             value={mention}
                             data-testid='nameInput'

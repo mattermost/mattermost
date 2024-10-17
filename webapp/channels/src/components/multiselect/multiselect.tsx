@@ -16,7 +16,8 @@ import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_ic
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';
-import {imageURLForUser, getDisplayName, localizeMessage} from 'utils/utils';
+import {formatAsComponent, formatAsString} from 'utils/i18n';
+import {imageURLForUser, getDisplayName} from 'utils/utils';
 
 import MultiSelectList from './multiselect_list';
 
@@ -33,7 +34,7 @@ export type Props<T extends Value> = {
     ariaLabelRenderer: getOptionValue<T>;
     backButtonClick?: () => void;
     backButtonClass?: string;
-    backButtonText?: string;
+    backButtonText?: string | MessageDescriptor;
     buttonSubmitLoadingText?: string | MessageDescriptor;
     buttonSubmitText?: string | MessageDescriptor;
     handleAdd: (value: T) => void;
@@ -46,7 +47,7 @@ export type Props<T extends Value> = {
     saveButtonPosition?: string;
     maxValues?: number;
     noteText?: ReactNode;
-    numRemainingText?: ReactNode;
+    numRemainingText?: ReactNode | MessageDescriptor;
     optionRenderer: (
         option: T,
         isSelected: boolean,
@@ -56,7 +57,7 @@ export type Props<T extends Value> = {
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
     perPage: number;
-    placeholderText?: string;
+    placeholderText?: string | MessageDescriptor;
     saving?: boolean;
     submitImmediatelyOn?: (value: T) => boolean;
     totalCount?: number;
@@ -305,7 +306,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
         let numRemainingText;
         if (this.props.numRemainingText) {
-            numRemainingText = this.props.numRemainingText;
+            numRemainingText = formatAsComponent(this.props.numRemainingText);
         } else if (this.props.maxValues != null && this.props.maxValues !== undefined) {
             numRemainingText = (
                 <FormattedMessage
@@ -324,6 +325,18 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             buttonSubmitText = this.props.buttonSubmitText;
         } else if (this.props.maxValues != null) {
             buttonSubmitText = messages.go;
+        }
+
+        let backButtonText: ReactNode;
+        if (this.props.backButtonText) {
+            backButtonText = formatAsComponent(this.props.backButtonText);
+        } else {
+            backButtonText = (
+                <FormattedMessage
+                    id='multiselect.backButton'
+                    defaultMessage='Back'
+                />
+            );
         }
 
         let optionsToDisplay = [];
@@ -470,11 +483,11 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 onChange={this.onChange}
                                 value={this.props.values}
                                 formatOptionLabel={this.props.valueWithImage ? this.formatOptionLabel : undefined}
-                                placeholder={this.props.placeholderText}
+                                placeholder={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 inputValue={this.state.input}
                                 getOptionValue={(option: Value) => option.id}
                                 getOptionLabel={this.props.ariaLabelRenderer}
-                                aria-label={this.props.placeholderText}
+                                aria-label={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 className={this.state.a11yActive ? 'multi-select__focused' : ''}
                                 classNamePrefix='react-select-auto react-select'
                             />
@@ -524,7 +537,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 }}
                                 className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
-                                {this.props.backButtonText || localizeMessage({id: 'multiselect.backButton', defaultMessage: 'Back'})}
+                                {backButtonText}
                             </button>
                         }
                         <SaveButton

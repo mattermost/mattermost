@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage, type MessageDescriptor, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -13,6 +13,7 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import SpinnerButton from 'components/button/spinner_button';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -63,8 +64,6 @@ type Props = {
     * The async function to run when the action button is pressed
     */
     action: (command: Command) => Promise<void>;
-
-    intl: IntlShape;
 }
 
 type State = {
@@ -82,7 +81,7 @@ type State = {
     autocompleteDescription: string;
 }
 
-export class AbstractCommand extends React.PureComponent<Props, State> {
+export default class AbstractCommand extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -318,14 +317,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <input
+                        <LocalizedPlaceholderInput
                             id='autocompleteHint'
                             type='text'
                             maxLength={1024}
                             className='form-control'
                             value={this.state.autocompleteHint}
                             onChange={this.updateAutocompleteHint}
-                            placeholder={this.props.intl.formatMessage({
+                            placeholder={defineMessage({
                                 id: 'add_command.autocompleteHint.placeholder',
                                 defaultMessage: 'Example: [Patient Name]',
                             })}
@@ -352,14 +351,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <input
+                        <LocalizedPlaceholderInput
                             id='description'
                             type='text'
                             maxLength={128}
                             className='form-control'
                             value={this.state.autocompleteDescription}
                             onChange={this.updateAutocompleteDescription}
-                            placeholder={this.props.intl.formatMessage({
+                            placeholder={defineMessage({
                                 id: 'add_command.autocompleteDescription.placeholder',
                                 defaultMessage: 'Example: "Returns search results for patient records"',
                             })}
@@ -456,14 +455,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <LocalizedPlaceholderInput
                                     id='trigger'
                                     type='text'
                                     maxLength={Constants.MAX_TRIGGER_LENGTH}
                                     className='form-control'
                                     value={this.state.trigger}
                                     onChange={this.updateTrigger}
-                                    placeholder={this.props.intl.formatMessage({
+                                    placeholder={defineMessage({
                                         id: 'add_command.trigger.placeholder',
                                         defaultMessage: 'Command trigger e.g. "hello" not including the slash',
                                     })}
@@ -515,7 +514,7 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 <OAuthConnectionAudienceInput
                                     value={this.state.url}
                                     onChange={this.updateUrl}
-                                    placeholder={this.props.intl.formatMessage({
+                                    placeholder={defineMessage({
                                         id: 'add_command.url.placeholder',
                                         defaultMessage: 'Must start with http:// or https://',
                                     })}
@@ -582,14 +581,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <LocalizedPlaceholderInput
                                     id='username'
                                     type='text'
                                     maxLength={64}
                                     className='form-control'
                                     value={this.state.username}
                                     onChange={this.updateUsername}
-                                    placeholder={this.props.intl.formatMessage({
+                                    placeholder={defineMessage({
                                         id: 'add_command.username.placeholder',
                                         defaultMessage: 'Username',
                                     })}
@@ -613,14 +612,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <input
+                                <LocalizedPlaceholderInput
                                     id='iconUrl'
                                     type='text'
                                     maxLength={1024}
                                     className='form-control'
                                     value={this.state.iconUrl}
                                     onChange={this.updateIconUrl}
-                                    placeholder={this.props.intl.formatMessage({
+                                    placeholder={defineMessage({
                                         id: 'add_command.iconUrl.placeholder',
                                         defaultMessage: 'https://www.example.com/myicon.png',
                                     })}
@@ -691,5 +690,3 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
         );
     }
 }
-
-export default injectIntl(AbstractCommand);
