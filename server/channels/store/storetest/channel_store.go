@@ -992,60 +992,79 @@ func testChannelStoreGetDeletedByName(t *testing.T, rctx request.CTX, ss store.S
 }
 
 func testChannelStoreGetDeleted(t *testing.T, rctx request.CTX, ss store.Store) {
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "Channel1"
-	o1.Name = NewTestId()
-	o1.Type = model.ChannelTypeOpen
+	teamId := model.NewId()
 
-	userId := model.NewId()
-
+	o1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel1",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
 	_, nErr := ss.Channel().Save(rctx, &o1, -1)
 	require.NoError(t, nErr)
 
 	err := ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.NoError(t, err, "channel should have been deleted")
 
-	list, nErr := ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	userId := model.NewId()
+
+	list, nErr := ss.Channel().GetDeleted(teamId, 0, 100, userId, false)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 1, "wrong list")
 	require.Equal(t, o1.Name, list[0].Name, "missing channel")
 
-	o2 := model.Channel{}
-	o2.TeamId = o1.TeamId
-	o2.DisplayName = "Channel2"
-	o2.Name = NewTestId()
-	o2.Type = model.ChannelTypeOpen
+	o2 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel2",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
 	_, nErr = ss.Channel().Save(rctx, &o2, -1)
 	require.NoError(t, nErr)
 
-	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	list, nErr = ss.Channel().GetDeleted(teamId, 0, 100, userId, false)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 1, "wrong list")
 
-	o3 := model.Channel{}
-	o3.TeamId = o1.TeamId
-	o3.DisplayName = "Channel3"
-	o3.Name = NewTestId()
-	o3.Type = model.ChannelTypeOpen
-
+	o3 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel3",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
 	_, nErr = ss.Channel().Save(rctx, &o3, -1)
 	require.NoError(t, nErr)
+
+	o4 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel4",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypePrivate,
+	}
+	_, nErr = ss.Channel().Save(rctx, &o4, -1)
+	require.NoError(t, nErr)
+
+	err = ss.Channel().Delete(o4.Id, model.GetMillis())
+	require.NoError(t, err, "channel should have been deleted")
 
 	err = ss.Channel().Delete(o3.Id, model.GetMillis())
 	require.NoError(t, err, "channel should have been deleted")
 
-	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	list, nErr = ss.Channel().GetDeleted(teamId, 0, 100, userId, false)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 2, "wrong list length")
 
-	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 1, userId)
+	list, nErr = ss.Channel().GetDeleted(teamId, 0, 1, userId, false)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 1, "wrong list length")
 
-	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 1, 1, userId)
+	list, nErr = ss.Channel().GetDeleted(teamId, 1, 1, userId, false)
 	require.NoError(t, nErr, nErr)
 	require.Len(t, list, 1, "wrong list length")
+
+	list, nErr = ss.Channel().GetDeleted(teamId, 0, 100, userId, true)
+	require.NoError(t, nErr, nErr)
+	require.Len(t, list, 3, "wrong list length")
 }
 
 func testChannelMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
