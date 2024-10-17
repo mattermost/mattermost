@@ -9,7 +9,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {postDraftToScheduledPost, ScheduledPost} from '@mattermost/types/schedule_post';
 import {scheduledPostToPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -181,6 +181,13 @@ function DraftRow({
         dispatch(removeDraft(key, channelId, rootId));
     }, [dispatch, channelId, rootId]);
 
+    const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
+        // const scheduledPost = postDraftToScheduledPost(item as PostDraft, user.id, scheduledAt);
+        await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
+        handleOnDelete();
+        return Promise.resolve({});
+    }, [item, handleOnSend, handleOnDelete]);
+
     const draftActions = useMemo(() => {
         if (!channel) {
             return null;
@@ -190,12 +197,14 @@ function DraftRow({
                 channelDisplayName={channel.display_name}
                 channelName={channel.name}
                 channelType={channel.type}
+                channelId={channel.id}
                 userId={user.id}
                 onDelete={handleOnDelete}
                 onEdit={goToMessage}
                 onSend={handleOnSend}
                 canEdit={canEdit}
                 canSend={canSend}
+                onSchedule={onScheduleDraft}
             />
         );
     }, [
@@ -206,6 +215,7 @@ function DraftRow({
         handleOnDelete,
         handleOnSend,
         user.id,
+        onScheduleDraft,
     ]);
 
     const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {

@@ -3562,6 +3562,7 @@
   "dnd_custom_time_picker_modal.submitButton": "Disable Notifications",
   "dnd_custom_time_picker_modal.time": "Time",
   "drafts.actions.delete": "Delete draft",
+  "drafts.actions.scheduled": "Schedule draft",
   "drafts.actions.edit": "Edit draft",
   "drafts.actions.send": "Send draft",
   "drafts.confirm.delete.button": "Yes, delete",

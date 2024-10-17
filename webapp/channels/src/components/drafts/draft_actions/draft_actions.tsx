@@ -12,6 +12,15 @@ import {ModalIdentifiers} from 'utils/constants';
 import Action from './action';
 import DeleteDraftModal from './delete_draft_modal';
 import SendDraftModal from './send_draft_modal';
+import ScheduledPostCustomTimeModal
+    from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
+
+const scheduledDraft = (
+    <FormattedMessage
+        id='drafts.actions.scheduled'
+        defaultMessage='Schedule draft'
+    />
+);
 
 type Props = {
     displayName: string;
@@ -20,6 +29,8 @@ type Props = {
     onSend: () => void;
     canEdit: boolean;
     canSend: boolean;
+    onSchedule: (timestamp: number) => Promise<{error?: string}>;
+    channelId: string;
 }
 
 function DraftActions({
@@ -29,6 +40,8 @@ function DraftActions({
     onSend,
     canEdit,
     canSend,
+    onSchedule,
+    channelId,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -53,6 +66,17 @@ function DraftActions({
             },
         }));
     }, [dispatch, displayName, onSend]);
+
+    const handleScheduleDraft = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
+            dialogType: ScheduledPostCustomTimeModal,
+            dialogProps: {
+                channelId: channelId,
+                onConfirm: onSchedule,
+            },
+        }));
+    }, [channelId, dispatch, onSchedule]);
 
     return (
         <>
@@ -82,6 +106,18 @@ function DraftActions({
                     onClick={onEdit}
                 />
             )}
+
+            {
+                canSend &&
+                <Action
+                    icon='icon-clock-send-outline'
+                    id='reschedule'
+                    name='reschedule'
+                    tooltipText={scheduledDraft}
+                    onClick={handleScheduleDraft}
+                />
+            }
+
             {canSend && (
                 <Action
                     icon='icon-send-outline'

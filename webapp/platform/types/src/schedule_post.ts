@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PostDraft} from 'mattermost-webapp/src/types/store/draft';
+
 import type {Draft} from './drafts';
 import type {Post, PostMetadata} from './posts';
 
@@ -51,5 +53,27 @@ export function scheduledPostToPost(scheduledPost: ScheduledPost): Post {
         props: scheduledPost.props,
         file_ids: scheduledPost.file_ids,
         metadata: scheduledPost.metadata || {} as PostMetadata,
+    };
+}
+
+export function postDraftToScheduledPost(postDraft: PostDraft, userId: string, scheduledAt: number): ScheduledPost {
+    const metadata = {} as PostMetadata;
+    if (postDraft.metadata?.priority) {
+        metadata.priority = postDraft.metadata.priority;
+    }
+
+    return {
+        id: '',
+        scheduled_at: scheduledAt,
+        create_at: 0,
+        update_at: 0,
+        user_id: userId,
+        channel_id: postDraft.channelId,
+        root_id: postDraft.rootId,
+        message: postDraft.message,
+        props: postDraft.props,
+        file_ids: postDraft.fileInfos.map((fileInfo) => fileInfo.id),
+        priority: postDraft.metadata?.priority,
+        metadata,
     };
 }
