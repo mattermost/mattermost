@@ -13,7 +13,7 @@ Cypress.Commands.add('startPlaybookRun', (playbookName, playbookRunName) => {
         cy.findByTestId('playbookRunNameinput').type(playbookRunName, {force: true});
 
         // # Submit
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
     });
 
     cy.get('#interactiveDialogModal').should('not.exist');
@@ -124,7 +124,7 @@ Cypress.Commands.add('addPostToTimelineUsingPostMenu', (playbookRunName, summary
         cy.findByTestId('summaryinput').clear().type(summary, {force: true});
 
         // # Submit
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
     });
 
     cy.get('#interactiveDialogModal').should('not.exist');

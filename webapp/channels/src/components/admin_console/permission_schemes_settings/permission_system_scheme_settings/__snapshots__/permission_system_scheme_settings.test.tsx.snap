@@ -435,7 +435,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="btn btn-tertiary"
@@ -785,7 +790,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="btn btn-tertiary"
@@ -1135,7 +1145,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="btn btn-tertiary"
@@ -1485,7 +1500,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <Connect(Component)
       className="btn btn-tertiary"

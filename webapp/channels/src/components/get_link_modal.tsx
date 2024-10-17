@@ -3,9 +3,11 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
+
+import Button from './button';
 
 type Props = {
     show: boolean;
@@ -19,6 +21,11 @@ type Props = {
 type State = {
     copiedLink: boolean;
 }
+
+const messages = defineMessages({
+    copyLink: {id: 'get_link.copy', defaultMessage: 'Copy Link'},
+    close: {id: 'get_link.close', defaultMessage: 'Close'},
+});
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
@@ -69,18 +76,12 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
         if (document.queryCommandSupported('copy')) {
             copyLink = (
-                <button
-                    id='linkModalCopyLink'
-                    data-copy-btn='true'
-                    type='button'
-                    className='btn btn-primary pull-left'
+                <Button
+                    testId='linkModalCopyLink'
+                    emphasis='primary'
                     onClick={this.copyLink}
-                >
-                    <FormattedMessage
-                        id='get_link.copy'
-                        defaultMessage='Copy Link'
-                    />
-                </button>
+                    label={messages.copyLink}
+                />
             );
         }
 
@@ -129,17 +130,12 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     {linkText}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
-                        id='linkModalCloseButton'
-                        type='button'
-                        className='btn btn-tertiary'
+                    <Button
+                        testId='linkModalCloseButton'
+                        emphasis='tertiary'
                         onClick={this.onHide}
-                    >
-                        <FormattedMessage
-                            id='get_link.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
+                        label={messages.close}
+                    />
                     {copyLink}
                     {copyLinkConfirm}
                 </Modal.Footer>

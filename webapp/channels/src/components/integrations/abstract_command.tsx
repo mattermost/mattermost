@@ -10,10 +10,10 @@ import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -114,19 +114,6 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
             <FormattedMessage
                 id={this.props.header.id}
                 defaultMessage={this.props.header.defaultMessage}
-            />
-        );
-    };
-
-    getBackstageFooter = () => {
-        if (typeof this.props.footer === 'string') {
-            return <span>{this.props.footer}</span>;
-        }
-
-        return (
-            <FormattedMessage
-                id={this.props.footer.id}
-                defaultMessage={this.props.footer.defaultMessage}
             />
         );
     };
@@ -687,15 +674,14 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
-                                id='saveCommand'
-                            >
-                                {this.getBackstageFooter()}
-                            </SpinnerButton>
+                                testId='saveCommand'
+                                idleText={this.props.footer}
+                            />
                             {this.props.renderExtra}
                         </div>
                     </form>

@@ -32,7 +32,7 @@ describe('System Console', () => {
         cy.findByTestId('TeamSettings.LockTeammateNameDisplayhelp-text').contains('When true, disables users\' ability to change settings under Settings > Display > Teammate Name Display.').should('be.visible');
 
         // # Click save button
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // # Go to main page
         cy.visit(townSquareUrl);

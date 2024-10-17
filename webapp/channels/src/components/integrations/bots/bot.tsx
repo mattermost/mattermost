@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
@@ -12,12 +12,23 @@ import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import Button from 'components/button';
 import ConfirmModal from 'components/confirm_modal';
 import Markdown from 'components/markdown';
-import SaveButton from 'components/save_button';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
+
+const messages = defineMessages({
+    save: {
+        id: 'user.settings.tokens.save',
+        defaultMessage: 'Save',
+    },
+    cancel: {
+        id: 'user.settings.tokens.cancel',
+        defaultMessage: 'Cancel',
+    },
+});
 
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {
@@ -397,25 +408,19 @@ export default class Bot extends React.PureComponent<Props, State> {
                                     {this.state.error}
                                 </label>
                                 <div className='mt-2'>
-                                    <SaveButton
-                                        btnClass='btn-sm btn-primary'
-                                        savingMessage={
-                                            <FormattedMessage
-                                                id='user.settings.tokens.save'
-                                                defaultMessage='Save'
-                                            />
-                                        }
-                                        saving={false}
+                                    <Button
+                                        size='small'
+                                        emphasis='primary'
+                                        label={messages.save}
+                                        buttonType='submit'
+                                        testId={'saveSetting'}
                                     />
-                                    <button
-                                        className='btn btn-sm btn-tertiary'
+                                    <Button
+                                        emphasis='tertiary'
+                                        size='small'
                                         onClick={this.closeCreateToken}
-                                    >
-                                        <FormattedMessage
-                                            id='user.settings.tokens.cancel'
-                                            defaultMessage='Cancel'
-                                        />
-                                    </button>
+                                        label={messages.cancel}
+                                    />
                                 </div>
                             </div>
                         </form>

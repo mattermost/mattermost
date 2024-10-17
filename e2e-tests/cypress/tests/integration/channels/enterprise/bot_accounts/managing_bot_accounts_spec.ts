@@ -38,7 +38,7 @@ describe('Managing bot accounts', () => {
         cy.findByPlaceholderText('Password').clear().type('invalidPassword@#%(^!');
 
         // # Hit enter to login
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         // * Verify appropriate error message is displayed for bot login
         cy.findByText('Bot login is forbidden.').should('exist').and('be.visible');

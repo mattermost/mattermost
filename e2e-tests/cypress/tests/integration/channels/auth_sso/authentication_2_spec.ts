@@ -111,7 +111,7 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
-        cy.get('#input_name').clear().type(`BestUsernameInTheWorld${getRandomId()}`);
+        cy.get('#input_name').clear().type(`bestUsername${getRandomId()}`);
 
         ['NOLOWERCASE123!', 'noupppercase123!', 'NoNumber!', 'NoSymbol123'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);

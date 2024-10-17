@@ -13,9 +13,9 @@ import type {Team} from '@mattermost/types/teams';
 import {Permissions} from 'mattermost-redux/constants';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import SpinnerButton from 'components/spinner_button';
 
 type Props = {
 
@@ -472,18 +472,14 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
-                                id='saveOauthApp'
-                            >
-                                <FormattedMessage
-                                    id={footerToRender.id}
-                                    defaultMessage={footerToRender.defaultMessage}
-                                />
-                            </SpinnerButton>
+                                testId='saveOauthApp'
+                                idleText={footerToRender}
+                            />
                             {renderExtra}
                         </div>
                     </form>

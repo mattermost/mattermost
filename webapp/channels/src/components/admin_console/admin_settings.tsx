@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import SaveButton from 'components/button/save_button';
 import FormError from 'components/form_error';
-import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WithTooltip from 'components/with_tooltip';
 
@@ -33,6 +33,13 @@ type ClientErrorPlaceholder = {
     message: string;
     server_error_id: string;
 }
+
+const messages = defineMessages({
+    saving: {
+        id: 'admin.saving',
+        defaultMessage: 'Saving Config...',
+    },
+});
 
 export default abstract class AdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
     public constructor(props: Props) {
@@ -231,12 +238,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
                             saving={this.state.saving}
                             disabled={this.props.isDisabled || !this.state.saveNeeded || (this.canSave && !this.canSave())}
                             onClick={this.handleSubmit}
-                            savingMessage={
-                                <FormattedMessage
-                                    id='admin.saving'
-                                    defaultMessage='Saving Config...'
-                                />
-                            }
+                            savingMessage={messages.saving}
                         />
                         <WithTooltip
                             id='error-tooltip'

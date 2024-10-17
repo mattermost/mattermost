@@ -33,11 +33,11 @@ describe('Guest Accounts', () => {
         cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
 
         // # Click "Save".
-        cy.get('#saveSetting').then((btn) => {
+        cy.findByTestId('saveSetting').then((btn) => {
             if (btn.is(':enabled')) {
                 btn.on('click', () => {});
 
-                cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+                cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
                     return el[0].innerText === 'Save';
                 }));
             }
@@ -53,7 +53,7 @@ describe('Guest Accounts', () => {
         cy.findByTestId('GuestAccountsSettings.Enablefalse').check();
 
         // # Click "Save".
-        cy.get('#saveSetting').scrollIntoView().click();
+        cy.findByTestId('saveSetting').scrollIntoView().click();
         cy.get('#confirmModal').should('be.visible').within(() => {
             cy.get('#confirmModalButton').should('have.text', 'Save and Disable Guest Access').click();
         });
@@ -68,7 +68,7 @@ describe('Guest Accounts', () => {
         cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
 
         // # Click "Save".
-        cy.get('#saveSetting').scrollIntoView().click();
+        cy.findByTestId('saveSetting').scrollIntoView().click();
 
         // * Guest users are shown as "Deactivated".
         checkUserListStatus(guestUser, 'Deactivated');

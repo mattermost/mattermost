@@ -49,7 +49,7 @@ describe('User Management', () => {
         cy.get('#replyNotificationsTitle').should('be.visible').should('have.text', 'Reply notifications').click();
         cy.get('#notificationCommentsNever').should('be.checked');
         cy.get('#notificationCommentsAny').check();
-        cy.get('button#saveSetting').last().scrollIntoView().click();
+        cy.get('.modal-body').findByTestId('saveSetting').last().scrollIntoView().click();
 
         cy.apiLogout();
         cy.apiLogin(testUser);

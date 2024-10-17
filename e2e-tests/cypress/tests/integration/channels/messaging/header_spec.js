@@ -51,7 +51,7 @@ describe('Header', () => {
         cy.focused().
             type(otherUser.username, {force: true}).wait(TIMEOUTS.HALF_SEC).
             type('{enter}', {force: true}).wait(TIMEOUTS.HALF_SEC);
-        cy.get('#saveItems').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('saveItems').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Update DM channel header
         const header = `quote ${'newheader'.repeat(15)}`;

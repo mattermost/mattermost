@@ -21,7 +21,7 @@ function createNewDMChannel(channelname) {
     cy.get('#selectItems input').typeWithForce(channelname);
 
     cy.contains('.more-modal__description', channelname).click({force: true});
-    cy.get('#saveItems').click().wait(TIMEOUTS.ONE_SEC);
+    cy.findByTestId('saveItems').click().wait(TIMEOUTS.ONE_SEC);
 }
 
 describe('Search in DMs', () => {

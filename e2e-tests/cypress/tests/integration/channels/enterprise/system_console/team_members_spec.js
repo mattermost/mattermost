@@ -81,7 +81,7 @@ describe('Team members test', () => {
         cy.get('#teamMembers .UserGrid_removeRow a').should('be.visible').click();
 
         // # Attempt to save
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Assert that confirmation modal contains the right message
         cy.get('#confirmModalBody').should('be.visible').and('contain', '1 user will be removed.').and('contain', 'Are you sure you wish to remove this user?');
@@ -97,7 +97,7 @@ describe('Team members test', () => {
         cy.get('#teamMembers .UserGrid_removeRow a').should('be.visible').click();
 
         // # Attempt to save
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Assert that confirmation modal contains the right message
         cy.get('#confirmModalBody').should('be.visible').and('contain', '2 users will be removed.').and('contain', 'Are you sure you wish to remove these users?');
@@ -130,7 +130,7 @@ describe('Team members test', () => {
         cy.get('#addUsersToTeamModal input').typeWithForce(`${user1.email}{enter}${user2.email}{enter}`);
 
         // # Confirm add the users
-        cy.get('#addUsersToTeamModal #saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Search for user1
         searchFor(user1.email);
@@ -203,7 +203,7 @@ function searchFor(searchTerm) {
 
 function saveConfig() {
     // # Click save
-    cy.get('#saveSetting').click();
+    cy.findByTestId('saveSetting').click();
 
     // # Check that the members block is no longer visible meaning that the save has succeeded and we were redirected out
     cy.get('#teamMembers').should('not.exist');

@@ -115,7 +115,7 @@ const sendDirectMessageToUser = (user, message) => {
         type('{enter}');
 
     // # Click on "Go" in the group message's dialog to begin the conversation
-    cy.get('#saveItems').click();
+    cy.findByTestId('saveItems').click();
 
     // * Expect the channel title to be the user's username
     // In the channel header, it seems there is a space after the username, justifying the use of contains.text instead of have.text

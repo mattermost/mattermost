@@ -15,7 +15,7 @@ Cypress.Commands.add('checkLoginPage', (settings = {}) => {
     }).focus();
 
     cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Password');
-    cy.get('#saveSetting').should('be.visible');
+    cy.findByTestId('saveSetting').should('be.visible');
 
     // * Check the title
     cy.title().should('include', settings.siteName);
@@ -31,7 +31,7 @@ Cypress.Commands.add('checkLoginFailed', () => {
         cy.get('.login-body-card-form-password-input.Input_fieldset').should('have.class', 'Input_fieldset___error');
 
         // * Check the Log in button enabled
-        cy.get('#saveSetting').should('not.be.disabled');
+        cy.findByTestId('saveSetting').should('not.be.disabled');
     });
 });
 

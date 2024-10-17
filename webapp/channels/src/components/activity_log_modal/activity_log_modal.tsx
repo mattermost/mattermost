@@ -138,18 +138,6 @@ export default class ActivityLogModal extends React.PureComponent<Props, State> 
                     </p>
                     {content}
                 </Modal.Body>
-                <Modal.Footer className='modal-footer--invisible'>
-                    <button
-                        id='closeModalButton'
-                        type='button'
-                        className='btn btn-tertiary'
-                    >
-                        <FormattedMessage
-                            id='general_button.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }

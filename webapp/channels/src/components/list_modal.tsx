@@ -3,11 +3,13 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
 import LoadingScreen from 'components/loading_screen';
+
+import Button from './button';
 
 export const DEFAULT_NUM_PER_PAGE = 50;
 
@@ -88,6 +90,11 @@ type State = {
     loading: boolean;
     searchTerm: string;
 }
+
+const messages = defineMessages({
+    previous: {id: 'filtered_user_list.prev', defaultMessage: 'Previous'},
+    next: {id: 'filtered_user_list.next', defaultMessage: 'Next'},
+});
 
 export default class ListModal extends React.PureComponent<Props, State> {
     static defaultProps = {
@@ -239,25 +246,22 @@ export default class ListModal extends React.PureComponent<Props, State> {
                             </div>
                             <div className='filter-controls'>
                                 {this.state.page > 0 &&
-                                <button
-                                    onClick={this.onPrev}
-                                    className='btn btn-sm btn-tertiary filter-control filter-control__prev'
-                                >
-                                    <FormattedMessage
-                                        id='filtered_user_list.prev'
-                                        defaultMessage='Previous'
+                                    <Button
+                                        onClick={this.onPrev}
+                                        emphasis='tertiary'
+                                        size='small'
+                                        label={messages.previous}
                                     />
-                                </button>}
-                                {this.props.numPerPage && (this.state.items.length >= this.props.numPerPage) && endCount !== this.state.totalCount &&
-                                <button
-                                    onClick={this.onNext}
-                                    className='btn btn-sm btn-tertiary filter-control filter-control__next'
-                                >
-                                    <FormattedMessage
-                                        id='filtered_user_list.next'
-                                        defaultMessage='Next'
+                                }
+                                {this.numPerPage && (this.state.items.length >= this.numPerPage) && endCount !== this.state.totalCount &&
+                                    <Button
+                                        onClick={this.onNext}
+                                        emphasis='tertiary'
+                                        size='small'
+                                        label={messages.next}
+                                        pull='right'
                                     />
-                                </button>}
+                                }
                             </div>
                         </div>
                     </Modal.Body>

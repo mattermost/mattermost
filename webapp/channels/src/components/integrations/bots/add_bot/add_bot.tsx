@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -15,9 +15,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
 import WithTooltip from 'components/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
@@ -28,6 +28,25 @@ import * as Utils from 'utils/utils';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';
+
+const messages = defineMessages({
+    create: {
+        id: 'bots.manage.add.create',
+        defaultMessage: 'Create Bot Account',
+    },
+    creating: {
+        id: 'bots.manage.add.creating',
+        defaultMessage: 'Creating...',
+    },
+    update: {
+        id: 'bots.manage.edit.title',
+        defaultMessage: 'Update',
+    },
+    updating: {
+        id: 'bots.manage.edit.editing',
+        defaultMessage: 'Updating...',
+    },
+});
 
 export type Props = {
 
@@ -385,18 +404,8 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 defaultMessage='Add'
             />
         );
-        let buttonText = (
-            <FormattedMessage
-                id='bots.manage.add.create'
-                defaultMessage='Create Bot Account'
-            />
-        );
-        let buttonActiveText = (
-            <FormattedMessage
-                id='bots.manage.add.creating'
-                defaultMessage='Creating...'
-            />
-        );
+        let buttonText = messages.create;
+        let buttonActiveText = messages.creating;
 
         // If we are editing
         if (this.props.bot) {
@@ -406,18 +415,8 @@ export default class AddBot extends React.PureComponent<Props, State> {
                     defaultMessage='Edit'
                 />
             );
-            buttonText = (
-                <FormattedMessage
-                    id='bots.manage.edit.title'
-                    defaultMessage='Update'
-                />
-            );
-            buttonActiveText = (
-                <FormattedMessage
-                    id='bots.manage.edit.editing'
-                    defaultMessage='Updating...'
-                />
-            );
+            buttonText = messages.update;
+            buttonActiveText = messages.updating;
         }
 
         let imageURL = '';
@@ -725,15 +724,14 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.adding}
                                 spinningText={buttonActiveText}
                                 onClick={this.handleSubmit}
-                                id='saveBot'
-                            >
-                                {buttonText}
-                            </SpinnerButton>
+                                testId='saveBot'
+                                idleText={buttonText}
+                            />
                         </div>
                     </form>
                 </div>

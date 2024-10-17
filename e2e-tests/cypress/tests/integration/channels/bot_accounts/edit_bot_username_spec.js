@@ -37,7 +37,7 @@ describe('Edit bot username', () => {
         // # Fill and submit form
         cy.get('#username').clear().type(initialBotName);
         cy.get('#displayName').clear().type('Test Bot');
-        cy.get('#saveBot').click();
+        cy.findByTestId('saveBot').click();
         cy.get('#doneButton').click();
 
         // * Set alias for bot entry in bot list, this also checks that the bot entry exists
@@ -66,7 +66,7 @@ describe('Edit bot username', () => {
                 cy.get('#username').clear().type(newBotName);
 
                 // # Click update button
-                cy.get('#saveBot').click();
+                cy.findByTestId('saveBot').click();
 
                 cy.wrap(newBotName);
             }
@@ -99,7 +99,7 @@ describe('Edit bot username', () => {
 
     function tryUsername(name, warningMessage) {
         cy.get('#username').clear().type(name);
-        cy.get('#saveBot').click();
+        cy.findByTestId('saveBot').click();
 
         if (warningMessage) {
             // * Verify expected warning

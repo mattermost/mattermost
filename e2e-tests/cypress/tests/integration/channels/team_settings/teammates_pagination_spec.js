@@ -59,13 +59,13 @@ describe('Teams Suite', () => {
         cy.get('#searchableUserListTotal').should('contain', '1 - 50 members of 60 total');
 
         // # Click Next button
-        cy.get('#searchableUserListNextBtn').should('be.visible').click();
+        cy.findByTestId('searchableUserListNextBtn').should('be.visible').click();
 
         // * Check teammate list advances by one page
         cy.get('#searchableUserListTotal').should('contain', '51 - 60 members of 60 total');
 
         // # Click Prev button
-        cy.get('#searchableUserListPrevBtn').should('be.visible').click();
+        cy.findByTestId('searchableUserListPrevBtn').should('be.visible').click();
 
         // * Check teammate list reverses by one page
         cy.get('#searchableUserListTotal').should('contain', '1 - 50 members of 60 total');

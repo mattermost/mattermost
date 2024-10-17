@@ -177,7 +177,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <WithTooltip
       id="error-tooltip"
@@ -229,7 +234,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <WithTooltip
       id="error-tooltip"
@@ -431,7 +441,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       disabled={true}
       onClick={[Function]}
       saving={false}
-      savingMessage="Saving Config..."
+      savingMessage={
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
+      }
     />
     <WithTooltip
       id="error-tooltip"

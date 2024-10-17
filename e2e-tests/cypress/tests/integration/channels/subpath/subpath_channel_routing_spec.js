@@ -92,7 +92,7 @@ describe('Subpath Channel routing', () => {
             // # Login
             cy.findByPlaceholderText('Email or Username').clear().type(testUser.username);
             cy.findByPlaceholderText('Password').clear().type(testUser.password);
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Check that we in are in DM channel
             cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').should('contain', otherUser.username);

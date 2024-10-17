@@ -12,6 +12,7 @@
 import {getRandomId} from '../../../utils';
 
 import {createArchivedChannel} from './helpers';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Leave an archived channel', () => {
     let testTeam;
@@ -39,6 +40,9 @@ describe('Leave an archived channel', () => {
         [1, 2, 3].forEach((i) => {
             // * ensure we are not on an archived channel
             cy.get('#channelInfoModalLabel span.icon__archive').should('not.exist');
+
+            // # Wait for the app to be fully loaded so the input box does not steal the focus
+            cy.get('#post_textbox', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
 
             // # Search for a post in an archived channel
             cy.uiGetSearchContainer().click();

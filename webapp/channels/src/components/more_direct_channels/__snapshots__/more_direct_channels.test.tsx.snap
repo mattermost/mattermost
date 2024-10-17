@@ -272,22 +272,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
       values={Array []}
     />
   </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    className="modal-footer--invisible"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="closeModalButton"
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="general_button.close"
-      />
-    </button>
-  </ModalFooter>
 </Modal>
 `;
 
@@ -570,21 +554,5 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
       }
     />
   </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    className="modal-footer--invisible"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="closeModalButton"
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="general_button.close"
-      />
-    </button>
-  </ModalFooter>
 </Modal>
 `;

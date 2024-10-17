@@ -29,7 +29,7 @@ describe('components/AddUserToChannelModal', () => {
             <AddUserToChannelModal {...baseProps}/>,
         );
 
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(true);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(true);
         expect(wrapper.find('#add-user-to-channel-modal__user-is-member').exists()).toBe(false);
         expect(wrapper.find('#add-user-to-channel-modal__invite-error').exists()).toBe(false);
         expect(wrapper).toMatchSnapshot();
@@ -41,7 +41,7 @@ describe('components/AddUserToChannelModal', () => {
         );
 
         wrapper.setState({selectedChannelId: 'someChannelId'});
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(false);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(false);
         expect(wrapper.find('#add-user-to-channel-modal__invite-error').exists()).toBe(false);
     });
 
@@ -51,7 +51,7 @@ describe('components/AddUserToChannelModal', () => {
         );
 
         wrapper.setState({submitError: 'some error'});
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(true);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(true);
         expect(wrapper.find('#add-user-to-channel-modal__invite-error').exists()).toBe(true);
     });
 
@@ -65,7 +65,7 @@ describe('components/AddUserToChannelModal', () => {
             checkingForMembership: true,
         });
 
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(true);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(true);
     });
 
     it('should display error message if user is a member of the selected channel', () => {
@@ -82,7 +82,7 @@ describe('components/AddUserToChannelModal', () => {
         );
 
         wrapper.setState({selectedChannelId: 'someChannelId'});
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(true);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(true);
         expect(wrapper.find('#add-user-to-channel-modal__user-is-member').exists()).toBe(true);
     });
 
@@ -95,7 +95,7 @@ describe('components/AddUserToChannelModal', () => {
             selectedChannelId: 'someChannelId',
             saving: true,
         });
-        expect(wrapper.find('#add-user-to-channel-modal__add-button').props().disabled).toBe(true);
+        expect(wrapper.find('[testId="add-user-to-channel-modal__add-button"]').props().disabled).toBe(true);
     });
 
     describe('didSelectChannel', () => {

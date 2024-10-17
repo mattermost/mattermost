@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import type {FormEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
@@ -27,6 +27,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import SaveButton from 'components/button/save_button';
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
@@ -38,7 +39,6 @@ import ColumnLayout from 'components/header_footer_route/content_layouts/column'
 import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
-import SaveButton from 'components/save_button';
 import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
@@ -61,6 +61,11 @@ import LoginMfa from './login_mfa';
 import './login.scss';
 
 const MOBILE_SCREEN_WIDTH = 1200;
+
+const messages = defineMessages({
+    logIn: {id: 'login.logIn', defaultMessage: 'Log in'},
+    loggingIn: {id: 'login.logingIn', defaultMessage: 'Logging in…'},
+});
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
@@ -884,12 +889,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                             disabled={isWaiting}
                                         />
                                         {getResetPasswordLink()}
+                                        <div className='login-body-card-form-login-button-separator'/>
                                         <SaveButton
-                                            extraClasses='login-body-card-form-button-submit large'
+                                            size='large'
                                             saving={isWaiting}
                                             onClick={preSubmit}
-                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                            defaultMessage={messages.logIn}
+                                            savingMessage={messages.loggingIn}
+                                            fullWidth={true}
                                         />
                                     </div>
                                 </form>

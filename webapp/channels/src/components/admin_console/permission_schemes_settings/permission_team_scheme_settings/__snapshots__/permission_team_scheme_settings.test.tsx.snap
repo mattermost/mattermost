@@ -336,10 +336,10 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving Config..."
-          id="admin.saving"
-        />
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
       }
     />
     <Connect(Component)
@@ -744,10 +744,10 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving Config..."
-          id="admin.saving"
-        />
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
       }
     />
     <Connect(Component)
@@ -1154,10 +1154,10 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving Config..."
-          id="admin.saving"
-        />
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
       }
     />
     <Connect(Component)
@@ -1630,10 +1630,10 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving Config..."
-          id="admin.saving"
-        />
+        Object {
+          "defaultMessage": "Saving Config...",
+          "id": "admin.saving",
+        }
       }
     />
     <Connect(Component)

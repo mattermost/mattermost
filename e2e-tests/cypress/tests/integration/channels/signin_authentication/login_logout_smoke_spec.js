@@ -36,7 +36,7 @@ describe('SignIn Authentication', () => {
             cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
             // # Click Sign In to login
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Check that it login successfully and it redirects into the main channel page
             cy.url().should('include', '/channels/town-square');
@@ -57,7 +57,7 @@ describe('SignIn Authentication', () => {
             cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
             // # Click Sign In to login
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Check that it login successfully and it redirects into the main channel page
             cy.url().should('include', '/channels/town-square');
