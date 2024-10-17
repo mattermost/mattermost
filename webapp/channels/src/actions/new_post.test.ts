@@ -75,6 +75,9 @@ describe('actions/new_post', () => {
             },
             users: {
                 currentUserId: 'current_user_id',
+                profiles: {
+                    current_user_id: {},
+                },
             },
             general: {
                 license: {IsLicensed: 'false'},
@@ -96,7 +99,17 @@ describe('actions/new_post', () => {
     test('completePostReceive', async () => {
         const testStore = mockStore(initialState);
         const newPost = {id: 'new_post_id', channel_id: 'current_channel_id', message: 'new message', type: Constants.PostTypes.ADD_TO_CHANNEL, user_id: 'some_user_id', create_at: POST_CREATED_TIME, props: {addedUserId: 'other_user_id'}} as unknown as Post;
-        const websocketProps = {team_id: 'team_id', mentions: ['current_user_id'], should_ack: false};
+        const websocketProps: NewPostActions.NewPostMessageProps = {
+            team_id: 'team_id',
+            mentions: JSON.stringify(['current_user_id']),
+            should_ack: false,
+            channel_display_name: '',
+            channel_name: '',
+            channel_type: 'P',
+            post: JSON.stringify(newPost),
+            sender_name: '',
+            set_online: false,
+        };
 
         await testStore.dispatch(NewPostActions.completePostReceive(newPost, websocketProps));
         expect(testStore.getActions()).toEqual([

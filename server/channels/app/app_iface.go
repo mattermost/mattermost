@@ -534,7 +534,7 @@ type AppIface interface {
 	CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError)
-	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
 	CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError)
@@ -1104,6 +1104,7 @@ type AppIface interface {
 	SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError)
 	SendPersistentNotifications() error
 	SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError
+	SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError)
 	SendTestPushNotification(deviceID string) string
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool

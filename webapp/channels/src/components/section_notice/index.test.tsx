@@ -7,7 +7,7 @@ import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import SectionNotice from './section_notice';
+import SectionNotice from '.';
 
 type Props = ComponentProps<typeof SectionNotice>;
 

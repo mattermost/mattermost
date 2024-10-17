@@ -561,7 +561,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(rctx, post, channel, false, true)
+		_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 		if appErr != nil {
 			return appErr
 		}

@@ -279,13 +279,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
@@ -755,7 +755,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
@@ -779,7 +779,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			CreateAt:      0,
 		}
 
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
 		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)

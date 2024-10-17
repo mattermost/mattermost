@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MarkUnread} from 'mattermost-redux/constants/channels';
+
 import testConfigureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
@@ -20,7 +22,7 @@ describe('notification_actions', () => {
         let userSettings;
 
         beforeEach(() => {
-            spy = jest.spyOn(utils, 'showNotification');
+            spy = jest.spyOn(utils, 'showNotification').mockReturnValue(async () => ({status: 'success'}));
             NotificationSounds.ding = jest.fn();
 
             crt = {
@@ -111,6 +113,7 @@ describe('notification_actions', () => {
                             },
                             muted_channel_id: {
                                 id: 'muted_channel_id',
+                                display_name: 'Muted Channel',
                                 team_id: 'team_id',
                             },
                             another_channel_id: {
@@ -130,6 +133,13 @@ describe('notification_actions', () => {
                             gm_channel: {
                                 id: 'gm_channel',
                                 notify_props: channelSettings,
+                            },
+                            muted_channel_id: {
+                                id: 'muted_channel_id',
+                                team_id: 'team_id',
+                                notify_props: {
+                                    mark_unread: MarkUnread.MENTION,
+                                },
                             },
                         },
                         membersInChannel: {
@@ -318,6 +328,34 @@ describe('notification_actions', () => {
             post.channel_id = 'muted_channel_id';
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
                 expect(spy).not.toHaveBeenCalled();
+            });
+        });
+
+        test('should notify for forced notification posts on muted channels', () => {
+            const store = testConfigureStore(baseState);
+            const newPost = {
+                ...post,
+                props: {
+                    ...post.props,
+                    force_notification: 'test',
+                },
+            };
+            newPost.channel_id = 'muted_channel_id';
+
+            const newMsgProps = {
+                post: JSON.stringify(newPost),
+                channel_display_name: 'Muted Channel',
+                team_id: 'team_id',
+            };
+            return store.dispatch(sendDesktopNotification(newPost, newMsgProps)).then((result) => {
+                expect(result).toEqual({data: {status: 'success'}});
+                expect(spy).toHaveBeenCalledWith({
+                    body: '@username: Where is Jessica Hyde?',
+                    requireInteraction: false,
+                    silent: false,
+                    title: 'Muted Channel',
+                    onClick: expect.any(Function),
+                });
             });
         });
 
