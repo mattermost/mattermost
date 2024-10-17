@@ -18,6 +18,7 @@ const (
 	ScheduledPostErrorNoChannelMember         = "no_channel_member"
 	ScheduledPostErrorThreadDeleted           = "thread_deleted"
 	ScheduledPostErrorUnableToSend            = "unable_to_send"
+	ScheduledPostErrorInvalidPost             = "invalid_post"
 )
 
 // allow scheduled posts to be created up to
@@ -152,4 +153,19 @@ func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *Schedul
 	s.UserId = originalScheduledPost.UserId
 	s.ChannelId = originalScheduledPost.ChannelId
 	s.RootId = originalScheduledPost.RootId
+}
+
+func (s *ScheduledPost) SanitizeInput() {
+	s.CreateAt = 0
+
+	if s.Metadata != nil {
+		s.Metadata.Embeds = nil
+	}
+}
+
+func (s *ScheduledPost) GetPriority() *PostPriority {
+	if s.Metadata == nil {
+		return nil
+	}
+	return s.Metadata.Priority
 }
