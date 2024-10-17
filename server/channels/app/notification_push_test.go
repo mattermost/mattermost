@@ -1136,16 +1136,6 @@ func TestShouldSendPushNotifications(t *testing.T) {
 	})
 }
 
-func TestSendTestMessage(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	t.Run("Should create the post with the correct prop", func(t *testing.T) {
-		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
-		assert.Nil(t, result)
-		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
-	})
-}
-
 // testPushNotificationHandler is an HTTP handler to record push notifications
 // being sent from the client.
 // It records the number of requests sent to it, and stores all the requests

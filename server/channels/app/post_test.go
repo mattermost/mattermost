@@ -3691,3 +3691,13 @@ func TestPermanentDeletePost(t *testing.T) {
 		assert.Len(t, infos, 0)
 	})
 }
+
+func TestSendTestMessage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	t.Run("Should create the post with the correct prop", func(t *testing.T) {
+		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
+		assert.Nil(t, result)
+		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
+	})
+}

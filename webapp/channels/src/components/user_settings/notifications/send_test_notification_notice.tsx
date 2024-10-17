@@ -22,11 +22,13 @@ type Props = {
     adminMode?: boolean;
 };
 
+type ButtonState = 'idle'|'sending'|'sent'|'error';
+
 const SendTestNotificationNotice = ({
     adminMode = false,
 }: Props) => {
     const intl = useIntl();
-    const [buttonState, setButtonState] = useState<'idle'|'sending'|'sent'|'error'>('idle');
+    const [buttonState, setButtonState] = useState<ButtonState>('idle');
     const isSending = useRef(false);
     const timeout = useRef<NodeJS.Timeout>();
 
@@ -46,6 +48,9 @@ const SendTestNotificationNotice = ({
             if (result.status === 'OK') {
                 setButtonState('sent');
             } else {
+                // We want to log this error into the console mainly
+                // for debugging reasons. We still use the 'error' level
+                // because it is an unexpected error.
                 // eslint-disable-next-line no-console
                 console.error(result);
                 setButtonState('error');
