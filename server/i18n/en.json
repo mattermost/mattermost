@@ -2225,6 +2225,10 @@
     "translation": "Empty array under 'license' in request."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license."
+  },
+  {
     "id": "api.license.add_license.expired.app_error",
     "translation": "License is either expired or has not yet started."
   },
@@ -4177,6 +4181,10 @@
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
     "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "You cannot modify user status. User is managed by LDAP"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",

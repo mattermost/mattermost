@@ -22,7 +22,6 @@ jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');
     return {
         ...original,
-        localizeMessage: jest.fn(),
         sortUsersAndGroups: jest.fn(),
     };
 });

@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-Cypress.Commands.add('delayRequestToRoutes', (routes = [], delay = 0) => {
+function delayRequestToRoutes(routes = [], delay = 0) {
     cy.on('window:before:load', (win) => addDelay(win, routes, delay));
-});
+}
+
+Cypress.Commands.add('delayRequestToRoutes', delayRequestToRoutes);
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -23,12 +25,14 @@ const addDelay = (win, routes, delay) => {
 // Websocket list to use with mockWebsockets
 window.mockWebsockets = [];
 
-// Wrap websocket to be able to connect and close connections on demand
-Cypress.Commands.add('mockWebsockets', () => {
-    cy.on('window:before:load', (win) => mockWebsockets(win));
-});
+function mockWebsockets() {
+    cy.on('window:before:load', (win) => mockWebsocketsFn(win));
+}
 
-const mockWebsockets = (win) => {
+// Wrap websocket to be able to connect and close connections on demand
+Cypress.Commands.add('mockWebsockets', mockWebsockets);
+
+const mockWebsocketsFn = (win) => {
     const RealWebSocket = WebSocket;
     cy.stub(win, 'WebSocket').callsFake((...args) => {
         const mockWebSocket = {
@@ -61,3 +65,13 @@ const mockWebsockets = (win) => {
         return mockWebSocket;
     });
 };
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            delayRequestToRoutes: typeof delayRequestToRoutes;
+            mockWebsockets: typeof mockWebsockets;
+        }
+    }
+}
