@@ -31,6 +31,8 @@ import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
 import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
+import PlaceholderScheduledPostsTitle
+    from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 
@@ -63,6 +65,7 @@ function DraftRow({
     isRemote,
     scrollIntoView,
 }: Props) {
+    const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
@@ -73,7 +76,9 @@ function DraftRow({
     const history = useHistory();
     const dispatch = useDispatch();
 
-    const getChannel = useMemo(() => makeGetChannel(), []);
+    const getChannelSelector = useMemo(() => makeGetChannel(), []);
+    const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
+
     const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
 
     const rootPostDeleted = useSelector((state: GlobalState) => {
@@ -90,7 +95,6 @@ function DraftRow({
     });
 
     const readOnly = !useSelector((state: GlobalState) => {
-        const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
 
@@ -98,7 +102,7 @@ function DraftRow({
 
     let postError = '';
 
-    if ('scheduled_at' in item) {
+    if (isScheduledPost) {
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
@@ -114,7 +118,6 @@ function DraftRow({
     const canSend = !postError;
     const canEdit = !(rootPostDeleted || readOnly);
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const channelUrl = useSelector((state: GlobalState) => {
         if (!channel) {
             return '';
@@ -250,7 +253,7 @@ function DraftRow({
 
     const alertRef = useScrollOnRender();
 
-    if (!channel) {
+    if (!channel && !isScheduledPost) {
         return null;
     }
 
@@ -259,7 +262,7 @@ function DraftRow({
     let uploadsInProgress: string[];
     let actions: React.ReactNode;
 
-    if ('scheduled_at' in item) {
+    if (isScheduledPost) {
         timestamp = item.scheduled_at;
         fileInfos = item.metadata?.files || [];
         uploadsInProgress = [];
@@ -269,6 +272,23 @@ function DraftRow({
         fileInfos = item.fileInfos;
         uploadsInProgress = item.uploadsInProgress;
         actions = draftActions;
+    }
+
+    let title: React.ReactNode;
+    if (channel) {
+        title = (
+            <DraftTitle
+                type={(rootId ? 'thread' : 'channel')}
+                channel={channel}
+                userId={user.id}
+            />
+        );
+    } else {
+        title = (
+            <PlaceholderScheduledPostsTitle
+                type={(rootId ? 'thread' : 'channel')}
+            />
+        );
     }
 
     return (
@@ -281,22 +301,16 @@ function DraftRow({
             {({hover}) => (
                 <>
                     <Header
-                        kind={'scheduled_at' in item ? 'scheduledPost' : 'draft'}
+                        kind={isScheduledPost ? 'scheduledPost' : 'draft'}
                         hover={hover}
                         actions={actions}
-                        title={(
-                            <DraftTitle
-                                type={(rootId ? 'thread' : 'channel')}
-                                channel={channel}
-                                userId={user.id}
-                            />
-                        )}
+                        title={title}
                         timestamp={timestamp}
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
                     <PanelBody
-                        channelId={channel.id}
+                        channelId={channel?.id}
                         displayName={displayName}
                         fileInfos={fileInfos}
                         message={item.message}

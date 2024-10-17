@@ -21,7 +21,7 @@ import type {PostDraft} from 'types/store/draft';
 import './panel_body.scss';
 
 type Props = {
-    channelId: string;
+    channelId?: string;
     displayName: string;
     fileInfos: PostDraft['fileInfos'];
     message: string;
