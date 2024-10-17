@@ -1074,6 +1074,7 @@ type ChannelSearchOpts struct {
 	IncludePolicyID          bool
 	IncludeTeamInfo          bool
 	IncludeSearchById        bool
+	ExcludeRemote            bool
 	CountOnly                bool
 	Public                   bool
 	Private                  bool

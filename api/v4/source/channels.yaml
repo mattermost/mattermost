@@ -287,7 +287,6 @@
 
 
                     __Minimum server version__: 5.26
-
                 deleted:
                   type: boolean
                   description: >
@@ -314,7 +313,6 @@
                     required to use this parameter.
 
                     __Minimum server version__: 5.35
-                
                 include_search_by_id:
                   type: boolean
                   default: false
@@ -322,6 +320,13 @@
                     If set to true, returns channels where given search 'term' matches channel ID.
 
                     __Minimum server version__: 5.35
+                exclude_remote:
+                  type: boolean
+                  default: false
+                  description: >
+                    If set to true, only returns channels that are local to this server.
+
+                    __Minimum server version__: 10.2
         description: The search terms and logic to use in the search.
         required: true
       responses:

@@ -1132,7 +1132,7 @@ describe('Actions.Channels', () => {
         );
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=false').
+            post('/channels/search?include_deleted=false&exclude_remote=false').
             reply(200, [TestHelper.basicChannel, userChannel]);
 
         await store.dispatch(Actions.searchAllChannels('test', {}));
@@ -1143,7 +1143,7 @@ describe('Actions.Channels', () => {
         }
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=false').
+            post('/channels/search?include_deleted=false&exclude_remote=false').
             reply(200, {channels: [TestHelper.basicChannel, userChannel], total_count: 2});
 
         let response = await store.dispatch(Actions.searchAllChannels('test', {exclude_default_channels: false, page: 0, per_page: 100}));
@@ -1156,7 +1156,7 @@ describe('Actions.Channels', () => {
         expect(response.data.channels.length === 2).toBeTruthy();
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=true').
+            post('/channels/search?include_deleted=true&exclude_remote=false').
             reply(200, {channels: [TestHelper.basicChannel, userChannel], total_count: 2});
 
         response = await store.dispatch(Actions.searchAllChannels('test', {exclude_default_channels: false, page: 0, per_page: 100, include_deleted: true}));

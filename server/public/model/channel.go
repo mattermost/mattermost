@@ -180,6 +180,7 @@ type ChannelSearchOpts struct {
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
 	IncludeSearchById        bool
+	ExcludeRemote            bool
 	Public                   bool
 	Private                  bool
 	Page                     *int

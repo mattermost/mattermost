@@ -3411,6 +3411,16 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 		})
 	}
 
+	if opts.ExcludeRemote {
+		// local channels either have a SharedChannels record with
+		// home set to true, or don't have a SharedChannels record at all
+		query = query.LeftJoin("SharedChannels ON c.Id = SharedChannels.ChannelId").
+			Where(sq.Or{
+				sq.Eq{"SharedChannels.Home": true},
+				sq.Eq{"SharedChannels.ChannelId": nil},
+			})
+	}
+
 	return query
 }
 
