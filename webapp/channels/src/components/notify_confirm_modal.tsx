@@ -63,8 +63,8 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                 if (channelTimezoneCount > 0) {
                     notifyAllMessage = (
                         <FormattedMessage
-                            id='notifyAll.questionTimezoneOneGroup'
-                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
+                            id='notifyAll.question_timezone_oneGroup'
+                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to at least <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
                             values={{
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
@@ -76,8 +76,8 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
                 } else {
                     notifyAllMessage = (
                         <FormattedMessage
-                            id='notifyAll.questionOneGroup'
-                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to <b>{totalMembers} people</b>. Are you sure you want to do this?'
+                            id='notifyAll.question_oneGroup'
+                            defaultMessage='By using <b>{mention}</b> you are about to send notifications to at least <b>{totalMembers} people</b>. Are you sure you want to do this?'
                             values={{
                                 mention: mentions[0],
                                 totalMembers: memberNotifyCount,
@@ -89,7 +89,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
             } else if (channelTimezoneCount > 0) {
                 notifyAllMessage = (
                     <FormattedMessage
-                        id='notifyAll.questionTimezoneGroups'
+                        id='notifyAll.question_timezoneGroups'
                         defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications to at least <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?'
                         values={{
                             mentions: mentions.slice(0, -1).join(', '),
@@ -103,7 +103,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
             } else {
                 notifyAllMessage = (
                     <FormattedMessage
-                        id='notifyAll.questionGroups'
+                        id='notifyAll.question_groups'
                         defaultMessage='By using <b>{mentions}</b> and <b>{finalMention}</b> you are about to send notifications to at least <b>{totalMembers} people</b>. Are you sure you want to do this?'
                         values={{
                             mentions: mentions.slice(0, -1).join(', '),
@@ -145,11 +145,11 @@ const messages = defineMessages({
         defaultMessage: 'By using <b>@all</b> or <b>@channel</b> you are about to send notifications to <b>{totalMembers} people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?',
     },
     atHere: {
-        id: 'notifyHere.question',
-        defaultMessage: 'By using <b>@here</b> you are about to send notifications to up to <b>{totalMembers} other people</b>. Are you sure you want to do this?',
+        id: 'notify_here.question',
+        defaultMessage: 'By using <b>@here</b> you are about to send notifications to at least <b>{totalMembers} other people</b>. Are you sure you want to do this?',
     },
     atHereTimezones: {
-        id: 'notifyHere.questionTimezone',
-        defaultMessage: 'By using <b>@here</b> you are about to send notifications to up to <b>{totalMembers} other people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?',
+        id: 'notifyHere.question_timezone',
+        defaultMessage: 'By using <b>@here</b> you are about to send notifications to at least <b>{totalMembers} other people</b> in <b>{timezones, number} {timezones, plural, one {timezone} other {timezones}}</b>. Are you sure you want to do this?',
     },
 });
