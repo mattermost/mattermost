@@ -4853,6 +4853,8 @@
   "scheduled_post.error_code.user_missing": "User Deleted",
   "scheduled_post.panel.error_indicator.message": "One of your scheduled drafts cannot be sent.",
   "scheduled_post.panel.header.time": "Send on {scheduledDateTime}",
+  "scheduled_posts.row_title_channel.placeholder": "In: {icon} No Destination",
+  "scheduled_posts.row_title_thread.placeholder": "Thread to: {icon} No Destination",
   "search_bar.channels": "Channels",
   "search_bar.clear": "Clear",
   "search_bar.file_types": "File types",
