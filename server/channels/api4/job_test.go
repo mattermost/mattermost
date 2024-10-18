@@ -38,7 +38,7 @@ func TestCreateJob(t *testing.T) {
 		require.NoError(t, err)
 		defer func() {
 			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
-			require.NoError(t, appErr, "Failed to delete job (result: %v)", result)
+			require.NoErrorf(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
 		}()
 	})
 
@@ -63,7 +63,7 @@ func TestGetJob(t *testing.T) {
 
 	defer func() {
 		result, appErr := th.App.Srv().Store().Job().Delete(job.Id)
-		require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
+		require.NoError(t, appErr, "Failed to delete job (result: %v)", result)
 	}()
 
 	received, _, err := th.SystemAdminClient.GetJob(context.Background(), job.Id)
@@ -122,7 +122,7 @@ func TestGetJobs(t *testing.T) {
 
 		defer func(jobId string) {
 			result, appErr := th.App.Srv().Store().Job().Delete(jobId)
-			require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
+			require.NoError(t, appErr, "Failed to delete job (result: %v)", result)
 		}(job.Id)
 	}
 
@@ -205,7 +205,7 @@ func TestGetJobsByType(t *testing.T) {
 
 		defer func(jobId string) {
 			result, appErr := th.App.Srv().Store().Job().Delete(jobId)
-			require.Nil(t, appErr, "Failed to delete job (result: %v)", result)
+			require.NoError(t, appErr, "Failed to delete job (result: %v)", result)
 		}(job.Id)
 	}
 
@@ -338,7 +338,7 @@ func TestDownloadJob(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
-		require.Nil(t, delErr, "Failed to delete job %s", job.Id)
+		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
 	}()
 
 	// System admin shouldn't be able to download since the job type is not message export
@@ -375,7 +375,7 @@ func TestCancelJob(t *testing.T) {
 		require.NoError(t, err)
 		defer func(jobId string) {
 			_, delErr := th.App.Srv().Store().Job().Delete(jobId)
-			require.Nil(t, delErr, "Failed to delete job %s", jobId)
+			require.NoError(t, delErr, "Failed to delete job %s", jobId)
 		}(job.Id)
 	}
 	resp, err := th.Client.CancelJob(context.Background(), jobs[0].Id)
@@ -430,7 +430,7 @@ func TestUpdateJobStatus(t *testing.T) {
 		require.NoError(t, err)
 		defer func(jobId string) {
 			_, delErr := th.App.Srv().Store().Job().Delete(jobId)
-			require.Nil(t, delErr, "Failed to delete job %s", jobId)
+			require.NoError(t, delErr, "Failed to delete job %s", jobId)
 		}(job.Id)
 	}
 
