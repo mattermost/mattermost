@@ -140,8 +140,12 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                     <div className='item-details__row'>
                         <span className='item-details__token'>
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.username'
-                                defaultMessage='Username: '
+                                id='installed_outgoing_oauth_connections.username_'
+                                defaultMessage='Username: <b>{username}</b>'
+                                values={{
+                                    username: outgoingOAuthConnection.credentials_username,
+                                    b: (chunks: string) => <b>{chunks}</b>,
+                                }}
                             />
                             <strong>{outgoingOAuthConnection.credentials_username}</strong>
                         </span>
