@@ -19,6 +19,11 @@ const featureSKUs: {[feature: string]: string[]} = {
     [TrackGroupsFeature]: [TrackProfessionalSKU, TrackEnterpriseSKU],
 };
 
+const TrackSKUFeature: string = 'sku_feature';
+const featureCategory: {[feature: string]: string} = {
+    [TrackGroupsFeature]: TrackSKUFeature,
+}
+
 export class RudderTelemetryHandler implements TelemetryHandler {
     trackEvent(userId: string, userRoles: string, category: string, event: string, props?: any) {
         const properties = Object.assign({
@@ -44,10 +49,10 @@ export class RudderTelemetryHandler implements TelemetryHandler {
         rudderAnalytics.track('event', properties, options);
     }
 
-    trackPaidFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
+    trackFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
         // TODO: add installation id to context.traits.installationId?
         const properties = Object.assign({
-            category: 'paid_feature',
+            category: getFeatureCategory(featureName),
             type: event,
             user_actual_id: userId,
             user_actual_role: getActualRoles(userRoles),
@@ -94,10 +99,19 @@ function getActualRoles(userRoles: string) {
 }
 
 function getSKUs(featureName: string) {
-    const skus: string[] = featureSKUs[featureName] || [];
-    if (skus.length === 0) {
+    const skus: string[] | undefined = featureSKUs[featureName];
+    if (skus === undefined) {
         // eslint-disable-next-line
-        console.warn('Paid feature ' + featureName + ' has no SKUs attached');
+        console.warn(`Feature ${featureName} has no SKUs attached`);
     }
-    return skus;
+    return skus ?? [];
+}
+
+function getFeatureCategory(featureName: string) {
+    const category: string | undefined = featureCategory[featureName];
+    if (category === undefined) {
+	// eslint-disable-next-line
+	console.warn(`feature ${featureName} doesn't have a category`);
+    }
+    return category ?? 'miscelanea';
 }

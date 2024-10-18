@@ -13,7 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {TrackGroupsFeature} from 'mattermost-redux/client/rudder';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
-import {trackPaidFeatureEvent} from 'actions/telemetry_actions';
+import {trackFeatureEvent} from 'actions/telemetry_actions';
 
 import type {Value} from 'components/multiselect/multiselect';
 import WithTooltip from 'components/with_tooltip';
@@ -58,7 +58,7 @@ const GroupOption = (props: Props) => {
         for (const profile of profiles) {
             addUserProfile(profile);
         }
-        trackPaidFeatureEvent(TrackGroupsFeature, 'invite_group_to_channel', {});
+        trackFeatureEvent(TrackGroupsFeature, 'invite_group_to_channel', {});
     }, [addUserProfile, profiles]);
 
     const onKeyDown = useCallback((e: KeyboardEvent) => {
