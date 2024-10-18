@@ -525,7 +525,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if triggerWebhooks {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
-				c.Logger().Error("Failed to handle webhook event", mlog.Err(err))
+				c.Logger().Error("Failed to handle webhook event", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
