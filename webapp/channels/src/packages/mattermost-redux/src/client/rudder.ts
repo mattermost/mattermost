@@ -22,7 +22,7 @@ const featureSKUs: {[feature: string]: string[]} = {
 const TrackSKUFeature: string = 'sku_feature';
 const featureCategory: {[feature: string]: string} = {
     [TrackGroupsFeature]: TrackSKUFeature,
-}
+};
 
 export class RudderTelemetryHandler implements TelemetryHandler {
     trackEvent(userId: string, userRoles: string, category: string, event: string, props?: any) {
@@ -110,8 +110,8 @@ function getSKUs(featureName: string) {
 function getFeatureCategory(featureName: string) {
     const category: string | undefined = featureCategory[featureName];
     if (category === undefined) {
-	// eslint-disable-next-line
-	console.warn(`feature ${featureName} doesn't have a category`);
+        // eslint-disable-next-line
+        console.warn(`feature ${featureName} doesn't have a category`);
     }
     return category ?? 'miscelanea';
 }
