@@ -78,6 +78,34 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 	}
 }
 
+func TestRemoteClusterInviteIsValid(t *testing.T) {
+	id := NewId()
+	url := "https://localhost:8080/test"
+	token := NewId()
+
+	data := []struct {
+		name   string
+		invite *RemoteClusterInvite
+		valid  bool
+	}{
+		{name: "Zero value", invite: &RemoteClusterInvite{}, valid: false},
+		{name: "Missing remote id", invite: &RemoteClusterInvite{Token: token, SiteURL: url}, valid: false},
+		{name: "Missing site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token}, valid: false},
+		{name: "Bad site url", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: ":/localhost"}, valid: false},
+		{name: "Missing token", invite: &RemoteClusterInvite{RemoteId: id, SiteURL: url}, valid: false},
+		{name: "RemoteClusterInvite valid", invite: &RemoteClusterInvite{RemoteId: id, Token: token, SiteURL: url}, valid: true},
+	}
+
+	for _, item := range data {
+		appErr := item.invite.IsValid()
+		if item.valid {
+			assert.Nil(t, appErr, item.name)
+		} else {
+			assert.NotNil(t, appErr, item.name)
+		}
+	}
+}
+
 func TestFixTopics(t *testing.T) {
 	testData := []struct {
 		topics   string
