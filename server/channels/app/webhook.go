@@ -103,7 +103,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		contentType = "application/json"
 		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
-			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			c.Logger().Warn("Failed to encode to JSON", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 			return
 		}
 	}
@@ -131,14 +131,14 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
 				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
 				if err != nil {
-					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 					return
 				}
 
 				if connection != nil {
 					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
 					if err != nil {
-						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 						return
 					}
 				}
@@ -147,9 +147,9 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
-					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
+					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 				} else {
-					c.Logger().Error("Outgoing Webhook POST failed", mlog.Err(err))
+					c.Logger().Error("Outgoing Webhook POST failed", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 				}
 				return
 			}
@@ -181,7 +181,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 					webhookResp.IconURL = hook.IconURL
 				}
 				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
-					c.Logger().Error("Failed to create response post.", mlog.Err(err))
+					c.Logger().Error("Failed to create response post.", mlog.String("outgoing_webhook_id", hook.Id), mlog.Err(err))
 				}
 			}
 		}()
