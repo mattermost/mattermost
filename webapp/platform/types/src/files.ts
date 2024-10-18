@@ -19,6 +19,7 @@ export type FileInfo = {
     mini_preview?: string;
     archived: boolean;
     link?: string;
+    extra_info?: string;
 };
 export type FilesState = {
     files: Record<string, FileInfo>;
