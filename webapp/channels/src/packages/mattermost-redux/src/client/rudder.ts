@@ -15,13 +15,16 @@ export const TrackGroupsFeature: string = 'custom_groups';
 const TrackProfessionalSKU = 'professional';
 const TrackEnterpriseSKU = 'enterprise';
 
-const featureSKUs: {[feature: string]: string[]} = {
-    [TrackGroupsFeature]: [TrackProfessionalSKU, TrackEnterpriseSKU],
+export const TrackInviteGroupEvent: string = 'invite_group_to_channel';
+
+const eventSKUs: {[event: string]: string[]} = {
+    [TrackInviteGroupEvent]: [TrackProfessionalSKU, TrackEnterpriseSKU],
 };
 
-const TrackSKUFeature: string = 'sku_feature';
-const featureCategory: {[feature: string]: string} = {
-    [TrackGroupsFeature]: TrackSKUFeature,
+const TrackActionCategory: string = 'action';
+
+const eventCategory: {[event: string]: string} = {
+    [TrackInviteGroupEvent]: TrackActionCategory,
 };
 
 export class RudderTelemetryHandler implements TelemetryHandler {
@@ -50,20 +53,17 @@ export class RudderTelemetryHandler implements TelemetryHandler {
     }
 
     trackFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
-        // TODO: add installation id to context.traits.installationId?
         const properties = Object.assign({
-            category: getFeatureCategory(featureName),
+            category: getEventCategory(event),
             type: event,
             user_actual_id: userId,
             user_actual_role: getActualRoles(userRoles),
         }, props);
         const options = {
             context: {
-                extra: {
-                    feature: {
-                        name: featureName,
-                        skus: getSKUs(featureName),
-                    },
+                feature: {
+                    name: featureName,
+                    skus: getSKUs(event),
                 },
             },
         };
@@ -98,20 +98,21 @@ function getActualRoles(userRoles: string) {
     return userRoles && isSystemAdmin(userRoles) ? 'system_admin, system_user' : 'system_user';
 }
 
-function getSKUs(featureName: string) {
-    const skus: string[] | undefined = featureSKUs[featureName];
+function getSKUs(eventName: string) {
+    const skus: string[] | undefined = eventSKUs[eventName];
     if (skus === undefined) {
+        // Next line is to be aware if you've forgotten to add a SKU, add an empty array for Team edition
         // eslint-disable-next-line
-        console.warn(`Feature ${featureName} has no SKUs attached`);
+        console.warn(`Event ${eventName} has no SKUs attached`);
     }
     return skus ?? [];
 }
 
-function getFeatureCategory(featureName: string) {
-    const category: string | undefined = featureCategory[featureName];
+function getEventCategory(eventName: string) {
+    const category: string | undefined = eventCategory[eventName];
     if (category === undefined) {
         // eslint-disable-next-line
-        console.warn(`feature ${featureName} doesn't have a category`);
+        console.warn(`Event ${eventName} doesn't have a category`);
     }
     return category ?? 'miscelanea';
 }
