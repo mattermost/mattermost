@@ -41,8 +41,8 @@ test('MM-T5640_1 should not see landing page ', async () => {
     await page.waitForLoadState('domcontentloaded');
 
     page.locator('#saveSetting').waitFor();
-    const logiButton = page.locator('#saveSetting');
-    await expect(logiButton).toHaveText('Log in');
+    const loginButton = page.locator('#saveSetting');
+    await expect(loginButton).toHaveText('Log in');
 });
 
 test('MM-T5640_2 should see landing page', async () => {
