@@ -38,6 +38,10 @@ export function trackEvent(category, event, props) {
     }
 }
 
+export function trackFeatureEvent(featureName, event, props) {
+    Client4.trackFeatureEvent(featureName, event, props);
+}
+
 export function pageVisited(category, name) {
     Client4.pageVisited(category, name);
 }
