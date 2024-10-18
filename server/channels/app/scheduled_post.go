@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -39,14 +40,15 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketScheduledPostCreated, "", scheduledPost.ChannelId, "", nil, connectionId)
+	message := model.NewWebSocketEvent(model.WebsocketScheduledPostCreated, "", scheduledPost.ChannelId, scheduledPost.UserId, nil, connectionId)
 	scheduledPostJSON, jsonErr := json.Marshal(savedScheduledPost)
+	// in case of websocket events do not break the flow, only log the error
 	if jsonErr != nil {
-		return nil, model.NewAppError("App.ScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		rctx.Logger().Warn("App.ScheduledPost - Failed to Marshal", mlog.Err(jsonErr))
+	} else {
+		message.Add("scheduledPost", string(scheduledPostJSON))
+		a.Publish(message)
 	}
-	message.Add("scheduledPost", string(scheduledPostJSON))
-	a.Publish(message)
-
 	return savedScheduledPost, nil
 }
 
