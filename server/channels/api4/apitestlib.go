@@ -116,7 +116,10 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
-	memoryStore.Set(memoryConfig)
+	err = memoryStore.Set(memoryConfig)
+	if err != nil {
+		panic(err)
+	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	if err != nil {
@@ -191,11 +194,14 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
-	if err := th.Server.Start(); err != nil {
+	if err = th.Server.Start(); err != nil {
 		panic(err)
 	}
 
-	Init(th.App.Srv())
+	_, err = Init(th.App.Srv())
+	if err != nil {
+		panic(err)
+	}
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
@@ -408,7 +414,10 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		appErr := th.App.Srv().InvalidateAllCaches()
+		if appErr != nil {
+			panic(appErr)
+		}
 	}
 	th.ShutdownApp()
 }
@@ -435,17 +444,26 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		if appErr != nil {
+			panic(appErr)
+		}
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+		_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+		if appErr != nil {
+			panic(appErr)
+		}
 		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+		_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+		if appErr != nil {
+			panic(appErr)
+		}
 		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
@@ -465,7 +483,10 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	err := mainHelper.GetSQLStore().User().InsertUsers(users)
+	if err != nil {
+		panic(err)
+	}
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
@@ -498,16 +519,36 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
-	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
-	th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false); appErr != nil {
+		panic(appErr)
+	}
+	if _, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id); err != nil {
+		panic(err)
+	}
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 
@@ -517,7 +558,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) DeleteBots() *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		if appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId); appErr != nil {
+			panic(appErr)
+		}
 	}
 	return th
 }
