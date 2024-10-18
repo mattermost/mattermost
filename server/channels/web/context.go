@@ -108,7 +108,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogErrorByCode(err *model.AppError) {
 	code := err.StatusCode
-	msg := err.SystemMessage(i18n.TDefault)
+	msg := err.SystemMessage(i18n.T)
 	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
