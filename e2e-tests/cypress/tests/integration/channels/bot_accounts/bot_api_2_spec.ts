@@ -183,7 +183,7 @@ describe('Bot accounts ownership and API', () => {
                 // # Create a post
                 cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
                     // * Validate that posting failed
-                    expect(status).to.equal(403);
+                    expect(status).to.equal(401);
                 });
 
                 cy.apiAdminLogin();
@@ -241,7 +241,7 @@ describe('Bot accounts ownership and API', () => {
                 // # Create a post
                 cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
                     // * Validate that posting failed
-                    expect(status).to.equal(403);
+                    expect(status).to.equal(401);
                 });
 
                 // # Enable the bot token again
@@ -304,7 +304,7 @@ describe('Bot accounts ownership and API', () => {
                     // # Create a post
                     cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
                         // * Validate that posting failed
-                        expect(status).to.equal(403);
+                        expect(status).to.equal(401);
                     });
                 });
             });
