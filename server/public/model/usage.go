@@ -23,6 +23,7 @@ var InstalledIntegrationsIgnoredPlugins = map[string]struct{}{
 	PluginIdCalls:         {},
 	PluginIdNPS:           {},
 	PluginIdChannelExport: {},
+	PluginIdAI:            {},
 }
 
 type InstalledIntegration struct {
