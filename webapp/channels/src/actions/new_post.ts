@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 
 import {
@@ -24,7 +25,7 @@ import {
     shouldIgnorePost,
 } from 'mattermost-redux/utils/post_utils';
 
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {sendDesktopNotification} from 'actions/notification_actions';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
@@ -34,9 +35,18 @@ import {ActionTypes} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 export type NewPostMessageProps = {
-    mentions: string[];
+    channel_type: ChannelType;
+    channel_display_name: string;
+    channel_name: string;
+    sender_name: string;
+    set_online: boolean;
+    mentions?: string;
+    followers?: string;
     team_id: string;
     should_ack: boolean;
+    otherFile?: 'true';
+    image?: 'true';
+    post: string;
 }
 
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean, GlobalState> {
@@ -85,7 +95,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        const {status, reason, data} = await dispatch(sendDesktopNotification(post, websocketMessageProps));
+        const {status, reason, data} = (await dispatch(sendDesktopNotification(post, websocketMessageProps))).data!;
 
         // Only ACK for posts that require it
         if (websocketMessageProps.should_ack) {
@@ -137,7 +147,7 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
         return actionsToMarkChannelAsRead(getState, post.channel_id);
     }
 
-    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions, fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
+    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
 export function setThreadRead(post: Post): ActionFunc<boolean, GlobalState> {
