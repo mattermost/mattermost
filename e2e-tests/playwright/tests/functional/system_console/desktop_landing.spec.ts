@@ -55,9 +55,6 @@ test('MM-T5640_2 should see landing page', async () => {
 
     await page.evaluate(() => localStorage.clear());
 
-    // Clear local storage to see the landing page
-    const localStorageLength = await page.evaluate(() => localStorage.length);
-
     await page.goto('http://localhost:8065');
 
     // Wait until the URL contains '/landing'
@@ -69,10 +66,10 @@ test('MM-T5640_2 should see landing page', async () => {
     // Check the user agent
     const userAgent = await page.evaluate(() => navigator.userAgent);
 
-    const viewInDesktopButoon = page.locator('a.btn-primary');
-    await expect(viewInDesktopButoon).toBeVisible();
-    await expect(viewInDesktopButoon).toHaveText(userAgent.includes('iPad') ? 'View in App' : 'View in Desktop App');
+    const viewInAppButton = page.locator('a.btn-primary');
+    await expect(viewInAppButton).toBeVisible();
+    await expect(viewInAppButton).toHaveText(userAgent.includes('iPad') ? 'View in App' : 'View in Desktop App');
 
-    const viewInDesktopBrowser = page.locator('a.btn-tertiary');
-    await expect(viewInDesktopBrowser).toHaveText('View in Browser');
+    const viewInBrowser = page.locator('a.btn-tertiary');
+    await expect(viewInBrowser).toHaveText('View in Browser');
 });
