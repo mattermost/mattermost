@@ -101,7 +101,9 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
+	if _, err := w.Write([]byte("ok")); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -121,7 +123,9 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
+	if _, err := w.Write([]byte("ok")); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
