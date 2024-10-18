@@ -16,6 +16,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import type {CreatePostOptions} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
@@ -34,7 +35,6 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import useGroups from './use_groups';
-import {CreatePostOptions} from "actions/post_actions";
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -235,8 +235,6 @@ const useSubmit = (
     }, [dispatch]);
 
     const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        console.log('handleSubmit called');
-
         if (!channel) {
             return;
         }

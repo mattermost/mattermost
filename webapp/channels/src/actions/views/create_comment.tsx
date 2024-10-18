@@ -25,7 +25,7 @@ import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
-import {CreatePostOptions, createSchedulePostFromDraft} from 'actions/post_actions';
+import {createSchedulePostFromDraft} from 'actions/post_actions';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';

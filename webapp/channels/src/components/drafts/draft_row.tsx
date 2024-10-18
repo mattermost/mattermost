@@ -6,25 +6,23 @@ import React, {memo, useCallback, useMemo, useEffect, useState, useRef} from 're
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
-import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import {ScheduledPost, scheduledPostToPostDraft} from '@mattermost/types/schedule_post';
-import {scheduledPostToPost} from '@mattermost/types/schedule_post';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {scheduledPostToPostDraft} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {getChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 
-import {createPost} from 'actions/post_actions';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
@@ -37,6 +35,8 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
+
+import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -101,8 +101,6 @@ function DraftRow({
     });
 
     const connectionId = useSelector(getConnectionId);
-
-    const channelMember = useSelector((state: GlobalState) => getChannelMember(state, channelId, user.id));
 
     let postError = '';
 
