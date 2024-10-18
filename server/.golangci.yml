@@ -87,7 +87,6 @@ issues:
         channels/api4/system_local.go|\
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
-        channels/api4/user.go|\
         channels/api4/user_test.go|\
         channels/api4/webhook_test.go|\
         channels/app/admin.go|\
