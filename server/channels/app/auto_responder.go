@@ -77,7 +77,7 @@ func (a *App) SendAutoResponse(rctx request.CTX, channel *model.Channel, receive
 		UserId:    receiver.Id,
 	}
 
-	if _, err := a.CreatePost(rctx, autoResponderPost, channel, false, false); err != nil {
+	if _, err := a.CreatePost(rctx, autoResponderPost, channel, model.CreatePostFlags{}); err != nil {
 		return false, err
 	}
 

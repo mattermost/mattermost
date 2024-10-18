@@ -190,7 +190,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		fileInfo.PostId = post.Id
@@ -225,7 +225,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, "smile")
@@ -269,7 +269,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
@@ -303,7 +303,7 @@ func TestPreparePostForClient(t *testing.T) {
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
-			}, th.BasicChannel, false, true)
+			}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 
 			require.Nil(t, err)
 
@@ -360,7 +360,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -389,7 +389,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "some post",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		// this value expected to be a string
@@ -423,7 +423,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
 	And this is our icon: ` + server.URL + `/test-image1.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, false, false, false)
@@ -458,7 +458,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -529,7 +529,7 @@ func TestPreparePostForClient(t *testing.T) {
 					}
 					prepost.AddProp(UnsafeLinksPostProp, "true")
 
-					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 					require.Nil(t, err)
 
 					clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -545,7 +545,7 @@ func TestPreparePostForClient(t *testing.T) {
 							Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, server.URL),
 						}
 
-						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 						require.Nil(t, err)
 
 						clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -571,7 +571,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, false, false, false)
@@ -607,7 +607,7 @@ func TestPreparePostForClient(t *testing.T) {
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 
@@ -641,7 +641,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -651,7 +651,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, false, false, false)
@@ -699,7 +699,7 @@ func TestPreparePostForClient(t *testing.T) {
 					UserId:    th.BasicUser.Id,
 					ChannelId: testCase.Channel.Id,
 					Message:   "hello world",
-				}, th.BasicChannel, false, true)
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 				require.Nil(t, err)
 				referencedPost.Metadata.Embeds = nil
 
@@ -709,7 +709,7 @@ func TestPreparePostForClient(t *testing.T) {
 					UserId:    th.BasicUser.Id,
 					ChannelId: th.BasicChannel.Id,
 					Message:   link,
-				}, th.BasicChannel, false, true)
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 				require.Nil(t, err)
 				previewPost.Metadata.Embeds = nil
 
@@ -737,7 +737,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -747,7 +747,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 
@@ -774,7 +774,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		nestedPermalinkPost.Metadata.Embeds = nil
 
@@ -784,7 +784,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   nestedLink,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -794,7 +794,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 
@@ -821,7 +821,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -830,7 +830,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, previewPost, false, false, false)
@@ -944,7 +944,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	post.Metadata.Embeds = nil
@@ -2972,7 +2972,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "hello world",
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	referencedPost.Metadata.Embeds = nil
 
@@ -2982,7 +2982,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   link,
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	previewPost.Metadata.Embeds = nil
 	clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, false, false, false)
