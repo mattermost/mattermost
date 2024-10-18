@@ -1,108 +1,387 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`YoutubeVideo should match init snapshot 1`] = `
-<Provider
-  store={
-    Object {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-    }
-  }
+exports[`YoutubeVideo should match init snapshot (Shorts) 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={Object {}}
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
 >
-  <YoutubeVideo
-    googleDeveloperKey="googledevkey"
-    hasImageProxy={false}
-    link="https://www.youtube.com/watch?v=xqCoNej8Zxo"
-    metadata={
+  <Provider
+    store={
       Object {
-        "images": Array [
-          Object {
-            "secure_url": "linkForThumbnail",
-            "url": "linkForThumbnail",
-          },
-        ],
-        "title": "Youtube title",
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
       }
     }
-    postId="post_id_1"
-    show={true}
-    youtubeReferrerPolicy={false}
   >
-    <div
-      className="post__embed-container"
+    <YoutubeVideo
+      googleDeveloperKey="googledevkey"
+      hasImageProxy={false}
+      link="https://www.youtube.com/shorts/2oa5WCUpwD8"
+      metadata={
+        Object {
+          "images": Array [
+            Object {
+              "secure_url": "linkForThumbnail",
+              "url": "linkForThumbnail",
+            },
+          ],
+          "title": "Youtube title",
+        }
+      }
+      postId="post_id_1"
+      show={true}
+      youtubeReferrerPolicy={false}
     >
-      <div>
-        <h4>
-          <span
-            className="video-type"
-          >
-            YouTube - 
-          </span>
-          <span
-            className="video-title"
-          >
-            <ForwardRef
-              href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
-              location="youtube_video"
+      <div
+        className="post__embed-container"
+      >
+        <div>
+          <h4>
+            <FormattedMessage
+              defaultMessage="<type>YouTube Shorts - </type>{title}"
+              id="youtube_video.type.shorts"
+              values={
+                Object {
+                  "title": <span
+                    className="video-title"
+                  >
+                    <ForwardRef
+                      href="https://www.youtube.com/shorts/2oa5WCUpwD8"
+                      location="youtube_video"
+                    >
+                      Youtube title
+                    </ForwardRef>
+                  </span>,
+                  "type": [Function],
+                }
+              }
             >
-              <a
-                href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
-                location="youtube_video"
-                onClick={[Function]}
-                rel="noopener noreferrer"
-                target="_blank"
+              <span
+                className="video-type"
+                key=".$.0"
               >
-                Youtube title
-              </a>
-            </ForwardRef>
-          </span>
-        </h4>
-        <div
-          className="video-div embed-responsive-item"
-          onClick={[Function]}
-        >
+                YouTube Shorts - 
+              </span>
+              <span
+                className="video-title"
+                key=".$.1"
+              >
+                <ForwardRef
+                  href="https://www.youtube.com/shorts/2oa5WCUpwD8"
+                  location="youtube_video"
+                >
+                  <a
+                    href="https://www.youtube.com/shorts/2oa5WCUpwD8"
+                    location="youtube_video"
+                    onClick={[Function]}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Youtube title
+                  </a>
+                </ForwardRef>
+              </span>
+            </FormattedMessage>
+            <WithTooltip
+              id="post_id_1_expand_shorts"
+              placement="right"
+              title={
+                Object {
+                  "defaultMessage": "Expand Horizontally",
+                  "id": "youtube_video.shorts.expand",
+                }
+              }
+            >
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delay={400}
+                disabled={false}
+                overlay={<Unknown />}
+                placement="right"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <OverlayTrigger
+                  defaultOverlayShown={false}
+                  delay={400}
+                  overlay={
+                    <OverlayWrapper
+                      intl={
+                        Object {
+                          "$t": [Function],
+                          "defaultFormats": Object {},
+                          "defaultLocale": "en",
+                          "defaultRichTextElements": undefined,
+                          "fallbackOnEmptyString": true,
+                          "formatDate": [Function],
+                          "formatDateTimeRange": [Function],
+                          "formatDateToParts": [Function],
+                          "formatDisplayName": [Function],
+                          "formatList": [Function],
+                          "formatListToParts": [Function],
+                          "formatMessage": [Function],
+                          "formatNumber": [Function],
+                          "formatNumberToParts": [Function],
+                          "formatPlural": [Function],
+                          "formatRelativeTime": [Function],
+                          "formatTime": [Function],
+                          "formatTimeToParts": [Function],
+                          "formats": Object {},
+                          "formatters": Object {
+                            "getDateTimeFormat": [Function],
+                            "getDisplayNames": [Function],
+                            "getListFormat": [Function],
+                            "getMessageFormat": [Function],
+                            "getNumberFormat": [Function],
+                            "getPluralRules": [Function],
+                            "getRelativeTimeFormat": [Function],
+                          },
+                          "locale": "en",
+                          "messages": Object {},
+                          "onError": [Function],
+                          "onWarn": [Function],
+                          "textComponent": Symbol(react.fragment),
+                          "timeZone": undefined,
+                          "wrapRichTextChunksInFragment": undefined,
+                        }
+                      }
+                    />
+                  }
+                  placement="right"
+                  trigger={
+                    Array [
+                      "hover",
+                      "focus",
+                    ]
+                  }
+                >
+                  <i
+                    className="video-expand-shorts"
+                    data-testid="youtube-expand-shorts"
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onMouseOut={[Function]}
+                    onMouseOver={[Function]}
+                  >
+                    <ArrowExpandIcon>
+                      <svg
+                        fill="currentColor"
+                        height="1em"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10,21V19H6.41L10.91,14.5L9.5,13.09L5,17.59V14H3V21H10M14.5,10.91L19,6.41V10H21V3H14V5H17.59L13.09,9.5L14.5,10.91Z"
+                        />
+                      </svg>
+                    </ArrowExpandIcon>
+                  </i>
+                </OverlayTrigger>
+              </OverlayTrigger>
+            </WithTooltip>
+          </h4>
           <div
-            className="embed-responsive video-div__placeholder"
+            className="video-div embed-responsive-item video-shorts"
+            data-testid="youtube-video"
+            onClick={[Function]}
           >
             <div
-              className="video-thumbnail__container"
+              className="embed-responsive video-div__placeholder"
             >
-              <Connect(Component)
-                src="linkForThumbnail"
+              <div
+                className="video-thumbnail__container"
               >
-                <Memo(ExternalImage)
-                  dispatch={[Function]}
-                  enableSVGs={false}
-                  hasImageProxy={false}
+                <Connect(Component)
                   src="linkForThumbnail"
                 >
-                  <img
-                    alt="youtube video thumbnail"
-                    className="video-thumbnail"
+                  <Memo(ExternalImage)
+                    dispatch={[Function]}
+                    enableSVGs={false}
+                    hasImageProxy={false}
                     src="linkForThumbnail"
-                  />
-                </Memo(ExternalImage)>
-              </Connect(Component)>
-              <div
-                className="block"
-              >
-                <span
-                  className="play-button"
+                  >
+                    <img
+                      alt="youtube video thumbnail"
+                      className="video-thumbnail"
+                      src="linkForThumbnail"
+                    />
+                  </Memo(ExternalImage)>
+                </Connect(Component)>
+                <div
+                  className="block"
                 >
-                  <span />
-                </span>
+                  <span
+                    className="play-button"
+                  >
+                    <span />
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </YoutubeVideo>
-</Provider>
+    </YoutubeVideo>
+  </Provider>
+</IntlProvider>
+`;
+
+exports[`YoutubeVideo should match init snapshot 1`] = `
+<IntlProvider
+  defaultFormats={Object {}}
+  defaultLocale="en"
+  fallbackOnEmptyString={true}
+  formats={Object {}}
+  locale="en"
+  messages={Object {}}
+  onError={[Function]}
+  onWarn={[Function]}
+  textComponent={Symbol(react.fragment)}
+>
+  <Provider
+    store={
+      Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      }
+    }
+  >
+    <YoutubeVideo
+      googleDeveloperKey="googledevkey"
+      hasImageProxy={false}
+      link="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+      metadata={
+        Object {
+          "images": Array [
+            Object {
+              "secure_url": "linkForThumbnail",
+              "url": "linkForThumbnail",
+            },
+          ],
+          "title": "Youtube title",
+        }
+      }
+      postId="post_id_1"
+      show={true}
+      youtubeReferrerPolicy={false}
+    >
+      <div
+        className="post__embed-container"
+      >
+        <div>
+          <h4>
+            <FormattedMessage
+              defaultMessage="<type>YouTube - </type>{title}"
+              id="youtube_video.type.youtube"
+              values={
+                Object {
+                  "title": <span
+                    className="video-title"
+                  >
+                    <ForwardRef
+                      href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+                      location="youtube_video"
+                    >
+                      Youtube title
+                    </ForwardRef>
+                  </span>,
+                  "type": [Function],
+                }
+              }
+            >
+              <span
+                className="video-type"
+                key=".$.0"
+              >
+                YouTube - 
+              </span>
+              <span
+                className="video-title"
+                key=".$.1"
+              >
+                <ForwardRef
+                  href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+                  location="youtube_video"
+                >
+                  <a
+                    href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+                    location="youtube_video"
+                    onClick={[Function]}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Youtube title
+                  </a>
+                </ForwardRef>
+              </span>
+            </FormattedMessage>
+          </h4>
+          <div
+            className="video-div embed-responsive-item"
+            data-testid="youtube-video"
+            onClick={[Function]}
+          >
+            <div
+              className="embed-responsive video-div__placeholder"
+            >
+              <div
+                className="video-thumbnail__container"
+              >
+                <Connect(Component)
+                  src="linkForThumbnail"
+                >
+                  <Memo(ExternalImage)
+                    dispatch={[Function]}
+                    enableSVGs={false}
+                    hasImageProxy={false}
+                    src="linkForThumbnail"
+                  >
+                    <img
+                      alt="youtube video thumbnail"
+                      className="video-thumbnail"
+                      src="linkForThumbnail"
+                    />
+                  </Memo(ExternalImage)>
+                </Connect(Component)>
+                <div
+                  className="block"
+                >
+                  <span
+                    className="play-button"
+                  >
+                    <span />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </YoutubeVideo>
+  </Provider>
+</IntlProvider>
 `;
 
 exports[`YoutubeVideo should match snapshot for playing state 1`] = `
@@ -111,24 +390,29 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
 >
   <div>
     <h4>
-      <span
-        className="video-type"
-      >
-        YouTube - 
-      </span>
-      <span
-        className="video-title"
-      >
-        <ForwardRef
-          href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
-          location="youtube_video"
-        >
-          Youtube title
-        </ForwardRef>
-      </span>
+      <MemoizedFormattedMessage
+        defaultMessage="<type>YouTube - </type>{title}"
+        id="youtube_video.type.youtube"
+        values={
+          Object {
+            "title": <span
+              className="video-title"
+            >
+              <ForwardRef
+                href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+                location="youtube_video"
+              >
+                Youtube title
+              </ForwardRef>
+            </span>,
+            "type": [Function],
+          }
+        }
+      />
     </h4>
     <div
       className="video-div embed-responsive-item"
+      data-testid="youtube-video"
       onClick={[Function]}
     >
       <iframe
@@ -153,24 +437,29 @@ exports[`YoutubeVideo should match snapshot for playing state and \`youtubeRefer
 >
   <div>
     <h4>
-      <span
-        className="video-type"
-      >
-        YouTube - 
-      </span>
-      <span
-        className="video-title"
-      >
-        <ForwardRef
-          href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
-          location="youtube_video"
-        >
-          Youtube title
-        </ForwardRef>
-      </span>
+      <MemoizedFormattedMessage
+        defaultMessage="<type>YouTube - </type>{title}"
+        id="youtube_video.type.youtube"
+        values={
+          Object {
+            "title": <span
+              className="video-title"
+            >
+              <ForwardRef
+                href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+                location="youtube_video"
+              >
+                Youtube title
+              </ForwardRef>
+            </span>,
+            "type": [Function],
+          }
+        }
+      />
     </h4>
     <div
       className="video-div embed-responsive-item"
+      data-testid="youtube-video"
       onClick={[Function]}
     >
       <iframe
