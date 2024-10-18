@@ -108,9 +108,10 @@ const AdvancedTextEditor = ({
     const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
-    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.display_name || '');
-    const channelType = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.type || '');
-    const isChannelShared = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.shared);
+    const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
+    const channelDisplayName = channel?.display_name || '';
+    const channelType = channel?.type || '';
+    const isChannelShared = channel?.shared;
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
