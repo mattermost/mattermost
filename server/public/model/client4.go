@@ -9207,20 +9207,25 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 }
 
 func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
-	query := fmt.Sprintf("?in_team=%v&in_channel=%v&include_deleted=%v&include_bots=%v&include_remote_users=%v",
-		options.TeamId, options.ChannelId, options.IncludeDeleted, options.IncludeBotAccounts, options.IncludeRemoteUsers)
+	v := url.Values{}
+	v.Set("in_team", options.TeamId)
+	v.Set("in_channel", options.ChannelId)
+	v.Set("include_deleted", strconv.FormatBool(options.IncludeDeleted))
+	v.Set("include_bots", strconv.FormatBool(options.IncludeBotAccounts))
+	v.Set("include_remote_users", strconv.FormatBool(options.IncludeRemoteUsers))
 
 	if len(options.Roles) > 0 {
-		query += fmt.Sprintf("&roles=%s", strings.Join(options.Roles, ","))
+		v.Set("roles", strings.Join(options.Roles, ","))
 	}
 	if len(options.ChannelRoles) > 0 {
-		query += fmt.Sprintf("&channel_roles=%s", strings.Join(options.ChannelRoles, ","))
+		v.Set("channel_roles", strings.Join(options.ChannelRoles, ","))
 	}
 	if len(options.TeamRoles) > 0 {
-		query += fmt.Sprintf("&team_roles=%s", strings.Join(options.TeamRoles, ","))
+		v.Set("team_roles", strings.Join(options.TeamRoles, ","))
 	}
 
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered"+query, "")
+	query := v.Encode()
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered?"+query, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

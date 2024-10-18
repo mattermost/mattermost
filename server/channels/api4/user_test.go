@@ -8498,28 +8498,27 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 	_, _, err = nonAdminClient.Login(context.Background(), user2.Email, user2.Password)
 	require.NoError(t, err)
 
-	t.Run("Revoke all sessions as admin", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resp, err := th.SystemAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-
 		// Use SystemAdminClient to verify that all sessions are revoked
 		sessions, _, err := th.SystemAdminClient.GetSessions(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		require.Empty(t, sessions, "All sessions should be revoked")
-	})
+	}, "Revoke all sessions as admin and local")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		fakeUserId := "invalid_user_id"
+		resp, err := client.RevokeAllSessions(context.Background(), fakeUserId)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	}, "Revoke all sessions for non-existent user")
 
 	t.Run("Revoke all sessions without permissions", func(t *testing.T) {
 		// Attempt to revoke sessions of the primary user using a non-admin client
 		resp, err := nonAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("Revoke all sessions for non-existent user", func(t *testing.T) {
-		fakeUserId := "invalid_user_id"
-		resp, err := th.SystemAdminClient.RevokeAllSessions(context.Background(), fakeUserId)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
 	})
 }
