@@ -165,7 +165,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -185,7 +188,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -214,7 +220,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()

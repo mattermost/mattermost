@@ -3,7 +3,9 @@
 
 import React, {PureComponent} from 'react';
 import type {ChangeEvent} from 'react';
-import {injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
 import Setting from './setting';
 
@@ -13,15 +15,13 @@ type Props = {
     onChange: (id: string, valueAsArray: string[]) => void;
     disabled: boolean;
     setByEnv: boolean;
-    intl: IntlShape;
 }
 
 type State = {
     value: string;
 }
 
-class CustomURLSchemesSetting extends
-    PureComponent<Props, State> {
+export default class CustomURLSchemesSetting extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -51,22 +51,26 @@ class CustomURLSchemesSetting extends
     render() {
         return (
             <Setting
-                label={this.props.intl.formatMessage({
-                    id: 'admin.customization.customUrlSchemes',
-                    defaultMessage: 'Custom URL Schemes:',
-                })}
-                helpText={this.props.intl.formatMessage({
-                    id: 'admin.customization.customUrlSchemesDesc',
-                    defaultMessage: 'Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".',
-                })}
+                label={
+                    <FormattedMessage
+                        id='admin.customization.customUrlSchemes'
+                        defaultMessage='Custom URL Schemes:'
+                    />
+                }
+                helpText={
+                    <FormattedMessage
+                        id='admin.customization.customUrlSchemesDesc'
+                        defaultMessage='Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".'
+                    />
+                }
                 inputId={this.props.id}
                 setByEnv={this.props.setByEnv}
             >
-                <input
+                <LocalizedPlaceholderInput
                     id={this.props.id}
                     className='form-control'
                     type='text'
-                    placeholder={this.props.intl.formatMessage({id: 'admin.customization.customUrlSchemesPlaceholder', defaultMessage: 'E.g.: "git,smtp"'})}
+                    placeholder={defineMessage({id: 'admin.customization.customUrlSchemesPlaceholder', defaultMessage: 'E.g.: "git,smtp"'})}
                     value={this.state.value}
                     onChange={this.handleChange}
                     disabled={this.props.disabled || this.props.setByEnv}
@@ -75,5 +79,3 @@ class CustomURLSchemesSetting extends
         );
     }
 }
-
-export default injectIntl(CustomURLSchemesSetting);
