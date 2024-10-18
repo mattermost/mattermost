@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useMemo, useEffect, useState} from 'react';
+import React, {memo, useCallback, useMemo, useEffect, useState, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
+import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import {postDraftToScheduledPost, ScheduledPost} from '@mattermost/types/schedule_post';
+import {ScheduledPost, scheduledPostToPostDraft} from '@mattermost/types/schedule_post';
 import {scheduledPostToPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -24,6 +25,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 
 import {createPost} from 'actions/post_actions';
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
 import {getConnectionId} from 'selectors/general';
@@ -35,8 +37,6 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
-
-import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -110,6 +110,7 @@ function DraftRow({
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
+            postError = getErrorStringFromCode(intl, item.error_code);
         }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
@@ -142,24 +143,8 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
 
-    // TODO LOL verify the types and handled it better
-    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
-    const [handleOnSend] = useSubmit(
-        item as any,
-        postError,
-        channelId,
-        rootId,
-        serverError,
-        mockLastBlurAt,
-        noop,
-        setServerError,
-        noop,
-        noop,
-        prioritySubmitCheck,
-        goToMessage,
-        undefined,
-        true,
-    );
+    const isBeingScheduled = useRef(false);
+    const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
         if (!rootId) {
@@ -181,12 +166,45 @@ function DraftRow({
         dispatch(removeDraft(key, channelId, rootId));
     }, [dispatch, channelId, rootId]);
 
+    // afterSubmit is exclusively used for deleting the draft after
+    // successfully creating a scheduled post from it.
+    // This is not used in any other draft flow such as sending it, or editing it etc.
+    const afterSubmit = useCallback((response: SubmitPostReturnType) => {
+        if (isBeingScheduled.current && response.created && !response.error) {
+            handleOnDelete();
+            isBeingScheduled.current = false;
+        }
+
+        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+            dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
+            isScheduledPostBeingSent.current = false;
+        }
+    }, [connectionId, dispatch, handleOnDelete, item]);
+
+    // TODO LOL verify the types and handled it better
+    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
+    const [handleOnSend] = useSubmit(
+        item as any,
+        postError,
+        channelId,
+        rootId,
+        serverError,
+        mockLastBlurAt,
+        noop,
+        setServerError,
+        noop,
+        noop,
+        prioritySubmitCheck,
+        goToMessage,
+        afterSubmit,
+        true,
+    );
+
     const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
-        // const scheduledPost = postDraftToScheduledPost(item as PostDraft, user.id, scheduledAt);
+        isBeingScheduled.current = true;
         await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
-        handleOnDelete();
         return Promise.resolve({});
-    }, [item, handleOnSend, handleOnDelete]);
+    }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {
         if (!channel) {
@@ -238,22 +256,12 @@ function DraftRow({
         };
     }, [item, dispatch, connectionId]);
 
-    const afterCreatePostFromScheduledPost = useCallback(async () => {
-        await dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
-
-        // because we also show scheduled posts from channels you are no longer a member of,
-        // we check if there is a channel member loaded currently so we don't end up
-        // making the user join the channel unintentionally.
-        if (channelMember) {
-            goToMessage();
-        }
-    }, [channelMember, connectionId, dispatch, goToMessage, item]);
-
     const handleScheduledPostOnSend = useCallback(async () => {
-        const scheduledPost = item as ScheduledPost;
-        const post = scheduledPostToPost(scheduledPost);
-        await dispatch(createPost(post, scheduledPost.metadata?.files || [], afterCreatePostFromScheduledPost));
-    }, [afterCreatePostFromScheduledPost, dispatch, item]);
+        isScheduledPostBeingSent.current = true;
+        const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
+        handleOnSend(postDraft, undefined, {keepDraft: true});
+        return Promise.resolve({});
+    }, [handleOnSend, item]);
 
     const scheduledPostActions = useMemo(() => {
         if (!channel) {

@@ -56,6 +56,10 @@ import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
 import type {SubmitPostReturnType} from './views/create_comment';
 
+export type CreatePostOptions = {
+    keepDraft?: boolean;
+}
+
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         let websocketMessageProps = {};
@@ -133,16 +137,19 @@ export function createPost(
     files: FileInfo[],
     afterSubmit?: (response: SubmitPostReturnType) => void,
     afterOptimisticSubmit?: () => void,
+    keepDraft?: boolean,
 ): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         dispatch(addRecentEmojisForMessage(post.message));
 
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
-        if (post.root_id) {
-            dispatch(storeCommentDraft(post.root_id, null));
-        } else {
-            dispatch(storeDraft(post.channel_id, null));
+        if (!keepDraft) {
+            if (post.root_id) {
+                dispatch(storeCommentDraft(post.root_id, null));
+            } else {
+                dispatch(storeDraft(post.channel_id, null));
+            }
         }
 
         afterOptimisticSubmit?.();
@@ -158,12 +165,6 @@ export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): Actio
         const connectionId = getConnectionId(state);
         const channel = state.entities.channels.channels[scheduledPost.channel_id];
         const result = await dispatch(createSchedulePost(scheduledPost, channel.team_id, connectionId));
-
-        if (scheduledPost.root_id) {
-            dispatch(storeCommentDraft(scheduledPost.root_id, null));
-        } else {
-            dispatch(storeDraft(scheduledPost.channel_id, null));
-        }
 
         return {
             created: !result.error && result.data,

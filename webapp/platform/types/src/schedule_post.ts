@@ -4,7 +4,8 @@
 import type {PostDraft} from 'mattermost-webapp/src/types/store/draft';
 
 import type {Draft} from './drafts';
-import type {Post, PostMetadata} from './posts';
+import type {Post, PostMetadata, PostPriority} from './posts';
+import type {FileInfo} from "src/files";
 
 export type ScheduledPostErrorCode = 'unknown' | 'channel_archived' | 'channel_not_found' | 'user_missing' | 'user_deleted' | 'no_channel_permission' | 'no_channel_member' | 'thread_deleted' | 'unable_to_send';
 
@@ -33,27 +34,42 @@ export type ScheduledPostsState = {
     };
 }
 
-export function scheduledPostToPost(scheduledPost: ScheduledPost): Post {
+export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraft {
     return {
-        hashtags: '',
-        is_pinned: false,
-        original_id: '',
-        pending_post_id: '',
-        reply_count: 0,
-        type: '',
-        id: '',
-        create_at: scheduledPost.create_at,
-        update_at: 0,
-        edit_at: 0,
-        delete_at: 0,
-        user_id: scheduledPost.user_id,
-        channel_id: scheduledPost.channel_id,
-        root_id: scheduledPost.root_id,
         message: scheduledPost.message,
+        fileInfos: scheduledPost.metadata?.files || [],
+        uploadsInProgress: [],
         props: scheduledPost.props,
-        file_ids: scheduledPost.file_ids,
-        metadata: scheduledPost.metadata || {} as PostMetadata,
+        channelId: scheduledPost.channel_id,
+        rootId: scheduledPost.root_id,
+        createAt: 0,
+        updateAt: 0,
+        metadata: {
+            priority: scheduledPost.priority,
+        },
     };
+
+    // return {
+    //     message: scheduledPost.message,
+    //     file_ids: scheduledPost.file_ids,
+    //
+    //
+    //     is_pinned: false,
+    //     original_id: '',
+    //     pending_post_id: '',
+    //     reply_count: 0,
+    //     type: '',
+    //     id: '',
+    //     create_at: scheduledPost.create_at,
+    //     update_at: 0,
+    //     edit_at: 0,
+    //     delete_at: 0,
+    //     user_id: scheduledPost.user_id,
+    //     channel_id: scheduledPost.channel_id,
+    //     root_id: scheduledPost.root_id,
+    //     props: scheduledPost.props,
+    //     metadata: scheduledPost.metadata || {} as PostMetadata,
+    // };
 }
 
 export function postDraftToScheduledPost(postDraft: PostDraft, userId: string, scheduledAt: number): ScheduledPost {

@@ -72,7 +72,7 @@ function DraftActions({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
-                channelId: channelId,
+                channelId,
                 onConfirm: onSchedule,
             },
         }));
