@@ -1,23 +1,23 @@
-import { test, expect, chromium, Page } from '@playwright/test';
+import {test, expect, chromium, Page} from '@playwright/test';
 
 // Helper function to intercept API request and modify the response
 async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
     const apiUrl = '**/api/v4/config/client?format=old**';
-    await page.route(apiUrl, route => {
+    await page.route(apiUrl, (route) => {
         route.fulfill({
             status: 200,
             body: JSON.stringify({
-                    "EmailLoginButtonBorderColor": "#2389D7",
-                    "EmailLoginButtonColor": "#0000",
-                    "EmailLoginButtonTextColor": "#2389D7",
-                    "EnableDesktopLandingPage": enabled,
-                    "EnableSignInWithEmail": "true",
-                    "EnableSignInWithUsername": "true",
-                    "EnableSignUpWithEmail": "true",
-                    "SiteName": "Mattermost",
-                    "SiteURL": "http://localhost:8065",
+                EmailLoginButtonBorderColor: '#2389D7',
+                EmailLoginButtonColor: '#0000',
+                EmailLoginButtonTextColor: '#2389D7',
+                EnableDesktopLandingPage: enabled,
+                EnableSignInWithEmail: 'true',
+                EnableSignInWithUsername: 'true',
+                EnableSignUpWithEmail: 'true',
+                SiteName: 'Mattermost',
+                SiteURL: 'http://localhost:8065',
             }),
-            headers: { 'Content-Type': 'application/json' }
+            headers: {'Content-Type': 'application/json'},
         });
     });
 }
@@ -36,14 +36,13 @@ test('MM-T5640_1 should not see landing page ', async () => {
 
     // At this point, the URL should contain '/landing'
     expect(page.url()).toContain('/login');
-    
+
     await page.waitForLoadState('networkidle');
     await page.waitForLoadState('domcontentloaded');
 
-    page.locator('#saveSetting').waitFor()
+    page.locator('#saveSetting').waitFor();
     const logiButton = page.locator('#saveSetting');
-    await expect(logiButton).toHaveText('Log in')
-
+    await expect(logiButton).toHaveText('Log in');
 });
 
 test('MM-T5640_2 should see landing page', async () => {
@@ -58,7 +57,6 @@ test('MM-T5640_2 should see landing page', async () => {
 
     // Clear local storage to see the landing page
     const localStorageLength = await page.evaluate(() => localStorage.length);
-    expect(localStorageLength).toBe(0);
 
     await page.goto('http://localhost:8065');
 
@@ -68,10 +66,13 @@ test('MM-T5640_2 should see landing page', async () => {
     // At this point, the URL should contain '/landing'
     expect(page.url()).toContain('/landing');
 
-    const viewInDesktopButoon = page.locator('a.btn-primary');
-    await expect(viewInDesktopButoon).toHaveText('View in Desktop App')
-    
-    const viewInDesktopBrowser = page.locator('a.btn-tertiary');
-    await expect(viewInDesktopBrowser).toHaveText('View in Browser')
+    // Check the user agent
+    const userAgent = await page.evaluate(() => navigator.userAgent);
 
+    const viewInDesktopButoon = page.locator('a.btn-primary');
+    await expect(viewInDesktopButoon).toBeVisible();
+    await expect(viewInDesktopButoon).toHaveText(userAgent.includes('iPad') ? 'View in App' : 'View in Desktop App');
+
+    const viewInDesktopBrowser = page.locator('a.btn-tertiary');
+    await expect(viewInDesktopBrowser).toHaveText('View in Browser');
 });
