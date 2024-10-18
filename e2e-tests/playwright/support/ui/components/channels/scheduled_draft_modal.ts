@@ -10,7 +10,6 @@ export default class ScheduledDraftModal {
     readonly dateInput;
     readonly timeLocator;
     readonly timeDropdownOptions;
-    readonly dateLocator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,11 +18,29 @@ export default class ScheduledDraftModal {
         this.dateInput = container.locator('div.Input_wrapper');
         this.timeLocator = container.locator('div.dateTime__input');
         this.timeDropdownOptions = container.locator('ul.dropdown-menu .MenuItem');
-        this.dateLocator = (day: number, month: string) => container.locator(`button[aria-label*='${day}th ${month}']`);
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    getDaySuffix(day: number): string {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1:
+                return 'st';
+            case 2:
+                return 'nd';
+            case 3:
+                return 'rd';
+            default:
+                return 'th';
+        }
+    }
+
+    dateLocator(day: number, month: string, dayOfWeek: string) {
+        const daySuffix = this.getDaySuffix(day);
+        return this.container.locator(`button[aria-label*='${day}${daySuffix} ${month} (${dayOfWeek})']`);
     }
 
     async selectDay() {
@@ -32,8 +49,9 @@ export default class ScheduledDraftModal {
         const pacificDate = this.getPacificDate();
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
+        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        await this.dateLocator(day, month).click();
+        await this.dateLocator(day, month, dayOfWeek).click();
     }
 
     async confirm() {

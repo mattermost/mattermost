@@ -167,7 +167,7 @@ async function verifyscheduledDrafts(
     draftMessage: string,
     scheduledDraftChannelInfo: string,
 ): Promise<void> {
-    const scheduledDraftPage = new pages.scheduledDraftPage(channelPage.page);
+    const scheduledDraftPage = new pages.ScheduledDraftPage(channelPage.page);
 
     await verifyscheduledDraftCount(channelPage, '1');
     await scheduledDraftPage.toBeVisible();
