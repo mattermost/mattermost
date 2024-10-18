@@ -57,7 +57,6 @@ type Props = {
 
     onSearch?: (term: string) => void;
     term?: string;
-    searchPlaceholder?: string;
     extraComponent?: JSX.Element;
     filterProps?: {
         options: FilterOptions;
@@ -82,7 +81,6 @@ class DataGrid extends React.PureComponent<Props, State> {
 
     static defaultProps = {
         term: '',
-        searchPlaceholder: '',
     };
 
     public constructor(props: Props) {
@@ -206,7 +204,6 @@ class DataGrid extends React.PureComponent<Props, State> {
             return (
                 <DataGridSearch
                     onSearch={this.search}
-                    placeholder={this.props.searchPlaceholder}
                     term={this.props.term}
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}

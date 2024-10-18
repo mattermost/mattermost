@@ -818,7 +818,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 		return err
 	}
 
-	updateAt := maxInt64(user.UpdateAt, user.LastPictureUpdate)
+	updateAt := max(user.UpdateAt, user.LastPictureUpdate)
 
 	query := s.getQueryBuilder().
 		Update("SharedChannelUsers AS scu").
