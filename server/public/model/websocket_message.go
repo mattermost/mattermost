@@ -91,6 +91,7 @@ const (
 	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
+	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
 )
 
 type WebSocketMessage interface {
