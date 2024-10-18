@@ -61,7 +61,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o := model.Post{}
 		o.ChannelId = c.Id
 		o.UserId = u.Id
-		o.Message = NewTestId()
+		o.Message = NewTestID()
 
 		if urgent {
 			o.Metadata = &model.PostMetadata{
@@ -79,18 +79,18 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o2.ChannelId = c.Id
 		o2.UserId = model.NewId()
 		o2.RootId = otmp.Id
-		o2.Message = NewTestId()
+		o2.Message = NewTestID()
 
 		o3 := model.Post{}
 		o3.ChannelId = c.Id
 		o3.UserId = u.Id
 		o3.RootId = otmp.Id
-		o3.Message = NewTestId()
+		o3.Message = NewTestID()
 
 		o4 := model.Post{}
 		o4.ChannelId = c.Id
 		o4.UserId = model.NewId()
-		o4.Message = NewTestId()
+		o4.Message = NewTestID()
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
@@ -132,7 +132,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o5.ChannelId = channel.Id
 		o5.UserId = model.NewId()
 		o5.RootId = newPosts[0].Id
-		o5.Message = NewTestId()
+		o5.Message = NewTestID()
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&o5})
 		require.NoError(t, err, "couldn't save item")
@@ -176,12 +176,12 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		rootPost.RootId = model.NewId()
 		rootPost.ChannelId = channel.Id
 		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId()
+		rootPost.Message = NewTestID()
 
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
-		replyPost.Message = NewTestId()
+		replyPost.Message = NewTestID()
 		replyPost.RootId = rootPost.RootId
 
 		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
@@ -197,13 +197,13 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost2 := model.Post{}
 		replyPost2.ChannelId = rootPost.ChannelId
 		replyPost2.UserId = model.NewId()
-		replyPost2.Message = NewTestId()
+		replyPost2.Message = NewTestID()
 		replyPost2.RootId = rootPost.Id
 
 		replyPost3 := model.Post{}
 		replyPost3.ChannelId = rootPost.ChannelId
 		replyPost3.UserId = model.NewId()
-		replyPost3.Message = NewTestId()
+		replyPost3.Message = NewTestID()
 		replyPost3.RootId = rootPost.Id
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
@@ -231,7 +231,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o1 := model.Post{}
 		o1.ChannelId = channel.Id
 		o1.UserId = model.NewId()
-		o1.Message = NewTestId()
+		o1.Message = NewTestID()
 		rootPost, err := ss.Post().Save(rctx, &o1)
 		require.NoError(t, err)
 
@@ -239,7 +239,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o2.RootId = rootPost.Id
 		o2.ChannelId = rootPost.ChannelId
 		o2.UserId = model.NewId()
-		o2.Message = NewTestId()
+		o2.Message = NewTestID()
 		replyPost, err := ss.Post().Save(rctx, &o2)
 		require.NoError(t, err)
 
@@ -247,7 +247,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o3.RootId = rootPost.Id
 		o3.ChannelId = rootPost.ChannelId
 		o3.UserId = o2.UserId
-		o3.Message = NewTestId()
+		o3.Message = NewTestID()
 		replyPost2, err := ss.Post().Save(rctx, &o3)
 		require.NoError(t, err)
 
@@ -255,7 +255,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		o4.RootId = rootPost.Id
 		o4.ChannelId = rootPost.ChannelId
 		o4.UserId = model.NewId()
-		o4.Message = NewTestId()
+		o4.Message = NewTestID()
 		replyPost3, err := ss.Post().Save(rctx, &o4)
 		require.NoError(t, err)
 
@@ -292,7 +292,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		rootPost := model.Post{}
 		rootPost.ChannelId = channel.Id
 		rootPost.UserId = model.NewId()
-		rootPost.Message = NewTestId()
+		rootPost.Message = NewTestID()
 
 		newPosts1, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost})
 		require.NoError(t, err)
@@ -300,7 +300,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
-		replyPost.Message = NewTestId()
+		replyPost.Message = NewTestID()
 		replyPost.RootId = newPosts1[0].Id
 
 		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost})

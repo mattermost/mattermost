@@ -269,9 +269,9 @@ func testGetOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("get non-existing", func(t *testing.T) {
-		nonExistingId := model.NewId()
+		nonExistingID := model.NewId()
 		var expected *store.ErrNotFound
-		_, err := ss.OutgoingOAuthConnection().GetConnection(c, nonExistingId)
+		_, err := ss.OutgoingOAuthConnection().GetConnection(c, nonExistingID)
 		require.ErrorAs(t, err, &expected)
 	})
 }
@@ -311,9 +311,9 @@ func testGetOutgoingOAuthConnectionByAudience(t *testing.T, ss store.Store) {
 	t.Run("get non-existing", func(t *testing.T) {
 		c := request.TestContext(t)
 
-		nonExistingId := model.NewId()
+		nonExistingID := model.NewId()
 		var expected *store.ErrNotFound
-		_, err := ss.OutgoingOAuthConnection().GetConnection(c, nonExistingId)
+		_, err := ss.OutgoingOAuthConnection().GetConnection(c, nonExistingID)
 		require.ErrorAs(t, err, &expected)
 	})
 

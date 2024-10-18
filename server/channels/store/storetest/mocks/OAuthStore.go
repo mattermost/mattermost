@@ -92,9 +92,9 @@ func (_m *OAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessDa
 	return r0, r1
 }
 
-// GetAccessDataByUserForApp provides a mock function with given fields: userID, clientId
-func (_m *OAuthStore) GetAccessDataByUserForApp(userID string, clientId string) ([]*model.AccessData, error) {
-	ret := _m.Called(userID, clientId)
+// GetAccessDataByUserForApp provides a mock function with given fields: userID, clientID
+func (_m *OAuthStore) GetAccessDataByUserForApp(userID string, clientID string) ([]*model.AccessData, error) {
+	ret := _m.Called(userID, clientID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAccessDataByUserForApp")
@@ -103,10 +103,10 @@ func (_m *OAuthStore) GetAccessDataByUserForApp(userID string, clientId string) 
 	var r0 []*model.AccessData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) ([]*model.AccessData, error)); ok {
-		return rf(userID, clientId)
+		return rf(userID, clientID)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) []*model.AccessData); ok {
-		r0 = rf(userID, clientId)
+		r0 = rf(userID, clientID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.AccessData)
@@ -114,7 +114,7 @@ func (_m *OAuthStore) GetAccessDataByUserForApp(userID string, clientId string) 
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, clientId)
+		r1 = rf(userID, clientID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -272,9 +272,9 @@ func (_m *OAuthStore) GetAuthorizedApps(userID string, offset int, limit int) ([
 	return r0, r1
 }
 
-// GetPreviousAccessData provides a mock function with given fields: userID, clientId
-func (_m *OAuthStore) GetPreviousAccessData(userID string, clientId string) (*model.AccessData, error) {
-	ret := _m.Called(userID, clientId)
+// GetPreviousAccessData provides a mock function with given fields: userID, clientID
+func (_m *OAuthStore) GetPreviousAccessData(userID string, clientID string) (*model.AccessData, error) {
+	ret := _m.Called(userID, clientID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPreviousAccessData")
@@ -283,10 +283,10 @@ func (_m *OAuthStore) GetPreviousAccessData(userID string, clientId string) (*mo
 	var r0 *model.AccessData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) (*model.AccessData, error)); ok {
-		return rf(userID, clientId)
+		return rf(userID, clientID)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) *model.AccessData); ok {
-		r0 = rf(userID, clientId)
+		r0 = rf(userID, clientID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AccessData)
@@ -294,7 +294,7 @@ func (_m *OAuthStore) GetPreviousAccessData(userID string, clientId string) (*mo
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, clientId)
+		r1 = rf(userID, clientID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -374,9 +374,9 @@ func (_m *OAuthStore) RemoveAuthData(code string) error {
 	return r0
 }
 
-// RemoveAuthDataByClientId provides a mock function with given fields: clientId, userId
-func (_m *OAuthStore) RemoveAuthDataByClientId(clientId string, userId string) error {
-	ret := _m.Called(clientId, userId)
+// RemoveAuthDataByClientId provides a mock function with given fields: clientID, userID
+func (_m *OAuthStore) RemoveAuthDataByClientId(clientID string, userID string) error {
+	ret := _m.Called(clientID, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveAuthDataByClientId")
@@ -384,7 +384,7 @@ func (_m *OAuthStore) RemoveAuthDataByClientId(clientId string, userId string) e
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(clientId, userId)
+		r0 = rf(clientID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -392,9 +392,9 @@ func (_m *OAuthStore) RemoveAuthDataByClientId(clientId string, userId string) e
 	return r0
 }
 
-// RemoveAuthDataByUserId provides a mock function with given fields: userId
-func (_m *OAuthStore) RemoveAuthDataByUserId(userId string) error {
-	ret := _m.Called(userId)
+// RemoveAuthDataByUserId provides a mock function with given fields: userID
+func (_m *OAuthStore) RemoveAuthDataByUserId(userID string) error {
+	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveAuthDataByUserId")
@@ -402,7 +402,7 @@ func (_m *OAuthStore) RemoveAuthDataByUserId(userId string) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
