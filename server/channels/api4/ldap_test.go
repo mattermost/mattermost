@@ -314,7 +314,7 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 		id = model.NewId()
 		user = &model.User{
 			Email:       "test123@localhost",
-			Username:    model.NewUsername(),
+			Username:    model.NewId(),
 			AuthData:    &id,
 			AuthService: model.UserAuthServiceSaml,
 		}
