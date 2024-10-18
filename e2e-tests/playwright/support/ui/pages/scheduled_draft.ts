@@ -3,35 +3,35 @@
 
 import {expect, Page} from '@playwright/test';
 
-export default class ScheduledMessagePage {
+export default class ScheduledDraftPage {
     readonly page: Page;
 
     readonly badgeCountOnScheduledTab;
     readonly datePattern;
     readonly deleteIcon;
     readonly deleteIconToolTip;
-    readonly noScheduledMessageIcon;
+    readonly noscheduledDraftIcon;
     readonly rescheduleIcon;
     readonly rescheduleIconToolTip;
-    readonly scheduledMessageBody;
-    readonly scheduledMessagePageInfo;
-    readonly scheduledMessagePanel;
+    readonly scheduledDraftBody;
+    readonly scheduledDraftPageInfo;
+    readonly scheduledDraftPanel;
 
     constructor(page: Page) {
         this.page = page;
 
         this.datePattern =
             /(Today|Tomorrow|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}) at \d{1,2}:\d{2} [AP]M/;
-        this.scheduledMessageBody = page.locator('div.post__body');
+        this.scheduledDraftBody = page.locator('div.post__body');
         this.badgeCountOnScheduledTab = page.locator('a#draft_tabs-tab-1 div.drafts_tab_title span.MuiBadge-badge');
-        this.scheduledMessagePageInfo = page.locator('span:has-text("Send on")');
-        this.scheduledMessagePanel = (messageContent: string) =>
+        this.scheduledDraftPageInfo = page.locator('span:has-text("Send on")');
+        this.scheduledDraftPanel = (messageContent: string) =>
             page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
         this.deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
         this.deleteIconToolTip = page.locator('text=Delete scheduled post');
         this.rescheduleIcon = page.locator('#draft_icon-clock-send-outline_reschedule');
         this.rescheduleIconToolTip = page.locator('text=Reschedule post');
-        this.noScheduledMessageIcon = page.locator('.no-results__wrapper');
+        this.noscheduledDraftIcon = page.locator('.no-results__wrapper');
     }
 
     async toBeVisible() {
@@ -44,14 +44,14 @@ export default class ScheduledMessagePage {
         await expect(this.badgeCountOnScheduledTab).toHaveText(badgeCount);
     }
 
-    async assertScheduledMessageBody(draftMessage: string) {
-        await expect(this.scheduledMessageBody).toBeVisible();
-        await expect(this.scheduledMessageBody).toHaveText(draftMessage);
+    async assertscheduledDraftBody(draftMessage: string) {
+        await expect(this.scheduledDraftBody).toBeVisible();
+        await expect(this.scheduledDraftBody).toHaveText(draftMessage);
     }
 
     async verifyOnHoverActionItems(messageContent: string) {
-        await this.scheduledMessagePanel(messageContent).isVisible();
-        await this.scheduledMessagePanel(messageContent).hover();
+        await this.scheduledDraftPanel(messageContent).isVisible();
+        await this.scheduledDraftPanel(messageContent).hover();
         await this.deleteIcon.isVisible();
         await this.deleteIcon.hover();
         await expect(this.deleteIconToolTip).toBeVisible();
@@ -63,4 +63,4 @@ export default class ScheduledMessagePage {
     }
 }
 
-export {ScheduledMessagePage};
+export {ScheduledDraftPage};

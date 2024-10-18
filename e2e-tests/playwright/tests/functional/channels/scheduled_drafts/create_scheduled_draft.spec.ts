@@ -1,7 +1,7 @@
 import {expect, Page} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
 import {duration, wait} from '@e2e-support/util';
-import {ChannelsPage, ScheduledMessagePage} from '@e2e-support/ui/pages';
+import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 
 test('Should create a scheduled message from a channel', async ({pw, pages}) => {
     test.setTimeout(120000);
@@ -13,19 +13,19 @@ test('Should create a scheduled message from a channel', async ({pw, pages}) => 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
     const channelPage = new pages.ChannelsPage(page);
-    const scheduledMessagePage = new pages.ScheduledMessagePage(page);
+    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
 
     await setupChannelPage(channelPage, draftMessage);
     await scheduleMessage(channelPage);
 
-    await channelPage.centerView.verifyScheduledMessageChannelInfo();
+    await channelPage.centerView.verifyscheduledDraftChannelInfo();
 
-    const scheduledMessageChannelInfo = await channelPage.centerView.scheduledMessageChannelInfoMessageText.innerText();
+    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyScheduledMessages(channelPage, pages, draftMessage, scheduledMessageChannelInfo);
+    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
 
     // # Hover and verify options
-    await scheduledMessagePage.verifyOnHoverActionItems(draftMessage);
+    await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
     // # Go back and wait for message to arrive
     await page.goBack();
@@ -33,11 +33,11 @@ test('Should create a scheduled message from a channel', async ({pw, pages}) => 
     await page.reload();
 
     // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledMessageChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledMessageCountonLHS).not.toBeVisible();
+    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
     await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
 
-    await verifyNoScheduledMessagesPending(page, scheduledMessagePage, draftMessage);
+    await verifyNoscheduledDraftsPending(page, scheduledDraftPage, draftMessage);
 });
 
 test('Should create a scheduled message under a thread post ', async ({pw, pages}) => {
@@ -78,51 +78,51 @@ test('Should create a scheduled message under a thread post ', async ({pw, pages
 
     await scheduleMessage(channelPage);
 
-    await sidebarRight.scheduledMessageChannelInfo.isVisible();
-    const messageLocator = sidebarRight.scheduledMessageChannelInfoMessage.first();
+    await sidebarRight.scheduledDraftChannelInfo.isVisible();
+    const messageLocator = sidebarRight.scheduledDraftChannelInfoMessage.first();
     await expect(messageLocator).toContainText('Message scheduled for');
 
     // Save the time displayed in the thread
-    const scheduledMessageThreadedPanelInfo = await sidebarRight.scheduledMessageChannelInfo.innerText();
-    const scheduledMessagePage = new pages.ScheduledMessagePage(page);
+    const scheduledDraftThreadedPanelInfo = await sidebarRight.scheduledDraftChannelInfo.innerText();
+    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
 
-    await channelPage.sidebarRight.clickOnSeeAllScheduledMessages();
-    const scheduledMessagePageInfo = await scheduledMessagePage.scheduledMessagePageInfo.innerHTML();
-    await channelPage.sidebarLeft.assertScheduledMessageCountLHS('1');
+    await channelPage.sidebarRight.clickOnSeeAllscheduledDrafts();
+    const scheduledDraftPageInfo = await scheduledDraftPage.scheduledDraftPageInfo.innerHTML();
+    await channelPage.sidebarLeft.assertscheduledDraftCountLHS('1');
 
-    await scheduledMessagePage.toBeVisible();
-    await scheduledMessagePage.assertBadgeCountOnTab('1');
+    await scheduledDraftPage.toBeVisible();
+    await scheduledDraftPage.assertBadgeCountOnTab('1');
 
-    await scheduledMessagePage.assertScheduledMessageBody(draftMessage);
+    await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 
-    await compareMessageTimestamps(scheduledMessageThreadedPanelInfo, scheduledMessagePageInfo, scheduledMessagePage);
+    await compareMessageTimestamps(scheduledDraftThreadedPanelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 
     // # Hover and verify options
-    await scheduledMessagePage.verifyOnHoverActionItems(draftMessage);
+    await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
     await goBackToChannelAndWaitForMessageToArrive(page);
 
     await replyToLastPost(post);
 
     // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.sidebarRight.scheduledMessageChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledMessageCountonLHS).not.toBeVisible();
+    await expect(channelPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
 
     const lastPost = channelPage.sidebarRight.rhsPostBody.last();
     await expect(lastPost).toHaveText(draftMessage);
-    await expect(scheduledMessagePage.scheduledMessagePanel(draftMessage)).not.toBeVisible();
+    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
 
-    await verifyNoScheduledMessagesPending(page, scheduledMessagePage, draftMessage);
+    await verifyNoscheduledDraftsPending(page, scheduledDraftPage, draftMessage);
 });
 
-async function verifyNoScheduledMessagesPending(
+async function verifyNoscheduledDraftsPending(
     page: Page,
-    scheduledMessagePage: ScheduledMessagePage,
+    scheduledDraftPage: ScheduledDraftPage,
     draftMessage: string,
 ): Promise<void> {
     await page.goForward();
-    await expect(scheduledMessagePage.scheduledMessagePanel(draftMessage)).not.toBeVisible();
-    await expect(scheduledMessagePage.noScheduledMessageIcon).toBeVisible();
+    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
+    await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 }
 
 async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
@@ -161,29 +161,29 @@ async function scheduleMessage(pageObject: any): Promise<void> {
 /**
  * Extracts and verifies the scheduled message on the scheduled page and in the channel.
  */
-async function verifyScheduledMessages(
+async function verifyscheduledDrafts(
     channelPage: ChannelsPage,
     pages: any,
     draftMessage: string,
-    scheduledMessageChannelInfo: string,
+    scheduledDraftChannelInfo: string,
 ): Promise<void> {
-    const scheduledMessagePage = new pages.ScheduledMessagePage(channelPage.page);
+    const scheduledDraftPage = new pages.scheduledDraftPage(channelPage.page);
 
-    await verifyScheduledMessageCount(channelPage, '1');
-    await scheduledMessagePage.toBeVisible();
-    await scheduledMessagePage.assertBadgeCountOnTab('1');
-    await scheduledMessagePage.assertScheduledMessageBody(draftMessage);
+    await verifyscheduledDraftCount(channelPage, '1');
+    await scheduledDraftPage.toBeVisible();
+    await scheduledDraftPage.assertBadgeCountOnTab('1');
+    await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 
-    const scheduledMessagePageInfo = await scheduledMessagePage.scheduledMessagePageInfo.innerHTML();
-    await compareMessageTimestamps(scheduledMessageChannelInfo, scheduledMessagePageInfo, scheduledMessagePage);
+    const scheduledDraftPageInfo = await scheduledDraftPage.scheduledDraftPageInfo.innerHTML();
+    await compareMessageTimestamps(scheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 }
 
 /**
  * Verifies the scheduled message count on the sidebar.
  */
-async function verifyScheduledMessageCount(page: ChannelsPage, expectedCount: string): Promise<void> {
-    await page.centerView.clickOnSeeAllScheduledMessages();
-    await page.sidebarLeft.assertScheduledMessageCountLHS(expectedCount);
+async function verifyscheduledDraftCount(page: ChannelsPage, expectedCount: string): Promise<void> {
+    await page.centerView.clickOnSeeAllscheduledDrafts();
+    await page.sidebarLeft.assertscheduledDraftCountLHS(expectedCount);
 }
 
 /**
@@ -191,12 +191,12 @@ async function verifyScheduledMessageCount(page: ChannelsPage, expectedCount: st
  */
 async function compareMessageTimestamps(
     timeInChannel: string,
-    scheduledMessagePageInfo: string,
-    scheduledMessagePage: ScheduledMessagePage,
+    scheduledDraftPageInfo: string,
+    scheduledDraftPage: ScheduledDraftPage,
 ): Promise<void> {
     // Extract time from channel using the same date pattern
-    const matchedTimeInChannel = timeInChannel.match(scheduledMessagePage.datePattern);
-    const timeInSchedulePage = extractTimeFromHtml(scheduledMessagePageInfo, scheduledMessagePage);
+    const matchedTimeInChannel = timeInChannel.match(scheduledDraftPage.datePattern);
+    const timeInSchedulePage = extractTimeFromHtml(scheduledDraftPageInfo, scheduledDraftPage);
 
     if (!matchedTimeInChannel || !timeInSchedulePage) {
         throw new Error('Could not extract date and time from one or both elements.');
@@ -212,11 +212,11 @@ async function compareMessageTimestamps(
 /**
  * Removes HTML tags from the scheduled message content and extracts the time pattern.
  */
-function extractTimeFromHtml(htmlContent: string, scheduledMessagePage: ScheduledMessagePage): RegExpMatchArray | null {
-    // Remove all HTML tags and match the expected time pattern using the datePattern from scheduledMessagePage
+function extractTimeFromHtml(htmlContent: string, scheduledDraftPage: ScheduledDraftPage): RegExpMatchArray | null {
+    // Remove all HTML tags and match the expected time pattern using the datePattern from scheduledDraftPage
     const cleanedText = htmlContent.replace(/<\/?[^>]+(>|$)/g, '');
 
     // Use the datePattern to extract the exact match for time
-    const matchedTime = cleanedText.match(scheduledMessagePage.datePattern);
+    const matchedTime = cleanedText.match(scheduledDraftPage.datePattern);
     return matchedTime;
 }

@@ -11,18 +11,18 @@ export default class ChannelsSidebarRight {
     readonly closeButton;
     readonly postCreate;
     readonly rhsPostBody;
-    readonly scheduledMessageChannelInfo;
-    readonly scheduledMessageChannelInfoMessage;
-    readonly scheduledMessageSeeAllLink;
-    readonly scheduledMessageChannelInfoMessageText;
+    readonly scheduledDraftChannelInfo;
+    readonly scheduledDraftChannelInfoMessage;
+    readonly scheduledDraftSeeAllLink;
+    readonly scheduledDraftChannelInfoMessageText;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.scheduledMessageChannelInfo = container.locator('div.postBoxIndicator');
-        this.scheduledMessageChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledMessageSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
-        this.scheduledMessageChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
+        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
         this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
@@ -61,9 +61,9 @@ export default class ChannelsSidebarRight {
         await expect(this.container).not.toBeVisible();
     }
 
-    async clickOnSeeAllScheduledMessages() {
-        await this.scheduledMessageSeeAllLink.isVisible();
-        await this.scheduledMessageSeeAllLink.click();
+    async clickOnSeeAllscheduledDrafts() {
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
     }
 }
 

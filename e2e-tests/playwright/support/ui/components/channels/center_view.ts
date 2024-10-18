@@ -12,26 +12,26 @@ export default class ChannelsCenterView {
 
     readonly header;
     readonly postCreate;
-    readonly scheduledMessageOptions;
-    readonly scheduledMessageChannelInfo;
-    readonly scheduledMessageChannelIcon;
-    readonly scheduledMessageChannelInfoMessage;
-    readonly scheduledMessageChannelInfoMessageText;
-    readonly scheduledMessageSeeAllLink;
+    readonly scheduledDraftOptions;
+    readonly scheduledDraftChannelInfo;
+    readonly scheduledDraftChannelIcon;
+    readonly scheduledDraftChannelInfoMessage;
+    readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftSeeAllLink;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
-        this.scheduledMessageOptions = new components.ChannelsPostCreate(
+        this.scheduledDraftOptions = new components.ChannelsPostCreate(
             container.locator('#dropdown_send_post_options'),
         );
-        this.scheduledMessageChannelInfo = container.locator('div.postBoxIndicator');
-        this.scheduledMessageChannelIcon = container.locator('#create_post i.icon-draft-indicator');
-        this.scheduledMessageChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledMessageChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
-        this.scheduledMessageSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
+        this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
+        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
     }
 
     async toBeVisible() {
@@ -42,9 +42,9 @@ export default class ChannelsCenterView {
     /**
      * Click on "See all scheduled messages"
      */
-    async clickOnSeeAllScheduledMessages() {
-        await this.scheduledMessageSeeAllLink.isVisible();
-        await this.scheduledMessageSeeAllLink.click();
+    async clickOnSeeAllscheduledDrafts() {
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
     }
 
     /**
@@ -109,10 +109,10 @@ export default class ChannelsCenterView {
         );
     }
 
-    async verifyScheduledMessageChannelInfo() {
-        await this.scheduledMessageChannelInfo.isVisible();
-        await this.scheduledMessageChannelIcon.isVisible();
-        const messageLocator = this.scheduledMessageChannelInfoMessage.first();
+    async verifyscheduledDraftChannelInfo() {
+        await this.scheduledDraftChannelInfo.isVisible();
+        await this.scheduledDraftChannelIcon.isVisible();
+        const messageLocator = this.scheduledDraftChannelInfoMessage.first();
         await expect(messageLocator).toContainText('Message scheduled for');
     }
 }
