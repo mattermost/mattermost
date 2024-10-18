@@ -82,7 +82,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
             should('be.focused').
             tab({shift: true}).tab({shift: true});
 
-        cy.focused().parent().parent().next().find('.SidebarChannel').each((el, i) => {
+        cy.focused().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('DIRECT MESSAGES');
                 cy.focused().tab().tab().tab();

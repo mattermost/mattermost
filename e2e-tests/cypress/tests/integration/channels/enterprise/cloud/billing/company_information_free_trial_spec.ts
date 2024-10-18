@@ -53,37 +53,37 @@ describe('System Console - Company Information section', () => {
         cy.get('#input_postalCode').clear().type('44455');
 
         // * Check save button is enabled
-        cy.get('#saveSetting').should('be.enabled');
+        cy.findByTestId('saveSetting').should('be.enabled');
 
         // # Clear postal code
         cy.get('#input_postalCode').clear();
 
         // * Check save button is disabled
-        cy.get('#saveSetting').should('be.disabled');
+        cy.findByTestId('saveSetting').should('be.disabled');
 
         // # Type valid postal code
         cy.get('#input_postalCode').type('44456');
 
         // * Check save button is enabled
-        cy.get('#saveSetting').should('be.enabled');
+        cy.findByTestId('saveSetting').should('be.enabled');
 
         // # Clear city
         cy.get('#input_city').clear();
 
         // * Check save button is disabled
-        cy.get('#saveSetting').should('be.disabled');
+        cy.findByTestId('saveSetting').should('be.disabled');
 
         // # Type valid city
         cy.get('#input_city').type('testcity');
 
         // * Check save button is  enabled
-        cy.get('#saveSetting').should('be.enabled');
+        cy.findByTestId('saveSetting').should('be.enabled');
 
         // # Clear company name
         cy.get('#input_companyName').clear();
 
         // * Check save button is disabled
-        cy.get('#saveSetting').should('be.disabled');
+        cy.findByTestId('saveSetting').should('be.disabled');
     });
 
     it('MM-T4161 Adding the Company Information', () => {
@@ -105,7 +105,7 @@ describe('System Console - Company Information section', () => {
         cy.get('#input_postalCode').clear().type('560089');
 
         // # Click on Save Info button
-        cy.get('#saveSetting').should('be.enabled').click();
+        cy.findByTestId('saveSetting').should('be.enabled').click();
 
         // * Check for persisted company name
         cy.get('.CompanyInfoDisplay__companyInfo-name').should('have.text', companyName);
@@ -144,7 +144,7 @@ describe('System Console - Company Information section', () => {
         cy.get('#input_postalCode').clear().type('44455');
 
         // # Click on Save Info button
-        cy.get('#saveSetting').should('be.enabled').click();
+        cy.findByTestId('saveSetting').should('be.enabled').click();
 
         // * Check for persisted company name
         cy.get('.CompanyInfoDisplay__companyInfo-name').should('have.text', companyName);

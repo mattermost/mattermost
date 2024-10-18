@@ -73,7 +73,7 @@ describe('Interactive Dialog without element', () => {
             // * Verify that the footer contains cancel and submit buttons
             cy.get('.modal-footer').should('be.visible').within(($elForm) => {
                 cy.wrap($elForm).find('#interactiveDialogCancel').should('be.visible').and('have.text', 'Cancel');
-                cy.wrap($elForm).find('#interactiveDialogSubmit').should('be.visible').and('have.text', simpleDialog.dialog.submit_label);
+                cy.wrap($elForm).findByTestId('interactiveDialogSubmit').should('be.visible').and('have.text', simpleDialog.dialog.submit_label);
             });
 
             closeInteractiveDialog();
@@ -124,7 +124,7 @@ describe('Interactive Dialog without element', () => {
         cy.get('#interactiveDialogModal').should('be.visible');
 
         // # Click submit from the modal
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         // * Verify that the interactive dialog modal is closed
         cy.get('#interactiveDialogModal').should('not.exist');

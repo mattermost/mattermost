@@ -49,7 +49,7 @@ describe('Slash commands page', () => {
         cy.get('#trigger').type('//input');
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify that we get the error message
         cy.findByText('A trigger word cannot begin with a /').should('exist').and('be.visible').scrollIntoView();
@@ -63,7 +63,7 @@ describe('Slash commands page', () => {
         cy.get('#url').type('http://example.com');
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify that we get the error message
         cy.findByText('A trigger word is required').should('exist').and('be.visible').scrollIntoView();
@@ -77,7 +77,7 @@ describe('Slash commands page', () => {
         cy.get('#trigger').type('trigger with space');
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify that we get the error message
         cy.findByText('A trigger word must not contain spaces').should('exist').and('be.visible').scrollIntoView();
@@ -91,7 +91,7 @@ describe('Slash commands page', () => {
         cy.get('#trigger').type('test');
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify that we get the error message
         cy.findByText('A request URL is required').should('exist').and('be.visible').scrollIntoView();
@@ -109,7 +109,7 @@ describe('Slash commands page', () => {
         cy.get('#url').type(url);
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // # Go to integrations
         cy.visit(`/${testTeam.name}/integrations`);
@@ -128,7 +128,7 @@ describe('Slash commands page', () => {
         cy.get('#url').type(url);
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify that we get the error message
         cy.findByText('This trigger word is already in use. Please choose another word.').should('exist').and('be.visible').scrollIntoView();
@@ -180,7 +180,7 @@ describe('Slash commands page', () => {
         cy.get('#displayName').clear().type('Test Message - Edit');
 
         // # Update
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Verify successful update
         cy.findByText('Test Message - Edit').should('exist').and('be.visible');

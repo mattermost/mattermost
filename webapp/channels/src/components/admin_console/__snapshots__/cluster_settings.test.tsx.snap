@@ -183,10 +183,10 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -390,10 +390,10 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -597,10 +597,10 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip
@@ -804,10 +804,10 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
+          Object {
+            "defaultMessage": "Saving Config...",
+            "id": "admin.saving",
+          }
         }
       />
       <WithTooltip

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
@@ -11,9 +11,10 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import Button from 'components/button';
+import SaveButton from 'components/button/save_button';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -22,6 +23,17 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
+
+const messages = defineMessages({
+    save: {
+        id: 'user.settings.tokens.save',
+        defaultMessage: 'Save',
+    },
+    cancel: {
+        id: 'user.settings.tokens.cancel',
+        defaultMessage: 'Cancel',
+    },
+});
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
@@ -551,24 +563,15 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             </label>
                         </div>
                         <SaveButton
-                            savingMessage={
-                                <FormattedMessage
-                                    id='user.settings.tokens.save'
-                                    defaultMessage='Save'
-                                />
-                            }
+                            savingMessage={messages.save}
                             saving={this.state.saving}
                             onClick={this.confirmCreateToken}
                         />
-                        <button
-                            className='btn btn-tertiary'
+                        <Button
+                            emphasis='tertiary'
                             onClick={this.stopCreatingToken}
-                        >
-                            <FormattedMessage
-                                id='user.settings.tokens.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
+                            label={messages.cancel}
+                        />
                     </div>
                 </div>
             );

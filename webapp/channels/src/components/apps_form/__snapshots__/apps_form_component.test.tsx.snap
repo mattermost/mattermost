@@ -204,8 +204,14 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
         </button>
         <Memo(SpinnerButton)
           autoFocus={false}
-          className="btn btn-primary save-button"
-          id="appsModalSubmit"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Submit",
+              "id": "interactive_dialog.submit",
+            }
+          }
           key="submit"
           spinning={false}
           spinningText={
@@ -214,13 +220,8 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
               "id": "interactive_dialog.submitting",
             }
           }
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Submit"
-            id="interactive_dialog.submit"
-          />
-        </Memo(SpinnerButton)>
+          testId="appsModalSubmit"
+        />
       </div>
     </ModalFooter>
   </form>

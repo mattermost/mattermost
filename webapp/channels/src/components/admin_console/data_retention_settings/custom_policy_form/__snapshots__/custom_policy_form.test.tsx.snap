@@ -245,10 +245,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="admin.data_retention.custom_policy.save"
-        />
+        Object {
+          "defaultMessage": "Save",
+          "id": "admin.data_retention.custom_policy.save",
+        }
       }
       disabled={true}
       onClick={[Function]}
@@ -509,10 +509,10 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="admin.data_retention.custom_policy.save"
-        />
+        Object {
+          "defaultMessage": "Save",
+          "id": "admin.data_retention.custom_policy.save",
+        }
       }
       disabled={true}
       onClick={[Function]}

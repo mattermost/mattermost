@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -20,6 +20,17 @@ import type {Option, OptionValue} from '../types';
 
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 export const USERS_PER_PAGE = 50;
+
+const messages = defineMessages({
+    go: {
+        id: 'multiselect.go',
+        defaultMessage: 'Go',
+    },
+    loading: {
+        id: 'multiselect.loading',
+        defaultMessage: 'Loading...',
+    },
+});
 
 type Props = {
     addValue: (value: OptionValue) => void;
@@ -149,18 +160,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             noteText={note}
             maxValues={MAX_SELECTABLE_VALUES}
             numRemainingText={remainingText}
-            buttonSubmitText={
-                <FormattedMessage
-                    id='multiselect.go'
-                    defaultMessage='Go'
-                />
-            }
-            buttonSubmitLoadingText={
-                <FormattedMessage
-                    id='multiselect.loading'
-                    defaultMessage='Loading...'
-                />
-            }
+            buttonSubmitText={messages.go}
+            buttonSubmitLoadingText={messages.loading}
             submitImmediatelyOn={handleSubmitImmediatelyOn}
             saving={props.saving}
             loading={props.loading}

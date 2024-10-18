@@ -114,11 +114,11 @@ const assertGroupMentionEnabled = (groupName) => {
 // Clicks the save button in the system console page.
 const saveConfig = () => {
     // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
-    cy.get('#saveSetting').then((btn) => {
+    cy.findByTestId('saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
 
-            cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+            cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
                 return el[0].innerText === 'Save';
             }));
         }

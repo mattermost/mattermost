@@ -5,7 +5,7 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 export function saveSetting() {
     // # Click save button, and verify text and visibility
-    cy.get('#saveSetting').
+    cy.findByTestId('saveSetting').
         should('have.text', 'Save').
         and('be.enabled').
         click().

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SpinnerButton should match snapshot with required props 1`] = `
+<Button
+  disabled={false}
+  emphasis="primary"
+  label="Idle"
+  loading={false}
+/>
+`;
+
+exports[`components/SpinnerButton should match snapshot with spinning 1`] = `
+<Button
+  disabled={true}
+  emphasis="primary"
+  label="Spinning"
+  loading={true}
+/>
+`;

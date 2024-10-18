@@ -183,7 +183,7 @@ describe('Group Message', () => {
             // # Set Mute Channel to On
             cy.get('#markUnreadEdit').click();
             cy.get('#channelNotificationUnmute').click();
-            cy.get('#saveSetting').click();
+            cy.findByTestId('saveSetting').click();
 
             // * Assert that channel is muted
             cy.get('#toggleMute').should('be.visible');
@@ -257,7 +257,7 @@ describe('Group Message', () => {
             cy.get('#selectItems').should('contain', `${sortedParticipants[0].username}${sortedParticipants[1].username}`);
 
             // # Open group message
-            cy.get('#saveItems').click().wait(TIMEOUTS.HALF_SEC);
+            cy.findByTestId('saveItems').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify that page renders with the right information
             cy.get('#channelHeaderTitle').should('contain', `${sortedParticipants[0].username}, ${sortedParticipants[1].username}`);
@@ -278,5 +278,5 @@ const createGroupMessageWith = (users) => {
     });
 
     // # Save group message member changes
-    cy.get('#saveItems').click().wait(TIMEOUTS.HALF_SEC);
+    cy.findByTestId('saveItems').click().wait(TIMEOUTS.HALF_SEC);
 };

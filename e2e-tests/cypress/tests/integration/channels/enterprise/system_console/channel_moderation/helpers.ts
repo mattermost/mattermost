@@ -35,7 +35,7 @@ export const disablePermission = (permission) => {
 
 // # Saves channel config and navigates back to the channel config page if specified
 export const saveConfigForChannel = (channelName: string = null, clickConfirmationButton = false) => {
-    cy.get('#saveSetting').then((btn) => {
+    cy.findByTestId('saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
 
@@ -150,7 +150,7 @@ export const postChannelMentionsAndVerifySystemMessageNotExist = (channel: Chann
 
 // # Wait's until the Saving text becomes Save
 const waitUntilConfigSave = () => {
-    cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+    cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
         return el[0].innerText === 'Save';
     }));
 };
@@ -160,7 +160,7 @@ const waitUntilConfigSave = () => {
 // Usually we need to wait unless we are doing this in team override scheme
 export const saveConfigForScheme = (waitUntilConfigSaved = true, clickConfirmationButton = false) => {
     // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
-    cy.get('#saveSetting').then((btn) => {
+    cy.findByTestId('saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
         }
@@ -189,7 +189,7 @@ export const goToPermissionsAndCreateTeamOverrideScheme = (schemeName: string, t
     cy.findByTestId('add-teams').click();
     cy.get('#selectItems input').typeWithForce(team.display_name);
     cy.get('#multiSelectList').should('be.visible').children().first().click({force: true});
-    cy.get('#saveItems').should('be.visible').click();
+    cy.findByTestId('saveItems').should('be.visible').click();
     saveConfigForScheme(false);
     cy.wait(TIMEOUTS.ONE_SEC);
 };

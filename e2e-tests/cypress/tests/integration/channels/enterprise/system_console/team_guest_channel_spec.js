@@ -69,7 +69,7 @@ describe('Team Scheme Guest Permissions Test', () => {
         enableAllGuestPermissions();
 
         // # Save if possible (if previous test ended abruptly all permissions may already be enabled)
-        cy.get('#saveSetting').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('saveSetting').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Reload the team scheme.
         cy.findByText(`TestScheme-${randomId}`).siblings('.actions').children('.edit-button').click().wait(TIMEOUTS.HALF_SEC);
@@ -81,7 +81,7 @@ describe('Team Scheme Guest Permissions Test', () => {
         disableAllGuestPermissions();
 
         // # Save the page
-        cy.get('#saveSetting').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('saveSetting').click().wait(TIMEOUTS.HALF_SEC);
 
         // #Reload the team scheme.
         cy.findByText(`TestScheme-${randomId}`).siblings('.actions').children('.edit-button').click().wait(TIMEOUTS.HALF_SEC);

@@ -83,14 +83,14 @@ function verifyDMChannelViaSendMessage(postId, team, channel, profileSelector, u
 
     // * Verify that profile popover is opened
     cy.wait(TIMEOUTS.HALF_SEC);
-    cy.get('#user-profile-popover').should('be.visible').within(() => {
+    cy.get('.user-profile-popover').should('be.visible').within(() => {
         // # Click "Message" on profile popover
         cy.findByText('Message').should('be.visible').click();
     });
 
     // * Verify that profile popover is closed
     cy.wait(TIMEOUTS.HALF_SEC);
-    cy.get('#user-profile-popover').should('not.exist');
+    cy.get('.user-profile-popover').should('not.exist');
 
     // * Verify that it redirects into the DM channel and matches channel intro
     cy.get('#channelIntro').should('be.visible').within(() => {

@@ -7,7 +7,7 @@ import React from 'react';
 import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
-import SaveButton from 'components/save_button';
+import SaveButton from 'components/button/save_button';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {

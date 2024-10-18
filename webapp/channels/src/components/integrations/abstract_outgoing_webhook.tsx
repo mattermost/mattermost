@@ -11,10 +11,10 @@ import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import ChannelSelect from 'components/channel_select';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
 
 import {DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
@@ -591,18 +591,14 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                emphasis='primary'
+                                buttonType='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
-                                id='saveWebhook'
-                            >
-                                <FormattedMessage
-                                    id={footerToRender.id}
-                                    defaultMessage={footerToRender.defaultMessage}
-                                />
-                            </SpinnerButton>
+                                testId='saveWebhook'
+                                idleText={footerToRender}
+                            />
                             {renderExtra}
                         </div>
                     </form>

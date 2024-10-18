@@ -15,9 +15,9 @@ import type {Team} from '@mattermost/types/teams';
 import {validateOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import SpinnerButton from 'components/button/spinner_button';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
@@ -510,18 +510,14 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </Link>
                         <SpinnerButton
-                            className='btn btn-primary'
-                            type='submit'
+                            emphasis='primary'
+                            buttonType='submit'
                             spinning={isSubmitting}
-                            spinningText={intl.formatMessage(props.loading)}
+                            spinningText={props.loading}
                             onClick={handleSubmitFromButton}
-                            id='saveConnection'
-                        >
-                            <FormattedMessage
-                                id={footerToRender.id}
-                                defaultMessage={footerToRender.defaultMessage}
-                            />
-                        </SpinnerButton>
+                            testId='saveConnection'
+                            idleText={footerToRender}
+                        />
                         {props.renderExtra}
                     </div>
                 </form>
