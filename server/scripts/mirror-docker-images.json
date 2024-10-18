@@ -4,7 +4,6 @@
     "12": "postgres:12@sha256:cc7a021d9aff3aa02788d35c27a5cc32d4790ad92d72232a6be75b76ab7d79db"
   },
   "mysql": {
-    "5.7.12": "mysql/mysql-server:5.7.12@sha256:3f0d90736a3298bb04965db697a3a85f1df1480da49eafd256be1ea2b9b5337e",
     "8.0.32": "mysql/mysql-server:8.0.32@sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313"
   },
   "minio": {
