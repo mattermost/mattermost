@@ -2923,6 +2923,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
 		IncludeSearchById:        opts.IncludeSearchById,
+		ExcludeRemote:            opts.ExcludeRemote,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,
