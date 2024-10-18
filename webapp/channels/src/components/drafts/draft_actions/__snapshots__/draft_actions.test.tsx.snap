@@ -33,6 +33,8 @@ exports[`components/drafts/draft_actions should match snapshot 1`] = `
   }
 >
   <Memo(DraftActions)
+    canEdit={true}
+    canSend={true}
     displayName=""
     draftId=""
     onDelete={[MockFunction]}

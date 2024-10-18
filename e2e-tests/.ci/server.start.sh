@@ -15,6 +15,7 @@ if ! mme2e_wait_service_healthy server 60 10; then
   mme2e_log "Mattermost container not healthy, retry attempts exhausted. Giving up." >&2
   exit 1
 fi
+# shellcheck disable=SC2043
 for MIGRATION in migration_advanced_permissions_phase_2; do
   # Query explanation: if it doesn't find the migration in the table, there are 0 results and the command fails with a divide-by-zero error. Otherwise the command succeeds
   MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T -- postgres psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '${MIGRATION}' and value = 'true');\""

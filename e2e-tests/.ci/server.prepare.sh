@@ -11,7 +11,8 @@ for SETTING in \
     PluginSettings.AutomaticPrepackagedPlugins=true
   do
   mme2e_log "Configuring parameter: $SETTING"
-  ${MME2E_DC_SERVER} exec -T -- server mmctl --local config set $(tr = ' ' <<<$SETTING)
+  # shellcheck disable=SC2046
+  ${MME2E_DC_SERVER} exec -T -- server mmctl --local config set $(tr '=' ' ' <<<$SETTING)
 done
 if [ -n "${MM_LICENSE:-}" ]; then
   # We prefer uploading the license here, instead of setting the env var for the server

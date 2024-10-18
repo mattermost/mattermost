@@ -147,18 +147,21 @@ export function getChannelMember(state: GlobalState, channelId: string, userId: 
     return getChannelMembersInChannels(state)[channelId]?.[userId];
 }
 
+type OldMakeChannelArgument = {id: string};
+
 // makeGetChannel returns a selector that returns a channel from the store with the following filled in for DM/GM channels:
 // - The display_name set to the other user(s) names, following the Teammate Name Display setting
 // - The teammate_id for DM channels
 // - The status of the other user in a DM channel
-export function makeGetChannel(): (state: GlobalState, props: {id: string}) => Channel | undefined {
+export function makeGetChannel(): (state: GlobalState, id: string) => Channel | undefined {
     return createSelector(
         'makeGetChannel',
         getCurrentUserId,
         (state: GlobalState) => state.entities.users.profiles,
         (state: GlobalState) => state.entities.users.profilesInChannel,
-        (state: GlobalState, props: {id: string}) => {
-            const channel = getChannel(state, props.id);
+        (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
+            const id = typeof channelId === 'string' ? channelId : channelId.id;
+            const channel = getChannel(state, id);
             if (!channel || !isDirectChannel(channel)) {
                 return '';
             }
@@ -169,7 +172,10 @@ export function makeGetChannel(): (state: GlobalState, props: {id: string}) => C
 
             return teammateStatus || 'offline';
         },
-        (state: GlobalState, props: {id: string}) => getChannel(state, props.id),
+        (state: GlobalState, channelId: string | OldMakeChannelArgument) => {
+            const id = typeof channelId === 'string' ? channelId : channelId.id;
+            return getChannel(state, id);
+        },
         getTeammateNameDisplaySetting,
         (currentUserId, profiles, profilesInChannel, teammateStatus, channel, teammateNameDisplay) => {
             if (channel) {

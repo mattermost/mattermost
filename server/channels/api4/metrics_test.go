@@ -30,6 +30,7 @@ func setupMetricsMock() *mocks.MetricsInterface {
 	metricsMock.On("IncrementHTTPError").Return()
 	metricsMock.On("IncrementHTTPRequest").Return()
 	metricsMock.On("ObserveAPIEndpointDuration", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+	metricsMock.On("ObserveRedisEndpointDuration", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
 	metricsMock.On("Register").Return()
 
 	return metricsMock

@@ -793,8 +793,9 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PermissionSysconsoleReadUserManagementGroups,
+		model.PermissionSysconsoleWriteUserManagementGroups,
 		model.PermissionSysconsoleReadUserManagementChannels,
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
 		c.SetPermissionError(permissions...)
@@ -822,6 +823,8 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channels = sanitizeAllChannelsResponse(c, channels)
+
 	if c.Params.IncludeTotalCount {
 		totalCount, err := c.App.GetAllChannelsCount(c.AppContext, opts)
 		if err != nil {
@@ -841,6 +844,18 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func sanitizeAllChannelsResponse(c *Context, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		model.PermissionSysconsoleReadUserManagementChannels,
+	}) {
+		for _, channel := range channels {
+			channel.Channel = channel.Channel.Sanitize()
+		}
+	}
+	return channels
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1052,7 +1067,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	//
 	// Note that this means if an error occurs in mid-stream, the response won't be
 	// fully JSON.
-	w.Write([]byte(`[`))
+	if _, err := w.Write([]byte(`[`)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 	enc := json.NewEncoder(w)
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
@@ -1074,7 +1091,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// intermediary comma between sets
 		if fromChannelID != "" {
-			w.Write([]byte(`,`))
+			if _, err := w.Write([]byte(`,`)); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
 		}
 
 		for i, ch := range channels {
@@ -1082,7 +1101,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 			if i < len(channels)-1 {
-				w.Write([]byte(`,`))
+				if _, err := w.Write([]byte(`,`)); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
 			}
 		}
 
@@ -1092,7 +1113,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		fromChannelID = channels[len(channels)-1].Id
 	}
-	w.Write([]byte(`]`))
+	if _, err := w.Write([]byte(`]`)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1256,7 +1279,12 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(),
+		[]*model.Permission{
+			model.PermissionSysconsoleWriteUserManagementGroups,
+			model.PermissionSysconsoleReadUserManagementChannels,
+			model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+		}) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
@@ -1287,6 +1315,8 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	channels = sanitizeAllChannelsResponse(c, channels)
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
 	if props.Page != nil && props.PerPage != nil {
@@ -1467,7 +1497,9 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJSON(membersTimezones)))
+	if _, err := w.Write([]byte(model.ArrayToJSON(membersTimezones))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2085,7 +2117,9 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2118,7 +2152,9 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2155,7 +2191,9 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2205,7 +2243,9 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {

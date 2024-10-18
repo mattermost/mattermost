@@ -29,9 +29,11 @@ describe('Search', () => {
         cy.uiGetSearchContainer().should('be.visible').click();
         cy.uiGetSearchBox().
             type(`${term}{enter}`).
-            wait(TIMEOUTS.ONE_SEC).
-            clear();
-        cy.get('#searchbar-help-popup').should('be.visible');
+            wait(TIMEOUTS.ONE_SEC);
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().clear();
+
+        cy.get('#searchHints').should('be.visible');
         cy.uiGetSearchContainer().type('{esc}');
 
         // # Verify the Search side bar opens up
@@ -43,13 +45,17 @@ describe('Search', () => {
         cy.uiGetRHS({visible: false});
 
         // # Verify that the cleared search text does not appear on the search box
-        cy.uiGetSearchBox().should('be.empty');
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().find('input').should('be.empty');
+        cy.uiGetSearchContainer().type('{esc}');
 
         // # Click the pin icon to open the pinned messages RHS
         cy.uiGetChannelPinButton().click();
         cy.uiGetRHS().should('contain', 'Pinned messages');
 
         // # Verify that the Search term input box is still cleared and search term does not reappear when RHS opens
-        cy.uiGetSearchBox().and('be.empty');
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().find('input').and('be.empty');
+        cy.uiGetSearchContainer().type('{esc}');
     });
 });

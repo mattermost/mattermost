@@ -108,7 +108,7 @@ const AdvancedTextEditor = ({
     const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
-    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
+    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, channelId)?.display_name || '');
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
@@ -150,7 +150,7 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
-    const previousDraft = useRef(draftFromStore);
+    const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
 
@@ -253,7 +253,21 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+    const [handleSubmit, errorClass] = useSubmit(
+        draft,
+        postError,
+        channelId,
+        postId,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        setShowPreview,
+        handleDraftChange,
+        prioritySubmitCheck,
+        undefined,
+        afterSubmit,
+    );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -271,6 +285,8 @@ const AdvancedTextEditor = ({
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
     );
+
+    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -388,6 +404,7 @@ const AdvancedTextEditor = ({
     // Remove show preview when we switch channels or posts
     useEffect(() => {
         setShowPreview(false);
+        setServerError(null);
     }, [channelId, postId]);
 
     // Remove uploads in progress on mount
@@ -410,16 +427,24 @@ const AdvancedTextEditor = ({
         };
     }, [handleDraftChange, draft]);
 
-    // Set the draft from store when changing post or channels, and store the previus one
+    // Keep track of the draft as a ref so that we can save it when changing channels
     useEffect(() => {
-        setDraft(draftFromStore);
-        return () => handleDraftChange(previousDraft.current, {instant: true, show: true});
-    }, [channelId, postId]);
-
-    // Keep track of the previous draft
-    useEffect(() => {
-        previousDraft.current = draft;
+        draftRef.current = draft;
     }, [draft]);
+
+    // Set the draft from store when changing post or channels, and store the previous one
+    useEffect(() => {
+        // Store the draft that existed when we opened the channel to know if it should be saved
+        const draftOnOpen = draftFromStore;
+
+        setDraft(draftOnOpen);
+
+        return () => {
+            if (draftOnOpen !== draftRef.current) {
+                handleDraftChange(draftRef.current, {instant: true, show: true});
+            }
+        };
+    }, [channelId, postId]);
 
     const disableSendButton = Boolean(readOnlyChannel || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel ? null : (
@@ -532,7 +557,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmit}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -657,7 +682,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmit}
+                        handleSubmit={noArgumentHandleSubmit}
                     />
                 )}
                 <MsgTyping

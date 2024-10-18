@@ -168,7 +168,8 @@ type TeamStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(teamID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error)
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
@@ -300,7 +301,8 @@ type ChannelStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(channelID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error)
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
@@ -359,6 +361,7 @@ type PostStore interface {
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error)
 	Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error
+	PermanentDelete(rctx request.CTX, postID string) error
 	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -503,6 +506,7 @@ type SessionStore interface {
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
+	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -717,6 +721,7 @@ type FileInfoStore interface {
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(c request.CTX, fileID string, postID string, channelID, creatorID string) error
 	DeleteForPost(c request.CTX, postID string) (string, error)
+	PermanentDeleteForPost(rctx request.CTX, postID string) error
 	PermanentDelete(c request.CTX, fileID string) error
 	PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(ctx request.CTX, userID string) (int64, error)
@@ -748,7 +753,7 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) error
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
-	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error
+	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
 }

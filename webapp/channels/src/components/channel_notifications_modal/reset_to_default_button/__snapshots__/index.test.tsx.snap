@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ResetToDefaultButton should render if section name is valid 1`] = `
+<div>
+  <button
+    class="channel-notifications-settings-modal__reset-btn"
+    data-testid="resetToDefaultButton-desktop"
+  >
+    <i
+      class="icon icon-refresh"
+    />
+    Reset to default
+  </button>
+</div>
+`;

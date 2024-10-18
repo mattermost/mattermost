@@ -16,7 +16,7 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {addVisibleUsersInCurrentChannelToStatusPoll} from 'actions/status_actions';
+import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -41,7 +41,7 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(addVisibleUsersInCurrentChannelToStatusPoll());
+            dispatch(addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const license = getLicense(state);

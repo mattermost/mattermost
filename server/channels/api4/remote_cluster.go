@@ -126,7 +126,9 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -235,7 +237,11 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error while reading request body", mlog.Err(err))
+		}
+	}()
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -344,7 +350,9 @@ func getRemoteClusters(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,12 +386,13 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
 
+	token := model.NewId()
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
 		DisplayName:   rcWithTeamAndPassword.DisplayName,
 		SiteURL:       model.SiteURLPending + model.NewId(),
 		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
-		Token:         model.NewId(),
+		Token:         token,
 		CreatorId:     c.AppContext.Session().UserId,
 	}
 
@@ -401,7 +410,7 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		password = utils.SecureRandString(16)
 	}
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
+	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, token, password)
 	if iErr != nil {
 		c.Err = iErr
 		return
@@ -423,7 +432,9 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -490,7 +501,9 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -530,6 +543,11 @@ func generateRemoteClusterInvite(c *Context, w http.ResponseWriter, r *http.Requ
 	rc, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, false)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if rc.IsConfirmed() {
+		c.Err = model.NewAppError("generateRemoteClusterInvite", "api.remote_cluster.generate_invite_cluster_is_confirmed", nil, "", http.StatusBadRequest)
 		return
 	}
 

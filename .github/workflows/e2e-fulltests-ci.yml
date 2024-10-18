@@ -56,7 +56,8 @@ jobs:
       server_uppercase: "${{ steps.generate.outputs.server_uppercase }}" # Required for license selection
       SERVER: "${{ steps.generate.outputs.SERVER }}"
       ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
-      TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
+      TEST_FILTER_CYPRESS: "${{ steps.generate.outputs.TEST_FILTER_CYPRESS }}"
+      TEST_FILTER_PLAYWRIGHT: "tests/ --project=chrome" # Note: Run on chrome but eventually will enable to all projects which include firefox and ipad.
       BUILD_ID: "${{ steps.generate.outputs.BUILD_ID }}"
       TM4J_ENABLE: "${{ steps.generate.outputs.TM4J_ENABLE }}"
       REPORT_TYPE: "${{ steps.generate.outputs.REPORT_TYPE }}"
@@ -72,17 +73,17 @@ jobs:
       ROLLING_RELEASE_FROM_TAG: "${{ inputs.ROLLING_RELEASE_FROM_TAG }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
-      TEST_FILTER_PR: >-
+      TEST_FILTER_CYPRESS_PR: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_PROD_ONPREM: >-
+      TEST_FILTER_CYPRESS_PROD_ONPREM: >-
         --stage="@prod"
         --excludeGroup="@te_only,@cloud_only,@high_availability"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
         --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
-      TEST_FILTER_PROD_CLOUD: >-
+      TEST_FILTER_CYPRESS_PROD_CLOUD: >-
         --stage="@prod"
         --excludeGroup="@not_cloud,@cloud_trial,@e20_only,@te_only,@high_availability,@license_removal"
         --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap,@playbooks"
@@ -114,7 +115,7 @@ jobs:
               SERVER_IMAGE_ORG=mattermostdevelopment
               BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
               WORKERS_NUMBER=20
-              TEST_FILTER="$TEST_FILTER_PR"
+              TEST_FILTER_CYPRESS="$TEST_FILTER_CYPRESS_PR"
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               ### Run sanity assertions after variable generations
               [ "$REF" = "${_COMMIT_SHA_COMPUTED}" ]             # 'inputs.ref' must be a full commit hash, and the commit must exist
@@ -123,7 +124,7 @@ jobs:
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               ### Populate support variables
               _IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
-              _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
+              _TEST_FILTER_CYPRESS_VARIABLE="TEST_FILTER_CYPRESS_PROD_${SERVER@U}"
               ### For ref and image tag generation: ignore 'inputs.ref', and use master branch directly. Note that 'COMMIT_SHA' will be used for reporting the test result, and for checking out the testing scripts and test cases
               COMMIT_SHA="$(git rev-parse --verify origin/master)"
               BRANCH=master
@@ -132,13 +133,13 @@ jobs:
               BUILD_ID_SUFFIX="${_IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
               WORKERS_NUMBER=10   # Daily tests are not time critical, and it's more efficient to run on fewer workers
-              TEST_FILTER="${!_TEST_FILTER_VARIABLE} ${_IS_TEST_UNSTABLE:+--invert}"
+              TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE} ${_IS_TEST_UNSTABLE:+--invert}"
               TM4J_ENABLE=true
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               ;;
             RELEASE | RELEASE_CLOUD)
               ### Populate support variables
-              _TEST_FILTER_VARIABLE="TEST_FILTER_PROD_${SERVER@U}"
+              _TEST_FILTER_CYPRESS_VARIABLE="TEST_FILTER_CYPRESS_PROD_${SERVER@U}"
               ### For ref and image tag generation: assume the 'inputs.ref' is a tag, and use the first two digits to construct the branch name
               COMMIT_SHA="$(git rev-parse --verify HEAD)"
               BRANCH=$(sed -E "s/v([0-9]+)\.([0-9]+)\..+$/release-\1.\2/g" <<<$REF)
@@ -147,7 +148,7 @@ jobs:
               BUILD_ID_SUFFIX="release-${SERVER}-ent"
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
               WORKERS_NUMBER=20
-              TEST_FILTER="${!_TEST_FILTER_VARIABLE}"
+              TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE}"
               TM4J_ENABLE=true
               COMPUTED_REPORT_TYPE=RELEASE
               ### Run sanity assertions after variable generations
@@ -179,7 +180,7 @@ jobs:
           echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
           echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
-          echo "TEST_FILTER=${TEST_FILTER}" >> $GITHUB_OUTPUT
+          echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TM4J_ENABLE=${TM4J_ENABLE:-}" >> $GITHUB_OUTPUT
           echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_commit_sha=${ROLLING_RELEASE_COMMIT_SHA}" >> $GITHUB_OUTPUT
@@ -199,13 +200,13 @@ jobs:
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           You can check its progress by either:
-          - Looking at the corresponding commit status, which will be available in a few moments: \`${STATUS_CHECK_CONTEXT}\`.
+          - Looking at the corresponding commit statuses: \`${STATUS_CHECK_CONTEXT}\` and \`${STATUS_CHECK_CONTEXT}-playwright\`.
           - Looking at the [E2E test's Workflow Run]($WORKFLOW_RUN_URL), with Run ID \`${{ github.run_id }}\`.
-          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL).
+          - Looking at the [E2E test's Cycle on the Automation Dashboard]($CYCLE_URL). (Cypress only)
           EOF
           fi
 
-  e2e-fulltest:
+  e2e-fulltest-cypress:
     needs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
@@ -223,7 +224,7 @@ jobs:
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
-      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
+      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
@@ -241,12 +242,45 @@ jobs:
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
 
+  e2e-fulltest-playwright:
+    needs:
+      - generate-test-variables
+    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    strategy:
+      matrix:
+        type:
+        - name: PR
+    with:
+      commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
+      workers_number: "1"
+      testcase_failure_fatal: false # NB: do not enable until Playwright test stability is reached
+      run_preflight_checks: false
+      enable_reporting: true
+      SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
+      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
+      TEST: playwright
+      TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
+      BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
+      REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
+      ROLLING_RELEASE_commit_sha: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_commit_sha }}"
+      ROLLING_RELEASE_SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
+    secrets:
+      MM_LICENSE: "${{ secrets[format('MM_E2E_TEST_LICENSE_{0}_ENT', needs.generate-test-variables.outputs.server_uppercase)] }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+
   notify-user:
     runs-on: ubuntu-latest
     if: always()
     needs:
       - generate-test-variables
-      - e2e-fulltest
+      - e2e-fulltest-cypress
+      - e2e-fulltest-playwright
     permissions:
       issues: write
       pull-requests: write
@@ -267,7 +301,9 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
-          You can check its result on the [Automation Dashboard]($CYCLE_URL), or by checking out the status check named \`${STATUS_CHECK_CONTEXT}\` in this PR.
-          The run summary artifact is available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
+          Results summary:
+          - Cypress pass rate: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }} (see [Automation Dashboard]($CYCLE_URL) and commit status check \`${STATUS_CHECK_CONTEXT}\`)
+          - Playwright pass rate: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }} (see commit status check \`${STATUS_CHECK_CONTEXT}-playwright\`)
+          The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi

@@ -1337,6 +1337,25 @@ func TestGetExplicitMentions(t *testing.T) {
 				HereMentioned: true,
 			},
 		},
+		"should include the mentions from attachment field values (but not field titles)": {
+			Message: "this is a message",
+			Attachments: []*model.SlackAttachment{
+				{
+					Fields: []*model.SlackAttachmentField{
+						{
+							Title: "@user1",
+							Value: "@user2",
+						},
+					},
+				},
+			},
+			Keywords: map[string][]string{"@user1": {id1}, "@user2": {id2}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					id2: KeywordMention,
+				},
+			},
+		},
 		"Name on keywords is a prefix of a mention": {
 			Message:  "@other @test-two",
 			Keywords: map[string][]string{"@test": {model.NewId()}},
@@ -2167,6 +2186,12 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 
 	attachmentWithOutPreText := model.SlackAttachment{
 		Text: "some text",
+		Fields: []*model.SlackAttachmentField{
+			{
+				Title: "field title",
+				Value: "field value",
+			},
+		},
 	}
 	attachments := []*model.SlackAttachment{
 		&attachmentWithTextAndPreText,
@@ -2183,11 +2208,12 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 		"This is the message",
 		"@Channel some comment for the channel",
 		"@here with mentions",
-		"some text"}
+		"some text",
+		"field value",
+	}
 
 	mentionEnabledFields := getMentionsEnabledFields(post)
 
-	assert.EqualValues(t, 4, len(mentionEnabledFields))
 	assert.EqualValues(t, expectedFields, mentionEnabledFields)
 }
 

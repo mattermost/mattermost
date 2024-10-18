@@ -1488,9 +1488,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					"secrettext":   FakeSetting,
 					"secretnumber": FakeSetting,
 				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
 			},
 		},
 		"two plugins installed": {
@@ -1543,9 +1540,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			name := name // TODO: Remove once go1.22 is used
-			tc := tc     // TODO: Remove once go1.22 is used
-
 			if name != "one plugin installed" {
 				return
 			}
@@ -1559,49 +1553,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			assert.Equal(t, tc.expected, c.Plugins, name)
 		})
 	}
-
-	t.Run("one plugin installed, two in the config", func(t *testing.T) {
-		c := PluginSettings{}
-		c.SetDefaults(*NewLogSettings())
-		c.Plugins = plugins
-
-		c.Sanitize([]*Manifest{
-			{
-				Id: "plugin.id",
-				SettingsSchema: &PluginSettingsSchema{
-					Settings: []*PluginSetting{
-						{
-							Key:    "somesetting",
-							Type:   "text",
-							Secret: false,
-						},
-						{
-							Key:    "secrettext",
-							Type:   "text",
-							Secret: true,
-						},
-						{
-							Key:    "secretnumber",
-							Type:   "number",
-							Secret: true,
-						},
-					},
-				},
-			},
-		})
-
-		expected := map[string]map[string]any{
-			"plugin.id": {
-				"somesetting":  "some value",
-				"secrettext":   FakeSetting,
-				"secretnumber": FakeSetting,
-			},
-			"another.plugin": {
-				"somesetting": FakeSetting,
-			},
-		}
-		assert.Equal(t, expected, c.Plugins)
-	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {

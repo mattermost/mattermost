@@ -5,6 +5,9 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {UserNotifyProps} from '@mattermost/types/users';
+
 import bing from 'sounds/bing.mp3';
 import calls_calm from 'sounds/calls_calm.mp3';
 import calls_cheerful from 'sounds/calls_cheerful.mp3';
@@ -15,21 +18,32 @@ import down from 'sounds/down.mp3';
 import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
+import {DesktopSound} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
+export const DesktopNotificationSounds = {
+    DEFAULT: 'default',
+    BING: 'Bing',
+    CRACKLE: 'Crackle',
+    DOWN: 'Down',
+    HELLO: 'Hello',
+    RIPPLE: 'Ripple',
+    UPSTAIRS: 'Upstairs',
+} as const;
+
+export const notificationSounds = new Map<string, string>([
+    [DesktopNotificationSounds.BING, bing],
+    [DesktopNotificationSounds.CRACKLE, crackle],
+    [DesktopNotificationSounds.DOWN, down],
+    [DesktopNotificationSounds.HELLO, hello],
+    [DesktopNotificationSounds.RIPPLE, ripple],
+    [DesktopNotificationSounds.UPSTAIRS, upstairs],
 ]);
 
 export const notificationSoundKeys = Array.from(notificationSounds.keys());
 
 export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; label: ReactNode}> = notificationSoundKeys.map((soundName) => {
-    if (soundName === 'Bing') {
+    if (soundName === DesktopNotificationSounds.BING) {
         return {
             value: soundName,
             label: (
@@ -39,7 +53,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Crackle') {
+    } else if (soundName === DesktopNotificationSounds.CRACKLE) {
         return {
             value: soundName,
             label: (
@@ -49,7 +63,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Down') {
+    } else if (soundName === DesktopNotificationSounds.DOWN) {
         return {
             value: soundName,
             label: (
@@ -59,7 +73,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Hello') {
+    } else if (soundName === DesktopNotificationSounds.HELLO) {
         return {
             value: soundName,
             label: (
@@ -69,7 +83,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Ripple') {
+    } else if (soundName === DesktopNotificationSounds.RIPPLE) {
         return {
             value: soundName,
             label: (
@@ -79,7 +93,7 @@ export const optionsOfMessageNotificationSoundsSelect: Array<{value: string; lab
                 />
             ),
         };
-    } else if (soundName === 'Upstairs') {
+    } else if (soundName === DesktopNotificationSounds.UPSTAIRS) {
         return {
             value: soundName,
             label: (
@@ -248,4 +262,16 @@ export function loopNotificationRing(name: string) {
 
 export function hasSoundOptions() {
     return (!UserAgent.isEdge());
+}
+
+/**
+ * This conversion is needed because User's preference for desktop sound is stored as either true or false. On the other hand,
+ * Channel's specific desktop sound is stored as either On or Off.
+ */
+export function convertDesktopSoundNotifyPropFromUserToDesktop(userNotifyDesktopSound?: UserNotifyProps['desktop_sound']): ChannelNotifyProps['desktop_sound'] {
+    if (userNotifyDesktopSound && userNotifyDesktopSound === 'false') {
+        return DesktopSound.OFF;
+    }
+
+    return DesktopSound.ON;
 }

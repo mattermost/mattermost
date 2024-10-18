@@ -8072,7 +8072,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Uitnodiging aanvaard | Online | Laatste ping  |"
+    "translation": "|Beveiligde verbinding | Weergavenaam |ConnectieID | SiteURL | Standaard Team | Uitnodiging aanvaard | Online | Laatste ping | Verwijderd |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10176,5 +10176,13 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "De grootte van de geüploade plugin overschrijdt de limiet. Deze limiet kan worden gewijzigd in de Systeemconsole via Bestandsopslag > Maximale bestandsgrootte"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Bestand kon niet worden geüpload. Uploadkanaal wordt niet gedeeld met remote."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Kan de extra sessie-eigenschappen niet bijwerken."
   }
 ]

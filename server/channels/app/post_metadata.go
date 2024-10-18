@@ -17,12 +17,14 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
@@ -646,84 +648,17 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 	var err error
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
-		referencedPostID := requestURL[len(requestURL)-26:]
+		permalink, err = a.getLinkMetadataForPermalink(c, requestURL)
 
-		referencedPost, appErr := a.GetSinglePost(c, referencedPostID, false)
-		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
-		if appErr != nil {
-			return nil, nil, nil, appErr
-		}
-
-		referencedChannel, appErr := a.GetChannel(c, referencedPost.ChannelId)
-		if appErr != nil {
-			return nil, nil, nil, appErr
-		}
-
-		var referencedTeam *model.Team
-		if referencedChannel.Type == model.ChannelTypeDirect || referencedChannel.Type == model.ChannelTypeGroup {
-			referencedTeam = &model.Team{}
-		} else {
-			referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
-			if appErr != nil {
-				return nil, nil, nil, appErr
-			}
-		}
-
-		// Get metadata for embedded post
-		if a.containsPermalink(c, referencedPost) {
-			// referencedPost contains a permalink: we don't get its metadata
-			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
-		} else {
-			// referencedPost does not contain a permalink: we get its metadata
-			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
-			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
-		}
-	} else {
-		var request *http.Request
-		// Make request for a web page or an image
-		request, err = http.NewRequest("GET", requestURL, nil)
 		if err != nil {
 			return nil, nil, nil, err
 		}
+	} else if oEmbedProvider := oembed.FindEndpointForURL(requestURL); oEmbedProvider != nil {
+		og, err = a.getLinkMetadataFromOEmbed(c, requestURL, oEmbedProvider)
+	} else {
+		og, image, err = a.getLinkMetadataForURL(c, requestURL)
 
-		var body io.ReadCloser
-		var contentType string
-
-		if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
-			// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
-			body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
-		} else {
-			request.Header.Add("Accept", "image/*")
-			request.Header.Add("Accept", "text/html;q=0.8")
-			request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
-
-			client := a.HTTPService().MakeClient(false)
-			client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
-
-			var res *http.Response
-			res, err = client.Do(request)
-			if err != nil {
-				c.Logger().Warn("error fetching OG image data", mlog.Err(err))
-			}
-
-			if res != nil {
-				body = res.Body
-				contentType = res.Header.Get("Content-Type")
-			}
-		}
-
-		if body != nil {
-			defer func() {
-				io.Copy(io.Discard, body)
-				body.Close()
-			}()
-		}
-
-		if err == nil {
-			// Parse the data
-			og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
-		}
-		og = model.TruncateOpenGraph(og) // remove unwanted length of texts
+		// We intentionally don't return early on an error because we want to save that there is no metadata for this link
 
 		a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
 	}
@@ -732,6 +667,123 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	cacheLinkMetadata(requestURL, timestamp, og, image, permalink)
 
 	return og, image, permalink, err
+}
+
+func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*model.Permalink, error) {
+	referencedPostID := requestURL[len(requestURL)-26:]
+
+	referencedPost, appErr := a.GetSinglePost(c, referencedPostID, false)
+	// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	referencedChannel, appErr := a.GetChannel(c, referencedPost.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var referencedTeam *model.Team
+	if referencedChannel.Type == model.ChannelTypeDirect || referencedChannel.Type == model.ChannelTypeGroup {
+		referencedTeam = &model.Team{}
+	} else {
+		referencedTeam, appErr = a.GetTeam(referencedChannel.TeamId)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	// Get metadata for embedded post
+	var permalink *model.Permalink
+	if a.containsPermalink(c, referencedPost) {
+		// referencedPost contains a permalink: we don't get its metadata
+		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
+	} else {
+		// referencedPost does not contain a permalink: we get its metadata
+		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
+		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
+	}
+
+	return permalink, nil
+}
+
+func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provider *oembed.ProviderEndpoint) (*opengraph.OpenGraph, error) {
+	request, err := http.NewRequest("GET", provider.GetProviderURL(requestURL), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Add("Accept", "application/json")
+	request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
+
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+	res, err := client.Do(request)
+	if err != nil {
+		c.Logger().Warn("error fetching oEmbed data", mlog.Err(err))
+		return nil, errors.Wrap(err, "getLinkMetadataFromOEmbed: Unable to get oEmbed data")
+	}
+
+	defer func() {
+		io.Copy(io.Discard, res.Body)
+		res.Body.Close()
+	}()
+
+	return a.parseOpenGraphFromOEmbed(requestURL, res.Body)
+}
+
+func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengraph.OpenGraph, *model.PostImage, error) {
+	var request *http.Request
+	// Make request for a web page or an image
+	request, err := http.NewRequest("GET", requestURL, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var body io.ReadCloser
+	var contentType string
+
+	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
+		body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
+	} else {
+		request.Header.Add("Accept", "image/*")
+		request.Header.Add("Accept", "text/html;q=0.8")
+		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
+
+		client := a.HTTPService().MakeClient(false)
+		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+		var res *http.Response
+		res, err = client.Do(request)
+		if err != nil {
+			c.Logger().Warn("error fetching OG image data", mlog.Err(err))
+		}
+
+		if res != nil {
+			body = res.Body
+			contentType = res.Header.Get("Content-Type")
+		}
+	}
+
+	if body != nil {
+		defer func() {
+			io.Copy(io.Discard, body)
+			body.Close()
+		}()
+	}
+
+	var og *opengraph.OpenGraph
+	var image *model.PostImage
+
+	if err == nil {
+		// Parse the data
+		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+	}
+	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
+
+	return og, image, err
 }
 
 // resolveMetadataURL resolves a given URL relative to the server's site URL.

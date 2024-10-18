@@ -32,6 +32,7 @@ func main() {
 		"openldap":           389,
 		"elasticsearch":      9200,
 		"opensearch":         9201,
+		"redis":              6379,
 		"dejavu":             1358,
 		"keycloak":           8080,
 		"prometheus":         9090,

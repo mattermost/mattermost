@@ -46,8 +46,8 @@ describe('PluginAction', () => {
         expect(secondaryButton).toBeInTheDocument();
         expect(linkButton).toBeInTheDocument();
         expect(closeButton).toBeInTheDocument();
-        expect(screen.queryByText(props.text)).toBeInTheDocument();
-        expect(screen.queryByText(props.title)).toBeInTheDocument();
+        expect(screen.queryByText(props.text as string)).toBeInTheDocument();
+        expect(screen.queryByText(props.title as string)).toBeInTheDocument();
         fireEvent.click(primaryButton);
         expect(props.primaryButton?.onClick).toHaveBeenCalledTimes(1);
         fireEvent.click(secondaryButton);

@@ -176,15 +176,18 @@ describe('Utils.localizeMessage', () => {
         });
 
         test('with translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Bonjour tout le monde!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Bonjour tout le monde!');
         });
 
         test('with missing string in translations', () => {
-            expect(Utils.localizeMessage('test.hello_world2', 'Hello, World 2!')).toEqual('Hello, World 2!');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World 2!'})).toEqual('Hello, World 2!');
         });
 
         test('with missing string in translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world2')).toEqual('test.hello_world2');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world2');
         });
     });
 
@@ -201,11 +204,13 @@ describe('Utils.localizeMessage', () => {
         });
 
         test('without translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Hello, World!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Hello, World!');
         });
 
         test('without translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world')).toEqual('test.hello_world');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world');
         });
     });
 });

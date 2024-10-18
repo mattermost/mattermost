@@ -87,6 +87,8 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
@@ -1883,6 +1885,44 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+
+            secure_connection_detail: {
+                url: `environment/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+                    )),
+                ),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+
+            secure_connections: {
+                url: 'environment/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+                    )),
+                ),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
+                },
+            },
         },
     },
     site: {
@@ -2023,6 +2063,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.customization.iosAppDownloadLinkDesc', defaultMessage: 'Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDesktopLandingPage',
+                            label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                     ],
                 },
