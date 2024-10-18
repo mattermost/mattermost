@@ -11,18 +11,20 @@ on:
         required: false
       PR_NUMBER:
         type: string
-        description: If testing a PR, this must be specified as well.
+        description: The PR number that the ref to test belongs to. Required, If testing a PR.
         required: false
       ROLLING_RELEASE_FROM_TAG:
         type: string
-        description: If specified, the server will be initialized with the given release tag, perform a rolling upgrade, then run the full E2E test.
+        description: Mattermost release git tag to perform a RollingRelease from, before upgrading to the tested ref and perform the full E2E test. Optional.
         required: false
       MM_ENV:
         type: string
         required: false
+        description: A comma-separated list of environment variables to set for the server. Spaces are not supported.
       MM_SERVICE_OVERRIDES:
         type: string
         required: false
+        description: A comma-separated list of service overrides. E.g. "-elasticsearch,+opensearch"
       REPORT_TYPE:
         type: choice
         description: The context this report is being generated in
@@ -182,7 +184,7 @@ jobs:
             git show-ref --verify "refs/tags/${ROLLING_RELEASE_FROM_TAG}" # 'inputs.ROLLING_RELEASE_FROM_TAG' must be a tag, for release report types
           fi
           ENABLED_DOCKER_SERVICES="postgres inbucket minio openldap elasticsearch keycloak"
-          for SVC_OP in $MM_SERVICE_OVERRIDES; do
+          for SVC_OP in $(tr , ' '<<"$MM_SERVICE_OVERRIDES"); do
             OP=$(cut -c1 <<<$SVC_OP)
             SVC=$(cut -c2- <<<$SVC_OP)
             case "$OP" in
