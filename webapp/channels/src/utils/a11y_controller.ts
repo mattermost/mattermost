@@ -810,6 +810,11 @@ export default class A11yController {
             break;
         case isKeyPressed(event, Constants.KeyCodes.ENTER):
             this.enterKeyIsPressed = true;
+            if (event.target.nodeName === 'BUTTON') {
+                event.preventDefault();
+                event.stopPropagation();
+                event.target.click();
+            }
             break;
         case isKeyPressed(event, Constants.KeyCodes.SPACE):
             if (event.target.nodeName === 'BUTTON') {
