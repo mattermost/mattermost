@@ -84,6 +84,7 @@ import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermo
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
+    getTeamIdByChannelId,
     getMyTeams,
     getCurrentRelativeTeamUrl,
     getCurrentTeamId,
@@ -610,7 +611,7 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
         break;
-    case SocketEvents.SCHEDULED_POST_URL_CREATED:
+    case SocketEvents.SCHEDULED_POST_CREATED:
         dispatch(handleUpsertScheduledPostEvent(msg));
         break;
     case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
@@ -1756,7 +1757,7 @@ function handleUpsertScheduledPostEvent(msg) {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost);
         const state = getState();
-        const teamId = getTeamIdFromPost(state, scheduledPost);
+        const teamId = getTeamIdByChannelId(state, scheduledPost.channel_id);
 
         doDispatch({
             type: ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED,
