@@ -19,6 +19,8 @@ describe('components/drafts/draft_actions', () => {
         onSend: jest.fn(),
         canSend: true,
         canEdit: true,
+        onSchedule: jest.fn(),
+        channelId: '',
     };
 
     it('should match snapshot', () => {

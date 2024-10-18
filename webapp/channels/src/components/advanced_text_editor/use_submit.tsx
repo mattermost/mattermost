@@ -16,6 +16,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
+import type {CreatePostOptions} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
@@ -65,7 +66,7 @@ const useSubmit = (
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
 ): [
-        (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
+        (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
@@ -119,7 +120,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo) => {
+    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -159,7 +160,12 @@ const useSubmit = (
         setServerError(null);
 
         const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
-        const options: OnSubmitOptions = {ignoreSlash, afterSubmit, afterOptimisticSubmit};
+        const options: OnSubmitOptions = {
+            ignoreSlash,
+            afterSubmit,
+            afterOptimisticSubmit,
+            keepDraft: createPostOptions?.keepDraft,
+        };
 
         try {
             const res = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
@@ -228,7 +234,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo) => {
+    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         if (!channel) {
             return;
         }
@@ -331,7 +337,7 @@ const useSubmit = (
             }
         }
 
-        await doSubmit(submittingDraft, schedulingInfo);
+        await doSubmit(submittingDraft, schedulingInfo, options);
     }, [
         doSubmit,
         draft,
