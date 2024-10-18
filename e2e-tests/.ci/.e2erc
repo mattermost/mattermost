@@ -90,10 +90,17 @@ export BROWSER_DEFAULT="chrome"
 export SERVER_DEFAULT="onprem"
 export TEST_DEFAULT="cypress"
 export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
-export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
 export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
 export BUILD_ID_DEFAULT=$(date +%s)
 export CI_BASE_URL_DEFAULT="localhost"
+# Test tool default overrides
+case "${TEST:-$TEST_DEFAULT}" in
+  cypress )
+    export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke' ;;
+  playwright )
+    export TEST_FILTER_DEFAULT='tests/functional/system_console/system_users/actions.spec.ts --project=chrome' ;;
+  * )
+esac
 # OS specific defaults overrides
 case $MME2E_OSTYPE in
   darwin )

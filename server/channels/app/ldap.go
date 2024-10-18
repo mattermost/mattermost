@@ -17,20 +17,21 @@ import (
 // SyncLdap starts an LDAP sync job.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
+func (a *App) SyncLdap(rctx request.CTX, includeRemovedMembers bool) {
+	rctx = rctx.Clone()
 	a.Srv().Go(func() {
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
-				c.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
+				rctx.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
 				return
 			}
 
 			ldapI := a.Ldap()
 			if ldapI == nil {
-				c.Logger().Error("Not executing ldap sync because ldap is not available")
+				rctx.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			ldapI.StartSynchronizeJob(c, false, includeRemovedMembers)
+			ldapI.StartSynchronizeJob(rctx, false, includeRemovedMembers)
 		}
 	})
 }

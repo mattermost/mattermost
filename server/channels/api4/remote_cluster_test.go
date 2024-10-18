@@ -249,7 +249,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithInvite.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 
@@ -273,7 +273,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 		rci, appErr := th.App.DecryptRemoteClusterInvite(rcWithInvite.Invite, rcWithTeamAndPassword.Password)
 		require.Nil(t, appErr)
 		require.Equal(t, rc.RemoteId, rci.RemoteId)
-		require.Equal(t, rc.RemoteToken, rci.Token)
+		require.Equal(t, rc.Token, rci.Token)
 		require.Equal(t, th.App.GetSiteURL(), rci.SiteURL)
 	})
 }

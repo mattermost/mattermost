@@ -166,6 +166,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPITeamDeletion: false,
         EnableAPITriggerAdminNotifications: false,
         EnableAPIUserDeletion: false,
+        EnableAPIPostDeletion: false,
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
@@ -751,5 +752,11 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromPrivateChannelEnable: false,
         MoveThreadFromDirectMessageChannelEnable: false,
         MoveThreadFromGroupMessageChannelEnable: false,
+    },
+    ConnectedWorkspacesSettings: {
+        EnableSharedChannels: false,
+        EnableRemoteClusterService: false,
+        DisableSharedChannelsStatusSync: false,
+        MaxPostsPerSync: 50,
     },
 };

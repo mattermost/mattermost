@@ -10174,5 +10174,9 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Nie można zaktualizować dodatkowych właściwości sesji."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Nie można wygenerować kodu zaproszenia dla potwierdzonego klastra"
   }
 ]
