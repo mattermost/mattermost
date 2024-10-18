@@ -184,7 +184,7 @@ jobs:
             git show-ref --verify "refs/tags/${ROLLING_RELEASE_FROM_TAG}" # 'inputs.ROLLING_RELEASE_FROM_TAG' must be a tag, for release report types
           fi
           ENABLED_DOCKER_SERVICES="postgres inbucket minio openldap elasticsearch keycloak"
-          for SVC_OP in $(tr , ' '<<"$MM_SERVICE_OVERRIDES"); do
+          for SVC_OP in $(tr , ' '<<<"$MM_SERVICE_OVERRIDES"); do
             OP=$(cut -c1 <<<$SVC_OP)
             SVC=$(cut -c2- <<<$SVC_OP)
             case "$OP" in
