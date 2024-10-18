@@ -374,6 +374,11 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rcWithTeamAndPassword.DefaultTeamId == "" {
+		c.SetInvalidParam("remote_cluster.default_team_id")
+		return
+	}
+
 	if rcWithTeamAndPassword.DisplayName == "" {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
