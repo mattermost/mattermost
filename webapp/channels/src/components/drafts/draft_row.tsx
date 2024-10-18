@@ -10,7 +10,6 @@ import {useHistory} from 'react-router-dom';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
-import {scheduledPostToPostDraft} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
@@ -40,6 +39,7 @@ import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
