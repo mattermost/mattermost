@@ -11,6 +11,7 @@ export type RemoteClusterInvite = {
 export type RemoteClusterAcceptInvite = {
     name: string;
     display_name: string;
+    default_team_id: string;
     invite: string;
     password: string;
 }
