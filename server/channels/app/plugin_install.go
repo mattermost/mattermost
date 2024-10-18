@@ -89,9 +89,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
+	"strings"
 	"github.com/blang/semver/v4"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -398,11 +397,22 @@ func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, st
 	if err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	// If the tar contains a single directory (ignoring "hidden" files), assume the
+	// plugin is rooted therein.
+	filteredDir := make([]os.DirEntry, 0, len(dir))
+	for _, entry := range dir {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem_info.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 
-	// If the root of the plugin bundle consists of exactly one directory, assume the plugin
-	// is contained therein. Otherwise the root directory is expected to contain the plugin.
-	if len(dir) == 1 && dir[0].IsDir() {
-		extractDir = filepath.Join(extractDir, dir[0].Name())
+		if !strings.HasPrefix(entry.Name(), ".") {
+			filteredDir = append(filteredDir, entry)
+		}
+	}
+
+	if len(filteredDir) == 1 && filteredDir[0].IsDir() {
+		extractDir = filepath.Join(extractDir, filteredDir[0].Name())
 	}
 
 	manifest, _, err := model.FindManifest(extractDir)
