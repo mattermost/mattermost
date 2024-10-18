@@ -2222,6 +2222,8 @@
   "admin.secure_connections.accept_invite.prompt": "Accept a secure connection from another server",
   "admin.secure_connections.accept_invite.prompt_invite_password": "Enter the encrypted invitation code shared to you by the admin of the server you are connecting with.",
   "admin.secure_connections.accept_invite.saving_changes_error": "There was an error while accepting the invite.",
+  "admin.secure_connections.accept_invite.select_team": "Please select the destination team where channels will be placed.",
+  "admin.secure_connections.accept_invite.select_team.legend": "Select a team",
   "admin.secure_connections.accept_invite.share_title": "Accept a connection invite",
   "admin.secure_connections.confirm.delete.button": "Yes, delete",
   "admin.secure_connections.confirm.delete.text": "Are you sure you want to delete the secure connection <strong>{displayName}</strong>?",
