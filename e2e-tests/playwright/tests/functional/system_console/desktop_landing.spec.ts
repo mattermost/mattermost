@@ -31,10 +31,10 @@ test('MM-T5640_1 should not see landing page ', async () => {
     // Navigate to your starting URL
     await page.goto('http://localhost:8065');
 
-    // Wait until the URL contains '/landing'
+    // Wait until the URL contains '/login'
     await page.waitForURL(/.*\/login.*/);
 
-    // At this point, the URL should contain '/landing'
+    // At this point, the URL should contain '/login'
     expect(page.url()).toContain('/login');
 
     await page.waitForLoadState('networkidle');
