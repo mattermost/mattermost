@@ -11,11 +11,11 @@ on:
         required: false
       PR_NUMBER:
         type: string
-        description: The PR number that the ref to test belongs to. Required, If testing a PR.
+        description: PR number (if applicable)
         required: false
       ROLLING_RELEASE_FROM_TAG:
         type: string
-        description: Mattermost release git tag to perform a RollingRelease from, before upgrading to the tested ref and perform the full E2E test. Optional.
+        description: Mattermost release git tag for RollingRelease tests. Optional.
         required: false
       MM_ENV:
         type: string
@@ -133,7 +133,7 @@ jobs:
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
               ### Run sanity assertions after variable generations
               [ "$REF" = "${_COMMIT_SHA_COMPUTED}" ]             # 'inputs.ref' must be a full commit hash, and the commit must exist
-              [ "$REPORT_TYPE" != "PR" -o "$PR_NUMBER" -gt "0" ] # If report type is PR, then PR_NUMBER must be set to a number
+              [ "$REPORT_TYPE" != "PR" ] || [ "$PR_NUMBER" -gt "0" ] # If report type is PR, then PR_NUMBER must be set to a number
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               ### Populate support variables
