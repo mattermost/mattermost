@@ -134,6 +134,7 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogArguments?: CommandArgs;
     dialog?: {
         url: string;
         dialog: Dialog;

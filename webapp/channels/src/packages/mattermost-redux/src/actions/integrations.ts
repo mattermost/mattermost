@@ -9,6 +9,7 @@ import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, IncomingWe
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -497,7 +498,8 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boole
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
-        submission.channel_id = getCurrentChannelId(state);
+        const dialogArguments = getDialogArguments(state);
+        submission.channel_id = dialogArguments ? dialogArguments.channel_id : getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
 
         let data;
