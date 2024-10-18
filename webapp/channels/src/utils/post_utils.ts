@@ -282,19 +282,6 @@ export function isWithinCodeBlock(message: string, caretPosition: number): boole
     return Boolean(match && match.length % 2 !== 0);
 }
 
-function sendOnCtrlEnter(message: string, ctrlOrMetaKeyPressed: boolean, isSendMessageOnCtrlEnter: boolean, caretPosition: number) {
-    const inCodeBlock = isWithinCodeBlock(message, caretPosition);
-    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && !inCodeBlock) {
-        return {allowSending: true};
-    } else if (!isSendMessageOnCtrlEnter && !inCodeBlock) {
-        return {allowSending: true};
-    } else if (ctrlOrMetaKeyPressed && inCodeBlock) {
-        return canAutomaticallyCloseBackticks(message);
-    }
-
-    return {allowSending: false};
-}
-
 export function postMessageOnKeyPress(
     event: React.KeyboardEvent,
     message: string,
@@ -323,19 +310,23 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    if (
-        message.trim() === '' ||
-        !(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)
-    ) {
+    const ctrlOrMetaKey = Boolean(event.ctrlKey || event.metaKey);
+
+    if (!ctrlOrMetaKey && !sendMessageOnCtrlEnter && !sendCodeBlockOnCtrlEnter) {
         return {allowSending: true};
     }
 
-    const ctrlOrMetaKeyPressed = event.ctrlKey || event.metaKey;
-
     if (sendMessageOnCtrlEnter) {
-        return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);
-    } else if (sendCodeBlockOnCtrlEnter) {
-        return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, false, caretPosition);
+        return {allowSending: ctrlOrMetaKey};
+    }
+
+    const isCode = isWithinCodeBlock(message, caretPosition);
+    if (ctrlOrMetaKey && isCode && sendCodeBlockOnCtrlEnter) {
+        return canAutomaticallyCloseBackticks(message);
+    }
+
+    if (!ctrlOrMetaKey && !isCode && sendCodeBlockOnCtrlEnter) {
+        return {allowSending: true};
     }
 
     return {allowSending: false};
