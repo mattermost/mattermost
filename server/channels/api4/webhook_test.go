@@ -957,6 +957,14 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		createdHook.ChannelId = "junk"
+		var resp *model.Response
+		_, resp, err = client.UpdateIncomingWebhook(context.Background(), createdHook)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	}, "UpdateToNonExistentChannel")
+
 	t.Run("PrivateChannel", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel()
 		_, err = th.Client.Logout(context.Background())
@@ -969,14 +977,6 @@ func TestUpdateIncomingHook(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		createdHook.ChannelId = "junk"
-		var resp *model.Response
-		_, resp, err = client.UpdateIncomingWebhook(context.Background(), createdHook)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-	}, "UpdateToNonExistentChannel")
 
 	team := th.CreateTeamWithClient(th.Client)
 	user := th.CreateUserWithClient(th.Client)
