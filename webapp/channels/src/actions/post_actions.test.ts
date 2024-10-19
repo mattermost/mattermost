@@ -192,6 +192,7 @@ describe('Actions.Posts', () => {
             },
             rhs: {
                 searchTerms: '',
+                searchType: '',
                 filesSearchExtFilter: [],
             },
         },
@@ -344,6 +345,7 @@ describe('Actions.Posts', () => {
             {terms: 'hello', type: 'UPDATE_RHS_SEARCH_TERMS'},
             {state: 'search', type: 'UPDATE_RHS_STATE'},
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
+            {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
         ]);

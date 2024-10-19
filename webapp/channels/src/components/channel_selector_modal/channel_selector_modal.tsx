@@ -10,7 +10,6 @@ import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
@@ -236,9 +235,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='channelSelectorModalLabel'
                     >
-                        <FormattedMarkdownMessage
-                            id='add_channels_to_scheme.title'
-                            defaultMessage='Add Channels to **Channel Selection** List'
+                        <FormattedMessage
+                            id='channelSelectorModal.title'
+                            defaultMessage='Add Channels to <b>Channel Selection</b> List'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>

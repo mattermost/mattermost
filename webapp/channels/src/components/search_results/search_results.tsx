@@ -93,6 +93,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [props.searchTerms]);
 
     useEffect(() => {
+        setSearchType(props.searchSelectedType);
+    }, [props.searchSelectedType]);
+
+    useEffect(() => {
         // reset search type when switching views
         setSearchType(props.searchType);
     }, [props.isFlaggedPosts, props.isPinnedPosts, props.isMentionSearch]);

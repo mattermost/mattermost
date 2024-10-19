@@ -87,6 +87,8 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
@@ -1881,6 +1883,44 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                     ],
+                },
+            },
+
+            secure_connection_detail: {
+                url: `environment/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+                    )),
+                ),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+
+            secure_connections: {
+                url: 'environment/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.not(it.any(
+                        it.licensedForFeature('SharedChannels'),
+                        it.licensedForSku(LicenseSkus.Enterprise),
+                        it.licensedForSku(LicenseSkus.Professional),
+                    )),
+                ),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
                 },
             },
         },
