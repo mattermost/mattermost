@@ -7,9 +7,11 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
+import {formatAsString} from 'utils/i18n';
+
 type ButtonProps = {
     label: string | MessageDescriptor;
-    emphasis: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
+    emphasis?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
     size?: 'xSmall' | 'small' | 'medium' | 'large';
     pull?: 'left' | 'right';
     destructive?: boolean;
@@ -62,7 +64,7 @@ const Button = ({
     const emphasisClass = emphasisClasses[emphasis];
     const sizeClass = sizeClasses[size];
 
-    const labelText = typeof label === 'string' ? label : intl.formatMessage(label);
+    const labelText = formatAsString(intl.formatMessage, label);
     return (
         <button
             type={buttonType}

@@ -11,7 +11,7 @@ type Props = {
     spinningText: ComponentProps<typeof Button>['label'];
     idleText: ComponentProps<typeof Button>['label'];
     onClick?: ComponentProps<typeof Button>['onClick'];
-    emphasis: ComponentProps<typeof Button>['emphasis'];
+    emphasis?: ComponentProps<typeof Button>['emphasis'];
     buttonType?: ComponentProps<typeof Button>['buttonType'];
     autoFocus?: ComponentProps<typeof Button>['autoFocus'];
     testId?: string;

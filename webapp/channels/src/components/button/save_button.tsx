@@ -38,7 +38,7 @@ const SaveButton: React.FC<Props> = ({
     disabled = false,
     savingMessage = messages.saving,
     defaultMessage = messages.save,
-    emphasis = 'primary',
+    emphasis,
     onClick,
     pull,
     trailingIcon,
