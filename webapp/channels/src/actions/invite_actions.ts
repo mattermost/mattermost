@@ -15,7 +15,7 @@ import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/c
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import {isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
 
@@ -157,13 +157,10 @@ export async function sendGuestInviteForUser(
     teamId: string,
     channels: Channel[],
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
-    getState: () => GlobalState,
 ): Promise<({sent: InviteResult} | {notSent: InviteResult})> {
-    const state = getState();
-    const currentUserIsAdmin = isCurrentUserSystemAdmin(state);
-
+    
     if (!isGuest(user.roles)) {
-        if (currentUserIsAdmin) {
+        if (isSystemAdmin(user.roles)) {
             return {
                 notSent: {
                     user,
