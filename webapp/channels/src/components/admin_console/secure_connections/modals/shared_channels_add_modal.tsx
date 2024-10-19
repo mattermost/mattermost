@@ -79,7 +79,7 @@ function SharedChannelsAddModal({
             return [];
         }
 
-        const {data} = await dispatch(searchAllChannels(query, {page: 0, per_page: 20, signal}));
+        const {data} = await dispatch(searchAllChannels(query, {page: 0, per_page: 20, exclude_remote: true, signal}));
         if (data) {
             return data.channels.filter(({id}) => {
                 const remote = remotesByChannelId?.[id];

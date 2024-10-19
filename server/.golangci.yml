@@ -72,11 +72,9 @@ issues:
         channels/api4/config_local.go|\
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
-        channels/api4/export_test.go|\
         channels/api4/file_test.go|\
         channels/api4/ip_filtering_test.go|\
         channels/api4/job_test.go|\
-        channels/api4/license.go|\
         channels/api4/license_local.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
@@ -84,13 +82,11 @@ issues:
         channels/api4/role.go|\
         channels/api4/saml.go|\
         channels/api4/scheme.go|\
-        channels/api4/scheme_test.go|\
         channels/api4/shared_channel.go|\
         channels/api4/system.go|\
         channels/api4/system_local.go|\
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
-        channels/api4/user.go|\
         channels/api4/user_test.go|\
         channels/api4/webhook_test.go|\
         channels/app/admin.go|\
@@ -263,8 +259,6 @@ issues:
         channels/testlib/helper.go|\
         channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
-        channels/utils/subpath_test.go|\
-        channels/web/handlers.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
         channels/web/response_writer_wrapper_test.go|\

@@ -424,6 +424,10 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 }
 
 func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	if user.IsRemote() || otherUser.IsRemote() {
+		return nil, model.NewAppError("createDirectChannelWithUser", "api.channel.create_channel.direct_channel.remote_restricted.app_error", nil, "", http.StatusForbidden)
+	}
+
 	channel, nErr := a.Srv().Store().Channel().CreateDirectChannel(c, user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -522,6 +526,12 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 
 	if len(users) != len(userIDs) {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
+	}
+
+	for _, user := range users {
+		if user.IsRemote() {
+			return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	group := &model.Channel{
@@ -2923,6 +2933,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
 		IncludeSearchById:        opts.IncludeSearchById,
+		ExcludeRemote:            opts.ExcludeRemote,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,

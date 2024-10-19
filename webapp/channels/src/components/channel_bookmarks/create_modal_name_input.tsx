@@ -20,6 +20,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import BookmarkIcon from './bookmark_icon';
 
 type Props = {
+    maxLength: number;
     type: ChannelBookmark['type'];
     fileInfo: FileInfo | undefined;
     imageUrl: string | undefined;
@@ -33,6 +34,7 @@ type Props = {
     onAddCustomEmojiClick?: () => void;
 }
 const CreateModalNameInput = ({
+    maxLength,
     type,
     imageUrl,
     fileInfo,
@@ -138,6 +140,7 @@ const CreateModalNameInput = ({
                     <ChevronDownIcon size={'12px'}/>
                 </button>
                 <Input
+                    maxLength={maxLength}
                     type='text'
                     name='bookmark-display-name'
                     onChange={handleInputChange}
