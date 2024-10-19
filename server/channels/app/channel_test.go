@@ -471,6 +471,39 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 		require.Nil(t, channel, "channel should be nil")
 		require.NotNil(t, appErr)
 	})
+
+	t.Run("Cannot create with a remote user", func(t *testing.T) {
+		user2.RemoteId = model.NewPointer(model.NewId())
+		_, appErr := th.App.UpdateUser(th.Context, user2, false)
+		require.Nil(t, appErr)
+
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, dm)
+		require.NotNil(t, appErr)
+	})
+}
+
+func TestCreateGroupChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+
+	groupUserIds := make([]string, 0)
+	groupUserIds = append(groupUserIds, user1.Id)
+	groupUserIds = append(groupUserIds, user2.Id)
+	groupUserIds = append(groupUserIds, th.BasicUser.Id)
+
+	t.Run("Should not allow to create a group with a remote user", func(t *testing.T) {
+		user2.RemoteId = model.NewPointer(model.NewId())
+		_, appErr := th.App.UpdateUser(th.Context, user2, false)
+		require.Nil(t, appErr)
+
+		dm, appErr := th.App.CreateGroupChannel(th.Context, groupUserIds, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, dm)
+	})
 }
 
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
