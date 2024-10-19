@@ -215,7 +215,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               <Button
                 buttonType="submit"
                 disabled={false}
-                emphasis="primary"
                 label={
                   Object {
                     "defaultMessage": "Save",
@@ -641,7 +640,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               <Button
                 buttonType="submit"
                 disabled={false}
-                emphasis="primary"
                 label={
                   Object {
                     "defaultMessage": "Save",

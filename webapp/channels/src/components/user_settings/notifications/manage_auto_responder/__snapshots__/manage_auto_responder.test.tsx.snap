@@ -128,7 +128,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               <Button
                 buttonType="submit"
                 disabled={false}
-                emphasis="primary"
                 label={
                   Object {
                     "defaultMessage": "Save",
@@ -370,7 +369,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               <Button
                 buttonType="submit"
                 disabled={false}
-                emphasis="primary"
                 label={
                   Object {
                     "defaultMessage": "Save",

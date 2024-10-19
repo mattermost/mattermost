@@ -4,7 +4,6 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 <Button
   buttonType="submit"
   disabled={false}
-  emphasis="primary"
   label={
     Object {
       "defaultMessage": "Save",
@@ -20,7 +19,6 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 <Button
   buttonType="submit"
   disabled={false}
-  emphasis="primary"
   label={
     Object {
       "defaultMessage": "Save",
@@ -36,7 +34,6 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 <Button
   buttonType="submit"
   disabled={false}
-  emphasis="primary"
   label="Go"
   loading={false}
   testId="saveSetting"
@@ -47,7 +44,6 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 <Button
   buttonType="submit"
   disabled={true}
-  emphasis="primary"
   label={
     Object {
       "defaultMessage": "Saving",
@@ -63,7 +59,6 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
 <Button
   buttonType="submit"
   disabled={true}
-  emphasis="primary"
   label="Saving Config..."
   loading={true}
   testId="saveSetting"
