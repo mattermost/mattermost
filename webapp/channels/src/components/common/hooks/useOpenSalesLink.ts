@@ -10,6 +10,8 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {LicenseLinks} from 'utils/constants';
 import {buildMMURL, goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
+const utmSource = 'mattermost';
+
 export default function useOpenSalesLink(): [() => void, string] {
     const isCloud = useSelector(isCurrentLicenseCloud);
     const customer = useSelector(getCloudCustomer);
@@ -18,7 +20,6 @@ export default function useOpenSalesLink(): [() => void, string] {
     let firstName = '';
     let lastName = '';
     let companyName = '';
-    const utmSource = 'mattermost';
     let utmMedium = 'in-product';
 
     if (isCloud && customer) {
