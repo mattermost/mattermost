@@ -153,6 +153,12 @@
             border-top: var(--border-light);
         }
 
+        &.modal-footer--invisible {
+            overflow: hidden;
+            height: 0;
+            padding: 0;
+        }
+
         .error-text {
             margin: 10px;
             float: left;
