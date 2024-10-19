@@ -141,6 +141,10 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 }
 
 func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
+	if channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		return nil, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	foundPost, err := a.deduplicateCreatePost(c, post)
 	if err != nil {
 		return nil, err
