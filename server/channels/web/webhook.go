@@ -26,7 +26,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	r.ParseForm()
+	err := r.ParseForm()
+if err != nil {
+    c.Err = model.NewAppError("incomingWebhook",
+        "api.webhook.parse_form.app_error",
+        nil,
+        "webhook_id="+id+", error="+err.Error(),
+        http.StatusBadRequest)
+    return
+}
 
 	var err *model.AppError
 	var mediaType string
@@ -72,7 +80,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if mediaType == "multipart/form-data" {
-		r.ParseMultipartForm(0)
+		err := r.ParseMultipartForm(0)
+	if err != nil {
+	    c.Err = model.NewAppError("incomingWebhook",
+	        "api.webhook.parse_multipart_form.app_error",
+	        nil,
+  	      "webhook_id="+id+", error="+err.Error(),
+  	      http.StatusBadRequest)
+ 	   return
+	}
 
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
