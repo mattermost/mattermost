@@ -85,7 +85,8 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("get status from logged out user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -173,7 +174,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	})
 
 	t.Run("get statuses from logged out user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.GetUsersStatusesByIds(context.Background(), usersIds)
 		require.Error(t, err)
@@ -236,7 +238,8 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	t.Run("get statuses from logged out user", func(t *testing.T) {
 		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.UpdateUserStatus(context.Background(), th.BasicUser2.Id, toUpdateUserStatus)
 		require.Error(t, err)
@@ -334,7 +337,8 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 	})
 
 	t.Run("attempt to set custom status as non-authenticated user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		toUpdateCustomStatus := &model.CustomStatus{
 			Emoji: "palm_tree",
 			Text:  "My custom status",
@@ -384,7 +388,8 @@ func TestRemoveUserCustomStatus(t *testing.T) {
 	})
 
 	t.Run("attempt to remove custom status as non-authenticated user", func(t *testing.T) {
-		client.Logout(context.Background())
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
 		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)

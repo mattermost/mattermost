@@ -753,4 +753,10 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromDirectMessageChannelEnable: false,
         MoveThreadFromGroupMessageChannelEnable: false,
     },
+    ConnectedWorkspacesSettings: {
+        EnableSharedChannels: false,
+        EnableRemoteClusterService: false,
+        DisableSharedChannelsStatusSync: false,
+        MaxPostsPerSync: 50,
+    },
 };

@@ -1166,19 +1166,26 @@ func TestImportImportUser(t *testing.T) {
 	// Add a user with some preferences.
 	username = model.NewUsername()
 	data = imports.UserImportData{
-		Username:           &username,
-		Email:              ptrStr(model.NewId() + "@example.com"),
-		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:    ptrStr("true"),
-		CollapsePreviews:   ptrStr("true"),
-		MessageDisplay:     ptrStr("compact"),
-		ColorizeUsernames:  ptrStr("true"),
-		ChannelDisplayMode: ptrStr("centered"),
-		TutorialStep:       ptrStr("3"),
-		UseMarkdownPreview: ptrStr("true"),
-		UseFormatting:      ptrStr("true"),
-		ShowUnreadSection:  ptrStr("true"),
-		EmailInterval:      ptrStr("immediately"),
+		Username:                 &username,
+		Email:                    ptrStr(model.NewId() + "@example.com"),
+		Theme:                    ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		UseMilitaryTime:          ptrStr("true"),
+		CollapsePreviews:         ptrStr("true"),
+		MessageDisplay:           ptrStr("compact"),
+		ColorizeUsernames:        ptrStr("true"),
+		ChannelDisplayMode:       ptrStr("centered"),
+		TutorialStep:             ptrStr("3"),
+		UseMarkdownPreview:       ptrStr("true"),
+		UseFormatting:            ptrStr("true"),
+		ShowUnreadSection:        ptrStr("true"),
+		EmailInterval:            ptrStr("immediately"),
+		NameFormat:               model.NewPointer("full_name"),
+		SendOnCtrlEnter:          model.NewPointer("true"),
+		CodeBlockCtrlEnter:       model.NewPointer("true"),
+		ShowJoinLeave:            model.NewPointer("false"),
+		SyncDrafts:               model.NewPointer("false"),
+		ShowUnreadScrollPosition: model.NewPointer("start_from_newest"),
+		LimitVisibleDmsGms:       model.NewPointer("20"),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1197,7 +1204,13 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "formatting", *data.UseFormatting)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, "show_unread_section", *data.ShowUnreadSection)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "30")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat, "full_name")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "send_on_ctrl_enter", "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "code_block_ctrl_enter", "true")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "join_leave", "false")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "sync_drafts", "false")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "unread_scroll_position", "start_from_newest")
+	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms, "20")
 
 	// Change those preferences.
 	data = imports.UserImportData{
@@ -2556,6 +2569,44 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
 	AssertAllPostsCount(t, th.App, initialPostCount, 15, team.Id)
 
+	t.Run("Importing a post with a reply both pinned", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		replyCreate := time.Now().Add(-30 * time.Second).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  model.NewPointer("Thread Message"),
+					CreateAt: model.NewPointer(importCreate),
+					IsPinned: model.NewPointer(true),
+					Replies: &[]imports.ReplyImportData{{
+						User:     &user.Username,
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(replyCreate),
+						IsPinned: model.NewPointer(true),
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		_, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+		require.True(t, resultPosts[0].IsPinned)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+		require.True(t, resultPosts[0].IsPinned)
+	})
+
 	t.Run("Importing a post with a thread", func(t *testing.T) {
 		// Create a thread.
 		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
@@ -2714,6 +2765,76 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.ElementsMatch(t, []string{user.Id}, followers)
+	})
+
+	t.Run("Importing a post that someone flagged", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:      &teamName,
+					Channel:   &channelName,
+					User:      &user.Username,
+					Message:   model.NewPointer("Flagged Message"),
+					CreateAt:  model.NewPointer(importCreate),
+					FlaggedBy: &[]string{user.Username},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		pref, err := th.App.ch.srv.Store().Preference().GetCategoryAndName(model.PreferenceCategoryFlaggedPost, resultPosts[0].Id)
+		require.NoError(t, err)
+
+		require.Len(t, pref, 1)
+		assert.Equal(t, user.Id, pref[0].UserId)
+	})
+
+	t.Run("Importing a post that someone flagged its replies", func(t *testing.T) {
+		// Create a thread.
+		importCreate := time.Now().Add(-1 * time.Minute).UnixMilli()
+		replyCreate := time.Now().Add(-30 * time.Second).UnixMilli()
+		data = imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user.Username,
+					Message:  model.NewPointer("Flagged Message"),
+					CreateAt: model.NewPointer(importCreate),
+					Replies: &[]imports.ReplyImportData{{
+						User:      &user.Username,
+						Message:   model.NewPointer("Reply"),
+						CreateAt:  model.NewPointer(replyCreate),
+						FlaggedBy: &[]string{user2.Username},
+					}},
+				},
+			},
+			LineNumber: 1,
+		}
+
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err)
+		require.Equal(t, 0, errLine)
+
+		resultPosts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyCreate)
+		require.NoError(t, nErr)
+		require.Equal(t, 1, len(resultPosts))
+
+		pref, err := th.App.ch.srv.Store().Preference().GetCategoryAndName(model.PreferenceCategoryFlaggedPost, resultPosts[0].Id)
+		require.NoError(t, err)
+
+		require.Len(t, pref, 1)
+		assert.Equal(t, user2.Id, pref[0].UserId)
 	})
 }
 
@@ -3350,7 +3471,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 			Header: ptrStr("Channel Header"),
@@ -3371,10 +3492,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3394,13 +3515,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3420,7 +3541,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3440,10 +3561,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		})
@@ -3485,16 +3606,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 				{
-					Username: model.NewString(model.NewId()),
+					Username: model.NewPointer(model.NewId()),
 				},
 			},
 		})
@@ -3514,13 +3635,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 			},
 		})
@@ -3567,10 +3688,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		dataset := generateDataset(imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		})
@@ -3596,11 +3717,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username:     model.NewString(th.BasicUser.Username),
+					Username:     model.NewPointer(th.BasicUser.Username),
 					LastViewedAt: ptrInt64(lastView),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 		}
@@ -3626,10 +3747,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 			},
 			ShownBy: &[]string{
@@ -3658,13 +3779,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
-					Username: model.NewString(th.BasicUser.Username),
+					Username: model.NewPointer(th.BasicUser.Username),
 				},
 				{
-					Username: model.NewString(th.BasicUser2.Username),
+					Username: model.NewPointer(th.BasicUser2.Username),
 				},
 				{
-					Username: model.NewString(user3.Username),
+					Username: model.NewPointer(user3.Username),
 				},
 			},
 			ShownBy: &[]string{
@@ -3698,10 +3819,10 @@ func TestImportImportDirectPost(t *testing.T) {
 	channelData := imports.DirectChannelImportData{
 		Participants: []*imports.DirectChannelMemberImportData{
 			{
-				Username: model.NewString(th.BasicUser.Username),
+				Username: model.NewPointer(th.BasicUser.Username),
 			},
 			{
-				Username: model.NewString(th.BasicUser2.Username),
+				Username: model.NewPointer(th.BasicUser2.Username),
 			},
 		},
 	}
@@ -4161,13 +4282,13 @@ func TestImportImportDirectPost(t *testing.T) {
 	channelData = imports.DirectChannelImportData{
 		Participants: []*imports.DirectChannelMemberImportData{
 			{
-				Username: model.NewString(th.BasicUser.Username),
+				Username: model.NewPointer(th.BasicUser.Username),
 			},
 			{
-				Username: model.NewString(th.BasicUser2.Username),
+				Username: model.NewPointer(th.BasicUser2.Username),
 			},
 			{
-				Username: model.NewString(user3.Username),
+				Username: model.NewPointer(user3.Username),
 			},
 		},
 	}

@@ -194,7 +194,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "40px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}
@@ -801,7 +800,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "400px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={30}
@@ -1007,7 +1005,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         "minHeight": "40px",
       }
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}

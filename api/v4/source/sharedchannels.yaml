@@ -178,8 +178,12 @@
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Remote cluster invited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -212,8 +216,12 @@
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: Remote cluster uninvited successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
