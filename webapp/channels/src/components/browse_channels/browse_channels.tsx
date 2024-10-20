@@ -40,7 +40,6 @@ export const selectDisplaySettings = (state: GlobalState): DisplaySettings => {
         SuggestionDebounceDelay: 100,
     };
 };
-
 const displaySettings: DisplaySettings = useSelector(selectDisplaySettings);
 const SEARCH_TIMEOUT_MILLISECONDS: number = displaySettings.SuggestionDebounceDelay || 100;
 
