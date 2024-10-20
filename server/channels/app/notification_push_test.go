@@ -431,7 +431,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	userID := model.NewId()
@@ -1028,7 +1028,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 }
 
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	team := th.CreateTeam()
@@ -1084,7 +1084,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 }
 
 func TestSendPushNotifications(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
@@ -1415,7 +1415,7 @@ func TestAllPushNotifications(t *testing.T) {
 		t.Skip("skipping all push notifications test in short mode")
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// Create 10 users, each having 2 sessions.

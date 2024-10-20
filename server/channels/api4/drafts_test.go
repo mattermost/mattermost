@@ -22,7 +22,7 @@ func TestUpsertDraft(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	// set config
@@ -91,7 +91,7 @@ func TestGetDrafts(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
@@ -163,7 +163,7 @@ func TestDeleteDraft(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })

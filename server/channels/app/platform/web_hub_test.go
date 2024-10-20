@@ -59,7 +59,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 }
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
@@ -82,7 +82,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.Service.Store.Close()
 	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
 	// Making it idempotent is not really important to the server because close only happens once.
@@ -514,7 +514,7 @@ func TestReliableWebSocketSend(t *testing.T) {
 }
 
 func TestHubIsRegistered(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
@@ -549,7 +549,7 @@ func TestHubIsRegistered(t *testing.T) {
 }
 
 func TestHubWebConnCount(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
@@ -580,7 +580,7 @@ func TestHubWebConnCount(t *testing.T) {
 // Always run this with -benchtime=0.1s
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
-	th := Setup(b).InitBasic()
+	th := Setup(b).InitBasic(t)
 	defer th.TearDown()
 	connIndex := newHubConnectionIndex(1 * time.Second)
 
@@ -662,7 +662,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 var hubSink *Hub
 
 func BenchmarkGetHubForUserId(b *testing.B) {
-	th := Setup(b).InitBasic()
+	th := Setup(b).InitBasic(t)
 	defer th.TearDown()
 
 	th.Service.Start(nil)

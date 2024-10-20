@@ -225,7 +225,7 @@ func TestGetJobsByType(t *testing.T) {
 }
 
 func TestDownloadJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	th.LoginSystemManager()
 	defer th.TearDown()
 	jobName := model.NewId()

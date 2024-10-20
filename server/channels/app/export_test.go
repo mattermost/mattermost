@@ -24,7 +24,7 @@ import (
 )
 
 func TestReactionsOfPost(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -81,7 +81,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 }
 
 func TestExportUserChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -234,7 +234,7 @@ func TestExportAllUsers(t *testing.T) {
 
 func TestExportDMChannel(t *testing.T) {
 	t.Run("Export a DM channel to another server", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// DM Channel
@@ -257,7 +257,7 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		th2 := Setup(t).InitBasic()
+		th2 := Setup(t).InitBasic(t)
 		defer th2.TearDown()
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
@@ -284,7 +284,7 @@ func TestExportDMChannel(t *testing.T) {
 	})
 
 	t.Run("Invalid DM channel export", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// DM Channel
@@ -301,7 +301,7 @@ func TestExportDMChannel(t *testing.T) {
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 		require.Nil(t, err)
 
-		th2 := Setup(t).InitBasic()
+		th2 := Setup(t).InitBasic(t)
 		defer th2.TearDown()
 
 		// import the exported channel
@@ -315,7 +315,7 @@ func TestExportDMChannel(t *testing.T) {
 }
 
 func TestExportDMChannelToSelf(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 	defer th1.TearDown()
 
 	// DM Channel with self (me channel)
@@ -349,7 +349,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 }
 
 func TestExportGMChannel(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	user1 := th1.CreateUser()
 	th1.LinkUserToTeam(user1, th1.BasicTeam)
@@ -378,7 +378,7 @@ func TestExportGMChannel(t *testing.T) {
 }
 
 func TestExportGMandDMChannels(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel
 	th1.CreateDmChannel(th1.BasicUser2)
@@ -425,7 +425,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 }
 
 func TestExportDMandGMPost(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
@@ -505,7 +505,7 @@ func TestExportDMandGMPost(t *testing.T) {
 }
 
 func TestExportPostWithProps(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	attachments := []*model.SlackAttachment{{Footer: "footer"}}
 
@@ -580,7 +580,7 @@ func TestExportPostWithProps(t *testing.T) {
 }
 
 func TestExportUserCustomStatus(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	cs := &model.CustomStatus{
 		Emoji:     "palm_tree",
@@ -614,7 +614,7 @@ func TestExportUserCustomStatus(t *testing.T) {
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 
 	// DM Channel with self (me channel)
 	dmChannel := th1.CreateDmChannel(th1.BasicUser)
@@ -651,7 +651,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 }
 
 func TestExportPostsWithThread(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 	defer th1.TearDown()
 
 	assertThreadFollowers := func(t *testing.T, b *bytes.Buffer, postCreateAt int64, userNames []string) {
@@ -804,7 +804,7 @@ func TestBulkExport(t *testing.T) {
 }
 
 func TestBuildPostReplies(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
@@ -868,7 +868,7 @@ func TestBuildPostReplies(t *testing.T) {
 }
 
 func TestExportDeletedTeams(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 	defer th1.TearDown()
 
 	team1 := th1.CreateTeam()
@@ -909,7 +909,7 @@ func TestExportDeletedTeams(t *testing.T) {
 }
 
 func TestExportArchivedChannels(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t).InitBasic(t)
 	defer th1.TearDown()
 
 	archivedChannel := th1.CreateChannel(th1.Context, th1.BasicTeam)
@@ -945,7 +945,7 @@ func TestExportArchivedChannels(t *testing.T) {
 
 func TestExportRoles(t *testing.T) {
 	t.Run("defaults", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		var b bytes.Buffer
@@ -970,7 +970,7 @@ func TestExportRoles(t *testing.T) {
 	})
 
 	t.Run("modified roles", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		exportedRole, appErr := th1.App.GetRoleByName(th1.Context.Context(), model.TeamUserRoleId)
@@ -1004,7 +1004,7 @@ func TestExportRoles(t *testing.T) {
 	})
 
 	t.Run("custom roles", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		exportedRoles, appErr := th1.App.GetAllRoles()
@@ -1043,7 +1043,7 @@ func TestExportRoles(t *testing.T) {
 
 func TestExportSchemes(t *testing.T) {
 	t.Run("no schemes", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// Need to set this or working with schemes won't work until the job is
@@ -1086,7 +1086,7 @@ func TestExportSchemes(t *testing.T) {
 	})
 
 	t.Run("skip export", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// Need to set this or working with schemes won't work until the job is
@@ -1122,7 +1122,7 @@ func TestExportSchemes(t *testing.T) {
 	})
 
 	t.Run("export channel scheme", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// Need to set this or working with schemes won't work until the job is
@@ -1220,7 +1220,7 @@ func TestExportSchemes(t *testing.T) {
 	})
 
 	t.Run("export team scheme", func(t *testing.T) {
-		th1 := Setup(t).InitBasic()
+		th1 := Setup(t).InitBasic(t)
 		defer th1.TearDown()
 
 		// Need to set this or working with schemes won't work until the job is

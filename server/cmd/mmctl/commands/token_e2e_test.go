@@ -14,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	tokenDescription := model.NewRandomString(10)
 

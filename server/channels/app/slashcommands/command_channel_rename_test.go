@@ -13,7 +13,7 @@ import (
 )
 
 func TestRenameProviderDoCommand(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	th.addPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)

@@ -126,7 +126,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(t) *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()

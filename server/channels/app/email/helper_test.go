@@ -138,7 +138,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	}
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(t) *TestHelper {
 	th.BasicTeam = th.CreateTeam()
 
 	th.SystemAdminUser = th.CreateUser()

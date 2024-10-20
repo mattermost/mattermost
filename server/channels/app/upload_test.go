@@ -21,7 +21,7 @@ import (
 )
 
 func TestCreateUploadSession(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	us := &model.UploadSession{
@@ -84,7 +84,7 @@ func TestCreateUploadSession(t *testing.T) {
 }
 
 func TestUploadData(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	us := &model.UploadSession{
@@ -243,7 +243,7 @@ func TestUploadData(t *testing.T) {
 }
 
 func TestUploadDataConcurrent(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	us := &model.UploadSession{

@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("should silently prevent the user from creating a category with an invalid channel ID", func(t *testing.T) {
@@ -167,7 +167,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
@@ -454,7 +454,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 }
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {

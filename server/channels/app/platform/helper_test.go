@@ -70,7 +70,7 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	return setupTestHelper(dbStore, false, true, tb, options...)
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(t) *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateAdmin()

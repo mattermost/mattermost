@@ -16,7 +16,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListCommandCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForAllClients("List commands for a non existing team", func(c client.Client) {
 		printer.Clean()
@@ -163,7 +163,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	teamOfBasicUser, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -252,7 +252,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	// create new command
 	newCmd := &model.Command{

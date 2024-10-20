@@ -67,7 +67,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 
 func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -107,7 +107,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -148,7 +148,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -191,7 +191,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -235,7 +235,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -298,7 +298,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 }
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -340,7 +340,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -384,7 +384,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 }
 
 func TestHookMessageHasBeenUpdated(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -431,7 +431,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 }
 
 func TestHookMessageHasBeenDeleted(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -476,7 +476,7 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -520,7 +520,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -570,7 +570,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -625,7 +625,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -697,7 +697,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 }
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
@@ -735,7 +735,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
@@ -776,7 +776,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
@@ -986,7 +986,7 @@ func TestErrorString(t *testing.T) {
 }
 
 func TestHookContext(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	ctx := request.EmptyContext(th.TestLogger)
 
@@ -1209,7 +1209,7 @@ func TestHookMetrics(t *testing.T) {
 }
 
 func TestHookReactionHasBeenAdded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -1251,7 +1251,7 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 }
 
 func TestHookReactionHasBeenRemoved(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -1299,7 +1299,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 }
 
 func TestHookRunDataRetention(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1343,7 +1343,7 @@ func TestHookRunDataRetention(t *testing.T) {
 }
 
 func TestHookOnSendDailyTelemetry(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1386,7 +1386,7 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 }
 
 func TestHookOnCloudLimitsUpdated(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1463,7 +1463,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
@@ -1592,7 +1592,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "false")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
 
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		t.Cleanup(th.TearDown)
 
 		setupPlugin(t, th)
@@ -1615,7 +1615,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
 
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		t.Cleanup(th.TearDown)
 
 		setupPlugin(t, th)
@@ -1637,7 +1637,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 
 func TestHookPreferencesHaveChanged(t *testing.T) {
 	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -1705,7 +1705,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	})
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -1827,7 +1827,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 
 	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -1857,7 +1857,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	})
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -1882,7 +1882,7 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	})
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -1953,7 +1953,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		user1 := th.CreateUser()
@@ -1998,7 +1998,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		user1 := th.CreateUser()
@@ -2043,7 +2043,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -2077,7 +2077,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin
@@ -2107,7 +2107,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// Setup plugin

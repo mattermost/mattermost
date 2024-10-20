@@ -77,17 +77,13 @@ func SetMainHelper(mh *testlib.MainHelper) {
 	mainHelper = mh
 }
 
-func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
 		SqlSettings: *mainHelper.GetSQLSettings(),
@@ -117,14 +113,10 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		updateConfig(memoryConfig)
 	}
 	err = memoryStore.Set(memoryConfig)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
@@ -138,20 +130,16 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	errCfg := testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, errCfg, "failed to configure test logger")
+	errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(tb, errW, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -194,14 +182,11 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
-	if err = th.Server.Start(); err != nil {
-		panic(err)
-	}
+	err = th.Server.Start()
+	require.NoError(tb, err)
 
 	_, err = Init(th.App.Srv())
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
@@ -252,8 +237,8 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
+	th.InitLogin(tb)
 	return th
 }
 
@@ -271,8 +256,8 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
-	th.InitLogin()
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
+	th.InitLogin(tb)
 	return th
 }
 
@@ -290,9 +275,9 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
-	th.InitLogin()
+	th.InitLogin(tb)
 	return th
 }
 
@@ -310,13 +295,13 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
-	th.InitLogin()
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, updateConfig, nil)
+	th.InitLogin(tb)
 	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -330,7 +315,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -344,7 +329,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -371,8 +356,8 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
-	th.InitLogin()
+	th := setupTestHelper(tb, dbStore, searchEngine, false, true, nil, options)
+	th.InitLogin(tb)
 	return th
 }
 
@@ -390,8 +375,8 @@ func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *Test
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	th := setupTestHelper(tb, dbStore, searchEngine, true, true, nil, options)
+	th.InitLogin(tb)
 	return th
 }
 
@@ -438,32 +423,26 @@ var userCache struct {
 	BasicUser2        *model.User
 }
 
-func (th *TestHelper) InitLogin() *TestHelper {
+func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
 	th.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		if appErr != nil {
-			panic(appErr)
-		}
+		require.NoError(tb, appErr)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
 		_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
-		if appErr != nil {
-			panic(appErr)
-		}
+		require.NoError(tb, appErr)
 		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
 		_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
-		if appErr != nil {
-			panic(appErr)
-		}
+		require.NoError(tb, appErr)
 		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
@@ -484,9 +463,7 @@ func (th *TestHelper) InitLogin() *TestHelper {
 
 	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
 	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
@@ -509,7 +486,7 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
+func (th *TestHelper) InitBasic(t *testing.T) *TestHelper {
 	th.BasicTeam = th.CreateTeam()
 	th.BasicChannel = th.CreatePublicChannel()
 	th.BasicPrivateChannel = th.CreatePrivateChannel()
@@ -519,48 +496,38 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false); appErr != nil {
-		panic(appErr)
-	}
-	if _, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id); err != nil {
-		panic(err)
-	}
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
+	require.NoError(t, appErr)
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
+	require.NoError(t, appErr)
+	_, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
+	require.NoError(t, err)
+
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
 
 	return th
 }
 
-func (th *TestHelper) DeleteBots() *TestHelper {
+func (th *TestHelper) DeleteBots(t *testing.T) *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		if appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId); appErr != nil {
-			panic(appErr)
-		}
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		require.NoError(t, appErr)
 	}
 	return th
 }

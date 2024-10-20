@@ -28,7 +28,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has ineligible event, it does nothing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		mockService := NewMockSharedChannelService(nil)
@@ -43,7 +43,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has eligible event but channel does not exist, it does nothing", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		mockService := NewMockSharedChannelService(nil)
@@ -57,7 +57,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active when received eligible event, it triggers a shared channel content sync", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		mockService := NewMockSharedChannelService(nil)

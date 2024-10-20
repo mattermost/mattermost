@@ -18,7 +18,7 @@ func TestPostAcknowledgementsApp(t *testing.T) {
 }
 
 func testSaveAcknowledgementForPost(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("save acknowledgment for post should save acknowledgement", func(t *testing.T) {
@@ -60,7 +60,7 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 }
 
 func testDeleteAcknowledgementForPost(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -126,7 +126,7 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 }
 
 func testGetAcknowledgementsForPostList(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	p1, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,

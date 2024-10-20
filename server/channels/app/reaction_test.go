@@ -14,7 +14,7 @@ import (
 )
 
 func TestSaveReactionForPost(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 
 	post := th.CreatePost(th.BasicChannel)
 	reaction1, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
@@ -98,7 +98,7 @@ func TestSaveReactionForPost(t *testing.T) {
 
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	t.Run("adding a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -133,7 +133,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	})
 
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)

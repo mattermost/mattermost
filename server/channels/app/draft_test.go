@@ -21,7 +21,7 @@ func TestGetDraft(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
@@ -66,7 +66,7 @@ func TestGetDraft(t *testing.T) {
 }
 
 func TestUpsertDraft(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
@@ -129,7 +129,7 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestCreateDraft(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
@@ -187,7 +187,7 @@ func TestCreateDraft(t *testing.T) {
 }
 
 func TestUpdateDraft(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
@@ -232,7 +232,7 @@ func TestUpdateDraft(t *testing.T) {
 }
 
 func TestGetDraftsForUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)
@@ -360,7 +360,7 @@ func TestGetDraftsForUser(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Server.platform.SetConfigReadOnlyFF(false)

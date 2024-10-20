@@ -12,7 +12,7 @@ import (
 )
 
 func TestInvitePeopleProvider(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

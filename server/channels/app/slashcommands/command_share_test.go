@@ -27,7 +27,7 @@ func setupForSharedChannels(tb testing.TB) *TestHelper {
 
 func TestShareProviderDoCommand(t *testing.T) {
 	t.Run("share command sends a websocket channel updated event", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.tearDown()
 
 		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
@@ -60,7 +60,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 
 	t.Run("unshare command sends a websocket channel updated event", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.tearDown()
 
 		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
@@ -92,7 +92,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 
 	t.Run("invite remote to channel shared with us", func(t *testing.T) {
-		th := setupForSharedChannels(t).initBasic()
+		th := setupForSharedChannels(t).InitBasic(t)
 		defer th.tearDown()
 
 		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)

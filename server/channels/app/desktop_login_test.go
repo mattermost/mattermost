@@ -18,7 +18,7 @@ const (
 )
 
 func TestGenerateAndSaveDesktopToken(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("generate token", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestGenerateAndSaveDesktopToken(t *testing.T) {
 }
 
 func TestValidateDesktopToken(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	authenticatedServerToken, err := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), th.BasicUser)

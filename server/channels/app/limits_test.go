@@ -12,7 +12,7 @@ import (
 
 func TestGetServerLimits(t *testing.T) {
 	t.Run("base case", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -24,7 +24,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -46,7 +46,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on permanently deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -68,7 +68,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new user and decrease on soft deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -91,7 +91,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on soft deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -114,7 +114,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should not change on creating or deleting bots", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		serverLimits, appErr := th.App.GetServerLimits()
@@ -136,7 +136,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("limits should be empty when there is a license", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense())

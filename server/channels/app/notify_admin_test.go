@@ -18,7 +18,7 @@ const PluginIDGithub = "github"
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -28,7 +28,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("no error sending trial upgrade post when no notifications are available", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -38,7 +38,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -91,7 +91,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("successfully send trial upgrade notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -138,7 +138,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("successfully send install plugin notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// some notifications
@@ -182,7 +182,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("persist notify admin data after sending the install plugin notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		// some notifications
@@ -230,7 +230,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("error sending more than one notification to the same user and for the same plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		err := th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
@@ -251,7 +251,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("error when trying to send upgrade post before end of cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -282,7 +282,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("can send upgrade post at the end of cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -317,7 +317,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("can filter notifications when plan changes within cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -372,7 +372,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("correctly send upgrade and install plugin post with the correct user request", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0")

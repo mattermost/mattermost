@@ -195,7 +195,7 @@ func TestDeletePersistentNotification(t *testing.T) {
 }
 
 func TestSendPersistentNotifications(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)

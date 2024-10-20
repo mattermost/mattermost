@@ -35,7 +35,7 @@ func TestCondenseSiteURL(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
 
@@ -249,7 +249,7 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
 

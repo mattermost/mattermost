@@ -36,7 +36,7 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 }
 
 func TestCreateBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("create a channel bookmark", func(t *testing.T) {
@@ -77,7 +77,7 @@ func TestCreateBookmark(t *testing.T) {
 }
 
 func TestUpdateBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	var updateBookmark *model.ChannelBookmarkWithFileInfo
@@ -209,7 +209,7 @@ func TestUpdateBookmark(t *testing.T) {
 }
 
 func TestDeleteBookmark(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("delete a channel bookmark", func(t *testing.T) {
@@ -234,7 +234,7 @@ func TestDeleteBookmark(t *testing.T) {
 }
 
 func TestGetChannelBookmarks(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
@@ -310,7 +310,7 @@ func TestGetChannelBookmarks(t *testing.T) {
 }
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	channelId := th.BasicChannel.Id

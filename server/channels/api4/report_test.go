@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetUsersForReporting(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	client := th.Client
 

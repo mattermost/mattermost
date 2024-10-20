@@ -17,7 +17,7 @@ import (
 )
 
 func TestCustomStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -111,7 +111,7 @@ func TestCustomStatusErrors(t *testing.T) {
 }
 
 func TestSetCustomStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

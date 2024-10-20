@@ -12,7 +12,7 @@ import (
 )
 
 func TestProcessMessageAttachments(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	post := &model.Post{

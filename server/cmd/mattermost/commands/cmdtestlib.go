@@ -87,8 +87,8 @@ func SetupWithStoreMock(t testing.TB) *testHelper {
 }
 
 // InitBasic simply proxies to api4.InitBasic, while still returning a testHelper.
-func (h *testHelper) InitBasic() *testHelper {
-	h.TestHelper.InitBasic()
+func (h *testHelper) InitBasic(t) *testHelper {
+	h.TestHelper.InitBasic(t)
 	return h
 }
 

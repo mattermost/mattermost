@@ -14,7 +14,7 @@ import (
 )
 
 func TestInviteProvider(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	inviteProvider := InviteProvider{}
@@ -210,7 +210,7 @@ func TestInviteProvider(t *testing.T) {
 }
 
 func TestInviteGroup(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	th.BasicTeam.GroupConstrained = model.NewPointer(true)
@@ -266,7 +266,7 @@ func TestInviteGroup(t *testing.T) {
 }
 
 func TestUserGroups(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)

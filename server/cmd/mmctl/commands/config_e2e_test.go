@@ -14,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("System admin and local reset", func(c client.Client) {
 		printer.Clean()
@@ -43,7 +43,7 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
 	s.Require().Nil(err)
@@ -89,7 +89,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	var driver string
 	if d := s.th.App.Config().SqlSettings.DriverName; d != nil {
@@ -129,7 +129,7 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("Set config value for a given key", func(c client.Client) {
 		printer.Clean()
@@ -166,7 +166,7 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("Edit a key in config", func(c client.Client) {
 		printer.Clean()
@@ -212,7 +212,7 @@ rm $1'old'`
 }
 
 func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("Show server configs", func(c client.Client) {
 		printer.Clean()

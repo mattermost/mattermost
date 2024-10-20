@@ -69,7 +69,7 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	post := &model.Post{
@@ -89,7 +89,7 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestExecuteCommand(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
@@ -137,7 +137,7 @@ func TestExecuteCommand(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	command := &model.Command{}
@@ -292,7 +292,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 }
 
 func TestHandleCommandResponse(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	command := &model.Command{}
@@ -509,7 +509,7 @@ func TestDoCommandRequest(t *testing.T) {
 }
 
 func TestMentionsToTeamMembers(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	otherTeam := th.createTeam()
@@ -595,7 +595,7 @@ func TestMentionsToTeamMembers(t *testing.T) {
 }
 
 func TestMentionsToPublicChannels(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	otherPublicChannel := th.CreateChannel(th.BasicTeam)

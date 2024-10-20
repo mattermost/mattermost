@@ -246,7 +246,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 
 // TestWebConnSessionRace guards against https://mattermost.atlassian.net/browse/MM-60307. It need to be run with the -race flag.
 func TestWebConnSessionRace(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	t.Cleanup(th.TearDown)
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))

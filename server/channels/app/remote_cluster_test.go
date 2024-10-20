@@ -18,7 +18,7 @@ func setupRemoteCluster(tb testing.TB) *TestHelper {
 }
 
 func TestAddRemoteCluster(t *testing.T) {
-	th := setupRemoteCluster(t).InitBasic()
+	th := setupRemoteCluster(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("adding remote cluster with duplicate site url", func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestAddRemoteCluster(t *testing.T) {
 }
 
 func TestUpdateRemoteCluster(t *testing.T) {
-	th := setupRemoteCluster(t).InitBasic()
+	th := setupRemoteCluster(t).InitBasic(t)
 	defer th.TearDown()
 
 	t.Run("update remote cluster with an already existing site url", func(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 )
 
 func TestMsgProvider(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	team := th.createTeam()

@@ -30,7 +30,7 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 }
 
 func TestWebSocketEvent(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -99,7 +99,7 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.Client
@@ -204,7 +204,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 }
 
 func TestWebSocketReconnectRace(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -238,7 +238,7 @@ func TestWebSocketReconnectRace(t *testing.T) {
 }
 
 func TestWebSocketSendBinary(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.CreateClient()
@@ -279,7 +279,7 @@ func TestWebSocketSendBinary(t *testing.T) {
 }
 
 func TestWebSocketStatuses(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	client := th.Client
@@ -420,7 +420,7 @@ func TestWebSocketStatuses(t *testing.T) {
 }
 
 func TestWebSocketPresence(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	wsClient, err := th.CreateWebSocketClient()

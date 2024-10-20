@@ -19,7 +19,7 @@ import (
 // because the websocket client is known to be racy and needs a big overhaul
 // to fix everything.
 func TestWebSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)

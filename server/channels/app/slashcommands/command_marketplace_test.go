@@ -12,7 +12,7 @@ import (
 )
 
 func TestMarketplaceProviderGetCommand(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t).InitBasic(t)
 	defer th.tearDown()
 
 	mp := MarketplaceProvider{}

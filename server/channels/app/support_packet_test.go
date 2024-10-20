@@ -44,7 +44,7 @@ func TestCreatePluginsFile(t *testing.T) {
 }
 
 func TestGenerateSupportPacketYaml(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	licenseUsers := 100
@@ -106,13 +106,13 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, false, packet.LicenseIsTrial)
 
 		/* Server stats */
-		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic()
+		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic(t)
 		assert.Equal(t, 0, packet.DailyActiveUsers)
 		assert.Equal(t, 0, packet.MonthlyActiveUsers)
 		assert.Equal(t, 0, packet.InactiveUserCount)
-		assert.Equal(t, 5, packet.TotalPosts)    // from InitBasic()
-		assert.Equal(t, 3, packet.TotalChannels) // from InitBasic()
-		assert.Equal(t, 1, packet.TotalTeams)    // from InitBasic()
+		assert.Equal(t, 5, packet.TotalPosts)    // from InitBasic(t)
+		assert.Equal(t, 3, packet.TotalChannels) // from InitBasic(t)
+		assert.Equal(t, 1, packet.TotalTeams)    // from InitBasic(t)
 
 		/* Jobs */
 		assert.Empty(t, packet.DataRetentionJobs)
@@ -134,7 +134,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 			require.NotNil(t, p)
 		}
 
-		// InitBasic() already creats 5 posts
+		// InitBasic(t) already creats 5 posts
 		packet := generateSupportPacket(t)
 		assert.Equal(t, 10, packet.TotalPosts)
 	})

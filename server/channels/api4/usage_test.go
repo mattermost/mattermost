@@ -28,7 +28,7 @@ func TestGetPostsUsage(t *testing.T) {
 	})
 
 	t.Run("good request returns response", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 
 		for i := 0; i < 14; i++ {
@@ -81,7 +81,7 @@ func TestGetTeamsUsage(t *testing.T) {
 
 	t.Run("good request returns response", func(t *testing.T) {
 		// Following calls create a total of 3 teams
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 		defer th.TearDown()
 		th.CreateTeam()
 		th.CreateTeam()

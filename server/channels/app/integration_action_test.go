@@ -22,7 +22,7 @@ import (
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -72,7 +72,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 }
 
 func TestPostActionEmptyResponse(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -195,7 +195,7 @@ func TestPostAction(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t).InitBasic(t)
 			defer th.TearDown()
 
 			channel := testCase.Channel(th)
@@ -459,7 +459,7 @@ func TestPostAction(t *testing.T) {
 }
 
 func TestPostActionProps(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -543,7 +543,7 @@ func TestPostActionProps(t *testing.T) {
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -663,7 +663,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -876,7 +876,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 }
 
 func TestPostActionRelativePluginURL(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	defer th.TearDown()
 
 	setupPluginAPITest(t,

@@ -17,7 +17,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -67,7 +67,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -117,7 +117,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForAllClients("Search for an existing user", func(c client.Client) {
 		printer.Clean()
@@ -143,7 +143,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestListUserCmd() {
-	s.SetupTestHelper().InitBasic().DeleteBots()
+	s.SetupTestHelper().InitBasic(t).DeleteBots(t)
 
 	// populate map for checking
 	userPool := []string{
@@ -299,7 +299,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForAllClients("Invite user", func(c client.Client) {
 		printer.Clean()
@@ -368,7 +368,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 }
 
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
@@ -434,7 +434,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -481,7 +481,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForAllClients("Should not create a user w/o username", func(c client.Client) {
 		printer.Clean()
@@ -606,7 +606,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("admin and local user can change user email", func(c client.Client) {
 		printer.Clean()
@@ -645,7 +645,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("admin and local user can change user name", func(c client.Client) {
 		printer.Clean()
@@ -695,7 +695,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForSystemAdminAndLocal("Delete user", func(c client.Client) {
 		printer.Clean()
@@ -826,7 +826,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.RunForAllClients("Error when no flag provided", func(c client.Client) {
 		printer.Clean()
@@ -920,7 +920,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
@@ -1000,7 +1000,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -1032,7 +1032,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(t)
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -1062,7 +1062,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(t)
 	configForLdap(s.th)
 
 	s.Require().NoError(s.th.App.Srv().Jobs.StartWorkers()) // we need to start workers do actual sync
@@ -1171,7 +1171,7 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
@@ -1262,7 +1262,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
@@ -1323,7 +1323,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
@@ -1500,7 +1500,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(t)
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
