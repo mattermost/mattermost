@@ -5,10 +5,11 @@ import classNames from 'classnames';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { FormattedMessage } from 'react-intl';
-import { DisplaySettings } from "@mattermost/types/config";
 
 import { GenericModal } from '@mattermost/components';
 import type { Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount } from '@mattermost/types/channels';
+import { DisplaySettings } from "@mattermost/types/config";
+import { GlobalState } from '@mattermost/types/store';
 import type { RelationOneToOne } from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -28,18 +29,9 @@ import type { ModalData } from 'types/actions';
 import type { RhsState } from 'types/store/rhs';
 
 import './browse_channels.scss';
-import { GlobalState } from '@mattermost/types/store';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
-
-
-
-// const displaySettings: DisplaySettings = {
-//     CustomURLSchemes: config.displaySettings.CustomURLSchemes || [],
-//     MaxMarkdownNodes: config.displaySettings.MaxMarkdownNodes || 0,
-//     SuggestionDebounceDelay: config.displaySettings.SuggestionDebounceDelay || 100,
-// }
 
 export const selectDisplaySettings = (state: GlobalState): DisplaySettings => {
     return state.entities.general.config?.DisplaySettings || {
