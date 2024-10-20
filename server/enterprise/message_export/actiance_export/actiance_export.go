@@ -83,7 +83,7 @@ type PostExport struct {
 
 	// Allows us to differentiate between:
 	// - "EditedOriginalMsg": the newly created message (new Id), which holds the pre-edited message contents. The
-	//    "EditedOriginalMsg" will point to the EditedNewMsg with the "EditedNewMsgId" field
+	//    "EditedNewMsgId" field will point to the message (original Id) which has the post-edited message content.
 	// - "EditedNewMsg": the post-edited message content. This is confusing, so be careful: in the db, this EditedNewMsg
 	//    is actually the original messageId because we wanted an edited message to have the same messageId as the
 	//    pre-edited message. But for the purposes of exporting and to keep the mental model clear for end-users, we are
@@ -91,6 +91,8 @@ type PostExport struct {
 	//    and that's what's important to the end-user viewing the export.
 	//  - "UpdatedNoMsgChange": the message content hasn't changed, but the post was updated for some reason (reaction,
 	//	  replied-to, a reply was edited, a reply was deleted (as of 10.2), perhaps other reasons)
+	//  - "Deleted": the message was deleted.
+	//  - "FileDeleted": this message is recording that a file was deleted.
 	UpdatedType shared.PostUpdatedType `xml:"UpdatedType,omitempty"`
 	UpdateAt    int64                  `xml:"UpdatedDateTimeUTC,omitempty"` // if this is an updated post, this is the updated time (same as deleted time for deleted posts).
 

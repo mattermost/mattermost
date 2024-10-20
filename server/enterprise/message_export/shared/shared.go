@@ -197,7 +197,7 @@ func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data
 		data.TotalPostsExpected = int(count)
 	}
 
-	rctx.Logger().Debug("Expecting to export total posts", mlog.Int("total_posts", data.TotalPostsExpected))
+	rctx.Logger().Info("Expecting to export total posts", mlog.Int("total_posts", data.TotalPostsExpected))
 
 	// For Actiance: Every time we claim the job, we need to gather the membership data that every batch will use.
 	// If we're here, then either this is the start of the job, or the job was stopped (e.g., the worker stopped)
