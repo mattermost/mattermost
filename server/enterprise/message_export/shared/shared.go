@@ -23,6 +23,16 @@ const (
 	EstimatedPostCount = 10_000_000
 )
 
+type PostUpdatedType string
+
+const (
+	EditedOriginalMsg  PostUpdatedType = "EditedOriginalMsg"
+	EditedNewMsg       PostUpdatedType = "EditedNewMsg"
+	UpdatedNoMsgChange PostUpdatedType = "UpdatedNoMsgChange"
+	Deleted            PostUpdatedType = "Deleted"
+	FileDeleted        PostUpdatedType = "FileDeleted"
+)
+
 // JobData keeps the current state of the job.
 type JobData struct {
 	// If used by a worker, this section is saved in the job.Data field.
@@ -72,12 +82,14 @@ type WriteExportResult struct {
 }
 
 type RunExportResults struct {
-	CreatedPosts      int
-	UpdatedPosts      int
-	DeletedPosts      int
-	IgnoredPosts      int
-	NumChannels       int
-	ProcessingPostsMs int64
+	CreatedPosts       int
+	EditedOrigMsgPosts int
+	EditedNewMsgPosts  int
+	UpdatedPosts       int
+	DeletedPosts       int
+	IgnoredPosts       int
+	NumChannels        int
+	ProcessingPostsMs  int64
 	WriteExportResult
 }
 
