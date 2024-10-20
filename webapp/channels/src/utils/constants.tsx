@@ -661,6 +661,7 @@ export const SocketEvents = {
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
     SCHEDULED_POST_CREATED: 'scheduled_post_created',
+    SCHEDULED_POST_UPDATED: 'scheduled_post_updated',
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
 };

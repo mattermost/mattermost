@@ -69,7 +69,7 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 	return scheduledPosts, nil
 }
 
-func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreUpdate()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
@@ -98,7 +98,15 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
 	}
 
-	// TODO: add WebSocket event broadcast here. This will be done in a later PR
+	message := model.NewWebSocketEvent(model.WebsocketScheduledPostUpdated, "", scheduledPost.ChannelId, scheduledPost.UserId, nil, connectionId)
+	scheduledPostJSON, jsonErr := json.Marshal(scheduledPost)
+	// in case of websocket events do not break the flow, only log the error
+	if jsonErr != nil {
+		rctx.Logger().Warn("App.ScheduledPost - Failed to Marshal", mlog.Err(jsonErr))
+	} else {
+		message.Add("scheduledPost", string(scheduledPostJSON))
+		a.Publish(message)
+	}
 
 	return scheduledPost, nil
 }

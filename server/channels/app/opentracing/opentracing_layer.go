@@ -18801,7 +18801,7 @@ func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateScheduledPost")
 
@@ -18813,7 +18813,7 @@ func (a *OpenTracingAppLayer) UpdateScheduledPost(rctx request.CTX, userId strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateScheduledPost(rctx, userId, scheduledPost)
+	resultVar0, resultVar1 := a.app.UpdateScheduledPost(rctx, userId, scheduledPost, connectionId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

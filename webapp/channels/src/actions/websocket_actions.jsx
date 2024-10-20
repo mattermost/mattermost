@@ -611,7 +611,10 @@ export function handleEvent(msg) {
         dispatch(handleDeleteDraftEvent(msg));
         break;
     case SocketEvents.SCHEDULED_POST_CREATED:
-        dispatch(handleUpsertScheduledPostEvent(msg));
+        dispatch(handleCreateScheduledPostEvent(msg));
+        break;
+    case SocketEvents.SCHEDULED_POST_UPDATED:
+        dispatch(handleUpdateScheduledPostEvent(msg));
         break;
     case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
         dispatch(handlePersistentNotification(msg));
@@ -1752,7 +1755,7 @@ function handleUpsertDraftEvent(msg) {
     };
 }
 
-function handleUpsertScheduledPostEvent(msg) {
+function handleCreateScheduledPostEvent(msg) {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost);
         const state = getState();
@@ -1763,6 +1766,19 @@ function handleUpsertScheduledPostEvent(msg) {
             data: {
                 scheduledPost,
                 teamId,
+            },
+        });
+    };
+}
+
+function handleUpdateScheduledPostEvent(msg) {
+    return async (doDispatch) => {
+        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+
+        doDispatch({
+            type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
+            data: {
+                scheduledPost,
             },
         });
     };
