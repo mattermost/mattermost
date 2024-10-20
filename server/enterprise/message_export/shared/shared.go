@@ -41,6 +41,7 @@ type JobData struct {
 	BatchStartTime          int64
 	BatchStartId            string
 	ExportPeriodStartTime   int64
+	JobStartTime            int64
 	JobEndTime              int64
 	JobStartId              string
 	BatchSize               int

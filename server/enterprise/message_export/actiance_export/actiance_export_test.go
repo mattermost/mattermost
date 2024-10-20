@@ -240,6 +240,13 @@ func TestActianceExport(t *testing.T) {
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <Content>message2</Content>\n",
+				"    </Message>\n",
+				"    <Message>\n",
+				"      <MessageId>post-id2</MessageId>\n",
+				"      <LoginName>test@test.com</LoginName>\n",
+				"      <UserType>user</UserType>\n",
+				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <UpdatedType>Deleted</UpdatedType>\n",
 				"      <UpdatedDateTimeUTC>4</UpdatedDateTimeUTC>\n",
 				"      <Content>delete message2</Content>\n",
@@ -712,6 +719,13 @@ func TestActianceExport(t *testing.T) {
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <Content>message</Content>\n",
+				"    </Message>\n",
+				"    <Message>\n",
+				"      <MessageId>post-id3</MessageId>\n",
+				"      <LoginName>test@test.com</LoginName>\n",
+				"      <UserType>user</UserType>\n",
+				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <UpdatedType>Deleted</UpdatedType>\n",
 				"      <UpdatedDateTimeUTC>4</UpdatedDateTimeUTC>\n",
 				"      <Content>delete message</Content>\n",
@@ -921,8 +935,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 			posts: [][]*model.MessageExport{
 				{
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id1"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -939,7 +952,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 						PostFileIds:        []string{},
 					},
 					{
-						PostId:             model.NewPointer("post-id"),
+						PostId:             model.NewPointer("post-id2"),
 						PostOriginalId:     model.NewPointer("post-original-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
@@ -960,8 +973,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 				},
 				{
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id3"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -980,8 +992,7 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 						PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
 					},
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id4"),
 						PostRootId:         model.NewPointer("post-root-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
@@ -1026,14 +1037,14 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					"      <CorporateEmailID>testA@email</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
+					"      <MessageId>post-id1</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message</Content>\n",
 					"    </Message>\n",
 					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
+					"      <MessageId>post-id2</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
@@ -1107,17 +1118,23 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					"      <CorporateEmailID>test4@email</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
+					"      <MessageId>post-id3</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
-					"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
-					"      <UpdatedDateTimeUTC>5</UpdatedDateTimeUTC>\n",
-					"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
 					"      <Content>message2</Content>\n",
 					"    </Message>\n",
 					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
+					"      <MessageId>post-id3</MessageId>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>Deleted</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>5</UpdatedDateTimeUTC>\n",
+					"      <Content>delete message2</Content>\n",
+					"    </Message>\n",
+					"    <Message>\n",
+					"      <MessageId>post-id4</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>100</DateTimeUTC>\n",
@@ -1270,390 +1287,6 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					assert.NoError(t, err)
 				})
 			}
-		})
-	}
-}
-
-func TestMultipleActianceExport(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
-		assert.NoError(t, err)
-	})
-
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
-
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
-
-	rctx := request.TestContext(t)
-	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
-
-	chanTypeDirect := model.ChannelTypeDirect
-	multActianceExportTests := []struct {
-		name          string
-		jobEndTime    int64
-		activity      []string
-		channels      model.ChannelList
-		cmhs          map[string][]*model.ChannelMemberHistoryResult
-		posts         map[string][]*model.MessageExport
-		attachments   map[string][]*model.FileInfo
-		expectedData  map[string]string
-		expectedFiles int
-	}{
-		{
-			name:       "post,export,delete,export",
-			jobEndTime: 500,
-			activity:   []string{"channel-id"},
-			channels: model.ChannelList{{
-				TeamId:      "team-id",
-				Id:          "channel-id",
-				Name:        "channel-name",
-				DisplayName: "channel-display-name",
-				Type:        model.ChannelTypeDirect,
-			}},
-			cmhs: map[string][]*model.ChannelMemberHistoryResult{
-				"channel-id": {
-					{JoinTime: 0, ChannelId: "channel-id", UserId: "user-id", UserEmail: "test@test.com", Username: "username", LeaveTime: model.NewPointer(int64(400))},
-				},
-			},
-			posts: map[string][]*model.MessageExport{
-				"step1": {
-					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
-						TeamId:             model.NewPointer("team-id"),
-						TeamName:           model.NewPointer("team-name"),
-						TeamDisplayName:    model.NewPointer("team-display-name"),
-						ChannelId:          model.NewPointer("channel-id"),
-						ChannelName:        model.NewPointer("channel-name"),
-						ChannelDisplayName: model.NewPointer("channel-display-name"),
-						PostCreateAt:       model.NewPointer(int64(1)),
-						PostUpdateAt:       model.NewPointer(int64(1)),
-						PostMessage:        model.NewPointer("message"),
-						UserEmail:          model.NewPointer("test@test.com"),
-						UserId:             model.NewPointer("user-id"),
-						Username:           model.NewPointer("username"),
-						ChannelType:        &chanTypeDirect,
-						PostFileIds:        []string{},
-					},
-				},
-				"step2": {
-					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
-						TeamId:             model.NewPointer("team-id"),
-						TeamName:           model.NewPointer("team-name"),
-						TeamDisplayName:    model.NewPointer("team-display-name"),
-						ChannelId:          model.NewPointer("channel-id"),
-						ChannelName:        model.NewPointer("channel-name"),
-						ChannelDisplayName: model.NewPointer("channel-display-name"),
-						PostCreateAt:       model.NewPointer(int64(1)),
-						PostUpdateAt:       model.NewPointer(int64(2)),
-						PostDeleteAt:       model.NewPointer(int64(2)),
-						PostMessage:        model.NewPointer("message"),
-						UserEmail:          model.NewPointer("test@test.com"),
-						UserId:             model.NewPointer("user-id"),
-						Username:           model.NewPointer("username"),
-						ChannelType:        &chanTypeDirect,
-						PostFileIds:        []string{},
-						PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
-					},
-				},
-			},
-			expectedData: map[string]string{
-				"step1": strings.Join([]string{
-					xml.Header,
-					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
-					"  <Conversation Perspective=\"channel-display-name\">\n",
-					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
-					"    <StartTimeUTC>1</StartTimeUTC>\n",
-					"    <ParticipantEntered>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>0</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantEntered>\n",
-					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>1</DateTimeUTC>\n",
-					"      <Content>message</Content>\n",
-					"    </Message>\n",
-					"    <ParticipantLeft>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>400</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantLeft>\n",
-					"    <EndTimeUTC>500</EndTimeUTC>\n",
-					"  </Conversation>\n",
-					"</FileDump>",
-				}, ""),
-				"step2": strings.Join([]string{
-					xml.Header,
-					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
-					"  <Conversation Perspective=\"channel-display-name\">\n",
-					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
-					"    <StartTimeUTC>1</StartTimeUTC>\n",
-					"    <ParticipantEntered>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>0</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantEntered>\n",
-					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>1</DateTimeUTC>\n",
-					"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
-					"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
-					"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
-					"      <Content>message</Content>\n",
-					"    </Message>\n",
-					"    <ParticipantLeft>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>400</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantLeft>\n",
-					"    <EndTimeUTC>500</EndTimeUTC>\n",
-					"  </Conversation>\n",
-					"</FileDump>",
-				}, ""),
-			},
-			expectedFiles: 2,
-		},
-		{
-			name:       "post,export,edit,export",
-			jobEndTime: 600,
-			cmhs: map[string][]*model.ChannelMemberHistoryResult{
-				"channel-id": {
-					{JoinTime: 0, ChannelId: "channel-id", UserId: "user-id", UserEmail: "test@test.com", Username: "username", LeaveTime: model.NewPointer(int64(450))},
-				},
-			},
-			activity: []string{"channel-id"},
-			channels: model.ChannelList{{
-				TeamId:      "team-id",
-				Id:          "channel-id",
-				Name:        "channel-name",
-				DisplayName: "channel-display-name",
-				Type:        model.ChannelTypeDirect,
-			}},
-			posts: map[string][]*model.MessageExport{
-				"step1": {
-					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
-						TeamId:             model.NewPointer("team-id"),
-						TeamName:           model.NewPointer("team-name"),
-						TeamDisplayName:    model.NewPointer("team-display-name"),
-						ChannelId:          model.NewPointer("channel-id"),
-						ChannelName:        model.NewPointer("channel-name"),
-						ChannelDisplayName: model.NewPointer("channel-display-name"),
-						PostCreateAt:       model.NewPointer(int64(1)),
-						PostUpdateAt:       model.NewPointer(int64(1)),
-						PostMessage:        model.NewPointer("message"),
-						UserEmail:          model.NewPointer("test@test.com"),
-						UserId:             model.NewPointer("user-id"),
-						Username:           model.NewPointer("username"),
-						ChannelType:        &chanTypeDirect,
-						PostFileIds:        []string{},
-					},
-				},
-				"step2": {
-					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
-						TeamId:             model.NewPointer("team-id"),
-						TeamName:           model.NewPointer("team-name"),
-						TeamDisplayName:    model.NewPointer("team-display-name"),
-						ChannelId:          model.NewPointer("channel-id"),
-						ChannelName:        model.NewPointer("channel-name"),
-						ChannelDisplayName: model.NewPointer("channel-display-name"),
-						PostCreateAt:       model.NewPointer(int64(1)),
-						PostUpdateAt:       model.NewPointer(int64(2)),
-						PostDeleteAt:       model.NewPointer(int64(2)),
-						PostMessage:        model.NewPointer("edit message"),
-						UserEmail:          model.NewPointer("test@test.com"),
-						UserId:             model.NewPointer("user-id"),
-						Username:           model.NewPointer("username"),
-						ChannelType:        &chanTypeDirect,
-						PostFileIds:        []string{},
-					},
-				},
-			},
-			expectedData: map[string]string{
-				"step1": strings.Join([]string{
-					xml.Header,
-					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
-					"  <Conversation Perspective=\"channel-display-name\">\n",
-					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
-					"    <StartTimeUTC>1</StartTimeUTC>\n",
-					"    <ParticipantEntered>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>0</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantEntered>\n",
-					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>1</DateTimeUTC>\n",
-					"      <Content>message</Content>\n",
-					"    </Message>\n",
-					"    <ParticipantLeft>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>450</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantLeft>\n",
-					"    <EndTimeUTC>600</EndTimeUTC>\n",
-					"  </Conversation>\n",
-					"</FileDump>",
-				}, ""),
-				"step2": strings.Join([]string{
-					xml.Header,
-					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
-					"  <Conversation Perspective=\"channel-display-name\">\n",
-					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
-					"    <StartTimeUTC>1</StartTimeUTC>\n",
-					"    <ParticipantEntered>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>0</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantEntered>\n",
-					"    <Message>\n",
-					"      <MessageId>post-id</MessageId>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>1</DateTimeUTC>\n",
-					"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
-					"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
-					"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
-					"      <Content>edit message</Content>\n",
-					"    </Message>\n",
-					"    <ParticipantLeft>\n",
-					"      <LoginName>test@test.com</LoginName>\n",
-					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>450</DateTimeUTC>\n",
-					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
-					"    </ParticipantLeft>\n",
-					"    <EndTimeUTC>600</EndTimeUTC>\n",
-					"  </Conversation>\n",
-					"</FileDump>",
-				}, ""),
-			},
-			expectedFiles: 2,
-		},
-	}
-
-	for _, tt := range multActianceExportTests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockStore := &storetest.Store{}
-			defer mockStore.AssertExpectations(t)
-
-			if len(tt.cmhs) > 0 {
-				for channelId, cmhs := range tt.cmhs {
-					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), tt.jobEndTime, []string{channelId}).
-						Return(cmhs, nil)
-				}
-			}
-
-			if tt.activity != nil {
-				mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
-					Return(tt.activity, nil)
-			}
-
-			if tt.channels != nil {
-				mockStore.ChannelStore.On("GetMany", tt.activity, true).
-					Return(tt.channels, nil)
-			}
-
-			myMockReporter := MyReporter{}
-			defer myMockReporter.AssertExpectations(t)
-			if len(tt.activity) > 0 {
-				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.channel_message")
-			}
-			if len(tt.cmhs) > 0 {
-				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.activity_message")
-			}
-
-			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
-				shared.ChannelExportsParams{
-					Store:                   shared.NewMessageExportStore(mockStore),
-					ExportPeriodStartTime:   1,
-					ExportPeriodEndTime:     tt.jobEndTime,
-					ChannelBatchSize:        100,
-					ChannelHistoryBatchSize: 100,
-					ReportProgressMessage:   myMockReporter.ReportProgressMessage,
-				})
-			assert.NoError(t, err)
-
-			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			res, err := ActianceExport(rctx, Params{
-				ChannelMetadata:        channelMetadata,
-				Posts:                  tt.posts["step1"],
-				ChannelMemberHistories: channelMemberHistories,
-				BatchPath:              exportFileName,
-				BatchStartTime:         1,
-				BatchEndTime:           tt.jobEndTime,
-				Db:                     shared.NewMessageExportStore(mockStore),
-				FileBackend:            fileBackend,
-			})
-
-			assert.NoError(t, err)
-			assert.Equal(t, 0, res.NumWarnings)
-
-			zipBytes, err := fileBackend.ReadFile(exportFileName)
-			assert.NoError(t, err)
-			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-			assert.NoError(t, err)
-			actiancexml, err := zipReader.File[0].Open()
-			require.NoError(t, err)
-			defer actiancexml.Close()
-			xmlData, err := io.ReadAll(actiancexml)
-			assert.NoError(t, err)
-
-			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
-
-			res, err = ActianceExport(rctx, Params{
-				ChannelMetadata:        channelMetadata,
-				Posts:                  tt.posts["step2"],
-				ChannelMemberHistories: channelMemberHistories,
-				BatchPath:              exportFileName,
-				BatchStartTime:         1,
-				BatchEndTime:           tt.jobEndTime,
-				Db:                     shared.NewMessageExportStore(mockStore),
-				FileBackend:            fileBackend,
-			})
-			assert.NoError(t, err)
-			assert.Equal(t, 0, res.NumWarnings)
-
-			zipBytes, err = fileBackend.ReadFile(exportFileName)
-			assert.NoError(t, err)
-			zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-			assert.NoError(t, err)
-			actiancexml, err = zipReader.File[0].Open()
-			require.NoError(t, err)
-			defer actiancexml.Close()
-			xmlData, err = io.ReadAll(actiancexml)
-			assert.NoError(t, err)
-
-			assert.Equal(t, tt.expectedData["step2"], string(xmlData))
-
-			t.Cleanup(func() {
-				err = fileBackend.RemoveFile(exportFileName)
-				assert.NoError(t, err)
-			})
 		})
 	}
 }
@@ -2199,7 +1832,7 @@ func Test_wasPostEdited(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, wasPostEdited(tt.posts, tt.i), "wasPostEdited(%v, %v)", tt.posts, tt.i)
+			assert.Equalf(t, tt.want, isEditedNewPost(tt.posts, tt.i), "isEditedNewPost(%v, %v)", tt.posts, tt.i)
 		})
 	}
 }
@@ -2225,12 +1858,12 @@ func Test_getPostExport(t *testing.T) {
 
 		var posts []*model.Post
 
-		// 0 - post edited with 3 simultaneous posts inbetween - forward
+		// 0 - post edited with 3 simultaneous posts in-between - forward
 		// original post with edited message
 		originalPost, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
-			Message:   fmt.Sprint("message 0"),
+			Message:   "message 0",
 		})
 		require.NoError(t, err)
 		require.NotEqual(t, 0, originalPost.UpdateAt, "originalPost's updateAt was zero, test 1")
@@ -2246,7 +1879,7 @@ func Test_getPostExport(t *testing.T) {
 			UpdateAt:  originalPost.UpdateAt,
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
-			Message:   fmt.Sprint("edited message 0"),
+			Message:   "edited message 0",
 		}, originalPost)
 		require.NoError(t, err)
 		require.NotEqual(t, 0, originalPost.UpdateAt, "originalPost's updateAt was zero, test 2")

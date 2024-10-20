@@ -6,6 +6,7 @@ package actiance_export
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -123,6 +124,7 @@ type Params struct {
 	ChannelMetadata        map[string]*shared.MetadataChannel
 	Posts                  []*model.MessageExport
 	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
+	JobStartTime           int64
 	BatchPath              string
 	BatchStartTime         int64
 	BatchEndTime           int64
@@ -157,6 +159,13 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
+		// Was the post deleted (not an edited post), and originally posted during the current job window?
+		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
+		// before now because of the way we export posts (by updateAt).
+		if isDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
+			results.CreatedPosts++
+			elementsByChannel[channelId] = append(elementsByChannel[channelId], createdPostToExportEntry(post))
+		}
 		var postExport PostExport
 		postExport, results = getPostExport(p.Posts, i, results)
 		elementsByChannel[channelId] = append(elementsByChannel[channelId], postExport)
@@ -235,35 +244,52 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 	//  - a root post in a thread is replied to, when a reply is edited, or (as of 10.2) when a reply is deleted
 
 	post := posts[i]
-	if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostOriginalId != nil && *post.PostOriginalId != "" {
+	if isEditedOriginalMsg(post) {
 		// Post has been edited. This is the original message.
 		results.EditedOrigMsgPosts++
 		return editedOriginalMsgToExportEntry(post), results
-	} else if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
+	} else if isDeletedMsg(post) {
 		// Post is deleted
 		results.DeletedPosts++
 		return deletedPostToExportEntry(post, "delete "+*post.PostMessage), results
 	} else if *post.PostUpdateAt > *post.PostCreateAt {
 		// Post has been updated. But what kind?
-		if wasPostEdited(posts, i) {
+		if isEditedNewPost(posts, i) {
 			// This is an edited post.
 			results.EditedNewMsgPosts++
 			return editedNewMsgToExportEntry(post), results
-		} else {
-			// This is just an updated post (e.g. reaction)
-			results.UpdatedPosts++
-			return updatedPostToExportEntry(post), results
 		}
-	} else {
-		// Post is newly created:
-		// *post.PostCreateAt == *post.PostUpdateAt && (post.PostDeleteAt == nil || *post.PostDeleteAt == 0)
-		// but also fallback to this in case there is missing data, which is better than not exporting anything.
-		results.CreatedPosts++
-		return createdPostToExportEntry(post), results
+		// This is just an updated post (e.g. reaction)
+		results.UpdatedPosts++
+		return updatedPostToExportEntry(post), results
 	}
+	// Post is newly created:
+	// *post.PostCreateAt == *post.PostUpdateAt && (post.PostDeleteAt == nil || *post.PostDeleteAt == 0)
+	// but also fallback to this in case there is missing data, which is better than not exporting anything.
+	results.CreatedPosts++
+	return createdPostToExportEntry(post), results
 }
 
-func wasPostEdited(posts []*model.MessageExport, i int) bool {
+func isEditedOriginalMsg(post *model.MessageExport) bool {
+	return post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostOriginalId != nil && *post.PostOriginalId != ""
+}
+
+func isDeletedMsg(post *model.MessageExport) bool {
+	if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
+		props := map[string]any{}
+		err := json.Unmarshal([]byte(*post.PostProps), &props)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := props[model.PostPropsDeleteBy]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func isEditedNewPost(posts []*model.MessageExport, i int) bool {
 	// This has an edge case: if this edited post is exactly on the start (or the end) of a batch and its
 	// EditedOriginalMsg is in the previous (or next) batch, we will incorrectly return false.
 	// The downside is:
