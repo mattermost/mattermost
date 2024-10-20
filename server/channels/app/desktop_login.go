@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
@@ -15,7 +16,7 @@ func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*st
 	if err != nil {
 		// Delete any other related tokens if there's an error
 		if deleteErr := a.Srv().Store().DesktopTokens().DeleteByUserId(user.Id); deleteErr != nil {
-			return nil, model.NewAppError("GenerateAndSaveDesktopToken", "app.desktop_token.delete.error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+			a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
 		}
 		return nil, model.NewAppError("GenerateAndSaveDesktopToken", "app.desktop_token.generateServerToken.invalid_or_expired", nil, "", http.StatusBadRequest).Wrap(err)
 	}
