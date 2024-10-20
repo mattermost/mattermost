@@ -212,6 +212,8 @@ const (
 	ElasticsearchSettingsESBackend                          = "elasticsearch"
 	ElasticsearchSettingsOSBackend                          = "opensearch"
 
+	ChannelSearchdefaultDelay = 100
+
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
@@ -3686,8 +3688,7 @@ func (o *Config) SetDefaults() {
 	isUpdate := o.isUpdate()
 
 	if o.DisplaySettings.SuggestionDebounceDelay == nil {
-		defaultDelay := 100
-		o.DisplaySettings.SuggestionDebounceDelay = &defaultDelay
+		o.DisplaySettings.SuggestionDebounceDelay = NewPointer(ChannelSearchdefaultDelay)
 	}
 
 	o.LdapSettings.SetDefaults()

@@ -3,39 +3,53 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {DisplaySettings} from "../../../../platform/types/src/config";
+import { useSelector } from 'react-redux';
+import { FormattedMessage } from 'react-intl';
+import { DisplaySettings } from "@mattermost/types/config";
 
-import {GenericModal} from '@mattermost/components';
-import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import { GenericModal } from '@mattermost/components';
+import type { Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount } from '@mattermost/types/channels';
+import type { RelationOneToOne } from '@mattermost/types/utilities';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import SearchableChannelList from 'components/searchable_channel_list';
 
-import {getHistory} from 'utils/browser_history';
-import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
-import {getRelativeChannelURL} from 'utils/url';
-import {localizeMessage} from 'utils/utils';
+import { getHistory } from 'utils/browser_history';
+import Constants, { ModalIdentifiers, RHSStates, StoragePrefixes } from 'utils/constants';
+import { getRelativeChannelURL } from 'utils/url';
+import { localizeMessage } from 'utils/utils';
 
-import type {ModalData} from 'types/actions';
-import type {RhsState} from 'types/store/rhs';
+import type { ModalData } from 'types/actions';
+import type { RhsState } from 'types/store/rhs';
 
 import './browse_channels.scss';
+import { GlobalState } from '@mattermost/types/store';
 
 const CHANNELS_CHUNK_SIZE = 50;
 const CHANNELS_PER_PAGE = 50;
 
-var displaySettings: DisplaySettings = {
-    CustomURLSchemes: [],
-    MaxMarkdownNodes: 0,
-    SuggestionDebounceDelay: 0,
-}
+
+
+// const displaySettings: DisplaySettings = {
+//     CustomURLSchemes: config.displaySettings.CustomURLSchemes || [],
+//     MaxMarkdownNodes: config.displaySettings.MaxMarkdownNodes || 0,
+//     SuggestionDebounceDelay: config.displaySettings.SuggestionDebounceDelay || 100,
+// }
+
+export const selectDisplaySettings = (state: GlobalState): DisplaySettings => {
+    return state.entities.general.config?.DisplaySettings || {
+        CustomURLSchemes: [],
+        MaxMarkdownNodes: 0,
+        SuggestionDebounceDelay: 100,
+    };
+};
+
+const displaySettings: DisplaySettings = useSelector(selectDisplaySettings);
 const SEARCH_TIMEOUT_MILLISECONDS: number = displaySettings.SuggestionDebounceDelay || 100;
 
 export enum Filter {
@@ -138,7 +152,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     }
 
     loadComplete = () => {
-        this.setState({loading: false});
+        this.setState({ loading: false });
     };
 
     handleNewChannel = () => {
@@ -180,7 +194,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     handleJoin = async (channel: Channel, done: () => void) => {
-        const {actions, currentUserId, teamId, teamName} = this.props;
+        const { actions, currentUserId, teamId, teamName } = this.props;
         let result;
 
         if (!this.isMemberOfChannel(channel.id)) {
@@ -188,7 +202,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
 
         if (result?.error) {
-            this.setState({serverError: result.error.message});
+            this.setState({ serverError: result.error.message });
         } else {
             this.props.actions.getChannelsMemberCount([channel.id]);
             getHistory().push(getRelativeChannelURL(teamName!, channel.name));
@@ -205,16 +219,16 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         if (term === '') {
             this.onChange(true);
-            this.setState({search: false, searchedChannels: [], searching: false, searchTerm: term});
+            this.setState({ search: false, searchedChannels: [], searching: false, searchTerm: term });
             this.searchTimeoutId = 0;
             return;
         }
-        this.setState({search: true, searching: true, searchTerm: term});
+        this.setState({ search: true, searching: true, searchTerm: term });
 
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true}) as ActionResult<Channel[]>;
+                    const { data } = await this.props.actions.searchAllChannels(term, { team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true }) as ActionResult<Channel[]>;
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -226,10 +240,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         }
                         this.setSearchResults(data.filter((channel) => channel.team_id === this.props.teamId));
                     } else {
-                        this.setState({searchedChannels: [], searching: false});
+                        this.setState({ searchedChannels: [], searching: false });
                     }
                 } catch (ignoredErr) {
-                    this.setState({searchedChannels: [], searching: false});
+                    this.setState({ searchedChannels: [], searching: false });
                 }
             },
             SEARCH_TIMEOUT_MILLISECONDS,
@@ -253,13 +267,13 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         if (this.props.shouldHideJoinedChannels) {
             searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
         }
-        this.setState({searchedChannels, searching: false});
+        this.setState({ searchedChannels, searching: false });
     };
 
     changeFilter = (filter: FilterType) => {
         // search again when switching channels to update search results
         this.search(this.state.searchTerm);
-        this.setState({filter});
+        this.setState({ filter });
     };
 
     isMemberOfChannel(channelId: string) {
@@ -275,8 +289,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     getChannelsWithoutJoined = (channelList: Channel[]) => channelList.filter((channel) => !this.isMemberOfChannel(channel.id));
 
     getActiveChannels = () => {
-        const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
-        const {search, searchedChannels, filter} = this.state;
+        const { channels, archivedChannels, shouldHideJoinedChannels, privateChannels } = this.props;
+        const { search, searchedChannels, filter } = this.state;
 
         const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
@@ -299,8 +313,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
-        const {search, serverError: serverErrorState, searching} = this.state;
+        const { teamId, channelsRequestStarted, shouldHideJoinedChannels } = this.props;
+        const { search, serverError: serverErrorState, searching } = this.state;
 
         this.activeChannels = this.getActiveChannels();
 
@@ -322,7 +336,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         id='createNewChannelButton'
                         className={buttonClassName}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
+                        aria-label={localizeMessage({ id: 'more_channels.create', defaultMessage: 'Create New Channel' })}
                     >
                         {icon}
                         <FormattedMessage
@@ -342,11 +356,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('btn-primary', <i className='icon-plus'/>)}
+                {createNewChannelButton('btn-primary', <i className='icon-plus' />)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen/> : (
+        const body = this.state.loading ? <LoadingScreen /> : (
             <React.Fragment>
                 <SearchableChannelList
                     channels={this.activeChannels}
