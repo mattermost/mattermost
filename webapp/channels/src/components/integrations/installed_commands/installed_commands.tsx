@@ -13,7 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -107,9 +106,12 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
-                        id='installed_commands.emptySearch'
-                        defaultMessage='No slash commands match {searchTerm}'
+                    <FormattedMessage
+                        id='installed_commands.search.empty'
+                        defaultMessage='No slash commands match <b>{searchTerm}</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 }
                 helpText={

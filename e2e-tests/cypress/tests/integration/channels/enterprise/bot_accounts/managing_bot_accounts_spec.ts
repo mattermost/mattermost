@@ -13,7 +13,7 @@
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Managing bot accounts', () => {
-    let botName;
+    let botName: string;
 
     before(() => {
         cy.apiRequireLicenseForFeature('LDAP');

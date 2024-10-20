@@ -6,9 +6,9 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import './no_internet_connection.scss';
+import ExternalLink from 'components/external_link';
+
 import NoInternetConnectionSvg from './no-internet-connection-svg';
 
 type NoInternetConnectionProps = {
@@ -38,10 +38,19 @@ const NoInternetConnection: React.FC<NoInternetConnectionProps> = (props: NoInte
                     />
                 </span>
                 <span className='noInternetConnection__emailUs'>
-                    <FormattedMarkdownMessage
-                        id='announcement_bar.warn.email_support'
-                        defaultMessage='[Contact support](!{email}).'
-                        values={{email: 'mailto:support@mattermost.com'}}
+                    <FormattedMessage
+                        id='announcement_bar.warn.contact_support_email'
+                        defaultMessage='<a>Contact support</a>.'
+                        values={{
+                            a: (chunks: string) => (
+                                <ExternalLink
+                                    href='mailto:support@mattermost.com'
+                                    location='announcement_bar'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
+                        }}
                     />
                 </span>
             </div>
