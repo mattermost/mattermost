@@ -29,12 +29,12 @@ export default function NotificationPermissionBar() {
     }
 
     // When user has not granted permission, we show the notification bar to request permission
-    if (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionNeverGranted) {
+    if (getNotificationPermission() === NotificationPermissionNeverGranted) {
         return <NotificationPermissionNeverGrantedBar/>;
     }
 
     // When user has denied permission, we don't show since user explicitly denied permission
-    if (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionDenied) {
+    if (getNotificationPermission() === NotificationPermissionDenied) {
         return null;
     }
 

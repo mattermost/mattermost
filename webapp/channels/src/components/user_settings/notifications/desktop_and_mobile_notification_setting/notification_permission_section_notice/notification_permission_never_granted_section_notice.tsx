@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import SectionNotice from 'components/section_notice';
@@ -9,16 +9,18 @@ import SectionNotice from 'components/section_notice';
 import {requestNotificationPermission} from 'utils/notifications';
 
 type Props = {
-    onClick: (permission: NotificationPermission | null) => void;
+    onCtaButtonClick: (permission: NotificationPermission) => void;
 }
 
 export default function NotificationPermissionNeverGrantedSectionNotice(props: Props) {
     const intl = useIntl();
 
-    async function handleClick() {
+    const handleClick = useCallback(async () => {
         const permission = await requestNotificationPermission();
-        props.onClick(permission);
-    }
+        if (permission) {
+            props.onCtaButtonClick(permission);
+        }
+    }, [props.onCtaButtonClick]);
 
     return (
         <div className='extraContentBeforeSettingList'>

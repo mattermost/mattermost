@@ -14,10 +14,8 @@ export default function NotificationPermissionSectionNotice() {
 
     const [notificationPermission, setNotificationPermission] = useState(getNotificationPermission());
 
-    function handleRequestNotificationClicked(permission: NotificationPermission | null) {
-        if (permission) {
-            setNotificationPermission(permission);
-        }
+    function handleRequestNotificationClicked(permission: NotificationPermission) {
+        setNotificationPermission(permission);
     }
 
     if (!isNotificationSupported) {
@@ -25,7 +23,7 @@ export default function NotificationPermissionSectionNotice() {
     }
 
     if (isNotificationSupported && notificationPermission === NotificationPermissionNeverGranted) {
-        return <NotificationPermissionNeverGrantedNotice onClick={handleRequestNotificationClicked}/>;
+        return <NotificationPermissionNeverGrantedNotice onCtaButtonClick={handleRequestNotificationClicked}/>;
     }
 
     if (isNotificationSupported && notificationPermission === NotificationPermissionDenied) {

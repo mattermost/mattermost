@@ -60,7 +60,6 @@ export default class SettingItemMax extends React.PureComponent<Props> {
         saving: false,
         section: '',
         containerStyle: '',
-        extraContentBeforeSettingList: null,
     };
 
     constructor(props: Props) {

@@ -12,7 +12,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
 >
   <SettingItemMax
     containerStyle=""
-    extraContentBeforeSettingList={null}
     infoPosition="bottom"
     inputs={
       Array [
@@ -190,7 +189,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
 >
   <SettingItemMax
     containerStyle=""
-    extraContentBeforeSettingList={null}
     infoPosition="bottom"
     inputs={
       Array [

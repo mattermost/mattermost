@@ -36,7 +36,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
-        expect(screen.getByText('Web browser notifications permission was denied')).toBeInTheDocument();
+        expect(screen.getByText('Web browser notification permission was denied')).toBeInTheDocument();
     });
 
     test('should render nothing when notifications are granted', () => {
