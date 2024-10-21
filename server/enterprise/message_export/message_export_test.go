@@ -681,6 +681,7 @@ func TestRunExportJob(t *testing.T) {
 					})
 					require.NoError(t, err2)
 					posts = append(posts, post)
+					time.Sleep(1 * time.Millisecond)
 
 					attachmentContent := fmt.Sprintf("Hello there %d", i)
 					attachmentPath := fmt.Sprintf("path/to/attachments/file_%d.txt", i)
@@ -958,6 +959,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: channel2.Id,
@@ -968,6 +970,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// Test that it's picking up a previous successful job
 		var previousJob *model.Job
@@ -1112,6 +1115,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 1 - post deleted
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1124,6 +1128,7 @@ func TestRunExportJob(t *testing.T) {
 		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message1DeleteAt, users[0].Id)
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 2 - post updated not edited (e.g., reaction)
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1133,6 +1138,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 		_, err = th.App.Srv().Store().Reaction().Save(&model.Reaction{
 			UserId:    users[0].Id,
 			PostId:    post.Id,
@@ -1150,10 +1156,12 @@ func TestRunExportJob(t *testing.T) {
 			FileIds:   []string{"test3"},
 		})
 		require.NoError(t, err)
+		time.Sleep(1 * time.Millisecond)
 		message3DeletedAt := model.GetMillis()
 		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeletedAt, users[0].Id)
 		deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// Message for deleted file -- NOT INCLUDED IN THE BATCH SIZE
 		attachmentContent := "Hello there message 3"
@@ -1171,6 +1179,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err2)
 		attachments = append(attachments, info)
+		time.Sleep(1 * time.Millisecond)
 		contents = append(contents, attachmentContent)
 
 		// 4 - original post
@@ -1181,6 +1190,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 		// 5 - post edited
 		post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 			Id:        post.Id,
@@ -1192,6 +1202,7 @@ func TestRunExportJob(t *testing.T) {
 		}, post)
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 6 - post edited but falls on the batch boundary
 		// original post, but gets modified by the next edit
@@ -1202,6 +1213,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 7 - new post with original message
 		// update returns "new" post, which is the old post modified
@@ -1215,6 +1227,7 @@ func TestRunExportJob(t *testing.T) {
 		}, post)
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		require.Len(t, posts, 8)
 		// therefore, need a batch size of 7
@@ -1498,6 +1511,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, originalPost)
+		time.Sleep(1 * time.Millisecond)
 
 		// 1 - edited post
 		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
@@ -1510,6 +1524,7 @@ func TestRunExportJob(t *testing.T) {
 		}, originalPost)
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		simultaneous := post.UpdateAt
 
@@ -1522,6 +1537,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 3 - post 2 at same updateAt
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1532,6 +1548,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// 4 - post 3 in-between
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1692,8 +1709,8 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
-
 		time.Sleep(1 * time.Millisecond)
+
 		// post deleted
 		message0DeleteAt := model.GetMillis()
 		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message0DeleteAt, th.BasicUser.Id)
@@ -1792,7 +1809,6 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
-
 		time.Sleep(1 * time.Millisecond)
 
 		// post create -- this is the "second" post, but it will show up first because first post is deleted after
@@ -1803,8 +1819,8 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
-
 		time.Sleep(1 * time.Millisecond)
+
 		// post deleted -- first post deleted
 		message0DeleteAt = model.GetMillis()
 		err = th.App.Srv().Store().Post().Delete(th.Context, posts[0].Id, message0DeleteAt, th.BasicUser.Id)
@@ -1926,6 +1942,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// post create -- this will be the one updated in second job
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1935,6 +1952,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// use the config fallback
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2016,6 +2034,7 @@ func TestRunExportJob(t *testing.T) {
 		})
 		require.NoError(t, err)
 		posts = append(posts, post)
+		time.Sleep(1 * time.Millisecond)
 
 		// post deleted -- first post deleted (the first one exported earlier)
 		message0DeleteAt = model.GetMillis()
