@@ -4,13 +4,15 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreSave()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
@@ -32,8 +34,15 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	// TODO: add WebSocket event broadcast here
-
+	message := model.NewWebSocketEvent(model.WebsocketScheduledPostCreated, "", scheduledPost.ChannelId, scheduledPost.UserId, nil, connectionId)
+	scheduledPostJSON, jsonErr := json.Marshal(savedScheduledPost)
+	// in case of websocket events do not break the flow, only log the error
+	if jsonErr != nil {
+		rctx.Logger().Warn("App.ScheduledPost - Failed to Marshal", mlog.Err(jsonErr))
+	} else {
+		message.Add("scheduledPost", string(scheduledPostJSON))
+		a.Publish(message)
+	}
 	return savedScheduledPost, nil
 }
 
