@@ -87,6 +87,36 @@ func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return r0, r1
 }
 
+// ExecutePostAction provides a mock function with given fields: c, handle, actionRequest
+func (_m *Hooks) ExecutePostAction(c *plugin.Context, handle string, actionRequest *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError) {
+	ret := _m.Called(c, handle, actionRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExecutePostAction")
+	}
+
+	var r0 model.PostActionIntegrationResponse
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, *model.PostActionIntegrationRequest) (model.PostActionIntegrationResponse, *model.AppError)); ok {
+		return rf(c, handle, actionRequest)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, *model.PostActionIntegrationRequest) model.PostActionIntegrationResponse); ok {
+		r0 = rf(c, handle, actionRequest)
+	} else {
+		r0 = ret.Get(0).(model.PostActionIntegrationResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, *model.PostActionIntegrationRequest) *model.AppError); ok {
+		r1 = rf(c, handle, actionRequest)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // FileWillBeUploaded provides a mock function with given fields: c, info, file, output
 func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
 	ret := _m.Called(c, info, file, output)

@@ -9531,6 +9531,10 @@
     "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
   },
   {
+    "id": "model.plugin_postaction.error.app_error",
+    "translation": "An error occured while trying to deliver the post action to the plugin."
+  },
+  {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
     "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
   },
