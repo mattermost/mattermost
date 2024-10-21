@@ -47,6 +47,8 @@ import Panel from './panel/panel';
 import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
+import EditPost from "components/edit_post";
+import team_icon from "components/widgets/team_icon/team_icon";
 
 type Props = {
     user: UserProfile;
@@ -67,6 +69,10 @@ function DraftRow({
     isRemote,
     scrollIntoView,
 }: Props) {
+    const [isEditing, setIsEditing] = useState(false);
+
+    const teamId = useSelector(getCurrentTeamId);
+
     const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
 
@@ -125,8 +131,6 @@ function DraftRow({
         if (!channel) {
             return '';
         }
-
-        const teamId = getCurrentTeamId(state);
         return getChannelURL(state, channel, teamId);
     });
 
@@ -261,6 +265,10 @@ function DraftRow({
         return Promise.resolve({});
     }, [handleOnSend, item]);
 
+    const handleSchedulePostEdit = useCallback(() => {
+        setIsEditing(!isEditing);
+    }, []);
+
     const scheduledPostActions = useMemo(() => {
         if (!channel) {
             return null;
@@ -273,6 +281,7 @@ function DraftRow({
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
                 onSend={handleScheduledPostOnSend}
+                onEdit={handleSchedulePostEdit}
             />
         );
     }, [
@@ -280,6 +289,7 @@ function DraftRow({
         handleSchedulePostOnDelete,
         handleSchedulePostOnReschedule,
         handleScheduledPostOnSend,
+        handleSchedulePostEdit,
         item,
     ]);
 
@@ -347,17 +357,28 @@ function DraftRow({
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
-                    <PanelBody
-                        channelId={channel?.id}
-                        displayName={displayName}
-                        fileInfos={fileInfos}
-                        message={item.message}
-                        status={status}
-                        priority={rootId ? undefined : item.metadata?.priority}
-                        uploadsInProgress={uploadsInProgress}
-                        userId={user.id}
-                        username={user.username}
-                    />
+
+                    {
+                        isEditing &&
+                        <EditPost
+                            draft={scheduledPostToPostDraft(item as ScheduledPost)}
+                        />
+                    }
+
+                    {
+                        !isEditing &&
+                        <PanelBody
+                            channelId={channel?.id}
+                            displayName={displayName}
+                            fileInfos={fileInfos}
+                            message={item.message}
+                            status={status}
+                            priority={rootId ? undefined : item.metadata?.priority}
+                            uploadsInProgress={uploadsInProgress}
+                            userId={user.id}
+                            username={user.username}
+                        />
+                    }
                 </>
             )}
         </Panel>

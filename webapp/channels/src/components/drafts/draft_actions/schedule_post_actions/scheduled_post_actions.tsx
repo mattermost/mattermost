@@ -57,9 +57,10 @@ type Props = {
     onReschedule: (timestamp: number) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
+    onEdit: () => void;
 }
 
-function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName, onSend}: Props) {
+function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDisplayName, onSend, onEdit}: Props) {
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
 
@@ -112,17 +113,14 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             {
                 !scheduledPost.error_code && (
                     <React.Fragment>
-                        <div className='hidden'>
-                            <Action
-                                icon='icon-pencil-outline'
-                                id='edit'
-                                name='edit'
-                                tooltipText={editTooltipText}
-                                onClick={() => {
-                                }} // this will be implemented in an upcoming PR
+                        <Action
+                            icon='icon-pencil-outline'
+                            id='edit'
+                            name='edit'
+                            tooltipText={editTooltipText}
+                            onClick={onEdit}
 
-                            />
-                        </div>
+                        />
 
                         <Action
                             icon='icon-clock-send-outline'

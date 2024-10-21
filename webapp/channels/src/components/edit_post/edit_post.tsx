@@ -52,7 +52,19 @@ export type Actions = {
     runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
 }
 
+export type EditingPost = {
+    post: Post | null;
+    postId?: string;
+    refocusId?: string;
+    title?: string;
+    isRHS?: boolean;
+}
+
 export type Props = {
+    draft?: PostDraft;
+}
+
+export type OwnProps = {
     canEditPost?: boolean;
     canDeletePost?: boolean;
     readOnlyChannel?: boolean;
@@ -67,13 +79,7 @@ export type Props = {
     };
     maxPostSize: number;
     useChannelMentions: boolean;
-    editingPost: {
-        post: Post | null;
-        postId?: string;
-        refocusId?: string;
-        title?: string;
-        isRHS?: boolean;
-    };
+    editingPost: EditingPost;
     isRHSOpened: boolean;
     isEditHistoryShowing: boolean;
     actions: Actions;
@@ -95,7 +101,7 @@ const {KeyCodes} = Constants;
 const TOP_OFFSET = 0;
 const RIGHT_OFFSET = 10;
 
-const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, ...rest}: Props): JSX.Element | null => {
+const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, ...rest}: OwnProps): JSX.Element | null => {
     const [editText, setEditText] = useState<string>(
         draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '',
     );

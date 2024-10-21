@@ -27,15 +27,29 @@ import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import EditPost from './edit_post';
+import EditPost, {Props} from './edit_post';
+import type {PostDraft} from "types/store/draft";
 
-function mapStateToProps(state: GlobalState) {
+
+function mapStateToProps(state: GlobalState, props: Props) {
+    console.log('mapStateToProps');
     const config = getConfig(state);
-    const editingPost = getEditingPost(state);
+    let editingPost;
+    let channelId: string;
+    let draft: PostDraft;
+
+    if (props.draft) {
+        draft = props.draft;
+        channelId = props.draft.channelId;
+        editingPost = {};
+    } else {
+        editingPost = getEditingPost(state);
+        channelId = editingPost.post.channel_id;
+        draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
+    }
+
     const currentUserId = getCurrentUserId(state);
-    const channelId = editingPost.post.channel_id;
     const teamId = getCurrentTeamId(state);
-    const draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
 
     const isAuthor = editingPost?.post?.user_id === currentUserId;
     const deletePermission = isAuthor ? Permissions.DELETE_POST : Permissions.DELETE_OTHERS_POSTS;
