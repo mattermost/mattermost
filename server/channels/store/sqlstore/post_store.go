@@ -885,11 +885,22 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 //nolint:unparam
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
-	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
+func (s *SqlPostStore) GetEtag(channelId string, userId string, allowFromCache, collapsedThreads bool) string {
+	var q sq.SelectBuilder
 	if collapsedThreads {
-		q.Where(sq.Eq{"RootId": ""})
+		q = s.getQueryBuilder().
+			Select("Posts.Id", "GREATEST(Posts.UpdateAt, COALESCE(Threads.LastReplyAt, 0), COALESCE(ThreadMemberships.LastUpdated, 0)) AS UpdateAt").
+			From("Posts").
+			LeftJoin("Threads ON Threads.PostId = Posts.Id").
+			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", userId).
+			Where(sq.Eq{"Posts.ChannelId": channelId}).
+			Where(sq.Eq{"Posts.RootId": ""}).
+			OrderBy("GREATEST(Posts.UpdateAt, COALESCE(Threads.LastReplyAt, 0), COALESCE(ThreadMemberships.LastUpdated, 0)) DESC").
+			Limit(1)
+	} else {
+		q = s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
 	}
+
 	sql, args := q.MustSql()
 
 	var et etagPosts
@@ -1221,7 +1232,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
@@ -1233,7 +1244,11 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
 
-	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "getPostsCollapsedThreads_ToSql")
+	}
+
+	err = s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
@@ -1310,6 +1325,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
+		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
