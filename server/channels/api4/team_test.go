@@ -620,6 +620,7 @@ func TestPatchTeam(t *testing.T) {
 
 		patch2 := &model.TeamPatch{
 			AllowOpenInvite: model.NewPointer(false),
+			AllowedDomains:  model.NewPointer("test.com"),
 		}
 
 		rteam2, _, err3 := th.Client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -627,12 +628,14 @@ func TestPatchTeam(t *testing.T) {
 		require.Equal(t, team2.Id, rteam2.Id)
 		require.False(t, rteam2.AllowOpenInvite)
 
-		// remove invite user permission from team admin
+		// remove invite user permission from team admin and user roles
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
 		patch2 = &model.TeamPatch{
 			AllowOpenInvite: model.NewPointer(true),
 		}
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
 

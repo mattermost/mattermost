@@ -104,7 +104,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	// Enabling Redis with Postgres.
 	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres {
-		*memoryConfig.CacheSettings.CacheType = model.CacheTypeRedis
+		*memoryConfig.CacheSettings.CacheType = model.CacheTypeLRU
 		redisHost := "localhost"
 		if os.Getenv("IS_CI") == "true" {
 			redisHost = "redis"

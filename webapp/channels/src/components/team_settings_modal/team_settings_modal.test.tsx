@@ -26,17 +26,30 @@ describe('components/team_settings_modal', () => {
         expect(modal.className).toBe('fade modal');
     });
 
-    test('should not display access tab when can not invite users', async () => {
+    test('should display access tab when can invite users', async () => {
         const props = {...baseProps, canInviteUsers: true};
         renderWithContext(
             <TeamSettingsModal
                 {...props}
             />,
         );
-        const infoButton = screen.getByRole('button', {name: 'Info'});
+        const infoButton = screen.getByRole('tab', {name: 'info'});
         expect(infoButton).toBeDefined();
-        const accessButton = screen.getByRole('button', {name: 'Access'});
-        expect(accessButton).not.toBeDefined();
+        const accessButton = screen.getByRole('tab', {name: 'access'});
+        expect(accessButton).toBeDefined();
+    });
+
+    test('should not display access tab when can not invite users', async () => {
+        const props = {...baseProps, canInviteUsers: false};
+        renderWithContext(
+            <TeamSettingsModal
+                {...props}
+            />,
+        );
+        const tabs = screen.getAllByRole('tab');
+        expect(tabs.length).toEqual(1);
+        const infoButton = screen.getByRole('tab', {name: 'info'});
+        expect(infoButton).toBeDefined();
     });
 });
 
