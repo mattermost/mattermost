@@ -3190,6 +3190,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates[PluginIdAI] == nil {
+		// Enable the AI plugin by default
+		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewPointer(PluginSettingsDefaultEnableMarketplace)
 	}

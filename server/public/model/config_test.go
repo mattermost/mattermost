@@ -1800,6 +1800,39 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultAIPluginState(t *testing.T) {
+	t.Run("should enable AI plugin by default on self-hosted", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should not re-enable AI plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"mattermost-ai": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+}
+
 func TestConfigGetMessageRetentionHours(t *testing.T) {
 	tests := []struct {
 		name   string
