@@ -31,9 +31,7 @@ import './system_users_export.scss';
 
 interface Props {
     currentUserId: UserProfile['id'];
-    usersLenght: number;
-    isDisabled?: boolean;
-    usersLenght: number;
+    usersLength: number;
     isDisabled?: boolean;
 }
 
@@ -74,7 +72,7 @@ export function SystemUsersExport(props: Props) {
     }
 
     function handleExport() {
-        if (!props.usersLenght) {
+        if (!props.usersLength) {
             return;
         }
         if (!isLicensed) {
@@ -100,7 +98,7 @@ export function SystemUsersExport(props: Props) {
 
     const button = (
         <button
-            disabled={props.isDisabled || !props.usersLenght}
+            disabled={props.isDisabled || !props.usersLength}
             onClick={handleExport}
             className='btn btn-md btn-tertiary'
         >
