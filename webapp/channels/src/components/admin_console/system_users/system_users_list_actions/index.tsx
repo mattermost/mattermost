@@ -50,7 +50,19 @@ interface Props {
     updateUser: (user: Partial<UserProfile>) => void;
 }
 
-export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError, updateUser}: Props) {
+const gatePermissions = {
+    writeUserManagementGroups: [Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS],
+    revokeUserAccessToken: [Permissions.REVOKE_USER_ACCESS_TOKEN],
+};
+
+export function SystemUsersListAction({
+    user,
+    currentUser,
+    tableId,
+    rowIndex,
+    onError,
+    updateUser,
+}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -58,15 +70,18 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const haveSysConsoleWriteUserManagementUsersPermissions = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS}));
     const showManageUserSettings = useSelector(getShowManageUserSettings);
 
-    function getTranslatedUserRole(userRoles: UserProfile['roles']) {
-        if (user.delete_at > 0) {
+    const isUserDeleted = user.delete_at > 0;
+    const userHasRoles = user.roles.length > 0;
+
+    const getTranslatedUserRole = useCallback((userRoles: UserProfile['roles']) => {
+        if (isUserDeleted) {
             return (
                 <FormattedMessage
                     id='admin.system_users.list.actions.deactivated'
                     defaultMessage='Deactivated'
                 />
             );
-        } else if (user.roles.length > 0 && isSystemAdmin(userRoles)) {
+        } else if (userHasRoles && isSystemAdmin(userRoles)) {
             return (
                 <FormattedMessage
                     id='admin.system_users.list.actions.userAdmin'
@@ -88,7 +103,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 defaultMessage='Member'
             />
         );
-    }
+    }, [isUserDeleted, userHasRoles]);
 
     const menuButtonId = `actionMenuButton-${tableId}-${rowIndex}`;
     const menuId = `actionMenu-${tableId}-${rowIndex}`;
@@ -113,7 +128,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onRoleUpdateSuccess,
             },
         }));
-    }, [user, updateUser]);
+    }, [dispatch, user, updateUser]);
 
     const handleManageTeamsClick = useCallback(() => {
         dispatch(openModal({
@@ -123,7 +138,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 user,
             },
         }));
-    }, [user]);
+    }, [dispatch, user]);
 
     const handleManageUserSettingsClick = useCallback(() => {
         function onConfirmManageUserSettingsClick() {
@@ -146,7 +161,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onConfirm: onConfirmManageUserSettingsClick,
             },
         }));
-    }, [user]);
+    }, [dispatch, user]);
 
     const handleManageTokensClick = useCallback(() => {
         dispatch(openModal({
@@ -156,7 +171,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 user,
             },
         }));
-    }, [user.id]);
+    }, [dispatch, user]);
 
     const handleResetPasswordClick = useCallback(() => {
         dispatch(openModal({
@@ -166,7 +181,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 user,
             },
         }));
-    }, [user]);
+    }, [dispatch, user]);
 
     const handleRemoveMfaClick = useCallback(async () => {
         await adminResetMfa(user.id, null, onError).then(() => {
@@ -194,7 +209,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onSwitchToEmailPasswordSuccess,
             },
         }));
-    }, [user, updateUser]);
+    }, [dispatch, user, updateUser]);
 
     const handleUpdateEmailClick = useCallback(() => {
         function onUpdateEmailSuccess(email: string) {
@@ -209,7 +224,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onUpdateEmailSuccess,
             },
         }));
-    }, [user, updateUser]);
+    }, [dispatch, user, updateUser]);
 
     const handlePromoteToMemberClick = useCallback(() => {
         function onPromoteToMemberSuccess() {
@@ -225,7 +240,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onPromoteToMemberSuccess,
             },
         }));
-    }, [user, updateUser, onError]);
+    }, [dispatch, user, onError, updateUser]);
 
     const handleDemoteToGuestClick = useCallback(() => {
         function onDemoteToGuestSuccess() {
@@ -241,7 +256,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onSuccess: onDemoteToGuestSuccess,
             },
         }));
-    }, [user, updateUser, onError]);
+    }, [dispatch, user, onError, updateUser]);
 
     const handleRemoveSessionsClick = useCallback(() => {
         dispatch(openModal({
@@ -253,7 +268,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onError,
             },
         }));
-    }, [user, currentUser.id, onError]);
+    }, [dispatch, user, currentUser, onError]);
 
     const handleReSyncUserViaLdapGroupsClick = useCallback(() => {
         dispatch(openModal({
@@ -264,7 +279,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 onError,
             },
         }));
-    }, [user, onError]);
+    }, [dispatch, user, onError]);
 
     const handleActivateUserClick = useCallback(async () => {
         if (user.auth_service === Constants.LDAP_SERVICE) {
@@ -278,7 +293,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         } else {
             updateUser({delete_at: 0});
         }
-    }, [user.id, user.auth_service, updateUser, onError]);
+    }, [user.auth_service, user.id, dispatch, onError, updateUser]);
 
     const handleDeactivateMemberClick = useCallback(() => {
         if (user.auth_service === Constants.LDAP_SERVICE) {
@@ -299,7 +314,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 },
             }),
         );
-    }, [user, updateUser, onError]);
+    }, [user, dispatch, onError, updateUser]);
 
     const disableActivationToggle = user.auth_service === Constants.LDAP_SERVICE;
 
@@ -312,33 +327,37 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         } : {};
     };
 
+    const menuProps = useMemo(() => ({
+        id: menuId,
+        'aria-label': formatMessage({
+            id: 'admin.system_users.list.actions.menu.dropdownAriaLabel',
+            defaultMessage: 'User actions menu',
+        }),
+    }), [formatMessage, menuId]);
+
+    const menuButtonProps = useMemo(() => ({
+        id: menuButtonId,
+        class: classNames('btn btn-quaternary btn-sm', {
+            disabled: disableEditingOtherUsers,
+        }),
+        disabled: disableEditingOtherUsers,
+        children: (
+            <>
+                {getTranslatedUserRole(user.roles)}
+                {!disableEditingOtherUsers && (
+                    <i
+                        aria-hidden='true'
+                        className='icon icon-chevron-down'
+                    />
+                )}
+            </>
+        ),
+    }), [disableEditingOtherUsers, getTranslatedUserRole, menuButtonId, user.roles]);
+
     return (
         <Menu.Container
-            menuButton={{
-                id: menuButtonId,
-                class: classNames('btn btn-quaternary btn-sm', {
-                    disabled: disableEditingOtherUsers,
-                }),
-                disabled: disableEditingOtherUsers,
-                children: (
-                    <>
-                        {getTranslatedUserRole(user.roles)}
-                        {!disableEditingOtherUsers && (
-                            <i
-                                aria-hidden='true'
-                                className='icon icon-chevron-down'
-                            />
-                        )}
-                    </>
-                ),
-            }}
-            menu={{
-                id: menuId,
-                'aria-label': formatMessage({
-                    id: 'admin.system_users.list.actions.menu.dropdownAriaLabel',
-                    defaultMessage: 'User actions menu',
-                }),
-            }}
+            menuButton={menuButtonProps}
+            menu={menuProps}
         >
             {user.delete_at > 0 && (
                 <Menu.Item
@@ -472,7 +491,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleDemoteToGuestClick}
                 />
             }
-            <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
+            <SystemPermissionGate permissions={gatePermissions.revokeUserAccessToken}>
                 {!user.delete_at &&
                     <Menu.Item
                         id={`${menuItemIdPrefix}-removeSessions`}
@@ -486,7 +505,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     />
                 }
             </SystemPermissionGate>
-            <SystemPermissionGate permissions={[Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]}>
+            <SystemPermissionGate permissions={gatePermissions.writeUserManagementGroups}>
                 {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)) &&
                     <Menu.Item
                         id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -33,7 +33,19 @@ import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
 import {useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
-type Props = {bookmark: ChannelBookmark; open: () => void};
+type Props = {
+    bookmark: ChannelBookmark;
+    open: () => void;
+};
+
+const menuProps = {id: 'channelBookmarksDotMenuDropdown'};
+const menuTransformOrigin = {vertical: 'top', horizontal: 'right'} as const;
+const menuAnchorOrigin = {vertical: 'bottom', horizontal: 'right'} as const;
+
+const trashCanIcon = <TrashCanOutlineIcon size={18}/>;
+const linkVariantIcon = <LinkVariantIcon size={18}/>;
+const pencilIcon = <PencilOutlineIcon size={18}/>;
+
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
@@ -42,14 +54,19 @@ const BookmarkItemDotMenu = ({
     const dispatch = useDispatch();
 
     const siteURL = getSiteURL();
+
+    const isFile = bookmark.type === 'file';
+    const hasLink = Boolean(bookmark.link_url);
     const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
 
-    let openIcon;
-    if (bookmark.type === 'file') {
-        openIcon = <ArrowExpandIcon size={18}/>;
-    } else if (bookmark.link_url) {
-        openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
-    }
+    const openIcon = useMemo(() => {
+        if (isFile) {
+            return <ArrowExpandIcon size={18}/>;
+        } else if (hasLink) {
+            return openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
+        }
+        return undefined;
+    }, [hasLink, isFile, openInNewTab]);
 
     const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
     const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
@@ -61,6 +78,12 @@ const BookmarkItemDotMenu = ({
     const copyFileLabel = formatMessage({id: 'channel_bookmarks.copyFilePublicLink', defaultMessage: 'Get a public link'});
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
 
+    const editLabelWithSpan = useMemo(() => (<span>{editLabel}</span>), [editLabel]);
+    const openLabelWithSpan = useMemo(() => (<span>{openLabel}</span>), [openLabel]);
+    const copyLinkLabelWithSpan = useMemo(() => (<span>{copyLinkLabel}</span>), [copyLinkLabel]);
+    const copyFileLabelWithSpan = useMemo(() => (<span>{copyFileLabel}</span>), [copyFileLabel]);
+    const deleteLabelWithSpan = useMemo(() => (<span>{deleteLabel}</span>), [deleteLabel]);
+
     const handleEdit = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
@@ -71,7 +94,7 @@ const BookmarkItemDotMenu = ({
                 onConfirm: async (data: ChannelBookmarkPatch) => dispatch(editBookmark(bookmark.channel_id, bookmark.id, data)) as ActionResult<boolean>,
             },
         }));
-    }, [editBookmark, dispatch, bookmark]);
+    }, [dispatch, bookmark]);
 
     const copyLink = useCallback(() => {
         if (bookmark.type === 'link' && bookmark.link_url) {
@@ -90,7 +113,7 @@ const BookmarkItemDotMenu = ({
                 onConfirm: () => dispatch(deleteBookmark(bookmark.channel_id, bookmark.id)),
             },
         }));
-    }, [deleteBookmark, dispatch, bookmark]);
+    }, [dispatch, bookmark]);
 
     const handleGetPublicLink = useCallback(() => {
         if (!bookmark.file_id) {
@@ -106,26 +129,26 @@ const BookmarkItemDotMenu = ({
         }));
     }, [bookmark.file_id, dispatch]);
 
+    const menuButtonProps = useMemo(() => ({
+        id: `channelBookmarksDotMenuButton-${bookmark.id}`,
+        class: 'channelBookmarksDotMenuButton',
+        children: <DotsHorizontalIcon size={18}/>,
+        'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
+    }), [bookmark.id, formatMessage]);
+
     return (
         <Menu.Container
-            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-            transformOrigin={{vertical: 'top', horizontal: 'right'}}
-            menuButton={{
-                id: `channelBookmarksDotMenuButton-${bookmark.id}`,
-                class: 'channelBookmarksDotMenuButton',
-                children: <DotsHorizontalIcon size={18}/>,
-                'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
-            }}
-            menu={{
-                id: 'channelBookmarksDotMenuDropdown',
-            }}
+            anchorOrigin={menuAnchorOrigin}
+            transformOrigin={menuTransformOrigin}
+            menuButton={menuButtonProps}
+            menu={menuProps}
         >
             <Menu.Item
                 key='channelBookmarksOpen'
                 id='channelBookmarksOpen'
                 onClick={open}
                 leadingElement={openIcon}
-                labels={<span>{openLabel}</span>}
+                labels={openLabelWithSpan}
                 aria-label={openLabel}
             />
             {canEdit && (
@@ -133,8 +156,8 @@ const BookmarkItemDotMenu = ({
                     key='channelBookmarksEdit'
                     id='channelBookmarksEdit'
                     onClick={handleEdit}
-                    leadingElement={<PencilOutlineIcon size={18}/>}
-                    labels={<span>{editLabel}</span>}
+                    leadingElement={pencilIcon}
+                    labels={editLabelWithSpan}
                     aria-label={editLabel}
                 />
             )}
@@ -143,8 +166,8 @@ const BookmarkItemDotMenu = ({
                     key='channelBookmarksLinkCopy'
                     id='channelBookmarksLinkCopy'
                     onClick={copyLink}
-                    leadingElement={<LinkVariantIcon size={18}/>}
-                    labels={<span>{copyLinkLabel}</span>}
+                    leadingElement={linkVariantIcon}
+                    labels={copyLinkLabelWithSpan}
                     aria-label={copyLinkLabel}
                 />
             )}
@@ -153,8 +176,8 @@ const BookmarkItemDotMenu = ({
                     key='channelBookmarksFileCopy'
                     id='channelBookmarksFileCopy'
                     onClick={handleGetPublicLink}
-                    leadingElement={<LinkVariantIcon size={18}/>}
-                    labels={<span>{copyFileLabel}</span>}
+                    leadingElement={linkVariantIcon}
+                    labels={copyFileLabelWithSpan}
                     aria-label={copyFileLabel}
                 />
             )}
@@ -163,8 +186,8 @@ const BookmarkItemDotMenu = ({
                     key='channelBookmarksDelete'
                     id='channelBookmarksDelete'
                     onClick={handleDelete}
-                    leadingElement={<TrashCanOutlineIcon size={18}/>}
-                    labels={<span>{deleteLabel}</span>}
+                    leadingElement={trashCanIcon}
+                    labels={deleteLabelWithSpan}
                     aria-label={deleteLabel}
                     isDestructive={true}
                 />

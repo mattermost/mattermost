@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -25,21 +25,24 @@ export interface Props extends PropsFromRedux {
 const SidebarBaseChannel = ({
     channel,
     currentTeamName,
-    actions,
+    actions: {
+        leaveChannel,
+        openModal,
+    },
 }: Props) => {
     const intl = useIntl();
 
     const handleLeavePublicChannel = useCallback((callback: () => void) => {
-        actions.leaveChannel(channel.id);
+        leaveChannel(channel.id);
         trackEvent('ui', 'ui_public_channel_x_button_clicked');
         callback();
-    }, [channel.id, actions.leaveChannel]);
+    }, [leaveChannel, channel.id]);
 
     const handleLeavePrivateChannel = useCallback((callback: () => void) => {
-        actions.openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
+        openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}});
         trackEvent('ui', 'ui_private_channel_x_button_clicked');
         callback();
-    }, [channel, actions.openModal]);
+    }, [openModal, channel]);
 
     let channelLeaveHandler = null;
     if (channel.type === Constants.OPEN_CHANNEL && channel.name !== Constants.DEFAULT_CHANNEL) {
@@ -48,11 +51,11 @@ const SidebarBaseChannel = ({
         channelLeaveHandler = handleLeavePrivateChannel;
     }
 
-    const channelIcon = (
+    const channelIcon = useMemo(() => (
         <SidebarBaseChannelIcon
             channelType={channel.type}
         />
-    );
+    ), [channel.type]);
 
     let ariaLabelPrefix;
     if (channel.type === Constants.OPEN_CHANNEL) {

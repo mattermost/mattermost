@@ -4,45 +4,60 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
 import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Tag from 'components/widgets/tag/tag';
 
+import {Preferences} from 'utils/constants';
 import {fromAutoResponder, isFromWebhook} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     post: Post;
     compactDisplay?: boolean;
-    colorizeUsernames?: boolean;
-    enablePostUsernameOverride?: boolean;
     isConsecutivePost?: boolean;
-    isBot: boolean;
     isSystemMessage: boolean;
     isMobileView: boolean;
 };
 
-const PostUserProfile = (props: Props): JSX.Element | null => {
+const automaticReplyText = (
+    <FormattedMessage
+        id='post_info.auto_responder'
+        defaultMessage='AUTOMATIC REPLY'
+    />
+);
+
+const PostUserProfile = ({
+    isMobileView,
+    isSystemMessage,
+    post,
+    compactDisplay,
+    isConsecutivePost,
+}: Props): JSX.Element | null => {
     const intl = useIntl();
-    const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames} = props;
+    const enablePostUsernameOverride = useSelector((state: GlobalState) => getConfig(state).EnablePostUsernameOverride === 'true');
     const isFromAutoResponder = fromAutoResponder(post);
-    const colorize = compactDisplay && colorizeUsernames;
+    const colorize = useSelector((state: GlobalState) => (compactDisplay && get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true'));
+    const isBot = useSelector((state: GlobalState) => getUser(state, post.user_id)?.is_bot);
 
     let userProfile: ReactNode = null;
     let botIndicator = null;
-    let colon = null;
-
-    if (props.compactDisplay) {
-        colon = <strong className='colon'>{':'}</strong>;
-    }
+    const colon = compactDisplay && <strong className='colon'>{':'}</strong>;
 
     const customStatus = (
         <PostHeaderCustomStatus
-            userId={props.post.user_id}
-            isBot={props.isBot || post.props.from_webhook === 'true'}
+            userId={post.user_id}
+            isBot={isBot || post.props.from_webhook === 'true'}
             isSystemMessage={isSystemMessage}
         />
     );
@@ -103,16 +118,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     />
                 </span>
             );
-            botIndicator = (
-                <Tag
-                    text={
-                        <FormattedMessage
-                            id='post_info.auto_responder'
-                            defaultMessage='AUTOMATIC REPLY'
-                        />
-                    }
-                />
-            );
+            botIndicator = <Tag text={automaticReplyText}/>;
         } else if (isSystemMessage && isBot) {
             userProfile = (
                 <UserProfile

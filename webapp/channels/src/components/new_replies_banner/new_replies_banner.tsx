@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useCallback} from 'react';
+import React, {memo, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import Toast from 'components/toast/toast';
@@ -26,13 +26,15 @@ function NewRepliesBanner({
     onClick,
     onDismiss,
     width,
-    actions,
+    actions: {
+        updateThreadToastStatus,
+    },
 }: Props) {
     const intl = useIntl();
     const onClickMessage = intl.formatMessage({id: 'postlist.toast.scrollToLatest', defaultMessage: 'Jump to new messages'});
 
     useEffect(() => {
-        actions.updateThreadToastStatus(hasNewReplies);
+        updateThreadToastStatus(hasNewReplies);
     }, [hasNewReplies]);
 
     const handleShortcut = useCallback((e) => {
@@ -41,7 +43,7 @@ function NewRepliesBanner({
                 onDismiss();
             }
         }
-    }, [hasNewReplies]);
+    }, [hasNewReplies, onDismiss]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleShortcut);
@@ -51,10 +53,11 @@ function NewRepliesBanner({
         };
     }, [handleShortcut]);
 
+    const style = useMemo(() => ({width}), [width]);
     return (
         <div
             className='new-replies-banner'
-            style={{width}}
+            style={style}
         >
             <Toast
                 show={hasNewReplies}

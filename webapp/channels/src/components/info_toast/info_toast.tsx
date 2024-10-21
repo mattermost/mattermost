@@ -20,16 +20,24 @@ type Props = {
     onExited: () => void;
 }
 
-function InfoToast({content, onExited, className}: Props): JSX.Element {
+function InfoToast({
+    content: {
+        message,
+        icon,
+        undo,
+    },
+    onExited,
+    className,
+}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const closeToast = useCallback(() => {
         onExited();
     }, [onExited]);
 
     const undoTodo = useCallback(() => {
-        content.undo?.();
+        undo?.();
         onExited();
-    }, [content.undo, onExited]);
+    }, [undo, onExited]);
 
     const toastContainerClassname = classNames('info-toast', className);
 
@@ -43,7 +51,7 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
 
     return (
         <CSSTransition
-            in={Boolean(content)}
+            in={true}
             classNames='toast'
             mountOnEnter={true}
             unmountOnExit={true}
@@ -51,9 +59,9 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
             appear={true}
         >
             <div className={toastContainerClassname}>
-                {content.icon}
-                <span>{content.message}</span>
-                {content.undo && (
+                {icon}
+                <span>{message}</span>
+                {undo && (
                     <button
                         onClick={undoTodo}
                         className='info-toast__undo'

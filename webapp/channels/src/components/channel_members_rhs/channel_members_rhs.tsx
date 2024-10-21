@@ -2,15 +2,23 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+
+import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
+import {openModal} from 'actions/views/modals';
+import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/rhs';
+import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -18,8 +26,6 @@ import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-
-import type {ModalData} from 'types/actions';
 
 import ActionBar from './action_bar';
 import Header from './header';
@@ -49,18 +55,6 @@ export interface Props {
     channelMembers: ChannelMember[];
     canManageMembers: boolean;
     editing: boolean;
-
-    actions: {
-        openModal: <P>(modalData: ModalData<P>) => void;
-        openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
-        closeRightHandSide: () => void;
-        goBack: () => void;
-        setChannelMembersRhsSearchTerm: (terms: string) => void;
-        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string) => void;
-        loadMyChannelMemberAndRole: (channelId: string) => void;
-        setEditChannelMembers: (active: boolean) => void;
-        searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
-    };
 }
 
 export enum ListItemType {
@@ -84,7 +78,6 @@ export default function ChannelMembersRHS({
     channelMembers,
     canManageMembers,
     editing = false,
-    actions,
 }: Props) {
     const history = useHistory();
 
@@ -93,6 +86,8 @@ export default function ChannelMembersRHS({
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
+
+    const dispatch = useDispatch();
 
     const searching = searchTerms !== '';
 
@@ -103,7 +98,7 @@ export default function ChannelMembersRHS({
 
     useEffect(() => {
         return () => {
-            actions.setChannelMembersRhsSearchTerm('');
+            dispatch(setChannelMembersRhsSearchTerm(''));
         };
     }, []);
 
@@ -158,28 +153,28 @@ export default function ChannelMembersRHS({
 
     useEffect(() => {
         if (channel.type === Constants.DM_CHANNEL) {
-            let rhsAction = actions.closeRightHandSide;
+            let rhsAction: any = closeRightHandSide;
             if (canGoBack) {
-                rhsAction = actions.goBack;
+                rhsAction = goBack;
             }
-            rhsAction();
+            dispatch(rhsAction());
             return;
         }
 
         setPage(0);
         setIsNextPageLoading(false);
-        actions.setChannelMembersRhsSearchTerm('');
-        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
-        actions.loadMyChannelMemberAndRole(channel.id);
+        dispatch(setChannelMembersRhsSearchTerm(''));
+        dispatch(loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin));
+        dispatch(loadMyChannelMemberAndRole(channel.id));
     }, [channel.id, channel.type]);
 
-    const setSearchTerms = async (terms: string) => {
-        actions.setChannelMembersRhsSearchTerm(terms);
-    };
+    const setSearchTerms = useCallback(async (terms: string) => {
+        dispatch(setChannelMembersRhsSearchTerm(terms));
+    }, [dispatch]);
 
     const doSearch = useCallback(debounce(async (terms: string) => {
-        await actions.searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id});
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers]);
+        await dispatch(searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id}));
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [dispatch, channel.team_id, channel.id]);
 
     useEffect(() => {
         if (searchTerms) {
@@ -187,41 +182,51 @@ export default function ChannelMembersRHS({
         }
     }, [searchTerms]);
 
-    const inviteMembers = () => {
+    const inviteMembers = useCallback(() => {
         if (channel.type === Constants.GM_CHANNEL) {
-            return actions.openModal({
+            return dispatch(openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
                 dialogProps: {isExistingChannel: true},
-            });
+            }));
         }
 
-        return actions.openModal({
+        return dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_INVITE,
             dialogType: ChannelInviteModal,
             dialogProps: {channel},
-        });
-    };
+        }));
+    }, [channel, dispatch]);
 
     const openDirectMessage = useCallback(async (user: UserProfile) => {
         // we first prepare the DM channel...
-        await actions.openDirectChannelToUserId(user.id);
+        await dispatch(openDirectChannelToUserId(user.id));
 
         // ... and then redirect to it
         history.push(teamUrl + '/messages/@' + user.username);
 
-        await actions.closeRightHandSide();
-    }, [actions.openDirectChannelToUserId, history, teamUrl, actions.closeRightHandSide]);
+        await dispatch(closeRightHandSide());
+    }, [dispatch, history, teamUrl]);
 
     const loadMore = useCallback(async () => {
         setIsNextPageLoading(true);
 
-        await actions.loadProfilesAndReloadChannelMembers(page + 1, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+        await dispatch(loadProfilesAndReloadChannelMembers(page + 1, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin));
         setPage(page + 1);
 
         setIsNextPageLoading(false);
-    }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id],
-    );
+    }, [dispatch, page, channel.id]);
+
+    const headerOnClose = useCallback(() => dispatch(closeRightHandSide), [dispatch]);
+    const headerGoBack = useCallback(() => dispatch(goBack), [dispatch]);
+    const actionBarStartEditing = useCallback(() => dispatch(setEditChannelMembers(true)), [dispatch]);
+    const actionBarStopEditing = useCallback(() => dispatch(setEditChannelMembers(false)), [dispatch]);
+
+    const actionBarActions = useMemo(() => ({
+        startEditing: actionBarStartEditing,
+        stopEditing: actionBarStopEditing,
+        inviteMembers,
+    }), [actionBarStartEditing, actionBarStopEditing, inviteMembers]);
 
     return (
         <div
@@ -232,8 +237,8 @@ export default function ChannelMembersRHS({
             <Header
                 channel={channel}
                 canGoBack={canGoBack}
-                onClose={actions.closeRightHandSide}
-                goBack={actions.goBack}
+                onClose={headerOnClose}
+                goBack={headerGoBack}
             />
 
             <ActionBar
@@ -241,11 +246,7 @@ export default function ChannelMembersRHS({
                 membersCount={membersCount}
                 canManageMembers={canManageMembers}
                 editing={editing}
-                actions={{
-                    startEditing: () => actions.setEditChannelMembers(true),
-                    stopEditing: () => actions.setEditChannelMembers(false),
-                    inviteMembers,
-                }}
+                actions={actionBarActions}
             />
 
             {/* Users with user management permissions have special restrictions in the default channel */}

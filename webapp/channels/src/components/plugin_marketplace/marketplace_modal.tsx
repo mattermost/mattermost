@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
 import type {SelectCallback} from 'react-bootstrap';
@@ -57,6 +57,8 @@ type MarketplaceModalProps = {
     openedFrom: OpenedFromType;
 }
 
+const magnifyIcon = <MagnifyIcon size={24}/>;
+
 const MarketplaceModal = ({
     openedFrom,
 }: MarketplaceModalProps) => {
@@ -88,9 +90,9 @@ const MarketplaceModal = ({
         }
 
         setLoading(false);
-    }, []);
+    }, [dispatch]);
 
-    const doSearch = useCallback(async () => {
+    const doSearch = useCallback(async (filter) => {
         trackEvent('plugins', 'ui_marketplace_search', {filter});
 
         const {error} = await dispatch(filterListing(filter));
@@ -98,9 +100,9 @@ const MarketplaceModal = ({
         if (error) {
             setServerError(true);
         }
-    }, [filter]);
+    }, [dispatch]);
 
-    const debouncedSearch = debounce(doSearch, SEARCH_TIMEOUT_MILLISECONDS);
+    const debouncedSearch = useMemo(() => debounce(doSearch, SEARCH_TIMEOUT_MILLISECONDS), [doSearch]);
 
     useEffect(() => {
         async function doFetch() {
@@ -127,7 +129,7 @@ const MarketplaceModal = ({
 
     useEffect(() => {
         if (hasLoaded) {
-            debouncedSearch();
+            debouncedSearch(filter);
             setPage(0);
         }
     }, [filter]);
@@ -138,10 +140,10 @@ const MarketplaceModal = ({
         }
     }, []);
 
-    const handleOnClose = () => {
+    const handleOnClose = useCallback(() => {
         trackEvent('plugins', 'ui_marketplace_closed');
         dispatch(closeModal(ModalIdentifiers.PLUGIN_MARKETPLACE));
-    };
+    }, [dispatch]);
 
     const handleChangeTab: SelectCallback = useCallback((tabKey) => {
         setTabKey(tabKey);
@@ -171,7 +173,12 @@ const MarketplaceModal = ({
         handleChangeTab(MarketplaceTabs.ALL_LISTING);
     }, [handleChangeTab]);
 
-    const getHeaderInput = useCallback(() => {
+    const noResultAction = useMemo(() => ({
+        label: formatMessage({id: 'marketplace_modal.install_plugins', defaultMessage: 'Install plugins'}),
+        onClick: handleNoResultsButtonClick,
+    }), [formatMessage, handleNoResultsButtonClick]);
+
+    const getHeaderInput = () => {
         if (isStreamlinedMarketplaceEnabled) {
             return null;
         }
@@ -184,7 +191,7 @@ const MarketplaceModal = ({
                 inputClassName='search_input'
                 type='text'
                 inputSize={SIZE.LARGE}
-                inputPrefix={<MagnifyIcon size={24}/>}
+                inputPrefix={magnifyIcon}
                 placeholder={formatMessage({id: 'marketplace_modal.search', defaultMessage: 'Search marketplace'})}
                 useLegend={false}
                 autoFocus={true}
@@ -194,9 +201,9 @@ const MarketplaceModal = ({
                 onClear={handleOnClear}
             />
         );
-    }, [filter, handleOnChange, handleOnClear]);
+    };
 
-    const getFooterContent = useCallback(() => {
+    const getFooterContent = () => {
         if (isStreamlinedMarketplaceEnabled && listing.length <= ITEMS_PER_PAGE) {
             return null;
         }
@@ -210,15 +217,15 @@ const MarketplaceModal = ({
                 onPreviousPage={handleOnPreviousPage}
             />
         );
-    }, [installedListing.length, listing.length, page, handleOnNextPage, handleOnPreviousPage, tabKey, isStreamlinedMarketplaceEnabled]);
+    };
 
-    const getAppendedContent = useCallback(() => {
+    const getAppendedContent = () => {
         if (!isStreamlinedMarketplaceEnabled || isCloud) {
             return null;
         }
 
         return <WebMarketplaceBanner/>;
-    }, [isStreamlinedMarketplaceEnabled, isCloud]);
+    };
 
     return (
         <GenericModal
@@ -303,10 +310,7 @@ const MarketplaceModal = ({
                                 id: 'marketplace_modal.no_plugins_installed',
                                 defaultMessage: 'No plugins installed found',
                             })}
-                            noResultsAction={{
-                                label: formatMessage({id: 'marketplace_modal.install_plugins', defaultMessage: 'Install plugins'}),
-                                onClick: handleNoResultsButtonClick,
-                            }}
+                            noResultsAction={noResultAction}
                         />
                     </Tab>
                 </Tabs>

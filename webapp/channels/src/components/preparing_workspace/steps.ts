@@ -115,7 +115,7 @@ export function mapAnimationReasonToClass(classPrefix: string, animationReason: 
 }
 
 type PluginNameMap = {
-    [Key in keyof Omit<Form['plugins'], 'skipped'>]: string
+    [Key in keyof Required<Omit<Form['plugins'], 'skipped'>>]: string
 };
 export const PLUGIN_NAME_TO_ID_MAP: PluginNameMap = {
     github: 'github',
@@ -136,14 +136,14 @@ export type Form = {
         channels: boolean;
     };
     plugins: {
-        github: boolean;
-        gitlab: boolean;
-        jira: boolean;
-        zoom: boolean;
-        servicenow: boolean;
+        github?: boolean;
+        gitlab?: boolean;
+        jira?: boolean;
+        zoom?: boolean;
+        servicenow?: boolean;
 
         // set if user clicks skip for now
-        skipped: boolean;
+        skipped?: boolean;
     };
     channel: {
         name: string;
@@ -156,7 +156,7 @@ export type Form = {
     };
 }
 
-export const emptyForm = deepFreeze({
+export const emptyForm: Form = deepFreeze({
     organization: '',
     inferredProtocol: null,
     urlSkipped: false,

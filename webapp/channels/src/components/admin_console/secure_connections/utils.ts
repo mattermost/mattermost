@@ -27,7 +27,7 @@ export const useRemoteClusters = () => {
     const [loadingState, setLoadingState] = useState<boolean | ClientError>(true);
     const {loading, error} = loadingStatus(loadingState);
 
-    const fetch = async () => {
+    const fetch = useCallback(async () => {
         setLoadingState(true);
         try {
             const data = await Client4.getRemoteClusters({excludePlugins: true});
@@ -36,7 +36,7 @@ export const useRemoteClusters = () => {
         } catch (err) {
             setLoadingState(err);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetch();
@@ -52,6 +52,8 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
     const [patch, setPatch] = useState<Partial<RemoteClusterPatch>>({});
     const [loading, setLoading] = useState<TLoadingState>(editing && !currentRemoteCluster);
     const [saving, setSaving] = useState<TLoadingState>(false);
+
+    const remoteCluster = useMemo(() => ({...currentRemoteCluster, ...patch}), [currentRemoteCluster, patch]);
 
     const hasChanges = Object.keys(patch).length > 0;
 
@@ -71,11 +73,11 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
         })();
     }, [remoteId]);
 
-    const applyPatch = (patch: Partial<RemoteClusterPatch>) => {
+    const applyPatch = useCallback((patch: Partial<RemoteClusterPatch>) => {
         setPatch((current) => ({...current, ...patch}));
-    };
+    }, []);
 
-    const save = async () => {
+    const save = useCallback(async () => {
         if (currentRemoteCluster && isRemoteClusterPatch(patch)) {
             setSaving(true);
             try {
@@ -88,10 +90,10 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
             }
             setSaving(false);
         }
-    };
+    }, [currentRemoteCluster, patch, remoteId]);
 
     return [
-        {...currentRemoteCluster, ...patch},
+        remoteCluster,
         {
             applyPatch,
             save,
@@ -106,32 +108,26 @@ export const useRemoteClusterEdit = (remoteId: string | 'create', initRemoteClus
 
 export const useSharedChannelRemotes = (remoteId: string) => {
     const [remotes, setRemotes] = useState<RelationOneToOne<Channel, SharedChannelRemote>>();
-    const [loadingState, setLoadingState] = useState<TLoadingState>(true);
-
-    const loading = isPendingState(loadingState);
-    const error = !loading && loadingState;
-
-    const fetch = async () => {
-        setLoadingState(true);
-        try {
-            const data = await Client4.getSharedChannelRemotes(remoteId, {include_deleted: true, include_unconfirmed: true});
-
-            setRemotes(data?.reduce<typeof remotes>((state, remote) => {
-                state![remote.channel_id] = remote;
-
-                return state;
-            }, {}));
-            setLoadingState(false);
-        } catch (error) {
-            setLoadingState(error);
-        }
-    };
 
     useEffect(() => {
+        const fetch = async () => {
+            try {
+                const data = await Client4.getSharedChannelRemotes(remoteId, {include_deleted: true, include_unconfirmed: true});
+
+                setRemotes(data?.reduce<typeof remotes>((state, remote) => {
+                    state![remote.channel_id] = remote;
+
+                    return state;
+                }, {}));
+            } catch (error) {
+                // Do nothing
+            }
+        };
+
         fetch();
     }, [remoteId]);
 
-    return [remotes, {loading, error, fetch}] as const;
+    return remotes;
 };
 
 const remoteRow = (remote: SharedChannelRemote, channel: Channel, team?: Team) => {
@@ -145,7 +141,6 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
     const dispatch = useDispatch();
 
     const loading = isPendingState(loadingState);
-    const error = !loading && loadingState;
 
     const fetch = useCallback(async () => {
         if (opts.filter === undefined) {
@@ -219,13 +214,13 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
 
             return {data: collected};
         });
-    }, [remoteId, opts.filter]);
+    }, [opts.filter, dispatch, remoteId]);
 
     useEffect(() => {
         fetch();
     }, [remoteId, opts.filter]);
 
-    return [sharedChannelRemotes, {loading, error, fetch}] as const;
+    return [sharedChannelRemotes, {loading, fetch}] as const;
 };
 
 export const useTeamOptions = () => {

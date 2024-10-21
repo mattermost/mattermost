@@ -29,7 +29,7 @@ const OnBoardingVideoModal = ({onExited}: Props) => {
             value: 'true',
         }];
         dispatch(savePreferences(currentUserId, preferences));
-    }, [currentUserId]);
+    }, [currentUserId, dispatch]);
 
     return (
         <Modal

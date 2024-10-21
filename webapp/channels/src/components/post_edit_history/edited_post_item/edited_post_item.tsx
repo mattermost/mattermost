@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
@@ -53,33 +53,30 @@ export type Props = PropsFromRedux & {
     theme: Theme;
 }
 
-const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, actions}: Props) => {
+const EditedPostItem = ({
+    post,
+    isCurrent = false,
+    postCurrentVersion,
+    theme,
+    actions: {
+        closeRightHandSide,
+        editPost,
+        openModal,
+    },
+}: Props) => {
     const {formatMessage} = useIntl();
     const [open, setOpen] = useState(isCurrent);
 
-    const openRestorePostModal = useCallback(() => {
-        const restorePostModalData = {
-            modalId: ModalIdentifiers.RESTORE_POST_MODAL,
-            dialogType: RestorePostModal,
-            dialogProps: {
-                post,
-                postHeader,
-                actions: {
-                    handleRestore,
-                },
-            },
-        };
+    const handleUndo = useCallback(async () => {
+        if (!postCurrentVersion) {
+            closeRightHandSide();
+            return;
+        }
 
-        actions.openModal(restorePostModalData);
-    }, [actions, post]);
+        await editPost(postCurrentVersion);
+    }, [closeRightHandSide, editPost, postCurrentVersion]);
 
-    const togglePost = () => setOpen((prevState) => !prevState);
-
-    if (!post) {
-        return null;
-    }
-
-    const showInfoTooltip = () => {
+    const showInfoTooltip = useCallback(() => {
         const infoToastModalData = {
             modalId: ModalIdentifiers.INFO_TOAST,
             dialogType: InfoToast,
@@ -92,12 +89,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             },
         };
 
-        actions.openModal(infoToastModalData);
-    };
+        openModal(infoToastModalData);
+    }, [handleUndo, openModal]);
 
-    const handleRestore = async () => {
+    const handleRestore = useCallback(async () => {
         if (!postCurrentVersion || !post || postCurrentVersion.message === post.message) {
-            actions.closeRightHandSide();
+            closeRightHandSide();
             return;
         }
 
@@ -107,32 +104,16 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             channel_id: postCurrentVersion.channel_id,
         };
 
-        const result = await actions.editPost(updatedPost as Post);
+        const result = await editPost(updatedPost as Post);
         if (result.data) {
-            actions.closeRightHandSide();
+            closeRightHandSide();
             showInfoTooltip();
         }
-    };
-
-    const handleUndo = async () => {
-        if (!postCurrentVersion) {
-            actions.closeRightHandSide();
-            return;
-        }
-
-        await actions.editPost(postCurrentVersion);
-    };
-
-    const currentVersionIndicator = isCurrent ? (
-        <div className='edit-post-history__current__indicator'>
-            {formatMessage(itemMessages.currentVersionText)}
-        </div>
-    ) : null;
+    }, [closeRightHandSide, editPost, post, postCurrentVersion, showInfoTooltip]);
 
     const profileSrc = imageURLForUser(post.user_id);
-
     const overwriteName = post.props ? post.props.override_username : '';
-    const postHeader = (
+    const postHeader = useMemo(() => (
         <div className='edit-post-history__header'>
             <span className='profile-icon'>
                 <Avatar
@@ -149,7 +130,35 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 />
             </div>
         </div>
-    );
+    ), [overwriteName, post.user_id, profileSrc]);
+
+    const openRestorePostModal = useCallback(() => {
+        const restorePostModalData = {
+            modalId: ModalIdentifiers.RESTORE_POST_MODAL,
+            dialogType: RestorePostModal,
+            dialogProps: {
+                post,
+                postHeader,
+                actions: {
+                    handleRestore,
+                },
+            },
+        };
+
+        openModal(restorePostModalData);
+    }, [handleRestore, openModal, post, postHeader]);
+
+    const togglePost = useCallback(() => setOpen((prevState) => !prevState), []);
+
+    if (!post) {
+        return null;
+    }
+
+    const currentVersionIndicator = isCurrent ? (
+        <div className='edit-post-history__current__indicator'>
+            {formatMessage(itemMessages.currentVersionText)}
+        </div>
+    ) : null;
 
     const message = (
         <PostMessageContainer

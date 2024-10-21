@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import React, {forwardRef, memo, useCallback} from 'react';
+import React, {forwardRef, memo, useCallback, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
@@ -32,22 +32,37 @@ interface Props {
     getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<ActionResult<CustomEmoji[]>>;
 }
 
-const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props, ref) => {
-    // Function to create unique key for each row
-    const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
-        const data = rowsData[index];
+// Function to create unique key for each row
+const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
+    const data = rowsData[index];
 
-        if (isCategoryHeaderRow(data)) {
-            const categoryRow = data.items[0];
-            return `${categoryRow.categoryIndex}-${categoryRow.categoryName}`;
-        }
+    if (isCategoryHeaderRow(data)) {
+        const categoryRow = data.items[0];
+        return `${categoryRow.categoryIndex}-${categoryRow.categoryName}`;
+    }
 
-        const emojisRow = data.items;
-        const emojiNamesArray = emojisRow.map((emoji) => `${emoji.categoryIndex}-${emoji.emojiId}`);
-        return emojiNamesArray.join('--');
-    };
+    const emojisRow = data.items;
+    const emojiNamesArray = emojisRow.map((emoji) => `${emoji.categoryIndex}-${emoji.emojiId}`);
+    return emojiNamesArray.join('--');
+};
 
-    const handleScroll = (scrollOffset: ListOnScrollProps['scrollOffset'], activeCategory: EmojiCategory, isFiltering: boolean, categoryOrEmojisRows: CategoryOrEmojiRow[]) => {
+const containerStyle = {height: EMOJI_CONTAINER_HEIGHT};
+
+const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({
+    categoryOrEmojisRows,
+    isFiltering,
+    activeCategory,
+    cursorRowIndex,
+    cursorEmojiId,
+    customEmojisEnabled,
+    customEmojiPage,
+    setActiveCategory,
+    onEmojiClick,
+    onEmojiMouseOver,
+    getCustomEmojis,
+    incrementEmojiPickerPage,
+}: Props, ref) => {
+    const handleScroll = useCallback((scrollOffset: ListOnScrollProps['scrollOffset'], activeCategory: EmojiCategory, isFiltering: boolean, categoryOrEmojisRows: CategoryOrEmojiRow[]) => {
         if (isFiltering) {
             return;
         }
@@ -60,18 +75,18 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         }
 
         setActiveCategory(closestCategory);
-    };
+    }, [setActiveCategory]);
 
-    const throttledScroll = useCallback(throttle(({scrollOffset}: ListOnScrollProps) => {
+    const throttledScroll = useMemo(() => throttle(({scrollOffset}: ListOnScrollProps) => {
         handleScroll(scrollOffset, activeCategory, isFiltering, categoryOrEmojisRows);
     }, EMOJI_SCROLL_THROTTLE_DELAY, {leading: false, trailing: true},
-    ), [activeCategory, isFiltering, categoryOrEmojisRows]);
+    ), [handleScroll, activeCategory, isFiltering, categoryOrEmojisRows]);
 
-    const handleIsItemLoaded = (index: number): boolean => {
+    const handleIsItemLoaded = useCallback((index: number): boolean => {
         return index < categoryOrEmojisRows.length;
-    };
+    }, [categoryOrEmojisRows.length]);
 
-    const handleLoadMoreItems = async () => {
+    const handleLoadMoreItems = useCallback(async () => {
         if (customEmojisEnabled === false) {
             return;
         }
@@ -84,12 +99,12 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         }
 
         incrementEmojiPickerPage();
-    };
+    }, [customEmojiPage, customEmojisEnabled, getCustomEmojis, incrementEmojiPickerPage]);
 
     return (
         <div
             className='emoji-picker__items'
-            style={{height: EMOJI_CONTAINER_HEIGHT}}
+            style={containerStyle}
         >
             <div className='emoji-picker__container'>
                 <AutoSizer>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
@@ -30,7 +30,7 @@ type MarketplaceListProps = {
 const MarketplaceList = ({
     listing,
     page,
-    noResultsMessage,
+    noResultsMessage: noResultMessageReceived,
     noResultsAction,
     filter,
     listRef,
@@ -77,22 +77,18 @@ const MarketplaceList = ({
             ));
     }, [listing, page]);
 
-    const getNoResultsMessage = useCallback(() => (
-        filter ? (
-            formatMessage(
-                {id: 'marketplace_modal_list.no_plugins_filter', defaultMessage: 'No results for "{filter}"'},
-                {filter},
-            )
-        ) : (
-            noResultsMessage
+    const noResultsMessage = filter ? (
+        formatMessage(
+            {id: 'marketplace_modal_list.no_plugins_filter', defaultMessage: 'No results for "{filter}"'},
+            {filter},
         )
-    ), [filter, noResultsMessage]);
+    ) : noResultMessageReceived;
 
     return (listing.length === 0 ? (
         <div className='no_plugins'>
             <PluginIcon className='icon__plugin'/>
             <div className='no_plugins__message'>
-                {getNoResultsMessage()}
+                {noResultsMessage}
             </div>
             {noResultsAction && (
                 <button

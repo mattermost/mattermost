@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -104,19 +104,20 @@ function ChannelBookmarkCreateModal({
         }
     }, []);
 
-    const [linkError, {loading: checkingLink, suppressed: linkErrorBypass}] = useBookmarkLinkValidation(link === prevLink.current ? '' : link, (validatedLink, forced) => {
+    const onValidated = useCallback((validatedLink, forced) => {
         if (!forced) {
             setValidatedLink(validatedLink);
         }
         const parsed = removeScheme(validatedLink);
         setParsedDisplayName(parsed);
         setDisplayName(parsed);
-    });
+    }, []);
+    const [linkError, {loading: checkingLink, suppressed: linkErrorBypass}] = useBookmarkLinkValidation(link === prevLink.current ? '' : link, onValidated);
 
     const handleLinkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const {value} = e.target;
         setLink(value);
-    }, []);
+    }, [setLink]);
 
     // type === 'file'
     const canUploadFiles = useCanUploadFiles();
@@ -132,67 +133,32 @@ function ChannelBookmarkCreateModal({
     });
     const maxFileSizeMB = maxFileSize / 1048576;
 
-    const handleEditFileClick = (e: MouseEvent<HTMLDivElement>) => {
-        const innerClick = document.querySelector(`
-            .channel-bookmarks-create-modal .post-image__download a,
-            .channel-bookmarks-create-modal a.file-preview__remove
-        `);
-        if (
-            innerClick === e.target ||
-            innerClick?.contains(e.target as HTMLElement)
-        ) {
-            return;
-        }
-
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChanged = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) {
-            return;
-        }
-
-        doUploadFile(file);
-    }, []);
-
-    const handleFileRemove = () => {
+    const handleFileRemove = useCallback(() => {
         setPendingFile(null);
         setFileId(bookmark?.file_id);
         setParsedDisplayName(undefined);
         uploadRequestRef.current?.abort();
-    };
+    }, [bookmark?.file_id]);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const fileInput = (
-        <input
-            type='file'
-            id='bookmark-create-file-input-in-modal'
-            className='bookmark-create-file-input'
-            ref={fileInputRef}
-            onChange={handleFileChanged}
-        />
-    );
-
-    const onProgress: UploadFile['onProgress'] = (preview) => {
+    const onProgress: UploadFile['onProgress'] = useCallback((preview) => {
         setPendingFile(preview);
-    };
-    const onSuccess: UploadFile['onSuccess'] = ({file_infos: fileInfos}) => {
+    }, []);
+    const onSuccess: UploadFile['onSuccess'] = useCallback(({file_infos: fileInfos}) => {
         setPendingFile(null);
         const newFile: FileInfo = fileInfos?.[0];
         if (newFile) {
             setFileId(newFile.id);
         }
         setFileError('');
-    };
-    const onError: UploadFile['onError'] = () => {
+    }, []);
+    const onError: UploadFile['onError'] = useCallback(() => {
         setPendingFile(null);
         setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
-    };
+    }, [formatMessage]);
 
     const displayNameValue = displayName || parsedDisplayName || (type === 'file' ? fileInfo?.name : bookmark?.link_url) || '';
 
-    const doUploadFile = (file: File) => {
+    const doUploadFile = useCallback((file: File) => {
         setPendingFile(null);
         setFileId('');
 
@@ -233,7 +199,53 @@ function ChannelBookmarkCreateModal({
             onSuccess,
             onError,
         }, true)) as unknown as XMLHttpRequest;
-    };
+    }, [
+        channelId,
+        dispatch,
+        displayNameValue,
+        fileInfo?.name,
+        formatMessage,
+        maxFileSize,
+        maxFileSizeMB,
+        onError,
+        onSuccess,
+        onProgress,
+    ]);
+
+    const handleFileChanged = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        doUploadFile(file);
+    }, [doUploadFile]);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInput = (
+        <input
+            type='file'
+            id='bookmark-create-file-input-in-modal'
+            className='bookmark-create-file-input'
+            ref={fileInputRef}
+            onChange={handleFileChanged}
+        />
+    );
+
+    const handleEditFileClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+        const innerClick = document.querySelector(`
+            .channel-bookmarks-create-modal .post-image__download a,
+            .channel-bookmarks-create-modal a.file-preview__remove
+        `);
+        if (
+            innerClick === e.target ||
+            innerClick?.contains(e.target as HTMLElement)
+        ) {
+            return;
+        }
+
+        fileInputRef.current?.click();
+    }, []);
 
     useEffect(() => {
         if (promptedFile) {
@@ -347,18 +359,22 @@ function ChannelBookmarkCreateModal({
                 setSaveError(formatMessage(msg.saveError));
             }
         }
-    }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
+    }, [type, fileInfo, link, onConfirm, icon, emoji, displayNameValue, formatMessage, onHide]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
 
-    let linkStatusIndicator;
-    if (checkingLink) {
-        // loading
-        linkStatusIndicator = <LoadingSpinner/>;
-    } else if (validatedLink && !linkError) {
-        // validated
-        linkStatusIndicator = checkedIcon;
-    }
+    const validatedWithoutError = validatedLink && !linkError;
+
+    const linkStatusIndicator = useMemo(() => {
+        if (checkingLink) {
+            // loading
+            return <LoadingSpinner/>;
+        } else if (validatedWithoutError) {
+            // validated
+            return checkedIcon;
+        }
+        return undefined;
+    }, [checkingLink, validatedWithoutError]);
 
     let linkMessage = formatMessage(msg.linkInfoMessage);
     if (linkErrorBypass) {
@@ -367,6 +383,11 @@ function ChannelBookmarkCreateModal({
             linkMessage = formatMessage(msg.invalidLinkMessage, {link: url.toString()});
         }
     }
+
+    const inputCustomMessage = useMemo(
+        () => (linkError ? {type: 'error', value: linkError} as const : {value: linkMessage}),
+        [linkError, linkMessage],
+    );
 
     return (
         <GenericModal
@@ -399,7 +420,7 @@ function ChannelBookmarkCreateModal({
                             data-testid='linkInput'
                             autoFocus={true}
                             addon={linkStatusIndicator}
-                            customMessage={linkError ? {type: 'error', value: linkError} : {value: linkMessage}}
+                            customMessage={inputCustomMessage}
                         />
                     </>
                 ) : (

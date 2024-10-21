@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect} from 'react';
+import noop from 'lodash/noop';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -65,14 +66,17 @@ const MembersContainer = styled.div`
 
 const unknownUser: UserProfile = {id: 'unknown', username: 'unknown'} as UserProfile;
 
-function NotificationFromMembersModal(props: Props) {
+function NotificationFromMembersModal({
+    feature,
+    userIds,
+}: Props) {
     const dispatch = useDispatch();
     const history = useHistory();
     const {formatMessage} = useIntl();
 
     useEffect(() => {
-        dispatch(getMissingProfilesByIds(props.userIds));
-    }, [dispatch, props.userIds]);
+        dispatch(getMissingProfilesByIds(userIds));
+    }, [dispatch, userIds]);
 
     const channel = useSelector(getCurrentChannel);
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
@@ -81,7 +85,7 @@ function NotificationFromMembersModal(props: Props) {
     const displaySetting = useSelector(getTeammateNameDisplaySetting);
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.SUM_OF_MEMBERS_MODAL));
 
-    const members: ListItem[] = props.userIds.map((userId: string) => {
+    const members: ListItem[] = useMemo(() => userIds.map((userId: string) => {
         const user = userProfiles[userId];
         const status = userStatuses[userId];
         const displayName = displayUsername(user, displaySetting);
@@ -93,7 +97,7 @@ function NotificationFromMembersModal(props: Props) {
                 status,
             },
         };
-    });
+    }), [displaySetting, userIds, userProfiles, userStatuses]);
 
     const openDirectMessage = useCallback(async (user: UserProfile) => {
         // we first prepare the DM channel...
@@ -101,13 +105,23 @@ function NotificationFromMembersModal(props: Props) {
 
         // ... and then redirect to it
         history.push(teamUrl + '/messages/@' + user.username);
-    }, [openDirectChannelToUserId, history, teamUrl]);
+    }, [dispatch, history, teamUrl]);
 
-    const handleOnClose = () => {
+    const handleOnClose = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.SUM_OF_MEMBERS_MODAL));
-    };
+    }, [dispatch]);
 
-    const loadMore = () => {};
+    const modalHeaderText = useMemo(() => {
+        const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
+        return (
+            <h1
+                id='invitation_modal_title'
+                className='modal-title'
+            >
+                {`${modalTitle}${mapFeatureIdToTranslation(feature, formatMessage)}`}
+            </h1>
+        );
+    }, [formatMessage, feature]);
 
     if (!show) {
         return null;
@@ -116,17 +130,6 @@ function NotificationFromMembersModal(props: Props) {
     if (!channel) {
         return null;
     }
-
-    const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
-
-    const modalHeaderText = (
-        <h1
-            id='invitation_modal_title'
-            className='modal-title'
-        >
-            {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
-        </h1>
-    );
 
     return (
         <GenericModal
@@ -145,7 +148,7 @@ function NotificationFromMembersModal(props: Props) {
                     searchTerms={''}
                     editing={false}
                     openDirectMessage={openDirectMessage}
-                    loadMore={loadMore}
+                    loadMore={noop}
                     hasNextPage={false}
                     isNextPageLoading={false}
                 />

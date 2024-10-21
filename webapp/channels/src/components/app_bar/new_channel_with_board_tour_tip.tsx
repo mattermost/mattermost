@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import type {ComponentProps} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import type {Placement} from 'tippy.js';
@@ -18,6 +19,8 @@ type Props = {
     pulsatingDotTranslate?: {x: number; y: number};
 }
 
+const tourTipOffset: ComponentProps<typeof TourTip>['offset'] = [-30, 5];
+
 const NewChannelWithBoardTourTip = ({
     pulsatingDotPlacement = 'left',
     pulsatingDotTranslate,
@@ -25,19 +28,19 @@ const NewChannelWithBoardTourTip = ({
     const dispatch = useDispatch();
     const showTip = useSelector(showNewChannelWithBoardPulsatingDot);
 
-    const title = (
+    const title = useMemo(() => (
         <FormattedMessage
             id='newChannelWithBoard.tutorialTip.title'
             defaultMessage='Access linked boards from the App Bar'
         />
-    );
+    ), []);
 
-    const screen = (
+    const screen = useMemo(() => (
         <FormattedMessage
             id='newChannelWithBoard.tutorialTip.description'
             defaultMessage='The board you just created can be quickly accessed by clicking on the Boards icon in the App bar. You can view the boards that are linked to this channel in the right-hand sidebar and open one in full view.'
         />
-    );
+    ), []);
 
     const [tipOpened, setTipOpened] = useState(showTip);
 
@@ -45,7 +48,7 @@ const NewChannelWithBoardTourTip = ({
         e.stopPropagation();
         setTipOpened(false);
         dispatch(setNewChannelWithBoardPreference({[Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED]: true}));
-    }, []);
+    }, [dispatch]);
 
     const handleOpen = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -57,7 +60,7 @@ const NewChannelWithBoardTourTip = ({
         } else {
             setTipOpened(true);
         }
-    }, []);
+    }, [dispatch, tipOpened]);
 
     const overlayPunchOut = useMeasurePunchouts(['app-bar-icon-focalboard'], [], {y: -2, height: 4, x: 0, width: 0});
 
@@ -80,7 +83,7 @@ const NewChannelWithBoardTourTip = ({
             handleDismiss={handleDismiss}
             handleOpen={handleOpen}
             handlePrevious={handleDismiss}
-            offset={[-30, 5]}
+            offset={tourTipOffset}
             pulsatingDotTranslate={pulsatingDotTranslate}
         />
     );

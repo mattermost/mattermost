@@ -2,14 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {AnyAction, Dispatch} from 'redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
@@ -28,11 +25,6 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
-import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
-import {openModal} from 'actions/views/modals';
-import {closeRightHandSide, goBack, setEditChannelMembers} from 'actions/views/rhs';
-import {setChannelMembersRhsSearchTerm} from 'actions/views/search';
 import {getIsEditingMembers, getPreviousRhsState} from 'selectors/rhs';
 
 import {Constants, RHSStates} from 'utils/constants';
@@ -156,20 +148,4 @@ function mapStateToProps(state: GlobalState) {
     } as Props;
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
-    return {
-        actions: bindActionCreators({
-            openModal,
-            openDirectChannelToUserId,
-            closeRightHandSide,
-            goBack,
-            setChannelMembersRhsSearchTerm,
-            loadProfilesAndReloadChannelMembers,
-            loadMyChannelMemberAndRole,
-            setEditChannelMembers,
-            searchProfilesAndChannelMembers,
-        }, dispatch),
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(RHS);
+export default connect(mapStateToProps)(RHS);

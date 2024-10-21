@@ -2,13 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
 
-import {addUsersToGroup} from 'mattermost-redux/actions/groups';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-
-import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
 
@@ -26,13 +21,4 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch) {
-    return {
-        actions: bindActionCreators({
-            addUsersToGroup,
-            openModal,
-        }, dispatch),
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(AddUsersToGroupModal);
+export default connect(mapStateToProps)(AddUsersToGroupModal);

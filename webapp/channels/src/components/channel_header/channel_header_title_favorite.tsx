@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -16,31 +16,24 @@ const ChannelHeaderTitleFavorite = () => {
     const dispatch = useDispatch();
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
+    const hasChannel = Boolean(channel);
+    const channelId = channel?.id || '';
+
     const channelIsArchived = (channel?.delete_at ?? 0) > 0;
 
     const toggleFavoriteCallback = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!channel) {
+        if (!hasChannel) {
             return;
         }
         if (isFavorite) {
-            dispatch(unfavoriteChannel(channel.id));
+            dispatch(unfavoriteChannel(channelId));
         } else {
-            dispatch(favoriteChannel(channel.id));
+            dispatch(favoriteChannel(channelId));
         }
-    }, [isFavorite, channel?.id]);
+    }, [hasChannel, isFavorite, dispatch, channelId]);
 
-    if (!channel || channelIsArchived) {
-        return null;
-    }
-
-    let ariaLabel = intl.formatMessage({id: 'channelHeader.addToFavorites', defaultMessage: 'Add to Favorites'});
-    if (isFavorite) {
-        ariaLabel = intl.formatMessage({id: 'channelHeader.removeFromFavorites', defaultMessage: 'Remove from Favorites'});
-    }
-    ariaLabel = ariaLabel.toLowerCase();
-
-    const title = (
+    const title = useMemo(() => (
         <>
             {!isFavorite &&
                 <FormattedMessage
@@ -53,7 +46,17 @@ const ChannelHeaderTitleFavorite = () => {
                     defaultMessage='Remove from Favorites'
                 />}
         </>
-    );
+    ), [isFavorite]);
+
+    if (!channel || channelIsArchived) {
+        return null;
+    }
+
+    let ariaLabel = intl.formatMessage({id: 'channelHeader.addToFavorites', defaultMessage: 'Add to Favorites'});
+    if (isFavorite) {
+        ariaLabel = intl.formatMessage({id: 'channelHeader.removeFromFavorites', defaultMessage: 'Remove from Favorites'});
+    }
+    ariaLabel = ariaLabel.toLowerCase();
 
     return (
         <WithTooltip

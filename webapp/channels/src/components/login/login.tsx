@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -65,6 +65,8 @@ const MOBILE_SCREEN_WIDTH = 1200;
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
 }
+
+const markdownOptions = {mentionHighlight: false};
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
@@ -150,7 +152,18 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
-    const getExternalLoginOptions = () => {
+    const desktopExternalAuth = useCallback((href: string) => {
+        return (event: React.MouseEvent) => {
+            if (isDesktopApp()) {
+                event.preventDefault();
+
+                setDesktopLoginLink(href);
+                history.push(`/login/desktop${search}`);
+            }
+        };
+    }, [history, search]);
+
+    const externalLoginOptions = useMemo(() => {
         const externalLoginOptions: ExternalLoginButtonType[] = [];
 
         if (!enableExternalSignup) {
@@ -215,30 +228,34 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         return externalLoginOptions;
-    };
+    }, [
+        GitLabButtonColor,
+        GitLabButtonText,
+        OpenIdButtonColor,
+        OpenIdButtonText,
+        SamlLoginButtonText,
+        desktopExternalAuth,
+        enableExternalSignup,
+        enableSignUpWithGitLab,
+        enableSignUpWithGoogle,
+        enableSignUpWithOffice365,
+        enableSignUpWithOpenId,
+        enableSignUpWithSaml,
+        formatMessage,
+        search,
+    ]);
 
-    const desktopExternalAuth = (href: string) => {
-        return (event: React.MouseEvent) => {
-            if (isDesktopApp()) {
-                event.preventDefault();
-
-                setDesktopLoginLink(href);
-                history.push(`/login/desktop${search}`);
-            }
-        };
-    };
-
-    const dismissAlert = () => {
+    const dismissAlert = useCallback(() => {
         setAlertBanner(null);
         setHasError(false);
-    };
+    }, []);
 
     const onDismissSessionExpired = useCallback(() => {
         LocalStorageStore.setWasLoggedIn(false);
         setSessionExpired(false);
         DesktopApp.setSessionExpired(false);
         dismissAlert();
-    }, []);
+    }, [dismissAlert]);
 
     const configureTitle = useCallback(() => {
         document.title = sessionExpired ? (
@@ -250,7 +267,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 {siteName},
             )
         ) : siteName;
-    }, [sessionExpired, siteName]);
+    }, [formatMessage, sessionExpired, siteName]);
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
         if (sessionExpired && !closeSessionExpiredNotification!.current) {
@@ -278,7 +295,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             closeSessionExpiredNotification.current();
             closeSessionExpiredNotification.current = undefined;
         }
-    }, [sessionExpired, siteName]);
+    }, [dispatch, formatMessage, sessionExpired, siteName]);
 
     const getAlertData = useCallback(() => {
         let mode;
@@ -351,7 +368,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         return setAlertBanner(mode ? {mode: mode as ModeType, title, onDismiss} : null);
-    }, [extraParam, sessionExpired, siteName, onDismissSessionExpired]);
+    }, [sessionExpired, formatMessage, onDismissSessionExpired, extraParam, siteName]);
 
     const getAlternateLink = useCallback(() => {
         const linkLabel = formatMessage({
@@ -378,7 +395,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 onClick={handleClick}
             />
         );
-    }, [showSignup]);
+    }, [formatMessage, showSignup]);
 
     const onWindowResize = throttle(() => {
         setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
@@ -392,6 +409,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     useEffect(() => {
         if (onCustomizeHeader) {
+            const handleHeaderBackButtonOnClick = () => {
+                setShowMfa(false);
+            };
             onCustomizeHeader({
                 onBackButtonClick: showMfa ? handleHeaderBackButtonOnClick : undefined,
                 alternateLink: isMobileView ? getAlternateLink() : undefined,
@@ -461,34 +481,118 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         };
     }, []);
 
-    if (initializing) {
-        return (<LoadingScreen/>);
-    }
+    const finishSignin = useCallback((team?: Team) => {
+        setCSRFFromCookie();
 
-    const getInputPlaceholder = () => {
-        const loginPlaceholders = [];
+        // Record a successful login to local storage. If an unintentional logout occurs, e.g.
+        // via session expiration, this bit won't get reset and we can notify the user as such.
+        LocalStorageStore.setWasLoggedIn(true);
 
-        if (enableSignInWithEmail) {
-            loginPlaceholders.push(formatMessage({id: 'login.email', defaultMessage: 'Email'}));
+        // After a user has just logged in, we set the following flag to "false" so that after
+        // a user is notified of successful login, we can set it back to "true"
+        LocalStorageStore.setWasNotifiedOfLogIn(false);
+
+        if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
+            history.push(redirectTo);
+        } else if (team) {
+            history.push(`/${team.name}`);
+        } else if (experimentalPrimaryTeamMember?.team_id) {
+            // Only set experimental team if user is on that team
+            history.push(`/${ExperimentalPrimaryTeam}`);
+        } else if (onboardingFlowEnabled) {
+            // need info about whether admin or not,
+            // and whether admin has already completed
+            // first time onboarding. Instead of fetching and orchestrating that here,
+            // let the default root component handle it.
+            history.push('/');
+        } else {
+            redirectUserToDefaultTeam();
+        }
+    }, [ExperimentalPrimaryTeam, experimentalPrimaryTeamMember?.team_id, history, onboardingFlowEnabled, redirectTo]);
+
+    const postSubmit = useCallback(async () => {
+        await dispatch(loadMe());
+
+        // check for query params brought over from signup_user_complete
+        const params = new URLSearchParams(search);
+        const inviteToken = params.get('t') || '';
+        const inviteId = params.get('id') || '';
+
+        if (inviteId || inviteToken) {
+            const {data: team} = await dispatch(addUserToTeamFromInvite(inviteToken, inviteId));
+
+            if (team) {
+                finishSignin(team);
+            } else {
+                // there's not really a good way to deal with this, so just let the user log in like normal
+                finishSignin();
+            }
+        } else {
+            finishSignin();
+        }
+    }, [dispatch, finishSignin, search]);
+
+    const submit = useCallback(async ({loginId, password, token}: SubmitOptions) => {
+        setIsWaiting(true);
+
+        const {error: loginError} = await dispatch(login(loginId, password, token));
+
+        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+            if (loginError.server_error_id === 'api.user.login.not_verified.app_error') {
+                history.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
+            } else if (loginError.server_error_id === 'store.sql_user.get_for_login.app_error' ||
+                loginError.server_error_id === 'ent.ldap.do_login.user_not_registered.app_error') {
+                setShowMfa(false);
+                setIsWaiting(false);
+                setAlertBanner({
+                    mode: 'danger',
+                    title: formatMessage({
+                        id: 'login.userNotFound',
+                        defaultMessage: "We couldn't find an account matching your login credentials.",
+                    }),
+                });
+                setHasError(true);
+            } else if (loginError.server_error_id === 'api.user.check_user_password.invalid.app_error' ||
+                loginError.server_error_id === 'ent.ldap.do_login.invalid_password.app_error') {
+                setShowMfa(false);
+                setIsWaiting(false);
+                setAlertBanner({
+                    mode: 'danger',
+                    title: formatMessage({
+                        id: 'login.invalidPassword',
+                        defaultMessage: 'Your password is incorrect.',
+                    }),
+                });
+                setHasError(true);
+            } else if (!showMfa && loginError.server_error_id === 'mfa.validate_token.authenticate.app_error') {
+                setShowMfa(true);
+            } else if (loginError.server_error_id === 'api.user.login.invalid_credentials_email_username') {
+                setShowMfa(false);
+                setIsWaiting(false);
+                setAlertBanner({
+                    mode: 'danger',
+                    title: formatMessage({
+                        id: 'login.invalidCredentials',
+                        defaultMessage: 'The email/username or password is invalid.',
+                    }),
+                });
+                setHasError(true);
+            } else {
+                setShowMfa(false);
+                setIsWaiting(false);
+                setAlertBanner({
+                    mode: 'danger',
+                    title: loginError.message,
+                });
+                setHasError(true);
+            }
+            return;
         }
 
-        if (enableSignInWithUsername) {
-            loginPlaceholders.push(formatMessage({id: 'login.username', defaultMessage: 'Username'}));
-        }
+        await postSubmit();
+    }, [dispatch, formatMessage, history, postSubmit, showMfa]);
 
-        if (ldapEnabled) {
-            loginPlaceholders.push(LdapLoginFieldName || formatMessage({id: 'login.ldapUsername', defaultMessage: 'AD/LDAP Username'}));
-        }
-
-        if (loginPlaceholders.length > 1) {
-            const lastIndex = loginPlaceholders.length - 1;
-            return `${loginPlaceholders.slice(0, lastIndex).join(', ')}${formatMessage({id: 'login.placeholderOr', defaultMessage: ' or '})}${loginPlaceholders[lastIndex]}`;
-        }
-
-        return loginPlaceholders[0] ?? '';
-    };
-
-    const preSubmit = (e: React.MouseEvent | React.KeyboardEvent) => {
+    const preSubmit = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         setIsWaiting(true);
 
@@ -569,143 +673,66 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         submit({loginId, password});
-    };
+    }, [LdapLoginFieldName, enableSignInWithEmail, enableSignInWithUsername, formatMessage, hash, history, ldapEnabled, loginId, onDismissSessionExpired, password, pathname, search, submit]);
 
-    const submit = async ({loginId, password, token}: SubmitOptions) => {
-        setIsWaiting(true);
-
-        const {error: loginError} = await dispatch(login(loginId, password, token));
-
-        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
-            if (loginError.server_error_id === 'api.user.login.not_verified.app_error') {
-                history.push('/should_verify_email?&email=' + encodeURIComponent(loginId));
-            } else if (loginError.server_error_id === 'store.sql_user.get_for_login.app_error' ||
-                loginError.server_error_id === 'ent.ldap.do_login.user_not_registered.app_error') {
-                setShowMfa(false);
-                setIsWaiting(false);
-                setAlertBanner({
-                    mode: 'danger',
-                    title: formatMessage({
-                        id: 'login.userNotFound',
-                        defaultMessage: "We couldn't find an account matching your login credentials.",
-                    }),
-                });
-                setHasError(true);
-            } else if (loginError.server_error_id === 'api.user.check_user_password.invalid.app_error' ||
-                loginError.server_error_id === 'ent.ldap.do_login.invalid_password.app_error') {
-                setShowMfa(false);
-                setIsWaiting(false);
-                setAlertBanner({
-                    mode: 'danger',
-                    title: formatMessage({
-                        id: 'login.invalidPassword',
-                        defaultMessage: 'Your password is incorrect.',
-                    }),
-                });
-                setHasError(true);
-            } else if (!showMfa && loginError.server_error_id === 'mfa.validate_token.authenticate.app_error') {
-                setShowMfa(true);
-            } else if (loginError.server_error_id === 'api.user.login.invalid_credentials_email_username') {
-                setShowMfa(false);
-                setIsWaiting(false);
-                setAlertBanner({
-                    mode: 'danger',
-                    title: formatMessage({
-                        id: 'login.invalidCredentials',
-                        defaultMessage: 'The email/username or password is invalid.',
-                    }),
-                });
-                setHasError(true);
-            } else {
-                setShowMfa(false);
-                setIsWaiting(false);
-                setAlertBanner({
-                    mode: 'danger',
-                    title: loginError.message,
-                });
-                setHasError(true);
-            }
-            return;
-        }
-
-        await postSubmit();
-    };
-
-    const postSubmit = async () => {
-        await dispatch(loadMe());
-
-        // check for query params brought over from signup_user_complete
-        const params = new URLSearchParams(search);
-        const inviteToken = params.get('t') || '';
-        const inviteId = params.get('id') || '';
-
-        if (inviteId || inviteToken) {
-            const {data: team} = await dispatch(addUserToTeamFromInvite(inviteToken, inviteId));
-
-            if (team) {
-                finishSignin(team);
-            } else {
-                // there's not really a good way to deal with this, so just let the user log in like normal
-                finishSignin();
-            }
-        } else {
-            finishSignin();
-        }
-    };
-
-    const finishSignin = (team?: Team) => {
-        setCSRFFromCookie();
-
-        // Record a successful login to local storage. If an unintentional logout occurs, e.g.
-        // via session expiration, this bit won't get reset and we can notify the user as such.
-        LocalStorageStore.setWasLoggedIn(true);
-
-        // After a user has just logged in, we set the following flag to "false" so that after
-        // a user is notified of successful login, we can set it back to "true"
-        LocalStorageStore.setWasNotifiedOfLogIn(false);
-
-        if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
-            history.push(redirectTo);
-        } else if (team) {
-            history.push(`/${team.name}`);
-        } else if (experimentalPrimaryTeamMember?.team_id) {
-            // Only set experimental team if user is on that team
-            history.push(`/${ExperimentalPrimaryTeam}`);
-        } else if (onboardingFlowEnabled) {
-            // need info about whether admin or not,
-            // and whether admin has already completed
-            // first time onboarding. Instead of fetching and orchestrating that here,
-            // let the default root component handle it.
-            history.push('/');
-        } else {
-            redirectUserToDefaultTeam();
-        }
-    };
-
-    const handleHeaderBackButtonOnClick = () => {
-        setShowMfa(false);
-    };
-
-    const handleInputOnChange = ({target: {value: loginId}}: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputOnChange = useCallback(({target: {value: loginId}}: React.ChangeEvent<HTMLInputElement>) => {
         setLoginId(loginId);
 
         if (hasError) {
             setHasError(false);
             dismissAlert();
         }
-    };
+    }, [dismissAlert, hasError]);
 
-    const handlePasswordInputOnChange = ({target: {value: password}}: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePasswordInputOnChange = useCallback(({target: {value: password}}: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(password);
 
         if (hasError) {
             setHasError(false);
             dismissAlert();
         }
-    };
+    }, [dismissAlert, hasError]);
 
-    const handleBrandImageError = () => {
+    const handleBrandImageError = useCallback(() => {
         setBrandImageError(true);
+    }, []);
+
+    const renderDesktopAuthToken = useCallback(() => (
+        <DesktopAuthToken
+            href={desktopLoginLink}
+            onLogin={postSubmit}
+        />
+    ), [desktopLoginLink, postSubmit]);
+
+    const baseLoginOnSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+        preSubmit(event as unknown as React.MouseEvent);
+    }, [preSubmit]);
+
+    if (initializing) {
+        return (<LoadingScreen/>);
+    }
+
+    const getInputPlaceholder = () => {
+        const loginPlaceholders = [];
+
+        if (enableSignInWithEmail) {
+            loginPlaceholders.push(formatMessage({id: 'login.email', defaultMessage: 'Email'}));
+        }
+
+        if (enableSignInWithUsername) {
+            loginPlaceholders.push(formatMessage({id: 'login.username', defaultMessage: 'Username'}));
+        }
+
+        if (ldapEnabled) {
+            loginPlaceholders.push(LdapLoginFieldName || formatMessage({id: 'login.ldapUsername', defaultMessage: 'AD/LDAP Username'}));
+        }
+
+        if (loginPlaceholders.length > 1) {
+            const lastIndex = loginPlaceholders.length - 1;
+            return `${loginPlaceholders.slice(0, lastIndex).join(', ')}${formatMessage({id: 'login.placeholderOr', defaultMessage: ' or '})}${loginPlaceholders[lastIndex]}`;
+        }
+
+        return loginPlaceholders[0] ?? '';
     };
 
     const getCardTitle = () => {
@@ -726,7 +753,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 <div className='login-body-custom-branding-markdown'>
                     <Markdown
                         message={CustomBrandText}
-                        options={{mentionHighlight: false}}
+                        options={markdownOptions}
                     />
                 </div>
             ) : null;
@@ -794,12 +821,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return (
                 <Route
                     path={'/login/desktop'}
-                    render={() => (
-                        <DesktopAuthToken
-                            href={desktopLoginLink}
-                            onLogin={postSubmit}
-                        />
-                    )}
+                    render={renderDesktopAuthToken}
                 />
             );
         }
@@ -856,9 +878,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             )}
                             {enableBaseLogin && (
                                 <form
-                                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
-                                        preSubmit(event as unknown as React.MouseEvent);
-                                    }}
+                                    onSubmit={baseLoginOnSubmit}
                                 >
                                     <div className='login-body-card-form'>
                                         <Input
@@ -903,7 +923,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             )}
                             {enableExternalSignup && (
                                 <div className={classNames('login-body-card-form-login-options', {column: !enableBaseLogin})}>
-                                    {getExternalLoginOptions().map((option) => (
+                                    {externalLoginOptions.map((option) => (
                                         <ExternalLoginButton
                                             key={option.id}
                                             direction={enableBaseLogin ? undefined : 'column'}
