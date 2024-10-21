@@ -46,11 +46,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token**: {token}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Token</strong>: {token}"
         id="add_command.token"
         values={
           Object {
+            "strong": [Function],
             "token": "jb6oyqh95irpbx8fo9zmndkp1r",
           }
         }
@@ -122,11 +123,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**URL**: {url}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>URL</strong>: {url}"
         id="add_incoming_webhook.url"
         values={
           Object {
+            "strong": [Function],
             "url": "\`http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic\`",
           }
         }
@@ -200,12 +202,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
     <p
       key="add_oauth_app.clientId"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Client ID**: {id}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Client ID</strong>: {id}"
         id="add_oauth_app.clientId"
         values={
           Object {
             "id": "r5tpgt4iepf45jt768jz84djic",
+            "strong": [Function],
           }
         }
       />
@@ -219,12 +222,13 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         value="r5tpgt4iepf45jt768jz84djic"
       />
       <br />
-      <FormattedMarkdownMessage
-        defaultMessage="**Client Secret**: {secret}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Client Secret</strong>: {secret}"
         id="add_oauth_app.clientSecret"
         values={
           Object {
             "secret": "<==secret==>",
+            "strong": [Function],
           }
         }
       />
@@ -249,11 +253,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**URL(s)**: {url}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>URL(s)</strong>: {url}"
         id="add_oauth_app.url"
         values={
           Object {
+            "strong": [Function],
             "url": "https://someCallback, https://anotherCallback",
           }
         }
@@ -324,11 +329,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token**: {token}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Token</strong>: {token}"
         id="add_outgoing_webhook.token"
         values={
           Object {
+            "strong": [Function],
             "token": "jb6oyqh95irpbx8fo9zmndkp1r",
           }
         }
@@ -402,22 +408,24 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       key="add_outgoing_oauth_connection.clientId"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Client ID**: {id}"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Client ID</strong>: {id}"
         id="add_outgoing_oauth_connection.clientId"
         values={
           Object {
             "id": "someid",
+            "strong": [Function],
           }
         }
       />
       <br />
-      <FormattedMarkdownMessage
-        defaultMessage="**Client Secret**: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Client Secret</strong>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
         id="add_outgoing_oauth_connection.clientSecret"
         values={
           Object {
             "secret": "",
+            "strong": [Function],
           }
         }
       />
@@ -425,11 +433,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Token URL**: \`{url}\`"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Token URL</strong>: \`{url}\`"
         id="add_outgoing_oauth_connection.token_url"
         values={
           Object {
+            "strong": [Function],
             "url": "https://tokenurl.com",
           }
         }
@@ -438,11 +447,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     <p
       className="word-break--all"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="**Audience URL(s)**: \`{url}\`"
+      <MemoizedFormattedMessage
+        defaultMessage="<strong>Audience URL(s)</strong>: \`{url}\`"
         id="add_outgoing_oauth_connection.audience_urls"
         values={
           Object {
+            "strong": [Function],
             "url": "https://myaudience.com",
           }
         }
