@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useMemo, useEffect, useState} from 'react';
+import React, {memo, useCallback, useMemo, useEffect, useState, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -22,6 +22,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
 import {getConnectionId} from 'selectors/general';
@@ -38,6 +39,7 @@ import Constants, {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -106,6 +108,7 @@ function DraftRow({
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
+            postError = getErrorStringFromCode(intl, item.error_code);
         }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
@@ -138,24 +141,8 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
 
-    // TODO LOL verify the types and handled it better
-    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
-    const [handleOnSend] = useSubmit(
-        item as any,
-        postError,
-        channelId,
-        rootId,
-        serverError,
-        mockLastBlurAt,
-        noop,
-        setServerError,
-        noop,
-        noop,
-        prioritySubmitCheck,
-        goToMessage,
-        undefined,
-        true,
-    );
+    const isBeingScheduled = useRef(false);
+    const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
         if (!rootId) {
@@ -177,6 +164,46 @@ function DraftRow({
         dispatch(removeDraft(key, channelId, rootId));
     }, [dispatch, channelId, rootId]);
 
+    // afterSubmit is exclusively used for deleting the draft after
+    // successfully creating a scheduled post from it.
+    // This is not used in any other draft flow such as sending it, or editing it etc.
+    const afterSubmit = useCallback((response: SubmitPostReturnType) => {
+        if (isBeingScheduled.current && response.created && !response.error) {
+            handleOnDelete();
+            isBeingScheduled.current = false;
+        }
+
+        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+            dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
+            isScheduledPostBeingSent.current = false;
+        }
+    }, [connectionId, dispatch, handleOnDelete, item]);
+
+    // TODO LOL verify the types and handled it better
+    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
+    const [handleOnSend] = useSubmit(
+        item as any,
+        postError,
+        channelId,
+        rootId,
+        serverError,
+        mockLastBlurAt,
+        noop,
+        setServerError,
+        noop,
+        noop,
+        prioritySubmitCheck,
+        goToMessage,
+        afterSubmit,
+        true,
+    );
+
+    const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
+        isBeingScheduled.current = true;
+        await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
+        return Promise.resolve({});
+    }, [item, handleOnSend]);
+
     const draftActions = useMemo(() => {
         if (!channel) {
             return null;
@@ -186,12 +213,14 @@ function DraftRow({
                 channelDisplayName={channel.display_name}
                 channelName={channel.name}
                 channelType={channel.type}
+                channelId={channel.id}
                 userId={user.id}
                 onDelete={handleOnDelete}
                 onEdit={goToMessage}
                 onSend={handleOnSend}
                 canEdit={canEdit}
                 canSend={canSend}
+                onSchedule={onScheduleDraft}
             />
         );
     }, [
@@ -202,6 +231,7 @@ function DraftRow({
         handleOnDelete,
         handleOnSend,
         user.id,
+        onScheduleDraft,
     ]);
 
     const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
@@ -224,6 +254,13 @@ function DraftRow({
         };
     }, [item, dispatch, connectionId]);
 
+    const handleScheduledPostOnSend = useCallback(async () => {
+        isScheduledPostBeingSent.current = true;
+        const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
+        handleOnSend(postDraft, undefined, {keepDraft: true});
+        return Promise.resolve({});
+    }, [handleOnSend, item]);
+
     const scheduledPostActions = useMemo(() => {
         if (!channel) {
             return null;
@@ -235,13 +272,14 @@ function DraftRow({
                 channelDisplayName={channel.display_name}
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
-                onSend={() => {}}
+                onSend={handleScheduledPostOnSend}
             />
         );
     }, [
         channel,
         handleSchedulePostOnDelete,
         handleSchedulePostOnReschedule,
+        handleScheduledPostOnSend,
         item,
     ]);
 
