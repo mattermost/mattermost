@@ -1328,6 +1328,36 @@ func (_m *ChannelStore) GetForPost(postID string) (*model.Channel, error) {
 	return r0, r1
 }
 
+// GetGroupAndDirectChannelsForUser provides a mock function with given fields: userId, afterId, limit, includeArchivedChannels
+func (_m *ChannelStore) GetGroupAndDirectChannelsForUser(userId string, afterId string, limit int, includeArchivedChannels bool) ([]*model.Channel, error) {
+	ret := _m.Called(userId, afterId, limit, includeArchivedChannels)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroupAndDirectChannelsForUser")
+	}
+
+	var r0 []*model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int, bool) ([]*model.Channel, error)); ok {
+		return rf(userId, afterId, limit, includeArchivedChannels)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int, bool) []*model.Channel); ok {
+		r0 = rf(userId, afterId, limit, includeArchivedChannels)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int, bool) error); ok {
+		r1 = rf(userId, afterId, limit, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetGuestCount provides a mock function with given fields: channelID, allowFromCache
 func (_m *ChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
 	ret := _m.Called(channelID, allowFromCache)

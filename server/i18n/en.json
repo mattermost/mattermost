@@ -4555,6 +4555,10 @@
     "translation": "Unable to delete the channel."
   },
   {
+    "id": "app.channel.direct_message_conversion.original_channel_not_dm",
+    "translation": "The channel is not a DM channel."
+  },
+  {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
     "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
   },
@@ -4745,6 +4749,10 @@
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
     "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.permanent_delete_user.unexpected_channel_type.app_error",
+    "translation": "Unable to find channel conversion strategy for the channel type."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
