@@ -154,7 +154,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonFetchError),
 				mlog.Err(gResult.NErr),
-			)
+		)
 			return nil, gResult.NErr
 		}
 		groups = gResult.Data
@@ -1578,6 +1578,13 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	potentialGroupMembersMentioned := []string{}
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
+	}
+	if len(potentialGroupMembersMentioned) != 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGroupsFeature,
+					"post_invited_groups_to_channel",
+					map[string]any{"user_actual_id": senderID, "group_id": group.Id},
+				)
 	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned
