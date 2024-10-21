@@ -27,7 +27,7 @@
             background: unset;
             padding-inline-start: 8px;
 
-            > span {
+            >span {
                 height: 16px;
                 padding: 0 4px;
                 border-radius: 4px;
@@ -103,8 +103,8 @@
             padding-inline-start: 16px;
             text-align: center;
 
-            > h5 {
-                margin:0;
+            >h5 {
+                margin: 0;
                 font-family: Metropolis, sans-serif;
                 font-size: 20px;
                 font-weight: 600;
@@ -208,6 +208,10 @@
 
             .user-popover__set-status {
                 width: fit-content;
+                height: auto;
+                padding: 4px 0 0;
+                border: none;
+                background: none;
             }
         }
 
