@@ -5675,6 +5675,10 @@
     "translation": "User First Name is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
+  },
+  {
     "id": "app.import.validate_user_import_data.last_name_length.error",
     "translation": "User Last Name is too long."
   },
