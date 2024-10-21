@@ -17,7 +17,7 @@ import type {GlobalState} from 'types/store';
 import {identifyElementRegion} from './element_identification';
 import type {PerformanceLongTaskTiming} from './long_task';
 import type {PlatformLabel, UserAgentLabel} from './platform_detection';
-import {getPlatformLabel, getUserAgentLabel} from './platform_detection';
+import {getDesktopAppVersionLabel, getPlatformLabel, getUserAgentLabel} from './platform_detection';
 
 import {Measure} from '.';
 
@@ -54,7 +54,7 @@ type PerformanceReport = {
     labels: {
         platform: PlatformLabel;
         agent: UserAgentLabel;
-        desktopAppVersion?: string;
+        desktop_app_version?: string;
     };
 
     start: number;
@@ -94,7 +94,7 @@ export default class PerformanceReporter {
         this.userAgentLabel = getUserAgentLabel();
 
         // We want to submit by prerelease version if it exists, so we don't muddy up the metrics for the release builds
-        this.desktopAppVersion = desktopAPI.getPrereleaseVersion()?.split('.')[0] ?? desktopAPI.getAppVersion() ?? 'unknown';
+        this.desktopAppVersion = getDesktopAppVersionLabel(desktopAPI.getAppVersion(), desktopAPI.getPrereleaseVersion());
 
         this.counters = new Map();
         this.histogramMeasures = [];
@@ -296,7 +296,7 @@ export default class PerformanceReporter {
             labels: {
                 platform: this.platformLabel,
                 agent: this.userAgentLabel,
-                desktopAppVersion: this.desktopAppVersion,
+                desktop_app_version: this.desktopAppVersion,
             },
 
             ...this.getReportStartEnd(now, histogramMeasures, counterMeasures),
@@ -363,7 +363,8 @@ export default class PerformanceReporter {
     protected collectDesktopAppMetrics(metricsMap: Map<string, {cpu?: number; memory?: number}>) {
         const now = Date.now();
 
-        for (var [process, metrics] of metricsMap.entries()) {
+        for (const [processName, metrics] of metricsMap.entries()) {
+            let process = processName;
             if (process.startsWith('Server ')) {
                 process = 'Server';
             }

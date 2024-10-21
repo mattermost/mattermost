@@ -218,7 +218,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
 
-	DesktopClientCpuUsage    *prometheus.HistogramVec
+	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
 }
 
@@ -1351,7 +1351,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
 
-	m.DesktopClientCpuUsage = prometheus.NewHistogramVec(
+	m.DesktopClientCPUUsage = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsDesktopApp,
@@ -1361,7 +1361,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		},
 		[]string{"platform", "version", "processName"},
 	)
-	m.Registry.MustRegister(m.DesktopClientCpuUsage)
+	m.Registry.MustRegister(m.DesktopClientCPUUsage)
 
 	m.DesktopClientMemoryUsage = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1879,7 +1879,7 @@ func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
-	mi.DesktopClientCpuUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
+	mi.DesktopClientCPUUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopMemoryUsage(platform, version, process string, usage float64) {
