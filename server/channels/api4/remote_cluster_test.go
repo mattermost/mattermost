@@ -185,7 +185,6 @@ func TestCreateRemoteCluster(t *testing.T) {
 	rcWithTeamAndPassword := &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
 			Name:          "remotecluster",
-			SiteURL:       "http://example.com",
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
@@ -222,13 +221,29 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
+	t.Run("Should not work if no default team id is provided", func(t *testing.T) {
+		rcWithoutDefaultTeamId := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:  "remotecluster-nodefaultteamid",
+				Token: model.NewId(),
+			},
+			Password: "",
+		}
+
+		rcWithInvite, resp, err := th.SystemAdminClient.CreateRemoteCluster(context.Background(), rcWithoutDefaultTeamId)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "remote_cluster.default_team_id")
+		require.Zero(t, rcWithInvite)
+	})
+
 	t.Run("Should generate a password if none is given", func(t *testing.T) {
 		// clean the password and check the response
 		rcWithTeamNoPassword := &model.RemoteClusterWithPassword{
 			RemoteCluster: &model.RemoteCluster{
-				Name:    "remotecluster-nopasswd",
-				SiteURL: "http://no-passwd.example.com",
-				Token:   model.NewId(),
+				Name:          "remotecluster-nopasswd",
+				DefaultTeamId: model.NewId(),
+				Token:         model.NewId(),
 			},
 			Password: "",
 		}
@@ -280,9 +295,10 @@ func TestCreateRemoteCluster(t *testing.T) {
 
 func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
-		Name:     "remotecluster",
-		Invite:   "myinvitecode",
-		Password: "mysupersecret",
+		Name:          "remotecluster",
+		Invite:        "myinvitecode",
+		Password:      "mysupersecret",
+		DefaultTeamId: "",
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -297,6 +313,8 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 	th := setupForSharedChannels(t).InitBasic()
 	defer th.TearDown()
+
+	rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id
 
 	remoteId := model.NewId()
 	invite := &model.RemoteClusterInvite{
@@ -320,9 +338,29 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	t.Run("should fail if the parameters are not valid", func(t *testing.T) {
+	t.Run("should fail if the name parameter is not valid", func(t *testing.T) {
 		rcAcceptInvite.Name = ""
 		defer func() { rcAcceptInvite.Name = "remotecluster" }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team parameter is empty", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = ""
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, rc)
+	})
+
+	t.Run("should fail if the default team provided doesn't exist", func(t *testing.T) {
+		rcAcceptInvite.DefaultTeamId = model.NewId()
+		defer func() { rcAcceptInvite.DefaultTeamId = th.BasicTeam.Id }()
 
 		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
 		CheckBadRequestStatus(t, resp)
