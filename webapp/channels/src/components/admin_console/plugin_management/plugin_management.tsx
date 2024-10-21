@@ -21,8 +21,8 @@ import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from '../admin_settings';
-import type {BaseProps, BaseState} from '../admin_settings';
+import AdminSettings from '../admin_settings/admin_settings';
+import type {BaseProps, BaseState} from '../admin_settings/admin_settings';
 import BooleanSetting from '../boolean_setting';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';

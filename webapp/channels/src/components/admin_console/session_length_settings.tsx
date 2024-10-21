@@ -6,8 +6,8 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
-import AdminSettings from './admin_settings';
-import type {BaseState, BaseProps} from './admin_settings';
+import AdminSettings from './admin_settings/admin_settings';
+import type {BaseState, BaseProps} from './admin_settings/admin_settings';
 import BooleanSetting from './boolean_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
