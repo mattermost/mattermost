@@ -18,7 +18,7 @@ export default function useSavePreferences(): (preferences: MinimalPreferenceTyp
         const preferencesList = ((preferences as MinimalPreferenceType[]).length ? preferences : [preferences]) as MinimalPreferenceType[];
         const preferencesListWithUserId: PreferenceType[] = preferencesList.map((x) => ({...x, user_id: userId}));
         dispatch(savePreferences(userId, preferencesListWithUserId));
-    }, [userId]);
+    }, [dispatch, userId]);
 }
 
 type MinimalBoolPreferenceType = Omit<MinimalPreferenceType, 'value'> & {value?: boolean}
