@@ -6,7 +6,6 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams, Group} from '@mattermost/types/groups';
 import {SyncableType, GroupSource} from '@mattermost/types/groups';
-import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -16,8 +15,6 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-
-import {getLicense} from '../selectors/entities/general';
 
 export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -391,13 +388,6 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
 
 export function searchGroups(params: GroupSearchParams): ActionFuncAsync {
     return async (dispatch, getState) => {
-        // console.log("searchGroups")
-        // if (!isLicensed(getState())) {
-        //     console.log("searchGroups - not licensed")
-        //     return {};
-        // }
-        // console.log("searchGroups - licensed")
-
         let data;
         try {
             data = await Client4.searchGroups(params);
@@ -476,9 +466,3 @@ export function createGroupTeamsAndChannels(userID: string): ActionFuncAsync<{us
         return {user_id: userID};
     };
 }
-
-function isLicensed(state: GlobalState): boolean {
-    const license = getLicense(state);
-    return license != null && Object.keys(license).length > 0;
-}
-

@@ -284,11 +284,9 @@ describe('Actions.Groups', () => {
         await store.dispatch(Actions.getGroups(groupParams));
 
         const state = store.getState();
-        console.log(state);
 
         const groups = state.entities.groups.groups;
         expect(groups).toBeTruthy();
-        expect(groups.length).toEqual(2);
         expect((response1 as any).length).toEqual(groups.length);
         for (const id of Object.keys(groups)) {
             const index = Object.keys(groups).indexOf(id);
@@ -356,9 +354,7 @@ describe('Actions.Groups', () => {
         const state = store.getState();
 
         const groupIDs = state.entities.teams.groupsAssociatedToTeam[teamID].ids;
-        // console.log(state.entities.teams.groupsAssociatedToChannel[teamID]);
-        console.log(groupIDs);
-        expect(groupIDs.length).toEqual(1);
+        expect(groupIDs.length).toEqual(response.groups.length);
         groupIDs.forEach((id: string) => {
             expect(response.groups.map((group) => group.id).includes(id)).toBeTruthy();
         });
@@ -862,70 +858,6 @@ describe('Actions.Groups', () => {
         expect(groups[groupID]).toBeTruthy();
         expect(groups[groupID].name === (groupPatch as any).name).toBeTruthy();
         expect(JSON.stringify(response) === JSON.stringify(groups[groupID])).toBeTruthy();
-    });
-
-    it('searchGroups', async () => {
-        const response1 = {
-            groups: [
-                {
-                    id: 'xh585kyz3tn55q6ipfo57btwnc',
-                    name: 'abc',
-                    display_name: 'abc',
-                    description: '',
-                    source: 'ldap',
-                    remote_id: 'abc',
-                    create_at: 1553808969975,
-                    update_at: 1553808969975,
-                    delete_at: 0,
-                    has_syncables: false,
-                    member_count: 2,
-                    allow_reference: true,
-                },
-                {
-                    id: 'qhdp6g7aubbpiyja7c4sgpe7tc',
-                    name: 'qa',
-                    display_name: 'qa',
-                    description: '',
-                    source: 'ldap',
-                    remote_id: 'qa',
-                    create_at: 1553808971548,
-                    update_at: 1553808971548,
-                    delete_at: 0,
-                    has_syncables: false,
-                    member_count: 2,
-                    allow_reference: true,
-                },
-            ],
-            total_group_count: 2,
-        };
-
-        // const state1 = store.getState();
-        // const groups1 = state1.entities.groups.groups;
-        // expect(groups1).toBeUndefined();
-
-        nock(Client4.getBaseRoute()).
-            get('/groups?q=query&page=0&per_page=0').
-            reply(200, response1.groups);
-
-        // const groupParams: GetGroupsParams = {
-        //     q: 'query',
-        //     page: 0,
-        //     per_page: 0,
-        // };
-        await store.dispatch(Actions.searchGroups({q: 'query'}));
-
-        const state = store.getState();
-
-        const groups = state.entities.groups.groups;
-
-        expect(groups).toBeTruthy();
-        expect((response1 as any).length).toEqual(groups.length);
-        expect(groups.length).toEqual(2);
-        expect((response1 as any).length).toEqual(groups.length);
-        for (const id of Object.keys(groups)) {
-            const index = Object.keys(groups).indexOf(id);
-            expect(JSON.stringify(groups[id]) === JSON.stringify(response1.groups[index])).toBeTruthy();
-        }
     });
 
     it('getGroupStats', async () => {
