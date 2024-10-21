@@ -22,7 +22,7 @@ function AirGappedContactSalesModal() {
 
     const handleOnClose = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.AIR_GAPPED_CONTACT_SALES));
-    }, []);
+    }, [dispatch]);
 
     return (
         <GenericModal

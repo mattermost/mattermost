@@ -3,16 +3,15 @@
 
 import React, {useState, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {addUsersToGroup as addUsersToGroupAction} from 'mattermost-redux/actions/groups';
 
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-
-import type {ModalData} from 'types/actions';
 
 import 'components/user_groups_modal/user_groups_modal.scss';
 
@@ -21,39 +20,37 @@ export type Props = {
     groupId: string;
     group: Group;
     backButtonCallback: () => void;
-    actions: {
-        addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-        openModal: <P>(modalData: ModalData<P>) => void;
-    };
 }
 
-const AddUsersToGroupModal = (props: Props) => {
+const messages = defineMessages({
+    add: {id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'},
+    adding: {id: 'multiselect.adding', defaultMessage: 'Adding...'},
+});
+
+const AddUsersToGroupModal = ({
+    backButtonCallback,
+    group,
+    groupId,
+    onExited,
+}: Props) => {
+    const dispatch = useDispatch();
+
     const [show, setShow] = useState(true);
     const [saving, setSaving] = useState(false);
     const [usersToAdd, setUsersToAdd] = useState<UserProfile[]>([]);
     const [showUnknownError, setShowUnknownError] = useState(false);
     const {formatMessage} = useIntl();
 
+    const isSaveEnabled = usersToAdd.length > 0;
+
     const doHide = useCallback(() => {
         setShow(false);
     }, []);
 
-    const isSaveEnabled = useCallback(() => {
-        return usersToAdd.length > 0;
-    }, [usersToAdd]);
-
-    const addUserCallback = useCallback((users: UserProfile[]): void => {
-        setUsersToAdd(users);
-    }, []);
-
-    const deleteUserCallback = useCallback((users: UserProfile[]): void => {
-        setUsersToAdd(users);
-    }, []);
-
     const goBack = useCallback(() => {
-        props.backButtonCallback();
-        props.onExited();
-    }, [props.backButtonCallback, props.onExited]);
+        backButtonCallback();
+        onExited();
+    }, [backButtonCallback, onExited]);
 
     const addUsersToGroup = useCallback(async (users?: UserProfile[]) => {
         setSaving(true);
@@ -65,7 +62,7 @@ const AddUsersToGroupModal = (props: Props) => {
             return user.id;
         });
 
-        const data = await props.actions.addUsersToGroup(props.groupId, userIds);
+        const data = await dispatch(addUsersToGroupAction(groupId, userIds));
 
         if (data?.error) {
             setShowUnknownError(true);
@@ -73,26 +70,26 @@ const AddUsersToGroupModal = (props: Props) => {
         } else {
             goBack();
         }
-    }, [goBack, props.actions.addUsersToGroup, props.groupId]);
+    }, [dispatch, goBack, groupId]);
 
     const searchOptions = useMemo(() => {
         return {
-            not_in_group_id: props.groupId,
+            not_in_group_id: groupId,
         };
-    }, [props.groupId]);
+    }, [groupId]);
 
     const titleValue = useMemo(() => {
         return {
-            group: props.group.display_name,
+            group: group.display_name,
         };
-    }, [props.group.display_name]);
+    }, [group.display_name]);
 
     return (
         <Modal
             dialogClassName='a11y__modal user-groups-modal-create'
             show={show}
             onHide={doHide}
-            onExited={props.onExited}
+            onExited={onExited}
             role='dialog'
             aria-labelledby='createUserGroupsModalLabel'
             id='addUsersToGroupsModal'
@@ -129,13 +126,13 @@ const AddUsersToGroupModal = (props: Props) => {
                                 multilSelectKey={'addUsersToGroupKey'}
                                 onSubmitCallback={addUsersToGroup}
                                 focusOnLoad={false}
-                                savingEnabled={isSaveEnabled()}
-                                addUserCallback={addUserCallback}
-                                deleteUserCallback={deleteUserCallback}
-                                groupId={props.groupId}
+                                savingEnabled={isSaveEnabled}
+                                addUserCallback={setUsersToAdd}
+                                deleteUserCallback={setUsersToAdd}
+                                groupId={groupId}
                                 searchOptions={searchOptions}
-                                buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
-                                buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
+                                buttonSubmitText={messages.add}
+                                buttonSubmitLoadingText={messages.adding}
                                 backButtonClick={goBack}
                                 backButtonClass={'multiselect-back'}
                                 saving={saving}

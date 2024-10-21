@@ -112,7 +112,31 @@ const defaultCustomStatusSuggestions: DefaultUserCustomStatus[] = [
 ];
 
 const defaultDuration = TODAY;
-const CustomStatusModal: React.FC<Props> = (props: Props) => {
+
+const modalHeaderText = (
+    <FormattedMessage
+        id='custom_status.set_status'
+        defaultMessage='Set a status'
+    />
+);
+
+const confirmButtonText = (
+    <FormattedMessage
+        id='custom_status.modal_confirm'
+        defaultMessage='Set Status'
+    />
+);
+
+const cancelButtonText = (
+    <FormattedMessage
+        id='custom_status.modal_cancel'
+        defaultMessage='Clear Status'
+    />
+);
+
+const CustomStatusModal: React.FC<Props> = ({
+    onExited,
+}: Props) => {
     const getCustomStatus = useMemo(makeGetCustomStatus, []);
     const dispatch = useDispatch();
     const currentCustomStatus = useSelector(getCustomStatus);
@@ -132,19 +156,21 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     const timezone = useSelector(getCurrentTimezone);
     const inCustomEmojiPath = useRouteMatch('/:team/emoji');
 
-    const currentTime = getCurrentMomentForTimezone(timezone);
-    let initialCustomExpiryTime: Moment = getRoundedTime(currentTime);
-    if (isCurrentCustomStatusSet && currentCustomStatus?.duration === DATE_AND_TIME && currentCustomStatus?.expires_at) {
-        initialCustomExpiryTime = moment(currentCustomStatus.expires_at);
-    }
-    const [customExpiryTime, setCustomExpiryTime] = useState<Moment>(initialCustomExpiryTime);
+    const [customExpiryTime, setCustomExpiryTime] = useState<Moment>(() => {
+        if (isCurrentCustomStatusSet && currentCustomStatus?.duration === DATE_AND_TIME && currentCustomStatus?.expires_at) {
+            return moment(currentCustomStatus.expires_at);
+        }
+
+        const currentTime = getCurrentMomentForTimezone(timezone);
+        return getRoundedTime(currentTime);
+    });
     const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
-            props.onExited();
+            onExited();
         }
-    }, [isDatePickerOpen, props.onExited]);
+    }, [isDatePickerOpen, onExited]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -154,23 +180,23 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         };
     }, [handleKeyDown]);
 
-    const handleCustomStatusInitializationState = () => {
-        if (firstTimeModalOpened) {
-            dispatch(setCustomStatusInitialisationState({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: true}));
-        }
-    };
-
-    const loadCustomEmojisForRecentStatuses = () => {
-        dispatch(loadCustomEmojisForRecentCustomStatuses());
-    };
-
-    const handleStatusExpired = () => {
-        if (customStatusExpired && currentCustomStatus) {
-            dispatch(unsetCustomStatus());
-        }
-    };
-
     useEffect(() => {
+        const handleCustomStatusInitializationState = () => {
+            if (firstTimeModalOpened) {
+                dispatch(setCustomStatusInitialisationState({[Preferences.CUSTOM_STATUS_MODAL_VIEWED]: true}));
+            }
+        };
+
+        const loadCustomEmojisForRecentStatuses = () => {
+            dispatch(loadCustomEmojisForRecentCustomStatuses());
+        };
+
+        const handleStatusExpired = () => {
+            if (customStatusExpired && currentCustomStatus) {
+                dispatch(unsetCustomStatus());
+            }
+        };
+
         handleCustomStatusInitializationState();
         loadCustomEmojisForRecentStatuses();
         handleStatusExpired();
@@ -182,7 +208,29 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         }
     }, [inCustomEmojiPath]);
 
-    const handleSetStatus = () => {
+    const handleSetStatus = useCallback(() => {
+        const calculateExpiryTime = (): string => {
+            switch (duration) {
+            case DONT_CLEAR:
+                return '';
+            case THIRTY_MINUTES:
+                return moment().add(30, 'minutes').seconds(0).milliseconds(0).toISOString();
+            case ONE_HOUR:
+                return moment().add(1, 'hour').seconds(0).milliseconds(0).toISOString();
+            case FOUR_HOURS:
+                return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
+            case TODAY:
+                return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
+            case THIS_WEEK:
+                return moment().endOf('week').toISOString();
+            case DATE_AND_TIME:
+            case CUSTOM_DATE_TIME:
+                return customExpiryTime.toISOString();
+            default:
+                return '';
+            }
+        };
+
         const expiresAt = calculateExpiryTime();
         const customStatus: UserCustomStatus = {
             emoji: emoji || 'speech_balloon',
@@ -193,35 +241,18 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             customStatus.expires_at = expiresAt;
         }
         dispatch(setCustomStatus(customStatus));
-    };
+    }, [customExpiryTime, dispatch, duration, emoji, text]);
 
-    const calculateExpiryTime = (): string => {
-        switch (duration) {
-        case DONT_CLEAR:
-            return '';
-        case THIRTY_MINUTES:
-            return moment().add(30, 'minutes').seconds(0).milliseconds(0).toISOString();
-        case ONE_HOUR:
-            return moment().add(1, 'hour').seconds(0).milliseconds(0).toISOString();
-        case FOUR_HOURS:
-            return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
-        case TODAY:
-            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
-        case THIS_WEEK:
-            return moment().endOf('week').toISOString();
-        case DATE_AND_TIME:
-        case CUSTOM_DATE_TIME:
-            return customExpiryTime.toISOString();
-        default:
-            return '';
+    const handleClearStatus = useMemo(() => {
+        if (isCurrentCustomStatusSet) {
+            return () => dispatch(unsetCustomStatus());
         }
-    };
+        return undefined;
+    }, [dispatch, isCurrentCustomStatusSet]);
 
-    const handleClearStatus = isCurrentCustomStatusSet ? () => dispatch(unsetCustomStatus()) : undefined;
+    const getCustomStatusControlRef = useCallback(() => customStatusControlRef.current, []);
 
-    const getCustomStatusControlRef = () => customStatusControlRef.current;
-
-    const handleEmojiClose = () => {
+    const handleEmojiClose = useCallback(() => {
         setShowEmojiPicker(false);
         if (emojiButtonRef.current) {
             document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
@@ -233,9 +264,9 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 },
             ));
         }
-    };
+    }, []);
 
-    const handleEmojiExited = () => {
+    const handleEmojiExited = useCallback(() => {
         if (emojiButtonRef.current) {
             document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
                 A11yCustomEventTypes.FOCUS, {
@@ -246,9 +277,9 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 },
             ));
         }
-    };
+    }, []);
 
-    const handleEmojiClick = (selectedEmoji: Emoji) => {
+    const handleEmojiClick = useCallback((selectedEmoji: Emoji) => {
         setShowEmojiPicker(false);
         const emojiName = ('short_name' in selectedEmoji) ? selectedEmoji.short_name : selectedEmoji.name;
         setEmoji(emojiName);
@@ -262,16 +293,16 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 },
             ));
         }
-    };
+    }, []);
 
-    const toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+    const toggleEmojiPicker = useCallback((e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         setShowEmojiPicker((prevShow) => !prevShow);
-    };
+    }, []);
 
-    const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => setText(event.target.value);
+    const handleTextChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => setText(event.target.value), []);
 
-    const handleRecentCustomStatusClear = (status: UserCustomStatus) => dispatch(removeRecentCustomStatus(status));
+    const handleRecentCustomStatusClear = useCallback((status: UserCustomStatus) => dispatch(removeRecentCustomStatus(status)), [dispatch]);
 
     const customStatusEmoji = emoji || text ? (
         <RenderEmoji
@@ -280,17 +311,17 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         />
     ) : <EmojiIcon className={'icon icon--emoji'}/>;
 
-    const clearHandle = () => {
+    const clearHandle = useCallback(() => {
         setEmoji('');
         setText('');
         setDuration(defaultDuration);
-    };
+    }, []);
 
-    const handleSuggestionClick = (status: UserCustomStatus) => {
+    const handleSuggestionClick = useCallback((status: UserCustomStatus) => {
         setEmoji(status.emoji);
         setText(status.text);
         setDuration(status.duration || DONT_CLEAR);
-    };
+    }, []);
 
     const calculateRightOffSet = () => {
         let rightOffset = Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
@@ -363,10 +394,11 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
 
     const showDateAndTimeField = !showSuggestions && (duration === CUSTOM_DATE_TIME || duration === DATE_AND_TIME);
 
+    const suggestionStyle = useMemo(() => ({marginTop: isStatusSet ? 44 : 8}), [isStatusSet]);
     const suggestion = (
         <div
             className='statusSuggestion'
-            style={{marginTop: isStatusSet ? 44 : 8}}
+            style={suggestionStyle}
         >
             <div className='statusSuggestion__content'>
                 {recentCustomStatuses.length > 0 && recentStatuses}
@@ -380,26 +412,11 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     return (
         <GenericModal
             enforceFocus={false}
-            onExited={props.onExited}
+            onExited={onExited}
             compassDesign={true}
-            modalHeaderText={
-                <FormattedMessage
-                    id='custom_status.set_status'
-                    defaultMessage='Set a status'
-                />
-            }
-            confirmButtonText={
-                <FormattedMessage
-                    id='custom_status.modal_confirm'
-                    defaultMessage='Set Status'
-                />
-            }
-            cancelButtonText={
-                <FormattedMessage
-                    id='custom_status.modal_cancel'
-                    defaultMessage='Clear Status'
-                />
-            }
+            modalHeaderText={modalHeaderText}
+            confirmButtonText={confirmButtonText}
+            cancelButtonText={cancelButtonText}
             isConfirmDisabled={disableSetStatus}
             id='custom_status_modal'
             className={'StatusModal'}

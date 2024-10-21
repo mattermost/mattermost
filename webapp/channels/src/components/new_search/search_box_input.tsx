@@ -75,7 +75,13 @@ type Props = {
     focus: (newPosition: number) => void;
 }
 
-const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}: Props, inputRef: React.Ref<HTMLInputElement>) => {
+const SearchInput = ({
+    searchTerms,
+    searchType,
+    setSearchTerms,
+    onKeyDown,
+    focus,
+}: Props, inputRef: React.Ref<HTMLInputElement>) => {
     const intl = useIntl();
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
 
@@ -97,7 +103,7 @@ const SearchInput = ({searchTerms, searchType, setSearchTerms, onKeyDown, focus}
         dispatch(updateSearchTerms(''));
         dispatch(updateSearchType('messages'));
         focus(0);
-    }, [focus, setSearchTerms]);
+    }, [dispatch, focus, setSearchTerms]);
 
     return (
         <SearchInputContainer>

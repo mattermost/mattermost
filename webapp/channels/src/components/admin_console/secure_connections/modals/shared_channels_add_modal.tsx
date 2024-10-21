@@ -48,7 +48,7 @@ function SharedChannelsAddModal({
 }: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const [remotesByChannelId] = useSharedChannelRemotes(remoteId);
+    const remotesByChannelId = useSharedChannelRemotes(remoteId);
 
     const [query, setQuery] = useState('');
     const [channels, setChannelsInner] = useState<ChannelWithTeamData[]>([]);

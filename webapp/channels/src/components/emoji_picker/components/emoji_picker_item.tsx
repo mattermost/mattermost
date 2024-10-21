@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -26,7 +26,7 @@ interface Props {
 function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Props) {
     const {formatMessage} = useIntl();
 
-    const handleMouseOver = () => {
+    const handleMouseOver = useCallback(() => {
         if (!isSelected) {
             let emojiId = '';
             if (isSystemEmoji(emoji)) {
@@ -36,17 +36,16 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             }
             onMouseOver({rowIndex, emojiId, emoji});
         }
-    };
+    }, [emoji, isSelected, onMouseOver, rowIndex]);
 
-    const throttledMouseOver = useCallback(
-        throttle(handleMouseOver, EMOJI_SCROLL_THROTTLE_DELAY, {
-            leading: true,
-            trailing: false,
-        }), []);
+    const throttledMouseOver = useMemo(() => throttle(handleMouseOver, EMOJI_SCROLL_THROTTLE_DELAY, {
+        leading: true,
+        trailing: false,
+    }), [handleMouseOver]);
 
-    const handleClick = () => {
+    const handleClick = useCallback(() => {
         onClick(emoji);
-    };
+    }, [emoji, onClick]);
 
     const itemClassName = classNames('emoji-picker__item', {
         selected: isSelected,

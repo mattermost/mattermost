@@ -9,27 +9,29 @@ import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 import {TaskNameMapToSteps} from './constants';
 import {useHandleOnBoardingTaskData} from './onboarding_tasks_manager';
 
+// please add this in OnBoardingTasksName in constants files
+const taskName = 'start_trial';
+const steps = TaskNameMapToSteps[taskName];
+
+const title = (
+    <FormattedMessage
+        id='start_trial.tutorialTip.title'
+        defaultMessage={'Try our premium features for free'}
+    />
+);
+const screen = (
+    <p>
+        <FormattedMessage
+            id='start_trial.tutorialTip.desc'
+            defaultMessage={'Explore our most requested premium features. Determine user access with Guest Accounts, automate compliance reports, and send secure ID-only mobile push notifications.'}
+        />
+    </p>
+);
+
+const pulsatingDotTranslate = {x: 0, y: -2};
+
 export const StartTrialTour = () => {
     const handleTask = useHandleOnBoardingTaskData();
-
-    // please add this in OnBoardingTasksName in constants files
-    const taskName = 'start_trial';
-    const steps = TaskNameMapToSteps[taskName];
-
-    const title = (
-        <FormattedMessage
-            id='start_trial.tutorialTip.title'
-            defaultMessage={'Try our premium features for free'}
-        />
-    );
-    const screen = (
-        <p>
-            <FormattedMessage
-                id='start_trial.tutorialTip.desc'
-                defaultMessage={'Explore our most requested premium features. Determine user access with Guest Accounts, automate compliance reports, and send secure ID-only mobile push notifications.'}
-            />
-        </p>
-    );
 
     const overlayPunchOut = useMeasurePunchouts([], []);
 
@@ -46,7 +48,7 @@ export const StartTrialTour = () => {
             step={steps.STARTED}
             placement='left-start'
             pulsatingDotPlacement='left'
-            pulsatingDotTranslate={{x: 0, y: -2}}
+            pulsatingDotTranslate={pulsatingDotTranslate}
             handleDismiss={onDismiss}
             singleTip={true}
             showOptOut={false}

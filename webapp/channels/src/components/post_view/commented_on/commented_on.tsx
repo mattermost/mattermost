@@ -3,9 +3,10 @@
 
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import UserProfile from 'components/user_profile';
@@ -13,14 +14,21 @@ import UserProfile from 'components/user_profile';
 import {stripMarkdown} from 'utils/markdown';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
-    enablePostUsernameOverride?: boolean;
-    parentPostUser?: UserProfileType;
     onCommentClick?: React.EventHandler<React.MouseEvent>;
-    post: Post;
+    rootId: string;
 };
 
-function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
+function CommentedOn({rootId, onCommentClick}: Props) {
+    const post = useSelector((state: GlobalState) => getPost(state, rootId));
+    const userId = useSelector((state: GlobalState) => (post ? getUser(state, post.user_id)?.id : undefined));
+
+    if (!post || !userId) {
+        return null;
+    }
+
     const makeCommentedOnMessage = () => {
         let message: React.ReactNode = '';
         if (post.message) {
@@ -39,13 +47,6 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     };
 
     const message = makeCommentedOnMessage();
-    const parentPostUserId = parentPostUser?.id ?? '';
-
-    const parentUserProfile = (
-        <UserProfile
-            userId={parentPostUserId}
-        />
-    );
 
     return (
         <div
@@ -57,7 +58,7 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
                     id='post_body.commentedOn'
                     defaultMessage="Commented on {name}'s message: "
                     values={{
-                        name: <a className='theme user_name'>{parentUserProfile}</a>,
+                        name: <a className='theme user_name'>{<UserProfile userId={userId}/>}</a>,
                     }}
                 />
                 <a

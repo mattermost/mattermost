@@ -67,7 +67,6 @@ const WAIT_FOR_REDIRECT_TIME = 2000 - START_TRANSITIONING_OUT;
 export type Actions = {
     createTeam: (team: Team) => Promise<ActionResult>;
     updateTeam: (team: Team) => Promise<ActionResult>;
-    checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
     getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
 }
 
@@ -103,7 +102,11 @@ const onPageViews = {
 };
 
 const PreparingWorkspace = ({
-    actions,
+    actions: {
+        createTeam: createTeamAction,
+        getProfiles,
+        updateTeam: updateTeamAction,
+    },
     history,
     background,
 }: Props) => {
@@ -130,12 +133,14 @@ const PreparingWorkspace = ({
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
 
-    const stepOrder = [
-        isSelfHosted && WizardSteps.Organization,
-        pluginsEnabled && WizardSteps.Plugins,
-        WizardSteps.InviteMembers,
-        WizardSteps.LaunchingWorkspace,
-    ].filter((x) => Boolean(x)) as WizardStep[];
+    const stepOrder = useMemo(() => (
+        [
+            isSelfHosted && WizardSteps.Organization,
+            pluginsEnabled && WizardSteps.Plugins,
+            WizardSteps.InviteMembers,
+            WizardSteps.LaunchingWorkspace,
+        ].filter((x) => Boolean(x)) as WizardStep[]
+    ), [isSelfHosted, pluginsEnabled]);
 
     // first steporder that is not false
     const firstShowablePage = stepOrder[0];
@@ -145,9 +150,7 @@ const PreparingWorkspace = ({
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
     const browserSiteUrl = useMemo(getSiteURL, []);
-    const [form, setForm] = useState({
-        ...emptyForm,
-    });
+    const [form, setForm] = useState({...emptyForm});
 
     useEffect(() => {
         if (!pluginsEnabled) {
@@ -171,7 +174,7 @@ const PreparingWorkspace = ({
 
     useEffect(() => {
         showOnMountTimeout.current = setTimeout(() => setShowFirstPage(true), 40);
-        actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
+        getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
         dispatch(getFirstAdminSetupCompleteAction());
         document.body.classList.add('admin-onboarding');
         return () => {
@@ -213,21 +216,21 @@ const PreparingWorkspace = ({
         trackSubmitFail[redirectTo]();
     }, []);
 
-    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
-        const data = await actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
+    const createTeam = useCallback(async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
+        const data = await createTeamAction(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
         if (data.error) {
             return {error: genericSubmitError, newTeam: null};
         }
         return {error: null, newTeam: data.data};
-    };
+    }, [createTeamAction, genericSubmitError]);
 
-    const updateTeam = async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
-        const data = await actions.updateTeam(teamToUpdate);
+    const updateTeam = useCallback(async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
+        const data = await updateTeamAction(teamToUpdate);
         if (data.error) {
             return {error: genericSubmitError, updatedTeam: null};
         }
         return {error: null, updatedTeam: data.data};
-    };
+    }, [genericSubmitError, updateTeamAction]);
 
     const sendForm = async () => {
         const sendFormStart = Date.now();
@@ -259,7 +262,7 @@ const PreparingWorkspace = ({
         // This endpoint sets setup complete state, so we need to make this request
         // even if admin skipped submitting plugins.
         const completeSetupRequest = {
-            organization: form.organization,
+            organization: form.organization || '',
             install_plugins: pluginsToSetup,
         };
 
@@ -332,33 +335,33 @@ const PreparingWorkspace = ({
         }
         trackEvent('first_admin_setup', mapStepToPrevious(currentStep));
         setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
-    }, [currentStep]);
+    }, [currentStep, stepOrder, submissionState]);
 
     const skipPlugins = useCallback((skipped: boolean) => {
         if (skipped === form.plugins.skipped) {
             return;
         }
-        setForm({
+        setForm((form) => ({
             ...form,
             plugins: {
                 ...form.plugins,
                 skipped,
             },
-        });
-    }, [form]);
+        }));
+    }, [form.plugins.skipped]);
 
     const skipTeamMembers = useCallback((skipped: boolean) => {
         if (skipped === form.teamMembers.skipped) {
             return;
         }
-        setForm({
+        setForm((form) => ({
             ...form,
             teamMembers: {
                 ...form.teamMembers,
                 skipped,
             },
-        });
-    }, [form]);
+        }));
+    }, [form.teamMembers.skipped]);
 
     const getInviteMembersAnimationClass = useCallback(() => {
         if (currentStep === WizardSteps.InviteMembers) {
@@ -367,25 +370,99 @@ const PreparingWorkspace = ({
             return 'exit';
         }
         return '';
-    }, [currentStep]);
+    }, [currentStep, mostRecentStep]);
 
-    let previous: React.ReactNode = (
-        <div
-            onClick={goPrevious}
-            onKeyUp={goPrevious}
-            tabIndex={0}
-            className='PreparingWorkspace__previous'
-        >
-            <i className='icon-chevron-up'/>
-            <FormattedMessage
-                id={'onboarding_wizard.previous'}
-                defaultMessage='Previous'
-            />
-        </div>
-    );
-    if (currentStep === firstShowablePage) {
-        previous = null;
-    }
+    const previous = useMemo(() => {
+        if (currentStep === firstShowablePage) {
+            return null;
+        }
+        return (
+            <div
+                onClick={goPrevious}
+                onKeyUp={goPrevious}
+                tabIndex={0}
+                className='PreparingWorkspace__previous'
+            >
+                <i className='icon-chevron-up'/>
+                <FormattedMessage
+                    id={'onboarding_wizard.previous'}
+                    defaultMessage='Previous'
+                />
+            </div>
+        );
+    }, [currentStep, firstShowablePage, goPrevious]);
+
+    const setEmails = useCallback((emails: string[]) => {
+        setForm((form) => ({
+            ...form,
+            teamMembers: {
+                ...form.teamMembers,
+                invites: emails,
+            },
+        }));
+    }, []);
+
+    const inviteMembersSkip = useCallback(() => {
+        skipTeamMembers(true);
+        setSubmissionState(SubmissionStates.UserRequested);
+        makeNext(WizardSteps.InviteMembers, true)();
+    }, [makeNext, skipTeamMembers]);
+
+    const inviteMembersNext = useCallback(() => {
+        skipTeamMembers(false);
+        const inviteMembersTracking = {
+            inviteCount: form.teamMembers.invites.length,
+        };
+        setSubmissionState(SubmissionStates.UserRequested);
+        makeNext(WizardSteps.InviteMembers)(inviteMembersTracking);
+    }, [form.teamMembers.invites.length, makeNext, skipTeamMembers]);
+
+    const handleVisitMarketPlaceClick = useCallback(() => {
+        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
+    }, []);
+
+    const setOptions = useCallback((option: keyof Form['plugins']) => {
+        setForm((form) => ({
+            ...form,
+            plugins: {
+                ...form.plugins,
+                [option]: !form.plugins[option],
+            },
+        }));
+    }, []);
+
+    const pluginsSkip = useCallback(() => {
+        makeNext(WizardSteps.Plugins, true)();
+        skipPlugins(true);
+    }, [makeNext, skipPlugins]);
+
+    const pluginsNext = useCallback(() => {
+        const pluginChoices = {...form.plugins};
+        delete pluginChoices.skipped;
+        makeNext(WizardSteps.Plugins)(pluginChoices);
+        skipPlugins(false);
+    }, [form.plugins, makeNext, skipPlugins]);
+
+    const setInviteId = useCallback((inviteId: string) => {
+        setForm((form) => ({
+            ...form,
+            teamMembers: {
+                ...form.teamMembers,
+                inviteId,
+            },
+        }));
+    }, []);
+
+    const setOrganization = useCallback((organization: Form['organization']) => {
+        setForm((form) => ({
+            ...form,
+            organization,
+        }));
+    }, []);
+
+    const organizationNext = useMemo(() => makeNext(WizardSteps.Organization), [makeNext]);
+
+    const onClickClose = useCallback(() => setSubmitError(null), []);
 
     return (
         <div className='PreparingWorkspace PreparingWorkspaceContainer'>
@@ -395,7 +472,7 @@ const PreparingWorkspace = ({
                     <span className='PreparingWorkspace__submit-error-message'>{submitError}</span>
                     <i
                         className='icon icon-close'
-                        onClick={() => setSubmitError(null)}
+                        onClick={onClickClose}
                     />
                 </div>
             )}
@@ -412,24 +489,11 @@ const PreparingWorkspace = ({
                 <Organization
                     onPageView={onPageViews[WizardSteps.Organization]}
                     show={shouldShowPage(WizardSteps.Organization)}
-                    next={makeNext(WizardSteps.Organization)}
+                    next={organizationNext}
                     transitionDirection={getTransitionDirection(WizardSteps.Organization)}
                     organization={form.organization || ''}
-                    setOrganization={(organization: Form['organization']) => {
-                        setForm({
-                            ...form,
-                            organization,
-                        });
-                    }}
-                    setInviteId={(inviteId: string) => {
-                        setForm({
-                            ...form,
-                            teamMembers: {
-                                ...form.teamMembers,
-                                inviteId,
-                            },
-                        });
-                    }}
+                    setOrganization={setOrganization}
+                    setInviteId={setInviteId}
                     className='child-page'
                     createTeam={createTeam}
                     updateTeam={updateTeam}
@@ -439,48 +503,19 @@ const PreparingWorkspace = ({
                     isSelfHosted={isSelfHosted}
                     onPageView={onPageViews[WizardSteps.Plugins]}
                     previous={previous}
-                    next={() => {
-                        const pluginChoices = {...form.plugins};
-                        delete pluginChoices.skipped;
-                        makeNext(WizardSteps.Plugins)(pluginChoices);
-                        skipPlugins(false);
-                    }}
-                    skip={() => {
-                        makeNext(WizardSteps.Plugins, true)();
-                        skipPlugins(true);
-                    }}
+                    next={pluginsNext}
+                    skip={pluginsSkip}
                     options={form.plugins}
-                    setOption={(option: keyof Form['plugins']) => {
-                        setForm({
-                            ...form,
-                            plugins: {
-                                ...form.plugins,
-                                [option]: !form.plugins[option],
-                            },
-                        });
-                    }}
+                    setOption={setOptions}
                     show={shouldShowPage(WizardSteps.Plugins)}
                     transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
                     className='child-page'
-                    handleVisitMarketPlaceClick={() => {
-                        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
-                    }}
+                    handleVisitMarketPlaceClick={handleVisitMarketPlaceClick}
                 />
                 <InviteMembers
                     onPageView={onPageViews[WizardSteps.InviteMembers]}
-                    next={() => {
-                        skipTeamMembers(false);
-                        const inviteMembersTracking = {
-                            inviteCount: form.teamMembers.invites.length,
-                        };
-                        setSubmissionState(SubmissionStates.UserRequested);
-                        makeNext(WizardSteps.InviteMembers)(inviteMembersTracking);
-                    }}
-                    skip={() => {
-                        skipTeamMembers(true);
-                        setSubmissionState(SubmissionStates.UserRequested);
-                        makeNext(WizardSteps.InviteMembers, true)();
-                    }}
+                    next={inviteMembersNext}
+                    skip={inviteMembersSkip}
                     previous={previous}
                     show={shouldShowPage(WizardSteps.InviteMembers)}
                     transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
@@ -491,15 +526,7 @@ const PreparingWorkspace = ({
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}
                     emails={form.teamMembers.invites}
-                    setEmails={(emails: string[]) => {
-                        setForm({
-                            ...form,
-                            teamMembers: {
-                                ...form.teamMembers,
-                                invites: emails,
-                            },
-                        });
-                    }}
+                    setEmails={setEmails}
                     inferredProtocol={form.inferredProtocol}
                     isSelfHosted={isSelfHosted}
                 />

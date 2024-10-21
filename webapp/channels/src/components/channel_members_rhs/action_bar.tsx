@@ -68,14 +68,25 @@ export interface Props {
     };
 }
 
-const ActionBar = ({className, channelType, membersCount, canManageMembers, editing, actions}: Props) => {
+const ActionBar = ({
+    className,
+    channelType,
+    membersCount,
+    canManageMembers,
+    editing,
+    actions: {
+        startEditing,
+        inviteMembers,
+        stopEditing,
+    },
+}: Props) => {
     const showManageButton = channelType !== Constants.GM_CHANNEL && membersCount > 1;
 
     const handleShortcut = useCallback((e) => {
         if (isKeyPressed(e, Constants.KeyCodes.ESCAPE) && editing) {
-            actions.stopEditing();
+            stopEditing();
         }
-    }, [editing, actions]);
+    }, [editing, stopEditing]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleShortcut);
@@ -106,7 +117,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                 <Actions>
                     {editing ? (
                         <Button
-                            onClick={actions.stopEditing}
+                            onClick={stopEditing}
                             className='manage-members-done'
                         >
                             <FormattedMessage
@@ -119,7 +130,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                             {showManageButton && (
                                 <Button
                                     className='manage-members'
-                                    onClick={actions.startEditing}
+                                    onClick={startEditing}
                                 >
                                     <FormattedMessage
                                         id='channel_members_rhs.action_bar.manage_button'
@@ -128,7 +139,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                                 </Button>
                             )}
                             <Button
-                                onClick={actions.inviteMembers}
+                                onClick={inviteMembers}
                                 className='add-members'
                             >
                                 <ButtonIcon

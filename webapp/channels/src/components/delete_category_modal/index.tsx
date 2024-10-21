@@ -3,46 +3,54 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
+
+import {deleteCategory} from 'mattermost-redux/actions/channel_categories';
 
 import '../category_modal.scss';
 
 type Props = {
     category: ChannelCategory;
     onExited: () => void;
-    actions: {
-        deleteCategory: (categoryId: string) => void;
-    };
 };
 
-export default function DeleteCategoryModal(props: Props) {
+const confirmButtonText = (
+    <FormattedMessage
+        id='delete_category_modal.delete'
+        defaultMessage='Delete'
+    />
+);
+
+const modalHeaderText = (
+    <FormattedMessage
+        id='delete_category_modal.deleteCategory'
+        defaultMessage='Delete this category?'
+    />
+);
+
+export default function DeleteCategoryModal({
+    category,
+    onExited,
+}: Props) {
     const intl = useIntl();
+    const dispatch = useDispatch();
 
     const handleConfirm = useCallback(() => {
-        props.actions.deleteCategory(props.category.id);
-    }, [props.actions.deleteCategory, props.category]);
+        dispatch(deleteCategory(category.id));
+    }, [category.id, dispatch]);
 
     return (
         <GenericModal
             compassDesign={true}
             ariaLabel={intl.formatMessage({id: 'delete_category_modal.deleteCategory', defaultMessage: 'Delete this category?'})}
-            onExited={props.onExited}
-            modalHeaderText={(
-                <FormattedMessage
-                    id='delete_category_modal.deleteCategory'
-                    defaultMessage='Delete this category?'
-                />
-            )}
-            handleCancel={props.onExited}
+            onExited={onExited}
+            modalHeaderText={modalHeaderText}
+            handleCancel={onExited}
             handleConfirm={handleConfirm}
-            confirmButtonText={(
-                <FormattedMessage
-                    id='delete_category_modal.delete'
-                    defaultMessage='Delete'
-                />
-            )}
+            confirmButtonText={confirmButtonText}
             confirmButtonClassName={'delete'}
         >
             <span className='delete-category__helpText'>
@@ -50,7 +58,7 @@ export default function DeleteCategoryModal(props: Props) {
                     id='delete_category_modal.helpText'
                     defaultMessage="Channels in <b>{category_name}</b> will move back to the Channels and Direct messages categories. You're not removed from any channels."
                     values={{
-                        category_name: props.category.display_name,
+                        category_name: category.display_name,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />

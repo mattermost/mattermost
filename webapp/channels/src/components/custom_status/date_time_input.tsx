@@ -4,7 +4,7 @@
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useEffect, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -60,9 +60,13 @@ type Props = {
     setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
 }
 
-const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
+const DateTimeInputContainer = ({
+    handleChange,
+    time,
+    setIsDatePickerOpen,
+    timezone,
+}: Props) => {
     const locale = useSelector(getCurrentLocale);
-    const {time, handleChange, timezone} = props;
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const {formatMessage} = useIntl();
@@ -71,8 +75,8 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
-        props.setIsDatePickerOpen?.(isOpen);
-    }, []);
+        setIsDatePickerOpen?.(isOpen);
+    }, [setIsDatePickerOpen]);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && isPopperOpen) {
@@ -88,18 +92,16 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         };
     }, [handleKeyDown]);
 
-    const setTimeAndOptions = () => {
+    useEffect(() => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
         if (currentTime.isSame(time, 'date')) {
             startTime = getRoundedTime(currentTime);
         }
         setTimeOptions(getTimeInIntervals(startTime));
-    };
+    }, [time]);
 
-    useEffect(setTimeAndOptions, [time]);
-
-    const handleDayChange = (day: Date, modifiers: DayModifiers) => {
+    const handleDayChange = useCallback((day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const currentTime = getCurrentMomentForTimezone(timezone);
             const roundedTime = getRoundedTime(currentTime);
@@ -109,15 +111,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
             handleChange(dayWithTimezone.startOf('day'));
         }
         handlePopperOpenState(false);
-    };
-
-    const handleTimeChange = useCallback((time: Date, e: React.MouseEvent) => {
-        e.preventDefault();
-        handleChange(moment(time));
-        focusTimeButton();
-    }, [handleChange]);
-
-    const currentTime = getCurrentMomentForTimezone(timezone).toDate();
+    }, [handleChange, handlePopperOpenState, timezone]);
 
     const focusTimeButton = useCallback(() => {
         document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
@@ -130,21 +124,30 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         ));
     }, []);
 
+    const handleTimeChange = useCallback((time: Date, e: React.MouseEvent) => {
+        e.preventDefault();
+        handleChange(moment(time));
+        focusTimeButton();
+    }, [focusTimeButton, handleChange]);
+
+    const currentTime = getCurrentMomentForTimezone(timezone).toDate();
+
     const formatDate = (date: Date): string => {
         return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
     };
 
-    const inputIcon = (
+    const onClick = useCallback(() => handlePopperOpenState(true), [handlePopperOpenState]);
+    const inputIcon = useMemo(() => (
         <IconButton
-            onClick={() => handlePopperOpenState(true)}
+            onClick={onClick}
             icon={'calendar-outline'}
             className='dateTime__calendar-icon'
             size={'sm'}
             aria-haspopup='grid'
         />
-    );
+    ), [onClick]);
 
-    const datePickerProps: DayPickerProps = {
+    const datePickerProps: DayPickerProps = useMemo(() => ({
         initialFocus: isPopperOpen,
         mode: 'single',
         selected: time.toDate(),
@@ -154,7 +157,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
             before: currentTime,
         }],
         showOutsideDays: true,
-    };
+    }), [currentTime, handleDayChange, isPopperOpen, time]);
 
     return (
         <CompassThemeProvider theme={theme}>
@@ -172,7 +175,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                             readOnly={true}
                             className='dateTime__calendar-input'
                             label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
-                            onClick={() => handlePopperOpenState(true)}
+                            onClick={onClick}
                             tabIndex={-1}
                             inputPrefix={inputIcon}
                         />

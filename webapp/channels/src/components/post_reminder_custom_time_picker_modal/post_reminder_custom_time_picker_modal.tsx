@@ -19,20 +19,39 @@ import './post_reminder_custom_time_picker_modal.scss';
 type Props = PropsFromRedux & {
     onExited: () => void;
     postId: string;
-    actions: {
-        addPostReminder: (postId: string, userId: string, timestamp: number) => void;
-    };
 };
 
-function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actions}: Props) {
+const modalHeaderText = (
+    <FormattedMessage
+        id='post_reminder.custom_time_picker_modal.header'
+        defaultMessage='Set a reminder'
+    />
+);
+
+const modalConfirmButtonText = (
+    <FormattedMessage
+        id='post_reminder.custom_time_picker_modal.submit_button'
+        defaultMessage='Set reminder'
+    />
+);
+
+function PostReminderCustomTimePicker({
+    userId,
+    timezone,
+    onExited,
+    postId,
+    actions: {
+        addPostReminder,
+    },
+}: Props) {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const initialReminderTime = getRoundedTime(currentTime);
 
     const [customReminderTime, setCustomReminderTime] = useState(initialReminderTime);
 
     const handleConfirm = useCallback(() => {
-        actions.addPostReminder(userId, postId, toUTCUnix(customReminderTime.toDate()));
-    }, [customReminderTime]);
+        addPostReminder(userId, postId, toUTCUnix(customReminderTime.toDate()));
+    }, [addPostReminder, customReminderTime, postId, userId]);
 
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -57,18 +76,8 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
             id='PostReminderCustomTimePickerModal'
             ariaLabel={formatMessage({id: 'post_reminder_custom_time_picker_modal.defaultMsg', defaultMessage: 'Set a reminder'})}
             onExited={onExited}
-            modalHeaderText={(
-                <FormattedMessage
-                    id='post_reminder.custom_time_picker_modal.header'
-                    defaultMessage='Set a reminder'
-                />
-            )}
-            confirmButtonText={(
-                <FormattedMessage
-                    id='post_reminder.custom_time_picker_modal.submit_button'
-                    defaultMessage='Set reminder'
-                />
-            )}
+            modalHeaderText={modalHeaderText}
+            confirmButtonText={modalConfirmButtonText}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}
             className={'post-reminder-modal'}

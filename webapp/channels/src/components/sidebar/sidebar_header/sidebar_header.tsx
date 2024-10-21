@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -94,7 +94,19 @@ export type Props = {
     canCreateCustomGroups: boolean;
 }
 
-const SidebarHeader = (props: Props) => {
+const SidebarHeader = ({
+    canCreateChannel,
+    canCreateCustomGroups,
+    canJoinPublicChannel,
+    handleOpenDirectMessagesModal,
+    invitePeopleModal,
+    showCreateCategoryModal,
+    showCreateUserGroupModal,
+    showMoreChannelsModal,
+    showNewChannelModal,
+    unreadFilterEnabled,
+    userGroupsEnabled,
+}: Props) => {
     const dispatch = useDispatch();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
@@ -104,13 +116,7 @@ const SidebarHeader = (props: Props) => {
     const theme = useSelector(getTheme);
     const openAddChannelOpen = useCallback((open: boolean) => {
         dispatch(setAddChannelDropdown(open));
-    }, []);
-
-    const [menuToggled, setMenuToggled] = useState(false);
-
-    const handleMenuToggle = () => {
-        setMenuToggled(!menuToggled);
-    };
+    }, [dispatch]);
 
     if (!currentTeam) {
         return null;
@@ -121,10 +127,7 @@ const SidebarHeader = (props: Props) => {
             <SidebarHeaderContainer
                 id={'sidebar-header-container'}
             >
-                <MenuWrapper
-                    onToggle={handleMenuToggle}
-                    className='SidebarHeaderMenuWrapper test-team-header'
-                >
+                <MenuWrapper className='SidebarHeaderMenuWrapper test-team-header'>
                     <WithTooltip
                         id='team-name__tooltip'
                         title={currentTeam.description ? currentTeam.description : currentTeam.display_name}
@@ -143,21 +146,21 @@ const SidebarHeader = (props: Props) => {
                     />
                 </MenuWrapper>
                 <AddChannelDropdown
-                    showNewChannelModal={props.showNewChannelModal}
-                    showMoreChannelsModal={props.showMoreChannelsModal}
-                    invitePeopleModal={props.invitePeopleModal}
-                    showCreateCategoryModal={props.showCreateCategoryModal}
-                    canCreateChannel={props.canCreateChannel}
-                    canJoinPublicChannel={props.canJoinPublicChannel}
-                    handleOpenDirectMessagesModal={props.handleOpenDirectMessagesModal}
-                    unreadFilterEnabled={props.unreadFilterEnabled}
+                    showNewChannelModal={showNewChannelModal}
+                    showMoreChannelsModal={showMoreChannelsModal}
+                    invitePeopleModal={invitePeopleModal}
+                    showCreateCategoryModal={showCreateCategoryModal}
+                    canCreateChannel={canCreateChannel}
+                    canJoinPublicChannel={canJoinPublicChannel}
+                    handleOpenDirectMessagesModal={handleOpenDirectMessagesModal}
+                    unreadFilterEnabled={unreadFilterEnabled}
                     showCreateTutorialTip={showCreateTutorialTip}
                     showInviteTutorialTip={showInviteTutorialTip}
                     isAddChannelOpen={isAddChannelOpen}
                     openAddChannelOpen={openAddChannelOpen}
-                    canCreateCustomGroups={props.canCreateCustomGroups}
-                    showCreateUserGroupModal={props.showCreateUserGroupModal}
-                    userGroupsEnabled={props.userGroupsEnabled}
+                    canCreateCustomGroups={canCreateCustomGroups}
+                    showCreateUserGroupModal={showCreateUserGroupModal}
+                    userGroupsEnabled={userGroupsEnabled}
                 />
             </SidebarHeaderContainer>
         </CompassThemeProvider>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -16,7 +16,10 @@ export type Props = {
     onChange: (teamId: string) => void;
 }
 
-const TeamSelector = (props: Props): JSX.Element => {
+const TeamSelector = ({
+    onChange,
+    teamsById,
+}: Props): JSX.Element => {
     const [value, setValue] = useState<Team>();
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -24,22 +27,25 @@ const TeamSelector = (props: Props): JSX.Element => {
     const handleTeamChange = useCallback((e) => {
         const teamId = e.value as string;
 
-        setValue(props.teamsById[teamId]);
-        props.onChange(teamId);
-    }, []);
+        setValue(teamsById[teamId]);
+        onChange(teamId);
+    }, [onChange, teamsById]);
 
     const currentLocale = useSelector(getCurrentLocale);
 
-    const teamValues = Object.values(props.teamsById).
+    const teamValues = useMemo(() => Object.values(teamsById).
         map((team) => ({value: team.id, label: team.display_name})).
-        sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale));
+        sort((teamA, teamB) => teamA.label.localeCompare(teamB.label, currentLocale)),
+    [currentLocale, teamsById]);
+
+    const optionValue = useMemo(() => (value ? {label: value.display_name, value: value.id} : undefined), [value]);
 
     return (
         <DropdownInput
             className='team_selector'
             required={true}
             onChange={handleTeamChange}
-            value={value ? {label: value.display_name, value: value.id} : undefined}
+            value={optionValue}
             options={teamValues}
             legend={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}

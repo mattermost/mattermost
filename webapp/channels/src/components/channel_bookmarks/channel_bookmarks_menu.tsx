@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ChangeEvent} from 'react';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled, {css} from 'styled-components';
@@ -32,7 +32,16 @@ type BookmarksMenuProps = {
     channelId: string;
     hasBookmarks: boolean;
     limitReached: boolean;
-    canUploadFiles: boolean;};
+    canUploadFiles: boolean;
+};
+
+const linkVariantIcon = <LinkVariantIcon size={18}/>;
+const paperClipIcon = <PaperclipIcon size={18}/>;
+
+const menuProps = {id: 'channelBookmarksPlusMenuDropdown'};
+const menuTransformOrigin = {vertical: 'top', horizontal: 'left'} as const;
+const menuAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
+
 export default ({
     channelId,
     hasBookmarks,
@@ -81,54 +90,64 @@ export default ({
 
     const handleCreateFile = useCallback(() => {
         fileInputRef.current?.click();
-    }, [fileInputRef.current]);
+    }, []);
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
 
-    const addBookmarkLimitReached = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add more than {limit} bookmarks'}, {limit: MAX_BOOKMARKS_PER_CHANNEL});
-    let addBookmarkTooltipText;
+    const menuButtonTooltip = useMemo(() => {
+        let addBookmarkTooltipText;
 
-    if (limitReached) {
-        addBookmarkTooltipText = addBookmarkLimitReached;
-    } else if (hasBookmarks) {
-        addBookmarkTooltipText = addBookmarkLabel;
-    }
+        if (limitReached) {
+            addBookmarkTooltipText = formatMessage({
+                id: 'channel_bookmarks.addBookmarkLimitReached',
+                defaultMessage: 'Cannot add more than {limit} bookmarks',
+            }, {limit: MAX_BOOKMARKS_PER_CHANNEL});
+        } else if (hasBookmarks) {
+            addBookmarkTooltipText = addBookmarkLabel;
+        }
+
+        return addBookmarkTooltipText ? {
+            id: 'channelBookmarksPlusMenuButtonTooltip',
+            text: addBookmarkTooltipText,
+        } : undefined;
+    }, [addBookmarkLabel, formatMessage, hasBookmarks, limitReached]);
+
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
+
+    const addLinkLabelWithSpan = useMemo(() => <span>{addLinkLabel}</span>, [addLinkLabel]);
+    const attachFileLabelWithSpan = useMemo(() => <span>{attachFileLabel}</span>, [attachFileLabel]);
+
+    const menuButtonProps = useMemo(() => ({
+        id: 'channelBookmarksPlusMenuButton',
+        class: classNames('channelBookmarksMenuButton', {withLabel: showLabel, disabled: limitReached}),
+        children: (
+            <>
+                <PlusIcon size={showLabel ? 16 : 18}/>
+                {showLabel && <span>{addBookmarkLabel}</span>}
+            </>
+        ),
+        'aria-label': addBookmarkLabel,
+        disabled: limitReached,
+    }), [addBookmarkLabel, limitReached, showLabel]);
 
     return (
         <MenuButtonContainer
             withLabel={showLabel}
         >
             <Menu.Container
-                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                transformOrigin={{vertical: 'top', horizontal: 'left'}}
-                menuButton={{
-                    id: 'channelBookmarksPlusMenuButton',
-                    class: classNames('channelBookmarksMenuButton', {withLabel: showLabel, disabled: limitReached}),
-                    children: (
-                        <>
-                            <PlusIcon size={showLabel ? 16 : 18}/>
-                            {showLabel && <span>{addBookmarkLabel}</span>}
-                        </>
-                    ),
-                    'aria-label': addBookmarkLabel,
-                    disabled: limitReached,
-                }}
-                menu={{
-                    id: 'channelBookmarksPlusMenuDropdown',
-                }}
-                menuButtonTooltip={addBookmarkTooltipText ? {
-                    id: 'channelBookmarksPlusMenuButtonTooltip',
-                    text: addBookmarkTooltipText,
-                } : undefined}
+                anchorOrigin={menuAnchorOrigin}
+                transformOrigin={menuTransformOrigin}
+                menuButton={menuButtonProps}
+                menu={menuProps}
+                menuButtonTooltip={menuButtonTooltip}
             >
                 <Menu.Item
                     key='channelBookmarksAddLink'
                     id='channelBookmarksAddLink'
                     onClick={handleCreateLink}
-                    leadingElement={<LinkVariantIcon size={18}/>}
-                    labels={<span>{addLinkLabel}</span>}
+                    leadingElement={linkVariantIcon}
+                    labels={addLinkLabelWithSpan}
                     aria-label={addLinkLabel}
                 />
                 {canUploadFiles && (
@@ -136,8 +155,8 @@ export default ({
                         key='channelBookmarksAttachFile'
                         id='channelBookmarksAttachFile'
                         onClick={handleCreateFile}
-                        leadingElement={<PaperclipIcon size={18}/>}
-                        labels={<span>{attachFileLabel}</span>}
+                        leadingElement={paperClipIcon}
+                        labels={attachFileLabelWithSpan}
                         aria-label={attachFileLabel}
                     />
                 )}

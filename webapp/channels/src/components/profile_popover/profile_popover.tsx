@@ -96,7 +96,7 @@ const ProfilePopover = ({
                 },
             ));
         };
-    }, []);
+    }, [returnFocus]);
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
@@ -107,7 +107,7 @@ const ProfilePopover = ({
                 dispatch(closeModal(modal));
             }
         }
-    }, [modals]);
+    }, [dispatch, modals]);
 
     const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -130,7 +130,7 @@ const ProfilePopover = ({
             hide?.();
             getHistory().push(`${teamUrl}/messages/@${user.username}`);
         }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl]);
+    }, [user, loadingDMChannel, handleCloseModals, dispatch, isMobileView, hide, teamUrl]);
 
     useEffect(() => {
         if (currentTeamId && userId) {

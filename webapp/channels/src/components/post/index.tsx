@@ -6,37 +6,32 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     get,
-    getBool,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {markPostAsUnread} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
-import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
+import {areConsecutivePostsBySameUser, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
 interface OwnProps {
@@ -93,31 +88,14 @@ function makeMapStateToProps() {
         if (!post) {
             return null;
         }
-        let parentPost;
-        let parentPostUser;
 
-        if (post.root_id) {
-            parentPost = getPost(state, post.root_id);
-            parentPostUser = parentPost ? getUser(state, parentPost.user_id) : null;
-        }
-
-        const config = getConfig(state);
-        const enableEmojiPicker = config.EnableEmojiPicker === 'true';
-        const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
         const channel = state.entities.channels.channels[post.channel_id];
-        const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
 
         const user = getUser(state, post.user_id);
         const isBot = Boolean(user && user.is_bot);
         const highlightedPostId = getHighlightedPostId(state);
 
         const selectedCard = getSelectedPostCard(state);
-
-        let emojis: Emoji[] = [];
-        const oneClickReactionsEnabled = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT) === 'true';
-        if (oneClickReactionsEnabled) {
-            emojis = getOneClickReactionEmojis(state);
-        }
 
         let previousPost = null;
         if (ownProps.previousPostId) {
@@ -147,56 +125,27 @@ function makeMapStateToProps() {
             teamName = team?.name || currentTeam?.name;
         }
 
-        const canReply = isDMorGM || (channel.team_id === currentTeam?.id);
         const directTeammate = getDirectTeammate(state, channel.id);
 
-        const previewCollapsed = get(
-            state,
-            Preferences.CATEGORY_DISPLAY_SETTINGS,
-            Preferences.COLLAPSE_DISPLAY,
-            Preferences.COLLAPSE_DISPLAY_DEFAULT,
-        );
-
-        const previewEnabled = getBool(
-            state,
-            Preferences.CATEGORY_DISPLAY_SETTINGS,
-            Preferences.LINK_PREVIEW_DISPLAY,
-            Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === 'true',
-        );
-
         return {
-            enableEmojiPicker,
-            enablePostUsernameOverride,
             isEmbedVisible: isEmbedVisible(state, post.id),
-            isReadOnly: false,
             currentUserId: getCurrentUserId(state),
             isFirstReply: previousPost ? isFirstReply(post, previousPost) : false,
             hasReplies: getReplyCount(state, post) > 0,
-            replyCount: getReplyCount(state, post),
-            canReply,
             pluginPostTypes: state.plugins.postTypes,
             channelIsArchived: isArchivedChannel(channel),
             isConsecutivePost: isConsecutivePost(state, ownProps),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
-            colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT) === 'true',
-            shouldShowActionsMenu: shouldShowActionsMenu(state, post),
             currentTeam,
             team,
-            shortcutReactToLastPostEmittedFrom,
             isBot,
-            collapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             shouldHighlight: ownProps.shouldHighlight || highlightedPostId === post.id,
-            oneClickReactionsEnabled,
-            recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-            isExpanded: state.views.rhs.isSidebarExpanded,
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
-            previewCollapsed,
-            previewEnabled,
             post,
             channelName: channel.display_name,
             channelType: channel.type,
@@ -207,14 +156,10 @@ function makeMapStateToProps() {
             isPinnedPosts: rhsState === RHSStates.PIN,
             clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT) === 'true',
             isCommentMention: isPostCommentMention(state, post.id),
-            parentPost,
-            parentPostUser,
             isPostAcknowledgementsEnabled: isPostAcknowledgementsEnabled(state),
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
-            canDelete: canDeletePost(state, post, channel),
-            pluginActions: state.plugins.components.PostAction,
         };
     };
 }
@@ -223,11 +168,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             markPostAsUnread,
-            emitShortcutReactToLastPostFrom,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,
-            removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
         }, dispatch),

@@ -58,7 +58,7 @@ const ProfilePopoverCustomStatus = ({
             dialogProps: {onExited: returnFocus},
         };
         dispatch(openModal(customStatusInputModalData));
-    }, [hide, returnFocus]);
+    }, [dispatch, hide, returnFocus]);
 
     const customStatusSet = (customStatus?.text || customStatus?.emoji) && !isCustomStatusExpired;
     const showExpiryTime = customStatusSet && customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR;

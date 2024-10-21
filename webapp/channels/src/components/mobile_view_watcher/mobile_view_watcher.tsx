@@ -9,7 +9,9 @@ import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
 
-export default function MobileViewWatcher(props: Props) {
+export default function MobileViewWatcher({
+    emitBrowserWindowResized,
+}: Props) {
     const desktopMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.DESKTOP_SCREEN_WIDTH + 1}px)`));
     const smallDesktopMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.TABLET_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.DESKTOP_SCREEN_WIDTH}px)`));
     const tabletMediaQuery = useRef(window.matchMedia(`(min-width: ${Constants.MOBILE_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.TABLET_SCREEN_WIDTH}px)`));
@@ -17,15 +19,15 @@ export default function MobileViewWatcher(props: Props) {
 
     const updateWindowSize = useCallback(() => {
         if (desktopMediaQuery.current.matches) {
-            props.emitBrowserWindowResized(WindowSizes.DESKTOP_VIEW);
+            emitBrowserWindowResized(WindowSizes.DESKTOP_VIEW);
         } else if (smallDesktopMediaQuery.current.matches) {
-            props.emitBrowserWindowResized(WindowSizes.SMALL_DESKTOP_VIEW);
+            emitBrowserWindowResized(WindowSizes.SMALL_DESKTOP_VIEW);
         } else if (tabletMediaQuery.current.matches) {
-            props.emitBrowserWindowResized(WindowSizes.TABLET_VIEW);
+            emitBrowserWindowResized(WindowSizes.TABLET_VIEW);
         } else if (mobileMediaQuery.current.matches) {
-            props.emitBrowserWindowResized(WindowSizes.MOBILE_VIEW);
+            emitBrowserWindowResized(WindowSizes.MOBILE_VIEW);
         }
-    }, []);
+    }, [emitBrowserWindowResized]);
 
     useLayoutEffect(() => {
         updateWindowSize();

@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import noop from 'lodash/noop';
 import throttle from 'lodash/throttle';
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import type {FocusEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -66,6 +67,31 @@ const MOBILE_SCREEN_WIDTH = 1200;
 type SignupProps = {
     onCustomizeHeader?: CustomizeHeaderType;
 }
+
+const laptopAlertIcon = <LaptopAlertSVG/>;
+const gitlabIcon = <LoginGitlabIcon/>;
+const googleIcon = <LoginGoogleIcon/>;
+const entraIcon = <EntraIdIcon/>;
+const openIDIcon = <LoginOpenIDIcon/>;
+const lockIcon = <LockIcon/>;
+
+const markdownOptions = {mentionHighlight: false};
+
+function sendSignUpTelemetryEvents(telemetryId: string, props?: any) {
+    trackEvent('signup', telemetryId, props);
+}
+
+const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>, inputId: string) => {
+    const text = e.target.value;
+    if (!text) {
+        return;
+    }
+    sendSignUpTelemetryEvents(`typed_input_${inputId}`);
+};
+
+const onBlurPassword = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => handleOnBlur(e, 'password');
+const onBlurNameInput = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => handleOnBlur(e, 'username');
+const onBlurEmailInput = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => handleOnBlur(e, 'email');
 
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();
@@ -151,101 +177,52 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
     const canSubmit = Boolean(email && name && password) && !hasError && !loading;
     const passwordConfig = useSelector(getPasswordConfig);
-    const {error: passwordInfo} = isValidPassword('', passwordConfig, intl);
+    const {error: passwordInfo} = useMemo(() => isValidPassword('', passwordConfig, intl), [intl, passwordConfig]);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
-    const subscribeToSecurityNewsletterFunc = () => {
+    const subscribeToSecurityNewsletterFunc = useCallback(() => {
         try {
             Client4.subscribeToNewsletter({email, subscribed_content: 'security_newsletter'});
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
         }
-    };
+    }, [email]);
 
-    const getExternalSignupOptions = () => {
-        const externalLoginOptions: ExternalLoginButtonType[] = [];
+    const desktopExternalAuth = useCallback((href: string) => {
+        return (event: React.MouseEvent) => {
+            if (isDesktopApp()) {
+                event.preventDefault();
 
-        if (!enableExternalSignup) {
-            return externalLoginOptions;
-        }
+                setDesktopLoginLink(href);
+                history.push(`/signup_user_complete/desktop${search}`);
+            }
+        };
+    }, [history, search]);
 
-        if (enableSignUpWithGitLab) {
-            const url = `${Client4.getOAuthRoute()}/gitlab/signup${search}`;
-            externalLoginOptions.push({
-                id: 'gitlab',
-                url,
-                icon: <LoginGitlabIcon/>,
-                label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
-                style: {color: GitLabButtonColor, borderColor: GitLabButtonColor},
-                onClick: desktopExternalAuth(url),
-            });
-        }
+    const gitlabStyle = useMemo(() => ({color: GitLabButtonColor, borderColor: GitLabButtonColor}), [GitLabButtonColor]);
+    const gitlabUrl = enableSignUpWithGitLab ? `${Client4.getOAuthRoute()}/gitlab/signup${search}` : '';
+    const gitlabOnClick = useCallback(() => desktopExternalAuth(gitlabUrl), [desktopExternalAuth, gitlabUrl]);
 
-        if (isLicensed && enableSignUpWithGoogle) {
-            const url = `${Client4.getOAuthRoute()}/google/signup${search}`;
-            externalLoginOptions.push({
-                id: 'google',
-                url,
-                icon: <LoginGoogleIcon/>,
-                label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
-                onClick: desktopExternalAuth(url),
-            });
-        }
+    const googleUrl = (isLicensed && enableSignUpWithGoogle) ? `${Client4.getOAuthRoute()}/google/signup${search}` : '';
+    const googleOnClick = useCallback(() => desktopExternalAuth(googleUrl), [desktopExternalAuth, googleUrl]);
 
-        if (isLicensed && enableSignUpWithOffice365) {
-            const url = `${Client4.getOAuthRoute()}/office365/signup${search}`;
-            externalLoginOptions.push({
-                id: 'office365',
-                url,
-                icon: <EntraIdIcon/>,
-                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
-                onClick: desktopExternalAuth(url),
-            });
-        }
+    const office365Url = (isLicensed && enableSignUpWithOffice365) ? `${Client4.getOAuthRoute()}/office365/signup${search}` : '';
+    const office365OnClick = useCallback(() => desktopExternalAuth(office365Url), [desktopExternalAuth, office365Url]);
 
-        if (isLicensed && enableSignUpWithOpenId) {
-            const url = `${Client4.getOAuthRoute()}/openid/signup${search}`;
-            externalLoginOptions.push({
-                id: 'openid',
-                url,
-                icon: <LoginOpenIDIcon/>,
-                label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
-                style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
-                onClick: desktopExternalAuth(url),
-            });
-        }
+    const openIDStyle = useMemo(() => ({color: OpenIdButtonColor, borderColor: OpenIdButtonColor}), [OpenIdButtonColor]);
+    const openIDUrl = (isLicensed && enableSignUpWithOpenId) ? `${Client4.getOAuthRoute()}/openid/signup${search}` : '';
+    const openIDOnClick = useCallback(() => desktopExternalAuth(openIDUrl), [desktopExternalAuth, openIDUrl]);
 
-        if (isLicensed && enableLDAP) {
-            const newSearchParam = new URLSearchParams(search);
-            newSearchParam.set('extra', Constants.CREATE_LDAP);
+    let samlUrl = '';
+    if (isLicensed && enableSAML) {
+        const newSearchParam = new URLSearchParams(search);
+        newSearchParam.set('action', 'signup');
 
-            externalLoginOptions.push({
-                id: 'ldap',
-                url: `${Client4.getUrl()}/login?${newSearchParam.toString()}`,
-                icon: <LockIcon/>,
-                label: LdapLoginFieldName || formatMessage({id: 'signup.ldap', defaultMessage: 'AD/LDAP Credentials'}),
-                onClick: () => {},
-            });
-        }
-
-        if (isLicensed && enableSAML) {
-            const newSearchParam = new URLSearchParams(search);
-            newSearchParam.set('action', 'signup');
-
-            const url = `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`;
-            externalLoginOptions.push({
-                id: 'saml',
-                url,
-                icon: <LockIcon/>,
-                label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
-                onClick: desktopExternalAuth(url),
-            });
-        }
-
-        return externalLoginOptions;
-    };
+        samlUrl = `${Client4.getUrl()}/login/sso/saml?${newSearchParam.toString()}`;
+    }
+    const samlOnClick = useCallback(() => desktopExternalAuth(samlUrl), [desktopExternalAuth, samlUrl]);
 
     const handleHeaderBackButtonOnClick = useCallback(() => {
         if (!noAccounts) {
@@ -254,45 +231,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
         history.goBack();
     }, [noAccounts, history]);
-
-    const handleInvalidInvite = ({
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        server_error_id,
-        message,
-    }: {server_error_id: string; message: string}) => {
-        let errorMessage;
-
-        if (server_error_id === 'store.sql_user.save.max_accounts.app_error' ||
-            server_error_id === 'api.team.add_user_to_team_from_invite.guest.app_error') {
-            errorMessage = message;
-        }
-
-        setServerError(errorMessage || formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'}));
-        setLoading(false);
-    };
-
-    const handleAddUserToTeamFromInvite = async (token: string, inviteId: string) => {
-        const {data: team, error} = await dispatch(addUserToTeamFromInvite(token, inviteId));
-
-        if (team) {
-            history.push('/' + team.name + `/channels/${Constants.DEFAULT_CHANNEL}`);
-        } else if (error) {
-            handleInvalidInvite(error);
-        }
-    };
-
-    const getInviteInfo = async (inviteId: string) => {
-        const {data, error} = await dispatch(getTeamInviteInfo(inviteId));
-
-        if (data) {
-            setServerError('');
-            setTeamName(data.name);
-        } else if (error) {
-            handleInvalidInvite(error);
-        }
-
-        setLoading(false);
-    };
 
     const getAlternateLink = useCallback(() => (
         <AlternateLinkLayout
@@ -307,24 +245,52 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 defaultMessage: 'Log in',
             })}
         />
-    ), []);
-
-    const onWindowResize = throttle(() => {
-        setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
-    }, 100);
-
-    const desktopExternalAuth = (href: string) => {
-        return (event: React.MouseEvent) => {
-            if (isDesktopApp()) {
-                event.preventDefault();
-
-                setDesktopLoginLink(href);
-                history.push(`/signup_user_complete/desktop${search}`);
-            }
-        };
-    };
+    ), [formatMessage]);
 
     useEffect(() => {
+        const onWindowResize = throttle(() => {
+            setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);
+        }, 100);
+
+        const handleInvalidInvite = ({
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            server_error_id,
+            message,
+        }: {server_error_id: string; message: string}) => {
+            let errorMessage;
+
+            if (server_error_id === 'store.sql_user.save.max_accounts.app_error' ||
+                server_error_id === 'api.team.add_user_to_team_from_invite.guest.app_error') {
+                errorMessage = message;
+            }
+
+            setServerError(errorMessage || formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'}));
+            setLoading(false);
+        };
+
+        const getInviteInfo = async (inviteId: string) => {
+            const {data, error} = await dispatch(getTeamInviteInfo(inviteId));
+
+            if (data) {
+                setServerError('');
+                setTeamName(data.name);
+            } else if (error) {
+                handleInvalidInvite(error);
+            }
+
+            setLoading(false);
+        };
+
+        const handleAddUserToTeamFromInvite = async (token: string, inviteId: string) => {
+            const {data: team, error} = await dispatch(addUserToTeamFromInvite(token, inviteId));
+
+            if (team) {
+                history.push('/' + team.name + `/channels/${Constants.DEFAULT_CHANNEL}`);
+            } else if (error) {
+                handleInvalidInvite(error);
+            }
+        };
+
         dispatch(removeGlobalItem('team'));
         trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
 
@@ -370,82 +336,64 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [onCustomizeHeader, handleHeaderBackButtonOnClick, isMobileView, getAlternateLink, search]);
 
-    if (loading) {
-        return (<LoadingScreen/>);
-    }
-
-    const handleBrandImageError = () => {
+    const handleBrandImageError = useCallback(() => {
         setBrandImageError(true);
-    };
+    }, []);
 
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
-            handleSubmit(e);
-        }
-    };
+    const dismissAlert = useCallback(() => {
+        setAlertBanner(null);
+    }, []);
 
-    const getCardTitle = () => {
-        if (CustomDescriptionText) {
-            return CustomDescriptionText;
-        }
-
-        if (!enableSignUpWithEmail && enableExternalSignup) {
-            return formatMessage({id: 'signup_user_completed.cardtitle.external', defaultMessage: 'Create your account with one of the following:'});
-        }
-
-        return formatMessage({id: 'signup_user_completed.cardtitle', defaultMessage: 'Create your account'});
-    };
-
-    const getMessageSubtitle = () => {
-        if (enableCustomBrand) {
-            return CustomBrandText ? (
-                <div className='signup-body-custom-branding-markdown'>
-                    <Markdown
-                        message={CustomBrandText}
-                        options={{mentionHighlight: false}}
-                    />
-                </div>
-            ) : null;
-        }
-
-        return (
-            <p className='signup-body-message-subtitle'>
-                {formatMessage({
-                    id: 'signup_user_completed.subtitle',
-                    defaultMessage: 'Create your Mattermost account to start collaborating with your team',
-                })}
-            </p>
-        );
-    };
-
-    const handleEmailOnChange = ({target: {value: email}}: React.ChangeEvent<HTMLInputElement>) => {
+    const handleEmailOnChange = useCallback(({target: {value: email}}: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(email);
         dismissAlert();
 
         if (emailError) {
             setEmailError('');
         }
-    };
+    }, [dismissAlert, emailError]);
 
-    const handleNameOnChange = ({target: {value: name}}: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNameOnChange = useCallback(({target: {value: name}}: React.ChangeEvent<HTMLInputElement>) => {
         setName(name);
         dismissAlert();
 
         if (nameError) {
             setNameError('');
         }
-    };
+    }, [dismissAlert, nameError]);
 
-    const handlePasswordInputOnChange = ({target: {value: password}}: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePasswordInputOnChange = useCallback(({target: {value: password}}: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(password);
         dismissAlert();
 
         if (passwordError) {
             setPasswordError('');
         }
-    };
+    }, [dismissAlert, passwordError]);
 
-    const handleSignupSuccess = async (user: UserProfile, data: UserProfile) => {
+    const postSignupSuccess = useCallback(async () => {
+        const redirectTo = (new URLSearchParams(search)).get('redirect_to');
+
+        await dispatch(loadMe());
+
+        if (token) {
+            setGlobalItem(token, JSON.stringify({usedBefore: true}));
+        }
+
+        if (redirectTo) {
+            history.push(redirectTo);
+        } else if (onboardingFlowEnabled) {
+            // need info about whether admin or not,
+            // and whether admin has already completed
+            // first tiem onboarding. Instead of fetching and orchestrating that here,
+            // let the default root component handle it.
+            history.push('/');
+        } else {
+            redirectUserToDefaultTeam();
+        }
+    }, [dispatch, history, onboardingFlowEnabled, search, token]);
+
+    const handleSignupSuccess = useCallback(async (user: UserProfile, data: UserProfile) => {
         trackEvent('signup', 'signup_user_02_complete', getRoleFromTrackFlow());
 
         if (reminderInterval) {
@@ -478,37 +426,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         await postSignupSuccess();
-    };
-
-    const postSignupSuccess = async () => {
-        const redirectTo = (new URLSearchParams(search)).get('redirect_to');
-
-        await dispatch(loadMe());
-
-        if (token) {
-            setGlobalItem(token, JSON.stringify({usedBefore: true}));
-        }
-
-        if (redirectTo) {
-            history.push(redirectTo);
-        } else if (onboardingFlowEnabled) {
-            // need info about whether admin or not,
-            // and whether admin has already completed
-            // first tiem onboarding. Instead of fetching and orchestrating that here,
-            // let the default root component handle it.
-            history.push('/');
-        } else {
-            redirectUserToDefaultTeam();
-        }
-    };
-
-    function sendSignUpTelemetryEvents(telemetryId: string, props?: any) {
-        trackEvent('signup', telemetryId, props);
-    }
+    }, [dispatch, history, postSignupSuccess, reminderInterval, search, teamName]);
 
     type TelemetryErrorList = {errors: Array<{field: string; rule: string}>; success: boolean};
 
-    const isUserValid = () => {
+    const isUserValid = useCallback(() => {
         let isValid = true;
 
         const providedEmail = emailInput.current?.value.trim();
@@ -571,13 +493,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         sendSignUpTelemetryEvents('validate_user', telemetryEvents);
 
         return isValid;
-    };
+    }, [formatMessage, intl, passwordConfig]);
 
-    const dismissAlert = () => {
-        setAlertBanner(null);
-    };
-
-    const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
+    const handleSubmit = useCallback(async (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         sendSignUpTelemetryEvents('click_create_account', getRoleFromTrackFlow());
         setIsWaiting(true);
@@ -616,9 +534,17 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         } else {
             setIsWaiting(false);
         }
-    };
+    }, [dismissAlert, dispatch, handleSignupSuccess, inviteId, isUserValid, search, subscribeToSecurityNewsletter, subscribeToSecurityNewsletterFunc, token]);
 
-    const handleReturnButtonOnClick = () => history.replace('/');
+    const onEnterKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
+            handleSubmit(e);
+        }
+    }, [canSubmit, handleSubmit]);
+
+    const handleReturnButtonOnClick = useCallback(() => history.replace('/'), [history]);
+
+    const newsletterOnChange = useCallback(() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter), [subscribeToSecurityNewsletter]);
 
     const getNewsletterCheck = () => {
         if (cwsAvailability === CSWAvailabilityCheckTypes.Available) {
@@ -627,7 +553,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     id='signup-body-card-form-check-newsletter'
                     ariaLabel={formatMessage({id: 'newsletter_optin.checkmark.box', defaultMessage: 'newsletter checkbox'})}
                     name='newsletter'
-                    onChange={() => setSubscribeToSecurityNewsletter(!subscribeToSecurityNewsletter)}
+                    onChange={newsletterOnChange}
                     text={
                         formatMessage(
                             {id: 'newsletter_optin.checkmark.text', defaultMessage: '<span>I would like to receive Mattermost security updates via newsletter.</span> By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the <a>Privacy Policy</a> and understand that I can <aa>unsubscribe</aa> at any time'},
@@ -682,12 +608,182 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         );
     };
 
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>, inputId: string) => {
-        const text = e.target.value;
-        if (!text) {
-            return;
+    const extraContent = useMemo(() => (
+        <div className='signup-body-content-button-container'>
+            <button
+                className='signup-body-content-button-return'
+                onClick={handleReturnButtonOnClick}
+            >
+                {formatMessage({id: 'signup_user_completed.return', defaultMessage: 'Return to log in'})}
+            </button>
+        </div>
+    ), [formatMessage, handleReturnButtonOnClick]);
+
+    const renderDesktopAuthToken = useCallback(() => (
+        <DesktopAuthToken
+            href={desktopLoginLink}
+            onLogin={postSignupSuccess}
+        />
+    ), [desktopLoginLink, postSignupSuccess]);
+
+    const privacyPolicyLinkRender = useCallback((chunks: string) => (
+        <ExternalLink
+            href={PrivacyPolicyLink as string}
+            location='signup-privacy-policy'
+        >
+            {chunks}
+        </ExternalLink>
+    ), [PrivacyPolicyLink]);
+
+    const termsOfUseLinkRenderer = useCallback((chunks: string) => (
+        <ExternalLink
+            href={TermsOfServiceLink as string}
+            location='signup-terms-of-use'
+        >
+            {chunks}
+        </ExternalLink>
+    ), [TermsOfServiceLink]);
+
+    const customMessage = useMemo(() => (
+        nameError ? {type: ItemStatus.ERROR, value: nameError} as const : {
+            type: ItemStatus.INFO,
+            value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
+        } as const
+    ), [formatMessage, nameError]);
+
+    const emailCustomLabelForInput: CustomMessageInputType = useMemo(() => {
+        // error will have preference over info message
+        if (emailError) {
+            return {type: ItemStatus.ERROR, value: emailError};
         }
-        sendSignUpTelemetryEvents(`typed_input_${inputId}`);
+
+        if (parsedEmail) {
+            return {
+                type: ItemStatus.INFO,
+                value: formatMessage(
+                    {
+                        id: 'signup_user_completed.emailIs',
+                        defaultMessage: "You'll use this address to sign in to {siteName}.",
+                    },
+                    {siteName: SiteName},
+                ),
+            };
+        }
+
+        return null;
+    }, [SiteName, emailError, formatMessage, parsedEmail]);
+
+    if (loading) {
+        return (<LoadingScreen/>);
+    }
+
+    const getExternalSignupOptions = () => {
+        const externalLoginOptions: ExternalLoginButtonType[] = [];
+
+        if (!enableExternalSignup) {
+            return externalLoginOptions;
+        }
+
+        if (enableSignUpWithGitLab) {
+            externalLoginOptions.push({
+                id: 'gitlab',
+                url: gitlabUrl,
+                icon: gitlabIcon,
+                label: GitLabButtonText || formatMessage({id: 'login.gitlab', defaultMessage: 'GitLab'}),
+                style: gitlabStyle,
+                onClick: gitlabOnClick,
+            });
+        }
+
+        if (isLicensed && enableSignUpWithGoogle) {
+            externalLoginOptions.push({
+                id: 'google',
+                url: googleUrl,
+                icon: googleIcon,
+                label: formatMessage({id: 'login.google', defaultMessage: 'Google'}),
+                onClick: googleOnClick,
+            });
+        }
+
+        if (isLicensed && enableSignUpWithOffice365) {
+            externalLoginOptions.push({
+                id: 'office365',
+                url: office365Url,
+                icon: entraIcon,
+                label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
+                onClick: office365OnClick,
+            });
+        }
+
+        if (isLicensed && enableSignUpWithOpenId) {
+            externalLoginOptions.push({
+                id: 'openid',
+                url: openIDUrl,
+                icon: openIDIcon,
+                label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
+                style: openIDStyle,
+                onClick: openIDOnClick,
+            });
+        }
+
+        if (isLicensed && enableLDAP) {
+            const newSearchParam = new URLSearchParams(search);
+            newSearchParam.set('extra', Constants.CREATE_LDAP);
+
+            externalLoginOptions.push({
+                id: 'ldap',
+                url: `${Client4.getUrl()}/login?${newSearchParam.toString()}`,
+                icon: lockIcon,
+                label: LdapLoginFieldName || formatMessage({id: 'signup.ldap', defaultMessage: 'AD/LDAP Credentials'}),
+                onClick: noop,
+            });
+        }
+
+        if (isLicensed && enableSAML) {
+            externalLoginOptions.push({
+                id: 'saml',
+                url: samlUrl,
+                icon: lockIcon,
+                label: SamlLoginButtonText || formatMessage({id: 'login.saml', defaultMessage: 'SAML'}),
+                onClick: samlOnClick,
+            });
+        }
+
+        return externalLoginOptions;
+    };
+
+    const getCardTitle = () => {
+        if (CustomDescriptionText) {
+            return CustomDescriptionText;
+        }
+
+        if (!enableSignUpWithEmail && enableExternalSignup) {
+            return formatMessage({id: 'signup_user_completed.cardtitle.external', defaultMessage: 'Create your account with one of the following:'});
+        }
+
+        return formatMessage({id: 'signup_user_completed.cardtitle', defaultMessage: 'Create your account'});
+    };
+
+    const getMessageSubtitle = () => {
+        if (enableCustomBrand) {
+            return CustomBrandText ? (
+                <div className='signup-body-custom-branding-markdown'>
+                    <Markdown
+                        message={CustomBrandText}
+                        options={markdownOptions}
+                    />
+                </div>
+            ) : null;
+        }
+
+        return (
+            <p className='signup-body-message-subtitle'>
+                {formatMessage({
+                    id: 'signup_user_completed.subtitle',
+                    defaultMessage: 'Create your Mattermost account to start collaborating with your team',
+                })}
+            </p>
+        );
     };
 
     const getContent = () => {
@@ -712,17 +808,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 <ColumnLayout
                     title={titleColumn}
                     message={formatMessage({id: 'signup_user_completed.invalid_invite.message', defaultMessage: 'Please speak with your Administrator to receive an invitation.'})}
-                    SVGElement={<LaptopAlertSVG/>}
-                    extraContent={(
-                        <div className='signup-body-content-button-container'>
-                            <button
-                                className='signup-body-content-button-return'
-                                onClick={handleReturnButtonOnClick}
-                            >
-                                {formatMessage({id: 'signup_user_completed.return', defaultMessage: 'Return to log in'})}
-                            </button>
-                        </div>
-                    )}
+                    SVGElement={laptopAlertIcon}
+                    extraContent={extraContent}
                 />
             );
         }
@@ -731,30 +818,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             return (
                 <Route
                     path={'/signup_user_complete/desktop'}
-                    render={() => (
-                        <DesktopAuthToken
-                            href={desktopLoginLink}
-                            onLogin={postSignupSuccess}
-                        />
-                    )}
+                    render={renderDesktopAuthToken}
                 />
             );
-        }
-
-        let emailCustomLabelForInput: CustomMessageInputType = parsedEmail ? {
-            type: ItemStatus.INFO,
-            value: formatMessage(
-                {
-                    id: 'signup_user_completed.emailIs',
-                    defaultMessage: "You'll use this address to sign in to {siteName}.",
-                },
-                {siteName: SiteName},
-            ),
-        } : null;
-
-        // error will have preference over info message
-        if (emailError) {
-            emailCustomLabelForInput = {type: ItemStatus.ERROR, value: emailError};
         }
 
         return (
@@ -825,7 +891,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         disabled={isWaiting || Boolean(parsedEmail)}
                                         autoFocus={true}
                                         customMessage={emailCustomLabelForInput}
-                                        onBlur={(e) => handleOnBlur(e, 'email')}
+                                        onBlur={onBlurEmailInput}
                                     />
                                     <Input
                                         ref={nameInput}
@@ -841,13 +907,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         })}
                                         disabled={isWaiting}
                                         autoFocus={Boolean(parsedEmail)}
-                                        customMessage={
-                                            nameError ? {type: ItemStatus.ERROR, value: nameError} : {
-                                                type: ItemStatus.INFO,
-                                                value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
-                                            }
-                                        }
-                                        onBlur={(e) => handleOnBlur(e, 'username')}
+                                        customMessage={customMessage}
+                                        onBlur={onBlurNameInput}
                                     />
                                     <PasswordInput
                                         ref={passwordInput}
@@ -859,7 +920,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         createMode={true}
                                         info={passwordInfo as string}
                                         error={passwordError}
-                                        onBlur={(e) => handleOnBlur(e, 'password')}
+                                        onBlur={onBlurPassword}
                                     />
                                     {getNewsletterCheck()}
                                     <SaveButton
@@ -897,22 +958,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            termsOfUseLink: (chunks: string) => (
-                                                <ExternalLink
-                                                    href={TermsOfServiceLink as string}
-                                                    location='signup-terms-of-use'
-                                                >
-                                                    {chunks}
-                                                </ExternalLink>
-                                            ),
-                                            privacyPolicyLink: (chunks: string) => (
-                                                <ExternalLink
-                                                    href={PrivacyPolicyLink as string}
-                                                    location='signup-privacy-policy'
-                                                >
-                                                    {chunks}
-                                                </ExternalLink>
-                                            ),
+                                            termsOfUseLink: termsOfUseLinkRenderer,
+                                            privacyPolicyLink: privacyPolicyLinkRender,
                                         }}
                                     />
                                 </p>

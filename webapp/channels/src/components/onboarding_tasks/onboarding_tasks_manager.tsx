@@ -48,7 +48,7 @@ import {generateTelemetryTag} from './utils';
 
 const useGetTaskDetails = () => {
     const {formatMessage} = useIntl();
-    return {
+    return useMemo(() => ({
         [OnboardingTasksName.CHANNELS_TOUR]: {
             id: 'task_learn_more_about_messaging',
             svg: Channels,
@@ -99,7 +99,7 @@ const useGetTaskDetails = () => {
                 defaultMessage: 'Learn more about Enterprise-level high-security features.',
             }),
         },
-    };
+    }), [formatMessage]);
 };
 
 export const useTasksList = () => {
@@ -124,66 +124,53 @@ export const useTasksList = () => {
 
     const showStartTrialTask = selfHostedTrialCondition || cloudTrialCondition;
 
-    const list: Record<string, string> = {...OnboardingTasksName};
-    if (!showStartTrialTask) {
-        delete list.START_TRIAL;
-    }
+    return useMemo(() => {
+        const list: Record<string, string> = {...OnboardingTasksName};
+        if (!showStartTrialTask) {
+            delete list.START_TRIAL;
+        }
 
-    if (!isUserFirstAdmin && !isUserAdmin) {
-        delete list.VISIT_SYSTEM_CONSOLE;
-        delete list.START_TRIAL;
-    }
+        if (!isUserFirstAdmin && !isUserAdmin) {
+            delete list.VISIT_SYSTEM_CONSOLE;
+            delete list.START_TRIAL;
+        }
 
-    // invite other users is hidden for guest users
-    if (isGuestUser) {
-        delete list.INVITE_PEOPLE;
-    }
+        // invite other users is hidden for guest users
+        if (isGuestUser) {
+            delete list.INVITE_PEOPLE;
+        }
 
-    return Object.values(list);
+        return Object.values(list);
+    }, [isGuestUser, isUserAdmin, isUserFirstAdmin, showStartTrialTask]);
 };
 
 export const useTasksListWithStatus = () => {
     const dataInDb = useSelector(getOnboardingTaskPreferences);
     const tasksList = useTasksList();
     const getTaskDetails = useGetTaskDetails();
-    return useMemo(() =>
-        tasksList.map((task) => {
-            const status = dataInDb.find((pref) => pref.name === task)?.value;
-            return {
-                name: task,
-                status: status === FINISHED.toString(),
-                label: () => {
-                    const {id, svg, message} = getTaskDetails[task];
-                    return (
-                        <div key={id}>
-                            <picture>
-                                {React.createElement(svg, {width: 24, height: 24})}
-                            </picture>
-                            <span>{message}</span>
-                        </div>
-                    );
-                },
-            };
-        }), [dataInDb, tasksList]);
+    return useMemo(() => tasksList.map((task) => {
+        const status = dataInDb.find((pref) => pref.name === task)?.value;
+        return {
+            name: task,
+            status: status === FINISHED.toString(),
+            label: () => {
+                const {id, svg, message} = getTaskDetails[task];
+                return (
+                    <div key={id}>
+                        <picture>
+                            {React.createElement(svg, {width: 24, height: 24})}
+                        </picture>
+                        <span>{message}</span>
+                    </div>
+                );
+            },
+        };
+    }), [dataInDb, getTaskDetails, tasksList]);
 };
 
 export const useHandleOnBoardingTaskData = () => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
-    const storeSavePreferences = useCallback(
-        (taskCategory: string, taskName, step: number) => {
-            const preferences = [
-                {
-                    user_id: currentUserId,
-                    category: taskCategory,
-                    name: taskName,
-                    value: step.toString(),
-                },
-            ];
-            dispatch(savePreferences(currentUserId, preferences));
-        },
-        [currentUserId],
-    );
 
     return useCallback((
         taskName: string,
@@ -192,13 +179,22 @@ export const useHandleOnBoardingTaskData = () => {
         trackEventSuffix?: string,
         taskCategory = OnboardingTaskCategory,
     ) => {
-        storeSavePreferences(taskCategory, taskName, step);
+        const preferences = [
+            {
+                user_id: currentUserId,
+                category: taskCategory,
+                name: taskName,
+                value: step.toString(),
+            },
+        ];
+        dispatch(savePreferences(currentUserId, preferences));
+
         if (trackEvent) {
             const eventSuffix = trackEventSuffix ? `${step}--${trackEventSuffix}` : step.toString();
             const telemetryTag = generateTelemetryTag(OnboardingTaskCategory, taskName, eventSuffix);
             trackEventAction(OnboardingTaskCategory, telemetryTag);
         }
-    }, [storeSavePreferences]);
+    }, [currentUserId, dispatch]);
 };
 
 export const useHandleOnBoardingTaskTrigger = () => {
@@ -211,7 +207,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
     const inAdminConsole = matchPath(pathname, {path: '/admin_console'}) != null;
     const inChannels = matchPath(pathname, {path: '/:team/channels/:chanelId'}) != null;
 
-    return (taskName: string) => {
+    return useCallback((taskName: string) => {
         switch (taskName) {
         case OnboardingTasksName.CHANNELS_TOUR: {
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
@@ -294,6 +290,6 @@ export const useHandleOnBoardingTaskTrigger = () => {
         }
         default:
         }
-    };
+    }, [currentUserId, dispatch, handleSaveData, inAdminConsole, inChannels, isGuestUser]);
 };
 
