@@ -19,7 +19,7 @@ export default function NotificationPermissionDeniedSectionNotice() {
                 type='danger'
                 title={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.title',
-                    defaultMessage: 'Web browser notifications permission was denied',
+                    defaultMessage: 'Web browser notification permission was denied',
                 })}
                 text={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.message',

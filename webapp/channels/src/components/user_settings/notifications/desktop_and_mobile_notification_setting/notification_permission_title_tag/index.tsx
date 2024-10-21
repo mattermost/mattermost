@@ -34,8 +34,8 @@ export default function NotificationPermissionTitleTag() {
     }
 
     if (
-        (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionNeverGranted) ||
-        (isNotificationAPISupported() && getNotificationPermission() === NotificationPermissionDenied) ||
+        getNotificationPermission() === NotificationPermissionNeverGranted ||
+        getNotificationPermission() === NotificationPermissionDenied ||
         desktopPermission === NotificationPermissionDenied
     ) {
         return (

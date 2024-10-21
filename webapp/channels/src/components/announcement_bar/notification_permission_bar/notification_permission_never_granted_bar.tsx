@@ -13,10 +13,15 @@ export default function NotificationPermissionNeverGrantedBar() {
     const [show, setShow] = useState(true);
 
     const handleClick = useCallback(async () => {
-        await requestNotificationPermission();
-
-        // Dismiss the bar after user makes a choice
-        setShow(false);
+        try {
+            await requestNotificationPermission();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error requesting notification permission', error);
+        } finally {
+            // Dismiss the bar after user makes a choice
+            setShow(false);
+        }
     }, []);
 
     const handleClose = useCallback(() => {
