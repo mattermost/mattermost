@@ -17,12 +17,6 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, validationErr
 	}
 
-	// verify user belongs to the channel
-	_, appErr := a.GetChannelMember(rctx, scheduledPost.ChannelId, scheduledPost.UserId)
-	if appErr != nil {
-		return nil, appErr
-	}
-
 	// validate the channel is not archived
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
