@@ -7,21 +7,14 @@ import * as rudderAnalytics from 'rudder-sdk-js';
 
 import type {TelemetryHandler} from '@mattermost/client';
 
+import {TrackMiscCategory, TrackActionCategory, TrackEnterpriseSKU, TrackProfessionalSKU, TrackInviteGroupEvent} from 'mattermost-redux/constants/telemetry';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
 
-export const TrackGroupsFeature: string = 'custom_groups';
-const TrackProfessionalSKU = 'professional';
-const TrackEnterpriseSKU = 'enterprise';
-
-export const TrackInviteGroupEvent: string = 'invite_group_to_channel';
-
 const eventSKUs: {[event: string]: string[]} = {
     [TrackInviteGroupEvent]: [TrackProfessionalSKU, TrackEnterpriseSKU],
 };
-
-const TrackActionCategory: string = 'action';
 
 const eventCategory: {[event: string]: string} = {
     [TrackInviteGroupEvent]: TrackActionCategory,
@@ -114,5 +107,5 @@ function getEventCategory(eventName: string) {
         // eslint-disable-next-line
         console.warn(`Event ${eventName} doesn't have a category`);
     }
-    return category ?? 'miscelanea';
+    return category ?? TrackMiscCategory;
 }

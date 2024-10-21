@@ -10,7 +10,7 @@ import type {Group} from '@mattermost/types/groups';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {TrackGroupsFeature, TrackInviteGroupEvent} from 'mattermost-redux/client/rudder';
+import {TrackGroupsFeature, TrackInviteGroupEvent} from 'mattermost-redux/constants/telemetry';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
