@@ -77,7 +77,10 @@ func (worker *BatchMigrationWorker) doBatch(rctx *request.Context, job *model.Jo
 	job.Data = nextData
 
 	// Migrations currently don't support reporting meaningful progress.
-	worker.jobServer.SetJobProgress(job, 0)
+	if err := worker.jobServer.SetJobProgress(job, 0); err != nil {
+		worker.logger.Error("Worker: Failed to set job progress", mlog.Err(err))
+		return false
+	}
 	return false
 }
 
