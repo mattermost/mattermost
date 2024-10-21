@@ -10,7 +10,7 @@ import type {GlobalState} from 'types/store';
 
 import {useThreadRouting} from './hooks';
 
-describe('channels/src/components/threading/hooks', () => {
+describe('components/threading/hooks', () => {
     const mockUser = TestHelper.getUserMock();
     const mockTeam = TestHelper.getTeamMock();
 
