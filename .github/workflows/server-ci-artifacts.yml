@@ -87,6 +87,14 @@ jobs:
         with:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
+      - name: Download Wiz CLI
+        run: |
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64 && chmod +x wizcli
+          ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_DEVOPS_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_DEVOPS_CLIENT_SECRET }}
+
       - name: cd/download-artifacts-from-PR-workflow
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
@@ -112,6 +120,17 @@ jobs:
           cd server/build
           docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
           echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
+
+      - name: cd/scan-image
+        run: |
+          export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
+          ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${TAG} -f sarif > results_image_scan.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results_image_scan.sarif
 
       - name: cd/generate-summary
         env:
