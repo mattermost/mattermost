@@ -532,17 +532,19 @@ func TestImportValidateUserImportData(t *testing.T) {
 	// Test a valid User with all fields populated.
 	testsDir, _ := fileutils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
-		Username:     model.NewPointer("bob"),
-		Email:        model.NewPointer("bob@example.com"),
-		AuthService:  model.NewPointer("ldap"),
-		AuthData:     model.NewPointer("bob"),
-		Nickname:     model.NewPointer("BobNick"),
-		FirstName:    model.NewPointer("Bob"),
-		LastName:     model.NewPointer("Blob"),
-		Position:     model.NewPointer("The Boss"),
-		Roles:        model.NewPointer("system_user"),
-		Locale:       model.NewPointer("en"),
+		Avatar: Avatar{
+			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+		},
+		Username:    model.NewPointer("bob"),
+		Email:       model.NewPointer("bob@example.com"),
+		AuthService: model.NewPointer("ldap"),
+		AuthData:    model.NewPointer("bob"),
+		Nickname:    model.NewPointer("BobNick"),
+		FirstName:   model.NewPointer("Bob"),
+		LastName:    model.NewPointer("Blob"),
+		Position:    model.NewPointer("The Boss"),
+		Roles:       model.NewPointer("system_user"),
+		Locale:      model.NewPointer("en"),
 	}
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
@@ -669,6 +671,56 @@ func TestImportValidateUserAuth(t *testing.T) {
 			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
 		}
 	}
+}
+
+func TestImportValidateBotImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := BotImportData{
+		Username:    model.NewPointer("bob"),
+		DisplayName: model.NewPointer("Display Name"),
+		Owner:       model.NewPointer("owner"),
+	}
+	err := ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with various invalid names.
+	data.Username = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to nil Username.")
+
+	data.Username = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to 0 length Username.")
+
+	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long Username.")
+
+	data.Username = model.NewPointer("i am a username with spaces and !!!")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid characters in Username.")
+
+	data.Username = model.NewPointer("bob")
+
+	// Invalid Display Name.
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.DisplayName = model.NewPointer("Display Name")
+
+	// Invalid Owner Name.
+	data.Owner = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
