@@ -199,7 +199,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
         // if hidden controls are currently open close them
         if (showHiddenControls) {
-            setShowHiddenControls(true);
+            setShowHiddenControls(!showHiddenControls);
         }
     }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
 
