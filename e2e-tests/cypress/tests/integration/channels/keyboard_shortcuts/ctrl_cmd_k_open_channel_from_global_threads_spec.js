@@ -89,7 +89,6 @@ describe('Keyboard Shortcuts', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('body').type('{downarrow}');
         cy.get('body').type('{downarrow}');
-        cy.get('body').type('{downarrow}');
 
         // * should not select thread and switch thread in background
         cy.url().should('equal', `${Cypress.config('baseUrl')}/${testTeam.name}/threads`);

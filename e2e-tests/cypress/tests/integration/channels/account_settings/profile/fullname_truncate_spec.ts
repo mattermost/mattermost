@@ -45,7 +45,7 @@ describe('Profile > Profile Settings> Full Name', () => {
         cy.get('#lastName').clear().type(lastName);
 
         // # Save
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Full name field shows first and last name.
         cy.contains('#nameDesc', `${firstName} ${lastName}`);

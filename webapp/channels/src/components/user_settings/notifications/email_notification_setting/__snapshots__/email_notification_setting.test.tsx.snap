@@ -212,35 +212,29 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onClick={[Function]}
               saving={false}
             >
-              <button
-                className="btn btn-primary "
-                data-testid="saveSetting"
+              <Button
+                buttonType="submit"
                 disabled={false}
-                id="saveSetting"
-                onClick={[Function]}
-                type="submit"
-              >
-                <Memo(LoadingWrapper)
-                  loading={false}
-                  text={
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Saving"
-                      id="save_button.saving"
-                    />
+                label={
+                  Object {
+                    "defaultMessage": "Save",
+                    "id": "save_button.save",
                   }
+                }
+                loading={false}
+                onClick={[Function]}
+                testId="saveSetting"
+              >
+                <button
+                  className="btn btn-primary"
+                  data-testid="saveSetting"
+                  disabled={false}
+                  onClick={[Function]}
+                  type="submit"
                 >
-                  <span>
-                    <FormattedMessage
-                      defaultMessage="Save"
-                      id="save_button.save"
-                    >
-                      <span>
-                        Save
-                      </span>
-                    </FormattedMessage>
-                  </span>
-                </Memo(LoadingWrapper)>
-              </button>
+                  Save
+                </button>
+              </Button>
             </SaveButton>
             <button
               className="btn btn-tertiary"
@@ -643,35 +637,29 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onClick={[Function]}
               saving={false}
             >
-              <button
-                className="btn btn-primary "
-                data-testid="saveSetting"
+              <Button
+                buttonType="submit"
                 disabled={false}
-                id="saveSetting"
-                onClick={[Function]}
-                type="submit"
-              >
-                <Memo(LoadingWrapper)
-                  loading={false}
-                  text={
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Saving"
-                      id="save_button.saving"
-                    />
+                label={
+                  Object {
+                    "defaultMessage": "Save",
+                    "id": "save_button.save",
                   }
+                }
+                loading={false}
+                onClick={[Function]}
+                testId="saveSetting"
+              >
+                <button
+                  className="btn btn-primary"
+                  data-testid="saveSetting"
+                  disabled={false}
+                  onClick={[Function]}
+                  type="submit"
                 >
-                  <span>
-                    <FormattedMessage
-                      defaultMessage="Save"
-                      id="save_button.save"
-                    >
-                      <span>
-                        Save
-                      </span>
-                    </FormattedMessage>
-                  </span>
-                </Memo(LoadingWrapper)>
-              </button>
+                  Save
+                </button>
+              </Button>
             </SaveButton>
             <button
               className="btn btn-tertiary"

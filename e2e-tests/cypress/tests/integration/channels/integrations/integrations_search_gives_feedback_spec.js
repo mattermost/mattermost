@@ -92,7 +92,7 @@ describe('Integrations', () => {
             cy.get('#emptySearchResultsMessage').should('not.exist');
         });
         cy.get('#searchInput').clear().type(noResults);
-        cy.get('#emptySearchResultsMessage').contains(`No commands match ${noResults}`);
+        cy.get('#emptySearchResultsMessage').contains(`No slash commands match ${noResults}`);
 
         // * Check bot accounts for no match message
         cy.get('#botAccounts').click();

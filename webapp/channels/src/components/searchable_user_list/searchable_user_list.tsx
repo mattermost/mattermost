@@ -3,13 +3,14 @@
 
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import Button from 'components/button';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
@@ -78,6 +79,11 @@ const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
 type State = {
     nextDisabled: boolean;
 };
+
+const messages = defineMessages({
+    next: {id: 'filtered_user_list.next', defaultMessage: 'Next'},
+    previous: {id: 'filtered_user_list.prev', defaultMessage: 'Previous'},
+});
 
 class SearchableUserList extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
@@ -244,32 +250,27 @@ class SearchableUserList extends React.PureComponent<Props, State> {
 
             if (pageEnd < this.props.total) {
                 nextButton = (
-                    <button
-                        id='searchableUserListNextBtn'
-                        className='btn btn-sm btn-tertiary filter-control filter-control__next'
-                        onClick={this.nextPage}
+                    <Button
+                        testId='searchableUserListNextBtn'
+                        emphasis='tertiary'
+                        size='small'
+                        pull='right'
                         disabled={this.state.nextDisabled}
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.next'
-                            defaultMessage='Next'
-                        />
-                    </button>
+                        onClick={this.nextPage}
+                        label={messages.next}
+                    />
                 );
             }
 
             if (this.props.page > 0) {
                 previousButton = (
-                    <button
-                        id='searchableUserListPrevBtn'
-                        className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                    <Button
+                        testId='searchableUserListPrevBtn'
+                        emphasis='tertiary'
+                        size='small'
                         onClick={this.previousPage}
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.prev'
-                            defaultMessage='Previous'
-                        />
-                    </button>
+                        label={messages.previous}
+                    />
                 );
             }
         }

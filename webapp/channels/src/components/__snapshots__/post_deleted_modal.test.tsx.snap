@@ -62,18 +62,18 @@ exports[`components/ChannelInfoModal should match snapshot 1`] = `
     bsClass="modal-footer"
     componentClass="div"
   >
-    <button
+    <Button
       autoFocus={true}
-      className="btn btn-primary"
-      data-testid="postDeletedModalOkButton"
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Okay",
+          "id": "post_delete.okay",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Okay"
-        id="post_delete.okay"
-      />
-    </button>
+      testId="postDeletedModalOkButton"
+    />
   </ModalFooter>
 </Modal>
 `;

@@ -253,7 +253,7 @@ describe('Integrations', () => {
         cy.get('#displayName').type(`Test${timestamp}`);
         cy.get('#trigger').type(commandTrigger);
         cy.get('#url').type(commandURL);
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
         cy.get('#doneButton').click();
         cy.findByText('Back to Mattermost').click();
 

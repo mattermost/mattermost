@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
+import type {ComponentProps} from 'react';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
@@ -12,6 +12,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import Button from 'components/button';
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
@@ -20,7 +21,6 @@ import SearchableChannelList from 'components/searchable_channel_list';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
@@ -81,6 +81,10 @@ type State = {
     searching: boolean;
     searchTerm: string;
 }
+
+const messages = defineMessages({
+    create: {id: 'more_channels.create', defaultMessage: 'Create New Channel'},
+});
 
 export default class BrowseChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
@@ -302,26 +306,24 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (className: string, icon?: JSX.Element) => {
-            const buttonClassName = classNames('btn', className);
+        const createNewChannelButton = (
+            emphasis: ComponentProps<typeof Button>['emphasis'],
+            size: ComponentProps<typeof Button>['size'],
+            icon?: string,
+        ) => {
             return (
                 <TeamPermissionGate
                     teamId={teamId}
                     permissions={[Permissions.CREATE_PUBLIC_CHANNEL]}
                 >
-                    <button
-                        type='button'
-                        id='createNewChannelButton'
-                        className={buttonClassName}
+                    <Button
+                        testId='createNewChannelButton'
+                        emphasis={emphasis}
+                        size={size}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
-                    >
-                        {icon}
-                        <FormattedMessage
-                            id='more_channels.create'
-                            defaultMessage='Create New Channel'
-                        />
-                    </button>
+                        leadingIcon={icon}
+                        label={messages.create}
+                    />
                 </TeamPermissionGate>
             );
         };
@@ -334,7 +336,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('btn-primary', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'medium', 'icon-plus')}
             </>
         );
 
@@ -376,7 +378,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 aria-labelledby='browseChannelsModalLabel'
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('btn-secondary btn-sm')}
+                headerButton={createNewChannelButton('secondary', 'small')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

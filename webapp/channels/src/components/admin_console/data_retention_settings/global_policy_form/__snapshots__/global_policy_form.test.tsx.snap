@@ -242,10 +242,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="admin.data_retention.custom_policy.save"
-        />
+        Object {
+          "defaultMessage": "Save",
+          "id": "admin.data_retention.custom_policy.save",
+        }
       }
       disabled={true}
       onClick={[Function]}

@@ -224,7 +224,7 @@ describe('Profile > Profile Settings > Email', () => {
             // # Do login
             cy.get('#input_loginId').should('be.visible').clear().type(email);
             cy.get('#input_password-input').should('be.visible').type(testUser.password);
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Check that the email verification message is not showed.
             cy.get('.announcement-bar').should('not.exist');

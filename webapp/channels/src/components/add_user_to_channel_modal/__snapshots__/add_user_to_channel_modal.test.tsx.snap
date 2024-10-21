@@ -103,28 +103,28 @@ exports[`components/AddUserToChannelModal should match snapshot 1`] = `
       bsClass="modal-footer"
       componentClass="div"
     >
-      <button
-        className="btn btn-tertiary"
+      <Button
+        emphasis="tertiary"
+        label={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "add_user_to_channel_modal.cancel",
+          }
+        }
         onClick={[Function]}
-        type="button"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Cancel"
-          id="add_user_to_channel_modal.cancel"
-        />
-      </button>
-      <button
-        className="btn btn-primary"
+      />
+      <Button
         disabled={true}
-        id="add-user-to-channel-modal__add-button"
+        emphasis="primary"
+        label={
+          Object {
+            "defaultMessage": "Add",
+            "id": "add_user_to_channel_modal.add",
+          }
+        }
         onClick={[Function]}
-        type="button"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Add"
-          id="add_user_to_channel_modal.add"
-        />
-      </button>
+        testId="add-user-to-channel-modal__add-button"
+      />
     </ModalFooter>
   </form>
 </Modal>

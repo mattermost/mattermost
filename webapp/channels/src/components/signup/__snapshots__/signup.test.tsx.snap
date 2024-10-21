@@ -193,12 +193,24 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              defaultMessage="Create account"
+              defaultMessage={
+                Object {
+                  "defaultMessage": "Create account",
+                  "id": "signup_user_completed.create",
+                }
+              }
               disabled={true}
-              extraClasses="signup-body-card-form-button-submit large"
+              emphasis="primary"
+              fullWidth={true}
               onClick={[Function]}
               saving={false}
-              savingMessage="Creating account…"
+              savingMessage={
+                Object {
+                  "defaultMessage": "Creating account…",
+                  "id": "signup_user_completed.saving",
+                }
+              }
+              size="large"
             />
           </div>
           <div
@@ -366,12 +378,24 @@ exports[`components/signup/Signup should match snapshot for all signup options e
               </span>
             </div>
             <SaveButton
-              defaultMessage="Create account"
+              defaultMessage={
+                Object {
+                  "defaultMessage": "Create account",
+                  "id": "signup_user_completed.create",
+                }
+              }
               disabled={true}
-              extraClasses="signup-body-card-form-button-submit large"
+              emphasis="primary"
+              fullWidth={true}
               onClick={[Function]}
               saving={false}
-              savingMessage="Creating account…"
+              savingMessage={
+                Object {
+                  "defaultMessage": "Creating account…",
+                  "id": "signup_user_completed.saving",
+                }
+              }
+              size="large"
             />
           </div>
           <div

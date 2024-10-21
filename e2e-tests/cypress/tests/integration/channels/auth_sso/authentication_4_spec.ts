@@ -69,7 +69,7 @@ describe('Authentication', () => {
         cy.findByPlaceholderText('Password').clear().type(testUser.password);
 
         // # Hit enter to login
-        cy.get('#saveSetting').should('not.be.disabled').click();
+        cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
         cy.wait(TIMEOUTS.THREE_SEC);
 
@@ -89,7 +89,7 @@ describe('Authentication', () => {
             cy.get('#input_password-input').clear().type(testUser.password);
 
             // # Hit enter to login
-            cy.get('#saveSetting').should('not.be.disabled').click();
+            cy.findByTestId('saveSetting').should('not.be.disabled').click();
 
             // * Should show the join team stuff
             cy.findByText('Teams you can join:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
@@ -208,17 +208,8 @@ describe('Authentication', () => {
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
 
-        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
-
-        cy.get('#input_password-input').type('Test123456!');
-
-        cy.get('#input_name').clear().type(`Test${getRandomId()}`);
-
-        cy.findByText('Create Account').click();
-
-        // * Make sure account was not created successfully and we are on the team joining page
-        cy.get('.AlertBanner__title').scrollIntoView().should('be.visible');
-        cy.findByText('User sign-up with email is disabled.').should('be.visible').and('exist');
+        // * Make sure that you cannot enter the email
+        cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
     });
 
     it('MM-T1754 - Restrict Domains - Account creation link on signin page', () => {

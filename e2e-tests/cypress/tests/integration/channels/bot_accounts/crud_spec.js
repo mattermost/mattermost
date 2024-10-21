@@ -62,7 +62,7 @@ describe('Bot accounts - CRUD Testing', () => {
             cy.get('#description').should('have.value', longDescription + '1234');
 
             // # Update the bot
-            cy.get('#saveBot').click();
+            cy.findByTestId('saveBot').click();
 
             // * Validate that bot saved correctly
             cy.url().should('include', `/${newTeam.name}/integrations/bots`);
@@ -95,7 +95,7 @@ describe('Bot accounts - CRUD Testing', () => {
             cy.get('#postAll').should('be.checked').should('be.disabled');
 
             // # Update the bot
-            cy.get('#saveBot').click();
+            cy.findByTestId('saveBot').click();
 
             // * Validate that bot saved correctly
             cy.url().should('include', `/${newTeam.name}/integrations/bots`);

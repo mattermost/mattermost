@@ -1003,10 +1003,6 @@
     .filter-controls {
         padding: 24px 32px;
         border-top: var(--border-default);
-
-        .filter-control__next {
-            float: right;
-        }
     }
 }
 
@@ -1055,21 +1051,6 @@
 
         .filter-row--full {
             flex-grow: 0;
-        }
-    }
-
-    .filter-control {
-        border: none;
-        background: none;
-        color: $primary-color;
-
-        &:hover,
-        &:focus,
-        &:active {
-            border: none;
-            background: none;
-            box-shadow: none;
-            color: $primary-color;
         }
     }
 }

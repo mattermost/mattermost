@@ -34,11 +34,11 @@ describe('Messaging', () => {
 
         cy.findByTestId('ServiceSettings.EnableEmojiPickertrue').check();
 
-        cy.get('#saveSetting').then((btn) => {
+        cy.findByTestId('saveSetting').then((btn) => {
             if (btn.is(':enabled')) {
                 btn.click();
 
-                cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+                cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
                     return el[0].innerText === 'Save';
                 }));
             }
@@ -146,11 +146,11 @@ describe('Messaging', () => {
 
         cy.findByTestId('ServiceSettings.EnableEmojiPickerfalse').check();
 
-        cy.get('#saveSetting').then((btn) => {
+        cy.findByTestId('saveSetting').then((btn) => {
             if (btn.is(':enabled')) {
                 btn.click();
 
-                cy.waitUntil(() => cy.get('#saveSetting').then((el) => {
+                cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
                     return el[0].innerText === 'Save';
                 }));
             }

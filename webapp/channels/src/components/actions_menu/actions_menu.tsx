@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -13,6 +13,7 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import Button from 'components/button';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
@@ -91,6 +92,10 @@ type State = {
     openUp: boolean;
     appBindings?: AppBinding[];
 }
+
+const messages = defineMessages({
+    visitMarketplace: {id: 'post_info.actions.visitMarketplace', defaultMessage: 'Visit the Marketplace'},
+});
 
 export class ActionMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
@@ -213,19 +218,13 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     </p>
                 </div>
                 <div className='visit-marketplace' >
-                    <button
-                        id='marketPlaceButton'
-                        className='btn btn-primary visit-marketplace-button'
+                    <Button
+                        testId='marketPlaceButton'
+                        emphasis='primary'
                         onClick={this.handleOpenMarketplace}
-                    >
-                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
-                        <span className='visit-marketplace-button-text'>
-                            <FormattedMessage
-                                id='post_info.actions.visitMarketplace'
-                                defaultMessage='Visit the Marketplace'
-                            />
-                        </span>
-                    </button>
+                        leadingIcon='icon-view-grid-plus-outline'
+                        label={messages.visitMarketplace}
+                    />
                 </div>
             </SystemPermissionGate>
         );

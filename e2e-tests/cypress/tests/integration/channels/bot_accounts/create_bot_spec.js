@@ -48,7 +48,7 @@ function createBot() {
         // # Fill and submit form
         cy.get('#username').type(`bot-${getRandomId()}`);
         cy.get('#displayName').type('Test Bot');
-        cy.get('#saveBot').click();
+        cy.findByTestId('saveBot').click();
 
         // * Verify confirmation page
         cy.url().

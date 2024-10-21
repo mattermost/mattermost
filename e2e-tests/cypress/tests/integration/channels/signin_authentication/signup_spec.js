@@ -77,8 +77,8 @@ describe('Signup Email page', () => {
         cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
         cy.findByText('Must be 5-72 characters long.').should('be.visible');
 
-        cy.get('#saveSetting').scrollIntoView().should('be.visible');
-        cy.get('#saveSetting').should('contain', 'Create Account');
+        cy.findByTestId('saveSetting').scrollIntoView().should('be.visible');
+        cy.findByTestId('saveSetting').should('contain', 'Create Account');
 
         cy.get('.signup-body-card-agreement').should('contain', `By proceeding to create your account and use ${config.TeamSettings.SiteName}, you agree to our Terms of Use and Privacy Policy. If you do not agree, you cannot use ${config.TeamSettings.SiteName}.`);
         cy.get(`.signup-body-card-agreement > span > [href="${config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK}"]`).should('be.visible');

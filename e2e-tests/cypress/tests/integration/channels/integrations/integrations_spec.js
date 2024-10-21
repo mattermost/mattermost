@@ -55,7 +55,7 @@ describe('Integrations page', () => {
         cy.get('#channelSelect').select('Town Square');
 
         // # Save
-        cy.get('#saveWebhook').click();
+        cy.findByTestId('saveWebhook').click();
 
         // * Validate that save succeeded
         cy.get('#formTitle').should('have.text', 'Setup Successful');
@@ -83,7 +83,7 @@ describe('Integrations page', () => {
         cy.get('#callbackUrls').type('https://dummy');
 
         // # Save
-        cy.get('#saveWebhook').click();
+        cy.findByTestId('saveWebhook').click();
 
         // * Validate that save succeeded
         cy.get('#formTitle').should('have.text', 'Setup Successful');
@@ -111,7 +111,7 @@ describe('Integrations page', () => {
         cy.get('#url').type('https://dummy');
 
         // # Save
-        cy.get('#saveCommand').click();
+        cy.findByTestId('saveCommand').click();
 
         // * Validate that save succeeded
         cy.get('#formTitle').should('have.text', 'Setup Successful');
@@ -124,7 +124,7 @@ describe('Integrations page', () => {
         cy.get('#searchInput').type(`${searchString}{enter}`);
 
         // * Validate that the correct empty message is shown
-        cy.get('#emptySearchResultsMessage').should('be.visible').and('have.text', `No commands match ${searchString}`);
+        cy.get('#emptySearchResultsMessage').should('be.visible').and('have.text', `No slash commands match ${searchString}`);
     });
 
     it('should display correct message when OAuth app not found', () => {
@@ -141,7 +141,7 @@ describe('Integrations page', () => {
         cy.get('#callbackUrls').type('https://dummy');
 
         // # Save
-        cy.get('#saveOauthApp').click();
+        cy.findByTestId('saveOauthApp').click();
 
         // * Validate that save succeeded
         cy.get('#formTitle').should('have.text', 'Setup Successful');
@@ -168,7 +168,7 @@ describe('Integrations page', () => {
         cy.get('#username').type(`test-bot${getRandomId()}`);
 
         // # Save
-        cy.get('#saveBot').click();
+        cy.findByTestId('saveBot').click();
 
         // # Click done button
         cy.get('#doneButton').click();
