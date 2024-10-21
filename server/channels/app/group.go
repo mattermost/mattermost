@@ -722,6 +722,15 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 	return users, totalCount, nil
 }
 
+func (a *App) GetGroupsByNames(names []string) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store().Group().GetByNames(names)
+	if err != nil {
+		return nil, model.NewAppError("GetGroupsByNames", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return groups, nil
+}
+
 func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
 	groups, err := a.Srv().Store().Group().GetByIDs(groupIDs)
 	if err != nil {
