@@ -193,7 +193,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 
 	deletedUser := model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: model.NewUsername(),
 	}
 	_, err1 := ss.User().Save(rctx, &deletedUser)
 	require.NoError(t, err1, "couldn't save user")

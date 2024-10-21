@@ -454,7 +454,7 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = NewUsername()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -976,7 +976,8 @@ func HashPassword(password string) (string, error) {
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -990,7 +991,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsernameChars.MatchString(s) {
+	if !validUsername.MatchString(s) {
 		return false
 	}
 
@@ -1032,7 +1033,7 @@ func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s = strings.Trim(s, "-")
 
 	if !IsValidUsername(s) {
-		s = "a" + NewId()
+		s = NewUsername()
 		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}

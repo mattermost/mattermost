@@ -363,7 +363,7 @@ func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
 
 func createUser(rctx request.CTX, ss store.Store) *model.User {
 	m := model.User{}
-	m.Username = model.NewId()
+	m.Username = model.NewUsername()
 	m.Email = m.Username + "@example.com"
 	user, _ := ss.User().Save(rctx, &m)
 	return user
