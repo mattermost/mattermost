@@ -110,6 +110,7 @@
     "@stylistic/stylelint-plugin": "2.1.0",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
+    "@testing-library/react-hooks": "8.0.1",
     "@testing-library/user-event": "13.5.0",
     "@types/bootstrap": "4.5.0",
     "@types/country-list": "2.1.0",
