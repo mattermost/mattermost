@@ -138,7 +138,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                         a: (chunks: string) => (
                             <ExternalLink
                                 href={releaseNotesUrl as string}
-                                location='release-notes-modal'
+                                location='plugin-marketplace'
                             >
                                 {chunks}
                             </ExternalLink>
@@ -180,7 +180,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                             a: (chunks: string) => (
                                 <ExternalLink
                                     href={releaseNotesUrl as string}
-                                    location='release-notes-modal'
+                                    location='plugin-marketplace'
                                 >
                                     {chunks}
                                 </ExternalLink>
