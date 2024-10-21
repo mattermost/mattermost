@@ -698,7 +698,7 @@ func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
 					groupMembers[i] = m.UserId
 				}
 				if channel.Name == model.GetGroupNameFromUserIds(groupMembers) {
-					// this is the case of a group channel reamined intact has no change required
+					// this is the case of a group channel remained intact has no change required
 					continue
 				}
 				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", &model.GroupMessageConversionRequestBody{
