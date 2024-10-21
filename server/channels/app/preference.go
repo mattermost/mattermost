@@ -77,7 +77,7 @@ func (a *App) UpdatePreferences(c request.CTX, userID string, preferences model.
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.PreferencesHaveChanged(pluginContext, preferences)
 			return true
 		}, plugin.PreferencesHaveChangedID)
