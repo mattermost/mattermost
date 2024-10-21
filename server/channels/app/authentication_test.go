@@ -126,24 +126,11 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 				var completeWG sync.WaitGroup
 				completeWG.Add(concurrentAttempts)
 
-				// Wait to fetch the login attempts
-				var fetchedWG sync.WaitGroup
-				fetchedWG.Add(concurrentAttempts)
-
 				for i := 0; i < concurrentAttempts; i++ {
 					go func(i int) {
 						defer completeWG.Done()
-
-						// Simulate concurrent login attempts for the same user
-						user, _ := th.App.Srv().Store().User().Get(th.Context.Context(), th.BasicUser.Id)
-						fetchedWG.Done()
-
-						// Simulate that all userObjects/failedAttemptsCount have been fetched
-						// before any of the goroutine ever reaches the password/mfa checks
-						fetchedWG.Wait()
-
-						// Simulate concurrent failed login checks
-						appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, user.Id, tc.password, tc.mfaToken)
+						// Simulate concurrent failed login checks by same user
+						appErrs[i] = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, tc.password, tc.mfaToken)
 					}(i)
 				}
 
