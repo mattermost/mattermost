@@ -78,7 +78,10 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
+	_, err = w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
+	if err != nil {
+		c.Logger.Error("Error writing response", mlog.Err(err))
+	}
 }
 
 func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -201,7 +204,10 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_request.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	code := r.FormValue("code")
 	refreshToken := r.FormValue("refresh_token")
