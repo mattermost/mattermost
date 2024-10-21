@@ -370,11 +370,12 @@ describe('Keyboard Shortcuts', () => {
 
     it('MM-T1248 - CTRL/CMD+SHIFT+L - Set focus to center channel message box', () => {
         // # Open search box to change focus
-        cy.get('#searchBox').click().should('be.focused').then(() => {
-            // # Type CTRL/CMD+SHIFT+L
-            cy.get('body').cmdOrCtrlShortcut('{shift}L');
-            cy.uiGetPostTextBox().should('be.focused');
-        });
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().find('input').should('be.focused');
+
+        // # Type CTRL/CMD+SHIFT+L
+        cy.get('body').cmdOrCtrlShortcut('{shift}L');
+        cy.uiGetPostTextBox().should('be.focused');
 
         // # Post a message and open RHS
         const message = `hello${Date.now()}`;
