@@ -34,11 +34,36 @@
             }
         }
 
-        .scheduledPostBadge {
-            padding-block: 2px;
+        #unreadMentions {
+            color: rgba(var(--sidebar-text-rgb), 0.64);
+            margin-inline: 0;
+
+            &:not(.urgent) {
+                padding-inline: 0;
+            }
+
+            &.scheduledPostBadge {
+                margin-left: 8px;
+                padding-block: 2px;
+
+                &.urgent {
+                    color: var(--sidebar-text);
+                }
+
+                .unreadMentions {
+                    position: relative;
+                    top: -0.5px;
+                }
+            }
+        }
+
+
+        &.active #unreadMentions {
+            color: var(--sidebar-text);
         }
     }
 }
+
 
 // legacy
 .sidebar--left .SidebarDrafts {
