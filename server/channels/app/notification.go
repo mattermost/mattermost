@@ -702,8 +702,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
-	if err != nil {
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -711,28 +711,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonFetchError),
 			mlog.String("sender_id", sender.Id),
-			mlog.Err(err),
+			mlog.Err(appErr),
 		)
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(post)
-		postJSON, jsonErr := post.ToJSON()
-		if jsonErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("JSON parse error",
-				mlog.String("type", model.NotificationTypeWebsocket),
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonParseError),
-				mlog.String("sender_id", sender.Id),
-				mlog.Err(err),
-			)
-			return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
-		}
-		message.Add("post", postJSON)
-
-		a.Publish(message)
+		return nil, appErr
 	}
 
 	// If this is a reply in a thread, notify participants
