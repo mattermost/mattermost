@@ -4,6 +4,7 @@
 package i18n
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -12,10 +13,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/go-i18n/i18n/bundle"
-
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 const defaultLocale = "en"
@@ -29,10 +30,7 @@ type TranslationFuncByLocal func(locale string) TranslateFunc
 // T is the translate function using the default server language as fallback language
 var T TranslateFunc
 
-// TDefault is the translate function using english as fallback language
-var TDefault TranslateFunc
-
-var locales = make(map[string]string)
+var bundle *i18n.Bundle
 
 // supportedLocales is a hard-coded list of locales considered ready for production use. It must
 // be kept in sync with ../../../../webapp/channels/src/i18n/i18n.jsx.
@@ -63,6 +61,12 @@ var supportedLocales = []string{
 var defaultServerLocale string
 var defaultClientLocale string
 
+func newBundle() *i18n.Bundle {
+	b := i18n.NewBundle(language.MustParse(defaultLocale))
+	b.RegisterUnmarshalFunc("json", json.Unmarshal)
+	return b
+}
+
 // TranslationsPreInit loads translations from filesystem if they are not
 // loaded already and assigns english while loading server config
 func TranslationsPreInit(translationsDir string) error {
@@ -70,12 +74,13 @@ func TranslationsPreInit(translationsDir string) error {
 		return nil
 	}
 
+	bundle = newBundle()
+
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = tfuncWithFallback(defaultLocale)
-	TDefault = tfuncWithFallback(defaultLocale)
 
-	return initTranslationsWithDir(translationsDir)
+	return initTranslationsWithDir(bundle, translationsDir)
 }
 
 // InitTranslations set the defaults configured in the server and initialize
@@ -89,7 +94,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	return err
 }
 
-func initTranslationsWithDir(dir string) error {
+func initTranslationsWithDir(bundle *i18n.Bundle, dir string) error {
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
@@ -100,9 +105,7 @@ func initTranslationsWithDir(dir string) error {
 				continue
 			}
 
-			locales[locale] = filepath.Join(dir, filename)
-
-			if err := i18n.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
+			if _, err := bundle.LoadMessageFile(filepath.Join(dir, filename)); err != nil {
 				return err
 			}
 		}
@@ -114,44 +117,20 @@ func initTranslationsWithDir(dir string) error {
 // GetTranslationFuncForDir loads translations from the filesystem into a new instance of the bundle.
 // It returns a function to access loaded translations.
 func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
-	var availableLocals = make(map[string]string)
-	bundle := bundle.New()
-	files, _ := os.ReadDir(dir)
-	for _, f := range files {
-		if filepath.Ext(f.Name()) != ".json" {
-			continue
-		}
+	b := newBundle()
 
-		locale := strings.Split(f.Name(), ".")[0]
-		if !isSupportedLocale(locale) {
-			continue
-		}
-
-		filename := f.Name()
-		availableLocals[locale] = filepath.Join(dir, filename)
-		if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
-			return nil, err
-		}
+	if err := initTranslationsWithDir(b, dir); err != nil {
+		return nil, err
 	}
 
 	return func(locale string) TranslateFunc {
-		if _, ok := availableLocals[locale]; !ok {
-			locale = defaultLocale
-		}
-
-		t, _ := bundle.Tfunc(locale)
-		return func(translationID string, args ...any) string {
-			if translated := t(translationID, args...); translated != translationID {
-				return translated
-			}
-
-			t, _ := bundle.Tfunc(defaultLocale)
-			return t(translationID, args...)
-		}
+		localizer := i18n.NewLocalizer(b, locale)
+		return tfuncFromLocalizer(localizer)
 	}, nil
 }
 
 func GetTranslationsBySystemLocale() (TranslateFunc, error) {
+	locales := GetSupportedLocales()
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
@@ -163,8 +142,8 @@ func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 		locale = defaultLocale
 	}
 
-	if locales[locale] == "" {
-		return nil, fmt.Errorf("failed to load system translations for '%v'", defaultLocale)
+	if _, ok := locales[locale]; !ok {
+		return nil, fmt.Errorf("failed to load system translations for '%v'", locale)
 	}
 
 	translations := tfuncWithFallback(locale)
@@ -172,36 +151,29 @@ func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 		return nil, fmt.Errorf("failed to load system translations")
 	}
 
-	mlog.Info("Loaded system translations", mlog.String("for locale", locale), mlog.String("from locale", locales[locale]))
+	mlog.Info("Loaded system translations", mlog.String("for locale", locale))
 	return translations, nil
 }
 
 // GetUserTranslations get the translation function for an specific locale
 func GetUserTranslations(locale string) TranslateFunc {
-	if _, ok := locales[locale]; !ok {
-		locale = defaultLocale
-	}
-
-	translations := tfuncWithFallback(locale)
-	return translations
+	return tfuncWithFallback(locale)
 }
 
 // GetTranslationsAndLocaleFromRequest return the translation function and the
 // locale based on a request headers
 func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string) {
+	locales := GetSupportedLocales()
 	// This is for checking against locales like pt_BR or zn_CN
 	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
 	// This is for checking against locales like en, es
 	headerLocale := strings.Split(strings.Split(r.Header.Get("Accept-Language"), ",")[0], "-")[0]
 	defaultLocale := defaultClientLocale
-	if locales[headerLocaleFull] != "" {
+	if _, ok := locales[headerLocaleFull]; ok {
 		translations := tfuncWithFallback(headerLocaleFull)
 		return translations, headerLocaleFull
-	} else if locales[headerLocale] != "" {
+	} else if _, ok := locales[headerLocale]; ok {
 		translations := tfuncWithFallback(headerLocale)
-		return translations, headerLocale
-	} else if locales[defaultLocale] != "" {
-		translations := tfuncWithFallback(defaultLocale)
 		return translations, headerLocale
 	}
 
@@ -211,20 +183,48 @@ func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string
 
 // GetSupportedLocales return a map of locale code and the file path with the
 // translations
-func GetSupportedLocales() map[string]string {
+func GetSupportedLocales() map[string]bool {
+	locales := make(map[string]bool)
+	if bundle != nil {
+		for _, locale := range bundle.LanguageTags() {
+			locales[locale.String()] = true
+		}
+	}
 	return locales
 }
 
-func tfuncWithFallback(pref string) TranslateFunc {
-	t, _ := i18n.Tfunc(pref)
-	return func(translationID string, args ...any) string {
-		if translated := t(translationID, args...); translated != translationID {
+func tfuncFromLocalizer(localizer *i18n.Localizer) TranslateFunc {
+	return func(translationID string, args ...interface{}) string {
+		var templateData interface{}
+		var pluralCount interface{}
+
+		if argc := len(args); argc > 0 {
+			switch args[0].(type) {
+			case int, int8, int16, int32, int64, string:
+				pluralCount = args[0]
+				if argc > 1 {
+					templateData = args[1]
+				}
+			default:
+				templateData = args[0]
+			}
+		}
+
+		if translated, err := localizer.Localize(&i18n.LocalizeConfig{
+			MessageID:    translationID,
+			TemplateData: templateData,
+			PluralCount:  pluralCount,
+		}); err == nil {
 			return translated
 		}
 
-		t, _ := i18n.Tfunc(defaultLocale)
-		return t(translationID, args...)
+		return translationID
 	}
+}
+
+func tfuncWithFallback(pref string) TranslateFunc {
+	localizer := i18n.NewLocalizer(bundle, pref)
+	return tfuncFromLocalizer(localizer)
 }
 
 // TranslateAsHTML translates the translationID provided and return a
