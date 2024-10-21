@@ -8,6 +8,8 @@ import (
 	"io"
 	"maps"
 	"strconv"
+
+	easyjson "github.com/mailru/easyjson"
 )
 
 type WebsocketEventType string
@@ -206,7 +208,7 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	evCopy := ev.Copy()
 	event, _ := json.Marshal(evCopy.event)
 	data, _ := json.Marshal(evCopy.data)
-	broadcast, _ := json.Marshal(evCopy.broadcast)
+	broadcast, _ := easyjson.Marshal(evCopy.broadcast)
 	evCopy.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
@@ -254,7 +256,8 @@ func NewWebSocketEvent(event WebsocketEventType, teamId, channelId, userId strin
 			ChannelId:        channelId,
 			UserId:           userId,
 			OmitUsers:        omitUsers,
-			OmitConnectionId: omitConnectionId},
+			OmitConnectionId: omitConnectionId,
+		},
 	}
 }
 
@@ -328,7 +331,7 @@ func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 	if ev.precomputedJSON != nil {
 		return ev.precomputedJSONBuf(), nil
 	}
-	return json.Marshal(webSocketEventJSON{
+	return easyjson.Marshal(webSocketEventJSON{
 		ev.event,
 		ev.data,
 		ev.broadcast,
@@ -423,7 +426,7 @@ func (m *WebSocketResponse) EventType() WebsocketEventType {
 }
 
 func (m *WebSocketResponse) ToJSON() ([]byte, error) {
-	return json.Marshal(m)
+	return easyjson.Marshal(m)
 }
 
 func WebSocketResponseFromJSON(data io.Reader) (*WebSocketResponse, error) {
