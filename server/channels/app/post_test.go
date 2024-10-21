@@ -1050,6 +1050,85 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
+	t.Run("Should not allow to create posts on shared DMs", func(t *testing.T) {
+		th := setupSharedChannels(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		dm, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, dm)
+
+		// we can't create direct channels with remote users, so we
+		// have to force the channel to be shared through the store to
+		// simulate preexisting shared DMs
+		sc := &model.SharedChannel{
+			ChannelId: dm.Id,
+			Type:      dm.Type,
+			Home:      true,
+			ShareName: "shareddm",
+			CreatorId: user1.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, scErr := th.Server.Store().SharedChannel().Save(sc)
+		require.NoError(t, scErr)
+
+		// and we update the channel to mark it as shared
+		dm.Shared = model.NewPointer(true)
+		_, cErr := th.Server.Store().Channel().Update(th.Context, dm)
+		require.NoError(t, cErr)
+
+		newPost := &model.Post{
+			ChannelId: dm.Id,
+			Message:   "hello world",
+			UserId:    user1.Id,
+		}
+		createdPost, err := th.App.CreatePost(th.Context, newPost, dm, false, false)
+		require.NotNil(t, err)
+		require.Nil(t, createdPost)
+	})
+
+	t.Run("Should not allow to create posts on shared GMs", func(t *testing.T) {
+		th := setupSharedChannels(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+		gm, gErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		require.Nil(t, gErr)
+		require.NotNil(t, gm)
+
+		// we can't create group channels with remote users, so we
+		// have to force the channel to be shared through the store to
+		// simulate preexisting shared GMs
+		sc := &model.SharedChannel{
+			ChannelId: gm.Id,
+			Type:      gm.Type,
+			Home:      true,
+			ShareName: "sharedgm",
+			CreatorId: user1.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, scErr := th.Server.Store().SharedChannel().Save(sc)
+		require.NoError(t, scErr)
+
+		// and we update the channel to mark it as shared
+		gm.Shared = model.NewPointer(true)
+		_, cErr := th.Server.Store().Channel().Update(th.Context, gm)
+		require.NoError(t, cErr)
+
+		newPost := &model.Post{
+			ChannelId: gm.Id,
+			Message:   "hello world",
+			UserId:    user1.Id,
+		}
+		createdPost, err := th.App.CreatePost(th.Context, newPost, gm, false, false)
+		require.NotNil(t, err)
+		require.Nil(t, createdPost)
+	})
+
 	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1514,12 +1593,12 @@ func TestUpdatePost(t *testing.T) {
 
 		testPost, err = th.App.CreatePost(th.Context, testPost, channelForTestPost, false, false)
 		require.Nil(t, err)
-		assert.Equal(t, testPost.GetProps(), model.StringInterface{})
+		assert.Equal(t, model.StringInterface{}, testPost.GetProps())
 
 		testPost.Message = permalink
 		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
 		require.Nil(t, err)
-		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
+		assert.Equal(t, model.StringInterface{model.PostPropsPreviewedPost: referencedPost.Id}, testPost.GetProps())
 	})
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {

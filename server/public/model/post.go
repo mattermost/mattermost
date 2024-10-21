@@ -235,17 +235,20 @@ type PostForExport struct {
 	ChannelName string
 	Username    string
 	ReplyCount  int
+	FlaggedBy   StringArray
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      StringArray
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy StringArray
 }
 
 type PostForIndexing struct {
@@ -875,8 +878,11 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
-		if embed.Type == PostEmbedPermalink {
+		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
 				return previewPost
 			}

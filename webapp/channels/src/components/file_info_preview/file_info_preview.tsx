@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -18,19 +19,21 @@ const FileInfoPreview = ({
     fileUrl,
     canDownloadFiles,
 }: Props) => {
+    const intl = useIntl();
+
     // non-image files include a section providing details about the file
     const infoParts = [];
 
     if (fileInfo.extension !== '') {
         infoParts.push(
-            Utils.localizeMessage({id: 'file_info_preview.type', defaultMessage: 'File type '}) +
+            intl.formatMessage({id: 'file_info_preview.type', defaultMessage: 'File type '}) +
         fileInfo.extension.toUpperCase(),
         );
     }
 
     if (fileInfo.size) {
         infoParts.push(
-            Utils.localizeMessage({id: 'file_info_preview.size', defaultMessage: 'Size '}) +
+            intl.formatMessage({id: 'file_info_preview.size', defaultMessage: 'Size '}) +
         Utils.fileSizeToString(fileInfo.size),
         );
     }
