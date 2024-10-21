@@ -19,6 +19,7 @@
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
     "@tanstack/react-table": "8.10.7",
+    "@testing-library/react-hooks": "8.0.1",
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.1",
