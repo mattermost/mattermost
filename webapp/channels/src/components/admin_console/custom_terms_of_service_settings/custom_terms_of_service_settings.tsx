@@ -10,8 +10,8 @@ import type {TermsOfService} from '@mattermost/types/terms_of_service';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import AdminSettings from 'components/admin_console/admin_settings';
-import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
+import AdminSettings from 'components/admin_console/admin_settings/admin_settings';
+import type {BaseProps, BaseState} from 'components/admin_console/admin_settings/admin_settings';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';

@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import ClusterSettings from 'components/admin_console/cluster_settings';
+import ClusterSettings from 'components/admin_console/admin_settings/cluster_settings';
 
 describe('components/ClusterSettings', () => {
     const baseProps = {

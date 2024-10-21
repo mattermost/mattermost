@@ -14,8 +14,8 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings/admin_settings';
+import type {BaseProps, BaseState} from './admin_settings/admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';

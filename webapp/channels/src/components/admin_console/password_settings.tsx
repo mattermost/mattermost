@@ -11,8 +11,8 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import Constants from 'utils/constants';
 import {passwordErrors} from 'utils/password';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings/admin_settings';
+import type {BaseProps, BaseState} from './admin_settings/admin_settings';
 import BlockableLink from './blockable_link';
 import BooleanSetting from './boolean_setting';
 import CheckboxSetting from './checkbox_setting';

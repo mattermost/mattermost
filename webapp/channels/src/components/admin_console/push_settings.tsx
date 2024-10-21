@@ -11,8 +11,8 @@ import ExternalLink from 'components/external_link';
 
 import {Constants, DocLinks} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
+import AdminSettings from './admin_settings/admin_settings';
+import type {BaseProps, BaseState} from './admin_settings/admin_settings';
 import DropdownSetting from './dropdown_setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
