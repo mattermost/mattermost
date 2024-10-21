@@ -1185,6 +1185,7 @@ func TestRunExportJob(t *testing.T) {
 		post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 			Id:        post.Id,
 			CreateAt:  post.CreateAt,
+			EditAt:    model.GetMillis(),
 			ChannelId: channel2.Id,
 			UserId:    users[0].Id,
 			Message:   "edited message 4",
@@ -1207,6 +1208,7 @@ func TestRunExportJob(t *testing.T) {
 		post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 			Id:        post.Id,
 			CreateAt:  post.CreateAt,
+			EditAt:    model.GetMillis(),
 			ChannelId: channel2.Id,
 			UserId:    users[0].Id,
 			Message:   "edited message 6",
@@ -1285,7 +1287,7 @@ func TestRunExportJob(t *testing.T) {
 				CreateAt:    posts[7].CreateAt,
 				Message:     posts[7].Message, // edited message
 				UpdateAt:    posts[7].UpdateAt,
-				UpdatedType: shared.UpdatedNoMsgChange, // because it's on the boundary
+				UpdatedType: shared.EditedNewMsg,
 			}
 
 			if b == 0 {
@@ -1417,7 +1419,6 @@ func TestRunExportJob(t *testing.T) {
 			}
 
 			if b == 1 {
-				fmt.Fprintf(os.Stderr, "<><> batch2: \n%s\n\n", xmlContents)
 				exportedChannels := getChannelExports(t, bytes.NewReader(xmlContents))
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
@@ -1502,6 +1503,7 @@ func TestRunExportJob(t *testing.T) {
 		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 			Id:        originalPost.Id,
 			CreateAt:  originalPost.CreateAt,
+			EditAt:    model.GetMillis(),
 			ChannelId: channel2.Id,
 			UserId:    users[0].Id,
 			Message:   "edited message 0",

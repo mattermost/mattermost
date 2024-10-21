@@ -114,6 +114,7 @@ func TestActianceExport(t *testing.T) {
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(1)),
 					PostUpdateAt:       model.NewPointer(int64(2)),
+					PostEditAt:         model.NewPointer(int64(2)),
 					PostMessage:        model.NewPointer("edited message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -1642,201 +1643,6 @@ func Test_channelHasActivity(t *testing.T) {
 	}
 }
 
-func Test_wasPostEdited(t *testing.T) {
-	tests := []struct {
-		name  string
-		posts []*model.MessageExport
-		i     int
-		want  bool
-	}{
-		{
-			"no edited posts",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			2,
-			false,
-		},
-		{
-			"no, my edited original isn't there, end",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-			},
-			4,
-			false,
-		},
-		{
-			"no, my edited original isn't there, beg",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-			},
-			0,
-			false,
-		},
-		{
-			"yes, I am a newly edited original post, middle",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			2,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, middle other dir",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			1,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, almost beg",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			1,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, beg",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			0,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, almost end",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-			},
-			3,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, end",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-			},
-			4,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, middle, with other updates in between",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			3,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, beg, with other updates in between",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](6)},
-			},
-			0,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, end, with other updates in between",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-			},
-			4,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, end",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](4)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-			},
-			4,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, very edges increasing",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-			},
-			0,
-			true,
-		},
-		{
-			"yes, I am a newly edited original post, very edges decreasing",
-			[]*model.MessageExport{
-				{PostUpdateAt: model.NewPointer[int64](5), PostOriginalId: model.NewPointer("origid")},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5)},
-				{PostUpdateAt: model.NewPointer[int64](5), PostId: model.NewPointer("origid")},
-			},
-			4,
-			true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, isEditedNewPost(tt.posts, tt.i), "isEditedNewPost(%v, %v)", tt.posts, tt.i)
-		})
-	}
-}
-
 func Test_getPostExport(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -1876,7 +1682,7 @@ func Test_getPostExport(t *testing.T) {
 		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 			Id:        originalPost.Id,
 			CreateAt:  originalPost.CreateAt,
-			UpdateAt:  originalPost.UpdateAt,
+			EditAt:    model.GetMillis(),
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "edited message 0",

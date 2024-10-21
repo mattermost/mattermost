@@ -256,7 +256,7 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 		return deletedPostToExportEntry(post, "delete "+*post.PostMessage), results
 	} else if *post.PostUpdateAt > *post.PostCreateAt {
 		// Post has been updated. But what kind?
-		if isEditedNewPost(posts, i) {
+		if post.PostEditAt != nil && *post.PostEditAt > 0 {
 			// This is an edited post.
 			results.EditedNewMsgPosts++
 			return editedNewMsgToExportEntry(post), results
@@ -289,39 +289,6 @@ func isDeletedMsg(post *model.MessageExport) bool {
 		}
 	}
 	return false
-}
-
-func isEditedNewPost(posts []*model.MessageExport, i int) bool {
-	// This has an edge case: if this edited post is exactly on the start (or the end) of a batch and its
-	// EditedOriginalMsg is in the previous (or next) batch, we will incorrectly return false.
-	// The downside is:
-	//  - we record that a post is UpdatedNoMsgChange when it's actually an EditedNewMsg
-	// However, it's recoverable on the consumer's side: the EditedOriginalMsg will have the EditedNewMsgId and it
-	// will match this message's id.
-	// This is acceptable, because previously we were not doing any categorization at all; this is a net improvement.
-	// This is fixable by extending/contracting the current batch so that we don't cut two edited-linked posts
-	// in-between batches. That's more error-prone than the edge case warrants, imo.
-
-	// The following relies on the fact that posts are returned from the db sorted by UpdateAt.
-	// check forward:
-	for j := i + 1; j < len(posts) && *posts[i].PostUpdateAt == *posts[j].PostUpdateAt; j++ {
-		if onePostIsTheOthersOriginal(posts[i], posts[j]) {
-			return true
-		}
-	}
-
-	// check backward:
-	for j := i - 1; j >= 0 && *posts[i].PostUpdateAt == *posts[j].PostUpdateAt; j-- {
-		if onePostIsTheOthersOriginal(posts[i], posts[j]) {
-			return true
-		}
-	}
-	return false
-}
-
-func onePostIsTheOthersOriginal(a, b *model.MessageExport) bool {
-	return (a.PostOriginalId != nil && *a.PostOriginalId == *b.PostId) ||
-		(b.PostOriginalId != nil && *b.PostOriginalId == *a.PostId)
 }
 
 func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
