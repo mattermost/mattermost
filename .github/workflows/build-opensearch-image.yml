@@ -29,5 +29,5 @@ jobs:
           push: true
           pull: true
           tags: mattermostdevelopment/mattermost-opensearch:2.7.0
-          build-args:
-          - OPENSEARCH_VERSION=2.7.0
+          build-args: |
+            OPENSEARCH_VERSION=2.7.0
