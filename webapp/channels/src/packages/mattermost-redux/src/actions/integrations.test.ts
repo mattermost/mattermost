@@ -731,7 +731,7 @@ describe('Actions.Integrations', () => {
         expect(oauthApps[created.id].client_secret !== created.client_secret).toBeTruthy();
     });
 
-    it('submitInteractiveDialog', async () => {
+    it('submitInteractiveDialogError', async () => {
         nock(Client4.getBaseRoute()).
             post('/actions/dialogs/submit').
             reply(200, {errors: {name: 'some error'}});
@@ -751,5 +751,44 @@ describe('Actions.Integrations', () => {
 
         expect(data.errors).toBeTruthy();
         expect(data.errors.name).toEqual('some error');
+    });
+
+    it('submitInteractiveDialogArgs', async () => {
+        const channelID = TestHelper.generateId();
+        const initialState = {
+            entities: {
+                integrations: {
+                    dialogArguments: {
+                        channel_id: channelID,
+                    },
+                },
+                channels: {
+                    currentChannelId: 'abc',
+                },
+            },
+        };
+        store = configureStore(initialState);
+        let receivedChannelId = '';
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit', (body) => {
+                console.log(body);
+                receivedChannelId = body.channel_id;
+                return true;
+            }).
+            reply(200, {});
+
+        const submit: DialogSubmission = {
+            url: 'https://mattermost.com',
+            callback_id: '123',
+            state: '123',
+            channel_id: TestHelper.generateId(),
+            team_id: TestHelper.generateId(),
+            submission: {name: 'value'},
+            cancelled: false,
+            user_id: '',
+        };
+
+        await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(receivedChannelId).toEqual(channelID);
     });
 });
