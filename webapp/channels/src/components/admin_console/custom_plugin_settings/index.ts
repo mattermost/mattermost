@@ -66,6 +66,8 @@ function makeGetPluginSchema() {
                     }
 
                     const isHidden = () => {
+                        console.log("isCloudLicense ", isCloudLicense, " <--");
+                        console.log("setting.hosting ", setting.hosting), " <--";
                         return (isCloudLicense && setting.hosting === 'on-prem') ||
                             (!isCloudLicense && setting.hosting === 'cloud');
                     };
