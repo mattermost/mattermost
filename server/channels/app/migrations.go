@@ -7,8 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -667,6 +669,68 @@ func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
 	return nil
 }
 
+func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
+	if _, err := s.Store().System().GetByName(model.MigrationKeyConvertIncompleteGMs); err == nil {
+		return nil
+	}
+
+	afterId := strings.Repeat("0", 26)
+	for {
+		channels, err := s.Store().Channel().GetAllDirectChannelsForExportAfter(1000, afterId, true)
+		if err != nil {
+			return model.NewAppError("doConvertIncompleteGMsMigration", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if len(channels) == 0 {
+			break
+		}
+		app := New(ServerConnector(s.ch))
+
+		for _, channel := range channels {
+			afterId = channel.Id
+			var newCh *model.Channel
+			var appErr *model.AppError
+
+			switch channel.Type {
+			case model.ChannelTypeGroup:
+				groupMembers := make([]string, len(channel.Members))
+				for i, m := range channel.Members {
+					groupMembers[i] = m.UserId
+				}
+				if channel.Name == model.GetGroupNameFromUserIds(groupMembers) {
+					// this is the case of a group channel remained intact has no change required
+					continue
+				}
+				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", &model.GroupMessageConversionRequestBody{
+					ChannelID:   channel.Id,
+					TeamID:      channel.TeamId,
+					Name:        channel.Name, // this should be a unique name hence should be okay to keep it
+					DisplayName: channel.DisplayName,
+				})
+			case model.ChannelTypeDirect:
+				if _, u2 := channel.GetBothUsersForDM(); u2 == "" || len(channel.Members) > 1 {
+					// we have two users in the channel, and member count is greater than 1, this is a valid direct channel
+					continue
+				}
+				newCh, appErr = app.convertDirectMessageToChannel(c, "", channel.Id)
+			default:
+				appErr = model.NewAppError("doConvertIncompleteGMsMigration", "app.channel.permanent_delete_user.unexpected_channel_type.app_error", nil, "", http.StatusInternalServerError)
+			}
+			if appErr != nil {
+				return appErr
+			}
+
+			// we finally soft delete the channel
+			appErr = app.DeleteChannel(c, newCh, "")
+			if appErr != nil {
+				return appErr
+			}
+		}
+	}
+
+	return nil
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -710,6 +774,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
+		{"Convert Incomplete GMs Migration", s.doConvertIncompleteGMsMigration},
 	}
 
 	c := request.EmptyContext(s.Log())

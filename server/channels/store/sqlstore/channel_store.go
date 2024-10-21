@@ -4322,3 +4322,36 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	}
 	return &team, nil
 }
+
+func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string, limit int, includeArchivedChannels bool) ([]*model.Channel, error) {
+	query := s.getQueryBuilder().
+		Select("ch.*").Distinct().
+		From("Channels ch, ChannelMembers cm").
+		Where(sq.And{
+			sq.Eq{"cm.ChannelId": "ch.Id"},
+			sq.Gt{"ch.Id": afterId},
+			sq.Eq{"ch.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			sq.Eq{"cm.UserId": userId},
+		}).
+		OrderBy("ch.Id").
+		Limit(uint64(limit))
+
+	if !includeArchivedChannels {
+		query = query.Where(
+			sq.Eq{"Channels.DeleteAt": int(0)},
+		)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	fmt.Println(queryString)
+	ch := []*model.Channel{}
+	if err2 := s.GetReplicaX().Select(&ch, queryString, args...); err2 != nil {
+		return nil, errors.Wrap(err2, "failed to find group Channels")
+	}
+
+	return ch, nil
+}

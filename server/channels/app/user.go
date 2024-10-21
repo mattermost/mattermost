@@ -1769,6 +1769,47 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return err
 	}
 
+	afterId := strings.Repeat("0", 26)
+	for {
+		channels, err := a.Srv().Store().Channel().GetGroupAndDirectChannelsForUser(user.Id, afterId, 1000, true)
+		if err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			afterId = channel.Id
+			var newCh *model.Channel
+			var appErr *model.AppError
+
+			switch channel.Type {
+			case model.ChannelTypeGroup:
+				newCh, appErr = a.ConvertGroupMessageToChannel(rctx, "", &model.GroupMessageConversionRequestBody{
+					ChannelID:   channel.Id,
+					TeamID:      channel.TeamId,
+					Name:        channel.Name,
+					DisplayName: channel.DisplayName,
+				})
+			case model.ChannelTypeDirect:
+				newCh, appErr = a.convertDirectMessageToChannel(rctx, user.Username, channel.Id)
+			default:
+				appErr = model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_user.unexpected_channel_type.app_error", nil, "", http.StatusInternalServerError)
+			}
+			if appErr != nil {
+				return appErr
+			}
+
+			// we finally soft delete the channel
+			appErr = a.DeleteChannel(rctx, newCh, "")
+			if appErr != nil {
+				return appErr
+			}
+		}
+	}
+
 	if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
