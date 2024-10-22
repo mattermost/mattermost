@@ -18,12 +18,11 @@ import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
+import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import * as NotificationSounds from 'utils/notification_sounds';
+import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
@@ -31,21 +30,52 @@ import * as Utils from 'utils/utils';
 
 import {runDesktopNotificationHooks} from './hooks';
 
-const getSoundFromChannelMemberAndUser = (member, user) => {
-    if (member?.notify_props?.desktop_sound) {
-        return member.notify_props.desktop_sound === 'on';
+/**
+ * This function is used to determine if the desktop sound is enabled.
+ * It checks if desktop sound is defined in the channel member and if not, it checks if it's defined in the user preferences.
+ */
+export function isDesktopSoundEnabled(channelMember, user) {
+    const soundInChannelMemberNotifyProps = channelMember?.notify_props?.desktop_sound;
+    const soundInUserNotifyProps = user?.notify_props?.desktop_sound;
+
+    if (soundInChannelMemberNotifyProps === DesktopSound.ON) {
+        return true;
     }
 
-    return !user.notify_props || user.notify_props.desktop_sound === 'true';
-};
-
-const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
-    if (member?.notify_props?.desktop_notification_sound) {
-        return member.notify_props.desktop_notification_sound;
+    if (soundInChannelMemberNotifyProps === DesktopSound.OFF) {
+        return false;
     }
 
-    return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
-};
+    if (soundInChannelMemberNotifyProps === DesktopSound.DEFAULT) {
+        return soundInUserNotifyProps ? soundInUserNotifyProps === 'true' : true;
+    }
+
+    if (soundInUserNotifyProps) {
+        return soundInUserNotifyProps === 'true';
+    }
+
+    return true;
+}
+
+/**
+ * This function returns the desktop notification sound from the channel member and user.
+ * It checks if desktop notification sound is defined in the channel member and if not, it checks if it's defined in the user preferences.
+ * If neither is defined, it returns the default sound 'BING'.
+ */
+export function getDesktopNotificationSound(channelMember, user) {
+    const notificationSoundInChannelMember = channelMember?.notify_props?.desktop_notification_sound;
+    const notificationSoundInUser = user?.notify_props?.desktop_notification_sound;
+
+    if (notificationSoundInChannelMember && notificationSoundInChannelMember !== DesktopNotificationSounds.DEFAULT) {
+        return notificationSoundInChannelMember;
+    }
+
+    if (notificationSoundInUser && notificationSoundInUser !== DesktopNotificationSounds.DEFAULT) {
+        return notificationSoundInUser;
+    }
+
+    return DesktopNotificationSounds.BING;
+}
 
 /**
  * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<Promise<import('utils/notifications').NotificationResult>, GlobalState>}
@@ -76,7 +106,7 @@ export function sendDesktopNotification(post, msgProps) {
 
         const teamId = msgProps.team_id;
 
-        let channel = makeGetChannel()(state, {id: post.channel_id});
+        let channel = makeGetChannel()(state, post.channel_id);
         const user = getCurrentUser(state);
         const userStatus = getStatusForUserId(state, user.id);
         const member = getMyChannelMember(state, post.channel_id);
@@ -200,10 +230,10 @@ export function sendDesktopNotification(post, msgProps) {
         } else if (msgProps.sender_name) {
             username = msgProps.sender_name;
         } else {
-            username = Utils.localizeMessage('channel_loader.someone', 'Someone');
+            username = Utils.localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
         }
 
-        let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
+        let title = Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
         if (!channel) {
             title = msgProps.channel_display_name;
             channel = {
@@ -211,21 +241,21 @@ export function sendDesktopNotification(post, msgProps) {
                 type: msgProps.channel_type,
             };
         } else if (channel.type === Constants.DM_CHANNEL) {
-            title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
         } else {
             title = channel.display_name;
         }
 
         if (title === '') {
             if (msgProps.channel_type === Constants.DM_CHANNEL) {
-                title = Utils.localizeMessage('notification.dm', 'Direct Message');
+                title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
             } else {
                 title = msgProps.channel_display_name;
             }
         }
 
         if (isCrtReply) {
-            title = Utils.localizeAndFormatMessage(t('notification.crt'), 'Reply in {title}', {title});
+            title = Utils.localizeAndFormatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
         }
 
         let notifyText = post.message;
@@ -247,20 +277,20 @@ export function sendDesktopNotification(post, msgProps) {
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
             if (msgProps.image) {
-                body += Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
+                body += Utils.localizeMessage({id: 'channel_loader.uploadedImage', defaultMessage: ' uploaded an image'});
             } else if (msgProps.otherFile) {
-                body += Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+                body += Utils.localizeMessage({id: 'channel_loader.uploadedFile', defaultMessage: ' uploaded a file'});
             } else if (image) {
-                body += Utils.localizeMessage('channel_loader.postedImage', ' posted an image');
+                body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
             } else {
-                body += Utils.localizeMessage('channel_loader.something', ' did something new');
+                body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
             }
         } else {
             body += `: ${strippedMarkdownNotifyText}`;
         }
 
         //Play a sound if explicitly set in settings
-        const sound = getSoundFromChannelMemberAndUser(member, user);
+        const desktopSoundEnabled = isDesktopSoundEnabled(member, user);
 
         // Notify if you're not looking in the right channel or when
         // the window itself is not active
@@ -286,7 +316,7 @@ export function sendDesktopNotification(post, msgProps) {
             notify = true;
         }
 
-        let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+        let soundName = getDesktopNotificationSound(member, user);
 
         const updatedState = getState();
         let url = getChannelURL(updatedState, channel, teamId);
@@ -296,7 +326,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         // Allow plugins to change the notification, or re-enable a notification
-        const args = {title, body, silent: !sound, soundName, url, notify};
+        const args = {title, body, silent: !desktopSoundEnabled, soundName, url, notify};
         const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
@@ -310,8 +340,8 @@ export function sendDesktopNotification(post, msgProps) {
             const result = dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
 
             //Don't add extra sounds on native desktop clients
-            if (sound && !isDesktopApp() && !isMobileApp()) {
-                NotificationSounds.ding(soundName);
+            if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+                ding(soundName);
             }
 
             return result;

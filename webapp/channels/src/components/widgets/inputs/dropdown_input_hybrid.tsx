@@ -4,11 +4,14 @@
 import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
 import type {CSSProperties} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, IndicatorContainerProps, ControlProps, OptionProps} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
+import {formatAsString} from 'utils/i18n';
 
 type OptionType = {
     label: string | JSX.Element;
@@ -17,11 +20,11 @@ type OptionType = {
 
 type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange'> & {
     value: T;
-    legend?: string;
+    legend?: string | MessageDescriptor;
     error?: string;
     onDropdownChange: (value: T) => void;
     onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder: string;
+    placeholder: string | MessageDescriptor;
     className?: string;
     name?: string;
     exceptionToInput: string[];
@@ -101,6 +104,8 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
         inputId,
         ...otherProps
     } = props;
+
+    const intl = useIntl();
 
     const containerRef = useRef<HTMLInputElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -188,7 +193,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                 })}
             >
                 <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                    {showLegend ? (legend || placeholder) : null}
+                    {showLegend ? formatAsString(intl.formatMessage, legend || placeholder) : null}
                 </legend>
                 <div
                     className={classNames('Input_wrapper input_hybrid_wrapper', {showInput})}
@@ -203,7 +208,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         type={inputType || 'text'}
                         value={inputValue}
                         onChange={onInputChange}
-                        placeholder={placeholder}
+                        placeholder={formatAsString(intl.formatMessage, placeholder)}
                         required={false}
                         className={classNames('Input form-control')}
                         ref={inputRef}

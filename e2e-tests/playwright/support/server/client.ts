@@ -6,9 +6,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import stream from 'stream';
 
-import FormData from 'form-data';
-import 'isomorphic-unfetch';
+import {FormData} from 'formdata-node';
+import {FormDataEncoder} from 'form-data-encoder';
 
 import testConfig from '@e2e-test.config';
 import Client4 from '@mattermost/client/client4';
@@ -20,115 +21,89 @@ import {UserProfile} from '@mattermost/types/users';
 
 export default class Client extends Client4 {
     getFormDataOptions = (formData: FormData): Options => {
+        const encoder = new FormDataEncoder(formData);
+
         return {
             method: 'post',
-            body: formData,
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
-            },
+            body: stream.Readable.from(encoder.encode()),
+            headers: encoder.headers,
+            duplex: 'half',
         };
     };
 
-    uploadProfileImageX = (userId: string, filePath: string) => {
+    readFileAsFormData = (filePath: string, key: string, additionalFields: Record<string, any> = {}) => {
         const fileData = fs.readFileSync(filePath);
         const formData = new FormData();
-        formData.append('image', fileData, path.basename(filePath));
-        const options = this.getFormDataOptions(formData);
+        formData.append(key, new Blob([fileData]), path.basename(filePath));
 
+        // Append additional fields if provided
+        for (const [field, value] of Object.entries(additionalFields)) {
+            formData.append(field, value);
+        }
+
+        return formData;
+    };
+
+    uploadProfileImageX = (userId: string, filePath: string) => {
+        const formData = this.readFileAsFormData(filePath, 'image');
+        const options = this.getFormDataOptions(formData);
         return this.doFetch<StatusOK>(`${this.getUserRoute(userId)}/image`, options);
     };
 
     setTeamIconX = (teamId: string, filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('image', fileData, path.basename(filePath));
+        const formData = this.readFileAsFormData(filePath, 'image');
         const options = this.getFormDataOptions(formData);
-
         return this.doFetch<StatusOK>(`${this.getTeamRoute(teamId)}/image`, options);
     };
 
     createCustomEmojiX = (emoji: CustomEmoji, filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('image', fileData, path.basename(filePath));
-        formData.append('emoji', JSON.stringify(emoji));
+        const formData = this.readFileAsFormData(filePath, 'image', {emoji: JSON.stringify(emoji)});
         const options = this.getFormDataOptions(formData);
-
         return this.doFetch<CustomEmoji>(`${this.getEmojisRoute()}`, options);
     };
 
     uploadBrandImageX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('image', fileData, path.basename(filePath));
+        const formData = this.readFileAsFormData(filePath, 'image');
         const options = this.getFormDataOptions(formData);
-
         return this.doFetch<StatusOK>(`${this.getBrandRoute()}/image`, options);
     };
 
-    uploadPublicSamlCertificateX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('certificate', fileData, path.basename(filePath));
+    uploadCertificateX = (filePath: string, route: string) => {
+        const formData = this.readFileAsFormData(filePath, 'certificate');
         const options = this.getFormDataOptions(formData);
+        return this.doFetch<StatusOK>(route, options);
+    };
 
-        return this.doFetch<StatusOK>(`${this.getBaseRoute()}/saml/certificate/public`, options);
+    uploadPublicSamlCertificateX = (filePath: string) => {
+        return this.uploadCertificateX(filePath, `${this.getBaseRoute()}/saml/certificate/public`);
     };
 
     uploadPrivateSamlCertificateX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('certificate', fileData, path.basename(filePath));
-        const options = this.getFormDataOptions(formData);
-
-        return this.doFetch<StatusOK>(`${this.getBaseRoute()}/saml/certificate/private`, options);
+        return this.uploadCertificateX(filePath, `${this.getBaseRoute()}/saml/certificate/private`);
     };
 
     uploadPublicLdapCertificateX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('certificate', fileData, path.basename(filePath));
-        const options = this.getFormDataOptions(formData);
-
-        return this.doFetch<StatusOK>(`${this.getBaseRoute()}/ldap/certificate/public`, options);
+        return this.uploadCertificateX(filePath, `${this.getBaseRoute()}/ldap/certificate/public`);
     };
 
     uploadPrivateLdapCertificateX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('certificate', fileData, path.basename(filePath));
-        const options = this.getFormDataOptions(formData);
-
-        return this.doFetch<StatusOK>(`${this.getBaseRoute()}/ldap/certificate/private`, options);
+        return this.uploadCertificateX(filePath, `${this.getBaseRoute()}/ldap/certificate/private`);
     };
 
     uploadIdpSamlCertificateX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('certificate', fileData, path.basename(filePath));
-        const options = this.getFormDataOptions(formData);
-
-        return this.doFetch<StatusOK>(`${this.getBaseRoute()}/saml/certificate/idp`, options);
+        return this.uploadCertificateX(filePath, `${this.getBaseRoute()}/saml/certificate/idp`);
     };
 
     uploadLicenseX = (filePath: string) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        formData.append('license', fileData, path.basename(filePath));
+        const formData = this.readFileAsFormData(filePath, 'license');
         const options = this.getFormDataOptions(formData);
-
         return this.doFetch<License>(`${this.getBaseRoute()}/license`, options);
     };
 
     uploadPluginX = async (filePath: string, force = false) => {
-        const fileData = fs.readFileSync(filePath);
-        const formData = new FormData();
-        if (force) {
-            formData.append('force', 'true');
-        }
-        formData.append('plugin', fileData, path.basename(filePath));
+        const additionalFields = force ? {force: 'true'} : {};
+        const formData = this.readFileAsFormData(filePath, 'plugin', additionalFields);
         const options = this.getFormDataOptions(formData);
-
         return this.doFetch<PluginManifest>(this.getPluginsRoute(), options);
     };
 }

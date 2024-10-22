@@ -13,6 +13,7 @@ import {
     SortAlphabeticalAscendingIcon,
     ClockOutlineIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -49,7 +50,6 @@ const SidebarCategoryMenu = ({
     const showUnreadsCategory = useSelector(shouldShowUnreadsCategory);
     const getUnreadsIdsForCategory = useMemo(makeGetUnreadIdsForCategory, [category]);
     const unreadsIds = useSelector((state: GlobalState) => getUnreadsIdsForCategory(state, category));
-
     const {formatMessage} = useIntl();
 
     let muteUnmuteCategoryMenuItem: JSX.Element | null = null;
@@ -194,6 +194,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Alphabetical)}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -204,6 +205,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortManual-${category.id}`}
@@ -214,6 +216,7 @@ const SidebarCategoryMenu = ({
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Manual)}
+                trailingElements={category.sorting === CategorySorting.Manual ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
     );

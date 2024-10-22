@@ -29,7 +29,7 @@ const useUploadFiles = (
     channelId: string,
     isThreadView: boolean,
     storedDrafts: React.MutableRefObject<Record<string, PostDraft | undefined>>,
-    readOnlyChannel: boolean,
+    isDisabled: boolean,
     textboxRef: React.RefObject<TextboxClass>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
@@ -141,7 +141,7 @@ const useUploadFiles = (
     }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange]);
 
     let attachmentPreview = null;
-    if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
+    if (!isDisabled && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
@@ -157,7 +157,7 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = readOnlyChannel ? null : (
+    const fileUploadJSX = isDisabled ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}

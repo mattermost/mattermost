@@ -52,7 +52,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
     const getChannel = useMemo(makeGetChannel, []);
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);
 
     const relativePermaLink = useSelector((state: GlobalState) => (currentTeam ? getPermalinkURL(state, currentTeam.id, post.id) : ''));

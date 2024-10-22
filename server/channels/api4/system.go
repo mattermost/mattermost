@@ -129,7 +129,11 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
-	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
+	defer func() {
+		if err = fileStorageBackend.RemoveDirectory(outputDirectoryToUse); err != nil {
+			c.Logger.Warn("Error while removing directory", mlog.Err(err))
+		}
+	}()
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
 		return
@@ -223,7 +227,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write(model.ToJSON(s))
+	if _, err := w.Write(model.ToJSON(s)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,9 +384,9 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
-	if logerr != nil {
-		c.Err = logerr
+	logs, appErr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -388,11 +394,11 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var result interface{}
 	for node, logLines := range logs {
 		for _, log := range logLines {
-			err2 := json.Unmarshal([]byte(log), &result)
-			if err2 == nil {
-				logsJSON[node] = append(logsJSON[node], result)
+			err = json.Unmarshal([]byte(log), &result)
+			if err != nil {
+				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
 			} else {
-				c.Logger.Warn("Error parsing log line in Server Logs")
+				logsJSON[node] = append(logsJSON[node], result)
 			}
 		}
 	}
@@ -400,7 +406,9 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
-	w.Write(model.ToJSON(logsJSON))
+	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -426,7 +434,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "page", c.Params.Page)
 	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(model.ArrayToJSON(lines)))
+	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -555,7 +565,9 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -570,7 +582,9 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -617,7 +631,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = ""
 
 	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -630,7 +646,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	var location string
 	if err := redirectLocationDataCache.Get(url, &location); err == nil {
 		m["location"] = location
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
@@ -642,13 +660,20 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		cacheErr := redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		if cacheErr != nil {
+			c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+		}
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err = w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 	defer func() {
-		io.Copy(io.Discard, res.Body)
+		if _, err = io.Copy(io.Discard, res.Body); err != nil {
+			c.Logger.Warn("Error while removing directory", mlog.Err(err))
+		}
 		res.Body.Close()
 	}()
 
@@ -657,16 +682,26 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
 	if len(location) > RedirectLocationMaximumLength {
 		// Treating as a "failure". Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		cacheErr := redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		if cacheErr != nil {
+			c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+		}
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJSON(m)))
+		if _, err = w.Write([]byte(model.MapToJSON(m))); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
-	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
+	cacheErr := redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
+	if cacheErr != nil {
+		c.Logger.Warn("Failed to set cache for URL", mlog.String("url", url), mlog.Err(err))
+	}
 	m["location"] = location
 
-	w.Write([]byte(model.MapToJSON(m)))
+	if _, err := w.Write([]byte(model.MapToJSON(m))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -692,9 +727,11 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		if ignoreNotificationACK && ack.ClientPlatform == "ios" {
 			// iOS doesn't send ack when the notificications are disabled
 			// so we restore the value the moment we receive an ack
-			c.App.SetExtraSessionProps(session, map[string]string{
+			if err := c.App.SetExtraSessionProps(session, map[string]string{
 				model.SessionPropDeviceNotificationDisabled: "false",
-			})
+			}); err != nil {
+				c.Logger.Warn("Failed to set extra session props", mlog.Err(err))
+			}
 			c.App.ClearSessionCacheForUser(session.UserId)
 		}
 		if !ignoreNotificationACK {
@@ -869,7 +906,10 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.Srv().UpgradeToE0()
+		err := c.App.Srv().UpgradeToE0()
+		if err != nil {
+			c.Logger.Error("Error while upgrading to E0", mlog.Err(err))
+		}
 	})
 
 	auditRec.Success()
@@ -899,7 +939,9 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		s = map[string]any{"percentage": percentage, "error": nil}
 	}
 
-	w.Write([]byte(model.StringInterfaceToJSON(s)))
+	if _, err := w.Write([]byte(model.StringInterfaceToJSON(s))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -916,7 +958,10 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	time.Sleep(1 * time.Second)
 
 	go func() {
-		c.App.Srv().Restart()
+		err := c.App.Srv().Restart()
+		if err != nil {
+			c.Logger.Error("Error while restarting server", mlog.Err(err))
+		}
 	}()
 }
 
@@ -1034,8 +1079,10 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(js)
 	auditRec.Success()
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // returns true if the data has nil fields

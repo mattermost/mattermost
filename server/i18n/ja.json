@@ -8091,7 +8091,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 安全な接続 | 表示名 | 接続ID | SiteURL | 招待承認済み | オンライン | 最後のPing |"
+    "translation": "| 安全な接続 | 表示名 | 接続ID | SiteURL | デフォルトチーム | 招待承認済み | オンライン | 最後のPing | 削除済み |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10112,5 +10112,57 @@
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
     "translation": "OAuth または SAML ユーザではありません。"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "ファイルをアップロードできませんでした。アップロードチャンネルがリモートと共有されていません。"
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "追加のセッションプロパティを更新できませんでした。"
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "エクスポート用のスレッドメンバーを取得できませんでした。"
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "不正な投稿IDです。"
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "不正なユーザーIDです。"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "リモートの共有チャンネルを取得できませんでした"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "チャンネルがリモートと共有されているか確認できませんでした"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "アップロードされたプラグインのサイズが制限を超えています。この制限はシステムコンソールのファイルストレージ > 最大ファイルサイズで変更できます"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "リモートをチャンネルに招待できませんでした"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "リモートのチャンネルへの招待を解除できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "ダイレクトチャンネルのメンバーを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "ダイレクトチャンネルにメンバーがいません"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "投稿のスレッドメンバーシップを保存できませんでした。"
   }
 ]

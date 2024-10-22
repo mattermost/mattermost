@@ -22,7 +22,8 @@ func TestCreateChannelBookmark(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	t.Run("should not work without a license", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
@@ -268,7 +269,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	t.Run("should not work without a license", func(t *testing.T) {
 		_, _, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId(), &model.ChannelBookmarkPatch{})
@@ -646,7 +648,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
 		b := &model.ChannelBookmark{
@@ -780,7 +783,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				originalBookmark, appErr := th.App.GetBookmark(tc.bookmarkId, false)
 				require.Nil(t, appErr)
 				defer func() {
-					th.App.UpdateChannelBookmarkSortOrder(originalBookmark.Id, originalBookmark.ChannelId, originalBookmark.SortOrder, "")
+					_, err := th.App.UpdateChannelBookmarkSortOrder(originalBookmark.Id, originalBookmark.ChannelId, originalBookmark.SortOrder, "")
+					require.Nil(t, err)
 				}()
 
 				bookmarks, resp, err := tc.userClient.UpdateChannelBookmarkSortOrder(context.Background(), tc.channelId, tc.bookmarkId, tc.sortOrder)
@@ -959,8 +963,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
-		t.Skip("MM-60499")
-
+		now := model.GetMillis()
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -974,12 +977,24 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 			Emoji:       ":smile:",
 		}
 
+		bookmark2 := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test 2",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
 		// set the user for the session
 		originalSessionUserId := th.Context.Session().UserId
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
 		cb, appErr := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, cb)
+
+		cb, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
@@ -997,6 +1012,10 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
 					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
 					require.NoError(t, err)
+
+					for _, b := range bl {
+						require.Greater(t, b.UpdateAt, now)
+					}
 				}
 			case <-timeout:
 				waiting = false
@@ -1015,7 +1034,8 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
@@ -1347,7 +1367,8 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
 		b := &model.ChannelBookmark{

@@ -7012,7 +7012,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Einladung angenommen | Online | Letzter Ping |"
+    "translation": "| Sichere Verbindung | Anzeigename | Verbindungs-ID | Site URL | Standard Team | Einladung angenommen | Online | Letzter Ping | Gelöscht |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -10164,5 +10164,37 @@
   {
     "id": "api.plugin.upload.file_too_large.app_error",
     "translation": "Die Größe des hochgeladenen Plugins überschreitet das Limit. Dieses Limit kann in der Systemkonsole über Dateispeicher > Maximale Dateigröße geändert werden"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Datei kann nicht hochgeladen werden. Der Upload-Kanal wird nicht mit der Gegenstelle geteilt."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Es ist nicht möglich, die zusätzlichen Eigenschaften der Sitzung zu aktualisieren."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kann keinen Einladungscode für einen bestätigten Cluster erzeugen"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nachricht kann nicht gelöscht werden, ServiceSettings.EnableAPIPostDeletion ist nicht aktiviert."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Du kannst den Benutzerstatus nicht ändern. Der Benutzer wird über LDAP verwaltet"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Die Dateien für die Nachricht konnten nicht gefunden werden."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Die Datei für diese Nachricht konnte nicht dauerhaft gelöscht werden."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Die Nachricht konnte nicht dauerhaft gelöscht werden."
   }
 ]
