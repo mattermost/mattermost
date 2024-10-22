@@ -35,7 +35,7 @@ export default function useOpenSalesLink(): [() => void, string] {
     const contactSalesLink = buildMMURL(LicenseLinks.CONTACT_SALES, firstName, lastName, companyName, customerEmail, utmSource, utmMedium);
     const goToSalesLinkFunc = useCallback(() => {
         goToMattermostContactSalesForm(firstName, lastName, companyName, customerEmail, utmSource, utmMedium);
-    }, [companyName, customerEmail, firstName, lastName, utmMedium]);
+    }, [firstName, lastName, companyName, customerEmail, utmMedium]);
 
     return [goToSalesLinkFunc, contactSalesLink];
 }

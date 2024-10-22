@@ -16,7 +16,7 @@ export function useOpenCloudZendeskSupportForm(subject: string, description: str
 
     const openContactSupport = useCallback(
         () => goToCloudSupportForm(customerEmail, subject, description, window.location.host),
-        [customerEmail, description, subject],
+        [customerEmail, subject, description],
     );
     return [openContactSupport, url];
 }
