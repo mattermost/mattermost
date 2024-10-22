@@ -12,7 +12,7 @@ type DesktopNotificationPermission = Exclude<NotificationPermission, typeof Noti
 // This is a hook that is used to request notification permission for desktop app
 // it also returns the permission state. We use this as a workaround for Bug with Electron - https://github.com/electron/electron/issues/11221
 // tl;dr Electron always show 'granted' when queries for Notification.permission, hence this workaround
-export function useDesktopNotificationPermission() {
+export function useDesktopAppNotificationPermission() {
     const [desktopResolvePermission, setDesktopResolvePermission] = useState<DesktopNotificationPermission>(undefined);
 
     useEffect(() => {
