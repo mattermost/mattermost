@@ -338,6 +338,11 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 	return json.NewEncoder(w).Encode(o)
 }
 
+type CreatePostFlags struct {
+	TriggerWebhooks bool
+	SetOnline       bool
+}
+
 type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
