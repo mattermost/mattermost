@@ -65,6 +65,12 @@ export function scheduledPostToPost(scheduledPost: ScheduledPost): Post {
         root_id: scheduledPost.root_id,
         message: scheduledPost.message,
         props: scheduledPost.props,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
     };
 
     if (scheduledPost.metadata) {

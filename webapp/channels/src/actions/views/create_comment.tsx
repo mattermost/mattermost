@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Post, PostMetadata} from '@mattermost/types/posts';
-import {ScheduledPost, scheduledPostFromPost, SchedulingInfo} from '@mattermost/types/schedule_post';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';

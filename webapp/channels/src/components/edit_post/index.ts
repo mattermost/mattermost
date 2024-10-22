@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
-import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
@@ -22,10 +21,11 @@ import {runMessageWillBeUpdatedHooks} from 'actions/hooks';
 import {unsetEditingPost} from 'actions/post_actions';
 import {setGlobalItem} from 'actions/storage';
 import {scrollPostListToBottom} from 'actions/views/channel';
-import {openModal} from 'actions/views/modals';
 import {editPost} from 'actions/views/posts';
 import {getEditingPost} from 'selectors/posts';
 import {getIsRhsOpen, getPostDraft, getRhsState} from 'selectors/rhs';
+
+import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -50,7 +50,6 @@ function mapStateToProps(state: GlobalState, props: Props) {
         editingPost = getEditingPost(state);
         channelId = editingPost.post.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
-        console.log(draft.message);
     }
 
     const currentUserId = getCurrentUserId(state);
@@ -90,7 +89,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             editPost,
             setDraft: setGlobalItem,
             unsetEditingPost,
-            openModal,
             runMessageWillBeUpdatedHooks,
             updateScheduledPost,
         }, dispatch),

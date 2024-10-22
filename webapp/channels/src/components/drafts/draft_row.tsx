@@ -34,6 +34,7 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
+import EditPost from 'components/edit_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 
@@ -47,7 +48,6 @@ import Panel from './panel/panel';
 import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
-import EditPost from "components/edit_post";
 
 import './draft_row.scss';
 
@@ -243,7 +243,13 @@ function DraftRow({
         onScheduleDraft,
     ]);
 
+    const handleCancelEdit = useCallback(() => {
+        setIsEditing(false);
+    }, []);
+
     const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+        handleCancelEdit();
+
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
             scheduled_at: updatedScheduledAtTime,
@@ -253,29 +259,29 @@ function DraftRow({
         return {
             error: result.error?.message,
         };
-    }, [connectionId, dispatch, item]);
+    }, [connectionId, dispatch, item, handleCancelEdit]);
 
     const handleSchedulePostOnDelete = useCallback(async () => {
+        handleCancelEdit();
+
         const scheduledPostId = (item as ScheduledPost).id;
         const result = await dispatch(deleteScheduledPost(scheduledPostId, connectionId));
         return {
             error: result.error?.message,
         };
-    }, [item, dispatch, connectionId]);
+    }, [item, dispatch, connectionId, handleCancelEdit]);
 
     const handleScheduledPostOnSend = useCallback(async () => {
+        handleCancelEdit();
+
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
         handleOnSend(postDraft, undefined, {keepDraft: true});
         return Promise.resolve({});
-    }, [handleOnSend, item]);
+    }, [handleCancelEdit, handleOnSend, item]);
 
     const handleSchedulePostEdit = useCallback(() => {
         setIsEditing((isEditing) => !isEditing);
-    }, []);
-
-    const handleCancelEdit = useCallback(() => {
-        setIsEditing(false);
     }, []);
 
     const scheduledPostActions = useMemo(() => {
@@ -373,6 +379,7 @@ function DraftRow({
                             scheduledPost={item as ScheduledPost}
                             onCancel={handleCancelEdit}
                             afterSave={handleCancelEdit}
+                            onDeleteScheduledPost={handleSchedulePostOnDelete}
                         />
                     }
 
