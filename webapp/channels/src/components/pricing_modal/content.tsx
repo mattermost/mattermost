@@ -25,7 +25,6 @@ import {CloudProducts, LicenseSkus, MattermostFeatures, TELEMETRY_CATEGORIES, Re
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
 import Card, {BlankCard, ButtonCustomiserClasses} from './card';
-import ContactSalesCTA from './contact_sales_cta';
 
 import './content.scss';
 
