@@ -1274,7 +1274,7 @@ func (a *OpenTracingAppLayer) CheckMandatoryS3Fields(settings *model.FileSetting
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPasswordAndAllCriteria")
 
@@ -1286,7 +1286,7 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken)
+	resultVar0 := a.app.CheckPasswordAndAllCriteria(rctx, userID, password, mfaToken)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17464,7 +17464,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(c request.CTX, email string, pa
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap(c request.CTX, includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncLdap(rctx request.CTX, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -17476,7 +17476,7 @@ func (a *OpenTracingAppLayer) SyncLdap(c request.CTX, includeRemovedMembers bool
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap(c, includeRemovedMembers)
+	a.app.SyncLdap(rctx, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
