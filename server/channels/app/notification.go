@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (a *App) canSendPushNotifications() bool {
@@ -701,8 +702,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
-	if err != nil {
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -710,28 +711,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonFetchError),
 			mlog.String("sender_id", sender.Id),
-			mlog.Err(err),
+			mlog.Err(appErr),
 		)
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(post)
-		postJSON, jsonErr := post.ToJSON()
-		if jsonErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("JSON parse error",
-				mlog.String("type", model.NotificationTypeWebsocket),
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonParseError),
-				mlog.String("sender_id", sender.Id),
-				mlog.Err(err),
-			)
-			return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
-		}
-		message.Add("post", postJSON)
-
-		a.Publish(message)
+		return nil, appErr
 	}
 
 	// If this is a reply in a thread, notify participants
@@ -877,6 +859,27 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mlog.String("post_id", post.Id),
 	)
 
+	for id, reason := range mentions.Mentions {
+		user, ok := profileMap[id]
+		if !ok {
+			continue
+		}
+		if user.IsGuest() {
+			if reason == KeywordMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"post_mentioned_guest",
+					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+				)
+			} else if reason == DMMention {
+				a.Srv().telemetryService.SendTelemetryForFeature(
+					telemetry.TrackGuestFeature,
+					"direct_message_to_guest",
+					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+				)
+			}
+		}
+	}
 	return mentionedUsersList, nil
 }
 
@@ -1114,13 +1117,6 @@ func (a *App) getExplicitMentionsAndKeywords(c request.CTX, post *model.Post, ch
 	}
 
 	return mentions, keywords
-}
-
-func max(a, b int64) int64 {
-	if a < b {
-		return b
-	}
-	return a
 }
 
 func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {

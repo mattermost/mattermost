@@ -133,7 +133,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     handleActivateUser = async () => {
-        if (!this.state.user) {
+        if (!this.state.user || this.state.user?.auth_service === Constants.LDAP_SERVICE) {
             return;
         }
 
@@ -261,6 +261,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
      */
 
     toggleOpenModalDeactivateMember = () => {
+        if (this.state.user?.auth_service === Constants.LDAP_SERVICE) {
+            return;
+        }
         this.setState({showDeactivateMemberModal: true});
     };
 
@@ -317,6 +320,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 userID: this.state.user.id,
             },
         });
+    };
+
+    getManagedByLdapText = () => {
+        if (this.state.user?.auth_service !== Constants.LDAP_SERVICE) {
+            return null;
+        }
+        return (
+            <>
+                {' '}
+                <FormattedMessage
+                    id='admin.user_item.managedByLdap'
+                    defaultMessage='(Managed By LDAP)'
+                />
+            </>
+        );
     };
 
     render() {
@@ -402,22 +420,26 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <button
                                             className='btn btn-secondary'
                                             onClick={this.handleActivateUser}
+                                            disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.makeActive'
                                                 defaultMessage='Activate'
                                             />
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
                                     {this.state.user?.delete_at === 0 && (
                                         <button
                                             className='btn btn-secondary btn-danger'
                                             onClick={this.toggleOpenModalDeactivateMember}
+                                            disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.deactivate'
                                                 defaultMessage='Deactivate'
                                             />
+                                            {this.getManagedByLdapText()}
                                         </button>
                                     )}
 
