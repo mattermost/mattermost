@@ -304,7 +304,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
 		telemetry.TrackGroupsFeature,
-		"modify_group",
+		"modify_group_edit_details",
 		map[string]any{
 			"user_actual_id": c.AppContext.Session().UserId,
 			"group_id": group.Id,
@@ -1351,7 +1351,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
 		telemetry.TrackGroupsFeature,
-		"modify_group",
+		"modify_group_add_members",
 		map[string]any{
 			"user_actual_id": c.AppContext.Session().UserId,
 			"group_id": group.Id,
@@ -1419,7 +1419,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
 		telemetry.TrackGroupsFeature,
-		"modify_group",
+		"modify_group_remove_members",
 		map[string]any{
 			"user_actual_id": c.AppContext.Session().UserId,
 			"group_id": group.Id,
