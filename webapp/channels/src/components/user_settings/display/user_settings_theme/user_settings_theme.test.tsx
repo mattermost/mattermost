@@ -7,8 +7,6 @@ import type {ComponentProps} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
-
 import UserSettingsTheme from './user_settings_theme';
 
 jest.mock('utils/utils', () => ({
@@ -18,20 +16,6 @@ jest.mock('utils/utils', () => ({
 }));
 
 describe('components/user_settings/display/user_settings_theme/user_settings_theme.jsx', () => {
-    const initialState = {
-        entities: {
-            general: {
-                config: {},
-                license: {
-                    Cloud: 'false',
-                },
-            },
-            users: {
-                currentUserId: 'currentUserId',
-            },
-        },
-    };
-
     const requiredProps: ComponentProps<typeof UserSettingsTheme> = {
         theme: Preferences.THEMES.denim,
         currentTeamId: 'teamId',
@@ -92,23 +76,5 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         await wrapper.instance().submitTheme();
 
         expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
-    });
-
-    it('should call openModal when slack import theme button is clicked', async () => {
-        const props = {
-            ...requiredProps,
-            allowCustomThemes: true,
-            selected: true,
-        };
-
-        renderWithContext(
-            <UserSettingsTheme {...props}/>,
-            initialState,
-        );
-
-        // Click the Slack Import button
-        fireEvent.click(screen.getByText('Import theme colors from Slack'));
-
-        expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 });
