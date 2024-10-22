@@ -14,7 +14,9 @@ import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent} from 'mattermost-redux/constants/telemetry';
+
+import {trackFeatureEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
@@ -235,12 +237,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.state = getDefaultStateFromProps(props);
     }
 
-    trackChangeIfNecessary(fieldName: string, oldValue?: UserNotifyProps[keyof UserNotifyProps], newValue?: UserNotifyProps[keyof UserNotifyProps]) {
-        if (newValue !== oldValue) {
-            trackEvent('settings', 'user_settings_update', {field: `notifications_${fieldName}`});
-        }
-    }
-
     handleSubmit = async () => {
         const data: UserNotifyProps = {...this.props.user.notify_props};
         data.email = this.state.enableEmail;
@@ -291,7 +287,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys.join(',');
-        this.trackChangeIfNecessary('passive_keywords', this.props.user.notify_props?.highlight_keys, data.highlight_keys);
+        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys) {
+            trackFeatureEvent(TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent);
+        }
 
         this.setState({isSaving: true});
         stopTryNotificationRing();
