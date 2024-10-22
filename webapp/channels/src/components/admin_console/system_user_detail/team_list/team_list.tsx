@@ -114,8 +114,11 @@ export default class TeamList extends React.PureComponent<Props, State> {
     private mergeTeamsWithMemberships = (data: [ActionResult<Team[]>, ActionResult<TeamMembership[]>]): TeamWithMembership[] => {
         const teams = data[0].data;
         const memberships = data[1].data;
-        let teamsWithMemberships = teams!.map((object: Team) => {
-            const results = memberships!.filter((team: TeamMembership) => team.team_id === object.id);
+        if (!teams || !memberships) {
+            return [];
+        }
+        let teamsWithMemberships = teams.map((object: Team) => {
+            const results = memberships.filter((team: TeamMembership) => team.team_id === object.id);
             const team = {...object, ...results[0]};
             return team;
         });

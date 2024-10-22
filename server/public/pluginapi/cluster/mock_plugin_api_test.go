@@ -102,13 +102,6 @@ func (pluginAPI *mockPluginAPI) KVList(page, count int) ([]string, *model.AppErr
 	return keys[start:end], nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	pluginAPI.lock.Lock()
 	defer pluginAPI.lock.Unlock()

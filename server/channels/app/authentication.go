@@ -59,7 +59,22 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
+func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
+	// MM-37585
+	// Use locks to avoid concurrently checking AND updating the failed login attempts.
+	a.ch.loginAttemptsMut.Lock()
+	defer a.ch.loginAttemptsMut.Unlock()
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		if err.Id != MissingAccountError {
+			err.StatusCode = http.StatusInternalServerError
+			return err
+		}
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
 		return err
 	}
@@ -68,8 +83,6 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
-
-		a.InvalidateCacheForUser(user.Id)
 
 		var invErr *users.ErrInvalidPassword
 		switch {
@@ -89,16 +102,12 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, pa
 			}
 		}
 
-		a.InvalidateCacheForUser(user.Id)
-
 		return err
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
-
-	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
 		return err
@@ -212,7 +221,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -275,7 +284,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(rctx, user.Id, password, mfaToken); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched a Mattermost account, but the password was incorrect.", mlog.String("username", user.Username))
 		}

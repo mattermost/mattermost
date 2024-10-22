@@ -18,4 +18,8 @@
         box-shadow: var(--elevation-2);
         transition-duration: 0.15s;
     }
+
+    &.draftError {
+        border-color: var(--error-text);
+    }
 }

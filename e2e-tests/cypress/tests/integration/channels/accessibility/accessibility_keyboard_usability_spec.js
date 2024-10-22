@@ -52,7 +52,8 @@ describe('Verify Accessibility keyboard usability across different regions in th
         postMessages(testChannel, otherUser, count);
 
         // # Search for a term
-        cy.get('#searchBox').typeWithForce('hello').typeWithForce('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().find('input').typeWithForce('hello').typeWithForce('{enter}');
 
         // # Change the focus to search results
         cy.get('#searchContainer').within(() => {

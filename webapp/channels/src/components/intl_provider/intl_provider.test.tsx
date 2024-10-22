@@ -10,6 +10,7 @@ import IntlProvider from 'components/intl_provider/intl_provider';
 import {getLanguageInfo} from 'i18n/i18n';
 
 describe('components/IntlProvider', () => {
+    const messageId = 'test.hello_world';
     const baseProps = {
         locale: 'en',
         translations: {
@@ -20,7 +21,7 @@ describe('components/IntlProvider', () => {
         },
         children: (
             <FormattedMessage
-                id='test.hello_world'
+                id={messageId}
                 defaultMessage='Hello, World!'
             />
         ),

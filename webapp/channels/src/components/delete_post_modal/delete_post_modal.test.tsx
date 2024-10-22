@@ -30,6 +30,7 @@ describe('components/delete_post_modal', () => {
         pending_post_id: '',
         reply_count: 0,
         metadata: {} as PostMetadata,
+        remote_id: '',
     };
 
     const baseProps = {
@@ -197,5 +198,22 @@ describe('components/delete_post_modal', () => {
             modalProps.onExited(document.createElement('div'));
         }
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
+    });
+
+    test('should warn about remote post deletion', () => {
+        const props = {
+            ...baseProps,
+            post: {
+                ...post,
+                remote_id: 'remoteclusterid1',
+            },
+        };
+
+        const wrapper = shallow<DeletePostModal>(
+            <DeletePostModal {...props}/>,
+        );
+
+        expect(wrapper.find('SharedChannelPostDeleteWarning')).toBeDefined();
+        console.log(wrapper.find('SharedChannelPostDeleteWarning').debug());
     });
 });

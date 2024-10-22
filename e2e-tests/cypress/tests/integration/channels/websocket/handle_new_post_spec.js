@@ -102,17 +102,7 @@ describe('Handle new post', () => {
             const channel = response.data;
 
             // # And then invite the current user
-            cy.externalRequest({
-                user: admin,
-                baseUrl,
-                method: 'post',
-                path: `channels/${channel.id}/members`,
-                data: {
-                    user_id: user1.id,
-                },
-            }).then((addResponse) => {
-                expect(addResponse.status).to.equal(201);
-            });
+            cy.externalAddUserToChannel(user1.id, channel.id);
         });
 
         // * Verify that the channel is in the current user's sidebar and is unread with one mention
@@ -145,17 +135,7 @@ describe('Handle new post', () => {
             cy.delayRequestToRoutes([`channels/${channel.id}`], 100);
 
             // # And then invite the current user
-            cy.externalRequest({
-                user: admin,
-                baseUrl,
-                method: 'post',
-                path: `channels/${channel.id}/members`,
-                data: {
-                    user_id: user1.id,
-                },
-            }).then((addResponse) => {
-                expect(addResponse.status).to.equal(201);
-            });
+            cy.externalAddUserToChannel(user1.id, channel.id);
         });
 
         // * Verify that the channel is in the current user's sidebar and is unread with one mention

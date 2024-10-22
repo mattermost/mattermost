@@ -193,7 +193,7 @@ declare namespace Cypress {
          *
          * @returns {UserProfile} `out.sysadmin` as `UserProfile` object
          */
-        apiCreateCustomAdmin(options: {loginAfter: boolean; hideAdminTrialModal?: boolean}): Chainable<{sysadmin: UserProfile}>;
+        apiCreateCustomAdmin({loginAfter = false, hideAdminTrialModal = true} = {}): Chainable<{sysadmin: UserProfile}>;
 
         /**
          * Create a new user with an options to set name prefix and be able to bypass tutorial steps.
@@ -248,7 +248,7 @@ declare namespace Cypress {
          *       // do something with users
          *   });
          */
-        apiGetUsers(queryParams: Record<string, any>): Chainable<UserProfile[]>;
+        apiGetUsers(queryParams: Record<string, any>): Chainable<{users: UserProfile[]}>;
 
         /**
          * Get list of users that are not team members.

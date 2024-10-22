@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as TIMEOUTS from '../../fixtures/timeouts';
-const playbookRunStartCommand = '/playbook run';
+const playbookRunStartCommand = '/playbook run ';
 
 Cypress.Commands.add('startPlaybookRun', (playbookName, playbookRunName) => {
     cy.get('#interactiveDialogModal').should('exist').within(() => {
@@ -167,7 +167,7 @@ Cypress.Commands.add('selectReminderTime', (timeText) => {
  */
 Cypress.Commands.add('updateStatus', (message, reminderQuery) => {
     // # Run the slash command to update status.
-    cy.uiPostMessageQuickly('/playbook update');
+    cy.uiPostMessageQuickly('/playbook update ');
 
     // # Get the interactive dialog modal.
     cy.getStatusUpdateDialog().within(() => {

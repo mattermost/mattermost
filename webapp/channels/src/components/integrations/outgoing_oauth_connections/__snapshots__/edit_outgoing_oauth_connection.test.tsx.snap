@@ -459,8 +459,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -1180,8 +1179,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -1900,8 +1898,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",

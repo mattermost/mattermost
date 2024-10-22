@@ -106,7 +106,12 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[], afterSubmit?: (response: SubmitPostReturnType) => void): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+export function createPost(
+    post: Post,
+    files: FileInfo[],
+    afterSubmit?: (response: SubmitPostReturnType) => void,
+    afterOptimisticSubmit?: () => void,
+): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         // parse message and emit emoji event
         const emojis = matchEmoticons(post.message);
@@ -123,6 +128,7 @@ export function createPost(post: Post, files: FileInfo[], afterSubmit?: (respons
             dispatch(storeDraft(post.channel_id, null));
         }
 
+        afterOptimisticSubmit?.();
         return result;
     };
 }
@@ -272,7 +278,7 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean, GlobalState>
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = false): ActionFunc<boolean> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -294,7 +300,7 @@ export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = 
         if (canEditNow) {
             dispatch({
                 type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, title, isRHS, show: true},
+                data: {postId, refocusId, isRHS, show: true},
             });
         }
 

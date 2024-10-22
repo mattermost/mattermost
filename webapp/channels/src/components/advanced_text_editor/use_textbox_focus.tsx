@@ -87,6 +87,8 @@ const useTextboxFocus = (
         if (isRHS && shouldFocusRHS) {
             focusTextbox();
             dispatch(focusedRHS());
+        } else if (!isRHS && !shouldFocusRHS) {
+            focusTextbox();
         }
     }, []);
 

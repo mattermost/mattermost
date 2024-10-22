@@ -85,6 +85,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                     EnableTesting: true,
                 },
             });
+            cy.apiReloadConfig();
         });
 
         beforeEach(() => {
@@ -132,6 +133,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                         EnableTesting: false,
                     },
                 });
+                cy.apiReloadConfig();
             });
 
             beforeEach(() => {
@@ -178,6 +180,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                         EnableTesting: true,
                     },
                 });
+                cy.apiReloadConfig();
             });
 
             beforeEach(() => {

@@ -24,6 +24,8 @@ import type {LinkInfo} from '../types';
 
 import './file_preview_modal_main_actions.scss';
 
+const COPIED_TOOLTIP_DURATION = 2000;
+
 interface Props {
     usedInside?: 'Header' | 'Footer';
     showOnlyClose?: boolean;
@@ -52,6 +54,15 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             dispatch(getFilePublicLink(props.fileInfo.id));
         }
     }, [props.fileInfo, props.enablePublicLink]);
+
+    useEffect(() => {
+        if (publicLinkCopied) {
+            setTimeout(() => {
+                setPublicLinkCopied(false);
+            }, COPIED_TOOLTIP_DURATION);
+        }
+    }, [publicLinkCopied]);
+
     const copyPublicLink = () => {
         copyToClipboard(selectedFilePublicLink ?? '');
         setPublicLinkCopied(true);
@@ -96,8 +107,6 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             key='filePreviewPublicLink'
             placement={tooltipPlacement}
             title={publicTooltipMessage}
-            shouldUpdatePosition={true}
-            onExit={() => setPublicLinkCopied(false)}
         >
             <a
                 href='#'

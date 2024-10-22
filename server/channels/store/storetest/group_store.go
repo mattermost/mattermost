@@ -81,7 +81,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("AdminRoleGroupsForSyncableMember_Team", func(t *testing.T) { groupTestAdminRoleGroupsForSyncableMemberTeam(t, rctx, ss) })
 	t.Run("PermittedSyncableAdmins_Team", func(t *testing.T) { groupTestPermittedSyncableAdminsTeam(t, rctx, ss) })
 	t.Run("PermittedSyncableAdmins_Channel", func(t *testing.T) { groupTestPermittedSyncableAdminsChannel(t, rctx, ss) })
-	t.Run("UpdateMembersRole_Team", func(t *testing.T) { groupTestpUpdateMembersRoleTeam(t, rctx, ss) })
+	t.Run("UpdateMembersRole_Team", func(t *testing.T) { groupTestUpdateMembersRoleTeam(t, rctx, ss) })
 	t.Run("UpdateMembersRole_Channel", func(t *testing.T) { groupTestpUpdateMembersRoleChannel(t, rctx, ss) })
 
 	t.Run("GroupCount", func(t *testing.T) { groupTestGroupCount(t, rctx, ss) })
@@ -4739,7 +4739,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, rctx request.CTX, ss 
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
 }
 
-func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Store) {
+func groupTestUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName:     "Name",
 		Description:     "Some description",
@@ -4759,6 +4759,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.St
 	}
 	user1, err = ss.User().Save(rctx, user1)
 	require.NoError(t, err)
+	t.Log("Created user1", user1.Id)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -4766,6 +4767,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.St
 	}
 	user2, err = ss.User().Save(rctx, user2)
 	require.NoError(t, err)
+	t.Log("Created user2", user2.Id)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
@@ -4773,6 +4775,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.St
 	}
 	user3, err = ss.User().Save(rctx, user3)
 	require.NoError(t, err)
+	t.Log("Created user3", user3.Id)
 
 	user4 := &model.User{
 		Email:    MakeEmail(),
@@ -4780,6 +4783,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.St
 	}
 	user4, err = ss.User().Save(rctx, user4)
 	require.NoError(t, err)
+	t.Log("Created user4", user4.Id)
 
 	for _, user := range []*model.User{user1, user2, user3} {
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
@@ -4790,53 +4794,73 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, nErr)
 
 	tests := []struct {
-		testName               string
-		inUserIDs              []string
-		targetSchemeAdminValue bool
+		testName             string
+		newAdmins            []string
+		expectedUpdatedUsers []string
 	}{
 		{
-			"Given users are admins",
+			"Two new admins",
 			[]string{user1.Id, user2.Id},
-			true,
+			[]string{user1.Id, user2.Id},
 		},
 		{
-			"Given users are members",
+			"Demote one admin",
+			[]string{user1.Id},
 			[]string{user2.Id},
-			false,
 		},
 		{
-			"Non-given users are admins",
-			[]string{user2.Id},
-			false,
+			"Operation is idempotent",
+			[]string{user1.Id},
+			nil,
 		},
 		{
-			"Non-given users are members",
-			[]string{user2.Id},
-			false,
+			"Promote a team member",
+			[]string{user1.Id, user3.Id},
+			[]string{user3.Id},
+		},
+		{
+			"Guests never get promoted",
+			[]string{user1.Id, user3.Id, user4.Id},
+			nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs)
+			var updatedMembers []*model.TeamMember
+			updatedMembers, err = ss.Team().UpdateMembersRole(team.Id, tt.newAdmins)
 			require.NoError(t, err)
+
+			var updatedUserIDs []string
+			for _, member := range updatedMembers {
+				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+
+				if slices.Contains(tt.newAdmins, member.UserId) {
+					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				}
+
+				updatedUserIDs = append(updatedUserIDs, member.UserId)
+			}
+			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
 			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
+			assert.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
-				if slices.Contains(tt.inUserIDs, member.UserId) {
-					require.True(t, member.SchemeAdmin)
-				} else {
-					require.False(t, member.SchemeAdmin)
-				}
-
 				// Ensure guest account never changes.
 				if member.UserId == user4.Id {
-					require.False(t, member.SchemeUser)
-					require.False(t, member.SchemeAdmin)
-					require.True(t, member.SchemeGuest)
+					assert.False(t, member.SchemeUser, fmt.Sprintf("userID: %s", member.UserId))
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					assert.True(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					if slices.Contains(tt.newAdmins, member.UserId) {
+						assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					} else {
+						assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					}
 				}
 			}
 		})
@@ -4859,6 +4883,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	}
 	user1, err = ss.User().Save(rctx, user1)
 	require.NoError(t, err)
+	t.Log("Created user1", user1.Id)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -4866,6 +4891,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	}
 	user2, err = ss.User().Save(rctx, user2)
 	require.NoError(t, err)
+	t.Log("Created user2", user2.Id)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
@@ -4873,6 +4899,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	}
 	user3, err = ss.User().Save(rctx, user3)
 	require.NoError(t, err)
+	t.Log("Created user3", user3.Id)
 
 	user4 := &model.User{
 		Email:    MakeEmail(),
@@ -4880,6 +4907,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	}
 	user4, err = ss.User().Save(rctx, user4)
 	require.NoError(t, err)
+	t.Log("Created user4", user4.Id)
 
 	for _, user := range []*model.User{user1, user2, user3} {
 		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -4899,54 +4927,73 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 
 	tests := []struct {
-		testName               string
-		inUserIDs              []string
-		targetSchemeAdminValue bool
+		testName             string
+		newAdmins            []string
+		expectedUpdatedUsers []string
 	}{
 		{
-			"Given users are admins",
+			"Two new admins",
 			[]string{user1.Id, user2.Id},
-			true,
+			[]string{user1.Id, user2.Id},
 		},
 		{
-			"Given users are members",
+			"Demote one admin",
+			[]string{user1.Id},
 			[]string{user2.Id},
-			false,
 		},
 		{
-			"Non-given users are admins",
-			[]string{user2.Id},
-			false,
+			"Operation is idempotent",
+			[]string{user1.Id},
+			nil,
 		},
 		{
-			"Non-given users are members",
-			[]string{user2.Id},
-			false,
+			"Promote a team member",
+			[]string{user1.Id, user3.Id},
+			[]string{user3.Id},
+		},
+		{
+			"Guests never get promoted",
+			[]string{user1.Id, user3.Id, user4.Id},
+			nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs)
+			var updatedMemmbers []*model.ChannelMember
+			updatedMemmbers, err = ss.Channel().UpdateMembersRole(channel.Id, tt.newAdmins)
 			require.NoError(t, err)
+
+			var updatedUserIDs []string
+			for _, member := range updatedMemmbers {
+				assert.False(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+
+				if slices.Contains(tt.newAdmins, member.UserId) {
+					assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+				}
+
+				updatedUserIDs = append(updatedUserIDs, member.UserId)
+			}
+			assert.ElementsMatch(t, tt.expectedUpdatedUsers, updatedUserIDs)
 
 			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
 			require.NoError(t, err)
-
-			require.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
+			assert.GreaterOrEqual(t, len(members), 4) // sanity check for channel membership
 
 			for _, member := range members {
-				if slices.Contains(tt.inUserIDs, member.UserId) {
-					require.True(t, member.SchemeAdmin)
-				} else {
-					require.False(t, member.SchemeAdmin)
-				}
-
 				// Ensure guest account never changes.
 				if member.UserId == user4.Id {
-					require.False(t, member.SchemeUser)
-					require.False(t, member.SchemeAdmin)
-					require.True(t, member.SchemeGuest)
+					assert.False(t, member.SchemeUser, fmt.Sprintf("userID: %s", member.UserId))
+					assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					assert.True(t, member.SchemeGuest, fmt.Sprintf("userID: %s", member.UserId))
+				} else {
+					if slices.Contains(tt.newAdmins, member.UserId) {
+						assert.True(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					} else {
+						assert.False(t, member.SchemeAdmin, fmt.Sprintf("userID: %s", member.UserId))
+					}
 				}
 			}
 		})

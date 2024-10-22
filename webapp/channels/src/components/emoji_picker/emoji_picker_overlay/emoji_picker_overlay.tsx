@@ -16,7 +16,6 @@ import EmojiPickerTabs from '../emoji_picker_tabs';
 import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
-    container?: () => ReactNode;
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
@@ -93,7 +92,6 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
                 show={show}
                 placement={this.props.placement ?? placement}
                 rootClose={!isMobileView}
-                container={this.props.container}
                 onHide={this.props.onHide}
                 target={target}
                 animation={false}

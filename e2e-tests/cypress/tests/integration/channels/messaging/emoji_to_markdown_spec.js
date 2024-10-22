@@ -66,11 +66,11 @@ function createAndVerifyMessage(message, isCode) {
         });
     } else {
         aliases.forEach((alias) => {
+            const emoticonText = message.trim() === ':D' ? ':smile:' : ':taco:';
             cy.get('@' + alias).
-                children().should('have.class', 'all-emoji').
-                children().find('span').last().should('have.class', 'emoticon').
-                and('have.attr', 'alt', message.trim() === ':D' ? ':smile:' : ':taco:').
-                and('have.text', message.trim() === ':D' ? ':smile:' : ':taco:');
+                find(`span[data-testid="postEmoji.${emoticonText}"]`).
+                and('have.attr', 'alt', emoticonText).
+                and('have.text', message.trim());
         });
     }
 }

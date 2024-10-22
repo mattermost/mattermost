@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
 export interface Props {
     actions: {
         sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
     };
-    intl: IntlShape;
 }
 
 interface State {
@@ -21,7 +21,7 @@ interface State {
     updateText: React.ReactNode;
 }
 
-export class PasswordResetSendLink extends React.PureComponent<Props, State> {
+export default class PasswordResetSendLink extends React.PureComponent<Props, State> {
     state = {
         error: null,
         updateText: null,
@@ -120,12 +120,12 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                                 />
                             </p>
                             <div className={formClass}>
-                                <input
+                                <LocalizedPlaceholderInput
                                     id='passwordResetEmailInput'
                                     type='email'
                                     className='form-control'
                                     name='email'
-                                    placeholder={this.props.intl.formatMessage({
+                                    placeholder={defineMessage({
                                         id: 'password_send.email',
                                         defaultMessage: 'Email',
                                     })}
@@ -152,5 +152,3 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
         );
     }
 }
-
-export default injectIntl(PasswordResetSendLink);

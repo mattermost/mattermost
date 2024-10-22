@@ -140,7 +140,7 @@ func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace
 		return nil
 	}
 
-	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId)
+	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId, false)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}

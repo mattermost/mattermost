@@ -55,7 +55,8 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Deactivate Guest user
-        cy.externalActivateUser(guestUser.id, false).wait(TIMEOUTS.FIVE_SEC);
+        cy.externalActivateUser(guestUser.id, false);
+        cy.wait(TIMEOUTS.FIVE_SEC);
 
         // # Switch channels away and back to reload the header
         cy.get('.SidebarChannel:contains(Town Square)').click();

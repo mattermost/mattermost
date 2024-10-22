@@ -135,8 +135,6 @@ func TestFetchAndComplete(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			name := name // TODO: Remove once go1.22 is used
-			tc := tc     // TODO: Remove once go1.22 is used
 			t.Parallel()
 
 			comp, directive := fetchAndComplete[user](tc.fetcher, tc.matcher)(context.Background(), nil, nil, nil, tc.toComplete)

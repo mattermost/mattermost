@@ -85,7 +85,7 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     onDragStart={[Function]}
   />
   <Connect(DataPrefetch) />
-  <Connect(MoreDirectChannels)
+  <MoreDirectChannels
     isExistingChannel={false}
     onModalDismissed={[Function]}
   />

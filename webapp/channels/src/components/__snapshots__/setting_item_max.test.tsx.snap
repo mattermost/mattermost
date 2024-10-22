@@ -27,23 +27,9 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
       >
         <hr />
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -98,23 +84,9 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -169,23 +141,9 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
           </label>
         </div>
         <SaveButton
-          btnClass=""
-          defaultMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Save"
-              id="save_button.save"
-            />
-          }
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"
@@ -230,18 +188,10 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
       >
         <hr />
         <SaveButton
-          btnClass=""
           defaultMessage="CustomText"
           disabled={false}
-          extraClasses=""
           onClick={[Function]}
           saving={false}
-          savingMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Saving"
-              id="save_button.saving"
-            />
-          }
         />
         <button
           className="btn btn-tertiary"

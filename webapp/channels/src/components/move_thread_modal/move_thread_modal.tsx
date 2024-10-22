@@ -63,7 +63,7 @@ const preventActionOnPreview = (e: React.MouseEvent) => {
 const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const {formatMessage} = useIntl();
 
-    const originalChannel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
+    const originalChannel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);

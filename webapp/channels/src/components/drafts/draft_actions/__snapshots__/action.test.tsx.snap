@@ -11,11 +11,11 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
   >
     <button
       className="DraftAction__button"
-      id="draft_{icon}_"
+      id="draft__"
       onClick={[MockFunction]}
     >
       <i
-        className="icon "
+        className="icon"
       />
     </button>
   </WithTooltip>

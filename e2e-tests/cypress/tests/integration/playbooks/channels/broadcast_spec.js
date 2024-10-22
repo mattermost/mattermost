@@ -379,10 +379,10 @@ const deleteLatestPostRoot = (testTeam, channelName) => {
 
         // * Check that confirmation dialog contains correct text
         cy.get('#deletePostModal').
-            should('contain', 'Are you sure you want to delete this Post?');
+            should('contain', 'Are you sure you want to delete this message?');
 
         // * Check that confirmation dialog shows that the post has one comment on it
-        cy.get('#deletePostModal').should('contain', 'This post has 1 comment on it.');
+        cy.get('#deletePostModal').should('contain', 'This message has 1 comment on it.');
 
         // # Confirm deletion.
         cy.get('#deletePostModalButton').click();

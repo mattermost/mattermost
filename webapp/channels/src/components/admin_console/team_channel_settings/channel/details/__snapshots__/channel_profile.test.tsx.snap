@@ -25,20 +25,24 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Name**"
-          id="admin.channel_settings.channel_detail.channelName"
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="admin.channelSettings.channelDetail.channelName"
+          />
+        </b>
         <br />
         test
       </div>
       <div
         className="channel-team"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Team**"
-          id="admin.channel_settings.channel_detail.channelTeam"
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Team"
+            id="admin.channelSettings.channelDetail.channelTeam"
+          />
+        </b>
         <br />
         test
       </div>
@@ -88,33 +92,38 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
       <div
         className="channel-name"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Name**"
-          id="admin.channel_settings.channel_detail.channelName"
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="admin.channelSettings.channelDetail.channelName"
+          />
+        </b>
         <br />
         test
       </div>
       <div
         className="channel-team"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Team**"
-          id="admin.channel_settings.channel_detail.channelTeam"
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Team"
+            id="admin.channelSettings.channelDetail.channelTeam"
+          />
+        </b>
         <br />
         test
       </div>
       <div
         className="channel-organizations"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Organizations**"
-          id="admin.channel_settings.channel_detail.channelOrganizations"
-        />
+        <b>
+          <MemoizedFormattedMessage
+            defaultMessage="Organizations"
+            id="admin.channelSettings.channelDetail.channel_organizations"
+          />
+        </b>
         <br />
         <SharedChannelIndicator
-          channelType="O"
           className="shared-channel-icon"
         />
         <MemoizedFormattedMessage

@@ -14,7 +14,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import 'redux-thunk/extend-redux';
 
 export type DispatchFunc = Dispatch;
-export type GetStateFunc = () => GlobalState;
+export type GetStateFunc<State = GlobalState> = () => State;
 
 /**
  * ActionResult should be the return value of most Thunk action creators.

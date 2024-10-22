@@ -10,6 +10,7 @@ import {asGBString} from 'utils/limits';
 
 export default function ArchivedTooltip() {
     const intl = useIntl();
+
     return (
         <>
             <div className='post-image__archived-tooltip-title'>

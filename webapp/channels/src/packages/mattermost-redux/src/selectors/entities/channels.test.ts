@@ -481,13 +481,13 @@ describe('makeGetChannel', () => {
     test('should return non-DM/non-GM channels directly from the store', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel1.id})).toBe(channel1);
+        expect(getChannel(testState, channel1.id)).toBe(channel1);
     });
 
     test('should return DMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel2.id})).toEqual({
+        expect(getChannel(testState, channel2.id)).toEqual({
             ...channel2,
             display_name: user2.username,
             status: 'offline',
@@ -498,7 +498,7 @@ describe('makeGetChannel', () => {
     test('should return GMs with computed data added', () => {
         const getChannel = Selectors.makeGetChannel();
 
-        expect(getChannel(testState, {id: channel3.id})).toEqual({
+        expect(getChannel(testState, channel3.id)).toEqual({
             ...channel3,
             display_name: [user2.username, user3.username].sort(sortUsernames).join(', '),
         });

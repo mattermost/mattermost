@@ -79,7 +79,6 @@ const ChannelHeaderTitle = ({
         sharedIcon = (
             <SharedChannelIndicator
                 className='shared-channel-icon'
-                channelType={channel.type}
                 withTooltip={true}
             />
         );

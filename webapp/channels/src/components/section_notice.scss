@@ -106,6 +106,10 @@
         font-size: 20px;
         line-height: 28px;
     }
+
+    &.noText {
+        margin-bottom: 0;
+    }
 }
 
 .sectionNoticeBody {

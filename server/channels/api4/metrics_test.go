@@ -30,6 +30,7 @@ func setupMetricsMock() *mocks.MetricsInterface {
 	metricsMock.On("IncrementHTTPError").Return()
 	metricsMock.On("IncrementHTTPRequest").Return()
 	metricsMock.On("ObserveAPIEndpointDuration", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+	metricsMock.On("ObserveRedisEndpointDuration", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
 	metricsMock.On("Register").Return()
 
 	return metricsMock
@@ -154,5 +155,68 @@ func TestSubmitMetrics(t *testing.T) {
 
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("metrics recorded for API errors", func(t *testing.T) {
+		metricsMock := setupMetricsMock()
+		metricsMock.On("IncrementClientLongTasks", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+
+		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+			return metricsMock
+		})
+		t.Cleanup(func() {
+			platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+				return nil
+			})
+		})
+
+		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
+		defer th.TearDown()
+
+		// enable metrics and add the license
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.ListenAddress = ":0" })
+
+		_, resp, err := th.Client.CreatePost(th.Context.Context(), &model.Post{
+			ChannelId: model.NewId(),
+		})
+
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		metricsMock.AssertCalled(t, "IncrementHTTPRequest")
+		metricsMock.AssertCalled(t, "IncrementHTTPError")
+	})
+
+	t.Run("metrics recorded for URL length limit errors", func(t *testing.T) {
+		metricsMock := setupMetricsMock()
+		metricsMock.On("IncrementClientLongTasks", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
+
+		platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+			return metricsMock
+		})
+		t.Cleanup(func() {
+			platform.RegisterMetricsInterface(func(_ *platform.PlatformService, _, _ string) einterfaces.MetricsInterface {
+				return nil
+			})
+		})
+
+		th := SetupEnterpriseWithServerOptions(t, []app.Option{app.StartMetrics})
+		defer th.TearDown()
+
+		// enable metrics and add the license
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.MetricsSettings.ListenAddress = ":0" })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumURLLength = 1 })
+
+		_, resp, err := th.Client.CreatePost(th.Context.Context(), &model.Post{
+			ChannelId: model.NewId(),
+		})
+
+		require.Error(t, err)
+		require.Equal(t, http.StatusRequestURITooLong, resp.StatusCode)
+		metricsMock.AssertCalled(t, "IncrementHTTPRequest")
+		metricsMock.AssertCalled(t, "IncrementHTTPError")
 	})
 }

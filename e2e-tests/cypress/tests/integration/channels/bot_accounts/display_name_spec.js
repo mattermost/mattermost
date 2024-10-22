@@ -35,6 +35,9 @@ describe('Bot display name', () => {
                 });
                 cy.visit(`/${team.name}/channels/off-topic`);
                 cy.wait('@resources');
+
+                // # Wait for the page to fully load before continuing
+                cy.get('#sidebar-header-container').should('be.visible').and('have.text', team.display_name);
             });
         });
     });

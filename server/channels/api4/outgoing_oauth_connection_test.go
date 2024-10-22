@@ -224,7 +224,8 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 		license.Id = "test-license-id"
 		th.App.Srv().SetLicense(license)
-		th.App.Srv().RemoveLicense()
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
 
 		th.LoginTeamAdmin()
 
@@ -262,7 +263,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -297,7 +299,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit: 10,
@@ -333,7 +336,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -376,7 +380,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:    1,
@@ -421,7 +426,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -441,7 +447,10 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -460,7 +469,8 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		connection, response, err := th.Client.GetOutgoingOAuthConnection(context.Background(), "test")
 		require.Error(t, err)
@@ -512,7 +522,10 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -585,7 +598,10 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -664,7 +680,10 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
@@ -809,7 +828,10 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 		license.Id = "test-license-id"
 		th.App.Srv().SetLicense(license)
-		defer th.App.Srv().RemoveLicense()
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		c := &Context{}
 		c.AppContext = th.Context
@@ -831,7 +853,10 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	c := &Context{}
 	c.AppContext = th.Context
@@ -954,7 +979,10 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	c := &Context{}
 	c.AppContext = th.Context
@@ -1048,7 +1076,10 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	t.Run("no permissions", func(t *testing.T) {
 		c := &Context{}
@@ -1258,7 +1289,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
 	th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
@@ -1404,7 +1438,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
-	defer th.App.Srv().RemoveLicense()
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
 
 	// Run a server to fake the valid and invalid requests made to the oauth server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

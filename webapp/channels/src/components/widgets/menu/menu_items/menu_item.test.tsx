@@ -35,6 +35,7 @@ describe('components/MenuItem', () => {
             >
               <Component
                 ariaLabel="test-text"
+                id="test-id-button"
                 otherProp="extra-prop"
                 text={
                   <React.Fragment>
@@ -43,7 +44,11 @@ describe('components/MenuItem', () => {
                     >
                       test-icon
                     </span>
-                    test-text
+                    <div
+                      className="text"
+                    >
+                      test-text
+                    </div>
                   </React.Fragment>
                 }
               />
@@ -62,6 +67,7 @@ describe('components/MenuItem', () => {
             >
               <Component
                 ariaLabel="test-text"
+                id="test-id-button"
                 otherProp="extra-prop"
                 text="test-text"
               />

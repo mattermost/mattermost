@@ -1132,7 +1132,7 @@ describe('Actions.Channels', () => {
         );
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=false').
+            post('/channels/search?include_deleted=false&exclude_remote=false').
             reply(200, [TestHelper.basicChannel, userChannel]);
 
         await store.dispatch(Actions.searchAllChannels('test', {}));
@@ -1143,7 +1143,7 @@ describe('Actions.Channels', () => {
         }
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=false').
+            post('/channels/search?include_deleted=false&exclude_remote=false').
             reply(200, {channels: [TestHelper.basicChannel, userChannel], total_count: 2});
 
         let response = await store.dispatch(Actions.searchAllChannels('test', {exclude_default_channels: false, page: 0, per_page: 100}));
@@ -1156,7 +1156,7 @@ describe('Actions.Channels', () => {
         expect(response.data.channels.length === 2).toBeTruthy();
 
         nock(Client4.getBaseRoute()).
-            post('/channels/search?include_deleted=true').
+            post('/channels/search?include_deleted=true&exclude_remote=false').
             reply(200, {channels: [TestHelper.basicChannel, userChannel], total_count: 2});
 
         response = await store.dispatch(Actions.searchAllChannels('test', {exclude_default_channels: false, page: 0, per_page: 100, include_deleted: true}));
@@ -2087,5 +2087,28 @@ describe('Actions.Channels', () => {
         expect(channelMemberCounts['group-2'].group_id).toEqual('group-2');
         expect(channelMemberCounts['group-2'].channel_member_count).toEqual(999);
         expect(channelMemberCounts['group-2'].channel_member_timezones_count).toEqual(131);
+    });
+
+    it('fetchAllMyChannelMembers', async () => {
+        const store = configureStore({
+            entities: {
+                users: {
+                    currentUserId: 'some-user-id',
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=0&per_page=200').
+            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index}`, user_id: 'some-user-id'})));
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=1&per_page=200').
+            reply(200, [...Array(200).keys()].map((index) => ({channel_id: `channel-${index + 200}`, user_id: 'some-user-id'})));
+        nock(Client4.getBaseRoute()).get(
+            '/users/some-user-id/channel_members?page=2&per_page=200').
+            reply(200, [...Array(100).keys()].map((index) => ({channel_id: `channel-${index + 400}`, user_id: 'some-user-id'})));
+
+        await store.dispatch(Actions.fetchAllMyChannelMembers());
+        expect(Object.keys(store.getState().entities.channels.myMembers).length).toBe(500);
     });
 });

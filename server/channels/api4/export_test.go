@@ -41,11 +41,15 @@ func TestListExports(t *testing.T) {
 		exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll(exportDir)
+		defer func() {
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
+		}()
 
 		f, err := os.Create(filepath.Join(exportDir, "export.zip"))
 		require.NoError(t, err)
-		f.Close()
+		err = f.Close()
+		require.NoError(t, err)
 
 		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
@@ -61,7 +65,10 @@ func TestListExports(t *testing.T) {
 		exportDir := filepath.Join(dataDir, value+"new")
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll(exportDir)
+		defer func() {
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
+		}()
 
 		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
@@ -69,7 +76,8 @@ func TestListExports(t *testing.T) {
 
 		f, err := os.Create(filepath.Join(exportDir, "export.zip"))
 		require.NoError(t, err)
-		f.Close()
+		err = f.Close()
+		require.NoError(t, err)
 
 		exports, _, err = c.ListExports(context.Background())
 		require.NoError(t, err)
@@ -95,11 +103,15 @@ func TestDeleteExport(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll(exportDir)
+		defer func() {
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
+		}()
 		exportName := "export.zip"
 		f, err := os.Create(filepath.Join(exportDir, exportName))
 		require.NoError(t, err)
-		f.Close()
+		err = f.Close()
+		require.NoError(t, err)
 
 		exports, _, err := c.ListExports(context.Background())
 		require.NoError(t, err)
@@ -146,7 +158,10 @@ func TestDownloadExport(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll(exportDir)
+		defer func() {
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
+		}()
 
 		data := randomBytes(t, 1024*1024)
 		var buf bytes.Buffer
@@ -163,7 +178,10 @@ func TestDownloadExport(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		err := os.Mkdir(exportDir, 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll(exportDir)
+		defer func() {
+			err = os.RemoveAll(exportDir)
+			require.NoError(t, err)
+		}()
 
 		data := randomBytes(t, 1024*1024)
 		var buf bytes.Buffer
@@ -189,12 +207,16 @@ func BenchmarkDownloadExport(b *testing.B) {
 
 	err := os.Mkdir(exportDir, 0700)
 	require.NoError(b, err)
-	defer os.RemoveAll(exportDir)
+	defer func() {
+		err = os.RemoveAll(exportDir)
+		require.NoError(b, err)
+	}()
 
 	exportName := "export.zip"
 	f, err := os.Create(filepath.Join(exportDir, exportName))
 	require.NoError(b, err)
-	f.Close()
+	err = f.Close()
+	require.NoError(b, err)
 
 	err = os.Truncate(filepath.Join(exportDir, exportName), 1024*1024*1024)
 	require.NoError(b, err)
@@ -202,9 +224,13 @@ func BenchmarkDownloadExport(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		outFilePath := filepath.Join(dataDir, fmt.Sprintf("export%d.zip", i))
-		outFile, _ := os.Create(outFilePath)
-		th.SystemAdminClient.DownloadExport(context.Background(), exportName, outFile, 0)
-		outFile.Close()
-		os.Remove(outFilePath)
+		outFile, err := os.Create(outFilePath)
+		require.NoError(b, err)
+		_, _, err = th.SystemAdminClient.DownloadExport(context.Background(), exportName, outFile, 0)
+		require.NoError(b, err)
+		err = outFile.Close()
+		require.NoError(b, err)
+		err = os.Remove(outFilePath)
+		require.NoError(b, err)
 	}
 }

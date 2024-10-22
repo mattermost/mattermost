@@ -145,7 +145,7 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testRemoteClusterDelete(t *testing.T, _ request.CTX, ss store.Store) {
+func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote",
@@ -158,6 +158,57 @@ func testRemoteClusterDelete(t *testing.T, _ request.CTX, ss store.Store) {
 		deleted, err := ss.RemoteCluster().Delete(rcSaved.RemoteId)
 		require.NoError(t, err)
 		require.True(t, deleted)
+
+		deletedRC, err := ss.RemoteCluster().Get(rcSaved.RemoteId, true)
+		require.NoError(t, err)
+		require.NotZero(t, deletedRC.DeleteAt)
+	})
+
+	t.Run("Delete with shared channel remotes", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "shortlived_remote",
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+		}
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		// we create a shared channel remote for the remote cluster
+		channel, err := createTestChannel(ss, rctx, "test_delete")
+		require.NoError(t, err)
+
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			CreatorId: model.NewId(),
+			ShareName: "testshare",
+			RemoteId:  model.NewId(),
+		}
+
+		_, err = ss.SharedChannel().Save(sc)
+		require.NoError(t, err, "couldn't save shared channel", err)
+
+		scr := &model.SharedChannelRemote{
+			ChannelId: channel.Id,
+			CreatorId: model.NewId(),
+			RemoteId:  rc.RemoteId,
+		}
+		scrSaved, err := ss.SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+
+		// and then we delete the cluster, expecting the shared
+		// channel remote to be deleted as well
+		deleted, err := ss.RemoteCluster().Delete(rcSaved.RemoteId)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		deletedRC, err := ss.RemoteCluster().Get(rcSaved.RemoteId, true)
+		require.NoError(t, err)
+		require.NotZero(t, deletedRC.DeleteAt)
+
+		deletedSCR, err := ss.SharedChannel().GetRemote(scrSaved.Id)
+		require.NoError(t, err)
+		require.NotZero(t, deletedSCR.DeleteAt)
 	})
 
 	t.Run("Delete nonexistent", func(t *testing.T) {
@@ -179,15 +230,38 @@ func testRemoteClusterGet(t *testing.T, _ request.CTX, ss store.Store) {
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
-		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId)
+		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId, false)
 		require.NoError(t, err)
 		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
 		require.Equal(t, rcSaved.PluginID, rcGet.PluginID)
 		require.True(t, rcGet.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
 
+	t.Run("Get deleted", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "shortlived_remote_3",
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+			PluginID:  model.NewId(),
+			DeleteAt:  123,
+		}
+		rc.SetOptionFlag(model.BitflagOptionAutoShareDMs)
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId, false)
+		require.Error(t, err)
+		require.Empty(t, rcGet)
+
+		rcGetDeleted, err := ss.RemoteCluster().Get(rcSaved.RemoteId, true)
+		require.NoError(t, err)
+		require.Equal(t, rcSaved.RemoteId, rcGetDeleted.RemoteId)
+		require.Equal(t, rcSaved.PluginID, rcGetDeleted.PluginID)
+		require.True(t, rcGetDeleted.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
+	})
+
 	t.Run("Get not found", func(t *testing.T) {
-		_, err := ss.RemoteCluster().Get(model.NewId())
+		_, err := ss.RemoteCluster().Get(model.NewId(), false)
 		require.Error(t, err)
 	})
 }
@@ -197,7 +271,7 @@ func testRemoteClusterGetByPluginID(t *testing.T, _ request.CTX, ss store.Store)
 
 	t.Run("GetByPluginID", func(t *testing.T) {
 		rc := &model.RemoteCluster{
-			Name:      "shortlived_remote_3",
+			Name:      "shortlived_remote_4",
 			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
 			PluginID:  pluginID,
@@ -218,7 +292,7 @@ func testRemoteClusterGetByPluginID(t *testing.T, _ request.CTX, ss store.Store)
 }
 
 func testRemoteClusterGetAll(t *testing.T, _ request.CTX, ss store.Store) {
-	require.NoError(t, clearRemoteClusters(ss))
+	ss.DropAllTables()
 
 	userId := model.NewId()
 	now := model.GetMillis()
@@ -232,9 +306,11 @@ func testRemoteClusterGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 		{Name: "brand_new_offline_remote", CreatorId: userId, SiteURL: "", LastPingAt: 0, Topics: " bogus shared stuff "},
 		{Name: "offline_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: 0, Topics: " pluginshare "},
 		{Name: "online_plugin_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), PluginID: model.NewId(), LastPingAt: now, Topics: " pluginshare "},
+		{Name: "deleted_remote", CreatorId: model.NewId(), SiteURL: "", LastPingAt: 0, DeleteAt: 123},
 	}
 
 	idsAll := make([]string, 0)
+	idsNotDeleted := make([]string, 0)
 	idsOnline := make([]string, 0)
 	idsShareTopic := make([]string, 0)
 	idsPlugin := make([]string, 0)
@@ -246,29 +322,43 @@ func testRemoteClusterGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 		saved, err := ss.RemoteCluster().Save(item)
 		require.NoError(t, err)
 		idsAll = append(idsAll, saved.RemoteId)
-		if online {
-			idsOnline = append(idsOnline, saved.RemoteId)
-		}
-		if strings.Contains(saved.Topics, " shared ") {
-			idsShareTopic = append(idsShareTopic, saved.RemoteId)
-		}
-		if item.PluginID != "" {
-			idsPlugin = append(idsPlugin, saved.RemoteId)
-		} else {
-			idsNotPlugin = append(idsNotPlugin, saved.RemoteId)
-		}
-		if item.SiteURL != "" {
-			idsConfirmed = append(idsConfirmed, saved.RemoteId)
+		if item.DeleteAt == 0 {
+			idsNotDeleted = append(idsNotDeleted, saved.RemoteId)
+
+			// only include non-deleted items in other counts
+			if online {
+				idsOnline = append(idsOnline, saved.RemoteId)
+			}
+			if strings.Contains(saved.Topics, " shared ") {
+				idsShareTopic = append(idsShareTopic, saved.RemoteId)
+			}
+			if item.PluginID != "" {
+				idsPlugin = append(idsPlugin, saved.RemoteId)
+			} else {
+				idsNotPlugin = append(idsNotPlugin, saved.RemoteId)
+			}
+			if item.SiteURL != "" {
+				idsConfirmed = append(idsConfirmed, saved.RemoteId)
+			}
 		}
 	}
 
 	t.Run("GetAll", func(t *testing.T) {
-		filter := model.RemoteClusterQueryFilter{}
+		filter := model.RemoteClusterQueryFilter{IncludeDeleted: true}
 		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
 		require.NoError(t, err)
 		// make sure all the test data remotes were returned.
 		ids := getIds(remotes)
 		assert.ElementsMatch(t, ids, idsAll)
+	})
+
+	t.Run("GetAllNotDeleted", func(t *testing.T) {
+		filter := model.RemoteClusterQueryFilter{}
+		remotes, err := ss.RemoteCluster().GetAll(0, 999999, filter)
+		require.NoError(t, err)
+		// make sure all the test data remotes were returned.
+		ids := getIds(remotes)
+		assert.ElementsMatch(t, ids, idsNotDeleted)
 	})
 
 	t.Run("GetAll online only", func(t *testing.T) {
@@ -375,7 +465,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		testPluginID_2 = "com.sample.bloop"
 	)
 
-	require.NoError(t, clearRemoteClusters(ss))
+	ss.DropAllTables()
 	now := model.GetMillis()
 
 	userId := model.NewId()
@@ -485,7 +575,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 }
 
 func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	require.NoError(t, clearRemoteClusters(ss))
+	ss.DropAllTables()
 
 	userId := model.NewId()
 
@@ -590,7 +680,7 @@ func getIds(remotes []*model.RemoteCluster) []string {
 }
 
 func testRemoteClusterGetByTopic(t *testing.T, _ request.CTX, ss store.Store) {
-	require.NoError(t, clearRemoteClusters(ss))
+	ss.DropAllTables()
 
 	rcData := []*model.RemoteCluster{
 		{Name: "AAAA_Inc", CreatorId: model.NewId(), SiteURL: "aaaa.com", RemoteId: model.NewId(), Topics: ""},
@@ -664,23 +754,9 @@ func testRemoteClusterUpdateTopics(t *testing.T, _ request.CTX, ss store.Store) 
 		_, err = ss.RemoteCluster().UpdateTopics(remoteId, tt.topics)
 		require.NoError(t, err)
 
-		rcUpdated, err := ss.RemoteCluster().Get(remoteId)
+		rcUpdated, err := ss.RemoteCluster().Get(remoteId, false)
 		require.NoError(t, err)
 
 		require.Equal(t, tt.expected, rcUpdated.Topics)
 	}
-}
-
-func clearRemoteClusters(ss store.Store) error {
-	list, err := ss.RemoteCluster().GetAll(0, 999999, model.RemoteClusterQueryFilter{})
-	if err != nil {
-		return err
-	}
-
-	for _, rc := range list {
-		if _, err := ss.RemoteCluster().Delete(rc.RemoteId); err != nil {
-			return err
-		}
-	}
-	return nil
 }

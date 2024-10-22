@@ -50,7 +50,10 @@ exports[`components/post_view/ShowMore should match snapshot, PostAttachment on 
         <span
           className="fa fa-angle-down"
         />
-        Show more
+        <MemoizedFormattedMessage
+          defaultMessage="Show more"
+          id="post_info.message.show_more"
+        />
       </button>
       <div
         className="post-collapse__show-more-line"
@@ -89,7 +92,10 @@ exports[`components/post_view/ShowMore should match snapshot, PostAttachment on 
         <span
           className="fa fa-angle-up"
         />
-        Show less
+        <MemoizedFormattedMessage
+          defaultMessage="Show less"
+          id="post_info.message.show_less"
+        />
       </button>
       <div
         className="post-collapse__show-more-line"
@@ -128,7 +134,10 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
         <span
           className="fa fa-angle-down"
         />
-        Show more
+        <MemoizedFormattedMessage
+          defaultMessage="Show more"
+          id="post_info.message.show_more"
+        />
       </button>
       <div
         className="post-collapse__show-more-line"
@@ -167,7 +176,10 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
         <span
           className="fa fa-angle-up"
         />
-        Show less
+        <MemoizedFormattedMessage
+          defaultMessage="Show less"
+          id="post_info.message.show_less"
+        />
       </button>
       <div
         className="post-collapse__show-more-line"
@@ -206,7 +218,10 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
         <span
           className="fa fa-angle-up"
         />
-        Show less
+        <MemoizedFormattedMessage
+          defaultMessage="Show less"
+          id="post_info.message.show_less"
+        />
       </button>
       <div
         className="post-collapse__show-more-line"

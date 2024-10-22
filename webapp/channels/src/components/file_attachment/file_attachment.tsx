@@ -10,7 +10,6 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import useTooltip from 'components/common/hooks/useTooltip';
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -64,16 +63,6 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
-
-    const {
-        setReference,
-        getReferenceProps,
-        tooltip: archivedTooltip,
-    } = useTooltip({
-        message: <ArchivedTooltip/>,
-        placement: 'right',
-        allowedPlacements: ['right', 'top'],
-    });
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -368,18 +357,19 @@ export default function FileAttachment(props: Props) {
             </span>);
     }
 
-    const content =
-        (
+    return (
+        <WithTooltip
+            id='fileAttachmentArchivedTooltip'
+            placement='top'
+            title={<ArchivedTooltip/>}
+            disabled={!fileInfo.archived}
+        >
             <div
-                ref={fileInfo.archived ? setReference : undefined}
-                {...(fileInfo.archived ? getReferenceProps() : {})}
-                className={
-                    classNames([
-                        'post-image__column',
-                        {'keep-open': keepOpen},
-                        {'post-image__column--archived': fileInfo.archived},
-                    ])
-                }
+                className={classNames([
+                    'post-image__column',
+                    {'keep-open': keepOpen},
+                    {'post-image__column--archived': fileInfo.archived},
+                ])}
             >
                 {fileThumbnail}
                 <div className='post-image__details'>
@@ -388,15 +378,6 @@ export default function FileAttachment(props: Props) {
                     {filenameOverlay}
                 </div>
             </div>
-        );
-
-    if (fileInfo.archived) {
-        return (
-            <>
-                {content}
-                {archivedTooltip}
-            </>
-        );
-    }
-    return content;
+        </WithTooltip>
+    );
 }

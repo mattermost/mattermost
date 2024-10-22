@@ -60,7 +60,7 @@ const setUserTeamAndChannelMemberships = (user, team, channel, channelAdmin = fa
     const admin = getAdminAccount();
 
     // # Set user as regular system user
-    cy.externalRequest({user: admin, method: 'put', path: `users/${user.id}/roles`, data: {roles: 'system_user'}});
+    cy.externalUpdateUserRoles(user.id, 'system_user');
 
     // # Get team membership
     cy.externalRequest({user: admin, method: 'put', path: `teams/${team.id}/members/${user.id}/schemeRoles`, data: {scheme_user: true, scheme_admin: teamAdmin}});

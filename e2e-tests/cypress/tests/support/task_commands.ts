@@ -13,7 +13,7 @@ import {ChainableT} from '../types';
 * @param {Object} channelId - where a post will be posted
 */
 
-interface PostMessageResp {
+export interface PostMessageResp {
     id: string;
     status: number;
     data: any;

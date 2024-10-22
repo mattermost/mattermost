@@ -272,11 +272,21 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 }
 
 func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
-	var args []any
-	args = append(args, model.ChannelTypeDirect, model.ChannelTypeGroup, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, limit)
-	query :=
-		`SELECT
-			Posts.Id AS PostId,
+	caseStmt, caseArgs, caseErr := sq.Case().
+		When(
+			sq.Eq{"Channels.Type": model.ChannelTypeDirect},
+			"'Direct Message'",
+		).
+		When(
+			sq.Eq{"Channels.Type": model.ChannelTypeGroup},
+			"'Group Message'",
+		).
+		Else("Channels.DisplayName").ToSql()
+	if caseErr != nil {
+		return nil, cursor, errors.Wrap(caseErr, "unable to construct case statement")
+	}
+
+	query, args, err := s.getQueryBuilder().Select(`Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
 			Posts.DeleteAt AS PostDeleteAt,
@@ -290,32 +300,34 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 			Teams.Name AS TeamName,
 			Teams.DisplayName AS TeamDisplayName,
 			Channels.Id AS ChannelId,
-			CASE
-				WHEN Channels.Type = ? THEN 'Direct Message'
-				WHEN Channels.Type = ? THEN 'Group Message'
-				ELSE Channels.DisplayName
-			END AS ChannelDisplayName,
 			Channels.Name AS ChannelName,
 			Channels.Type AS ChannelType,
 			Users.Id AS UserId,
 			Users.Email AS UserEmail,
 			Users.Username,
-			Bots.UserId IS NOT NULL AS IsBot
-		FROM
-			Posts
-		LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
-		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
-		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
-		WHERE (
-			Posts.UpdateAt > ?
-			OR (
-				Posts.UpdateAt = ?
-				AND Posts.Id > ?
-			)
-		) AND Posts.Type NOT LIKE 'system_%'
-		ORDER BY PostUpdateAt, PostId
-		LIMIT ?`
+			Bots.UserId IS NOT NULL AS IsBot`).
+		Column(caseStmt+" AS ChannelDisplayName", caseArgs...).
+		From("Posts").
+		JoinClause("LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id").
+		JoinClause("LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id").
+		JoinClause("LEFT OUTER JOIN Users ON Posts.UserId = Users.Id").
+		LeftJoin("Bots ON Bots.UserId = Posts.UserId").
+		Where(sq.And{
+			sq.Or{
+				sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
+				sq.And{
+					sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt},
+					sq.Gt{"Posts.Id": cursor.LastPostId},
+				},
+			},
+			sq.NotLike{"Posts.Type": "system_%"},
+		}).
+		OrderBy("PostUpdateAt, PostId").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, cursor, errors.Wrap(err, "unable to construct query to export messages")
+	}
 
 	cposts := []*model.MessageExport{}
 	if err := s.GetReplicaX().SelectCtx(c.Context(), &cposts, query, args...); err != nil {

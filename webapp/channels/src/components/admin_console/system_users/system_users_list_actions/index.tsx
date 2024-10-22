@@ -281,6 +281,9 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     }, [user.id, user.auth_service, updateUser, onError]);
 
     const handleDeactivateMemberClick = useCallback(() => {
+        if (user.auth_service === Constants.LDAP_SERVICE) {
+            return;
+        }
         function onDeactivateMemberSuccess() {
             updateUser({delete_at: new Date().getMilliseconds()});
         }
@@ -297,6 +300,17 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             }),
         );
     }, [user, updateUser, onError]);
+
+    const disableActivationToggle = user.auth_service === Constants.LDAP_SERVICE;
+
+    const getManagedByLDAPText = (managedByLDAP: boolean) => {
+        return managedByLDAP ? {
+            trailingElements: formatMessage({
+                id: 'admin.system_users.list.actions.menu.managedByLdap',
+                defaultMessage: 'Managed by LDAP',
+            }),
+        } : {};
+    };
 
     return (
         <Menu.Container
@@ -335,7 +349,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                             defaultMessage='Activate'
                         />
                     }
-                    disabled={user.auth_service === Constants.LDAP_SERVICE}
+                    disabled={disableActivationToggle}
+                    {...getManagedByLDAPText(disableActivationToggle)}
                     onClick={handleActivateUserClick}
                 />
             )}
@@ -496,6 +511,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         />
                     }
                     onClick={handleDeactivateMemberClick}
+                    disabled={disableActivationToggle}
+                    {...getManagedByLDAPText(disableActivationToggle)}
                 />
             )}
         </Menu.Container>

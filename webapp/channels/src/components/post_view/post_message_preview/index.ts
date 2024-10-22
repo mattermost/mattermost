@@ -49,7 +49,7 @@ function makeMapStateToProps() {
         }
 
         if (ownProps.metadata.channel_type === General.DM_CHANNEL) {
-            channelDisplayName = getChannel(state, {id: ownProps.metadata.channel_id})?.display_name || '';
+            channelDisplayName = getChannel(state, ownProps.metadata.channel_id)?.display_name || '';
         }
 
         return {

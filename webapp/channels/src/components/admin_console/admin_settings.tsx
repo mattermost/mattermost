@@ -2,17 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Overlay} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-
-import {localizeMessage} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;
@@ -27,7 +25,6 @@ export type BaseState = {
     saving: boolean;
     serverError: string|null;
     serverErrorId?: string;
-    errorTooltip: boolean;
 }
 
 // Placeholder type until ClientError is exported from redux.
@@ -38,21 +35,18 @@ type ClientErrorPlaceholder = {
 }
 
 export default abstract class AdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
-    private errorMessageRef: React.RefObject<HTMLDivElement>;
     public constructor(props: Props) {
         super(props);
         const stateInit = {
             saveNeeded: false,
             saving: false,
             serverError: null,
-            errorTooltip: false,
         };
         if (props.config) {
             this.state = Object.assign(this.getStateFromConfig(props.config), stateInit) as Readonly<State>;
         } else {
             this.state = stateInit as Readonly<State>;
         }
-        this.errorMessageRef = React.createRef();
     }
 
     protected abstract getStateFromConfig(config: DeepPartial<AdminConfig>): Partial<State>;
@@ -66,18 +60,6 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
     protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
 
     protected canSave?: () => boolean;
-
-    private closeTooltip = () => {
-        this.setState({errorTooltip: false});
-    };
-
-    private openTooltip = (e: React.MouseEvent) => {
-        const elm: HTMLElement|null = e.currentTarget.querySelector('.control-label');
-        if (elm) {
-            const isElipsis = elm.offsetWidth < elm.scrollWidth;
-            this.setState({errorTooltip: isElipsis});
-        }
-    };
 
     protected handleChange = (id: string, value: unknown) => {
         this.setState((prevState) => ({
@@ -249,25 +231,24 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
                             saving={this.state.saving}
                             disabled={this.props.isDisabled || !this.state.saveNeeded || (this.canSave && !this.canSave())}
                             onClick={this.handleSubmit}
-                            savingMessage={localizeMessage('admin.saving', 'Saving Config...')}
+                            savingMessage={
+                                <FormattedMessage
+                                    id='admin.saving'
+                                    defaultMessage='Saving Config...'
+                                />
+                            }
                         />
-                        <div
-                            className='error-message'
-                            ref={this.errorMessageRef}
-                            onMouseOver={this.openTooltip}
-                            onMouseOut={this.closeTooltip}
-                        >
-                            <FormError error={this.state.serverError}/>
-                        </div>
-                        <Overlay
-                            show={this.state.errorTooltip}
+                        <WithTooltip
+                            id='error-tooltip'
                             placement='top'
-                            target={this.errorMessageRef.current as HTMLElement}
+                            title={this.state?.serverError ?? ''}
                         >
-                            <Tooltip id='error-tooltip' >
-                                {this.state.serverError}
-                            </Tooltip>
-                        </Overlay>
+                            <div
+                                className='error-message'
+                            >
+                                <FormError error={this.state.serverError}/>
+                            </div>
+                        </WithTooltip>
                     </div>
                 </div>
             </form>

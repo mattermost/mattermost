@@ -10,16 +10,6 @@ import {TeamTypes} from 'mattermost-redux/action_types';
 
 import {handleRequest, initialRequestState} from './helpers';
 
-function getMyTeams(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
-    return handleRequest(
-        TeamTypes.MY_TEAMS_REQUEST,
-        TeamTypes.MY_TEAMS_SUCCESS,
-        TeamTypes.MY_TEAMS_FAILURE,
-        state,
-        action,
-    );
-}
-
 function getTeams(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     return handleRequest(
         TeamTypes.GET_TEAMS_REQUEST,
@@ -32,5 +22,4 @@ function getTeams(state: RequestStatusType = initialRequestState(), action: AnyA
 
 export default combineReducers({
     getTeams,
-    getMyTeams,
 });

@@ -4,8 +4,6 @@
 package searchlayer
 
 import (
-	"context"
-
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -107,19 +105,29 @@ func (s SearchPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, 
 
 func (s SearchPostStore) Delete(rctx request.CTX, postId string, date int64, deletedByID string) error {
 	err := s.PostStore.Delete(rctx, postId, date, deletedByID)
-
-	if err == nil {
-		opts := model.GetPostsOptions{
-			SkipFetchThreads: true,
-		}
-		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "", map[string]bool{})
-		if postList != nil && len(postList.Order) > 0 {
-			if err2 != nil {
-				s.deletePostIndex(rctx, postList.Posts[postList.Order[0]])
-			}
-		}
+	if err != nil {
+		return err
 	}
-	return err
+	post, err := s.PostStore.GetSingle(rctx, postId, true)
+	if err != nil {
+		return err
+	}
+	s.deletePostIndex(rctx, post)
+	return nil
+}
+
+func (s SearchPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	// Get full post struct for later
+	post, err := s.PostStore.GetSingle(rctx, postID, true)
+	if err != nil {
+		return err
+	}
+	err = s.PostStore.PermanentDelete(rctx, postID)
+	if err != nil {
+		return err
+	}
+	s.deletePostIndex(rctx, post)
+	return nil
 }
 
 func (s SearchPostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {

@@ -61,12 +61,7 @@ describe('Actions.Teams', () => {
             reply(200, [TestHelper.basicTeam]);
         await store.dispatch(Actions.getMyTeams());
 
-        const teamsRequest = store.getState().requests.teams.getMyTeams;
         const {teams} = store.getState().entities.teams;
-
-        if (teamsRequest.status === RequestStatus.FAILURE) {
-            throw new Error(JSON.stringify(teamsRequest.error));
-        }
 
         expect(teams).toBeTruthy();
         expect(teams[TestHelper.basicTeam!.id]).toBeTruthy();

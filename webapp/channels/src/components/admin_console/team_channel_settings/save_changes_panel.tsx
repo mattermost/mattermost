@@ -12,7 +12,7 @@ type Props = {
     saveNeeded: boolean;
     onClick: () => void;
     cancelLink: string;
-    serverError?: JSX.Element;
+    serverError?: JSX.Element | string;
     isDisabled?: boolean;
     savingMessage?: string;
 };

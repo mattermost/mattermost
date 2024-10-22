@@ -144,7 +144,6 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     const sharedIcon = details.shared ? (
         <SharedChannelIndicator
             className='shared-channel-icon'
-            channelType={details.type}
         />
     ) : null;
 

@@ -1378,3 +1378,10 @@ func (api *apiTimerLayer) UpdateUserRoles(userID, newRoles string) (*model.User,
 	api.recordTime(startTime, "UpdateUserRoles", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) GetPluginID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetPluginID()
+	api.recordTime(startTime, "GetPluginID", true)
+	return _returnsA
+}

@@ -11,7 +11,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
@@ -96,12 +95,12 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
     oauthAppCompare(a: OAuthApp, b: OAuthApp): number {
         let nameA = a.name.toString();
         if (!nameA) {
-            nameA = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameA = localizeMessage({id: 'installed_integrations.unnamed_oauth_app', defaultMessage: 'Unnamed OAuth 2.0 Application'});
         }
 
         let nameB = b.name.toString();
         if (!nameB) {
-            nameB = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameB = localizeMessage({id: 'installed_integrations.unnamed_oauth_app', defaultMessage: 'Unnamed OAuth 2.0 Application'});
         }
 
         return nameA.localeCompare(nameB);
@@ -133,7 +132,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
         if (integrationsEnabled) {
             props = {
                 addLink: '/' + this.props.team.name + '/integrations/oauth2-apps/add',
-                addText: localizeMessage('installed_oauth_apps.add', 'Add OAuth 2.0 Application'),
+                addText: localizeMessage({id: 'installed_oauth_apps.add', defaultMessage: 'Add OAuth 2.0 Application'}),
                 addButtonId: 'addOauthApp',
             };
         }
@@ -183,12 +182,12 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_oauth_apps.emptySearch'
                         defaultMessage='No OAuth 2.0 Applications match {searchTerm}'
                     />
                 }
-                searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth 2.0 Applications')}
+                searchPlaceholder={localizeMessage({id: 'installed_oauth_apps.search', defaultMessage: 'Search OAuth 2.0 Applications'})}
                 loading={this.state.loading}
                 {...props}
             >

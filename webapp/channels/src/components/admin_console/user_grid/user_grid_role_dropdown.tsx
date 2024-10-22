@@ -35,14 +35,14 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     private getDropDownOptions = () => {
         if (this.props.scope === 'team') {
             return {
-                makeAdmin: Utils.localizeMessage('team_members_dropdown.makeAdmin', 'Make Team Admin'),
-                makeMember: Utils.localizeMessage('team_members_dropdown.makeMember', 'Make Team Member'),
+                makeAdmin: Utils.localizeMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'}),
+                makeMember: Utils.localizeMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'}),
             };
         }
 
         return {
-            makeAdmin: Utils.localizeMessage('channel_members_dropdown.make_channel_admin', 'Make Channel Admin'),
-            makeMember: Utils.localizeMessage('channel_members_dropdown.make_channel_member', 'Make Channel Member'),
+            makeAdmin: Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'}),
+            makeMember: Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'}),
         };
     };
 
@@ -79,18 +79,18 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     private getLocalizedRole = (role: Role) => {
         switch (role) {
         case 'system_admin':
-            return Utils.localizeMessage('admin.user_grid.system_admin', 'System Admin');
+            return Utils.localizeMessage({id: 'admin.user_grid.system_admin', defaultMessage: 'System Admin'});
         case 'team_admin':
-            return Utils.localizeMessage('admin.user_grid.team_admin', 'Team Admin');
+            return Utils.localizeMessage({id: 'admin.user_grid.team_admin', defaultMessage: 'Team Admin'});
         case 'channel_admin':
-            return Utils.localizeMessage('admin.user_grid.channel_admin', 'Channel Admin');
+            return Utils.localizeMessage({id: 'admin.user_grid.channel_admin', defaultMessage: 'Channel Admin'});
         case 'shared_member':
-            return Utils.localizeMessage('admin.user_grid.shared_member', 'Shared Member');
+            return Utils.localizeMessage({id: 'admin.user_grid.shared_member', defaultMessage: 'Shared Member'});
         case 'team_user':
         case 'channel_user':
-            return Utils.localizeMessage('admin.group_teams_and_channels_row.member', 'Member');
+            return Utils.localizeMessage({id: 'admin.group_teams_and_channels_row.member', defaultMessage: 'Member'});
         default:
-            return Utils.localizeMessage('admin.user_grid.guest', 'Guest');
+            return Utils.localizeMessage({id: 'admin.user_grid.guest', defaultMessage: 'Guest'});
         }
     };
 
@@ -113,9 +113,9 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     private getAriaLabel = () => {
         const {scope} = this.props;
         if (scope === 'team') {
-            return Utils.localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member');
+            return Utils.localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'});
         }
-        return Utils.localizeMessage('channel_members_dropdown.menuAriaLabel', 'Change the role of channel member');
+        return Utils.localizeMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'});
     };
 
     public render = (): React.ReactNode => {

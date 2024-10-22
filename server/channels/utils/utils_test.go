@@ -272,7 +272,6 @@ func TestRoundOffToZeroes(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			res := RoundOffToZeroes(tc.n)
 			assert.Equal(t, tc.expected, res)
@@ -427,7 +426,6 @@ func TestRoundOffToZeroesResolution(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			res := RoundOffToZeroesResolution(tc.n, tc.minResolution)
 			assert.Equal(t, tc.expected, res)

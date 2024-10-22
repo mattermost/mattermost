@@ -65,6 +65,11 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           />
         }
         onClick={[Function]}
+        trailingElements={
+          <CheckIcon
+            size={16}
+          />
+        }
       />
       <MenuItem
         id="sortByMostRecent-category_id"
@@ -75,6 +80,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           />
         }
         onClick={[Function]}
+        trailingElements={null}
       />
     </SubMenu>
     <SubMenu
@@ -111,6 +117,11 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={
+          <CheckIcon
+            size={16}
+          />
+        }
       />
       <MenuItem
         id="showDmCount-category_id-15"
@@ -121,6 +132,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
       <MenuItem
         id="showDmCount-category_id-20"
@@ -131,6 +143,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
       <MenuItem
         id="showDmCount-category_id-40"
@@ -141,6 +154,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
     </SubMenu>
     <MenuItemSeparator />

@@ -98,7 +98,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         <button
                             data-testid='post-reaction-emoji-icon'
                             id={`${location}_reaction_${postId}`}
-                            aria-label={localizeMessage('post_info.tooltip.add_reactions', 'Add Reaction').toLowerCase()}
+                            aria-label={localizeMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'}).toLowerCase()}
                             className={classNames('post-menu__item', 'post-menu__item--reactions', {
                                 'post-menu__item--active': showEmojiPicker,
                             })}

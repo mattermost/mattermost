@@ -99,7 +99,6 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
                 },
               ]
             }
-            searchPlaceholder=""
             startCount={0}
             term=""
           />

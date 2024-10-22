@@ -63,6 +63,7 @@ async function runCypressTest(specExecution) {
         spec: specExecution.file,
         config: {
             screenshotsFolder: `${MOCHAWESOME_REPORT_DIR}/screenshots`,
+            videosFolder: `${MOCHAWESOME_REPORT_DIR}/videos`,
             trashAssetsBeforeRuns: false,
         },
         reporter: 'cypress-multi-reporters',

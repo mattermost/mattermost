@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	ogImage "github.com/dyatlov/go-opengraph/opengraph/types/image"
+	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 )
 
 const (
@@ -143,4 +146,32 @@ func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 	og.Title = html.UnescapeString(og.Title)
 	og.Description = html.UnescapeString(og.Description)
+}
+
+func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*opengraph.OpenGraph, error) {
+	oEmbedResponse, err := oembed.ResponseFromJSON(io.LimitReader(body, MaxOpenGraphResponseSize))
+	if err != nil {
+		return nil, errors.Wrap(err, "parseOpenGraphFromOEmbed: Unable to parse oEmbed response")
+	}
+
+	og := &opengraph.OpenGraph{
+		Type:  "opengraph",
+		Title: oEmbedResponse.Title,
+		URL:   requestURL,
+	}
+
+	if oEmbedResponse.ThumbnailURL != "" {
+		og.Images = append(og.Images, &ogImage.Image{
+			Type:   "image",
+			URL:    oEmbedResponse.ThumbnailURL,
+			Width:  uint64(oEmbedResponse.ThumbnailWidth),
+			Height: uint64(oEmbedResponse.ThumbnailHeight),
+		})
+	}
+
+	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
+		og = openGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
+	}
+
+	return og, nil
 }

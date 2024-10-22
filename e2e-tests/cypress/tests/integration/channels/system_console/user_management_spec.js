@@ -185,6 +185,7 @@ describe('User Management', () => {
 
             // # Search for the user.
             cy.get('#input_searchTerm').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
+            cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', gitlabUser.email);
 
             // # Open actions menu.
             cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -255,6 +256,7 @@ describe('User Management', () => {
 
         // # Search for the user.
         cy.get('#input_searchTerm').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', oldEmail);
 
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);

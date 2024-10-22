@@ -259,6 +259,36 @@ func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership
 	return r0, r1
 }
 
+// GetThreadMembershipsForExport provides a mock function with given fields: postID
+func (_m *ThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadMembershipsForExport")
+	}
+
+	var r0 []*model.ThreadMembershipForExport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.ThreadMembershipForExport, error)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.ThreadMembershipForExport); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembershipForExport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadUnreadReplyCount provides a mock function with given fields: threadMembership
 func (_m *ThreadStore) GetThreadUnreadReplyCount(threadMembership *model.ThreadMembership) (int64, error) {
 	ret := _m.Called(threadMembership)
@@ -459,6 +489,36 @@ func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts sto
 	return r0, r1
 }
 
+// MaintainMultipleFromImport provides a mock function with given fields: memberships
+func (_m *ThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	ret := _m.Called(memberships)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MaintainMultipleFromImport")
+	}
+
+	var r0 []*model.ThreadMembership
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) ([]*model.ThreadMembership, error)); ok {
+		return rf(memberships)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) []*model.ThreadMembership); ok {
+		r0 = rf(memberships)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ThreadMembership) error); ok {
+		r1 = rf(memberships)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MarkAllAsRead provides a mock function with given fields: userID, threadIds
 func (_m *ThreadStore) MarkAllAsRead(userID string, threadIds []string) error {
 	ret := _m.Called(userID, threadIds)
@@ -599,6 +659,36 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	}
 
 	return r0, r1, r2
+}
+
+// SaveMultipleMemberships provides a mock function with given fields: memberships
+func (_m *ThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
+	ret := _m.Called(memberships)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveMultipleMemberships")
+	}
+
+	var r0 []*model.ThreadMembership
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) ([]*model.ThreadMembership, error)); ok {
+		return rf(memberships)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ThreadMembership) []*model.ThreadMembership); ok {
+		r0 = rf(memberships)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ThreadMembership)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ThreadMembership) error); ok {
+		r1 = rf(memberships)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateMembership provides a mock function with given fields: membership

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -288,7 +289,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with invalid image url",
+			"bookmark of type link with valid image url",
 			&ChannelBookmark{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -408,7 +409,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			&ChannelBookmark{
 				Id:          NewId(),
 				OwnerId:     NewId(),
-				ChannelId:   "",
+				ChannelId:   NewId(),
 				FileId:      NewId(),
 				DisplayName: "display name",
 				SortOrder:   0,
@@ -416,7 +417,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 				ImageUrl:    "",
 				Emoji:       "",
 				Type:        ChannelBookmarkLink,
-				CreateAt:    0,
+				CreateAt:    2,
 				UpdateAt:    3,
 				DeleteAt:    0,
 			},
@@ -427,7 +428,7 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			&ChannelBookmark{
 				Id:          NewId(),
 				OwnerId:     NewId(),
-				ChannelId:   "",
+				ChannelId:   NewId(),
 				FileId:      NewId(),
 				DisplayName: "display name",
 				SortOrder:   0,
@@ -435,7 +436,84 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 				ImageUrl:    "",
 				Emoji:       "",
 				Type:        ChannelBookmarkFile,
-				CreateAt:    0,
+				CreateAt:    2,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"bookmark with long display name > limit",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				FileId:      "",
+				DisplayName: strings.Repeat("1", 65),
+				SortOrder:   0,
+				LinkUrl:     "http://somelink",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    3,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"bookmark with long display name < limit",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				FileId:      "",
+				DisplayName: strings.Repeat("1", 64),
+				SortOrder:   0,
+				LinkUrl:     "http://somelink",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    3,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			true,
+		},
+
+		{
+			"bookmark with link url > limit",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				FileId:      "",
+				DisplayName: "not last test",
+				SortOrder:   0,
+				LinkUrl:     "http://somelink?" + strings.Repeat("h", 1024),
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    3,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"bookmark with image url > limit",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				FileId:      "",
+				DisplayName: "last test",
+				SortOrder:   0,
+				LinkUrl:     "",
+				ImageUrl:    "http://somelink?" + strings.Repeat("h", 1024),
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    3,
 				UpdateAt:    3,
 				DeleteAt:    0,
 			},

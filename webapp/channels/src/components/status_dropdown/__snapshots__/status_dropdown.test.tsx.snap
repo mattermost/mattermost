@@ -62,7 +62,18 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -309,7 +320,18 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -625,7 +647,18 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -904,7 +937,18 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -1183,7 +1227,18 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -1471,7 +1526,18 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -1718,7 +1784,18 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -1965,7 +2042,18 @@ exports[`components/StatusDropdown should not show clear status button when cust
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />
@@ -2244,7 +2332,18 @@ exports[`components/StatusDropdown should show clear status button when custom s
       <MenuItemAction
         ariaLabel="Out of office"
         extraText="Automatic Replies are enabled"
+        icon={
+          <CancelIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
+          />
+        }
         onClick={[Function]}
+        rightDecorator={
+          <CheckIcon
+            color="var(--button-bg)"
+            size={16}
+          />
+        }
         show={false}
         text="Out of office"
       />

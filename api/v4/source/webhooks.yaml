@@ -83,6 +83,13 @@
           description: The ID of the team to get hooks for.
           schema:
             type: string
+        - name: include_total_count
+          description: >-
+            Appends a total count of returned hooks inside the response object - ex: `{ "incoming_webhooks": [], "total_count": 0 }`.
+          in: query
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Incoming webhooks retrieval successful

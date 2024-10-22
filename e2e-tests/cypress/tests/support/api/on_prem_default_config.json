@@ -105,11 +105,11 @@
         "CollapsedThreads": "disabled",
         "ManagedResourcePaths": "",
         "EnableCustomGroups": true,
-        "SelfHostedPurchase": true,
         "AllowSyncedDrafts": true,
         "UniqueEmojiReactionLimitPerPost": 50,
         "RefreshPostStatsRunTime": "00:00",
-        "MaximumPayloadSizeBytes": 100000
+        "MaximumPayloadSizeBytes": 100000,
+        "MaximumURLLength": 2048
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -173,7 +173,6 @@
         "VerboseDiagnostics": false,
         "EnableSentry": false,
         "AdvancedLoggingJSON": {},
-        "AdvancedLoggingConfig": "",
         "MaxFieldSize": 2048
     },
     "ExperimentalAuditSettings": {
@@ -184,8 +183,7 @@
         "FileMaxBackups": 0,
         "FileCompress": false,
         "FileMaxQueueSize": 1000,
-        "AdvancedLoggingJSON": {},
-        "AdvancedLoggingConfig": ""
+        "AdvancedLoggingJSON": {}
     },
     "NotificationLogSettings": {
         "EnableConsole": true,
@@ -196,8 +194,7 @@
         "FileLevel": "INFO",
         "FileJson": true,
         "FileLocation": "",
-        "AdvancedLoggingJSON": {},
-        "AdvancedLoggingConfig": ""
+        "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
         "MinimumLength": 5,
@@ -404,8 +401,7 @@
         "LoginFieldName": "",
         "LoginButtonColor": "#0000",
         "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7",
-        "Trace": false
+        "LoginButtonTextColor": "#2389D7"
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -509,7 +505,7 @@
         "AggregatePostsAfterDays": 365,
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
-        "LiveIndexingBatchSize": 1,
+        "LiveIndexingBatchSize": 10,
         "BatchSize": 10000,
         "RequestTimeoutSeconds": 30,
         "SkipTLSVerification": false,
@@ -563,7 +559,6 @@
         "CleanupJobsThresholdDays": -1,
         "CleanupConfigThresholdDays": -1
     },
-    "ProductSettings": {},
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": true,

@@ -59,7 +59,10 @@ func TestCreateUpload(t *testing.T) {
 
 	t.Run("not allowed in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), &model.UploadSession{
 			ChannelId: th.BasicChannel.Id,
@@ -252,7 +255,10 @@ func TestUploadData(t *testing.T) {
 
 	t.Run("not allowed in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
 		us2 := &model.UploadSession{
 			Id:        model.NewId(),

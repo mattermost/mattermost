@@ -1215,6 +1215,17 @@ func (a *App) getAddManageJobAncillaryPermissionsMigration() (permissionsMap, er
 	return transformations, nil
 }
 
+func (a *App) getAddUploadFilePermissionMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PermissionCreatePost.Id),
+		Add: []string{model.PermissionUploadFile.Id},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1263,6 +1274,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
+		{Key: model.MigrationKeyAddUploadFilePermission, Migration: a.getAddUploadFilePermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

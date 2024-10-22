@@ -146,6 +146,10 @@ func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uin
 }
 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
+	lastRemovedQuery := `DeviceId != COALESCE(Props->>'last_removed_device_id', '')`
+	if me.DriverName() == model.DatabaseDriverMysql {
+		lastRemovedQuery = `DeviceId != COALESCE(Props->>'$.last_removed_device_id', '')`
+	}
 	query :=
 		`SELECT *
 		FROM
@@ -154,7 +158,8 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 			UserId = ? AND
 			ExpiresAt != 0 AND
 			? <= ExpiresAt AND
-			DeviceId != ''`
+			DeviceId != '' AND
+			` + lastRemovedQuery
 
 	sessions := []*model.Session{}
 
@@ -162,6 +167,38 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 	return sessions, nil
+}
+
+func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
+	versionProp := model.SessionPropMobileVersion
+	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled
+	platformQuery := "NULLIF(SPLIT_PART(deviceid, ':', 1), '')"
+	if me.DriverName() == model.DatabaseDriverMysql {
+		versionProp = "$." + versionProp
+		notificationDisabledProp = "$." + notificationDisabledProp
+		platformQuery = "NULLIF(SUBSTRING_INDEX(deviceid, ':', 1), deviceid)"
+	}
+
+	query, args, err := me.getQueryBuilder().
+		Select(fmt.Sprintf(
+			"COUNT(userid) AS Count, COALESCE(%s,'N/A') AS Platform, COALESCE(props->>'%s','N/A') AS Version, COALESCE(props->>'%s','false') as NotificationDisabled",
+			platformQuery,
+			versionProp,
+			notificationDisabledProp,
+		)).
+		From("Sessions").
+		GroupBy("Platform", "Version", "NotificationDisabled").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "sessions_tosql")
+	}
+
+	versions := []*model.MobileSessionMetadata{}
+	err = me.GetReplicaX().Select(&versions, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed get mobile session metadata")
+	}
+	return versions, nil
 }
 
 func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {

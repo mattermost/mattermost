@@ -38,18 +38,38 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
     >
       <OAuthConnectionAudienceInput
         onChange={[MockFunction]}
-        placeholder=""
+        placeholder={
+          Object {
+            "defaultMessage": "",
+            "id": "test-placeholder",
+          }
+        }
         value="https://aud.com/api/it_matches"
       >
-        <input
+        <LocalizedPlaceholderInput
           autoComplete="off"
           className="form-control"
           id="url"
           maxLength={1024}
           onChange={[Function]}
-          placeholder=""
+          placeholder={
+            Object {
+              "defaultMessage": "",
+              "id": "test-placeholder",
+            }
+          }
           value="https://aud.com/api/it_matches"
-        />
+        >
+          <input
+            autoComplete="off"
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="aaa"
+            value="https://aud.com/api/it_matches"
+          />
+        </LocalizedPlaceholderInput>
         <div
           className="outgoing-oauth-audience-match-message-container"
         >
@@ -128,18 +148,38 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
     >
       <OAuthConnectionAudienceInput
         onChange={[MockFunction]}
-        placeholder=""
+        placeholder={
+          Object {
+            "defaultMessage": "",
+            "id": "test-placeholder",
+          }
+        }
         value="https://aud.com/api/no_match"
       >
-        <input
+        <LocalizedPlaceholderInput
           autoComplete="off"
           className="form-control"
           id="url"
           maxLength={1024}
           onChange={[Function]}
-          placeholder=""
+          placeholder={
+            Object {
+              "defaultMessage": "",
+              "id": "test-placeholder",
+            }
+          }
           value="https://aud.com/api/no_match"
-        />
+        >
+          <input
+            autoComplete="off"
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="aaa"
+            value="https://aud.com/api/no_match"
+          />
+        </LocalizedPlaceholderInput>
         <div
           className="outgoing-oauth-audience-match-message-container"
         >
@@ -218,18 +258,38 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
     >
       <OAuthConnectionAudienceInput
         onChange={[MockFunction]}
-        placeholder=""
+        placeholder={
+          Object {
+            "defaultMessage": "",
+            "id": "test-placeholder",
+          }
+        }
         value="https://aud.com/api"
       >
-        <input
+        <LocalizedPlaceholderInput
           autoComplete="off"
           className="form-control"
           id="url"
           maxLength={1024}
           onChange={[Function]}
-          placeholder=""
+          placeholder={
+            Object {
+              "defaultMessage": "",
+              "id": "test-placeholder",
+            }
+          }
           value="https://aud.com/api"
-        />
+        >
+          <input
+            autoComplete="off"
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="aaa"
+            value="https://aud.com/api"
+          />
+        </LocalizedPlaceholderInput>
         <div
           className="outgoing-oauth-audience-match-message-container"
         >
@@ -308,18 +368,38 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
     >
       <OAuthConnectionAudienceInput
         onChange={[MockFunction]}
-        placeholder=""
+        placeholder={
+          Object {
+            "defaultMessage": "",
+            "id": "test-placeholder",
+          }
+        }
         value=""
       >
-        <input
+        <LocalizedPlaceholderInput
           autoComplete="off"
           className="form-control"
           id="url"
           maxLength={1024}
           onChange={[Function]}
-          placeholder=""
+          placeholder={
+            Object {
+              "defaultMessage": "",
+              "id": "test-placeholder",
+            }
+          }
           value=""
-        />
+        >
+          <input
+            autoComplete="off"
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="aaa"
+            value=""
+          />
+        </LocalizedPlaceholderInput>
         <div
           className="outgoing-oauth-audience-match-message-container"
         >
@@ -398,18 +478,38 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
     >
       <OAuthConnectionAudienceInput
         onChange={[MockFunction]}
-        placeholder=""
+        placeholder={
+          Object {
+            "defaultMessage": "",
+            "id": "test-placeholder",
+          }
+        }
         value=""
       >
-        <input
+        <LocalizedPlaceholderInput
           autoComplete="off"
           className="form-control"
           id="url"
           maxLength={1024}
           onChange={[Function]}
-          placeholder=""
+          placeholder={
+            Object {
+              "defaultMessage": "",
+              "id": "test-placeholder",
+            }
+          }
           value=""
-        />
+        >
+          <input
+            autoComplete="off"
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="aaa"
+            value=""
+          />
+        </LocalizedPlaceholderInput>
       </OAuthConnectionAudienceInput>
     </Provider>
   </Router>

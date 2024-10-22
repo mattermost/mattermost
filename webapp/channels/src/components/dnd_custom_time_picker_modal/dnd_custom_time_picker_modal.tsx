@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import {DateTime} from 'luxon';
 import React from 'react';
 import type {DayPickerProps} from 'react-day-picker';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {GenericModal} from '@mattermost/components';
@@ -237,7 +237,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
             <CompassThemeProvider theme={this.props.theme}>
                 <GenericModal
                     compassDesign={true}
-                    ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
+                    ariaLabel={localizeMessage({id: 'dnd_custom_time_picker_modal.defaultMsg', defaultMessage: 'Disable notifications until'})}
                     onExited={this.props.onExited}
                     modalHeaderText={modalHeaderText}
                     confirmButtonText={confirmButtonText}
@@ -260,7 +260,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
                                 readOnly={true}
                                 id='DndModal__calendar-input'
                                 className={classNames('DndModal__calendar-input', {'popper-open': isPopperOpen})}
-                                label={localizeMessage('dnd_custom_time_picker_modal.date', 'Date')}
+                                label={defineMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                                 onClick={() => this.handlePopperOpenState(true)}
                                 tabIndex={-1}
                                 inputPrefix={inputIcon}

@@ -1,265 +1,267 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/Toast should match snapshot for hiding toast 1`] = `
-<div
-  className="toast"
->
+<div>
   <div
-    className="toast__message toast__pointer"
-    onClick={[MockFunction]}
+    class="toast"
   >
     <div
-      className="toast__jump"
+      class="toast__message toast__pointer"
     >
-      <UnreadBelowIcon />
-      Jump to recents
+      <div
+        class="toast__jump"
+      >
+        <span>
+          <svg
+            aria-label="Down Arrow Icon"
+            height="16"
+            role="img"
+            viewBox="0 0 16 16"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+            />
+          </svg>
+        </span>
+        Jump to recents
+      </div>
+      <span>
+        child
+      </span>
     </div>
-    <span>
-      child
-    </span>
-  </div>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={<div />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
-  >
     <div
-      className="toast__dismiss"
+      class="toast__dismiss"
       data-testid="dismissToast"
-      onClick={[Function]}
     >
-      <CloseIcon
-        className="close-btn"
+      <span
+        class="close-btn"
         id="dismissToast"
-      />
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
     </div>
-  </OverlayTrigger>
+  </div>
 </div>
 `;
 
 exports[`components/Toast should match snapshot for showing toast 1`] = `
-<div
-  className="toast toast__visible"
->
+<div>
   <div
-    className="toast__message toast__pointer"
-    onClick={[MockFunction]}
+    class="toast toast__visible"
   >
     <div
-      className="toast__jump"
+      class="toast__message toast__pointer"
     >
-      <UnreadBelowIcon />
-      Jump to recents
-    </div>
-    <span>
-      child
-    </span>
-  </div>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={
-      <Tooltip
-        id="toast-close__tooltip"
+      <div
+        class="toast__jump"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Close"
-          id="general_button.close"
-        />
-        <div
-          className="tooltip__shortcut--txt"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="esc"
-            id="general_button.esc"
-          />
-        </div>
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
-  >
-    <div
-      className="toast__dismiss"
-      data-testid="dismissToast"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        className="close-btn"
-        id="dismissToast"
-      />
+        <span>
+          <svg
+            aria-label="Down Arrow Icon"
+            height="16"
+            role="img"
+            viewBox="0 0 16 16"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+            />
+          </svg>
+        </span>
+        Jump to recents
+      </div>
+      <span>
+        child
+      </span>
     </div>
-  </OverlayTrigger>
+    <div
+      class="toast__dismiss"
+      data-testid="dismissToast"
+    >
+      <span
+        class="close-btn"
+        id="dismissToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/Toast should match snapshot for toast width less than 780px 1`] = `
-<div
-  className="toast toast__visible"
->
+<div>
   <div
-    className="toast__message toast__pointer"
-    onClick={[MockFunction]}
+    class="toast toast__visible"
   >
     <div
-      className="toast__jump"
+      class="toast__message toast__pointer"
     >
-      <UnreadBelowIcon />
-      Jump to recents
-    </div>
-    <span>
-      child
-    </span>
-  </div>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={
-      <Tooltip
-        id="toast-close__tooltip"
+      <div
+        class="toast__jump"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Close"
-          id="general_button.close"
-        />
-        <div
-          className="tooltip__shortcut--txt"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="esc"
-            id="general_button.esc"
-          />
-        </div>
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
-  >
-    <div
-      className="toast__dismiss"
-      data-testid="dismissToast"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        className="close-btn"
-        id="dismissToast"
-      />
+        <span>
+          <svg
+            aria-label="Down Arrow Icon"
+            height="16"
+            role="img"
+            viewBox="0 0 16 16"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+            />
+          </svg>
+        </span>
+        Jump to recents
+      </div>
+      <span>
+        child
+      </span>
     </div>
-  </OverlayTrigger>
+    <div
+      class="toast__dismiss"
+      data-testid="dismissToast"
+    >
+      <span
+        class="close-btn"
+        id="dismissToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/Toast should match snapshot to have extraClasses 1`] = `
-<div
-  className="toast extraClasses toast__visible"
->
+<div>
   <div
-    className="toast__message toast__pointer"
-    onClick={[MockFunction]}
+    class="toast toast__visible extraClasses"
   >
     <div
-      className="toast__jump"
+      class="toast__message toast__pointer"
     >
-      <UnreadBelowIcon />
-      Jump to recents
-    </div>
-    <span>
-      child
-    </span>
-  </div>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={
-      <Tooltip
-        id="toast-close__tooltip"
+      <div
+        class="toast__jump"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Close"
-          id="general_button.close"
-        />
-        <div
-          className="tooltip__shortcut--txt"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="esc"
-            id="general_button.esc"
-          />
-        </div>
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
-  >
-    <div
-      className="toast__dismiss"
-      data-testid="dismissToast-extraClasses"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        className="close-btn"
-        id="dismissToast"
-      />
+        <span>
+          <svg
+            aria-label="Down Arrow Icon"
+            height="16"
+            role="img"
+            viewBox="0 0 16 16"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+            />
+          </svg>
+        </span>
+        Jump to recents
+      </div>
+      <span>
+        child
+      </span>
     </div>
-  </OverlayTrigger>
+    <div
+      class="toast__dismiss"
+      data-testid="dismissToast-extraClasses"
+    >
+      <span
+        class="close-btn"
+        id="dismissToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/Toast should match snapshot to not have actions 1`] = `
-<div
-  className="toast toast__visible"
->
+<div>
   <div
-    className="toast__message"
-  >
-    <span>
-      child
-    </span>
-  </div>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={<div />}
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+    class="toast toast__visible"
   >
     <div
-      className="toast__dismiss"
-      data-testid="dismissToast"
-      onClick={[Function]}
+      class="toast__message"
     >
-      <CloseIcon
-        className="close-btn"
-        id="dismissToast"
-      />
+      <span>
+        child
+      </span>
     </div>
-  </OverlayTrigger>
+    <div
+      class="toast__dismiss"
+      data-testid="dismissToast"
+    >
+      <span
+        class="close-btn"
+        id="dismissToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
 </div>
 `;

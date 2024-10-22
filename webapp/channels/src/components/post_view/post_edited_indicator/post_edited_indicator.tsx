@@ -9,8 +9,7 @@ import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
@@ -65,16 +64,6 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         <span className='view-history__text'>{viewHistoryText}</span>
     ) : null;
 
-    const tooltip = (
-        <Tooltip
-            id={`edited-post-tooltip_${postId}`}
-            className='hidden-xs'
-        >
-            {`${editedText} ${formattedTime}`}
-            {postOwnerTooltipInfo}
-        </Tooltip>
-    );
-
     const showPostEditHistory = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (post?.id) {
@@ -105,13 +94,18 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
     ) : editedIndicatorContent;
 
     return !postId || editedAt === 0 ? null : (
-        <OverlayTrigger
-            delayShow={250}
+        <WithTooltip
             placement='top'
-            overlay={tooltip}
+            id={`edited-post-tooltip_${postId}`}
+            title={
+                <>
+                    {`${editedText} ${formattedTime}`}
+                    {postOwnerTooltipInfo}
+                </>
+            }
         >
             {editedIndicator}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

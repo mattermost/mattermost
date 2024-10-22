@@ -462,12 +462,12 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     <option
                                         value='0'
                                     >
-                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenFullWord', 'First word matches a trigger word exactly')}
+                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'})}
                                     </option>
                                     <option
                                         value='1'
                                     >
-                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', 'First word starts with a trigger word')}
+                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>
@@ -594,7 +594,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id as string, this.props.loading.defaultMessage as string)}
+                                spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
                                 id='saveWebhook'
                             >

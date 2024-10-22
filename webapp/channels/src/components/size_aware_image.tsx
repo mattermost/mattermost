@@ -209,7 +209,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = localizeMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -256,7 +256,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className={classNames('style--none', 'size-aware-image__copy_link', {
                         'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
                     })}
-                    aria-label={localizeMessage('single_image_view.copy_link_tooltip', 'Copy link')}
+                    aria-label={localizeMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
@@ -293,7 +293,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className='style--none size-aware-image__download'
                     download={true}
                     role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={localizeMessage('single_image_view.download_tooltip', 'Download')}
+                    aria-label={localizeMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
                 >
                     <DownloadOutlineIcon
                         className={'style--none'}
@@ -383,7 +383,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
         } = this.props;
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = localizeMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }

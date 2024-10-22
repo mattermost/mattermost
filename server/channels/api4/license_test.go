@@ -31,7 +31,8 @@ func TestGetOldClientLicense(t *testing.T) {
 
 	require.NotEqual(t, license["IsLicensed"], "", "license not returned correctly")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 
 	_, _, err = client.GetOldClientLicense(context.Background(), "")
 	require.NoError(t, err)
@@ -384,6 +385,18 @@ func TestRequestTrialLicense(t *testing.T) {
 		resp, err := th.Client.RequestTrialLicense(context.Background(), 1000)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("trial license invalid JSON", func(t *testing.T) {
+		// the JSON is invalid because it is missing a closing brace
+
+		licenseManagerMock := &mocks.LicenseInterface{}
+		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
+
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/trial-license", `{"users": 5`)
+		CheckErrorID(t, err, "api.license.request-trial.bad-request")
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {

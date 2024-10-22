@@ -111,7 +111,7 @@ async function printClientInfo(client: Client) {
   - LogSettings.EnableDiagnostics           = ${LogSettings?.EnableDiagnostics}`);
 }
 
-async function ensurePluginsLoaded(client: Client) {
+export async function ensurePluginsLoaded(client: Client) {
     const pluginStatus = await client.getPluginStatuses();
     const plugins = await client.getPlugins();
 

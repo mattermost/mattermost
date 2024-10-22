@@ -8,8 +8,9 @@ import {type MessageDescriptor} from 'react-intl';
 import RenderEmoji from 'components/emoji/render_emoji';
 import Tooltip from 'components/tooltip';
 
+import {formatAsComponent} from 'utils/i18n';
+
 import {TooltipShortcutSequence, type ShortcutDefinition} from './shortcut';
-import {getAsFormattedMessage} from './utils';
 
 type EmojiStyle = 'inline' | 'large' | undefined;
 
@@ -20,7 +21,6 @@ export type CommonTooltipProps = {
     shortcut?: ShortcutDefinition;
     emoji?: string;
     emojiStyle?: EmojiStyle;
-    shouldUpdatePosition?: boolean;
 }
 
 export function createTooltip(commonTooltipProps: CommonTooltipProps) {
@@ -41,7 +41,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
             );
         }
 
-        const title = getAsFormattedMessage(commonTooltipProps.title);
+        const title = formatAsComponent(commonTooltipProps.title);
         if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle !== 'large') {
             contents.push(
                 <div
@@ -77,7 +77,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
             );
         }
 
-        const hint = getAsFormattedMessage(commonTooltipProps.hint);
+        const hint = formatAsComponent(commonTooltipProps.hint);
         if (commonTooltipProps.hint) {
             contents.push(
                 <div

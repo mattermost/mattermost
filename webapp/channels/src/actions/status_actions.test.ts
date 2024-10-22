@@ -87,26 +87,26 @@ describe('actions/status_actions', () => {
         test('load statuses with posts in channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
             expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalled();
-            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id2', 'user_id3']);
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id2', 'user_id3', 'current_user_id']);
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
-            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3']);
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['user_id3', 'current_user_id']);
         });
 
-        test('load statuses with empty channel and no users in sidebar', () => {
+        test('load statuses with empty channel and no users in sidebar, should only fetch current user\'s status', () => {
             const state = cloneDeep(initialState);
             state.entities.channels.currentChannelId = 'channel_id2';
             state.entities.preferences.myPreferences = {};
             const testStore = mockStore(state);
-            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelToStatusPoll());
-            expect(addUserIdsForStatusFetchingPoll).not.toHaveBeenCalled();
+            testStore.dispatch(Actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
+            expect(addUserIdsForStatusFetchingPoll).toHaveBeenCalledWith(['current_user_id']);
         });
     });
 

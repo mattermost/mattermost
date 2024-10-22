@@ -68,6 +68,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T932 Users - Change a user\'s password', () => {
         // # Search for the user.
         cy.findByPlaceholderText('Search users').type(testUser.email).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', testUser.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -98,6 +99,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T933 Users - System admin changes own password - Cancel out of changes', () => {
         // # Search for the admin.
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -122,6 +124,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T934 Users - System admin changes own password - Incorrect old password', () => {
         // # Search for the admin.
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -144,6 +147,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T935 Users - System admin changes own password - Invalid new password', () => {
         // # Search for the admin.
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -166,6 +170,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T936 Users - System admin changes own password - Blank fields', () => {
         // # Search for the admin.
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -194,6 +199,7 @@ describe('System Console > User Management > Users', () => {
     it('MM-T937 Users - System admin changes own password - Successfully changed', () => {
         // # Search for the admin.
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', otherAdmin.email);
 
         // # Open the actions menu.
         cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);

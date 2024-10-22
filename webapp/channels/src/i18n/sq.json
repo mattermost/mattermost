@@ -69,7 +69,6 @@
   "apps.error.parser.execute_non_leaf": "Ju duhet të zgjidhni një nën-komandë.",
   "apps.error.parser.missing_binding": "Mungojnë lidhjet e komandave.",
   "apps.error.parser.missing_field_value": "Mungon vlera në fushë.",
-  "archivedChannelMessage": "Jeni duke ndjekur një ** kanal të arkivuar**. Mesazhe të reja nuk mund të postohen.",
   "bot.create_token.close": "Mbyll",
   "bots.manage.edit.title": "Rinovo",
   "center_panel.archived.closeChannel": "Kanal i mbyllur",

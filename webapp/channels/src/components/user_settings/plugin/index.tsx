@@ -4,6 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 import PluginAction from './plugin_action';
@@ -45,17 +47,35 @@ const PluginTab = ({
                 <SettingDesktopHeader text={headerText}/>
                 <PluginAction action={settings.action}/>
                 <div className='divider-dark first'/>
-                {settings.sections.map(
-                    (v) =>
-                        (<React.Fragment key={v.title}>
+                {settings.sections.map((v) => {
+                    let sectionEl;
+                    if ('component' in v) {
+                        const CustomComponent = v.component;
+                        sectionEl = (
+                            <PluggableErrorBoundary
+                                pluginId={settings.id}
+                            >
+                                <CustomComponent/>
+                            </PluggableErrorBoundary>
+                        );
+                    } else {
+                        sectionEl = (
                             <PluginSetting
                                 pluginId={settings.id}
                                 activeSection={activeSection}
                                 section={v}
                                 updateSection={updateSection}
                             />
+                        );
+                    }
+
+                    return (
+                        <React.Fragment key={v.title}>
+                            {sectionEl}
                             <div className='divider-light'/>
-                        </React.Fragment>),
+                        </React.Fragment>
+                    );
+                },
                 )}
                 <div className='divider-dark'/>
             </div>

@@ -50,6 +50,7 @@
 
     &__reset-btn {
         display: flex;
+        align-items: center;
         padding: 5px 8px;
         border: none;
         border-radius: 4px;
@@ -58,8 +59,10 @@
         font-size: 12px;
         font-weight: 600;
         gap: 4px;
-        line-height: 9.5px;
-        place-items: center;
+
+        i {
+            font-size: 16px;
+        }
 
         &:hover,
         &:active {

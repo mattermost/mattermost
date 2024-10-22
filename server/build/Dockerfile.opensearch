@@ -1,3 +1,4 @@
-FROM opensearchproject/opensearch:2.7.0
+ARG OPENSEARCH_VERSION=2.7.0
+FROM opensearchproject/opensearch:$OPENSEARCH_VERSION
 
 RUN /usr/share/opensearch/bin/opensearch-plugin install analysis-icu

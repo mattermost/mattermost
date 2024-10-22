@@ -5,6 +5,8 @@ package api4
 
 import (
 	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitGroupLocal() {
@@ -23,7 +25,9 @@ func getGroupsByChannelLocal(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByTeamLocal(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -37,5 +41,7 @@ func getGroupsByTeamLocal(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

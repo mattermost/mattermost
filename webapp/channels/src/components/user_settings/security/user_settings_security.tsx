@@ -407,7 +407,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         <div className='pb-3'>
                             <FormattedMessage
                                 id='user.settings.security.passwordOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
+                                defaultMessage='Login occurs through Entra ID. Password cannot be updated.'
                             />
                         </div>
                     </div>,
@@ -495,7 +495,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.loginOffice365'
-                    defaultMessage='Login done through Office 365'
+                    defaultMessage='Login done through Entra ID'
                 />
             );
         }
@@ -597,7 +597,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             >
                                 <FormattedMessage
                                     id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Office 365 SSO'
+                                    defaultMessage='Switch to Using Entra ID SSO'
                                 />
                             </Link>
                             <br/>
@@ -764,7 +764,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.security.office365'
-                    defaultMessage='Office 365'
+                    defaultMessage='Entra ID'
                 />
             );
         } else if (

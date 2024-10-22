@@ -9,16 +9,11 @@ import {Posts} from 'mattermost-redux/constants';
 import {executeCommand} from 'actions/command';
 import * as HookActions from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
-import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {
-    clearCommentDraftUploads,
-    updateCommentDraft,
+    onSubmit,
     submitPost,
     submitCommand,
-    makeOnSubmit,
-    makeOnEditLatestPost,
 } from 'actions/views/create_comment';
-import {removeDraft, setGlobalDraftSource} from 'actions/views/drafts';
 
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
@@ -183,54 +178,6 @@ describe('rhs view actions', () => {
         store = mockStore(initialState);
     });
 
-    describe('clearCommentDraftUploads', () => {
-        test('it calls actionOnGlobalItemsWithPrefix action correctly', () => {
-            store.dispatch(clearCommentDraftUploads());
-
-            const actions = store.getActions();
-
-            expect(actions.length).toBe(1);
-
-            const callback = actions[0].args[1];
-
-            // make sure callback is a function which clears uploadsInProgress
-            expect(typeof callback).toBe('function');
-
-            const draft = {message: 'test msg', channelId, rootId, uploadsInProgress: [3, 4], fileInfos: [{id: 1}, {id: 2}]};
-
-            expect(callback(null, draft)).toEqual({...draft, uploadsInProgress: []});
-
-            const testStore = mockStore(initialState);
-
-            testStore.dispatch(actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, callback));
-
-            expect(store.getActions()).toEqual(testStore.getActions());
-        });
-    });
-
-    describe('updateCommentDraft', () => {
-        const draft = {message: 'test msg', fileInfos: [{id: 1}], uploadsInProgress: [2, 3]};
-
-        test('it calls setGlobalItem action correctly', () => {
-            jest.useFakeTimers();
-            jest.setSystemTime(42);
-            store.dispatch(updateCommentDraft(rootId, draft));
-
-            const testStore = mockStore(initialState);
-
-            const expectedKey = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-            testStore.dispatch(setGlobalItem(expectedKey, {
-                ...draft,
-                createAt: 42,
-                updateAt: 42,
-            }));
-            testStore.dispatch(setGlobalDraftSource(expectedKey, false));
-
-            expect(store.getActions()).toEqual(testStore.getActions());
-            jest.useRealTimers();
-        });
-    });
-
     describe('submitPost', () => {
         const draft = {message: '', channelId, rootId, fileInfos: []};
 
@@ -312,8 +259,7 @@ describe('rhs view actions', () => {
         });
     });
 
-    describe('makeOnSubmit', () => {
-        const onSubmit = makeOnSubmit(channelId, rootId, latestPostId);
+    describe('onSubmit', () => {
         const draft = {
             message: 'test',
             fileInfos: [],
@@ -323,37 +269,10 @@ describe('rhs view actions', () => {
         };
 
         test('it adds message into history', () => {
-            store.dispatch(onSubmit(draft));
+            store.dispatch(onSubmit(draft, {}));
 
             const testStore = mockStore(initialState);
             testStore.dispatch(addMessageIntoHistory('test'));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-        });
-
-        test('it clears comment draft', () => {
-            store.dispatch(onSubmit(draft));
-
-            const testStore = mockStore(initialState);
-            const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-            testStore.dispatch(removeDraft(key, channelId, rootId));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-        });
-
-        test('it submits a reaction when message is +:smile:', () => {
-            store.dispatch(onSubmit({
-                message: '+:smile:',
-                fileInfos: [],
-                uploadsInProgress: [],
-            }));
-
-            const testStore = mockStore(initialState);
-            testStore.dispatch(PostActions.submitReaction(latestPostId, '+', 'smile'));
 
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(testStore.getActions()),
@@ -365,7 +284,7 @@ describe('rhs view actions', () => {
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
-            }));
+            }, {}));
 
             const testStore = mockStore(initialState);
             testStore.dispatch(submitCommand(channelId, rootId, {message: '/away', fileInfos: [], uploadsInProgress: []}));
@@ -398,7 +317,7 @@ describe('rhs view actions', () => {
                 message: 'test msg',
                 fileInfos: [],
                 uploadsInProgress: [],
-            }));
+            }, {}));
 
             const testStore = mockStore(initialState);
             testStore.dispatch(submitPost(channelId, rootId, {message: 'test msg', fileInfos: [], uploadsInProgress: []}));
@@ -407,23 +326,6 @@ describe('rhs view actions', () => {
                 expect.arrayContaining(testStore.getActions()),
                 expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
             );
-        });
-    });
-
-    describe('makeOnEditLatestPost', () => {
-        const onEditLatestPost = makeOnEditLatestPost(rootId);
-
-        test('it dispatches the correct actions', () => {
-            store.dispatch(onEditLatestPost());
-
-            expect(store.getActions()).toEqual([
-                PostActions.setEditingPost(
-                    latestPostId,
-                    'reply_textbox',
-                    'Comment',
-                    true,
-                ),
-            ]);
         });
     });
 });

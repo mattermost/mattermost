@@ -304,6 +304,60 @@ func TestGetIncomingWebhooksByTeam(t *testing.T) {
 	assert.Equal(t, basicHook.Id, filteredHooks[0].Id)
 }
 
+func TestGetIncomingWebhooksWithCount(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	BasicClient := th.Client
+	th.LoginBasic()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(model.PermissionManageIncomingWebhooks.Id, model.SystemUserRoleId)
+
+	// Basic user webhook
+	bHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.BasicUser.Id}
+	basicHook, _, err := BasicClient.CreateIncomingWebhook(context.Background(), bHook)
+	require.NoError(t, err)
+
+	basicHooksWithCount, _, err := BasicClient.GetIncomingWebhooksWithCount(context.Background(), 0, 1000, "")
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(basicHooksWithCount.Webhooks))
+	assert.Equal(t, int64(1), basicHooksWithCount.TotalCount)
+	assert.Equal(t, basicHook.Id, basicHooksWithCount.Webhooks[0].Id)
+
+	// Admin User webhook
+	aHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicTeam.Id, UserId: th.SystemAdminUser.Id}
+	adminHook, _, err := th.SystemAdminClient.CreateIncomingWebhook(context.Background(), aHook)
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		adminHooksWithCount, _, err2 := client.GetIncomingWebhooksWithCount(context.Background(), 0, 1000, "")
+		require.NoError(t, err2)
+		assert.Equal(t, 2, len(adminHooksWithCount.Webhooks))
+		assert.Equal(t, int64(2), adminHooksWithCount.TotalCount)
+
+		foundBasicHook := false
+		foundAdminHook := false
+
+		for _, h := range adminHooksWithCount.Webhooks {
+			if basicHook.Id == h.Id {
+				foundBasicHook = true
+			}
+			if adminHook.Id == h.Id {
+				foundAdminHook = true
+			}
+		}
+
+		require.True(t, foundBasicHook, "missing basic user hook")
+		require.True(t, foundAdminHook, "missing admin user hook")
+	})
+}
+
 func TestGetIncomingWebhook(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

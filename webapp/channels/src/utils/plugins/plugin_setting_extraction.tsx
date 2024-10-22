@@ -1,7 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationAction, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
+import React from 'react';
+
+import type {
+    BasePluginConfigurationSetting,
+    PluginConfiguration,
+    PluginConfigurationAction,
+    PluginConfigurationRadioSetting,
+    PluginConfigurationRadioSettingOption,
+    PluginConfigurationSection,
+    PluginConfigurationCustomSetting,
+    PluginCustomSettingComponent,
+} from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown, pluginId: string) {
     if (!pluginConfiguration) {
@@ -47,9 +58,12 @@ export function extractPluginConfiguration(pluginConfiguration: unknown, pluginI
     };
 
     for (const section of pluginConfiguration.sections) {
-        const validSections = extractPluginConfigurationSection(section);
+        const validSections = extractPluginConfigurationSection(section, pluginId);
         if (validSections) {
             result.sections.push(validSections);
+        } else {
+            // eslint-disable-next-line no-console
+            console.warn(`Plugin ${pluginId} is trying to register an invalid configuration section. Contact the plugin developer to fix this issue.`);
         }
     }
 
@@ -93,7 +107,7 @@ function extractPluginConfigurationAction(action: unknown): PluginConfigurationA
     };
 }
 
-function extractPluginConfigurationSection(section: unknown) {
+function extractPluginConfigurationSection(section: unknown, pluginId: string) {
     if (!section) {
         return undefined;
     }
@@ -104,6 +118,26 @@ function extractPluginConfigurationSection(section: unknown) {
 
     if (!('title' in section) || !section.title || typeof section.title !== 'string') {
         return undefined;
+    }
+
+    if ('component' in section) {
+        if (!section.component || typeof section.component !== 'function') {
+            return undefined;
+        }
+
+        try {
+            const Component = section.component;
+            if (!React.isValidElement((<Component/>))) {
+                return undefined;
+            }
+        } catch {
+            return undefined;
+        }
+
+        return {
+            title: section.title,
+            component: section.component as React.ComponentType,
+        };
     }
 
     if (!('settings' in section) || !Array.isArray(section.settings)) {
@@ -143,6 +177,9 @@ function extractPluginConfigurationSection(section: unknown) {
         const validSetting = extractPluginConfigurationSetting(setting);
         if (validSetting) {
             result.settings.push(validSetting);
+        } else {
+            // eslint-disable-next-line no-console
+            console.warn(`Plugin ${pluginId} is trying to register an invalid configuration section setting. Contact the plugin developer to fix this issue.`);
         }
     }
 
@@ -203,9 +240,38 @@ function extractPluginConfigurationSetting(setting: unknown) {
     switch (setting.type) {
     case 'radio':
         return extractPluginConfigurationRadioSetting(setting, res);
+    case 'custom':
+        return extractPluginConfigurationCustomSetting(setting, res);
     default:
         return undefined;
     }
+}
+
+function extractPluginConfigurationCustomSetting(setting: unknown, base: BasePluginConfigurationSetting) {
+    if (!setting || typeof setting !== 'object') {
+        return undefined;
+    }
+
+    if (!('component' in setting) || !setting.component || typeof setting.component !== 'function') {
+        return undefined;
+    }
+
+    try {
+        const Component = setting.component;
+        if (!React.isValidElement((<Component/>))) {
+            return undefined;
+        }
+    } catch {
+        return undefined;
+    }
+
+    const res: PluginConfigurationCustomSetting = {
+        ...base,
+        type: 'custom',
+        component: setting.component as PluginCustomSettingComponent,
+    };
+
+    return res;
 }
 
 function extractPluginConfigurationRadioSetting(setting: unknown, base: BasePluginConfigurationSetting) {

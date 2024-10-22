@@ -253,19 +253,19 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             <Menu.ItemAction
                 id='removeFromTeam'
                 onClick={this.handleRemoveFromTeam}
-                text={Utils.localizeMessage('team_members_dropdown.leave_team', 'Remove From Team')}
+                text={Utils.localizeMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove From Team'})}
             />
         );
         const menuMakeAdmin = (
             <Menu.ItemAction
                 onClick={this.handleMakeAdmin}
-                text={Utils.localizeMessage('team_members_dropdown.makeAdmin', 'Make Team Admin')}
+                text={Utils.localizeMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
             />
         );
         const menuMakeMember = (
             <Menu.ItemAction
                 onClick={this.handleMakeMember}
-                text={Utils.localizeMessage('team_members_dropdown.makeMember', 'Make Member')}
+                text={Utils.localizeMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Member'})}
             />
         );
         return (
@@ -283,7 +283,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
                     <Menu
                         openLeft={true}
                         openUp={openUp}
-                        ariaLabel={Utils.localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}
+                        ariaLabel={Utils.localizeMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                     >
                         {canRemoveFromTeam ? menuRemove : null}
                         {showMakeAdmin ? menuMakeAdmin : null}

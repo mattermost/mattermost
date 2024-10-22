@@ -8,7 +8,7 @@ exports[`components/mfa/components/Confirm should match snapshot 1`] = `
     onSubmit={[Function]}
   >
     <p>
-      <FormattedMarkdownMessage
+      <MemoizedFormattedMessage
         defaultMessage="**Set up complete!**"
         id="mfa.confirm.complete"
       />

@@ -67,6 +67,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: opensearch
+  redis:
+    container_name: mattermost-redis
+    ports:
+      - "6379:6379"
+    extends:
+        file: build/docker-compose.common.yml
+        service: redis
   dejavu:
     restart: 'no'
     container_name: mattermost-dejavu

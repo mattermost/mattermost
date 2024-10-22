@@ -102,9 +102,13 @@ export function makeUrlSafe(url: string, defaultUrl = ''): string {
 }
 
 export function getScheme(url: string): string | null {
-    const match = (/([a-z0-9+.-]+):/i).exec(url);
+    const match = (/^!?([a-z0-9+.-]+):/i).exec(url);
 
     return match && match[1];
+}
+
+export function removeScheme(url: string) {
+    return url.replace(/^([a-z0-9+.-]+):\/\//i, '');
 }
 
 function formattedError(message: MessageDescriptor, intl?: IntlShape): React.ReactElement | string {
@@ -334,13 +338,13 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
     return {url, error: false};
 }
 
-export function parseLink(href: string) {
+export function parseLink(href: string, defaultSecure = location.protocol === 'https:') {
     let outHref = href;
 
     if (!href.startsWith('/')) {
         const scheme = getScheme(href);
         if (!scheme) {
-            outHref = `http://${outHref}`;
+            outHref = `${defaultSecure ? 'https' : 'http'}://${outHref}`;
         }
     }
 

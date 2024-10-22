@@ -17,8 +17,6 @@ import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
-import {localizeMessage} from 'utils/utils';
-
 type Props = {
 
     /**
@@ -477,7 +475,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading?.id || '', (this.props.loading?.defaultMessage || '') as string)}
+                                spinningText={this.props.loading}
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >

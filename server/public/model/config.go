@@ -265,6 +265,8 @@ const (
 	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
+
+	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -385,6 +387,8 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPITriggerAdminNotifications                *bool
 	EnableAPIUserDeletion                             *bool
+	EnableAPIPostDeletion                             *bool
+	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
@@ -803,6 +807,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAPIUserDeletion = NewPointer(false)
 	}
 
+	if s.EnableAPIPostDeletion == nil {
+		s.EnableAPIPostDeletion = NewPointer(false)
+	}
+
 	if s.EnableAPIChannelDeletion == nil {
 		s.EnableAPIChannelDeletion = NewPointer(false)
 	}
@@ -821,6 +829,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewPointer(false)
+	}
+
+	if s.EnableDesktopLandingPage == nil {
+		s.EnableDesktopLandingPage = NewPointer(true)
 	}
 
 	if s.EnableSVGs == nil {
@@ -933,27 +945,32 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type CacheSettings struct {
-	CacheType     *string `access:",write_restrictable,cloud_restrictable"`
-	RedisAddress  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisPassword *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisDB       *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	CacheType          *string `access:",write_restrictable,cloud_restrictable"`
+	RedisAddress       *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *CacheSettings) SetDefaults() {
 	if s.CacheType == nil {
-		s.CacheType = NewString(CacheTypeLRU)
+		s.CacheType = NewPointer(CacheTypeLRU)
 	}
 
 	if s.RedisAddress == nil {
-		s.RedisAddress = NewString("")
+		s.RedisAddress = NewPointer("")
 	}
 
 	if s.RedisPassword == nil {
-		s.RedisPassword = NewString("")
+		s.RedisPassword = NewPointer("")
 	}
 
 	if s.RedisDB == nil {
-		s.RedisDB = NewInt(-1)
+		s.RedisDB = NewPointer(-1)
+	}
+
+	if s.DisableClientCache == nil {
+		s.DisableClientCache = NewPointer(false)
 	}
 }
 
@@ -1068,13 +1085,14 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels                                  *bool   `access:"experimental_features"`
-	EnableRemoteClusterService                            *bool   `access:"experimental_features"`
+	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
+	EnableRemoteClusterService                            *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableRemoteClusterService`
 	DisableAppBar                                         *bool   `access:"experimental_features"`
 	DisableRefetchingOnBrowserFocus                       *bool   `access:"experimental_features"`
 	DelayChannelAutocomplete                              *bool   `access:"experimental_features"`
 	DisableWakeUpReconnectHandler                         *bool   `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64  `access:"experimental_features"`
+	YoutubeReferrerPolicy                                 *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1120,6 +1138,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
 		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewPointer(int64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds))
+	}
+
+	if s.YoutubeReferrerPolicy == nil {
+		s.YoutubeReferrerPolicy = NewPointer(false)
 	}
 }
 
@@ -1357,7 +1379,6 @@ type LogSettings struct {
 	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
 	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
@@ -1435,37 +1456,29 @@ func (s *LogSettings) SetDefaults() {
 		s.AdvancedLoggingJSON = []byte("{}")
 	}
 
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewPointer("")
-	}
-
 	if s.MaxFieldSize == nil {
 		s.MaxFieldSize = NewPointer(2048)
 	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-		return []byte(*s.AdvancedLoggingConfig)
-	}
+
 	return []byte("{}")
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileName              *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB         *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups        *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress          *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON   json.RawMessage `access:"experimental_features,write_restrictable"`
-	AdvancedLoggingConfig *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
+	FileEnabled         *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileName            *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
+	FileMaxSizeMB       *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxAgeDays      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON json.RawMessage `access:"experimental_features,write_restrictable"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1500,35 +1513,27 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		s.AdvancedLoggingJSON = []byte("{}")
 	}
-
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewPointer("")
-	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *ExperimentalAuditSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-		return []byte(*s.AdvancedLoggingConfig)
-	}
+
 	return []byte("{}")
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool           `access:"write_restrictable,cloud_restrictable"`
-	ConsoleLevel          *string         `access:"write_restrictable,cloud_restrictable"`
-	ConsoleJson           *bool           `access:"write_restrictable,cloud_restrictable"`
-	EnableColor           *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableFile            *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLevel             *string         `access:"write_restrictable,cloud_restrictable"`
-	FileJson              *bool           `access:"write_restrictable,cloud_restrictable"`
-	FileLocation          *string         `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON   json.RawMessage `access:"write_restrictable,cloud_restrictable"`
-	AdvancedLoggingConfig *string         `access:"write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
+	EnableConsole       *bool           `access:"write_restrictable,cloud_restrictable"`
+	ConsoleLevel        *string         `access:"write_restrictable,cloud_restrictable"`
+	ConsoleJson         *bool           `access:"write_restrictable,cloud_restrictable"`
+	EnableColor         *bool           `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableFile          *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLevel           *string         `access:"write_restrictable,cloud_restrictable"`
+	FileJson            *bool           `access:"write_restrictable,cloud_restrictable"`
+	FileLocation        *string         `access:"write_restrictable,cloud_restrictable"`
+	AdvancedLoggingJSON json.RawMessage `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1567,21 +1572,14 @@ func (s *NotificationLogSettings) SetDefaults() {
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		s.AdvancedLoggingJSON = []byte("{}")
 	}
-
-	if s.AdvancedLoggingConfig == nil {
-		s.AdvancedLoggingConfig = NewPointer("")
-	}
 }
 
 // GetAdvancedLoggingConfig returns the advanced logging config as a []byte.
-// AdvancedLoggingJSON takes precedence over the deprecated AdvancedLoggingConfig.
 func (s *NotificationLogSettings) GetAdvancedLoggingConfig() []byte {
 	if !utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
 		return s.AdvancedLoggingJSON
 	}
-	if s.AdvancedLoggingConfig != nil && !utils.IsEmptyJSON([]byte(*s.AdvancedLoggingConfig)) {
-		return []byte(*s.AdvancedLoggingConfig)
-	}
+
 	return []byte("{}")
 }
 
@@ -2781,6 +2779,7 @@ type NativeAppSettings struct {
 	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2798,6 +2797,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.AppCustomURLSchemes == nil {
 		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
+	}
+
+	if s.MobileExternalBrowser == nil {
+		s.MobileExternalBrowser = NewPointer(false)
 	}
 }
 
@@ -3216,6 +3219,38 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 }
 
+// Sanitize cleans up the plugin settings by removing any sensitive information.
+// It does so by checking if the setting is marked as secret in the plugin manifest.
+// If it is, the setting is replaced with a fake value.
+// If a plugin is no longer installed, all settings of it's are sanitized.
+// If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
+func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
+	manifestMap := make(map[string]*Manifest, len(pluginManifests))
+
+	for _, manifest := range pluginManifests {
+		manifestMap[manifest.Id] = manifest
+	}
+
+	for id, settings := range s.Plugins {
+		manifest := manifestMap[id]
+
+		for key := range settings {
+			if manifest == nil {
+				// Don't return plugin settings for plugins that are not installed
+				delete(s.Plugins, id)
+				break
+			}
+
+			for _, definedSetting := range manifest.SettingsSchema.Settings {
+				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+					settings[key] = FakeSetting
+					break
+				}
+			}
+		}
+	}
+}
+
 type WranglerSettings struct {
 	PermittedWranglerRoles                   []string
 	AllowedEmailDomain                       []string
@@ -3259,6 +3294,39 @@ func (w *WranglerSettings) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+type ConnectedWorkspacesSettings struct {
+	EnableSharedChannels            *bool
+	EnableRemoteClusterService      *bool
+	DisableSharedChannelsStatusSync *bool
+	MaxPostsPerSync                 *int
+}
+
+func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalSettings) {
+	if c.EnableSharedChannels == nil {
+		if isUpdate && e.EnableSharedChannels != nil {
+			c.EnableSharedChannels = e.EnableSharedChannels
+		} else {
+			c.EnableSharedChannels = NewPointer(false)
+		}
+	}
+
+	if c.EnableRemoteClusterService == nil {
+		if isUpdate && e.EnableRemoteClusterService != nil {
+			c.EnableRemoteClusterService = e.EnableRemoteClusterService
+		} else {
+			c.EnableRemoteClusterService = NewPointer(false)
+		}
+	}
+
+	if c.DisableSharedChannelsStatusSync == nil {
+		c.DisableSharedChannelsStatusSync = NewPointer(false)
+	}
+
+	if c.MaxPostsPerSync == nil {
+		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
+	}
 }
 
 type GlobalRelayMessageExportSettings struct {
@@ -3516,49 +3584,50 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //	    Product bool `access:write_restrictable`
 //	}
 type Config struct {
-	ServiceSettings           ServiceSettings
-	TeamSettings              TeamSettings
-	ClientRequirements        ClientRequirements
-	SqlSettings               SqlSettings
-	LogSettings               LogSettings
-	ExperimentalAuditSettings ExperimentalAuditSettings
-	NotificationLogSettings   NotificationLogSettings
-	PasswordSettings          PasswordSettings
-	FileSettings              FileSettings
-	EmailSettings             EmailSettings
-	RateLimitSettings         RateLimitSettings
-	PrivacySettings           PrivacySettings
-	SupportSettings           SupportSettings
-	AnnouncementSettings      AnnouncementSettings
-	ThemeSettings             ThemeSettings
-	GitLabSettings            SSOSettings
-	GoogleSettings            SSOSettings
-	Office365Settings         Office365Settings
-	OpenIdSettings            SSOSettings
-	LdapSettings              LdapSettings
-	ComplianceSettings        ComplianceSettings
-	LocalizationSettings      LocalizationSettings
-	SamlSettings              SamlSettings
-	NativeAppSettings         NativeAppSettings
-	CacheSettings             CacheSettings
-	ClusterSettings           ClusterSettings
-	MetricsSettings           MetricsSettings
-	ExperimentalSettings      ExperimentalSettings
-	AnalyticsSettings         AnalyticsSettings
-	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings
-	DataRetentionSettings     DataRetentionSettings
-	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings
-	PluginSettings            PluginSettings
-	DisplaySettings           DisplaySettings
-	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings  // telemetry: none
-	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings            ImportSettings // telemetry: none
-	ExportSettings            ExportSettings
-	WranglerSettings          WranglerSettings
+	ServiceSettings             ServiceSettings
+	TeamSettings                TeamSettings
+	ClientRequirements          ClientRequirements
+	SqlSettings                 SqlSettings
+	LogSettings                 LogSettings
+	ExperimentalAuditSettings   ExperimentalAuditSettings
+	NotificationLogSettings     NotificationLogSettings
+	PasswordSettings            PasswordSettings
+	FileSettings                FileSettings
+	EmailSettings               EmailSettings
+	RateLimitSettings           RateLimitSettings
+	PrivacySettings             PrivacySettings
+	SupportSettings             SupportSettings
+	AnnouncementSettings        AnnouncementSettings
+	ThemeSettings               ThemeSettings
+	GitLabSettings              SSOSettings
+	GoogleSettings              SSOSettings
+	Office365Settings           Office365Settings
+	OpenIdSettings              SSOSettings
+	LdapSettings                LdapSettings
+	ComplianceSettings          ComplianceSettings
+	LocalizationSettings        LocalizationSettings
+	SamlSettings                SamlSettings
+	NativeAppSettings           NativeAppSettings
+	CacheSettings               CacheSettings
+	ClusterSettings             ClusterSettings
+	MetricsSettings             MetricsSettings
+	ExperimentalSettings        ExperimentalSettings
+	AnalyticsSettings           AnalyticsSettings
+	ElasticsearchSettings       ElasticsearchSettings
+	BleveSettings               BleveSettings
+	DataRetentionSettings       DataRetentionSettings
+	MessageExportSettings       MessageExportSettings
+	JobSettings                 JobSettings
+	PluginSettings              PluginSettings
+	DisplaySettings             DisplaySettings
+	GuestAccountsSettings       GuestAccountsSettings
+	ImageProxySettings          ImageProxySettings
+	CloudSettings               CloudSettings  // telemetry: none
+	FeatureFlags                *FeatureFlags  `access:"*_read" json:",omitempty"`
+	ImportSettings              ImportSettings // telemetry: none
+	ExportSettings              ExportSettings
+	WranglerSettings            WranglerSettings
+	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3675,6 +3744,7 @@ func (o *Config) SetDefaults() {
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
 	o.WranglerSettings.SetDefaults()
+	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4385,7 +4455,7 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	return options
 }
 
-func (o *Config) Sanitize() {
+func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FakeSetting
 	}
@@ -4451,6 +4521,12 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
 	}
+
+	if o.CacheSettings.RedisPassword != nil {
+		*o.CacheSettings.RedisPassword = FakeSetting
+	}
+
+	o.PluginSettings.Sanitize(pluginManifests)
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

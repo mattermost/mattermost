@@ -10,9 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 func TestChannelStore(t *testing.T) {
@@ -388,6 +391,19 @@ func TestChannelStoreGetManyCache(t *testing.T) {
 		assert.ElementsMatch(t, model.ChannelList{&fakeChannel, &fakeChannel2}, channels)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMany", 2)
 	})
+
+	t.Run("passing allowCache=false should bypass cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		fakeChannel := model.Channel{Id: "channel1", Name: "channel1-name"}
+		channels, err := cachedStore.Channel().GetMany([]string{fakeChannel.Id}, false)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, model.ChannelList{&fakeChannel}, channels)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMany", 1)
+	})
 }
 
 func TestChannelStoreGetByNamesCache(t *testing.T) {
@@ -416,4 +432,21 @@ func TestChannelStoreGetByNamesCache(t *testing.T) {
 		assert.ElementsMatch(t, []*model.Channel{&fakeChannel, &fakeChannel2}, channels)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByNames", 2)
 	})
+}
+
+func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	mockStore := getMockStore(t)
+	mockCacheProvider := getMockCacheProvider()
+	cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+	require.NoError(t, err)
+
+	cmock := cmocks.NewCache(t)
+	cmock.On("Get", "u1", mock.AnythingOfType("*model.StringMap")).Return(nil)
+
+	cachedStore.channel.rootStore.channelMembersForUserCache = cmock
+
+	_, err = cachedStore.Channel().GetAllChannelMembersForUser(request.TestContext(t), "u1", true, false)
+	require.NoError(t, err)
 }

@@ -11,10 +11,8 @@
 // Group: @channels @system_console @smoke
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
 
 describe('System Console', () => {
-    const sysadmin = getAdminAccount();
     let testUser;
 
     before(() => {
@@ -25,10 +23,8 @@ describe('System Console', () => {
     });
 
     it('MM-T922 Demoted user cannot continue to view System Console', () => {
-        const baseUrl = Cypress.config('baseUrl');
-
         // # Set user to be a sysadmin, so it can access the system console
-        cy.externalRequest({user: sysadmin, method: 'put', baseUrl, path: `users/${testUser.id}/roles`, data: {roles: 'system_user system_admin'}});
+        cy.externalUpdateUserRoles(testUser.id, 'system_user system_admin');
 
         // # Visit a page on the system console
         cy.visit('/admin_console/reporting/system_analytics');
@@ -36,7 +32,7 @@ describe('System Console', () => {
         cy.url().should('include', '/admin_console/reporting/system_analytics');
 
         // # Change the role of the user back to user
-        cy.externalRequest({user: sysadmin, method: 'put', baseUrl, path: `users/${testUser.id}/roles`, data: {roles: 'system_user'}});
+        cy.externalUpdateUserRoles(testUser.id, 'system_user');
 
         // # User should get redirected to town square
         cy.get('#adminConsoleWrapper').should('not.exist');

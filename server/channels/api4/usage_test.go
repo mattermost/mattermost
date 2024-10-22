@@ -19,7 +19,8 @@ func TestGetPostsUsage(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetPostsUsage(context.Background())
 		assert.Error(t, err)
@@ -57,7 +58,8 @@ func TestGetStorageUsage(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetStorageUsage(context.Background())
 		assert.Error(t, err)
@@ -71,7 +73,8 @@ func TestGetTeamsUsage(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 
 		usage, r, err := th.Client.GetTeamsUsage(context.Background())
 		assert.Error(t, err)

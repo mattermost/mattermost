@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -1591,23 +1592,74 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 	return c > 0, nil
 }
 
-// UpdateMembersRole updates all the members of teamID in the userIds string array to be admins and sets all other
+// UpdateMembersRole updates all the members of teamID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
-func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+// It returns the list of userIDs whose roles got updated.
+func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*model.TeamMember, err error) {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// On MySQL it's not possible to update a table and select from it in the same query.
+	// A SELECT and a UPDATE query are needed.
+	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
 	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("TeamMembers").
+		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
+		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
+		Where(
+			sq.Or{
+				// New admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": false},
+					sq.Eq{"UserId": adminIDs},
+				},
+				// Demoted admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": true},
+					sq.NotEq{"UserId": adminIDs},
+				},
+			},
+		).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	var updatedMembers []*model.TeamMember
+	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get list of updated users")
+	}
+
+	// Update SchemeAdmin field as the data from the SQL is not updated yet
+	for _, member := range updatedMembers {
+		if slices.Contains(adminIDs, member.UserId) {
+			member.SchemeAdmin = true
+		} else {
+			member.SchemeAdmin = false
+		}
+	}
+
+	query, args, err = s.getQueryBuilder().
 		Update("TeamMembers").
-		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": userIDs}, "true").Else("false")).
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "team_tosql")
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to update TeamMembers")
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to update TeamMembers")
 	}
 
-	return nil
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return updatedMembers, nil
 }
 
 func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {

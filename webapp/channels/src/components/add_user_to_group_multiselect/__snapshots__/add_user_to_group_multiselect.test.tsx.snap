@@ -70,7 +70,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot with diff
     ]
   }
   perPage={50}
-  placeholderText="Search for people"
+  placeholderText={
+    Object {
+      "defaultMessage": "Search for people",
+      "id": "multiselect.placeholder",
+    }
+  }
   saveButtonPosition="bottom"
   saving={false}
   savingEnabled={false}
@@ -87,8 +92,18 @@ exports[`component/add_user_to_group_multiselect should match snapshot with diff
 exports[`component/add_user_to_group_multiselect should match snapshot with profiles 1`] = `
 <MultiSelect
   ariaLabelRenderer={[Function]}
-  buttonSubmitLoadingText="Creating..."
-  buttonSubmitText="Create Group"
+  buttonSubmitLoadingText={
+    Object {
+      "defaultMessage": "Creating...",
+      "id": "multiselect.creating",
+    }
+  }
+  buttonSubmitText={
+    Object {
+      "defaultMessage": "Create Group",
+      "id": "multiselect.createGroup",
+    }
+  }
   focusOnLoad={false}
   handleAdd={[Function]}
   handleDelete={[Function]}
@@ -154,7 +169,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot with prof
     ]
   }
   perPage={50}
-  placeholderText="Search for people"
+  placeholderText={
+    Object {
+      "defaultMessage": "Search for people",
+      "id": "multiselect.placeholder",
+    }
+  }
   saveButtonPosition="bottom"
   saving={false}
   savingEnabled={false}
@@ -171,8 +191,18 @@ exports[`component/add_user_to_group_multiselect should match snapshot with prof
 exports[`component/add_user_to_group_multiselect should match snapshot without any profiles 1`] = `
 <MultiSelect
   ariaLabelRenderer={[Function]}
-  buttonSubmitLoadingText="Creating..."
-  buttonSubmitText="Create Group"
+  buttonSubmitLoadingText={
+    Object {
+      "defaultMessage": "Creating...",
+      "id": "multiselect.creating",
+    }
+  }
+  buttonSubmitText={
+    Object {
+      "defaultMessage": "Create Group",
+      "id": "multiselect.createGroup",
+    }
+  }
   focusOnLoad={false}
   handleAdd={[Function]}
   handleDelete={[Function]}
@@ -223,7 +253,12 @@ exports[`component/add_user_to_group_multiselect should match snapshot without a
   optionRenderer={[Function]}
   options={Array []}
   perPage={50}
-  placeholderText="Search for people"
+  placeholderText={
+    Object {
+      "defaultMessage": "Search for people",
+      "id": "multiselect.placeholder",
+    }
+  }
   saveButtonPosition="bottom"
   saving={false}
   savingEnabled={false}
