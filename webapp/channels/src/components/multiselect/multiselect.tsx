@@ -12,6 +12,7 @@ import type {InputActionMeta} from 'react-select/src/types';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
+import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';
@@ -36,6 +37,7 @@ export type Props<T extends Value> = {
     backButtonText?: string | MessageDescriptor;
     buttonSubmitLoadingText?: ReactNode | MessageDescriptor;
     buttonSubmitText?: ReactNode | MessageDescriptor;
+    errorMessage?: string;
     handleAdd: (value: T) => void;
     handleDelete: (values: T[]) => void;
     handleInput: (input: string, multiselect: MultiSelect<T>) => void;
@@ -356,6 +358,18 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             );
         }
 
+        let errorMessageContainer;
+        if (this.props.errorMessage) {
+            errorMessageContainer = (
+                <div className='multi-select__error'>
+                    <div className='error__icon'>
+                        <WarningIcon/>
+                    </div>
+                    <div><span>{this.props.errorMessage}</span></div>
+                </div>
+            );
+        }
+
         const valueMap: Record<string, boolean> = {};
         for (let i = 0; i < values.length; i++) {
             valueMap[values[i].id] = true;
@@ -513,6 +527,12 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         </div>
                     </div>
                     {multiSelectList}
+                    <div
+                        id='multiSelectMessageNote'
+                        className='multi-select__help'
+                    >
+                        {errorMessageContainer}
+                    </div>
                     <div
                         id='multiSelectMessageNote'
                         className='multi-select__help'
