@@ -382,12 +382,6 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
     const renderMentionButton = (): JSX.Element => (
         <HeaderIconWrapper
-            iconComponent={
-                <MentionsIcon
-                    className='icon icon--standard'
-                    aria-hidden='true'
-                />
-            }
             buttonClass={classNames(
                 'channel-header__icon',
                 {'channel-header__icon--active': props.isMentionSearch},
@@ -397,14 +391,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             tooltip={intl.formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
             tooltipShortcut={mentionsShortcut}
             isRhsOpen={props.isRhsOpen}
-        />
+        >
+            <MentionsIcon
+                className='icon icon--standard'
+                aria-hidden='true'
+            />
+        </HeaderIconWrapper>
     );
 
     const renderFlagBtn = (): JSX.Element => (
         <HeaderIconWrapper
-            iconComponent={
-                <FlagIcon className='icon icon--standard'/>
-            }
             buttonClass={classNames(
                 'channel-header__icon ',
                 {'channel-header__icon--active': props.isFlaggedPosts},
@@ -413,7 +409,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             onClick={getFlagged}
             tooltip={intl.formatMessage({id: 'channel_header.flagged', defaultMessage: 'Saved messages'})}
             isRhsOpen={props.isRhsOpen}
-        />
+        >
+            <FlagIcon className='icon icon--standard'/>
+        </HeaderIconWrapper>
     );
 
     const renderHintPopover = (): JSX.Element => {
@@ -500,16 +498,15 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         if (hideSearchBar) {
             return (
                 <HeaderIconWrapper
-                    iconComponent={
-                        <SearchIcon
-                            className='icon icon--standard'
-                            aria-hidden='true'
-                        />
-                    }
                     buttonId={'channelHeaderSearchButton'}
                     onClick={searchButtonClick}
                     tooltip={intl.formatMessage({id: 'channel_header.search', defaultMessage: 'Search'})}
-                />
+                >
+                    <SearchIcon
+                        className='icon icon--standard'
+                        aria-hidden='true'
+                    />
+                </HeaderIconWrapper>
             );
         }
 
