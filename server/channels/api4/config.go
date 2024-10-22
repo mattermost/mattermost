@@ -74,18 +74,20 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	filterOpts := model.ConfigFilterOptions{
-		RemoveMasked:   filterMasked,
-		RemoveDefaults: filterDefaults,
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
 	}
 	if c.App.Channels().License().IsCloud() {
 		filterOpts.TagFilters = append(filterOpts.TagFilters, model.FilterTag{
-			TypeOfTag: model.ConfigAccessTagType,
-			Tag:       model.ConfigAccessTagCloudRestrictable,
+			TagType: model.ConfigAccessTagType,
+			TagName: model.ConfigAccessTagCloudRestrictable,
 		})
 	}
 	m, err := model.FilterConfig(cfg, filterOpts)
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

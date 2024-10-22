@@ -32,13 +32,15 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
 
 	filterOpts := model.ConfigFilterOptions{
-		RemoveMasked:   filterMasked,
-		RemoveDefaults: filterDefaults,
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
 	}
 
-	m, err := model.FilterConfig(c.App.GetSanitizedConfig(), filterOpts)
+	m, err := model.FilterConfig(c.App.Config(), filterOpts)
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	auditRec.Success()

@@ -4530,14 +4530,13 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 }
 
 type FilterTag struct {
-	TypeOfTag string
-	Tag       string
+	TagType string
+	TagName string
 }
 
 type ConfigFilterOptions struct {
-	TagFilters     []FilterTag
-	RemoveMasked   bool
-	RemoveDefaults bool
+	GetConfigOptions
+	TagFilters []FilterTag
 }
 
 type GetConfigOptions struct {
@@ -4564,8 +4563,8 @@ func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error)
 	}
 
 	for i := range opts.TagFilters {
-		filteredCfg = structToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TypeOfTag, opts.TagFilters[i].Tag)
-		filteredDefaultCfg = structToMapFilteredByTag(defaultCfg, opts.TagFilters[i].TypeOfTag, opts.TagFilters[i].Tag)
+		filteredCfg = structToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+		filteredDefaultCfg = structToMapFilteredByTag(defaultCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
 	}
 
 	if opts.RemoveDefaults {

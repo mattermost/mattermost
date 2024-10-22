@@ -4813,8 +4813,7 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 	defer closeBody(r)
 
 	var cfg map[string]any
-	d := json.NewDecoder(r.Body)
-	return cfg, BuildResponse(r), d.Decode(&cfg)
+	return cfg, BuildResponse(r), json.NewDecoder(r.Body).Decode(&cfg)
 }
 
 // ReloadConfig will reload the server configuration.
