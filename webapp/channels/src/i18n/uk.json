@@ -1600,6 +1600,7 @@
   "claim.oauth_to_email.pwdNotMatch": "Паролі не збігаються.",
   "claim.oauth_to_email.switchTo": "Перейти з {type} до використання e-mail і пароля",
   "claim.oauth_to_email.title": "Переключити акаунт {type} на E-Mail",
+  "cloud_billing.nudge_to_paid.view_plans": "Перегляд тарифних планів",
   "combined_system_message.added_to_channel.many_expanded": "{users} і {finalUser} були **додані до каналу** {actor}.",
   "combined_system_message.added_to_channel.one": "{firstUser} **запрошується на канал** користувачем {actor}. ",
   "combined_system_message.added_to_channel.one_you": "Ви були **додані на канал** користувачем {actor}.",
@@ -2168,6 +2169,7 @@
   "postlist.toast.scrollToLatest": "Перейти до останніх повідомлень ",
   "posts_view.loadMore": "Завантажте більше повідомлень",
   "posts_view.newMsg": "Нові повідомлення",
+  "pricing_modal.btn.viewPlans": "Перегляд тарифних планів",
   "quick_switch_modal.help_mobile": "Введіть, щоб знайти канал.",
   "quick_switch_modal.switchChannels": "Змінити канал",
   "reaction.add.ariaLabel": "Додати реакцію",
@@ -2421,6 +2423,7 @@
   "update_outgoing_webhook.confirm": "Увімкнути вихідні вебхуки",
   "update_outgoing_webhook.question": "Ваші зміни можуть пошкодити існуючий вихідний вебхук. Ви впевнені, що хочете продовжити?",
   "update_outgoing_webhook.update": "Оновити",
+  "upgrade_export_data_modal.view_plans": "Перегляд планів",
   "upload_overlay.info": "Залиште файл, щоб завантажити його.",
   "user.settings.advance.confirmDeactivateAccountTitle": "Підтвердити дезактивацію",
   "user.settings.advance.confirmDeactivateDesc": "Ви впевнені, що хочете деактивувати свій обліковий запис? Це може бути змінено лише вашим системним адміністратором.",
@@ -2717,5 +2720,8 @@
   "widgets.users_emails_input.loading": "Завантаження",
   "widgets.users_emails_input.valid_email": "Add **{email}**",
   "workspace_limits.file_storage.short": "Файли",
+  "workspace_limits.menu_limit.view_plans": "Перегляд планів",
+  "workspace_limits.modals.view_plans": "Перегляд тарифних планів",
+  "workspace_limits.search_limit.view_plans": "Перегляд тарифних планів",
   "yourcomputer": "Ваш комп'ютер"
 }
