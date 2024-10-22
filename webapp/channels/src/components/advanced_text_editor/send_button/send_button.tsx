@@ -63,7 +63,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     }, [sendOnCtrlEnter]);
 
     return (
-        <div className={classNames('splitSendButton', {disabled})}>
+        <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled})}>
             <WithTooltip
                 placement='top'
                 id='send_post_now_tooltip'

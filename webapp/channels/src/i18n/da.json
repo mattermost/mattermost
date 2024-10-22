@@ -652,7 +652,6 @@
   "multiselect.add": "Tilføj",
   "navbar_dropdown.manageGroups": "Administrer roller",
   "post_body.check_for_out_of_channel_mentions.link.and": " og ",
-  "quick_switch_modal.help_no_team": "Skriv for at finde en kanal. Brug ↑↓ til at gennemse, ↵ for at vælge, ESC for at annullere.",
   "shortcuts.header": "Tastaturgenveje\tCtrll/",
   "shortcuts.header.mac": "Tastaturgenveje\t⌘|/",
   "update_command.question": "Dine ændringer, kan ødelægge den eksisterende slash kommando. Er du sikker på du ønsker at opdatere den?",
