@@ -1208,7 +1208,6 @@
   "invite_modal.copy_link": "Kopier invitasjonslenken",
   "invite_modal.example_channel": "f.eks. {channel_name}",
   "invite_modal.guests": "gjester",
-  "invite_modal.invite": "",
   "invite_modal.invited": "{inviteType} invitert til {team_name}",
   "invite_modal.invited_guests": "Gjester",
   "invite_modal.invited_members": "Medlemmer",
