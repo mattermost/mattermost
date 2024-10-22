@@ -51,7 +51,6 @@
   "apps.error.parser.unexpected_comma": "פסיק לא צפוי.",
   "apps.error.parser.unexpected_error": "שגיאה לא צפויה.",
   "apps.error.parser.unexpected_squared_bracket": "פתיחת רשימה לא צפויה.",
-  "archivedChannelMessage": "ערוץ זה ב**מצב ארכיון**. לא ניתן לשלוח הודעות חדשות.",
   "center_panel.archived.closeChannel": "סגור ערוץ",
   "channel_header.directchannel.you": "{displayname} (את/ה) ",
   "channel_header.manageMembers": "ניהול חברים",

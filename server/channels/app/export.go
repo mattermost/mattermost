@@ -121,14 +121,12 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 	}
 
-	if job != nil && job.Data == nil {
-		job.Data = make(model.StringMap)
-	}
-
 	if job == nil {
 		job = &model.Job{
 			Data: make(model.StringMap),
 		}
+	} else if job.Data == nil {
+		job.Data = make(model.StringMap)
 	}
 
 	ctx.Logger().Info("Bulk export: exporting version")
