@@ -185,23 +185,18 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
       <div
         className="visit-marketplace"
       >
-        <button
-          className="btn btn-primary visit-marketplace-button"
-          id="marketPlaceButton"
+        <Button
+          emphasis="primary"
+          label={
+            Object {
+              "defaultMessage": "Visit the Marketplace",
+              "id": "post_info.actions.visitMarketplace",
+            }
+          }
+          leadingIcon="icon-view-grid-plus-outline"
           onClick={[Function]}
-        >
-          <ActionsMenuIcon
-            name="icon-view-grid-plus-outline visit-marketplace-button-icon"
-          />
-          <span
-            className="visit-marketplace-button-text"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Visit the Marketplace"
-              id="post_info.actions.visitMarketplace"
-            />
-          </span>
-        </button>
+          testId="marketPlaceButton"
+        />
       </div>
     </Memo(SystemPermissionGate)>
   </Menu>

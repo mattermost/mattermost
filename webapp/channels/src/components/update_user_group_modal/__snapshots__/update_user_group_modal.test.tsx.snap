@@ -103,22 +103,33 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
       <div
         className="update-buttons-wrapper"
       >
-        <button
-          className="btn btn-tertiary"
+        <Button
+          emphasis="tertiary"
+          label={
+            Object {
+              "defaultMessage": "Back",
+              "id": "multiselect.backButton",
+            }
+          }
           onClick={[Function]}
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Back"
-            id="multiselect.backButton"
-          />
-        </button>
+        />
         <SaveButton
-          defaultMessage="Save Details"
+          defaultMessage={
+            Object {
+              "defaultMessage": "Save Details",
+              "id": "multiselect.saveDetailsButton",
+            }
+          }
           disabled={true}
-          id="saveItems"
           onClick={[Function]}
           saving={false}
-          savingMessage="Saving..."
+          savingMessage={
+            Object {
+              "defaultMessage": "Saving...",
+              "id": "multiselect.savingDetailsButton",
+            }
+          }
+          testId="saveItems"
         />
       </div>
     </div>

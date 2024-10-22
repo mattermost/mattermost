@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, ChangeEventHandler} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -11,16 +11,26 @@ import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {Emoji} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import Button from 'components/button';
+import SaveButton from 'components/button/save_button';
 import EmojiListItem from 'components/emoji/emoji_list_item';
 import LoadingScreen from 'components/loading_screen';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import SaveButton from 'components/save_button';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;
+
+const messages = defineMessages({
+    next: {
+        id: 'filtered_user_list.next',
+        defaultMessage: 'Next',
+    },
+    prev: {
+        id: 'filtered_user_list.prev',
+        defaultMessage: 'Previous',
+    },
+});
 
 export interface Props {
 
@@ -223,41 +233,28 @@ export default class EmojiList extends React.PureComponent<Props, State> {
             });
 
             if (this.state.missingPages) {
-                const buttonContents = (
-                    <span>
-                        <FormattedMessage
-                            id='filtered_user_list.next'
-                            defaultMessage='Next'
-                        />
-                        <NextIcon additionalClassName='ml-2'/>
-                    </span>
-                );
-
                 nextButton = (
                     <SaveButton
-                        btnClass='btn-tertiary'
-                        extraClasses='pull-right'
+                        emphasis='tertiary'
+                        pull='right'
                         onClick={this.nextPage}
                         saving={this.state.nextLoading}
                         disabled={this.state.nextLoading}
-                        defaultMessage={buttonContents}
-                        savingMessage={buttonContents}
+                        defaultMessage={messages.next}
+                        savingMessage={messages.next}
+                        trailingIcon='icon-chevron-right'
                     />
                 );
             }
 
             if (this.state.page > 0) {
                 previousButton = (
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={this.previousPage}
-                    >
-                        <PreviousIcon additionalClassName='mr-2'/>
-                        <FormattedMessage
-                            id='filtered_user_list.prev'
-                            defaultMessage='Previous'
-                        />
-                    </button>
+                        leadingIcon='icon-chevron-left'
+                        label={messages.prev}
+                    />
                 );
             }
         }

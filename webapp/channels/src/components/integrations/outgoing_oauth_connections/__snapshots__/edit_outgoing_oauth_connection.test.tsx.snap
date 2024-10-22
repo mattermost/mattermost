@@ -494,34 +494,48 @@ https://myothersite.com/api/v2"
                     </LinkAnchor>
                   </Link>
                   <Memo(SpinnerButton)
-                    className="btn btn-primary"
-                    id="saveConnection"
+                    buttonType="submit"
+                    emphasis="primary"
+                    idleText={
+                      Object {
+                        "defaultMessage": "Update",
+                        "id": "edit_outgoing_oauth_connection.update",
+                      }
+                    }
                     onClick={[Function]}
                     spinning={false}
-                    spinningText="Updating..."
-                    type="submit"
+                    spinningText={
+                      Object {
+                        "defaultMessage": "Updating...",
+                        "id": "edit_outgoing_oauth_connection.updating",
+                      }
+                    }
+                    testId="saveConnection"
                   >
-                    <button
-                      className="btn btn-primary"
+                    <Button
+                      buttonType="submit"
                       disabled={false}
-                      id="saveConnection"
+                      emphasis="primary"
+                      label={
+                        Object {
+                          "defaultMessage": "Update",
+                          "id": "edit_outgoing_oauth_connection.update",
+                        }
+                      }
+                      loading={false}
                       onClick={[Function]}
-                      type="submit"
+                      testId="saveConnection"
                     >
-                      <Memo(LoadingWrapper)
-                        loading={false}
-                        text="Updating..."
+                      <button
+                        className="btn btn-primary"
+                        data-testid="saveConnection"
+                        disabled={false}
+                        onClick={[Function]}
+                        type="submit"
                       >
-                        <FormattedMessage
-                          defaultMessage="Update"
-                          id="edit_outgoing_oauth_connection.update"
-                        >
-                          <span>
-                            Update
-                          </span>
-                        </FormattedMessage>
-                      </Memo(LoadingWrapper)>
-                    </button>
+                        Update
+                      </button>
+                    </Button>
                   </Memo(SpinnerButton)>
                   <ConfirmModal
                     confirmButtonClass="btn btn-primary"
@@ -1214,34 +1228,48 @@ https://myothersite.com/api/v2"
                     </LinkAnchor>
                   </Link>
                   <Memo(SpinnerButton)
-                    className="btn btn-primary"
-                    id="saveConnection"
+                    buttonType="submit"
+                    emphasis="primary"
+                    idleText={
+                      Object {
+                        "defaultMessage": "Update",
+                        "id": "edit_outgoing_oauth_connection.update",
+                      }
+                    }
                     onClick={[Function]}
                     spinning={false}
-                    spinningText="Updating..."
-                    type="submit"
+                    spinningText={
+                      Object {
+                        "defaultMessage": "Updating...",
+                        "id": "edit_outgoing_oauth_connection.updating",
+                      }
+                    }
+                    testId="saveConnection"
                   >
-                    <button
-                      className="btn btn-primary"
+                    <Button
+                      buttonType="submit"
                       disabled={false}
-                      id="saveConnection"
+                      emphasis="primary"
+                      label={
+                        Object {
+                          "defaultMessage": "Update",
+                          "id": "edit_outgoing_oauth_connection.update",
+                        }
+                      }
+                      loading={false}
                       onClick={[Function]}
-                      type="submit"
+                      testId="saveConnection"
                     >
-                      <Memo(LoadingWrapper)
-                        loading={false}
-                        text="Updating..."
+                      <button
+                        className="btn btn-primary"
+                        data-testid="saveConnection"
+                        disabled={false}
+                        onClick={[Function]}
+                        type="submit"
                       >
-                        <FormattedMessage
-                          defaultMessage="Update"
-                          id="edit_outgoing_oauth_connection.update"
-                        >
-                          <span>
-                            Update
-                          </span>
-                        </FormattedMessage>
-                      </Memo(LoadingWrapper)>
-                    </button>
+                        Update
+                      </button>
+                    </Button>
                   </Memo(SpinnerButton)>
                   <ConfirmModal
                     confirmButtonClass="btn btn-primary"
@@ -1933,34 +1961,48 @@ https://myothersite.com/api/v2"
                     </LinkAnchor>
                   </Link>
                   <Memo(SpinnerButton)
-                    className="btn btn-primary"
-                    id="saveConnection"
+                    buttonType="submit"
+                    emphasis="primary"
+                    idleText={
+                      Object {
+                        "defaultMessage": "Update",
+                        "id": "edit_outgoing_oauth_connection.update",
+                      }
+                    }
                     onClick={[Function]}
                     spinning={false}
-                    spinningText="Updating..."
-                    type="submit"
+                    spinningText={
+                      Object {
+                        "defaultMessage": "Updating...",
+                        "id": "edit_outgoing_oauth_connection.updating",
+                      }
+                    }
+                    testId="saveConnection"
                   >
-                    <button
-                      className="btn btn-primary"
+                    <Button
+                      buttonType="submit"
                       disabled={false}
-                      id="saveConnection"
+                      emphasis="primary"
+                      label={
+                        Object {
+                          "defaultMessage": "Update",
+                          "id": "edit_outgoing_oauth_connection.update",
+                        }
+                      }
+                      loading={false}
                       onClick={[Function]}
-                      type="submit"
+                      testId="saveConnection"
                     >
-                      <Memo(LoadingWrapper)
-                        loading={false}
-                        text="Updating..."
+                      <button
+                        className="btn btn-primary"
+                        data-testid="saveConnection"
+                        disabled={false}
+                        onClick={[Function]}
+                        type="submit"
                       >
-                        <FormattedMessage
-                          defaultMessage="Update"
-                          id="edit_outgoing_oauth_connection.update"
-                        >
-                          <span>
-                            Update
-                          </span>
-                        </FormattedMessage>
-                      </Memo(LoadingWrapper)>
-                    </button>
+                        Update
+                      </button>
+                    </Button>
                   </Memo(SpinnerButton)>
                   <ConfirmModal
                     confirmButtonClass="btn btn-primary"

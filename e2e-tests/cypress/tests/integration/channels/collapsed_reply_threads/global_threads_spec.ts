@@ -96,7 +96,7 @@ describe('Collapsed Reply Threads', () => {
         cy.get('#click_to_replyFormatB').click();
 
         // # Save settings
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // # close settings modal
         cy.uiClose();

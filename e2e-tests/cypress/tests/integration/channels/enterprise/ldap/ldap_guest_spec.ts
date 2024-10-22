@@ -203,7 +203,7 @@ describe('LDAP guest', () => {
                     cy.uiGetButton('Add').click();
 
                     // # Save settings
-                    cy.get('#saveSetting').should('be.enabled').click();
+                    cy.findByTestId('saveSetting').should('be.enabled').click();
 
                     // # Accept confirmation modal
                     cy.get('#confirmModalButton').should('be.visible').click();

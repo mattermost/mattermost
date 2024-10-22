@@ -98,7 +98,7 @@ describe('Onboarding', () => {
             cy.findByText('Email Verified', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
             cy.get('#input_loginId').should('have.value', email);
             cy.get('#input_password-input').should('be.visible').type(password);
-            cy.get('#saveSetting').click();
+            cy.findByTestId('saveSetting').click();
             cy.findByText('The email/username or password is invalid.').should('not.exist');
         });
 

@@ -328,8 +328,14 @@ callbackUrl2.com
           />
         </Link>
         <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveWebhook"
+          buttonType="submit"
+          emphasis="primary"
+          idleText={
+            Object {
+              "defaultMessage": "Footer",
+              "id": "footer_id",
+            }
+          }
           onClick={[Function]}
           spinning={false}
           spinningText={
@@ -338,13 +344,8 @@ callbackUrl2.com
               "id": "loading_id",
             }
           }
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="footer_id"
-          />
-        </Memo(SpinnerButton)>
+          testId="saveWebhook"
+        />
       </div>
     </form>
   </div>

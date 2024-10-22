@@ -59,29 +59,28 @@ exports[`components/GetLinkModal should have called onHide 1`] = `
     bsClass="modal-footer"
     componentClass="div"
   >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
+    <Button
+      emphasis="tertiary"
+      label={
+        Object {
+          "defaultMessage": "Close",
+          "id": "get_link.close",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
+      testId="linkModalCloseButton"
+    />
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Copy Link",
+          "id": "get_link.copy",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
+      testId="linkModalCopyLink"
+    />
     <p
       className="alert alert-success alert--confirm"
     >
@@ -154,29 +153,28 @@ exports[`components/GetLinkModal should have called onHide 2`] = `
     bsClass="modal-footer"
     componentClass="div"
   >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
+    <Button
+      emphasis="tertiary"
+      label={
+        Object {
+          "defaultMessage": "Close",
+          "id": "get_link.close",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
+      testId="linkModalCloseButton"
+    />
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Copy Link",
+          "id": "get_link.copy",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
+      testId="linkModalCopyLink"
+    />
   </ModalFooter>
 </Modal>
 `;
@@ -245,29 +243,28 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
     bsClass="modal-footer"
     componentClass="div"
   >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
+    <Button
+      emphasis="tertiary"
+      label={
+        Object {
+          "defaultMessage": "Close",
+          "id": "get_link.close",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
+      testId="linkModalCloseButton"
+    />
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Copy Link",
+          "id": "get_link.copy",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
+      testId="linkModalCopyLink"
+    />
   </ModalFooter>
 </Modal>
 `;
@@ -331,29 +328,28 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
     bsClass="modal-footer"
     componentClass="div"
   >
-    <button
-      className="btn btn-tertiary"
-      id="linkModalCloseButton"
+    <Button
+      emphasis="tertiary"
+      label={
+        Object {
+          "defaultMessage": "Close",
+          "id": "get_link.close",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="get_link.close"
-      />
-    </button>
-    <button
-      className="btn btn-primary pull-left"
-      data-copy-btn="true"
-      id="linkModalCopyLink"
+      testId="linkModalCloseButton"
+    />
+    <Button
+      emphasis="primary"
+      label={
+        Object {
+          "defaultMessage": "Copy Link",
+          "id": "get_link.copy",
+        }
+      }
       onClick={[Function]}
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Copy Link"
-        id="get_link.copy"
-      />
-    </button>
+      testId="linkModalCopyLink"
+    />
   </ModalFooter>
 </Modal>
 `;

@@ -3,7 +3,9 @@
 
 import React, {useState, memo, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+
+import Button from './button';
 
 type Props = {
     onExited: () => void;
@@ -46,18 +48,13 @@ const PostDeletedModal = ({
                 </p>
             </Modal.Body>
             <Modal.Footer>
-                <button
-                    type='button'
-                    className='btn btn-primary'
-                    autoFocus={true}
+                <Button
+                    emphasis='primary'
+                    label={defineMessage({id: 'post_delete.okay', defaultMessage: 'Okay'})}
                     onClick={handleHide}
-                    data-testid='postDeletedModalOkButton'
-                >
-                    <FormattedMessage
-                        id='post_delete.okay'
-                        defaultMessage='Okay'
-                    />
-                </button>
+                    autoFocus={true}
+                    testId='postDeletedModalOkButton'
+                />
             </Modal.Footer>
         </Modal>
     );

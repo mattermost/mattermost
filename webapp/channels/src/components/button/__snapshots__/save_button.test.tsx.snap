@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
+<Button
+  buttonType="submit"
+  disabled={false}
+  label={
+    Object {
+      "defaultMessage": "Save",
+      "id": "save_button.save",
+    }
+  }
+  loading={false}
+  testId="saveSetting"
+/>
+`;
+
+exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
+<Button
+  buttonType="submit"
+  disabled={false}
+  label={
+    Object {
+      "defaultMessage": "Save",
+      "id": "save_button.save",
+    }
+  }
+  loading={false}
+  testId="saveSetting"
+/>
+`;
+
+exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
+<Button
+  buttonType="submit"
+  disabled={false}
+  label="Go"
+  loading={false}
+  testId="saveSetting"
+/>
+`;
+
+exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
+<Button
+  buttonType="submit"
+  disabled={true}
+  label={
+    Object {
+      "defaultMessage": "Saving",
+      "id": "save_button.saving",
+    }
+  }
+  loading={true}
+  testId="saveSetting"
+/>
+`;
+
+exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
+<Button
+  buttonType="submit"
+  disabled={true}
+  label="Saving Config..."
+  loading={true}
+  testId="saveSetting"
+/>
+`;

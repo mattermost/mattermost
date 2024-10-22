@@ -79,7 +79,7 @@ describe('System Console', () => {
             cy.findByTestId('EmailSettings.PushNotificationContentsdropdown').
                 select(option.label).
                 and('have.value', option.value);
-            cy.get('#saveSetting').click();
+            cy.findByTestId('saveSetting').click();
 
             cy.apiGetConfig().then(({config}) => {
                 expect(config.EmailSettings.PushNotificationContents).to.equal(option.value);
@@ -103,7 +103,7 @@ describe('System Console', () => {
         cy.findByTestId('SupportSettings.SupportEmail').find('input').clear().type(newEmail).should('have.value', newEmail);
 
         // # Save setting
-        cy.get('#saveSetting').click();
+        cy.findByTestId('saveSetting').click();
 
         // * Verify that the config is correctly saved in the server
         cy.apiGetConfig().then(({config}) => {
@@ -124,13 +124,13 @@ describe('System Console', () => {
                 cy.findByTestId(test.field).find('input').clear();
 
                 // * Ensures the save button is disabled
-                cy.get('#saveSetting').should('be.disabled');
+                cy.findByTestId('saveSetting').should('be.disabled');
 
                 // # Insert something in the field
                 cy.findByTestId(test.field).find('input').type(test.field);
 
                 // * Ensures the save button is disabled
-                cy.get('#saveSetting').should('be.not.disabled');
+                cy.findByTestId('saveSetting').should('be.not.disabled');
             });
         });
     });

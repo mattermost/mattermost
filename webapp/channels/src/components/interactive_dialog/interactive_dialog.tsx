@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {DialogSubmission} from '@mattermost/types/integrations';
 
@@ -12,7 +12,7 @@ import {
     checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
 
-import SpinnerButton from 'components/spinner_button';
+import SpinnerButton from 'components/button/spinner_button';
 
 import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
@@ -33,6 +33,17 @@ type State = {
     errors: Record<string, React.ReactNode>;
     submitting: boolean;
 }
+
+const messages = defineMessages({
+    submitting: {
+        id: 'interactive_dialog.submitting',
+        defaultMessage: 'Submitting...',
+    },
+    submit: {
+        id: 'interactive_dialog.submit',
+        defaultMessage: 'Submit',
+    },
+});
 
 export default class InteractiveDialog extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -170,17 +181,6 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             elements,
         } = this.props;
 
-        let submitText: JSX.Element | string = (
-            <FormattedMessage
-                id='interactive_dialog.submit'
-                defaultMessage='Submit'
-            />
-        );
-
-        if (submitLabel) {
-            submitText = submitLabel;
-        }
-
         let icon;
         if (iconUrl) {
             icon = (
@@ -271,20 +271,14 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                             />
                         </button>
                         <SpinnerButton
-                            id='interactiveDialogSubmit'
-                            type='submit'
+                            testId='interactiveDialogSubmit'
+                            buttonType='submit'
                             autoFocus={!elements || elements.length === 0}
-                            className='btn btn-primary save-button'
+                            emphasis='primary'
                             spinning={this.state.submitting}
-                            spinningText={
-                                <FormattedMessage
-                                    id='interactive_dialog.submitting'
-                                    defaultMessage='Submitting...'
-                                />
-                            }
-                        >
-                            {submitText}
-                        </SpinnerButton>
+                            spinningText={messages.submitting}
+                            idleText={submitLabel || messages.submit}
+                        />
                     </Modal.Footer>
                 </form>
             </Modal>

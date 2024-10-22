@@ -3,7 +3,7 @@
 
 import {getName} from 'country-list';
 import React, {useCallback, useEffect, useState} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
@@ -12,9 +12,9 @@ import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import SaveButton from 'components/button/save_button';
 import CountrySelector from 'components/payment_form/country_selector';
 import StateSelector from 'components/payment_form/state_selector';
-import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -23,6 +23,13 @@ import type {GlobalState} from 'types/store';
 import './company_info_edit.scss';
 
 type Props = Record<string, never>;
+
+const messages = defineMessages({
+    save: {
+        id: 'admin.billing.company_info_edit.save',
+        defaultMessage: 'Save info',
+    },
+});
 
 const CompanyInfoEdit: React.FC<Props> = () => {
     const dispatch = useDispatch();
@@ -276,12 +283,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     saving={isSaving}
                     disabled={!isValid}
                     onClick={handleSubmit}
-                    defaultMessage={(
-                        <FormattedMessage
-                            id='admin.billing.company_info_edit.save'
-                            defaultMessage='Save info'
-                        />
-                    )}
+                    defaultMessage={messages.save}
                 />
                 <BlockableLink
                     className='cancel-button'

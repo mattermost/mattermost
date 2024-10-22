@@ -135,7 +135,7 @@ describe('Interactive Dialog', () => {
             // * Verify that the footer contains cancel and submit buttons
             cy.get('.modal-footer').should('be.visible').within(($elForm) => {
                 cy.wrap($elForm).find('#interactiveDialogCancel').should('be.visible').and('have.text', 'Cancel');
-                cy.wrap($elForm).find('#interactiveDialogSubmit').should('be.visible').and('have.text', fullDialog.dialog.submit_label);
+                cy.wrap($elForm).findByTestId('interactiveDialogSubmit').should('be.visible').and('have.text', fullDialog.dialog.submit_label);
             });
 
             closeInteractiveDialog();
@@ -180,7 +180,7 @@ describe('Interactive Dialog', () => {
         cy.get('#interactiveDialogModal').should('be.visible');
 
         // # Click submit button from the modal
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         // * Verify that the interactive dialog modal is still open
         cy.get('#interactiveDialogModal').should('be.visible');
@@ -211,7 +211,7 @@ describe('Interactive Dialog', () => {
         const invalidEmail = 'invalid-email';
         cy.get('#someemail').scrollIntoView().clear().type(invalidEmail);
 
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         cy.get('input:invalid').should('have.length', 1);
         cy.get('#someemail').then(($input) => {
@@ -233,7 +233,7 @@ describe('Interactive Dialog', () => {
         const validEmail = 'test@mattermost.com';
         cy.get('#someemail').scrollIntoView().clear().type(validEmail);
 
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         cy.get('input:invalid').should('have.length', 0);
 
@@ -250,7 +250,7 @@ describe('Interactive Dialog', () => {
         const invalidNumber = 'invalid-number';
         cy.get('#somenumber').scrollIntoView().clear().type(invalidNumber);
 
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         cy.get('.modal-body').should('be.visible').children().eq(2).within(($elForm) => {
             cy.wrap($elForm).find('div.error-text').should('be.visible').and('have.text', 'This field is required.').and('have.css', 'color', 'rgb(210, 75, 78)');
@@ -269,7 +269,7 @@ describe('Interactive Dialog', () => {
         const validNumber = 12;
         cy.get('#somenumber').scrollIntoView().clear().type(validNumber);
 
-        cy.get('#interactiveDialogSubmit').click();
+        cy.findByTestId('interactiveDialogSubmit').click();
 
         cy.get('.modal-body').should('be.visible').children().eq(2).within(($elForm) => {
             cy.wrap($elForm).find('div.error-text').should('not.exist');

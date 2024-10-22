@@ -92,7 +92,7 @@ describe('Guest Accounts', () => {
         cy.findByTestId('GuestAccountsSettings.EnforceMultifactorAuthenticationtrue').check();
 
         // # Click "Save".
-        cy.get('#saveSetting').scrollIntoView().click();
+        cy.findByTestId('saveSetting').scrollIntoView().click();
 
         const email = `${username}@sample.mattermost.com`;
 

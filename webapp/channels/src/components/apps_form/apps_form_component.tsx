@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal, Fade} from 'react-bootstrap';
-import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
@@ -14,8 +14,8 @@ import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
 
+import SpinnerButton from 'components/button/spinner_button';
 import Markdown from 'components/markdown';
-import SpinnerButton from 'components/spinner_button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -69,6 +69,17 @@ const initFormValues = (form: AppForm): AppFormValues => {
 
     return values;
 };
+
+const messages = defineMessages({
+    submitting: {
+        id: 'interactive_dialog.submitting',
+        defaultMessage: 'Submitting...',
+    },
+    submit: {
+        id: 'interactive_dialog.submit',
+        defaultMessage: 'Submit',
+    },
+});
 
 export class AppsForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -502,28 +513,17 @@ export class AppsForm extends React.PureComponent<Props, State> {
     renderFooter() {
         const {fields} = this.props.form;
 
-        const submitText: React.ReactNode = (
-            <FormattedMessage
-                id='interactive_dialog.submit'
-                defaultMessage='Submit'
-            />
-        );
-
         let submitButtons = [(
             <SpinnerButton
-                id='appsModalSubmit'
+                testId='appsModalSubmit'
                 key='submit'
-                type='submit'
+                buttonType='submit'
                 autoFocus={!fields || fields.length === 0}
-                className='btn btn-primary save-button'
+                emphasis='primary'
                 spinning={Boolean(this.state.submitting)}
-                spinningText={defineMessage({
-                    id: 'interactive_dialog.submitting',
-                    defaultMessage: 'Submitting...',
-                })}
-            >
-                {submitText}
-            </SpinnerButton>
+                spinningText={messages.submitting}
+                idleText={messages.submit}
+            />
         )];
 
         if (this.props.form.submit_buttons) {
@@ -531,16 +531,15 @@ export class AppsForm extends React.PureComponent<Props, State> {
             if (field) {
                 const buttons = field.options?.map((o) => (
                     <SpinnerButton
-                        id={'appsModalSubmit' + o.value}
+                        testId={'appsModalSubmit' + o.value}
                         key={o.value}
-                        type='submit'
-                        className='btn btn-primary save-button'
+                        buttonType='submit'
+                        emphasis='primary'
                         spinning={this.state.submitting === o.value}
                         spinningText={o.label}
+                        idleText={o.label}
                         onClick={(e: React.MouseEvent) => this.handleSubmit(e, field.name, o.value)}
-                    >
-                        {o.label}
-                    </SpinnerButton>
+                    />
                 ));
                 if (buttons) {
                     submitButtons = buttons;

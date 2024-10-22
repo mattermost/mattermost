@@ -13,7 +13,7 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 // # Save setting and get back to the resource page
 const saveAndNavigateBackTo = (name, displayName, page) => {
-    cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
+    cy.findByTestId('saveSetting').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
 
     // * Verify that it redirects to page and wait for a while to load
     cy.url().should('include', `/admin_console/user_management/${page}`).wait(TIMEOUTS.TWO_SEC);
@@ -98,7 +98,7 @@ describe('System Console', () => {
         cy.findByTestId('addGroupsToTeamToggle').scrollIntoView().click();
         cy.get('#multiSelectList').should('be.visible');
         cy.get('#multiSelectList>div').children().eq(0).click();
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Change role from Member to Team Admin
         changeRole('team', 'Member', 'Team Admin');
@@ -153,7 +153,7 @@ describe('System Console', () => {
         cy.findByTestId('addGroupsToTeamToggle').click();
         cy.get('#multiSelectList').should('be.visible');
         cy.get('#multiSelectList>div').children().eq(0).click();
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Change role from Member to Team Admin
         changeRole('team', 'Member', 'Team Admin');
@@ -179,7 +179,7 @@ describe('System Console', () => {
         cy.get('#addGroupsToChannelToggle').click();
         cy.get('#multiSelectList').should('be.visible');
         cy.get('#multiSelectList>div').children().eq(0).click();
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Change role from Member to Channel Admin
         changeRole('channel', 'Member', 'Channel Admin');
@@ -211,7 +211,7 @@ describe('System Console', () => {
         cy.get('#addGroupsToChannelToggle').click();
         cy.get('#multiSelectList').should('be.visible');
         cy.get('#multiSelectList>div').children().eq(0).click();
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
 
         // # Change role from Member to Channel Admin
         changeRole('channel', 'Member', 'Channel Admin');

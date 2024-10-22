@@ -114,7 +114,7 @@ describe('Notifications', () => {
             should('be.visible').
             find('input').
             type(`${user1.username}{enter}`, {force: true});
-        cy.get('#saveItems').click();
+        cy.findByTestId('saveItems').click();
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // * User 1 should be added.

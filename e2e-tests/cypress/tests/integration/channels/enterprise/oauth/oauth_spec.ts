@@ -84,7 +84,7 @@ describe('Integrations page', () => {
         cy.get('#callbackUrls').type('https://www.test.com/');
 
         // # Save
-        cy.get('#saveOauthApp').click();
+        cy.findByTestId('saveOauthApp').click();
 
         // * Copy button should be visible
         cy.get('.fa-copy').should('exist');
@@ -149,7 +149,7 @@ describe('Integrations page', () => {
         cy.get('#callbackUrls').type(`${webhookBaseUrl}/complete_oauth`);
 
         // # Save
-        cy.get('#saveOauthApp').click();
+        cy.findByTestId('saveOauthApp').click();
 
         // * Copy button should be visible
         cy.get('.fa-copy').should('exist');
@@ -249,7 +249,7 @@ describe('Integrations page', () => {
         cy.get('#description').type('Edited');
 
         // # Save
-        cy.get('#saveOauthApp').click({force: true});
+        cy.findByTestId('saveOauthApp').click({force: true});
 
         cy.contains('.item-details', oauthClientID).should('exist').within(() => {
             // * Description should be edited
@@ -437,7 +437,7 @@ describe('Integrations page', () => {
         });
 
         // # Confirm Delete
-        cy.contains('#confirmModalButton', 'Delete').click();
+        cy.contains('#confirmModalButton', 'Yes, delete it').click();
 
         // # Go back to channels
         cy.visit(testChannelUrl1);
