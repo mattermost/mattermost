@@ -287,7 +287,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys.join(',');
-        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys) {
+        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys && data.highlight_keys.length > 0) {
             trackFeatureEvent(TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent);
         }
 

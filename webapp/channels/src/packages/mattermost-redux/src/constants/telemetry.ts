@@ -11,7 +11,7 @@ export const TrackPassiveKeywordsFeature = 'passive_keywords';
 
 // Events
 export const TrackInviteGroupEvent = 'invite_group_to_channel';
-export const TrackPassiveKeywordsEvent = 'add_or_update_passive_keywords';
+export const TrackPassiveKeywordsEvent = 'update_passive_keywords';
 
 // Categories
 export const TrackActionCategory = 'action';
