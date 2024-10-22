@@ -19,7 +19,9 @@ export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon, cl
                 className={classNames({badge: true, urgent: hasUrgent}, className)}
             >
                 {icon}
-                {unreadMentions}
+                <span className='unreadMentions'>
+                    {unreadMentions}
+                </span>
             </span>
         );
     }
