@@ -2678,7 +2678,7 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 		a.Srv().Platform().BroadcastStatus(status)
 	}
 
-	if len(channelID) > 0 && oldChannelID != channelID {
+	if channelID != "" && oldChannelID != channelID {
 		// is this a read-only channel?
 		isReadOnly, ircErr := a.Srv().Store().Channel().IsReadOnlyChannel(channelID)
 		if ircErr != nil {

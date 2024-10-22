@@ -4338,7 +4338,7 @@ func (s SqlChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, nil
 	}
-	if len(schemaId) == 0 {
+	if schemaId == "" {
 		return false, nil
 	}
 	return s.IsChannelReadOnlyScheme(schemaId)

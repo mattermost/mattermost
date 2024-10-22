@@ -80,7 +80,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 			)
 		}
 	}
-	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
 
 		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
 		if ircErr != nil {
