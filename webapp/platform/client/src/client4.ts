@@ -4328,6 +4328,11 @@ export default class Client4 {
             this.telemetryHandler.trackEvent(this.userId, this.userRoles, category, event, props);
         }
     }
+    trackFeatureEvent(featureName: string, event: string, props?: any) {
+        if (this.telemetryHandler) {
+            this.telemetryHandler.trackFeatureEvent(this.userId, this.userRoles, featureName, event, props);
+        }
+    }
 
     pageVisited(category: string, name: string) {
         if (this.telemetryHandler) {

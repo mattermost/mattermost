@@ -209,7 +209,6 @@
   "adldap_upsell_banner.confirm.license_trial": "Mattermost Enterprise сынамаңызға қош келдіңіз! Ол {endDate} дейін жарамды. Енді сізге жоғары қауіпсіздік Enterprise ерекшеліктері қол жетімді, және олар тегін.",
   "adldap_upsell_banner.confirm.title": "Сіздің сынамаңыз басталды!",
   "adldap_upsell_banner.sales_btn": "Қолдану үшін сату бөлімімен хабарласыңыз",
-  "adldap_upsell_banner.trial_btn": "30 күн тегін қолданып көріңіз",
   "admin.advance.cluster": "Жоғары қолжетімділік",
   "admin.advance.metrics": "Өнімділікті бақылау",
   "admin.announcement_banner_feature_discovery.copy": "Барлық мүшелерді маңызды ақпаратпен қамту үшін жариялау баннерлерін құрыңыз.",
