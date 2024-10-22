@@ -15,7 +15,7 @@
     gap: 8px;
 
     &:hover {
-        background-color: var(--button-bg-88);
+        background-color: rgba(var(--button-bg-rgb), 0.88);
     }
 
     svg {
@@ -50,7 +50,7 @@
 
         svg {
             padding-top: 1px; // To align vertically
-            fill: var(--button-color-64);
+            fill: rgba(var(--button-bg-rgb), 0.64);
             vertical-align: middle;
         }
 
