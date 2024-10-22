@@ -1084,7 +1084,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    user1.Id,
 		}
-		createdPost, err := th.App.CreatePost(th.Context, newPost, dm, false, false)
+		createdPost, err := th.App.CreatePost(th.Context, newPost, dm, model.CreatePostFlags{})
 		require.NotNil(t, err)
 		require.Nil(t, createdPost)
 	})
@@ -1124,7 +1124,7 @@ func TestCreatePost(t *testing.T) {
 			Message:   "hello world",
 			UserId:    user1.Id,
 		}
-		createdPost, err := th.App.CreatePost(th.Context, newPost, gm, false, false)
+		createdPost, err := th.App.CreatePost(th.Context, newPost, gm, model.CreatePostFlags{})
 		require.NotNil(t, err)
 		require.Nil(t, createdPost)
 	})
