@@ -4,21 +4,24 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
 import {AnnouncementBarTypes} from 'utils/constants';
 
 export default function UnsupportedNotificationAnnouncementBar() {
-    const [show, setShow] = useState(true);
+    const [show, setShow] = useState(!BrowserStore.getHideNotificationPermissionRequestBanner());
 
     const handleClick = useCallback(async () => {
         window.open('https://mattermost.com/pl/pc-web-requirements', '_blank', 'noopener,noreferrer');
     }, []);
 
     const handleClose = useCallback(() => {
-        // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
-        // show it again on app refresh.
         setShow(false);
+
+        // Close the bar and don't show it again for the rest of the session.
+        BrowserStore.setHideNotificationPermissionRequestBanner();
     }, []);
 
     if (!show) {
