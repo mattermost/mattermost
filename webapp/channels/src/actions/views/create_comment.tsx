@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Post, PostMetadata} from '@mattermost/types/posts';
-import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
+import {ScheduledPost, scheduledPostFromPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -90,22 +90,8 @@ export function submitPost(
         post = hookResult.data;
 
         if (schedulingInfo) {
-            const fileIDs = draft.fileInfos.map((fileInfo) => fileInfo.id);
-            const scheduledPost: ScheduledPost = {
-                id: '',
-                scheduled_at: schedulingInfo.scheduled_at,
-                create_at: 0,
-                update_at: post.update_at,
-                user_id: userId,
-                channel_id: post.channel_id,
-                root_id: post.root_id,
-                message: post.message,
-                props: post.props,
-                file_ids: fileIDs,
-                metadata: post.metadata,
-                priority: post.metadata.priority,
-            };
-
+            const scheduledPost = scheduledPostFromPost(post, schedulingInfo);
+            scheduledPost.file_ids = draft.fileInfos.map((fileInfo) => fileInfo.id);
             if (draft.fileInfos?.length > 0) {
                 if (!scheduledPost.metadata) {
                     scheduledPost.metadata = {} as PostMetadata;
@@ -113,7 +99,6 @@ export function submitPost(
 
                 scheduledPost.metadata.files = draft.fileInfos;
             }
-
             const response = await dispatch(createSchedulePostFromDraft(scheduledPost));
             if (afterSubmit) {
                 const result: CreatePostReturnType = {

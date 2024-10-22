@@ -48,7 +48,8 @@ import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
 import EditPost from "components/edit_post";
-import team_icon from "components/widgets/team_icon/team_icon";
+
+import './draft_row.scss';
 
 type Props = {
     user: UserProfile;
@@ -135,6 +136,10 @@ function DraftRow({
     });
 
     const goToMessage = useCallback(async () => {
+        if (isEditing) {
+            return;
+        }
+
         if (rootId) {
             if (rootPostDeleted) {
                 return;
@@ -143,7 +148,7 @@ function DraftRow({
             return;
         }
         history.push(channelUrl);
-    }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
+    }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
     const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
@@ -266,7 +271,11 @@ function DraftRow({
     }, [handleOnSend, item]);
 
     const handleSchedulePostEdit = useCallback(() => {
-        setIsEditing(!isEditing);
+        setIsEditing((isEditing) => !isEditing);
+    }, []);
+
+    const handleCancelEdit = useCallback(() => {
+        setIsEditing(false);
     }, []);
 
     const scheduledPostActions = useMemo(() => {
@@ -297,7 +306,7 @@ function DraftRow({
         if (rootId && !thread?.id) {
             dispatch(getPostAction(rootId));
         }
-    }, [thread?.id]);
+    }, [thread?.id, rootId]);
 
     const alertRef = useScrollOnRender();
 
@@ -361,7 +370,9 @@ function DraftRow({
                     {
                         isEditing &&
                         <EditPost
-                            draft={scheduledPostToPostDraft(item as ScheduledPost)}
+                            scheduledPost={item as ScheduledPost}
+                            onCancel={handleCancelEdit}
+                            afterSave={handleCancelEdit}
                         />
                     }
 

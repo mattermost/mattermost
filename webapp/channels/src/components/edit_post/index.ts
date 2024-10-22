@@ -4,8 +4,12 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
+import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
+
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
+import {updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Preferences, Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -23,29 +27,30 @@ import {editPost} from 'actions/views/posts';
 import {getEditingPost} from 'selectors/posts';
 import {getIsRhsOpen, getPostDraft, getRhsState} from 'selectors/rhs';
 
-import Constants, {RHSStates, StoragePrefixes} from 'utils/constants';
-
 import type {GlobalState} from 'types/store';
 
-import EditPost, {Props} from './edit_post';
-import type {PostDraft} from "types/store/draft";
+import EditPost from './edit_post';
 
+type Props = {
+    scheduledPost?: ScheduledPost;
+}
 
 function mapStateToProps(state: GlobalState, props: Props) {
-    console.log('mapStateToProps');
     const config = getConfig(state);
+
     let editingPost;
     let channelId: string;
-    let draft: PostDraft;
+    let draft;
 
-    if (props.draft) {
-        draft = props.draft;
-        channelId = props.draft.channelId;
-        editingPost = {};
+    if (props.scheduledPost) {
+        editingPost = {post: null};
+        channelId = props.scheduledPost.channel_id;
+        draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, props.scheduledPost.id);
     } else {
         editingPost = getEditingPost(state);
         channelId = editingPost.post.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
+        console.log(draft.message);
     }
 
     const currentUserId = getCurrentUserId(state);
@@ -73,6 +78,7 @@ function mapStateToProps(state: GlobalState, props: Props) {
         useChannelMentions,
         isRHSOpened: getIsRhsOpen(state),
         isEditHistoryShowing: getRhsState(state) === RHSStates.EDIT_HISTORY,
+        scheduledPost: props.scheduledPost,
     };
 }
 
@@ -86,6 +92,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             unsetEditingPost,
             openModal,
             runMessageWillBeUpdatedHooks,
+            updateScheduledPost,
         }, dispatch),
     };
 }

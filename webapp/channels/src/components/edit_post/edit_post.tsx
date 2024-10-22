@@ -4,19 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-
-import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
-
-import DeletePostModal from 'components/delete_post_modal';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import Textbox from 'components/textbox';
-import type {TextboxClass, TextboxElement} from 'components/textbox';
-
+import {useSelector} from 'react-redux';
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -32,10 +20,26 @@ import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/pos
 import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
+import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+import {ScheduledPost, scheduledPostToPost} from '@mattermost/types/schedule_post';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+
+import {getConnectionId} from 'selectors/general';
+
+import DeletePostModal from 'components/delete_post_modal';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import Textbox from 'components/textbox';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
+
 import type {ModalData} from 'types/actions';
 import type {PostDraft} from 'types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
+import './style.scss';
 
 type DialogProps = {
     post?: Post;
@@ -50,21 +54,10 @@ export type Actions = {
     openModal: (input: ModalData<DialogProps>) => void;
     scrollPostListToBottom: () => void;
     runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
-}
-
-export type EditingPost = {
-    post: Post | null;
-    postId?: string;
-    refocusId?: string;
-    title?: string;
-    isRHS?: boolean;
+    updateScheduledPost: (scheduledPost: ScheduledPost, connectionId: string) => Promise<ActionResult>;
 }
 
 export type Props = {
-    draft?: PostDraft;
-}
-
-export type OwnProps = {
     canEditPost?: boolean;
     canDeletePost?: boolean;
     readOnlyChannel?: boolean;
@@ -79,10 +72,19 @@ export type OwnProps = {
     };
     maxPostSize: number;
     useChannelMentions: boolean;
-    editingPost: EditingPost;
+    editingPost: {
+        post: Post | null;
+        postId?: string;
+        refocusId?: string;
+        title?: string;
+        isRHS?: boolean;
+    };
     isRHSOpened: boolean;
     isEditHistoryShowing: boolean;
     actions: Actions;
+    scheduledPost?: ScheduledPost;
+    afterSave?: () => void;
+    onCancel?: () => void;
 };
 
 export type State = {
@@ -101,9 +103,10 @@ const {KeyCodes} = Constants;
 const TOP_OFFSET = 0;
 const RIGHT_OFFSET = 10;
 
-const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, ...rest}: OwnProps): JSX.Element | null => {
+const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, scheduledPost, afterSave, onCancel, ...rest}: Props): JSX.Element | null => {
+    const connectionId = useSelector(getConnectionId);
     const [editText, setEditText] = useState<string>(
-        draft.message || editingPost?.post?.message_source || editingPost?.post?.message || '',
+        draft.message || editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || '',
     );
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
     const caretPosition = useRef<number>(editText.length);
@@ -253,6 +256,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleEdit = async () => {
+        if (scheduledPost) {
+            handleEditScheduledPost();
+            return;
+        }
+
         if (!editingPost.post || isSaveDisabled()) {
             return;
         }
@@ -304,7 +312,85 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         await actions.editPost(updatedPost as Post);
 
         handleAutomatedRefocusAndExit();
+        afterSave?.();
     };
+
+    const handleCancel = useCallback(() => {
+        onCancel?.();
+        handleAutomatedRefocusAndExit();
+    }, [onCancel, handleAutomatedRefocusAndExit]);
+
+    const handleEditScheduledPost = useCallback(async () => {
+        console.log('handleEditScheduledPost');
+        if (!scheduledPost || isSaveDisabled()) {
+            return;
+        }
+
+        const post = scheduledPostToPost(scheduledPost);
+
+        let updatedPost = {
+            message: editText,
+            id: scheduledPost.id,
+            channel_id: scheduledPost?.channel_id,
+        };
+
+        const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, post);
+        if (hookResult.error && hookResult.error.message) {
+            setPostError(<>{hookResult.error.message}</>);
+            return;
+        }
+
+        updatedPost = hookResult.data;
+
+        if (postError) {
+            setErrorClass('animation--highlight');
+            setTimeout(() => setErrorClass(''), Constants.ANIMATION_TIMEOUT);
+            return;
+        }
+
+        if (updatedPost.message === post.message) {
+            handleAutomatedRefocusAndExit();
+            return;
+        }
+
+        const hasAttachment = Boolean(
+            scheduledPost.file_ids && scheduledPost.file_ids.length > 0,
+        );
+        if (updatedPost.message.trim().length === 0 && !hasAttachment) {
+            handleRefocusAndExit(null);
+
+            const deletePostModalData = {
+                modalId: ModalIdentifiers.DELETE_POST,
+                dialogType: DeletePostModal,
+                dialogProps: {
+                    post,
+                    isRHS: Boolean(scheduledPost.root_id),
+                },
+            };
+
+            actions.openModal(deletePostModalData);
+            return;
+        }
+
+        const updatedScheduledPost = {
+            ...scheduledPost,
+            message: updatedPost.message,
+        };
+
+        await actions.updateScheduledPost(updatedScheduledPost, connectionId);
+
+        handleAutomatedRefocusAndExit();
+        afterSave?.();
+    }, [
+        actions,
+        connectionId,
+        editText,
+        handleAutomatedRefocusAndExit,
+        handleRefocusAndExit,
+        isSaveDisabled,
+        postError,
+        scheduledPost,
+    ]);
 
     const handleEditKeyPress = (e: React.KeyboardEvent) => {
         const {ctrlSend, codeBlockOnCtrlEnter} = rest;
@@ -556,7 +642,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             }
             <EditPostFooter
                 onSave={handleEdit}
-                onCancel={handleAutomatedRefocusAndExit}
+                onCancel={handleCancel}
             />
             {postError && (
                 <div className={classNames('edit-post-footer', {'has-error': postError})}>
