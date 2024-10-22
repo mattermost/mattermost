@@ -218,7 +218,6 @@ function Content(props: ContentProps) {
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
                         planTrialDisclaimer={undefined}
-                        contactSalesCTA={(isPostTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}),
                             items: [
