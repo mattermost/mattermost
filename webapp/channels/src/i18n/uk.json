@@ -753,7 +753,7 @@
   "admin.permissions.group.teams.name": "Команди",
   "admin.permissions.group.teams_team_scope.description": "Керувати учасниками команди.",
   "admin.permissions.group.teams_team_scope.name": "Команди",
-  "admin.permissions.inherited_from": "Успадкована від <link>{name}</link>.",
+  "admin.permissions.inherited_from": "Успадковано від <link>{name}</link>.",
   "admin.permissions.introBanner": "Схеми дозволів встановлюють дозволи за замовчуванням для адміністраторів команди, адміністраторів каналів та всіх інших. Дізнайтеся більше про схеми дозволів у нашій <link>документації</link> .",
   "admin.permissions.loadMoreSchemes": "Завантажте інші схеми",
   "admin.permissions.loadingMoreSchemes": "Завантаження...",
