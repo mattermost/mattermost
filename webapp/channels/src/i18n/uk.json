@@ -1296,7 +1296,7 @@
   "admin.userManagement.userDetail.email": "Електронна пошта ",
   "admin.userManagement.userDetail.mfa": "МФА",
   "admin.userManagement.userDetail.teamsTitle": "Член команди",
-  "admin.userManagement.userDetail.userId": "ID користувача",
+  "admin.userManagement.userDetail.userId": "ID користувача: {userId}",
   "admin.userManagement.userDetail.username": "Ім'я користувача",
   "admin.user_grid.channel_admin": "Адміністратор каналу",
   "admin.user_grid.name": "Ім'я",
