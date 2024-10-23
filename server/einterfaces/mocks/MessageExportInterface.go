@@ -15,36 +15,6 @@ type MessageExportInterface struct {
 	mock.Mock
 }
 
-// RunExport provides a mock function with given fields: rctx, format, since, limit
-func (_m *MessageExportInterface) RunExport(rctx request.CTX, format string, since int64, limit int) (int, *model.AppError) {
-	ret := _m.Called(rctx, format, since, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RunExport")
-	}
-
-	var r0 int
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, int) (int, *model.AppError)); ok {
-		return rf(rctx, format, since, limit)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, int) int); ok {
-		r0 = rf(rctx, format, since, limit)
-	} else {
-		r0 = ret.Get(0).(int)
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, int64, int) *model.AppError); ok {
-		r1 = rf(rctx, format, since, limit)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // StartSynchronizeJob provides a mock function with given fields: rctx, exportFromTimestamp
 func (_m *MessageExportInterface) StartSynchronizeJob(rctx request.CTX, exportFromTimestamp int64) (*model.Job, *model.AppError) {
 	ret := _m.Called(rctx, exportFromTimestamp)
