@@ -6,6 +6,7 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {screen} from 'tests/react_testing_utils';
 
 import MultiSelect from './multiselect';
 import type {Value} from './multiselect';
@@ -88,6 +89,7 @@ describe('components/multiselect/multiselect', () => {
                 valueRenderer={renderValue}
             />,
         );
+        expect(wrapper).toMatchSnapshot();
 
         expect(wrapper.find(MultiSelectList).state('selected')).toEqual(-1);
         wrapper.find('.filter-control__next').simulate('click');
@@ -130,5 +132,16 @@ describe('components/multiselect/multiselect', () => {
         expect(backButton).toHaveLength(1);
 
         expect(handleBackButtonClick).toHaveBeenCalled();
+    });
+
+    test('Should display error text', () => {
+        const wrapper = shallow(
+            <MultiSelect
+                {...baseProps}
+                errorMessage='Error Occured'
+            />,
+        );
+        const errorContainer = wrapper.find('#multiSelectMessageError');
+        expect(errorContainer).toBeDefined();
     });
 });

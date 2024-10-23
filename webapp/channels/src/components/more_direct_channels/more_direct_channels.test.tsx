@@ -260,4 +260,67 @@ describe('components/MoreDirectChannels', () => {
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should show error message - group', (done) => {
+        jest.useFakeTimers({legacyFakeTimers: true});
+
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                openGroupChannelToUserIds: jest.fn().mockResolvedValue({error: {message: 'Error Occured'}}),
+            },
+        };
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const handleHide = jest.fn();
+        const exitToChannel = '';
+
+        wrapper.instance().handleHide = handleHide;
+        wrapper.instance().exitToChannel = exitToChannel;
+        wrapper.instance().handleSubmit();
+        expect(wrapper.state('saving')).toEqual(true);
+        expect(props.actions.openGroupChannelToUserIds).toHaveBeenCalledTimes(1);
+        expect(props.actions.openGroupChannelToUserIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
+        process.nextTick(() => {
+            expect(wrapper.state('saving')).toEqual(false);
+            expect(handleHide).not.toBeCalled();
+            expect(wrapper.instance().exitToChannel).toEqual('');
+            expect(wrapper.instance().state.errorMessage).toEqual('Error Occured');
+            done();
+        });
+    });
+    test('should show error message direct', (done) => {
+        jest.useFakeTimers({legacyFakeTimers: true});
+
+        const user: UserProfile = {
+            ...mockedUser,
+            id: 'user_id_1',
+        };
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                openDirectChannelToUserId: jest.fn().mockResolvedValue({error: {message: 'Error Occured'}}),
+            },
+            currentChannelMembers: [user],
+        };
+
+        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        const handleHide = jest.fn();
+        const exitToChannel = '';
+
+        wrapper.instance().handleHide = handleHide;
+        wrapper.instance().exitToChannel = exitToChannel;
+        wrapper.instance().handleSubmit();
+        expect(wrapper.state('saving')).toEqual(true);
+        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(1);
+        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('user_id_1');
+        process.nextTick(() => {
+            expect(wrapper.state('saving')).toEqual(false);
+            expect(handleHide).not.toBeCalled();
+            expect(wrapper.instance().exitToChannel).toEqual('');
+            expect(wrapper.instance().state.errorMessage).toEqual('Error Occured');
+            done();
+        });
+    });
 });
