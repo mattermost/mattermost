@@ -132,15 +132,13 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             onClick={handleReschedulePost}
                         />
 
-                        <div className='hidden'>
-                            <Action
-                                icon='icon-send-outline'
-                                id='sendNow'
-                                name='sendNow'
-                                tooltipText={sendNowTooltipText}
-                                onClick={handleSend}
-                            />
-                        </div>
+                        <Action
+                            icon='icon-send-outline'
+                            id='sendNow'
+                            name='sendNow'
+                            tooltipText={sendNowTooltipText}
+                            onClick={handleSend}
+                        />
                     </React.Fragment>
                 )
             }
