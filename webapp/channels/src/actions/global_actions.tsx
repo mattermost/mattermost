@@ -253,6 +253,8 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
             DesktopApp.signalLogout();
         }
 
+        BrowserStore.clearHideNotificationPermissionRequestBanner();
+
         WebsocketActions.close();
 
         clearUserCookie();

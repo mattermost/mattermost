@@ -15,7 +15,7 @@ exports[`NotificationPermissionBar should render the NotificationPermissionNever
         We need your permission to show web browser notifications.
       </span>
       <button>
-        Enable notifications
+        Manage notification preferences
       </button>
     </div>
     <a
