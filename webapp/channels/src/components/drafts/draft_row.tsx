@@ -72,8 +72,6 @@ function DraftRow({
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
-    const teamId = useSelector(getCurrentTeamId);
-
     const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
 
@@ -132,6 +130,7 @@ function DraftRow({
         if (!channel) {
             return '';
         }
+        const teamId = getCurrentTeamId(state);
         return getChannelURL(state, channel, teamId);
     });
 
