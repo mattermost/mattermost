@@ -4014,6 +4014,7 @@
   "installed_outgoing_webhooks.help.appDirectory": "App Directory",
   "installed_outgoing_webhooks.help.buildYourOwn": "Bouw Je Eigen",
   "installed_outgoing_webhooks.search": "Zoek Uitgaande Webhooks",
+  "installed_outgoing_webhooks.search.empty": "Geen uitgaande webhooks komen overeen met <b>{searchTerm}</b>",
   "installed_outgoing_webhooks.unknown_channel": "Een privé webhook",
   "integrations.add": "Toevoegen",
   "integrations.command.description": "Slash opdrachten sturen events naar externe integraties",
