@@ -367,7 +367,7 @@ func TestGetPostAttachments(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	files, err := getPostAttachments(mockStore, post)
+	files, err := getPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.NoError(t, err)
 	assert.Empty(t, files)
 
@@ -375,7 +375,7 @@ func TestGetPostAttachments(t *testing.T) {
 
 	mockStore.FileInfoStore.On("GetForPost", *post.PostId, true, true, false).Return([]*model.FileInfo{{Name: "test"}, {Name: "test2"}}, nil)
 
-	files, err = getPostAttachments(mockStore, post)
+	files, err = getPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.NoError(t, err)
 	assert.Len(t, files, 2)
 
@@ -383,7 +383,7 @@ func TestGetPostAttachments(t *testing.T) {
 
 	mockStore.FileInfoStore.On("GetForPost", *post.PostId, true, true, false).Return(nil, model.NewAppError("Test", "test", nil, "", 400))
 
-	files, err = getPostAttachments(mockStore, post)
+	files, err = getPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.Error(t, err)
 	assert.Nil(t, files)
 }
@@ -396,7 +396,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 
 	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), []string{"bad-request"}).Return(nil, errors.New("test"))
 
-	_, err := getJoinLeavePosts(channels, nil, mockStore)
+	_, err := getJoinLeavePosts(channels, nil, shared.NewMessageExportStore(mockStore))
 	assert.Error(t, err)
 
 	channels = map[string]*shared.MetadataChannel{
@@ -422,7 +422,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		nil,
 	)
 
-	messages, err := getJoinLeavePosts(channels, nil, mockStore)
+	messages, err := getJoinLeavePosts(channels, nil, shared.NewMessageExportStore(mockStore))
 	assert.NoError(t, err)
 	assert.Len(t, messages, 8)
 	chanTypeOpen := model.ChannelTypeOpen
@@ -944,7 +944,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			}
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-			warningCount, err := CsvExport(rctx, tt.posts, mockStore, exportBackend, attachmentBackend, exportFileName)
+			warningCount, err := CsvExport(rctx, tt.posts, shared.NewMessageExportStore(mockStore), exportBackend, attachmentBackend, exportFileName)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, warningCount)
 
@@ -1083,7 +1083,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-	warningCount, err := CsvExport(rctx, posts, mockStore, fileBackend, fileBackend, exportFileName)
+	warningCount, err := CsvExport(rctx, posts, shared.NewMessageExportStore(mockStore), fileBackend, fileBackend, exportFileName)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, warningCount)
 
