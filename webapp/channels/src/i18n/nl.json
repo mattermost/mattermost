@@ -3887,6 +3887,7 @@
   "generic_icons.warning": "Waarschuwing Pictogram",
   "generic_modal.cancel": "Annuleren",
   "generic_modal.confirm": "Bevestigen",
+  "getApp.downloadLinkInBrowser": "Of, <a>open deze link in je browser</a>.",
   "get_app.continueToBrowser": "Bekijk in Browser",
   "get_app.dontHaveTheDesktopApp": "Heb je de Desktop App niet?",
   "get_app.dontHaveTheMobileApp": "Heb je de Mobiele App niet?",
