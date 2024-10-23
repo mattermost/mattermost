@@ -2690,6 +2690,7 @@
   "admin.team_channel_settings.convertConfirmModal.toPrivateTitle": "{displayName} converteren naar een privé-kanaal?",
   "admin.team_channel_settings.convertConfirmModal.toPublicConfirm": "Ja, converteren naar openbaar kanaal",
   "admin.team_channel_settings.convertConfirmModal.toPublicMessage": "Als  je **{displayName}** omzet naar een openbaar kanaal, blijft  de geschiedenis en het lidmaatschap bewaard. Openbare kanalen zijn vindbaar en gebruikers kunnen lid worden op het systeem zonder uitnodiging.",
+  "admin.team_channel_settings.convertConfirmModal.toPublicMessageConfirmation": "Weet je zeker dat je {displayName} wilt omzetten naar een openbaar kanaal?",
   "admin.team_channel_settings.convertConfirmModal.toPublicTitle": "{displayName} converteren naar een openbaar kanaal?",
   "admin.team_channel_settings.groupMembers.close": "Afsluiten",
   "admin.team_channel_settings.group_list.membersHeader": "Aantal leden",
