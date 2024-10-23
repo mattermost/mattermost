@@ -21,7 +21,7 @@ export function shouldTrackPerformance(state = store.getState()) {
     return isDevModeEnabled(state) || isTelemetryEnabled(state);
 }
 
-export function trackEvent(category, event, props) {
+export function trackEvent(category, event, props = {}) {
     const state = store.getState();
     if (
         isPerformanceDebuggingEnabled(state) &&
@@ -38,7 +38,7 @@ export function trackEvent(category, event, props) {
     }
 }
 
-export function trackFeatureEvent(featureName, event, props) {
+export function trackFeatureEvent(featureName, event, props = {}) {
     Client4.trackFeatureEvent(featureName, event, props);
 }
 
