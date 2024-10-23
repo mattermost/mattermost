@@ -4005,7 +4005,7 @@
   "installed_outgoing_oauth_connections.help.outgoingOauthConnections": "Uitgaande OAuth Verbindingen",
   "installed_outgoing_oauth_connections.password": "Wachtwoord: ********",
   "installed_outgoing_oauth_connections.search": "Uitgaande OAuth verbindingen zoeken",
-  "installed_outgoing_oauth_connections.username": "Gebruikersnaam: **{username}**",
+  "installed_outgoing_oauth_connections.username": "Gebruikersnaam: ",
   "installed_outgoing_webhooks.add": "Uitgaande webhook toevoegen",
   "installed_outgoing_webhooks.delete.confirm": "Deze actie verwijdert permanent de uitgaande webhook en breekt alle integraties die het gebruiken. Weet je zeker dat je dit wil wissen?",
   "installed_outgoing_webhooks.empty": "Geen uitgaande webhooks gevonden",
