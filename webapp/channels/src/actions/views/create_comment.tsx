@@ -40,8 +40,7 @@ export function submitPost(
     draft: PostDraft,
     afterSubmit?: (response: SubmitPostReturnType) => void,
     schedulingInfo?: SchedulingInfo,
-    afterOptimisticSubmit?: () => void,
-    keepDraft?: boolean,
+    options?: OnSubmitOptions,
 ): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -126,7 +125,7 @@ export function submitPost(
             return response;
         }
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit, keepDraft));
+        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, options));
     };
 }
 
@@ -208,7 +207,7 @@ export function onSubmit(
             }
         }
 
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options.afterOptimisticSubmit, options.keepDraft));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options));
     };
 }
 

@@ -108,7 +108,6 @@ function DraftRow({
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
-            postError = getErrorStringFromCode(intl, item.error_code);
         }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
@@ -164,15 +163,14 @@ function DraftRow({
         dispatch(removeDraft(key, channelId, rootId));
     }, [dispatch, channelId, rootId]);
 
-    // afterSubmit is exclusively used for deleting the draft after
-    // successfully creating a scheduled post from it.
-    // This is not used in any other draft flow such as sending it, or editing it etc.
     const afterSubmit = useCallback((response: SubmitPostReturnType) => {
+        // if draft was being scheduled, delete the draft after it's been scheduled
         if (isBeingScheduled.current && response.created && !response.error) {
             handleOnDelete();
             isBeingScheduled.current = false;
         }
 
+        // if scheduled posts was being sent, delete the scheduled post after it's been sent
         if (isScheduledPostBeingSent.current && response.created && !response.error) {
             dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
             isScheduledPostBeingSent.current = false;
@@ -254,7 +252,7 @@ function DraftRow({
         };
     }, [item, dispatch, connectionId]);
 
-    const handleScheduledPostOnSend = useCallback(async () => {
+    const handleScheduledPostOnSend = useCallback(() => {
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
         handleOnSend(postDraft, undefined, {keepDraft: true});

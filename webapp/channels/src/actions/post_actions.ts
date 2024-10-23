@@ -54,7 +54,7 @@ import type {GlobalState} from 'types/store';
 
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
-import type {SubmitPostReturnType} from './views/create_comment';
+import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
@@ -131,20 +131,18 @@ function addRecentEmojisForMessage(message: string): ActionFunc {
     };
 }
 
-export type CreatePostAfterSubmitFunc = (response: SubmitPostReturnType) => void;
 export function createPost(
     post: Post,
     files: FileInfo[],
     afterSubmit?: (response: SubmitPostReturnType) => void,
-    afterOptimisticSubmit?: () => void,
-    keepDraft?: boolean,
+    options?: OnSubmitOptions,
 ): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
     return async (dispatch) => {
         dispatch(addRecentEmojisForMessage(post.message));
 
         const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
 
-        if (!keepDraft) {
+        if (!options?.keepDraft) {
             if (post.root_id) {
                 dispatch(storeCommentDraft(post.root_id, null));
             } else {
@@ -152,7 +150,7 @@ export function createPost(
             }
         }
 
-        afterOptimisticSubmit?.();
+        options?.afterOptimisticSubmit?.();
         return result;
     };
 }
