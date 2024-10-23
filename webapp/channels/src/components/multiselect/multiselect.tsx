@@ -533,12 +533,15 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {errorMessageContainer}
                     </div>
-                    <div
-                        id='multiSelectMessageNote'
-                        className='multi-select__help'
-                    >
-                        {noteTextContainer}
-                    </div>
+                    {errorMessageContainer && (
+                        <div
+                            id='multiSelectMessageError'
+                            className='multi-select__help'
+                        >
+                            {noteTextContainer}
+                        </div>
+                    )}
+
                     {this.props.saveButtonPosition === 'top' &&
                         <div className='filter-controls'>
                             {previousButton}
