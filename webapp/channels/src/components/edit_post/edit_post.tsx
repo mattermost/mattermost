@@ -383,10 +383,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             message: updatedPost.message,
         };
 
-        await actions.updateScheduledPost(updatedScheduledPost, connectionId);
-
-        handleAutomatedRefocusAndExit();
-        afterSave?.();
+        const response = await actions.updateScheduledPost(updatedScheduledPost, connectionId);
+        if (response.error) {
+            setPostError(response.error.message);
+        } else {
+            handleAutomatedRefocusAndExit();
+            afterSave?.();
+        }
     }, [
         actions,
         connectionId,
@@ -396,6 +399,9 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         isSaveDisabled,
         postError,
         scheduledPost,
+        afterSave,
+        channel,
+        onDeleteScheduledPost,
     ]);
 
     const handleEditKeyPress = (e: React.KeyboardEvent) => {

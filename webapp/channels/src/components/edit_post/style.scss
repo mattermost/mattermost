@@ -8,4 +8,10 @@
         padding: 13px 16px 12px 16px;
         padding-right: 50px;
     }
+
+    .edit-post-footer {
+        &.has-error {
+            color: rgb(var(--dnd-indicator-rgb));
+        }
+    }
 }
