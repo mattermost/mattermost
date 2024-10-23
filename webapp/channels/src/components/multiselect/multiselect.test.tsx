@@ -141,5 +141,6 @@ describe('components/multiselect/multiselect', () => {
         );
         const errorContainer = wrapper.find('#multiSelectMessageError');
         expect(errorContainer).toBeDefined();
+        expect(errorContainer.text()).toEqual('Error Occured');
     });
 });
