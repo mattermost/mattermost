@@ -436,6 +436,7 @@
   "admin.bleve.purgeIndexesButton.success": "Indexen zijn leeggemaakt.",
   "admin.bleve.purgeIndexesHelpText": "Met het leegmaken worden de indexen op de Bleve-server volledig verwijderd. Zoekresultaten kunnen onvolledig zijn totdat een bulkindex van de bestaande database opnieuw wordt opgebouwd.",
   "admin.bleve.title": "Bleve",
+  "admin.channelSettings.channelDetail.channel_organizations": "Organisaties",
   "admin.channel_list.archived": "Gearchiveerd",
   "admin.channel_list.group_sync": "Groepssynchronisatie",
   "admin.channel_list.manual_invites": "Manueel uitnodigen",
