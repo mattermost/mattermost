@@ -31,7 +31,7 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, fileBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
+func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
@@ -153,7 +153,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 
 		for _, attachment := range attachments {
 			var r io.ReadCloser
-			r, nErr := fileBackend.Reader(attachment.Path)
+			r, nErr := fileAttachmentBackend.Reader(attachment.Path)
 			if nErr != nil {
 				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
 				rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
@@ -215,7 +215,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, temp, batchPath)
+	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, temp, batchPath)
 	if err != nil {
 		return warningCount, fmt.Errorf("unable to write the csv file: %w", err)
 	}
