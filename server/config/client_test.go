@@ -189,7 +189,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels other license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
 					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
@@ -207,7 +207,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"licensed for shared channels",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
 					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
@@ -225,7 +225,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels professional license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
 					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
@@ -256,7 +256,7 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Shared channels enterprise license",
 			&model.Config{
-				ExperimentalSettings: model.ExperimentalSettings{
+				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
 					EnableSharedChannels: model.NewPointer(true),
 				},
 			},
@@ -322,7 +322,6 @@ func TestGetClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 
@@ -414,7 +413,6 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
 			t.Parallel()
 

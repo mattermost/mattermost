@@ -49,7 +49,10 @@ export default class SearchChannelProvider extends Provider {
             if (isAtSearch) {
                 channelPrefix = channelPrefix.replace(/^@/, '');
             }
-
+            const isTildeSearch = channelPrefix.startsWith('~');
+            if (isTildeSearch) {
+                channelPrefix = channelPrefix.replace(/^~/, '');
+            }
             this.startNewRequest(channelPrefix);
 
             this.autocompleteChannelsForSearch(

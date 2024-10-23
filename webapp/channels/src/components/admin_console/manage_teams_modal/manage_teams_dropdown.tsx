@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,8 +12,6 @@ import {isAdmin, isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils
 
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
     team: Team;
@@ -26,6 +24,8 @@ type Props = {
 }
 
 const ManageTeamsDropdown = (props: Props) => {
+    const {formatMessage} = useIntl();
+
     const makeTeamAdmin = async () => {
         const {error} = await props.updateTeamMemberSchemeRoles(props.teamMember.team_id, props.user.id, true, true);
         if (error) {
@@ -62,13 +62,13 @@ const ManageTeamsDropdown = (props: Props) => {
     const {team} = props;
     let title;
     if (isSysAdmin) {
-        title = localizeMessage('admin.user_item.sysAdmin', 'System Admin');
+        title = formatMessage({id: 'admin.user_item.sysAdmin', defaultMessage: 'System Admin'});
     } else if (isTeamAdmin) {
-        title = localizeMessage('admin.user_item.teamAdmin', 'Team Admin');
+        title = formatMessage({id: 'admin.user_item.teamAdmin', defaultMessage: 'Team Admin'});
     } else if (isGuestUser) {
-        title = localizeMessage('admin.user_item.guest', 'Guest');
+        title = formatMessage({id: 'admin.user_item.guest', defaultMessage: 'Guest'});
     } else {
-        title = localizeMessage('admin.user_item.teamMember', 'Team Member');
+        title = formatMessage({id: 'admin.user_item.teamMember', defaultMessage: 'Team Member'});
     }
 
     return (
@@ -79,22 +79,22 @@ const ManageTeamsDropdown = (props: Props) => {
             </a>
             <Menu
                 openLeft={true}
-                ariaLabel={localizeMessage('team_members_dropdown.menuAriaLabel', 'Change the role of a team member')}
+                ariaLabel={formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
             >
                 <Menu.ItemAction
                     show={!isTeamAdmin && !isGuestUser}
                     onClick={makeTeamAdmin}
-                    text={localizeMessage('admin.user_item.makeTeamAdmin', 'Make Team Admin')}
+                    text={formatMessage({id: 'admin.user_item.makeTeamAdmin', defaultMessage: 'Make Team Admin'})}
                 />
                 <Menu.ItemAction
                     show={isTeamAdmin}
                     onClick={makeMember}
-                    text={localizeMessage('admin.user_item.makeMember', 'Make Team Member')}
+                    text={formatMessage({id: 'admin.user_item.makeMember', defaultMessage: 'Make Team Member'})}
                 />
                 <Menu.ItemAction
                     show={!team.group_constrained}
                     onClick={removeFromTeam}
-                    text={localizeMessage('team_members_dropdown.leave_team', 'Remove from Team')}
+                    text={formatMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove from Team'})}
                 />
             </Menu>
         </MenuWrapper>

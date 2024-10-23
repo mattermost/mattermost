@@ -82,12 +82,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			// Note: keep https://github.com/mattermost/mattermost/pull/27830 in mind.
-			var userMap map[string]*model.User
-			toPass = append(toPass, &userMap)
-		}
+		toPass := allocateCacheTargets[model.UserMap](len(keys))
 		errs := s.rootStore.doMultiReadCache(s.rootStore.profilesInChannelCache, keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -96,7 +91,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 				}
 				continue
 			}
-			gotMap := *(toPass[i].(*map[string]*model.User))
+			gotMap := *(toPass[i].(*model.UserMap))
 			if gotMap == nil {
 				s.rootStore.logger.Warn("Found nil userMap in InvalidateProfilesInChannelCacheByUser. This is not expected")
 				continue
@@ -147,7 +142,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
-		var cachedMap map[string]*model.User
+		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
 			return cachedMap, nil
 		}
@@ -178,11 +173,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	remainingUserIds := make([]string, 0)
 
 	fromMaster := false
-	toPass := make([]any, 0, len(userIds))
-	for i := 0; i < len(userIds); i++ {
-		var user *model.User
-		toPass = append(toPass, &user)
-	}
+	toPass := allocateCacheTargets[model.User](len(userIds))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, userIds, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -199,7 +190,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 			s.userProfileByIdsMut.Unlock()
 			remainingUserIds = append(remainingUserIds, userIds[i])
 		} else {
-			gotUser := *(toPass[i].(**model.User))
+			gotUser := toPass[i].(*model.User)
 			if (gotUser != nil) && (options.Since == 0 || gotUser.UpdateAt > options.Since) {
 				users = append(users, gotUser)
 			} else if gotUser == nil {
@@ -225,14 +216,19 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	return users, nil
 }
 
+func (s *LocalCacheUserStore) UpdateFailedPasswordAttempts(userID string, attempts int) error {
+	s.InvalidateProfileCacheForUser(userID)
+	return s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
+}
+
 // Get is a cache wrapper around the SqlStore method to get a user profile by id.
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
 func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
-	var cacheItem *model.User
+	var cacheItem model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
-		return cacheItem, nil
+		return &cacheItem, nil
 	}
 
 	// If it was invalidated, then we need to query master.
@@ -264,12 +260,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	uniqIDs := dedup(ids)
 
 	fromMaster := false
-	toPass := make([]any, 0, len(uniqIDs))
-	for i := 0; i < len(uniqIDs); i++ {
-		var user *model.User
-		toPass = append(toPass, &user)
-	}
-
+	toPass := allocateCacheTargets[model.User](len(uniqIDs))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.userProfileByIdsCache, uniqIDs, toPass)
 	for i, err := range errs {
 		if err != nil {
@@ -286,7 +277,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 			s.userProfileByIdsMut.Unlock()
 			notCachedUserIds = append(notCachedUserIds, uniqIDs[i])
 		} else {
-			gotUser := *(toPass[i].(**model.User))
+			gotUser := toPass[i].(*model.User)
 			if gotUser != nil {
 				cachedUsers = append(cachedUsers, gotUser)
 			} else {

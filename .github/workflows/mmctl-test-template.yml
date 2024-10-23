@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:1.21.8
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -50,6 +49,8 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
       - name: Run mmctl Tests
+        env:
+          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"

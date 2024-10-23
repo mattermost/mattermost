@@ -47,14 +47,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="setting_default"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -65,12 +59,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={true}
           />
           <Memo(DropdownSetting)
@@ -200,15 +188,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>
@@ -254,15 +240,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>
@@ -317,14 +301,8 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="fsdsdg"
           />
-          <BooleanSetting
+          <Memo(BooleanSetting)
             disabled={false}
-            falseText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="False"
-                id="admin.false"
-              />
-            }
             helpText={
               <SchemaText
                 text="This is some help text for the bool field."
@@ -335,12 +313,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             label="Setting Two"
             onChange={[Function]}
             setByEnv={false}
-            trueText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="True"
-                id="admin.true"
-              />
-            }
             value={false}
           />
           <Memo(DropdownSetting)
@@ -470,15 +442,13 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
+        <Memo(FormError)
           error=""
-          errors={Array []}
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <FormError
+        <Memo(FormError)
           error={null}
-          errors={Array []}
         />
       </div>
     </WithTooltip>

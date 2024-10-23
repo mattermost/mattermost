@@ -1752,26 +1752,36 @@
     put:
       tags:
         - users
-      summary: Attach mobile device
+      summary: Attach mobile device and extra props to the session object
       description: >
-        Attach a mobile device id to the currently logged in session. This will
-        enable push notifications for a user, if configured by the server.
+        Attach extra props to the session object of the currently logged in session.
+
+        Adding a mobile device id will enable push notifications for a user,
+        if configured by the server.
+
+        Other props are also available, like whether the device has notifications
+        disabled and the mobile version.
 
         ##### Permissions
 
         Must be authenticated.
-      operationId: AttachDeviceId
+      operationId: AttachDeviceExtraProps
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              required:
-                - device_id
               properties:
                 device_id:
                   description: Mobile device id. For Android prefix the id with `android:`
                     and Apple with `apple:`
+                  type: string
+                deviceNotificationDisabled:
+                  description: Whether the mobile device has notifications disabled.
+                    Accepted values are "true" or "false".
+                  type: string
+                mobileVersion:
+                  description: Mobile app version. The version must be parseable as a semver.
                   type: string
         required: true
       responses:

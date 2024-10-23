@@ -29,6 +29,7 @@ const FileUploadOverlay = (props: Props) => {
                         className='overlay__files'
                         src={fileOverlayImage}
                         alt='Files'
+                        loading='lazy'
                     />
                     <span>
                         <i
@@ -44,6 +45,7 @@ const FileUploadOverlay = (props: Props) => {
                         className='overlay__logo'
                         src={overlayLogoImage}
                         alt='Logo'
+                        loading='lazy'
                     />
                 </div>
             </div>

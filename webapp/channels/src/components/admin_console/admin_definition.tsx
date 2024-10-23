@@ -87,6 +87,8 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
@@ -2024,6 +2026,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDesktopLandingPage',
+                            label: defineMessage({id: 'admin.customization.enableDesktopLandingPageTitle', defaultMessage: 'Enable Desktop App Landing Page:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableDesktopLandingPageDesc', defaultMessage: 'Whether or not to prompt a user to use the Desktop App when they first use Mattermost.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
                     ],
                 },
             },
@@ -3020,6 +3029,32 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'IPFiltering',
                     component: IPFiltering,
+                },
+            },
+            secure_connection_detail: {
+                url: `site_config/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+            secure_connections: {
+                url: 'site_config/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
                 },
             },
         },
@@ -6211,19 +6246,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.desc', defaultMessage: 'This setting defines the number of seconds after which the user’s status indicator changes to "Away", when they are away from Mattermost.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.experimental.userStatusAwayTimeout.example', defaultMessage: 'E.g.: "300"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.EnableSharedChannels',
-                            label: defineMessage({id: 'admin.experimental.enableSharedChannels.title', defaultMessage: 'Enable Shared Channels:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableSharedChannels.desc', defaultMessage: 'Toggles Shared Channels'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.any(
-                                it.licensedForFeature('SharedChannels'),
-                                it.licensedForSku(LicenseSkus.Enterprise),
-                                it.licensedForSku(LicenseSkus.Professional),
-                            )),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

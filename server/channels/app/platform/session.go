@@ -17,6 +17,12 @@ import (
 func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""
+		// All existing prop fields are cleared once the session is retrieved from the pool.
+		// To speed up that process, clear the props here to avoid doing that in the hot path.
+		//
+		// If the request handler spawns a goroutine that uses the session, it might race with this code.
+		// In that case, the handler should copy the session and use the copy in the goroutine.
+		clear(session.Props)
 		ps.sessionPool.Put(session)
 	}
 }
@@ -58,12 +64,9 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var session *model.Session
-			toPass = append(toPass, &session)
-		}
-
+		// This always needs to be model.Session, not *model.Session.
+		// Otherwise the msp unmarshaler will fail to work.
+		toPass := allocateCacheTargets[model.Session](len(keys))
 		errs := ps.sessionCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -72,7 +75,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 				}
 				continue
 			}
-			gotSession := *(toPass[i].(**model.Session))
+			gotSession := toPass[i].(*model.Session)
 			if gotSession == nil {
 				ps.logger.Warn("Found nil session in ClearUserSessionCacheLocal. This is not expected")
 				continue

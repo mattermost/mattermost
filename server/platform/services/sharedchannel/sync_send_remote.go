@@ -35,6 +35,7 @@ type syncData struct {
 	profileImages map[string]*model.User
 	posts         []*model.Post
 	reactions     []*model.Reaction
+	statuses      []*model.Status
 	attachments   []attachment
 
 	resultRepeat     bool
@@ -66,6 +67,13 @@ func (sd *syncData) isCursorChanged() bool {
 
 	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
 		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
+}
+
+func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
+	sd.users = msg.Users
+	sd.posts = msg.Posts
+	sd.reactions = msg.Reactions
+	sd.statuses = msg.Statuses
 }
 
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
@@ -111,25 +119,37 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("channel_id", task.channelID),
 		)
+	} else if err == nil && scr.DeleteAt != 0 {
+		// if SharedChannelRemote is deleted, regardless of the autoinvite flag, do nothing
+		return nil
 	} else if err != nil {
 		return err
 	}
 
+	sd := newSyncData(task, rc, scr)
+
 	// if this is retrying a failed msg, just send it again.
 	if task.retryMsg != nil {
-		sd := newSyncData(task, rc, scr)
-		sd.users = task.retryMsg.Users
-		sd.posts = task.retryMsg.Posts
-		sd.reactions = task.retryMsg.Reactions
+		sd.setDataFromMsg(task.retryMsg)
 		return scs.sendSyncData(sd)
 	}
 
-	sd := newSyncData(task, rc, scr)
+	// if this has an already existing msg, just send it right away
+	if task.existingMsg != nil {
+		sd.setDataFromMsg(task.existingMsg)
+		return scs.sendSyncData(sd)
+	}
+
+	// if we don't have a channelID at this point, we cannot fetch new
+	// data from the database
+	if task.channelID == "" {
+		return fmt.Errorf("task doesn't have prefetched data nor a channel ID set")
+	}
 
 	// schedule another sync if the repeat flag is set at some point.
 	defer func(rpt *bool) {
 		if *rpt {
-			scs.addTask(newSyncTask(task.channelID, task.remoteID, nil))
+			scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil))
 		}
 	}(&sd.resultRepeat)
 
@@ -260,12 +280,13 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		LastPostCreateAt: sd.scr.LastPostCreateAt,
 		LastPostCreateID: sd.scr.LastPostCreateID,
 	}
+	maxPostsPerSync := *scs.server.Config().ConnectedWorkspacesSettings.MaxPostsPerSync
 
 	// Fetch all newly created posts first. This is to ensure that post order is preserved for sync targets
 	// that cannot set the CreateAt timestamp for incoming posts (e.g. MS Teams).  If we simply used UpdateAt
 	// then posts could get out of order. For example: p1 created, p2 created, p1 updated... sync'ing on UpdateAt
 	// would order the posts p2, p1.
-	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
+	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, maxPostsPerSync)
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
@@ -275,10 +296,10 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	cache := postsSliceToMap(posts)
 
 	// Fill remaining batch capacity with updated posts.
-	if len(posts) < MaxPostsPerSync {
+	if len(posts) < maxPostsPerSync {
 		options.SinceCreateAt = false
 		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
-		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
+		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, maxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
@@ -288,7 +309,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	}
 
 	sd.resultNextCursor = nextCursor
-	sd.resultRepeat = count >= MaxPostsPerSync
+	sd.resultRepeat = count >= maxPostsPerSync
 
 	return nil
 }
@@ -516,6 +537,13 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		}
 	}
 
+	// send statuses
+	if len(sd.statuses) != 0 {
+		if err := scs.sendStatusSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send status sync data: %w", err))
+		}
+	}
+
 	// send user profile images
 	if len(sd.profileImages) != 0 {
 		scs.sendProfileImageSyncData(sd)
@@ -620,6 +648,25 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 				mlog.String("remote_id", sd.rc.RemoteId),
 				mlog.Array("reaction_posts", syncResp.ReactionErrors),
 			)
+		}
+	})
+}
+
+// sendStatusSyncData sends the collected status updates to the remote cluster.
+func (scs *Service) sendStatusSyncData(sd *syncData) error {
+	msg := model.NewSyncMsg(sd.task.channelID)
+	msg.Statuses = sd.statuses
+
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		if len(syncResp.StatusErrors) != 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error from status(es) sync",
+				mlog.String("remote_id", sd.rc.RemoteId),
+				mlog.Array("user_ids", syncResp.StatusErrors),
+			)
+
+			for _, userID := range syncResp.StatusErrors {
+				scs.handleStatusError(userID, sd.task, sd.rc)
+			}
 		}
 	})
 }

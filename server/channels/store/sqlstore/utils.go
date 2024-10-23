@@ -192,13 +192,6 @@ func trimInput(input string) string {
 	return input
 }
 
-func maxInt64(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // Adds backtiks to the column name for MySQL, this is required if
 // the column name is a reserved keyword.
 //

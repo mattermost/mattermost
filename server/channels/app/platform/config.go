@@ -31,8 +31,7 @@ import (
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore *config.Store
-	Store       store.Store
+	Store store.Store
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }

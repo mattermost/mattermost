@@ -11,7 +11,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
 import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, CancelIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 import {PulsatingDot} from '@mattermost/components';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -585,10 +585,16 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     <Menu.Group>
                         <Menu.ItemAction
                             show={this.isUserOutOfOffice()}
-                            onClick={() => null}
+                            onClick={setOnline}
                             ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
                             text={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
+                            icon={(
+                                <CancelIcon
+                                    color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                />
+                            )}
                             extraText={this.props.intl.formatMessage(statusDropdownMessages.ooo.extra)}
+                            rightDecorator={selectedIndicator}
                         />
                     </Menu.Group>
                     {customStatusComponent}

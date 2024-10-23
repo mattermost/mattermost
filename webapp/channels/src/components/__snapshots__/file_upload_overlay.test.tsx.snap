@@ -13,6 +13,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
+        loading="lazy"
         src=""
       />
       <span>
@@ -28,6 +29,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
+        loading="lazy"
         src=""
       />
     </div>
@@ -48,6 +50,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
+        loading="lazy"
         src=""
       />
       <span>
@@ -63,6 +66,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
+        loading="lazy"
         src=""
       />
     </div>
@@ -83,6 +87,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Files"
         className="overlay__files"
+        loading="lazy"
         src=""
       />
       <span>
@@ -98,6 +103,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       <img
         alt="Logo"
         className="overlay__logo"
+        loading="lazy"
         src=""
       />
     </div>

@@ -44,6 +44,7 @@ const (
 	MetricsSubsystemNotifications      = "notifications"
 	MetricsSubsystemClientsMobileApp   = "mobileapp"
 	MetricsSubsystemClientsWeb         = "webapp"
+	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -215,6 +216,10 @@ type MetricsInterfaceImpl struct {
 	MobileClientLoadDuration          *prometheus.HistogramVec
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
+	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
+
+	DesktopClientCPUUsage    *prometheus.HistogramVec
+	DesktopClientMemoryUsage *prometheus.HistogramVec
 }
 
 func init() {
@@ -467,7 +472,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForChannel,
 		model.ClusterEventInvalidateCacheForChannelGuestCount,
 		model.ClusterEventInvalidateCacheForUser,
-		model.ClusterEventInvalidateCacheForUserTeams,
+		model.ClusterEventInvalidateWebConnCacheForUser,
 		model.ClusterEventClearSessionCacheForUser,
 		model.ClusterEventInvalidateCacheForRoles,
 		model.ClusterEventInvalidateCacheForRolePermissions,
@@ -1262,7 +1267,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "channel_switch",
 			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "fresh"},
 	)
 	m.Registry.MustRegister(m.ClientChannelSwitchDuration)
 
@@ -1273,7 +1278,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "team_switch",
 			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "fresh"},
 	)
 	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
 
@@ -1334,6 +1339,41 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform"},
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
+
+	m.MobileClientSessionMetadataGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_session_metadata",
+			Help:      "The number of mobile sessions in each version, platform and whether they have the notifications disabled",
+		},
+		[]string{"version", "platform", "notifications_disabled"},
+	)
+	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
+
+	m.DesktopClientCPUUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "cpu_usage",
+			Help:      "Average CPU usage of a specific process over an interval",
+			Buckets:   []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 80, 100},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientCPUUsage)
+
+	m.DesktopClientMemoryUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "memory_usage",
+			Help:      "Memory usage in MB of a specific process",
+			Buckets:   []float64{0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 3000, 5000},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientMemoryUsage)
 
 	return m
 }
@@ -1822,12 +1862,12 @@ func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent st
 	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent string, elapsed float64) {
-	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent string, elapsed float64) {
-	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
@@ -1836,6 +1876,14 @@ func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent str
 
 func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientCPUUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveDesktopMemoryUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientMemoryUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
@@ -1848,6 +1896,14 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platfor
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
+}
+
+func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
+	mi.MobileClientSessionMetadataGauge.Reset()
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

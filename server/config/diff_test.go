@@ -113,7 +113,7 @@ func TestDiffSanitized(t *testing.T) {
 					Path: "",
 					BaseVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil)
 						return *cfg
 					}(),
 					ActualVal: model.Config{},
@@ -131,7 +131,7 @@ func TestDiffSanitized(t *testing.T) {
 					BaseVal: model.Config{},
 					ActualVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil)
 						return *cfg
 					}(),
 				},

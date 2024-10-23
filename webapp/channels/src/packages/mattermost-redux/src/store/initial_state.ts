@@ -253,10 +253,6 @@ const state: GlobalState = {
             },
         },
         teams: {
-            getMyTeams: {
-                status: 'not_started',
-                error: null,
-            },
             getTeams: {
                 status: 'not_started',
                 error: null,
