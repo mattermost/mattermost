@@ -74,7 +74,7 @@ func TestSendNotifications(t *testing.T) {
 			Message:   fmt.Sprintf("hello @%s group", *group.Name),
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		groupMentionPost, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, false, true)
+		groupMentionPost, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, createPostErr)
 
 		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
@@ -359,7 +359,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		}
 
 		// Use CreatePost instead of SendNotifications here since we need that to set up some threads state
-		_, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, false, false)
+		_, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		received1 := <-messages1
@@ -413,7 +413,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 					{
 						Type: model.PostEmbedPermalink,
 						URL:  postURL,
-						Data: &model.Post{},
+						Data: &model.PreviewPost{},
 					},
 				},
 			},
@@ -2824,7 +2824,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -2833,7 +2833,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -2842,7 +2842,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
@@ -2922,7 +2922,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		Message:   "root post by user3",
 		UserId:    u3.Id,
 	}
-	rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+	rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	replyPost1 := &model.Post{
@@ -2931,7 +2931,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		UserId:    u1.Id,
 		RootId:    rpost.Id,
 	}
-	_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+	_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// user-2 starts auto-following thread
@@ -2953,7 +2953,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		UserId:    u1.Id,
 		RootId:    rpost.Id,
 	}
-	_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+	_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// Do NOT start auto-following thread, once "un-followed"
@@ -2984,7 +2984,7 @@ func TestRemoveNotifications(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rootPost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		rootPost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -2993,7 +2993,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -3002,7 +3002,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rootPost.Id,
 		}
-		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
@@ -3041,7 +3041,7 @@ func TestRemoveNotifications(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rootPost, appErr = th.App.CreatePost(th.Context, rootPost, c1, false, true)
+		rootPost, appErr = th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -3050,7 +3050,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -3059,7 +3059,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rootPost.Id,
 		}
-		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)

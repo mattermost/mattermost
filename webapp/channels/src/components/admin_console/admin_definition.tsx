@@ -1885,44 +1885,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
-
-            secure_connection_detail: {
-                url: `environment/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
-                    it.not(it.any(
-                        it.licensedForFeature('SharedChannels'),
-                        it.licensedForSku(LicenseSkus.Enterprise),
-                        it.licensedForSku(LicenseSkus.Professional),
-                    )),
-                ),
-                schema: {
-                    id: 'SecureConnectionDetail',
-                    component: SecureConnectionDetail,
-                },
-            },
-
-            secure_connections: {
-                url: 'environment/secure_connections',
-                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
-                searchableStrings: secureConnectionsSearchableStrings,
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
-                    it.configIsFalse('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
-                    it.not(it.any(
-                        it.licensedForFeature('SharedChannels'),
-                        it.licensedForSku(LicenseSkus.Enterprise),
-                        it.licensedForSku(LicenseSkus.Professional),
-                    )),
-                ),
-                schema: {
-                    id: 'SecureConnections',
-                    component: SecureConnections,
-                },
-            },
         },
     },
     site: {
@@ -3067,6 +3029,32 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'IPFiltering',
                     component: IPFiltering,
+                },
+            },
+            secure_connection_detail: {
+                url: `site_config/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+            secure_connections: {
+                url: 'site_config/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
                 },
             },
         },
