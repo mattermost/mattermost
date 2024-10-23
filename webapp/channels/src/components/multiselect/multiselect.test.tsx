@@ -6,7 +6,6 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {screen} from 'tests/react_testing_utils';
 
 import MultiSelect from './multiselect';
 import type {Value} from './multiselect';
