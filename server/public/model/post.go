@@ -338,6 +338,11 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 	return json.NewEncoder(w).Encode(o)
 }
 
+type CreatePostFlags struct {
+	TriggerWebhooks bool
+	SetOnline       bool
+}
+
 type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
@@ -518,17 +523,17 @@ func (o *Post) SanitizeInput() {
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {
@@ -878,8 +883,11 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
-		if embed.Type == PostEmbedPermalink {
+		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
 				return previewPost
 			}

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
@@ -174,7 +175,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                             value={formatDate(time)}
                             id='customStatus__calendar-input'
                             readOnly={true}
-                            className='dateTime__calendar-input'
+                            className={classNames('dateTime__calendar-input', {isOpen: isPopperOpen})}
                             label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                             onClick={() => handlePopperOpenState(true)}
                             tabIndex={-1}

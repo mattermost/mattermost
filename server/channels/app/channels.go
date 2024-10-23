@@ -79,6 +79,7 @@ type Channels struct {
 
 	scheduledPostMut  sync.Mutex
 	scheduledPostTask *model.ScheduledTask
+	loginAttemptsMut  sync.Mutex
 }
 
 func NewChannels(s *Server) (*Channels, error) {
