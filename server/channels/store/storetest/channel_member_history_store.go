@@ -201,7 +201,10 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 
 	// case 6: get both activity from posts and from join/leave;
 	//  - also, sql deduplicates two channel1 results (from post and channel history tables)
-	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+10, now+1000)
+	time.Sleep(1 * time.Millisecond)
+	now = model.GetMillis()
+
+	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now, now+1000)
 	require.NoError(t, err)
 	assert.Empty(t, channelIds)
 
