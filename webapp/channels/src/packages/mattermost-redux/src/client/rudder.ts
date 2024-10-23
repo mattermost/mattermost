@@ -13,7 +13,7 @@ import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 export {rudderAnalytics};
 
 export class RudderTelemetryHandler implements TelemetryHandler {
-    trackEvent(userId: string, userRoles: string, category: string, event: string, props?: any) {
+    trackEvent(userId: string, userRoles: string, category: string, event: string, props: Record<string, unknown> = {}) {
         const properties = Object.assign({
             category,
             type: event,

@@ -223,7 +223,7 @@ export type MarketplaceItemPluginProps = {
     pluginStatus?: PluginStatusRedux;
     error?: string;
     isDefaultMarketplace: boolean;
-    trackEvent: (category: string, event: string, props?: unknown) => void;
+    trackEvent: (category: string, event: string, props?: Record<string, unknown>) => void;
 
     actions: {
         installPlugin: (id: string) => void;
