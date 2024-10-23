@@ -1047,7 +1047,6 @@ type AppIface interface {
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
-	ReturnSessionToPool(session *model.Session)
 	RevokeAccessToken(c request.CTX, token string) *model.AppError
 	RevokeAllSessions(c request.CTX, userID string) *model.AppError
 	RevokeSession(c request.CTX, session *model.Session) *model.AppError
