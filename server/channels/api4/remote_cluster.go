@@ -382,6 +382,11 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rcWithTeamAndPassword.DefaultTeamId == "" {
+		c.SetInvalidParam("remote_cluster.default_team_id")
+		return
+	}
+
 	if rcWithTeamAndPassword.DisplayName == "" {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
@@ -459,6 +464,16 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if rcAcceptInvite.DefaultTeamId == "" {
+		c.SetInvalidParam("remoteCluster.default_team_id")
+		return
+	}
+
+	if _, teamErr := c.App.GetTeam(rcAcceptInvite.DefaultTeamId); teamErr != nil {
+		c.SetInvalidParamWithErr("remoteCluster.default_team_id", teamErr)
+		return
+	}
+
 	audit.AddEventParameter(auditRec, "name", rcAcceptInvite.Name)
 	audit.AddEventParameter(auditRec, "display_name", rcAcceptInvite.DisplayName)
 
@@ -480,7 +495,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	rc, aErr := rcs.AcceptInvitation(invite, rcAcceptInvite.Name, rcAcceptInvite.DisplayName, c.AppContext.Session().UserId, url)
+	rc, aErr := rcs.AcceptInvitation(invite, rcAcceptInvite.Name, rcAcceptInvite.DisplayName, c.AppContext.Session().UserId, url, rcAcceptInvite.DefaultTeamId)
 	if aErr != nil {
 		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(aErr)
 		if appErr, ok := aErr.(*model.AppError); ok {

@@ -211,6 +211,7 @@ export type ChannelSearchOpts = {
     private?: boolean;
     include_deleted?: boolean;
     include_search_by_id?: boolean;
+    exclude_remote?: boolean;
     deleted?: boolean;
     page?: number;
     per_page?: number;
