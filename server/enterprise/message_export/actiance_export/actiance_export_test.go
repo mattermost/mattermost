@@ -1950,9 +1950,9 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-	warnings, err := writeExport(rctx, export, uploadedFiles, fileBackend, fileBackend, exportFileName)
+	res, err := writeExport(rctx, export, uploadedFiles, fileBackend, fileBackend, exportFileName)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, warnings)
+	assert.Equal(t, 2, res.NumWarnings)
 
 	err = fileBackend.RemoveFile(exportFileName)
 	require.NoError(t, err)

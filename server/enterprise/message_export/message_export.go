@@ -81,6 +81,7 @@ func (m *MessageExportInterfaceImpl) StartSynchronizeJob(rctx request.CTX, expor
 }
 
 func RunBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams) (shared.RunExportResults, shared.JobData, error) {
+	start := time.Now()
 	var err error
 	var res shared.RunExportResults
 	data, err = GetDataForBatch(rctx, data, params)
@@ -98,6 +99,11 @@ func RunBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams
 		return res, data, err
 	}
 
+	data.ProcessingPostsMs = append(data.ProcessingPostsMs, res.ProcessingPostsMs)
+	data.ProcessingXmlMs = append(data.ProcessingXmlMs, res.ProcessingXmlMs)
+	data.TransferringFilesMs = append(data.TransferringFilesMs, res.TransferringFilesMs)
+	data.TransferringZipMs = append(data.TransferringZipMs, res.TransferringZipMs)
+	data.TotalBatchMs = append(data.TotalBatchMs, time.Since(start).Milliseconds())
 	data.TotalWarningCount += res.NumWarnings
 	data.BatchStartTime = data.BatchEndTime
 
@@ -106,12 +112,14 @@ func RunBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams
 
 // GetDataForBatch gets the posts for this batch and updates JobData with the current state.
 func GetDataForBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams) (shared.JobData, error) {
+	start := time.Now()
 	var err error
 	// Using BatchSize+1 is a trick to test whether or not we've reached the final batch.
 	data.PostsToExport, data.Cursor, err = params.Store.Compliance().MessageExport(rctx, data.Cursor, data.BatchSize+1)
 	if err != nil {
 		return data, err
 	}
+	data.MessageExportMs = append(data.MessageExportMs, time.Since(start).Milliseconds())
 
 	if len(data.PostsToExport) == data.BatchSize+1 {
 		// We still have posts after this current batch.
