@@ -446,7 +446,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
-            handleAutomatedRefocusAndExit();
+            if (scheduledPost) {
+                onCancel?.();
+            } else {
+                handleAutomatedRefocusAndExit();
+            }
         } else if (ctrlAltCombo && markdownLinkKey) {
             applyHotkeyMarkdown({
                 markdownMode: 'link',
