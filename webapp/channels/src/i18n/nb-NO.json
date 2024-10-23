@@ -907,6 +907,7 @@
   "admin.sidebar.saml": "SAML 2.0",
   "admin.sidebar.sessionLengths": "Sesjonslengder",
   "admin.sidebar.signup": "Registrer deg",
+  "admin.sidebar.site": "Site konfigurasjon",
   "admin.systemUserDetail.teamList.header.name": "Нэр",
   "admin.team_channel_settings.groupMembers.close": "Хааx",
   "admin.team_channel_settings.user_list.nameHeader": "Нэр",
