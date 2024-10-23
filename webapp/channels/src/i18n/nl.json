@@ -3955,6 +3955,7 @@
   "installed_integrations.audience_urls": "Audience URL's: {urls}",
   "installed_integrations.callback_urls": "Callback URLs: {urls}",
   "installed_integrations.client_id": "Klant ID: ",
+  "installed_integrations.client_secret": "Client geheim: ",
   "installed_integrations.content_type": "Content-Type: {contentType}",
   "installed_integrations.creation": "Gemaakt door {creator} op {createAt, date, full}",
   "installed_integrations.delete": "Verwijderen",
