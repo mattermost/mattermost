@@ -4441,6 +4441,7 @@
   "no_results.user_groups.title": "Nog geen groepen",
   "notification.crt": "Beantwoord in {title}",
   "notification.dm": "Privé bericht",
+  "notifyAll.question": "Door <b>@all</b> of <b>@channel</b> te gebruiken, ga je meldingen sturen naar <b>{totalMembers} mensen</b>. Weet je zeker dat je dit wilt doen?",
   "notify_all.confirm": "Bevestigen",
   "notify_all.title.confirm": "Bevestig het verzenden van meldingen naar hele kanaal",
   "notify_all.title.confirm_groups": "Verzenden van meldingen naar groepen bevestigen",
