@@ -3986,6 +3986,7 @@
   "installed_oauth_apps.help.oauthApplications": "OAuth 2.0 Applicaties",
   "installed_oauth_apps.homepage": "Homepagina",
   "installed_oauth_apps.iconUrl": "Pictogram-URL",
+  "installed_oauth_apps.is_trusted": "Is vertrouwd: ",
   "installed_oauth_apps.name": "Weergavenaam",
   "installed_oauth_apps.save": "Opslaan",
   "installed_oauth_apps.saving": "Bezig met opslaan...",
