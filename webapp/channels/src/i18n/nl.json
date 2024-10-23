@@ -3155,7 +3155,7 @@
   "channel_bookmarks.create.error.generic_save": "Er is een fout opgetreden bij het bewaren van de bladwijzer.",
   "channel_bookmarks.create.error.invalid_url": "Voer een geldige link in. Kon niet verwerken: {link}.",
   "channel_bookmarks.create.error.invalid_url.continue_anyway": "Kon {url} niet vinden. Voer een geldige link in, of <Confirm>ga toch verder</Confirm>.",
-  "channel_bookmarks.create.error.invalid_url.continuing_anyway": "Kon {url} niet vinden. Voer een geldige link in.",
+  "channel_bookmarks.create.error.invalid_url.continuing_anyway": "Dit is mogelijk geen geldige link: {url}.",
   "channel_bookmarks.create.file_input.edit": "Bewerken",
   "channel_bookmarks.create.file_input.label": "Bijlage",
   "channel_bookmarks.create.link_info": "Voeg een link toe aan een bericht, bestand of externe link",
