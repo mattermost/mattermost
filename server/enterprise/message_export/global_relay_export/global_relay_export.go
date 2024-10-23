@@ -71,7 +71,7 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
+func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
 	var warningCount int
 	var attachmentsRemovedPostIDs []string
 	allExports := make(map[string][]*ChannelExport)
@@ -128,7 +128,7 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.
 				return nil, warningCount, fmt.Errorf("unable to create the eml file: %w", err)
 			}
 
-			if warningCount, err = generateEmail(rctx, fileBackend, channelExport, templates, channelExportFile); err != nil {
+			if warningCount, err = generateEmail(rctx, fileAttachmentBackend, channelExport, templates, channelExportFile); err != nil {
 				return nil, warningCount, err
 			}
 		}
@@ -244,7 +244,7 @@ func getParticipants(db store.Store, channelExport *ChannelExport,
 	return participants, nil
 }
 
-func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
+func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
 	var warningCount int
 	participantEmailAddresses := getParticipantEmails(channelExport)
 
@@ -293,7 +293,7 @@ func generateEmail(rctx request.CTX, fileBackend filestore.FileBackend, channelE
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
 			var reader filestore.ReadCloseSeeker
-			reader, err = fileBackend.Reader(path)
+			reader, err = fileAttachmentBackend.Reader(path)
 			if err != nil {
 				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))
 				warningCount += 1
