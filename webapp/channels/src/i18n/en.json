@@ -4266,7 +4266,7 @@
   "menu.cloudFree.postTrial.tryEnterprise": "Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>",
   "message_submit_error.invalidCommand": "Command with a trigger of ''{command}'' not found. ",
   "message_submit_error.sendAsMessageLink": "Click here to send as a message.",
-  "mfa.confirm.complete": "**Set up complete!**",
+  "mfa.confirm.complete": "Set up complete!",
   "mfa.confirm.okay": "Okay",
   "mfa.confirm.secure": "Your account is now secure. Next time you sign in, you will be asked to enter a code from the Google Authenticator app on your phone.",
   "mfa.setup.badCode": "Invalid code. If this issue persists, contact your System Administrator.",
