@@ -598,21 +598,54 @@ func TestGetJoinLeavePosts(t *testing.T) {
 }
 
 func TestCsvExport(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestCsvExportDedicatedExportFilestore(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestCsvExportDedicatedExportFilestore(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
 	header := "Post Creation Time,Team Id,Team Name,Team Display Name,Channel Id,Channel Name,Channel Display Name,Channel Type,User Id,User Email,Username,Post Id,Edited By Post Id,Replied to Post Id,Post Message,Post Type,User Type,Previews Post Id\n"
@@ -895,10 +928,10 @@ func TestCsvExport(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
 					})
-					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 					t.Cleanup(func() {
-						err = fileBackend.RemoveFile(attachments[0].Path)
+						err = attachmentBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -911,14 +944,14 @@ func TestCsvExport(t *testing.T) {
 			}
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-			warningCount, err := CsvExport(rctx, tt.posts, mockStore, fileBackend, exportFileName)
+			warningCount, err := CsvExport(rctx, tt.posts, mockStore, exportBackend, attachmentBackend, exportFileName)
 			assert.NoError(t, err)
 			assert.Equal(t, 0, warningCount)
 
-			zipBytes, err := fileBackend.ReadFile(exportFileName)
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			t.Cleanup(func() {
-				err = fileBackend.RemoveFile(exportFileName)
+				err = exportBackend.RemoveFile(exportFileName)
 				require.NoError(t, err)
 			})
 
@@ -1050,7 +1083,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-	warningCount, err := CsvExport(rctx, posts, mockStore, fileBackend, exportFileName)
+	warningCount, err := CsvExport(rctx, posts, mockStore, fileBackend, fileBackend, exportFileName)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, warningCount)
 

@@ -54,10 +54,11 @@ type JobData struct {
 }
 
 type BackendParams struct {
-	Config        *model.Config
-	Store         store.Store
-	FileBackend   filestore.FileBackend
-	HtmlTemplates *templates.Container
+	Config                *model.Config
+	Store                 store.Store
+	FileAttachmentBackend filestore.FileBackend
+	ExportBackend         filestore.FileBackend
+	HtmlTemplates         *templates.Container
 }
 
 type RunExportResults struct {
@@ -357,7 +358,8 @@ func GetBatchPath(exportDir string, prevPostUpdateAt int64, lastPostUpdateAt int
 		fmt.Sprintf("batch%03d-%d-%d.zip", batchNumber, prevPostUpdateAt, lastPostUpdateAt))
 }
 
-func GetFileBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
+// GetExportBackend returns the file backend where the export will be created.
+func GetExportBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
 	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
 	skipVerify := insecure != nil && *insecure
 
@@ -372,6 +374,19 @@ func GetFileBackend(rctx request.CTX, config *model.Config) (filestore.FileBacke
 	}
 
 	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, skipVerify))
+	if err != nil {
+		return nil, err
+	}
+	return backend, nil
+}
+
+// GetFileAttachmentBackend returns the file backend where file attachments are
+// located for messages that will be exported. This may be the same backend
+// where the export will be created.
+func GetFileAttachmentBackend(rctx request.CTX, config *model.Config) (filestore.FileBackend, error) {
+	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
+
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
 	if err != nil {
 		return nil, err
 	}
