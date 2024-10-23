@@ -539,7 +539,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             className='multi-select__help'
                         >
                             {errorMessageContainer}
-}
                         </div>
                     )}
 
