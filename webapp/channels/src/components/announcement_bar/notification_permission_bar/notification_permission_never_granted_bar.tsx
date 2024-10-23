@@ -49,7 +49,7 @@ export default function NotificationPermissionNeverGrantedBar() {
             ctaText={
                 <FormattedMessage
                     id='announcementBar.notification.permissionNeverGrantedBar.cta'
-                    defaultMessage='Enable notifications'
+                    defaultMessage='Manage notification preferences'
                 />
             }
             showCTA={true}

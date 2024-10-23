@@ -2894,7 +2894,7 @@
   "announcement_bar.warn.contact_support_text": "To renew your license, contact support at support@mattermost.com.",
   "announcement_bar.warn.no_internet_connection": "Looks like you do not have access to the internet.",
   "announcement_bar.warn.renew_license_contact_sales": "Contact sales",
-  "announcementBar.notification.permissionNeverGrantedBar.cta": "Enable notifications",
+  "announcementBar.notification.permissionNeverGrantedBar.cta": "Manage notification preferences",
   "announcementBar.notification.permissionNeverGrantedBar.message": "We need your permission to show web browser notifications.",
   "announcementBar.notification.unsupportedBar.cta": "Update your browser",
   "announcementBar.notification.unsupportedBar.message": "Your browser does not support web browser notifications.",
