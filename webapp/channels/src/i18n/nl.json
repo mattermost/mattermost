@@ -2893,6 +2893,7 @@
   "announcement_bar.notification.email_verified": "E-mail geverifieerd",
   "announcement_bar.notification.enable_notifications": "Meldingen inschakelen",
   "announcement_bar.notification.needs_permission": "We hebben je toestemming nodig om desktopmeldingen te tonen.",
+  "announcement_bar.warn.contact_support_email": "<a>Contacteer de helpdesk</a>.",
   "announcement_bar.warn.contact_support_text": "Om je licentie te verlengen, neem contact op met de klantendienst op support@mattermost.com.",
   "announcement_bar.warn.no_internet_connection": "Het lijkt erop dat je geen toegang hebt tot het internet.",
   "announcement_bar.warn.renew_license_contact_sales": "Contacteer de verkoopsafdeling",
