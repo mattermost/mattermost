@@ -64,14 +64,8 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
 }
 
 export function openGroupChannelToUserIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<Channel> {
-    return async (dispatch, getState) => {
-        const result = await dispatch(ChannelActions.createGroupChannel(userIds));
-
-        if (result.error && result.error.server_error_id !== 'api.channel.create_group.remote_restricted.app_error') {
-            getHistory().push(getCurrentTeamUrl(getState()));
-        }
-
-        return result;
+    return async (dispatch) => {
+        return dispatch(ChannelActions.createGroupChannel(userIds));
     };
 }
 
