@@ -47,7 +47,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Token</strong>: {token}"
+        defaultMessage="<b>Token</b>: {token}"
         id="add_command.token"
         values={
           Object {
@@ -124,7 +124,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>URL</strong>: {url}"
+        defaultMessage="<b>URL</b>: {url}"
         id="add_incoming_webhook.url"
         values={
           Object {
@@ -203,7 +203,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       key="add_oauth_app.clientId"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Client ID</strong>: {id}"
+        defaultMessage="<b>Client ID</b>: {id}"
         id="add_oauth_app.clientId"
         values={
           Object {
@@ -223,7 +223,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       />
       <br />
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Client Secret</strong>: {secret}"
+        defaultMessage="<b>Client Secret</b>: {secret}"
         id="add_oauth_app.clientSecret"
         values={
           Object {
@@ -254,7 +254,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>URL(s)</strong>: {url}"
+        defaultMessage="<b>URL(s)</b>: {url}"
         id="add_oauth_app.url"
         values={
           Object {
@@ -330,7 +330,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Token</strong>: {token}"
+        defaultMessage="<b>Token</b>: {token}"
         id="add_outgoing_webhook.token"
         values={
           Object {
@@ -409,7 +409,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       key="add_outgoing_oauth_connection.clientId"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Client ID</strong>: {id}"
+        defaultMessage="<b>Client ID</b>: {id}"
         id="add_outgoing_oauth_connection.clientId"
         values={
           Object {
@@ -420,7 +420,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       />
       <br />
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Client Secret</strong>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
+        defaultMessage="<b>Client Secret</b>: \\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*\\\\*"
         id="add_outgoing_oauth_connection.clientSecret"
         values={
           Object {
@@ -434,7 +434,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Token URL</strong>: \`{url}\`"
+        defaultMessage="<b>Token URL</b>: \`{url}\`"
         id="add_outgoing_oauth_connection.token_url"
         values={
           Object {
@@ -448,7 +448,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       className="word-break--all"
     >
       <MemoizedFormattedMessage
-        defaultMessage="<strong>Audience URL(s)</strong>: \`{url}\`"
+        defaultMessage="<b>Audience URL(s)</b>: \`{url}\`"
         id="add_outgoing_oauth_connection.audience_urls"
         values={
           Object {
