@@ -207,7 +207,11 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	}
 
 	rctx.Logger().Trace("postScheduledPost posting the scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id))
-	_, appErr = a.CreatePost(rctx, post, channel, true, false)
+	createPostFlags := model.CreatePostFlags{
+		TriggerWebhooks: true,
+		SetOnline:       false,
+	}
+	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",
