@@ -40,7 +40,7 @@ export function submitPost(
     draft: PostDraft,
     afterSubmit?: (response: SubmitPostReturnType) => void,
     schedulingInfo?: SchedulingInfo,
-    afterOptimisticSubmit?: () => void,
+    options?: OnSubmitOptions,
 ): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -113,10 +113,19 @@ export function submitPost(
                 scheduledPost.metadata.files = draft.fileInfos;
             }
 
-            return dispatch(createSchedulePostFromDraft(scheduledPost));
+            const response = await dispatch(createSchedulePostFromDraft(scheduledPost));
+            if (afterSubmit) {
+                const result: CreatePostReturnType = {
+                    error: response.error,
+                    created: !response.error,
+                };
+                afterSubmit(result);
+            }
+
+            return response;
         }
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit));
+        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, options));
     };
 }
 
@@ -165,6 +174,7 @@ export type OnSubmitOptions = {
     ignoreSlash?: boolean;
     afterSubmit?: (response: SubmitPostReturnType) => void;
     afterOptimisticSubmit?: () => void;
+    keepDraft?: boolean;
 }
 
 export function onSubmit(
@@ -197,7 +207,7 @@ export function onSubmit(
             }
         }
 
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options.afterOptimisticSubmit));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options));
     };
 }
 
