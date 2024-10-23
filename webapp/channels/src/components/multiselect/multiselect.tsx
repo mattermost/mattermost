@@ -531,14 +531,15 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         id='multiSelectMessageNote'
                         className='multi-select__help'
                     >
-                        {errorMessageContainer}
+                        {noteTextContainer}
                     </div>
                     {errorMessageContainer && (
                         <div
                             id='multiSelectMessageError'
                             className='multi-select__help'
                         >
-                            {noteTextContainer}
+                            {errorMessageContainer}
+}
                         </div>
                     )}
 
