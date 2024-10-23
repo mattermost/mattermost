@@ -3410,6 +3410,7 @@
   "commercial_support.title": "Commerciële ondersteuning",
   "commercial_support_modal.description": "Als je problemen ondervindt, <a>stuur dan een support ticket</a>. Om te helpen bij het oplossen van problemen, is het aan te raden om het Support Packet hieronder te downloaden dat meer details bevat over je Mattermost-omgeving.",
   "commercial_support_modal.download_contents": "Selecteer de inhoud van je Support Packet om te downloaden",
+  "commercial_support_modal.warning.banner": "Voordat je het Support Packet downloadt, stel je <strong>Output Logs naar bestand</strong> in op <strong>true</strong> en stel je <strong>File Log Niveau</strong> in op <strong>DEBUG</strong> <a>hier</a>.",
   "confirm_modal.cancel": "Annuleren",
   "confirm_switch_to_yearly_modal.confirm": "Bevestigen",
   "confirm_switch_to_yearly_modal.contact_sales": "Neem contact op met de verkoopsafdeling",
