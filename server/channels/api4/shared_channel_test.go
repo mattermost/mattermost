@@ -161,7 +161,29 @@ func TestGetRemoteClusterById(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
+	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
+		th := setupForSharedChannels(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
+
+		localUser := th.BasicUser
+		remoteUser := th.CreateUser()
+		remoteUser.RemoteId = model.NewPointer(model.NewId())
+		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
+		require.Nil(t, appErr)
+
+		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
+		require.Error(t, err)
+		require.Nil(t, dm)
+	})
+
 	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
@@ -185,6 +207,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	})
 
 	t.Run("sends a shared channel invitation to the remote", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
@@ -217,6 +241,8 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	})
 
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
