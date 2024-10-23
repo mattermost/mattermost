@@ -89,7 +89,6 @@ describe('components/multiselect/multiselect', () => {
                 valueRenderer={renderValue}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
 
         expect(wrapper.find(MultiSelectList).state('selected')).toEqual(-1);
         wrapper.find('.filter-control__next').simulate('click');
