@@ -923,6 +923,7 @@
   "admin.site.usersAndTeams": "Brukere og teams",
   "admin.sql.connMaxIdleTimeExample": "F.eks.: \"300000\"",
   "admin.sql.connMaxLifetimeExample": "F.eks.: \"3600000\"",
+  "admin.sql.maxConnectionsExample": "F.eks.: \"10\"",
   "admin.systemUserDetail.teamList.header.name": "Нэр",
   "admin.team_channel_settings.groupMembers.close": "Хааx",
   "admin.team_channel_settings.user_list.nameHeader": "Нэр",
