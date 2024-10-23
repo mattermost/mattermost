@@ -3140,6 +3140,7 @@
   "channelNotifications.mobileNotification.nothing": "Niets {optionalDefault}",
   "channelSelectorModal.title": "Kanalen toevoegen aan <b>Kanaalselectie</b> Lijst",
   "channelView.archivedChannel": "Je bekijkt een <b>gearchiveerd kanaal</b>. Er kunnen geen nieuwe berichten geplaatst worden.",
+  "channelView.archivedChannelWithDeactivatedUser": "Je bekijkt een gearchiveerd kanaal met een <b>gedeactiveerde gebruiker</b>. Je kan geen nieuwe berichten plaatsen.",
   "channelView.login.successfull": "Succesvol ingelogd",
   "channel_bookmarks.addBookmark": "Een bladwijzer toevoegen",
   "channel_bookmarks.addBookmarkLimitReached": "Kan niet meer dan {limit} bladwijzers toevoegen",
