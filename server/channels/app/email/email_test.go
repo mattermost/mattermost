@@ -73,7 +73,8 @@ func TestSendInviteEmails(t *testing.T) {
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
 	t.Run("SendInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		_, err = mail.DeleteMailBox(emailTo)
+    	require.NoError(t, err, "Failed to delete mailbox")
 
 		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
@@ -100,7 +101,8 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		_, err = mail.DeleteMailBox(emailTo)
+    	require.NoError(t, err, "Failed to delete mailbox")
 
 		err := th.service.SendGuestInviteEmails(
 			th.BasicTeam,
@@ -163,7 +165,8 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		_, err = mail.DeleteMailBox(emailTo)
+    	require.NoError(t, err, "Failed to delete mailbox")
 
 		message := `<a href="http://testserver">sanitized message</a>`
 		err := th.service.SendGuestInviteEmails(
