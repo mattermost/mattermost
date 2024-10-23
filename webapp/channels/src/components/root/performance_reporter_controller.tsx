@@ -6,6 +6,7 @@ import {useStore} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
 
+import DesktopAppAPI from 'utils/desktop_api';
 import PerformanceReporter from 'utils/performance_telemetry/reporter';
 
 export default function PerformanceReporterController() {
@@ -14,7 +15,7 @@ export default function PerformanceReporterController() {
     const reporter = useRef<PerformanceReporter>();
 
     useEffect(() => {
-        reporter.current = new PerformanceReporter(Client4, store);
+        reporter.current = new PerformanceReporter(Client4, store, DesktopAppAPI);
         reporter.current.observe();
 
         // There's no way to clean up web-vitals, so continue to assume that this component won't ever be unmounted

@@ -108,7 +108,7 @@ export default function SecureConnectionDetail(props: Props) {
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/environment/secure_connections'
+                        to='/admin_console/site_config/secure_connections'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -190,7 +190,7 @@ export default function SecureConnectionDetail(props: Props) {
 
             <SaveChangesPanel
                 saving={isCreating ? isPendingState(creating) : isPendingState(saving)}
-                cancelLink='/admin_console/environment/secure_connections'
+                cancelLink='/admin_console/site_config/secure_connections'
                 saveNeeded={hasChanges && isFormValid}
                 onClick={isCreating ? handleCreate : save}
                 serverError={(isErrorState(saving) || isErrorState(creating)) ? (

@@ -102,9 +102,9 @@ func (_m *MockAppIface) CreateChannelWithUser(c request.CTX, channel *model.Chan
 	return r0, r1
 }
 
-// CreatePost provides a mock function with given fields: c, post, channel, triggerWebhooks, setOnline
-func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError) {
-	ret := _m.Called(c, post, channel, triggerWebhooks, setOnline)
+// CreatePost provides a mock function with given fields: c, post, channel, flags
+func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (*model.Post, *model.AppError) {
+	ret := _m.Called(c, post, channel, flags)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreatePost")
@@ -112,19 +112,19 @@ func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *mod
 
 	var r0 *model.Post
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, bool, bool) (*model.Post, *model.AppError)); ok {
-		return rf(c, post, channel, triggerWebhooks, setOnline)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) (*model.Post, *model.AppError)); ok {
+		return rf(c, post, channel, flags)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, bool, bool) *model.Post); ok {
-		r0 = rf(c, post, channel, triggerWebhooks, setOnline)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.Post); ok {
+		r0 = rf(c, post, channel, flags)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Channel, bool, bool) *model.AppError); ok {
-		r1 = rf(c, post, channel, triggerWebhooks, setOnline)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.AppError); ok {
+		r1 = rf(c, post, channel, flags)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
