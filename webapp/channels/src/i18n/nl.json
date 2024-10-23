@@ -4444,7 +4444,7 @@
   "notify_all.confirm": "Bevestigen",
   "notify_all.title.confirm": "Bevestig het verzenden van meldingen naar hele kanaal",
   "notify_all.title.confirm_groups": "Verzenden van meldingen naar groepen bevestigen",
-  "notify_here.question": "Door gebruik te maken van **@here** sta je op het punt om berichten te sturen naar maximaal **{totalMembers} personen**. Weet je zeker dat je dit wil doen?",
+  "notify_here.question": "Door gebruik te maken van <b>@here</b> sta je op het punt om berichten te sturen naar minstens <b>{totalMembers} personen</b>. Weet je zeker dat je dit wil doen?",
   "numMembers": "{num, number} {num, plural, one {member} other {members}}",
   "onboardingTask.checklist.completed_subtitle": "We hopen dat Mattermost je nu meer vertrouwd is.",
   "onboardingTask.checklist.completed_title": "Goed gedaan. Je hebt alle taken volbracht!",
