@@ -424,7 +424,7 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 }
 
 func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	if user.IsRemote() || otherUser.IsRemote() {
+	if a.Config().FeatureFlags.DisableSharedChannelsDMs && (user.IsRemote() || otherUser.IsRemote()) {
 		return nil, model.NewAppError("createDirectChannelWithUser", "api.channel.create_channel.direct_channel.remote_restricted.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -528,9 +528,11 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	for _, user := range users {
-		if user.IsRemote() {
-			return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
+	if a.Config().FeatureFlags.DisableSharedChannelsDMs {
+		for _, user := range users {
+			if user.IsRemote() {
+				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
+			}
 		}
 	}
 
