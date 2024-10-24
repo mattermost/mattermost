@@ -12,6 +12,7 @@ import SaveButton from 'components/save_button';
 jest.mock('actions/admin_actions.jsx', () => {
     return {
         elasticsearchPurgeIndexes: jest.fn(),
+        rebuildChannelsIndex: jest.fn(),
         elasticsearchTest: (config: AdminConfig, success: () => void) => success(),
     };
 });

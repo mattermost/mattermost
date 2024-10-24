@@ -1658,7 +1658,7 @@ func TestPinPost(t *testing.T) {
 
 	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	client.Logout(context.Background())
 	resp, err = client.PinPost(context.Background(), post.Id)
@@ -1688,7 +1688,7 @@ func TestUnpinPost(t *testing.T) {
 
 	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	client.Logout(context.Background())
 	resp, err = client.UnpinPost(context.Background(), pinnedPost.Id)
@@ -1780,7 +1780,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp, err := client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	client.Logout(context.Background())
 	_, resp, err = client.GetPostsForChannel(context.Background(), model.NewId(), 0, 60, "", false, false)

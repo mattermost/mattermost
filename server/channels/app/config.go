@@ -64,6 +64,10 @@ func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) str
 	return a.Srv().platform.AddConfigListener(listener)
 }
 
+func (a *App) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
+	return a.Srv().platform.AddLicenseListener(listener)
+}
+
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveConfigListener(id string) {
 	a.Srv().platform.RemoveConfigListener(id)

@@ -247,6 +247,23 @@ func (a *OpenTracingAppLayer) AddLdapPublicCertificate(fileData *multipart.FileH
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLicenseListener")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddLicenseListener(listener)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
@@ -13659,7 +13676,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 
@@ -13671,7 +13688,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PurgeElasticsearchIndexes(c)
+	resultVar0 := a.app.PurgeElasticsearchIndexes(c, indexes)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16031,6 +16048,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Sess
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToReadChannel(c request.CTX, session model.Session, channel *model.Channel) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToReadChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToReadChannel(c, session, channel)
 
 	return resultVar0
 }

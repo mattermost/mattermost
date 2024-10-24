@@ -3455,7 +3455,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: t('admin.team.userCreationTitle'),
                             label_default: 'Enable Account Creation: ',
                             help_text: t('admin.team.userCreationDescription'),
-                            help_text_default: 'When false, the ability to create accounts is disabled. The create account button displays error when pressed.',
+                            help_text_default: 'When false, the ability to create accounts is disabled, and selecting Create Account displays an error. Applies to Email, OpenID Connect, and OAuth 2.0 user account authentication.',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {
@@ -3494,7 +3494,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: t('admin.team.openServerTitle'),
                             label_default: 'Enable Open Server: ',
                             help_text: t('admin.team.openServerDescription'),
-                            help_text_default: 'When true, anyone can signup for a user account on this server without the need to be invited.',
+                            help_text_default: 'When true, anyone can sign up for a user account on this server without the need to be invited. Applies to Email-based signups only.',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                         },
                         {

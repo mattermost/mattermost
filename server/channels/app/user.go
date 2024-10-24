@@ -2377,7 +2377,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2421,7 +2421,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedTeamMemberEvent(member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2858,4 +2858,14 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
 }

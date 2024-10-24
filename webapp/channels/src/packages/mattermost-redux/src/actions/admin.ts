@@ -359,9 +359,12 @@ export function testElasticsearch(config: unknown): ActionFunc {
     });
 }
 
-export function purgeElasticsearchIndexes(): ActionFunc {
+export function purgeElasticsearchIndexes(indexes?: string[]) {
     return bindClientFunc({
         clientFunc: Client4.purgeElasticsearchIndexes,
+        params: [
+            indexes,
+        ],
     });
 }
 

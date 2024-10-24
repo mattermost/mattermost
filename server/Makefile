@@ -150,13 +150,13 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.23.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.29.2
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.3
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
@@ -745,7 +745,7 @@ endif
 
 vet: ## Run mattermost go vet specific checks
 	$(GO) install github.com/mattermost/mattermost-govet/v2@new
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go -emptyStrCmp -tFatal -configtelemetry -errorAssertions ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal $(BUILD_ENTERPRISE_DIR)/...
@@ -770,6 +770,10 @@ gen-serialized: ## Generates serialization methods for hot structs
 	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) install github.com/tinylib/msgp@v1.1.6
+	$(GOBIN)/msgp -file=./public/model/utils.go -tests=false -o=./public/model/utils_serial_gen.go
+	@echo "$$LICENSE_HEADER" > tmp.go
+	@cat ./public/model/utils_serial_gen.go >> tmp.go
+	@mv tmp.go ./public/model/utils_serial_gen.go
 	$(GOBIN)/msgp -file=./public/model/session.go -tests=false -o=./public/model/session_serial_gen.go
 	@echo "$$LICENSE_HEADER" > tmp.go
 	@cat ./public/model/session_serial_gen.go >> tmp.go

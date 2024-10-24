@@ -169,7 +169,8 @@ type TeamStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(teamID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error)
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
 	GroupSyncedTeamCount() (int64, error)
@@ -302,7 +303,8 @@ type ChannelStore interface {
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(channelID string, userIDs []string) error
+	// It returns the list of userIDs whose roles got updated.
+	UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error)
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
@@ -415,6 +417,8 @@ type UserStore interface {
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
+	StoreMfaUsedTimestamps(userID string, ts []int) error
+	GetMfaUsedTimestamps(userID string) ([]int, error)
 	Get(ctx context.Context, id string) (*model.User, error)
 	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)

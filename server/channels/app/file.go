@@ -703,6 +703,7 @@ func (t *UploadFileTask) init(a *App) {
 	t.fileinfo.CreatorId = t.UserId
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
 	t.fileinfo.Path = t.pathPrefix() + t.Name
+	t.fileinfo.ChannelId = t.ChannelId
 
 	t.limitedInput = &io.LimitedReader{
 		R: t.Input,
