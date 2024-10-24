@@ -74,7 +74,6 @@ issues:
         channels/api4/data_retention.go|\
         channels/api4/file_test.go|\
         channels/api4/job_test.go|\
-        channels/api4/license_local.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction_test.go|\
@@ -98,7 +97,6 @@ issues:
         channels/app/busy_test.go|\
         channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
-        channels/app/channel_category_test.go|\
         channels/app/channel_test.go|\
         channels/app/config_test.go|\
         channels/app/desktop_login.go|\
@@ -201,7 +199,6 @@ issues:
         channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
-        channels/jobs/batch_migration_worker.go|\
         channels/jobs/batch_report_worker.go|\
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\

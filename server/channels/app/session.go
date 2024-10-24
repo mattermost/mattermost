@@ -223,10 +223,6 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) ReturnSessionToPool(session *model.Session) {
-	a.ch.srv.platform.ReturnSessionToPool(session)
-}
-
 func (a *App) ClearSessionCacheForUser(userID string) {
 	a.ch.srv.platform.ClearUserSessionCache(userID)
 }
