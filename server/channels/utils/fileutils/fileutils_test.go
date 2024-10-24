@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
 package fileutils
 
 import (
@@ -48,9 +49,9 @@ func TestFindFile(t *testing.T) {
 
 		type testCase struct {
 			Description string
-			Cwd        *string
-			FileName   string
-			Expected   string
+			Cwd         *string
+			FileName    string
+			Expected    string
 		}
 
 		testCases := []testCase{}
