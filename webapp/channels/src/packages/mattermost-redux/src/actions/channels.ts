@@ -542,32 +542,43 @@ export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: S
     };
 }
 
-export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchAllMyChannelMembers(): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
-        let channels;
+
         let channelsMembers: ChannelMembership[] = [];
-        let allMembers = true;
+        let hasMoreMembers = true;
         let page = 0;
-        do {
-            try {
+        try {
+            while (hasMoreMembers) {
+                // Expected to disable since we don't have number of pages, so we can't use Promise.all
                 // eslint-disable-next-line no-await-in-loop
-                await Client4.getAllChannelsMembers(currentUserId, page, 200).then(
-                    // eslint-disable-next-line no-loop-func
-                    (data) => {
-                        channelsMembers = [...channelsMembers, ...data];
-                        page++;
-                        if (data.length < 200) {
-                            allMembers = false;
-                        }
-                    });
-            } catch (error) {
-                forceLogoutIfNecessary(error, dispatch, getState);
-                dispatch(logError(error));
-                return {error};
+                const data = await Client4.getAllChannelsMembers(currentUserId, page, 200);
+                channelsMembers = [...channelsMembers, ...data];
+                if (data.length < 200) {
+                    hasMoreMembers = false;
+                }
+                page++;
             }
-        } while (allMembers && page <= 2);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: channelsMembers,
+            currentUserId,
+        });
+        return {data: channelsMembers};
+    };
+}
+
+export function fetchAllMyTeamsChannels(): ActionFunc {
+    return async (dispatch, getState) => {
+        let channels;
         try {
             channels = await Client4.getAllTeamsChannels();
         } catch (error) {
@@ -576,18 +587,11 @@ export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
             return {error};
         }
 
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_ALL_CHANNELS,
-                data: channels,
-            },
-            {
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelsMembers,
-                currentUserId,
-            },
-        ]));
-        return {data: {channels, channelsMembers}};
+        dispatch({
+            type: ChannelTypes.RECEIVED_ALL_CHANNELS,
+            data: channels,
+        });
+        return {data: channels};
     };
 }
 

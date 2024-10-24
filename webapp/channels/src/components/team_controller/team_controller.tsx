@@ -53,13 +53,14 @@ function TeamController(props: Props) {
     useTelemetryIdentitySync();
 
     useEffect(() => {
-        async function fetchInitialChannels() {
-            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
+        async function fetchAllChannels() {
+            await props.fetchAllMyTeamsChannels();
 
             setInitialChannelsLoaded(true);
         }
 
-        fetchInitialChannels();
+        props.fetchAllMyChannelMembers();
+        fetchAllChannels();
     }, []);
 
     useEffect(() => {
