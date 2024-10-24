@@ -64,7 +64,7 @@ const BleveSettings = ({
         saving,
         serverError,
         settingValues,
-    } = useAdminSettingState(getConfigFromState, getStateFromConfig, handleSaved);
+    } = useAdminSettingState(getConfigFromState, getStateFromConfig, undefined, handleSaved);
 
     const handleSettingChanged = useCallback((id: string, value: boolean) => {
         if (id === FIELD_IDS.ENABLE_INDEXING) {

@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {patchConfig} from 'mattermost-redux/actions/admin';
 import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -21,13 +22,16 @@ export function useIsSetByEnv(path: string) {
 export const useAdminSettingState = (
     getConfigFromState: GetConfigFromStateFunction,
     getStateFromConfig: GetStateFromConfigFunction,
+    preSave?: (values: {[x: string]: any}) => Promise<string>,
     handleSaved?: HandleSaveFunction,
 ) => {
     const dispatch = useDispatch();
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [serverError, setServerError] = useState(undefined);
+    const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [settingValues, setSettingValues] = useState<{[x: string]: any}>({});
+
+    const license = useSelector(getLicense);
 
     const handleChange = useCallback((id: string, value: unknown) => {
         setSaveNeeded(true);
@@ -38,31 +42,37 @@ export const useAdminSettingState = (
         dispatch(setNavigationBlocked(true));
     }, [dispatch]);
 
-    const doSubmit = useCallback(async (callback?: () => void) => {
+    const doSubmit = useCallback(async () => {
         setSaving(true);
         setServerError(undefined);
 
         const config = getConfigFromState(settingValues);
 
+        if (preSave) {
+            const preSaveError = await preSave(settingValues);
+            if (preSaveError) {
+                setSaving(false);
+                setServerError(preSaveError);
+                handleSaved?.(config, handleChange);
+            }
+        }
+
         const {data, error} = await dispatch(patchConfig(config));
 
         if (data) {
-            setSettingValues((getStateFromConfig(data)));
+            setSettingValues(getStateFromConfig(data, license));
             setSaveNeeded(false);
             setSaving(false);
 
             dispatch(setNavigationBlocked(false));
-            callback?.();
             handleSaved?.(config, handleChange);
         } else if (error) {
             setSaving(false);
             setServerError(error.message);
 
-            // setServerErrorId(error.server_error_id);
-            callback?.();
             handleSaved?.(config, handleChange);
         }
-    }, [dispatch, getConfigFromState, getStateFromConfig, handleChange, handleSaved, settingValues]);
+    }, [dispatch, getConfigFromState, getStateFromConfig, handleChange, handleSaved, license, preSave, settingValues]);
 
     return {handleChange, doSubmit, saveNeeded, saving, serverError, settingValues};
 };

@@ -44,18 +44,18 @@ export const parseIntNonNegative = (str: string | number, defaultValue?: number)
     return n;
 };
 
-// const parseIntZeroOrMin = (str: string | number, minimumValue = 1) => {
-//     const n = typeof str === 'string' ? parseInt(str, 10) : str;
+export const parseIntZeroOrMin = (str: string | number, minimumValue = 1) => {
+    const n = typeof str === 'string' ? parseInt(str, 10) : str;
 
-//     if (isNaN(n) || n < 0) {
-//         return 0;
-//     }
-//     if (n > 0 && n < minimumValue) {
-//         return minimumValue;
-//     }
+    if (isNaN(n) || n < 0) {
+        return 0;
+    }
+    if (n > 0 && n < minimumValue) {
+        return minimumValue;
+    }
 
-//     return n;
-// };
+    return n;
+};
 
 export const parseIntNonZero = (str: string | number, defaultValue?: number, minimumValue = 1) => {
     const n = typeof str === 'string' ? parseInt(str, 10) : str;
