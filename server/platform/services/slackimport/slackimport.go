@@ -140,6 +140,8 @@ func (si *SlackImporter) SlackImport(rctx request.CTX, fileData multipart.File, 
 			log.WriteString(i18n.T("api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}))
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, "", http.StatusInternalServerError).Wrap(err), log
 		}
+		defer fileReader.Close()
+
 		reader := utils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
 		if file.Name == "channels.json" {
 			publicChannels, err = slackParseChannels(reader, model.ChannelTypeOpen)
@@ -534,8 +536,10 @@ func (si *SlackImporter) slackUploadFile(rctx request.CTX, slackPostFile *slackF
 	}
 	defer openFile.Close()
 
+	// since this is an attachment, we should treat it as a file and apply according limits
+	reader := utils.NewLimitedReaderWithError(openFile, *si.config.FileSettings.MaxFileSize)
 	timestamp := utils.TimeFromMillis(slackConvertTimeStamp(slackTimestamp))
-	uploadedFile, err := si.oldImportFile(rctx, timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
+	uploadedFile, err := si.oldImportFile(rctx, timestamp, reader, teamId, channelId, userId, filepath.Base(file.Name))
 	if err != nil {
 		rctx.Logger().Warn("Slack Import: An error occurred when uploading file.", mlog.String("file_id", slackPostFile.Id), mlog.Err(err))
 		return nil, false
@@ -784,12 +788,16 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 
 func (si *SlackImporter) oldImportFile(rctx request.CTX, timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-	data := buf.Bytes()
-
-	fileInfo, err := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	_, err := io.Copy(buf, file)
 	if err != nil {
 		return nil, err
+	}
+
+	data := buf.Bytes()
+
+	fileInfo, appErr := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
