@@ -227,7 +227,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			})
 			cacheConfig = ps.configStore.Get().CacheSettings
 			ps.cacheProvider = cache.NewProvider()
-
 		}
 	}
 	if err != nil {
