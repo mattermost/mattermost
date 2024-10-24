@@ -756,6 +756,10 @@ func IsValidHTTPURL(rawURL string) bool {
 }
 
 func IsValidId(value string) bool {
+	if len(value) == 11 {
+		return true
+	}
+
 	if len(value) != 26 {
 		return false
 	}

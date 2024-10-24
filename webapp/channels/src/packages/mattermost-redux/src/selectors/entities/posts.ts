@@ -477,7 +477,7 @@ export function getPostsChunkInChannelAroundTime(state: GlobalState, channelId: 
         const recentPostInBlock = posts[order[0]];
         const oldestPostInBlock = posts[order[order.length - 1]];
         if (recentPostInBlock && oldestPostInBlock) {
-            return (recentPostInBlock.create_at >= timeStamp && oldestPostInBlock.create_at <= timeStamp);
+            return (recentPostInBlock?.create_at >= timeStamp && oldestPostInBlock?.create_at <= timeStamp);
         }
         return false;
     });
@@ -516,7 +516,7 @@ export function getUnreadPostsChunk(state: GlobalState, channelId: Channel['id']
         const oldestPostInBlock = posts[order[order.length - 1]];
 
         // check for only oldest posts because this can be higher than the latest post if the last post is edited
-        if (oldestPostInBlock.create_at <= timeStamp) {
+        if (oldestPostInBlock?.create_at <= timeStamp) {
             return recentChunk;
         }
     }
@@ -527,7 +527,7 @@ export function getUnreadPostsChunk(state: GlobalState, channelId: Channel['id']
         const {order} = oldestPostsChunk;
         const oldestPostInBlock = posts[order[order.length - 1]];
 
-        if (oldestPostInBlock.create_at >= timeStamp) {
+        if (oldestPostInBlock?.create_at >= timeStamp) {
             return oldestPostsChunk;
         }
     }
@@ -546,7 +546,7 @@ export const isPostsChunkIncludingUnreadsPosts = (state: GlobalState, chunk: Pos
     const {order} = chunk;
     const oldestPostInBlock = posts[order[order.length - 1]];
 
-    return oldestPostInBlock.create_at <= timeStamp;
+    return oldestPostInBlock?.create_at <= timeStamp;
 };
 
 export const isPostIdSending = (state: GlobalState, postId: Post['id']): boolean => {
