@@ -26,7 +26,6 @@ import {
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
-import PluginManagement from 'components/admin_console/plugin_management';
 import SystemAnalytics from 'components/analytics/system_analytics';
 import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
 import TeamAnalytics from 'components/analytics/team_analytics';
@@ -40,25 +39,29 @@ import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
+import BleveSettings, {searchableStrings as bleveSearchableStrings} from './admin_settings/bleve_settings';
+import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './admin_settings/cluster_settings';
+import CustomTermsOfServiceSettings, {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './admin_settings/custom_terms_of_service_settings';
+import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './admin_settings/database_settings';
+import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './admin_settings/elasticsearch_settings';
+import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './admin_settings/message_export_settings';
+import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './admin_settings/password_settings';
+import PluginManagement, {searchableStrings as pluginManagementSearchableStrings} from './admin_settings/plugin_management';
+import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './admin_settings/push_settings';
+import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './admin_settings/session_length_settings';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
 import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
-import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
-import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
 import {searchableStrings as dataRetentionSearchableStrings} from './data_retention_settings/data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
-import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './database_settings';
-import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     LDAPFeatureDiscovery,
     SAMLFeatureDiscovery,
@@ -78,20 +81,15 @@ import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
-import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
-import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
 import {searchableStrings as PermissionSchemeSearchableStrings} from './permission_schemes_settings/permission_schemes_settings';
 import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
-import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
-import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
 import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
-import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';

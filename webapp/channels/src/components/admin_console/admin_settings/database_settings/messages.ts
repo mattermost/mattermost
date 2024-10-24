@@ -1,0 +1,61 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessages} from 'react-intl';
+
+export const messages = defineMessages({
+    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
+    featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
+    reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
+    button: {id: 'admin.recycle.button', defaultMessage: 'Recycle Database Connections'},
+    noteDescription: {id: 'admin.sql.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'},
+    disableDatabaseSearchTitle: {id: 'admin.sql.disableDatabaseSearchTitle', defaultMessage: 'Disable database search: '},
+    disableDatabaseSearchDescription: {id: 'admin.sql.disableDatabaseSearchDescription', defaultMessage: 'Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured.'},
+    driverName: {id: 'admin.sql.driverName', defaultMessage: 'Driver Name:'},
+    driverNameDescription: {id: 'admin.sql.driverNameDescription', defaultMessage: 'Set the database driver in the config.json file.'},
+    dataSource: {id: 'admin.sql.dataSource', defaultMessage: 'Data Source:'},
+    dataSourceDescription: {id: 'admin.sql.dataSourceDescription', defaultMessage: 'Set the database source in the config.json file.'},
+    maxConnectionsTitle: {id: 'admin.sql.maxConnectionsTitle', defaultMessage: 'Maximum Idle Connections:'},
+    maxConnectionsDescription: {id: 'admin.sql.maxConnectionsDescription', defaultMessage: 'Maximum number of idle connections held open to the database.'},
+    maxOpenTitle: {id: 'admin.sql.maxOpenTitle', defaultMessage: 'Maximum Open Connections:'},
+    maxOpenDescription: {id: 'admin.sql.maxOpenDescription', defaultMessage: 'Maximum number of open connections held open to the database.'},
+    queryTimeoutTitle: {id: 'admin.sql.queryTimeoutTitle', defaultMessage: 'Query Timeout:'},
+    queryTimeoutDescription: {id: 'admin.sql.queryTimeoutDescription', defaultMessage: 'The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'},
+    connMaxLifetimeTitle: {id: 'admin.sql.connMaxLifetimeTitle', defaultMessage: 'Maximum Connection Lifetime:'},
+    connMaxLifetimeDescription: {id: 'admin.sql.connMaxLifetimeDescription', defaultMessage: 'Maximum lifetime for a connection to the database in milliseconds.'},
+    connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
+    connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
+    minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
+    traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    messages.title,
+    [messages.recycleDescription, {featureName: '', reloadConfiguration: ''}],
+    messages.featureName,
+    messages.reloadConfiguration,
+    messages.button,
+    messages.noteDescription,
+    messages.disableDatabaseSearchTitle,
+    messages.disableDatabaseSearchDescription,
+    messages.driverName,
+    messages.driverNameDescription,
+    messages.dataSource,
+    messages.dataSourceDescription,
+    messages.maxConnectionsTitle,
+    messages.maxConnectionsDescription,
+    messages.maxOpenTitle,
+    messages.maxOpenDescription,
+    messages.queryTimeoutTitle,
+    messages.queryTimeoutDescription,
+    messages.connMaxLifetimeTitle,
+    messages.connMaxLifetimeDescription,
+    messages.connMaxIdleTimeTitle,
+    messages.connMaxIdleTimeDescription,
+    messages.traceTitle,
+    messages.traceDescription,
+];
