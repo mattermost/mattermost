@@ -119,7 +119,7 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
-		
+
 		_, err = LicenseValidator.ValidateLicense(fileBytes)
 		assert.Error(t, err, "should have been an invalid file")
 	})
