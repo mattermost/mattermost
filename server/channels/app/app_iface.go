@@ -685,7 +685,7 @@ type AppIface interface {
 	GetCookieDomain() string
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
-	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
+	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError)
 	GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError)
 	GetDraftsForUser(rctx request.CTX, userID, teamID string) ([]*model.Draft, *model.AppError)
 	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
