@@ -1299,6 +1299,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
 		IncludeSearchById:        props.IncludeSearchById,
+		ExcludeRemote:            props.ExcludeRemote,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
