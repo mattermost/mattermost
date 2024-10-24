@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
 package fileutils
 
 import (
@@ -27,7 +26,10 @@ func TestFindFile(t *testing.T) {
 		//         tmpDir5/
 		tmpDir1, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir1)
+		defer func() {
+			err := os.RemoveAll(tmpDir1)
+			require.NoError(t, err)
+		}()
 
 		tmpDir2, err := os.MkdirTemp(tmpDir1, "")
 		require.NoError(t, err)
@@ -46,16 +48,16 @@ func TestFindFile(t *testing.T) {
 
 		type testCase struct {
 			Description string
-			Cwd         *string
-			FileName    string
-			Expected    string
+			Cwd        *string
+			FileName   string
+			Expected   string
 		}
 
 		testCases := []testCase{}
-
 		for _, fileName := range []string{"file1.json", "file2.xml", "other.txt"} {
 			filePath := filepath.Join(tmpDir1, fileName)
-			require.NoError(t, os.WriteFile(filePath, []byte("{}"), 0600))
+			err = os.WriteFile(filePath, []byte("{}"), 0600)
+			require.NoError(t, err)
 
 			// Relative paths end up getting symlinks fully resolved, so use this below as necessary.
 			filePathResolved, err := filepath.EvalSymlinks(filePath)
@@ -112,10 +114,15 @@ func TestFindFile(t *testing.T) {
 				if testCase.Cwd != nil {
 					prevDir, err := os.Getwd()
 					require.NoError(t, err)
-					defer os.Chdir(prevDir)
-					os.Chdir(*testCase.Cwd)
+					
+					err = os.Chdir(*testCase.Cwd)
+					require.NoError(t, err)
+					
+					defer func() {
+						err := os.Chdir(prevDir)
+						require.NoError(t, err)
+					}()
 				}
-
 				assert.Equal(t, testCase.Expected, FindFile(testCase.FileName))
 			})
 		}

@@ -256,7 +256,6 @@ issues:
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
         channels/testlib/helper.go|\
-        channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
