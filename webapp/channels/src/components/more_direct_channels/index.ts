@@ -14,7 +14,7 @@ import {
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
@@ -39,7 +39,7 @@ type OwnProps = {
     isExistingChannel: boolean;
 }
 
-const makeMapStateToProps = () => {
+export const makeMapStateToProps = () => {
     const searchProfilesStartingWithTerm = makeSearchProfilesStartingWithTerm();
 
     return (state: GlobalState, ownProps: OwnProps) => {
@@ -67,6 +67,12 @@ const makeMapStateToProps = () => {
             users = getProfilesInCurrentTeam(state);
         }
 
+        const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
+        if (!enableSharedChannelsDMs) {
+            users = users.filter((u) => {
+                return !u.remote_id;
+            });
+        }
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
