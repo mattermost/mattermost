@@ -3825,6 +3825,13 @@ export default class Client4 {
         );
     };
 
+    getGroupsByNames = (names: string[]) => {
+        return this.doFetch<Group[]>(
+            `${this.getGroupsRoute()}/names`,
+            {method: 'post',  body: JSON.stringify(names)},
+        );
+    };
+
     getGroupsNotAssociatedToTeam = (teamID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, source = 'ldap') => {
         this.trackEvent('api', 'api_groups_get_not_associated_to_team', {team_id: teamID});
         return this.doFetch<Group[]>(
