@@ -19,6 +19,9 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
+	// Enable DMs and GMs for shared channels.
+	EnableSharedChannelsDMs bool
+
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -58,6 +61,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
+	f.EnableSharedChannelsDMs = false
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
