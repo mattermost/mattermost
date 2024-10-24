@@ -8,6 +8,7 @@ import {ResetPasswordPage} from './reset_password';
 import {SignupPage} from './signup';
 import {SystemConsolePage} from './system_console';
 import {ScheduledDraftPage} from './scheduled_draft';
+import {DraftPage} from './drafts';
 
 const pages = {
     ChannelsPage,
@@ -17,6 +18,7 @@ const pages = {
     SignupPage,
     ScheduledDraftPage,
     SystemConsolePage,
+    DraftPage,
 };
 
-export {pages, ChannelsPage, LandingLoginPage, LoginPage, SignupPage, ScheduledDraftPage};
+export {pages, ChannelsPage, LandingLoginPage, LoginPage, SignupPage, ScheduledDraftPage, DraftPage};

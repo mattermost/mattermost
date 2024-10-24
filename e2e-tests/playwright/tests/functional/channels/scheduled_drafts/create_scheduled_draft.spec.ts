@@ -193,6 +193,78 @@ test('should send a scheduled message immediately', async ({pw, pages}) => {
     await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
 });
 
+test('should create a scheduled message from a DM', async ({pw, pages}) => {
+    test.setTimeout(120000);
+
+    const draftMessage = 'Scheduled Draft';
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
+    const {user, team} = await pw.initSetup();
+    const {user: user2} = await pw.initSetup();
+
+    const {page} = await pw.testBrowser.login(user);
+    const channelPage = new pages.ChannelsPage(page);
+    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+
+    await setupChannelPage(channelPage, draftMessage, team.name, `@${user2.username}`);
+    await scheduleMessage(channelPage);
+
+    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+
+    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+
+    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+
+    // # Hover and verify options
+    await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
+
+    // # Go back and wait for message to arrive
+    await goBackToChannelAndWaitForMessageToArrive(page);
+
+    // * Verify the message has been sent and there's no more scheduled messages
+    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
+
+    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+});
+
+test('should create a draft and then schedule it', async ({pw, pages}) => {
+    test.setTimeout(120000);
+
+    const draftMessage = 'Draft to be Scheduled';
+    await pw.skipIfNoLicense();
+
+    const {user} = await pw.initSetup();
+    const {page} = await pw.testBrowser.login(user);
+    const channelPage = new pages.ChannelsPage(page);
+
+    // await setupChannelPage(channelPage, draftMessage);
+    await channelPage.goto();
+    await channelPage.toBeVisible();
+    await channelPage.centerView.postCreate.writeMessage(draftMessage);
+
+    // go to drafts page
+    const draftsPage = new pages.DraftPage(page);
+    await draftsPage.toBeVisible();
+    await draftsPage.assertBadgeCountOnTab('1');
+    await draftsPage.assertDraftBody(draftMessage);
+    await draftsPage.verifyScheduleIcon();
+    await draftsPage.openScheduleModal(draftMessage);
+
+    // # Reschedule it to 2 days from today
+    await channelPage.scheduledDraftModal.selectDay(2);
+    await channelPage.scheduledDraftModal.confirm();
+
+
+    // go to scheduled posts pages
+    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    await scheduledDraftPage.toBeVisible();
+    await scheduledDraftPage.assertBadgeCountOnTab('1');
+    await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
+});
+
 async function verifyNoscheduledDraftsPending(
     channelPage: ChannelsPage,
     team: any,
@@ -216,8 +288,8 @@ async function replyToLastPost(post: any): Promise<void> {
     await post.postMenu.reply();
 }
 
-async function setupChannelPage(channelPage: ChannelsPage, draftMessage: string): Promise<void> {
-    await channelPage.goto();
+async function setupChannelPage(channelPage: ChannelsPage, draftMessage: string, teamName?: string, channelName?: string): Promise<void> {
+    await channelPage.goto(teamName, channelName);
     await channelPage.toBeVisible();
 
     await channelPage.centerView.postCreate.writeMessage(draftMessage);

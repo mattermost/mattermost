@@ -69,7 +69,8 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                channelsUrl += `/${channelName}`;
+                const prefix = channelName.startsWith('@') ? '/messages' : '';
+                channelsUrl += `${prefix}/${channelName}`;
             }
         }
         await this.page.goto(channelsUrl);
