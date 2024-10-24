@@ -115,7 +115,11 @@ func (d *Decoder) DecodeConfig(rd io.Reader) (image.Config, string, error) {
 func GetDimensions(imageData io.Reader) (int, int, error) {
 	cfg, _, err := image.DecodeConfig(imageData)
 	if seeker, ok := imageData.(io.Seeker); ok {
-		defer seeker.Seek(0, 0)
+		defer func() {
+			if _, err = seeker.Seek(0, 0); err != nil {
+				fmt.Printf("warning: failed to reset reader position: %v\n", err)
+			}
+		}()
 	}
 	return cfg.Width, cfg.Height, err
 }
