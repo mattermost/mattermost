@@ -116,7 +116,6 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		defer os.Remove(f.Name())
 		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
 		require.NoError(t, err, "failed to write test file")
-
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
 		_, err = LicenseValidator.ValidateLicense(fileBytes)
