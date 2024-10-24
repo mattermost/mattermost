@@ -27,7 +27,7 @@ func TestFindFile(t *testing.T) {
 		tmpDir1, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer func() {
-			err := os.RemoveAll(tmpDir1)
+			err = os.RemoveAll(tmpDir1)
 			require.NoError(t, err)
 		}()
 
@@ -119,7 +119,7 @@ func TestFindFile(t *testing.T) {
 					require.NoError(t, err)
 					
 					defer func() {
-						err := os.Chdir(prevDir)
+						err = os.Chdir(prevDir)
 						require.NoError(t, err)
 					}()
 				}
