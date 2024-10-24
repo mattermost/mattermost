@@ -158,42 +158,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
-	// Step 1: Cache provider.
-	cacheConfig := ps.configStore.Get().CacheSettings
-	var err error
-	if *cacheConfig.CacheType == model.CacheTypeLRU {
-		ps.cacheProvider = cache.NewProvider()
-	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
-		ps.cacheProvider, err = cache.NewRedisProvider(
-			&cache.RedisOptions{
-				RedisAddr:     *cacheConfig.RedisAddress,
-				RedisPassword: *cacheConfig.RedisPassword,
-				RedisDB:       *cacheConfig.RedisDB,
-				DisableCache:  *cacheConfig.DisableClientCache,
-			},
-		)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("unable to create cache provider: %w", err)
-	}
-
-	// The value of res is used later, after the logger is initialized.
-	// There's a certain order of steps we need to follow in the server startup phase.
-	res, err := ps.cacheProvider.Connect()
-	if err != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
-	}
-
-	// Step 2: Start logging.
+	// Step 1: Start logging.
 	if err2 := ps.initLogging(); err2 != nil {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
 	}
-	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
 
 	// This is called after initLogging() to avoid a race condition.
 	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
-	// Step 3: Search Engine
+	// Step 2: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
 	bleveEngine := bleveengine.NewBleveEngine(ps.Config())
 	if err := bleveEngine.Start(); err != nil {
@@ -202,19 +175,74 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	searchEngine.RegisterBleveEngine(bleveEngine)
 	ps.SearchEngine = searchEngine
 
-	// Step 4: Init Enterprise
-	// Depends on step 3 (s.SearchEngine must be non-nil)
+	// Step 3: Init Enterprise
+	// Depends on step 2 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
-	// Step 5: Init Metrics
+	// Step 4: Init Metrics
 	if metricsInterfaceFn != nil && ps.metricsIFace == nil { // if the metrics interface is set by options, do not override it
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
+	// Step 5: Create the sqlstore. This is moved out of the
+	// ps.newStore function because we need to load the license without loading
+	// the store entirely, because the full store includes the localCacheLayer.
+	// And the localCacheLayer needs license to be loaded first to allow Redis or not.
+	var err error
+	ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 6: Load license.
+	// Store needs to be loaded before this.
+	if model.BuildEnterpriseReady == "true" {
+		ps.LoadLicense()
+	}
+
+	license := ps.License()
+	// We need to update the store with the license.
+	// This is to prevent search replicas being used without a license.
+	ps.sqlStore.UpdateLicense(license)
+
+	// Step 7: Cache provider.
+	cacheConfig := ps.configStore.Get().CacheSettings
+	if *cacheConfig.CacheType == model.CacheTypeLRU {
+		ps.cacheProvider = cache.NewProvider()
+	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		// Only allow Redis in an HA setting.
+		if license != nil && *license.Features.Cluster {
+			ps.cacheProvider, err = cache.NewRedisProvider(
+				&cache.RedisOptions{
+					RedisAddr:     *cacheConfig.RedisAddress,
+					RedisPassword: *cacheConfig.RedisPassword,
+					RedisDB:       *cacheConfig.RedisDB,
+					DisableCache:  *cacheConfig.DisableClientCache,
+				},
+			)
+		} else {
+			ps.Log().Warn("No license found, or license does not have clustering feature. Falling back to LRU cache")
+			ps.UpdateConfig(func(cfg *model.Config) {
+				*cfg.CacheSettings.CacheType = model.CacheTypeLRU
+			})
+			cacheConfig = ps.configStore.Get().CacheSettings
+			ps.cacheProvider = cache.NewProvider()
+
+		}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("unable to create cache provider: %w", err)
+	}
+
+	res, err := ps.cacheProvider.Connect()
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
+	}
 	ps.cacheProvider.SetMetrics(ps.metricsIFace)
 
-	// Step 6: Store.
-	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
+	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
+	// Step 8: Store.
+	// Depends on Step 0 (config), 7 (cacheProvider), 2 (search engine), 4 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
 			// The layer cake is as follows: (From bottom to top)
@@ -227,10 +255,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
-			if err != nil {
-				return nil, err
-			}
 
 			searchStore := searchlayer.NewSearchLayer(
 				retrylayer.New(ps.sqlStore),
@@ -253,8 +277,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
 			}
 
-			license := ps.License()
-			ps.sqlStore.UpdateLicense(license)
 			ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})
@@ -263,11 +285,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	license := ps.License()
-	// Step 3: Initialize filestore
+	ps.Store, err = ps.newStore()
+	if err != nil {
+		return nil, fmt.Errorf("cannot create store: %w", err)
+	}
+
+	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, model.SafeDereference(insecure)))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -288,17 +314,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	ps.Store, err = ps.newStore()
-	if err != nil {
-		return nil, fmt.Errorf("cannot create store: %w", err)
-	}
-
 	// Note: we hardcode the session and status cache to LRU because they lead
 	// to a lot of SCAN calls in case of Redis. We could potentially have a
 	// reverse mapping to avoid the scan, but this needs more complicated code.
 	// Leaving this for now.
 
-	// Needed before loading license
 	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
@@ -320,12 +340,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	// Step 7: Init License
-	if model.BuildEnterpriseReady == "true" {
-		ps.LoadLicense()
-	}
-
-	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
+	// Step 10: Init Metrics Server depends on step 8 (store) and 6 (license)
 	if ps.startMetrics {
 		if mErr := ps.resetMetrics(); mErr != nil {
 			return nil, mErr
@@ -340,7 +355,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		})
 	}
 
-	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
+	// Step 11: Init AsymmetricSigningKey depends on step 8 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
