@@ -128,7 +128,10 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             return {error: hookResult.error};
         } else if (!hookResult.data!.message && !hookResult.data!.args) {
             // do nothing with an empty return from a hook
-            return {error: new Error('command not submitted due to plugin hook')};
+            // this is allowed by the registerSlashCommandWillBePostedHook API in case
+            // a plugin intercepts and handles the command on the client side
+            // but doesn't require it to be sent to the server. (e.g., /call start).
+            return {};
         }
 
         message = hookResult.data!.message;
