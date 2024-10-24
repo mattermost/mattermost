@@ -70,6 +70,7 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
+    errorMessage: string;
 }
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
@@ -104,6 +105,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             search: false,
             saving: false,
             loadingUsers: true,
+            errorMessage: '',
         };
     }
 
@@ -192,7 +194,9 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             const {data, error} = result;
             this.setState({saving: false});
 
-            if (!error) {
+            if (error) {
+                this.setState({errorMessage: error.message});
+            } else {
                 this.exitToChannel = '/' + this.props.currentTeamName + '/channels/' + data.name;
                 this.handleHide();
             }
@@ -215,7 +219,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 values.push(value);
             }
 
-            this.setState({values});
+            this.setState({values, errorMessage: ''});
         }
     };
 
@@ -229,7 +233,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             values.push(optionValue(user));
         }
 
-        this.setState({values});
+        this.setState({values, errorMessage: ''});
     };
 
     getUserProfiles = (page?: number) => {
@@ -261,7 +265,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     }, 250);
 
     handleDelete = (values: OptionValue[]) => {
-        this.setState({values});
+        this.setState({values, errorMessage: ''});
     };
 
     render() {
@@ -275,6 +279,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 handleHide={this.handleHide}
                 isExistingChannel={this.props.isExistingChannel}
                 loading={this.state.loadingUsers}
+                errorMessage={this.state.errorMessage}
                 saving={this.state.saving}
                 search={this.search}
                 selectedItemRef={this.selectedItemRef}

@@ -30,6 +30,7 @@ type Props = {
     handleHide: () => void;
     isExistingChannel: boolean;
     loading: boolean;
+    errorMessage: string;
     options: Option[];
     saving: boolean;
     search: (term: string) => void;
@@ -147,6 +148,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             handleAdd={props.addValue}
             handleSubmit={props.handleSubmit}
             noteText={note}
+            errorMessage={props.errorMessage}
             maxValues={MAX_SELECTABLE_VALUES}
             numRemainingText={remainingText}
             buttonSubmitText={

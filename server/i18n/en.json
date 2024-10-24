@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
-    "translation": "Cannot create a direct channel with a remote user"
+    "translation": "Cannot create a direct message channel with a remote user"
   },
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
@@ -341,7 +341,7 @@
   },
   {
     "id": "api.channel.create_group.remote_restricted.app_error",
-    "translation": "Cannot create a group channel with remote users"
+    "translation": "Cannot create a group message channel with remote users"
   },
   {
     "id": "api.channel.delete_channel.archived",

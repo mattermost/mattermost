@@ -33,13 +33,14 @@
         display: none;
     }
 
-    > div:not(.multi-select__note),
+    > div:not(.multi-select__note, .multi-select__error),
     > span {
         opacity: 0.73;
     }
 }
 
-.multi-select__note {
+.multi-select__note, 
+.multi-select__error {
     display: table;
     width: 100%;
     padding: 8px 13px;
@@ -53,4 +54,8 @@
             width: 15px;
         }
     }
+}
+
+.multi-select__error {
+    color: red;
 }

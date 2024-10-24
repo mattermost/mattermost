@@ -131,4 +131,16 @@ describe('components/multiselect/multiselect', () => {
 
         expect(handleBackButtonClick).toHaveBeenCalled();
     });
+
+    test('Should display error text', () => {
+        const wrapper = shallow(
+            <MultiSelect
+                {...baseProps}
+                errorMessage='Error Occured'
+            />,
+        );
+        const errorContainer = wrapper.find('#multiSelectMessageError');
+        expect(errorContainer).toBeDefined();
+        expect(errorContainer.text()).toEqual('Error Occured');
+    });
 });

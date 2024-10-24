@@ -11,14 +11,13 @@ import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
-import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
 
@@ -64,14 +63,8 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
 }
 
 export function openGroupChannelToUserIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<Channel> {
-    return async (dispatch, getState) => {
-        const result = await dispatch(ChannelActions.createGroupChannel(userIds));
-
-        if (result.error) {
-            getHistory().push(getCurrentTeamUrl(getState()));
-        }
-
-        return result;
+    return async (dispatch) => {
+        return dispatch(ChannelActions.createGroupChannel(userIds));
     };
 }
 
