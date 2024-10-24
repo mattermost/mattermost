@@ -43,12 +43,13 @@ func TestGetPolicies(t *testing.T) {
 	mockDataRetentionInterface := &mocks.DataRetentionInterface{}
 
 	// Set up the mock to return a sample policy list
+	var postDurationDays int64 = 30
 	samplePolicies := []*model.RetentionPolicyWithTeamAndChannelCounts{
 		{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               "sample_policy_id",
 				DisplayName:      "Sample Policy",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: &postDurationDays,
 			},
 			ChannelCount: 1,
 			TeamCount:    1,
@@ -179,11 +180,12 @@ func TestGetPolicy(t *testing.T) {
 	nonExistentPolicyId := model.NewId()
 
 	// Set up the mock to return a sample policy
+	var postDurationDays int64 = 30
 	samplePolicy := &model.RetentionPolicyWithTeamAndChannelCounts{
 		RetentionPolicy: model.RetentionPolicy{
 			ID:               validPolicyId,
 			DisplayName:      "Sample Policy",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: &postDurationDays,
 		},
 		ChannelCount: 5,
 		TeamCount:    2,
@@ -261,11 +263,12 @@ func TestCreatePolicy(t *testing.T) {
 	validPolicyId := model.NewId()
 
 	// Set up the mock to return a sample policy
+	var postDurationDays int64 = 30
 	samplePolicy := &model.RetentionPolicyWithTeamAndChannelCounts{
 		RetentionPolicy: model.RetentionPolicy{
 			ID:               validPolicyId,
 			DisplayName:      "Sample Policy",
-			PostDurationDays: model.NewInt64(30),
+			PostDurationDays: &postDurationDays,
 		},
 		ChannelCount: 1,
 		TeamCount:    1,
@@ -278,10 +281,11 @@ func TestCreatePolicy(t *testing.T) {
 	th.App.Srv().Channels().DataRetention = mockDataRetentionInterface
 
 	t.Run("Success", func(t *testing.T) {
+		var postDurationDays int64 = 30
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "Test Policy",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: &postDurationDays,
 			},
 			TeamIDs:    []string{},
 			ChannelIDs: []string{},
@@ -302,10 +306,11 @@ func TestCreatePolicy(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
 		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
+		var postDurationDays int64 = 30
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "Test Policy",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
@@ -320,10 +325,11 @@ func TestCreatePolicy(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
+		var postDurationDays int64 = 30
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "Test Policy",
-				PostDurationDays: model.NewInt64(30),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
@@ -354,11 +360,12 @@ func TestPatchPolicy(t *testing.T) {
 	validPolicyId := model.NewId()
 
 	// Set up the mock to return a sample patched policy
+	var postDurationDays int64 = 60
 	samplePatchedPolicy := &model.RetentionPolicyWithTeamAndChannelCounts{
 		RetentionPolicy: model.RetentionPolicy{
 			ID:               validPolicyId,
 			DisplayName:      "Updated Policy",
-			PostDurationDays: model.NewInt64(60),
+			PostDurationDays: &postDurationDays,
 		},
 		ChannelCount: 2,
 		TeamCount:    1,
@@ -372,11 +379,12 @@ func TestPatchPolicy(t *testing.T) {
 		// Grant necessary permission to system admin
 		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
+		var postDurationDays int64 = 60
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               validPolicyId,
 				DisplayName:      "Updated Policy",
-				PostDurationDays: model.NewInt64(60),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
@@ -395,11 +403,12 @@ func TestPatchPolicy(t *testing.T) {
 	})
 
 	t.Run("InvalidPolicyID", func(t *testing.T) {
+		var postDurationDays int64 = 60
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               "invalid_id!", // Invalid ID
 				DisplayName:      "Updated Policy",
-				PostDurationDays: model.NewInt64(60),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
@@ -410,11 +419,12 @@ func TestPatchPolicy(t *testing.T) {
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
+		var postDurationDays int64 = 60
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               validPolicyId,
 				DisplayName:      "Updated Policy",
-				PostDurationDays: model.NewInt64(60),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
@@ -429,11 +439,12 @@ func TestPatchPolicy(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode, "Logout should be successful")
 
+		var postDurationDays int64 = 60
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               validPolicyId,
 				DisplayName:      "Updated Policy",
-				PostDurationDays: model.NewInt64(60),
+				PostDurationDays: &postDurationDays,
 			},
 		}
 
