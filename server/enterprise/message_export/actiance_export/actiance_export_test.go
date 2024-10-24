@@ -2176,7 +2176,7 @@ func Test_getPostExport(t *testing.T) {
 	defer th.TearDown()
 
 	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
-	for j := 0; j < 10; j++ {
+	for i := 0; i < 10; i++ {
 		time.Sleep(1 * time.Millisecond)
 		start := model.GetMillis()
 
@@ -2217,12 +2217,12 @@ func Test_getPostExport(t *testing.T) {
 		simultaneous := post.UpdateAt
 
 		// Add 8 other posts at the same updateAt
-		for i := 1; i <= 8; i++ {
+		for j := 1; j <= 8; j++ {
 			// 2 - post 1 at same updateAt
 			post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    th.BasicUser.Id,
-				Message:   fmt.Sprintf("message %d", i),
+				Message:   fmt.Sprintf("message %d", j),
 				CreateAt:  simultaneous,
 			})
 			require.NoError(t, err)
@@ -2288,6 +2288,6 @@ func Test_getPostExport(t *testing.T) {
 			actualExports = append(actualExports, postExport)
 		}
 
-		require.ElementsMatch(t, expectedExports, actualExports, fmt.Sprintf("batch %d", j))
+		require.ElementsMatch(t, expectedExports, actualExports, fmt.Sprintf("batch %d", i))
 	}
 }
