@@ -303,7 +303,7 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
         channel = dmList.find((directChannel) => directChannel.name === channelName);
     }
 
-    let channelMember: ChannelMembership | null | undefined;
+    let channelMember: ChannelMembership | undefined;
     if (channel) {
         channelMember = getMyChannelMember(state, channel.id);
     }
