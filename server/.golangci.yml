@@ -111,7 +111,6 @@ issues:
         channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/group_test.go|\
-        channels/app/helper_test.go|\
         channels/app/imaging/decode.go|\
         channels/app/imaging/decode_test.go|\
         channels/app/imaging/utils_test.go|\
