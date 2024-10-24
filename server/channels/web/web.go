@@ -29,7 +29,7 @@ func New(srv *app.Server) *Web {
 		srv:        srv,
 		MainRouter: srv.Router,
 	}
-	
+
 	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
@@ -56,11 +56,11 @@ func CheckClientCompatibility(agentString string) bool {
 
 	return true
 }
+
 func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
-
 	if IsAPICall(a, r) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(err.StatusCode)
@@ -93,7 +93,7 @@ func IsOAuthAPICall(a app.AppIface, r *http.Request) bool {
 	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
 		return true
 	}
-	
+
 	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
 		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
 		r.URL.Path == path.Join(subpath, "oauth", "access_token") {
