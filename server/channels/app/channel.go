@@ -497,13 +497,14 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 		return nil, err
 	}
 
+	jsonIDs := model.ArrayToJSON(userIDs)
 	for _, userID := range userIDs {
 		a.InvalidateCacheForUser(userID)
-	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
-	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
-	a.Publish(message)
+		message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, userID, nil, "")
+		message.Add("teammate_ids", jsonIDs)
+		a.Publish(message)
+	}
 
 	return channel, nil
 }
@@ -1597,10 +1598,17 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
 
 	return newMember, nil
 }
