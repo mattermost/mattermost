@@ -10,8 +10,8 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
-	
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -24,7 +24,7 @@ type Web struct {
 
 func New(srv *app.Server) *Web {
 	mlog.Debug("Initializing web routes")
-	
+
 	web := &Web{
 		srv:        srv,
 		MainRouter: srv.Router,
@@ -34,7 +34,7 @@ func New(srv *app.Server) *Web {
 	web.InitWebhooks()
 	web.InitSaml()
 	web.InitStatic()
-	
+
 	return web
 }
 
@@ -49,11 +49,11 @@ var browserMinimumSupported = map[string]int{
 
 func CheckClientCompatibility(agentString string) bool {
 	ua := uasurfer.Parse(agentString)
-	
+
 	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && (ua.Browser.Version.Major < version || version < 0) {
 		return false
 	}
-	
+
 	return true
 }
 func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
@@ -77,19 +77,19 @@ func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
 
 func IsAPICall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	
+
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
 
 func IsWebhookCall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	
+
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")
 }
 
 func IsOAuthAPICall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	
+
 	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
 		return true
 	}
