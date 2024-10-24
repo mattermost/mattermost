@@ -67,8 +67,7 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should reject invalid license in test service environment", func(t *testing.T) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		str, err := LicenseValidator.ValidateLicense(nil)
 		require.Error(t, err)
@@ -76,8 +75,7 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should validate valid test license in test service environment", func(t *testing.T) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.NoError(t, err)
@@ -85,8 +83,7 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should reject valid test license in production service environment", func(t *testing.T) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.Error(t, err)
