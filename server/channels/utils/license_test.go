@@ -68,7 +68,6 @@ func TestValidateLicense(t *testing.T) {
 
 	t.Run("should reject invalid license in test service environment", func(t *testing.T) {
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
 
 		str, err := LicenseValidator.ValidateLicense(nil)
 		require.Error(t, err)
@@ -76,9 +75,7 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should validate valid test license in test service environment", func(t *testing.T) {
-		err := os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
-		require.NoError(t, err, "failed to set environment variable")
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.NoError(t, err)
@@ -86,9 +83,7 @@ func TestValidateLicense(t *testing.T) {
 	})
 
 	t.Run("should reject valid test license in production service environment", func(t *testing.T) {
-		err := os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
-		require.NoError(t, err, "failed to set environment variable")
-		defer os.Unsetenv("MM_SERVICEENVIRONMENT")
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.Error(t, err)
@@ -114,9 +109,8 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
-		require.NoError(t, err, "failed to write test file")
-		
+		os.WriteFile(f.Name(), []byte("not a license"), 0777)
+
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")
 
