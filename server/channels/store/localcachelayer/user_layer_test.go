@@ -8,14 +8,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 func TestUserStore(t *testing.T) {
@@ -117,6 +118,27 @@ func TestUserStoreCache(t *testing.T) {
 		for i := 0; i < len(storedUsers); i++ {
 			storedUsers[i].NotifyProps = originalProps[i]
 		}
+	})
+
+	t.Run("assert **model.User not passed", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		cmock := cmocks.NewCache(t)
+		cmock.On("GetMulti", []string{"123"}, mock.MatchedBy(func(values []any) bool {
+			if len(values) != 1 {
+				return false
+			}
+			_, ok := values[0].(*model.User)
+			return ok
+		})).Return(nil)
+
+		cachedStore.user.rootStore.userProfileByIdsCache = cmock
+
+		_, err = cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
+		require.NoError(t, err)
 	})
 }
 
@@ -300,6 +322,21 @@ func TestUserStoreGetCache(t *testing.T) {
 		assert.NotEqual(t, storedUser, cachedUser)
 
 		storedUser.NotifyProps = originalProps
+	})
+
+	t.Run("assert **model.User not passed", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		cmock := cmocks.NewCache(t)
+		cmock.On("Get", "123", mock.AnythingOfType("*model.User")).Return(nil)
+
+		cachedStore.user.rootStore.userProfileByIdsCache = cmock
+
+		_, err = cachedStore.User().Get(context.Background(), fakeUserId)
+		require.NoError(t, err)
 	})
 }
 

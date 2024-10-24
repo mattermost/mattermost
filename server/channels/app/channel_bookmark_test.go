@@ -26,10 +26,14 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 	bookmark := &model.ChannelBookmark{
 		ChannelId:   channelId,
 		DisplayName: name,
-		LinkUrl:     "https://mattermost.com",
 		Type:        bookmarkType,
 		Emoji:       ":smile:",
-		FileId:      fileId,
+	}
+	if bookmarkType == model.ChannelBookmarkLink {
+		bookmark.LinkUrl = "https://mattermost.com"
+	}
+	if bookmarkType == model.ChannelBookmarkFile {
+		bookmark.FileId = fileId
 	}
 
 	return bookmark

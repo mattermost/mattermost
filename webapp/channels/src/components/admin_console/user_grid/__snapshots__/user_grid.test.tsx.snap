@@ -368,7 +368,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "160px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={2}
@@ -896,7 +895,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "240px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={3}
@@ -1118,7 +1116,6 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       "minHeight": "80px",
     }
   }
-  searchPlaceholder=""
   startCount={1}
   term=""
   total={1}
