@@ -788,12 +788,16 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 
 func (si *SlackImporter) oldImportFile(rctx request.CTX, timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-	data := buf.Bytes()
-
-	fileInfo, err := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	_, err := io.Copy(buf, file)
 	if err != nil {
 		return nil, err
+	}
+
+	data := buf.Bytes()
+
+	fileInfo, appErr := si.actions.DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
