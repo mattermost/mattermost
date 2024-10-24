@@ -1,4 +1,5 @@
-import {test, expect, chromium, Page} from '@playwright/test';
+import {Page} from '@playwright/test';
+import {expect, test} from '@e2e-support/test_fixture';
 
 // Helper function to intercept API request and modify the response
 async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
@@ -22,10 +23,9 @@ async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
     });
 }
 
-test('MM-T5640_1 should not see landing page ', async () => {
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
+test('MM-T5640_1 should not see landing page ', async ({pw, pages, page}) => {
+    const {adminClient} = await pw.getAdminClient();
+    const adminConfig = await adminClient.getConfig();
     await interceptConfigWithLandingPage(page, false);
 
     // Navigate to your starting URL
@@ -37,19 +37,12 @@ test('MM-T5640_1 should not see landing page ', async () => {
     // At this point, the URL should contain '/login'
     expect(page.url()).toContain('/login');
 
-    await page.waitForLoadState('networkidle');
-    await page.waitForLoadState('domcontentloaded');
-
-    page.locator('#saveSetting').waitFor();
-    const loginButton = page.locator('#saveSetting');
-    await expect(loginButton).toHaveText('Log in');
+    // Verify the login page is visible
+    const loginPage = new pages.LoginPage(page, adminConfig);
+    await loginPage.toBeVisible();
 });
 
-test('MM-T5640_2 should see landing page', async () => {
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
-
+test('MM-T5640_2 should see landing page', async ({pages, isMobile, page}) => {
     // Navigate to your starting URL
     await page.goto('http://localhost:8065');
 
@@ -63,13 +56,7 @@ test('MM-T5640_2 should see landing page', async () => {
     // At this point, the URL should contain '/landing'
     expect(page.url()).toContain('/landing');
 
-    // Check the user agent
-    const userAgent = await page.evaluate(() => navigator.userAgent);
-
-    const viewInAppButton = page.locator('a.btn-primary');
-    await expect(viewInAppButton).toBeVisible();
-    await expect(viewInAppButton).toHaveText(userAgent.includes('iPad') ? 'View in App' : 'View in Desktop App');
-
-    const viewInBrowser = page.locator('a.btn-tertiary');
-    await expect(viewInBrowser).toHaveText('View in Browser');
+    // Verify the landing page is visible
+    const landingLoginPage = new pages.LandingLoginPage(page, isMobile);
+    await landingLoginPage.toBeVisible();
 });

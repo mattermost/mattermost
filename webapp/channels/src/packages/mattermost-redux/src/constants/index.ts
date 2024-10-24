@@ -12,9 +12,8 @@ import RequestStatus from './request_status';
 import Roles from './roles';
 import Stats from './stats';
 import Teams from './teams';
-import Telemetry from './telemetry';
 import Threads from './threads';
 import Users from './users';
 import WebsocketEvents from './websocket';
 
-export {General, Preferences, Posts, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads, Telemetry};
+export {General, Preferences, Posts, Files, RequestStatus, WebsocketEvents, Teams, Stats, Permissions, Emoji, Plugins, Users, Roles, Threads};

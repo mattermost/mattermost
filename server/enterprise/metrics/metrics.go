@@ -44,6 +44,7 @@ const (
 	MetricsSubsystemNotifications      = "notifications"
 	MetricsSubsystemClientsMobileApp   = "mobileapp"
 	MetricsSubsystemClientsWeb         = "webapp"
+	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -216,6 +217,9 @@ type MetricsInterfaceImpl struct {
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
+
+	DesktopClientCPUUsage    *prometheus.HistogramVec
+	DesktopClientMemoryUsage *prometheus.HistogramVec
 }
 
 func init() {
@@ -1347,6 +1351,30 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
 
+	m.DesktopClientCPUUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "cpu_usage",
+			Help:      "Average CPU usage of a specific process over an interval",
+			Buckets:   []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 80, 100},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientCPUUsage)
+
+	m.DesktopClientMemoryUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "memory_usage",
+			Help:      "Memory usage in MB of a specific process",
+			Buckets:   []float64{0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 3000, 5000},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientMemoryUsage)
+
 	return m
 }
 
@@ -1848,6 +1876,14 @@ func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent str
 
 func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientCPUUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveDesktopMemoryUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientMemoryUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {

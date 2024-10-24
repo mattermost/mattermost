@@ -359,7 +359,7 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 	}
 
 	var err *model.AppError
-	if post, err = th.App.CreatePost(th.Context, post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		panic(err)
 	}
 	return post
