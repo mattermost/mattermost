@@ -2234,7 +2234,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Failed to copy license."
+    "translation": "Failed to copy license file content to buffer"
   },
   {
     "id": "api.license.add_license.expired.app_error",
@@ -2255,10 +2255,6 @@
   {
     "id": "api.license.add_license.open.app_error",
     "translation": "Could not open license file."
-  },
-  {
-    "id": "api.license.add_license.copy.app_error",
-    "translation": "Failed to copy license file content to buffer"
   },
   {
     "id": "api.license.add_license.save.app_error",
