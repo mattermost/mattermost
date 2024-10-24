@@ -2260,13 +2260,13 @@ func Test_getPostExport(t *testing.T) {
 			},
 		}
 
-		for i := 2; i < 10; i++ {
+		for j := 2; j < 10; j++ {
 			expectedExports = append(expectedExports, PostExport{
-				MessageId: posts[i].Id,
+				MessageId: posts[j].Id,
 				UserEmail: th.BasicUser.Email,
 				UserType:  "user",
-				CreateAt:  posts[i].CreateAt,
-				Message:   posts[i].Message,
+				CreateAt:  posts[j].CreateAt,
+				Message:   posts[j].Message,
 			})
 		}
 

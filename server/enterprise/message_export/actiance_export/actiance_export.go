@@ -257,7 +257,7 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 		return deletedPostToExportEntry(post, "delete "+*post.PostMessage), results
 	} else if *post.PostUpdateAt > *post.PostCreateAt {
 		// Post has been updated. But what kind?
-		if post.PostEditAt != nil && *post.PostEditAt > 0 {
+		if model.SafeDereference(post.PostEditAt) > 0 {
 			// This is an edited post.
 			results.EditedNewMsgPosts++
 			return editedNewMsgToExportEntry(post), results
@@ -274,11 +274,11 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 }
 
 func isEditedOriginalMsg(post *model.MessageExport) bool {
-	return post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostOriginalId != nil && *post.PostOriginalId != ""
+	return model.SafeDereference(post.PostDeleteAt) > 0 && model.SafeDereference(post.PostOriginalId) != ""
 }
 
 func isDeletedMsg(post *model.MessageExport) bool {
-	if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
+	if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
 		props := map[string]any{}
 		err := json.Unmarshal([]byte(*post.PostProps), &props)
 		if err != nil {
