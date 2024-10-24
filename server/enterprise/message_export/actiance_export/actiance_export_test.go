@@ -41,26 +41,59 @@ func (mr *MyReporter) ReportProgressMessage(message string) {
 }
 
 func TestActianceExport(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestActianceExport(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestActianceExport(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
 	chanTypeDirect := model.ChannelTypeDirect
-	csvExportTests := []struct {
+	actianceExportTests := []struct {
 		name          string
 		jobEndTime    int64
 		activity      []string
@@ -782,7 +815,7 @@ func TestActianceExport(t *testing.T) {
 		},
 	}
 
-	for _, tt := range csvExportTests {
+	for _, tt := range actianceExportTests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -793,11 +826,11 @@ func TestActianceExport(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
-						err = fileBackend.RemoveFile(attachments[0].Path)
+						err = attachmentBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -849,12 +882,13 @@ func TestActianceExport(t *testing.T) {
 				BatchStartTime:         1,
 				BatchEndTime:           tt.jobEndTime,
 				Db:                     shared.NewMessageExportStore(mockStore),
-				FileBackend:            fileBackend,
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, 0, res.NumWarnings)
 
-			zipBytes, err := fileBackend.ReadFile(exportFileName)
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
 			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 			assert.NoError(t, err)
@@ -867,7 +901,7 @@ func TestActianceExport(t *testing.T) {
 			assert.Equal(t, tt.expectedData, string(xmlData))
 
 			t.Cleanup(func() {
-				err = fileBackend.RemoveFile(exportFileName)
+				err = exportBackend.RemoveFile(exportFileName)
 				assert.NoError(t, err)
 			})
 		})
@@ -875,21 +909,54 @@ func TestActianceExport(t *testing.T) {
 }
 
 func TestActianceExportMultipleBatches(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err = os.RemoveAll(tempDir)
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
 		assert.NoError(t, err)
+
+		runTestActianceExportMultipleBatches(t, fileBackend, fileBackend)
 	})
 
-	config := filestore.FileBackendSettings{
-		DriverName: model.ImageDriverLocal,
-		Directory:  tempDir,
-	}
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
 
-	fileBackend, err := filestore.NewFileBackend(config)
-	assert.NoError(t, err)
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
 
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestActianceExportMultipleBatches(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
 
@@ -1197,11 +1264,11 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
+					_, err := attachmentBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
-						err = fileBackend.RemoveFile(attachments[0].Path)
+						err = attachmentBackend.RemoveFile(attachments[0].Path)
 						require.NoError(t, err)
 					})
 				}
@@ -1264,12 +1331,13 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 					BatchStartTime:         batchStartTime,
 					BatchEndTime:           batchEndTime,
 					Db:                     shared.NewMessageExportStore(mockStore),
-					FileBackend:            fileBackend,
+					FileAttachmentBackend:  attachmentBackend,
+					ExportBackend:          exportBackend,
 				})
 				assert.NoError(t, err)
 				assert.Equal(t, 0, res.NumWarnings)
 
-				zipBytes, err := fileBackend.ReadFile(exportFileName)
+				zipBytes, err := exportBackend.ReadFile(exportFileName)
 				assert.NoError(t, err)
 				zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 				assert.NoError(t, err)
@@ -1284,10 +1352,430 @@ func TestActianceExportMultipleBatches(t *testing.T) {
 				batchStartTime = *tt.posts[batch][len(tt.posts[batch])-1].PostUpdateAt
 
 				t.Cleanup(func() {
-					err = fileBackend.RemoveFile(exportFileName)
+					err = exportBackend.RemoveFile(exportFileName)
 					assert.NoError(t, err)
 				})
 			}
+		})
+	}
+}
+
+func TestMultipleActianceExport(t *testing.T) {
+	t.Run("no dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
+
+		runTestMultipleActianceExport(t, fileBackend, fileBackend)
+	})
+
+	t.Run("using dedicated export filestore", func(t *testing.T) {
+		exportTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(exportTempDir)
+			assert.NoError(t, err)
+		})
+
+		exportBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  exportTempDir,
+		})
+		assert.NoError(t, err)
+
+		attachmentTempDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(attachmentTempDir)
+			assert.NoError(t, err)
+		})
+
+		attachmentBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{
+			DriverName: model.ImageDriverLocal,
+			Directory:  attachmentTempDir,
+		})
+
+		runTestMultipleActianceExport(t, exportBackend, attachmentBackend)
+	})
+}
+
+func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
+	rctx := request.TestContext(t)
+	rctx = rctx.WithT(i18n.IdentityTfunc()).(*request.Context)
+
+	chanTypeDirect := model.ChannelTypeDirect
+	multActianceExportTests := []struct {
+		name          string
+		jobEndTime    int64
+		activity      []string
+		channels      model.ChannelList
+		cmhs          map[string][]*model.ChannelMemberHistoryResult
+		posts         map[string][]*model.MessageExport
+		attachments   map[string][]*model.FileInfo
+		expectedData  map[string]string
+		expectedFiles int
+	}{
+		{
+			name:       "post,export,delete,export",
+			jobEndTime: 500,
+			activity:   []string{"channel-id"},
+			channels: model.ChannelList{{
+				TeamId:      "team-id",
+				Id:          "channel-id",
+				Name:        "channel-name",
+				DisplayName: "channel-display-name",
+				Type:        model.ChannelTypeDirect,
+			}},
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{JoinTime: 0, ChannelId: "channel-id", UserId: "user-id", UserEmail: "test@test.com", Username: "username", LeaveTime: model.NewPointer(int64(400))},
+				},
+			},
+			posts: map[string][]*model.MessageExport{
+				"step1": {
+					{
+						PostId:             model.NewPointer("post-id"),
+						PostOriginalId:     model.NewPointer("post-original-id"),
+						TeamId:             model.NewPointer("team-id"),
+						TeamName:           model.NewPointer("team-name"),
+						TeamDisplayName:    model.NewPointer("team-display-name"),
+						ChannelId:          model.NewPointer("channel-id"),
+						ChannelName:        model.NewPointer("channel-name"),
+						ChannelDisplayName: model.NewPointer("channel-display-name"),
+						PostCreateAt:       model.NewPointer(int64(1)),
+						PostUpdateAt:       model.NewPointer(int64(1)),
+						PostMessage:        model.NewPointer("message"),
+						UserEmail:          model.NewPointer("test@test.com"),
+						UserId:             model.NewPointer("user-id"),
+						Username:           model.NewPointer("username"),
+						ChannelType:        &chanTypeDirect,
+						PostFileIds:        []string{},
+					},
+				},
+				"step2": {
+					{
+						PostId:             model.NewPointer("post-id"),
+						PostOriginalId:     model.NewPointer("post-original-id"),
+						TeamId:             model.NewPointer("team-id"),
+						TeamName:           model.NewPointer("team-name"),
+						TeamDisplayName:    model.NewPointer("team-display-name"),
+						ChannelId:          model.NewPointer("channel-id"),
+						ChannelName:        model.NewPointer("channel-name"),
+						ChannelDisplayName: model.NewPointer("channel-display-name"),
+						PostCreateAt:       model.NewPointer(int64(1)),
+						PostUpdateAt:       model.NewPointer(int64(2)),
+						PostDeleteAt:       model.NewPointer(int64(2)),
+						PostMessage:        model.NewPointer("message"),
+						UserEmail:          model.NewPointer("test@test.com"),
+						UserId:             model.NewPointer("user-id"),
+						Username:           model.NewPointer("username"),
+						ChannelType:        &chanTypeDirect,
+						PostFileIds:        []string{},
+						PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
+					},
+				},
+			},
+			expectedData: map[string]string{
+				"step1": strings.Join([]string{
+					xml.Header,
+					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
+					"  <Conversation Perspective=\"channel-display-name\">\n",
+					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
+					"    <StartTimeUTC>1</StartTimeUTC>\n",
+					"    <ParticipantEntered>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>0</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantEntered>\n",
+					"    <Message>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <Content>message</Content>\n",
+					"      <PreviewsPost></PreviewsPost>\n",
+					"    </Message>\n",
+					"    <ParticipantLeft>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>400</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantLeft>\n",
+					"    <EndTimeUTC>500</EndTimeUTC>\n",
+					"  </Conversation>\n",
+					"</FileDump>",
+				}, ""),
+				"step2": strings.Join([]string{
+					xml.Header,
+					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
+					"  <Conversation Perspective=\"channel-display-name\">\n",
+					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
+					"    <StartTimeUTC>1</StartTimeUTC>\n",
+					"    <ParticipantEntered>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>0</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantEntered>\n",
+					"    <Message>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <Content>message</Content>\n",
+					"      <PreviewsPost></PreviewsPost>\n",
+					"    </Message>\n",
+					"    <Message>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>2</DateTimeUTC>\n",
+					"      <Content>delete message</Content>\n",
+					"      <PreviewsPost></PreviewsPost>\n",
+					"    </Message>\n",
+					"    <ParticipantLeft>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>400</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantLeft>\n",
+					"    <EndTimeUTC>500</EndTimeUTC>\n",
+					"  </Conversation>\n",
+					"</FileDump>",
+				}, ""),
+			},
+			expectedFiles: 2,
+		},
+		{
+			name:       "post,export,edit,export",
+			jobEndTime: 600,
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{JoinTime: 0, ChannelId: "channel-id", UserId: "user-id", UserEmail: "test@test.com", Username: "username", LeaveTime: model.NewPointer(int64(450))},
+				},
+			},
+			activity: []string{"channel-id"},
+			channels: model.ChannelList{{
+				TeamId:      "team-id",
+				Id:          "channel-id",
+				Name:        "channel-name",
+				DisplayName: "channel-display-name",
+				Type:        model.ChannelTypeDirect,
+			}},
+			posts: map[string][]*model.MessageExport{
+				"step1": {
+					{
+						PostId:             model.NewPointer("post-id"),
+						PostOriginalId:     model.NewPointer("post-original-id"),
+						TeamId:             model.NewPointer("team-id"),
+						TeamName:           model.NewPointer("team-name"),
+						TeamDisplayName:    model.NewPointer("team-display-name"),
+						ChannelId:          model.NewPointer("channel-id"),
+						ChannelName:        model.NewPointer("channel-name"),
+						ChannelDisplayName: model.NewPointer("channel-display-name"),
+						PostCreateAt:       model.NewPointer(int64(1)),
+						PostUpdateAt:       model.NewPointer(int64(1)),
+						PostMessage:        model.NewPointer("message"),
+						UserEmail:          model.NewPointer("test@test.com"),
+						UserId:             model.NewPointer("user-id"),
+						Username:           model.NewPointer("username"),
+						ChannelType:        &chanTypeDirect,
+						PostFileIds:        []string{},
+					},
+				},
+				"step2": {
+					{
+						PostId:             model.NewPointer("post-id"),
+						PostOriginalId:     model.NewPointer("post-original-id"),
+						TeamId:             model.NewPointer("team-id"),
+						TeamName:           model.NewPointer("team-name"),
+						TeamDisplayName:    model.NewPointer("team-display-name"),
+						ChannelId:          model.NewPointer("channel-id"),
+						ChannelName:        model.NewPointer("channel-name"),
+						ChannelDisplayName: model.NewPointer("channel-display-name"),
+						PostCreateAt:       model.NewPointer(int64(1)),
+						PostUpdateAt:       model.NewPointer(int64(2)),
+						PostDeleteAt:       model.NewPointer(int64(2)),
+						PostMessage:        model.NewPointer("edit message"),
+						UserEmail:          model.NewPointer("test@test.com"),
+						UserId:             model.NewPointer("user-id"),
+						Username:           model.NewPointer("username"),
+						ChannelType:        &chanTypeDirect,
+						PostFileIds:        []string{},
+					},
+				},
+			},
+			expectedData: map[string]string{
+				"step1": strings.Join([]string{
+					xml.Header,
+					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
+					"  <Conversation Perspective=\"channel-display-name\">\n",
+					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
+					"    <StartTimeUTC>1</StartTimeUTC>\n",
+					"    <ParticipantEntered>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>0</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantEntered>\n",
+					"    <Message>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <Content>message</Content>\n",
+					"      <PreviewsPost></PreviewsPost>\n",
+					"    </Message>\n",
+					"    <ParticipantLeft>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>450</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantLeft>\n",
+					"    <EndTimeUTC>600</EndTimeUTC>\n",
+					"  </Conversation>\n",
+					"</FileDump>",
+				}, ""),
+				"step2": strings.Join([]string{
+					xml.Header,
+					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
+					"  <Conversation Perspective=\"channel-display-name\">\n",
+					"    <RoomID>direct - channel-name - channel-id</RoomID>\n",
+					"    <StartTimeUTC>1</StartTimeUTC>\n",
+					"    <ParticipantEntered>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>0</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantEntered>\n",
+					"    <Message>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <Content>edit message</Content>\n",
+					"      <PreviewsPost></PreviewsPost>\n",
+					"    </Message>\n",
+					"    <ParticipantLeft>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>450</DateTimeUTC>\n",
+					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
+					"    </ParticipantLeft>\n",
+					"    <EndTimeUTC>600</EndTimeUTC>\n",
+					"  </Conversation>\n",
+					"</FileDump>",
+				}, ""),
+			},
+			expectedFiles: 2,
+		},
+	}
+
+	for _, tt := range multActianceExportTests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockStore := &storetest.Store{}
+			defer mockStore.AssertExpectations(t)
+
+			if len(tt.cmhs) > 0 {
+				for channelId, cmhs := range tt.cmhs {
+					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), tt.jobEndTime, []string{channelId}).
+						Return(cmhs, nil)
+				}
+			}
+
+			if tt.activity != nil {
+				mockStore.ChannelMemberHistoryStore.On("GetChannelsWithActivityDuring", mock.Anything, mock.Anything).
+					Return(tt.activity, nil)
+			}
+
+			if tt.channels != nil {
+				mockStore.ChannelStore.On("GetMany", tt.activity, true).
+					Return(tt.channels, nil)
+			}
+
+			myMockReporter := MyReporter{}
+			defer myMockReporter.AssertExpectations(t)
+			if len(tt.activity) > 0 {
+				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.channel_message")
+			}
+			if len(tt.cmhs) > 0 {
+				myMockReporter.On("ReportProgressMessage", "ent.message_export.actiance_export.calculate_channel_exports.activity_message")
+			}
+
+			channelMetadata, channelMemberHistories, err := shared.CalculateChannelExports(rctx,
+				shared.ChannelExportsParams{
+					Store:                   shared.NewMessageExportStore(mockStore),
+					ExportPeriodStartTime:   1,
+					ExportPeriodEndTime:     tt.jobEndTime,
+					ChannelBatchSize:        100,
+					ChannelHistoryBatchSize: 100,
+					ReportProgressMessage:   myMockReporter.ReportProgressMessage,
+				})
+			assert.NoError(t, err)
+
+			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
+			res, err := ActianceExport(rctx, Params{
+				ChannelMetadata:        channelMetadata,
+				Posts:                  tt.posts["step1"],
+				ChannelMemberHistories: channelMemberHistories,
+				BatchPath:              exportFileName,
+				BatchStartTime:         1,
+				BatchEndTime:           tt.jobEndTime,
+				Db:                     shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
+			})
+
+			assert.NoError(t, err)
+			assert.Equal(t, 0, res.NumWarnings)
+
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
+			assert.NoError(t, err)
+			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+			assert.NoError(t, err)
+			actiancexml, err := zipReader.File[0].Open()
+			require.NoError(t, err)
+			defer actiancexml.Close()
+			xmlData, err := io.ReadAll(actiancexml)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
+
+			res, err = ActianceExport(rctx, Params{
+				ChannelMetadata:        channelMetadata,
+				Posts:                  tt.posts["step2"],
+				ChannelMemberHistories: channelMemberHistories,
+				BatchPath:              exportFileName,
+				BatchStartTime:         1,
+				BatchEndTime:           tt.jobEndTime,
+				Db:                     shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, 0, res.NumWarnings)
+
+			zipBytes, err = exportBackend.ReadFile(exportFileName)
+			assert.NoError(t, err)
+			zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+			assert.NoError(t, err)
+			actiancexml, err = zipReader.File[0].Open()
+			require.NoError(t, err)
+			defer actiancexml.Close()
+			xmlData, err = io.ReadAll(actiancexml)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedData["step2"], string(xmlData))
+
+			t.Cleanup(func() {
+				err = exportBackend.RemoveFile(exportFileName)
+				assert.NoError(t, err)
+			})
 		})
 	}
 }
@@ -1476,7 +1964,7 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-	res, err := writeExport(rctx, export, uploadedFiles, fileBackend, exportFileName)
+	res, err := writeExport(rctx, export, uploadedFiles, fileBackend, fileBackend, exportFileName)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, res.NumWarnings)
 
