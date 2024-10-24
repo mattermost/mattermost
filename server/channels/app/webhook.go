@@ -95,15 +95,16 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 }
 
 func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+	logger := c.Logger().With(mlog.String("outgoing_webhook_id", hook.Id), mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id))
+
 	var jsonBytes []byte
 	var err error
-
 	contentType := "application/x-www-form-urlencoded"
 	if hook.ContentType == "application/json" {
 		contentType = "application/json"
 		jsonBytes, err = json.Marshal(payload)
 		if err != nil {
-			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
+			logger.Warn("Failed to encode to JSON", mlog.Err(err))
 			return
 		}
 	}
@@ -131,14 +132,14 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
 				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
 				if err != nil {
-					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+					logger.Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
 					return
 				}
 
 				if connection != nil {
 					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
 					if err != nil {
-						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						logger.Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
 						return
 					}
 				}
@@ -147,9 +148,9 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
-					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
+					logger.Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
 				} else {
-					c.Logger().Error("Outgoing Webhook POST failed", mlog.Err(err))
+					logger.Error("Outgoing Webhook POST failed", mlog.Err(err))
 				}
 				return
 			}
@@ -181,7 +182,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 					webhookResp.IconURL = hook.IconURL
 				}
 				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
-					c.Logger().Error("Failed to create response post.", mlog.Err(err))
+					logger.Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
 		}()
@@ -734,12 +735,12 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}()
 
 	if req == nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.parse.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.parse.app_error", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest)
 	}
 
 	text := req.Text
 	if text == "" && req.Attachments == nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest)
 	}
 
 	channelName := req.ChannelName
@@ -748,7 +749,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	var hook *model.IncomingWebhook
 	result := <-hchan
 	if result.NErr != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest).Wrap(result.NErr)
 	}
 	hook = result.Data
 
@@ -780,7 +781,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		if channelName[0] == '@' {
 			result, nErr := a.Srv().Store().User().GetByUsername(channelName[1:])
 			if nErr != nil {
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest).Wrap(nErr)
 			}
 			ch, err := a.GetOrCreateDirectChannel(c, hook.UserId, result.Id)
 			if err != nil {
@@ -831,16 +832,16 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 
 	if hook.ChannelLocked && hook.ChannelId != channel.Id {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel_locked.app_error", map[string]any{"hook_id": hookID, "channel_id": hook.ChannelId}, "", http.StatusForbidden)
 	}
 
 	resultU := <-uchan
 	if resultU.NErr != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusForbidden).Wrap(resultU.NErr)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"hook_id": hookID}, "", http.StatusForbidden).Wrap(resultU.NErr)
 	}
 
 	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(c, hook.UserId, channel.Id, model.PermissionReadChannelContent) {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"hook_id": hookID}, "", http.StatusForbidden)
 	}
 
 	overrideUsername := hook.Username
@@ -883,17 +884,18 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 
 func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
-		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
+		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest)
 	}
 
 	hook, nErr := a.Srv().Store().CommandWebhook().Get(hookID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
+
 		switch {
 		case errors.As(nErr, &nfErr):
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]any{"hook_id": hookID}, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", map[string]any{"hook_id": hookID}, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -904,7 +906,7 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		case errors.As(cmdErr, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "", http.StatusBadRequest).Wrap(cmdErr)
+			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", map[string]any{"hook_id": hookID, "command_id": hook.CommandId}, "", http.StatusBadRequest).Wrap(cmdErr)
 		}
 	}
 
@@ -919,9 +921,9 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", nil, "", http.StatusBadRequest).Wrap(nErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", map[string]any{"hook_id": hookID}, "", http.StatusBadRequest).Wrap(nErr)
 		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", map[string]any{"hook_id": hookID}, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
