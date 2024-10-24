@@ -115,10 +115,10 @@ func TestFindFile(t *testing.T) {
 				if testCase.Cwd != nil {
 					prevDir, err := os.Getwd()
 					require.NoError(t, err)
-					
+
 					err = os.Chdir(*testCase.Cwd)
 					require.NoError(t, err)
-					
+
 					defer func() {
 						err = os.Chdir(prevDir)
 						require.NoError(t, err)
