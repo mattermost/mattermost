@@ -81,7 +81,7 @@ func (ps *PlatformService) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := ps.Store.System().Get()
+	props, nErr := ps.sqlStore.System().Get()
 	if nErr == nil {
 		licenseId = props[model.SystemActiveLicenseId]
 	}
@@ -100,7 +100,7 @@ func (ps *PlatformService) LoadLicense() {
 		}
 	}
 
-	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
+	record, nErr := ps.sqlStore.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
 		ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		ps.SetLicense(nil)
