@@ -33,7 +33,8 @@ func TestBatchWorker(t *testing.T) {
 		t.Helper()
 
 		worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, doBatch)
-		job := th.SetupBatchWorker(t, worker)
+		job, err := th.SetupBatchWorker(t, worker)
+		require.NoError(t, err, "failed to setup batch worker")
 		return worker, job
 	}
 
@@ -41,7 +42,7 @@ func TestBatchWorker(t *testing.T) {
 		t.Helper()
 
 		batchNumber, err := strconv.Atoi(data["batch_number"])
-		require.NoError(t, err)
+		require.NoError(t, err, "failed to convert batch number to integer")
 
 		return batchNumber
 	}
@@ -50,11 +51,12 @@ func TestBatchWorker(t *testing.T) {
 		t.Helper()
 
 		batchNumber, err := strconv.Atoi(job.Data["batch_number"])
-		require.NoError(t, err)
+		require.NoError(t, err, "failed to convert batch number to integer")
 
 		batchNumber++
 		job.Data["batch_number"] = strconv.Itoa(batchNumber)
-		th.Server.Jobs.SetJobProgress(job, 0)
+		err = th.Server.Jobs.SetJobProgress(job, 0)
+		require.NoError(t, err, "failed to set job progress")
 	}
 
 	t.Run("stop after first batch", func(t *testing.T) {
@@ -80,8 +82,10 @@ func TestBatchWorker(t *testing.T) {
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
-		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		th.WaitForBatchNumber(t, job, 1)
+		err := th.WaitForJobStatus(t, job, model.JobStatusPending)
+		require.NoError(t, err, "failed to wait for job status")
+		err = th.WaitForBatchNumber(t, job, 1)
+		require.NoError(t, err, "failed to wait for batch number")
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
@@ -107,8 +111,10 @@ func TestBatchWorker(t *testing.T) {
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
-		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		th.WaitForBatchNumber(t, job, 2)
+		err := th.WaitForJobStatus(t, job, model.JobStatusPending)
+		require.NoError(t, err, "failed to wait for job status")
+		err = th.WaitForBatchNumber(t, job, 2)
+		require.NoError(t, err, "failed to wait for batch number")
 	})
 
 	t.Run("done after first batch", func(t *testing.T) {
@@ -132,7 +138,8 @@ func TestBatchWorker(t *testing.T) {
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
-		th.WaitForBatchNumber(t, job, 1)
+		err := th.WaitForBatchNumber(t, job, 1)
+		require.NoError(t, err, "failed to wait for batch number")
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
@@ -156,6 +163,7 @@ func TestBatchWorker(t *testing.T) {
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
-		th.WaitForBatchNumber(t, job, 3)
+		err := th.WaitForBatchNumber(t, job, 3)
+		require.NoError(t, err, "failed to wait for batch number")
 	})
 }
