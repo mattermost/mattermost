@@ -33,6 +33,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import A11yController from 'utils/a11y_controller';
 import {PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -280,6 +281,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
+                DesktopApp.reactAppInitialized();
                 InitialLoadingScreen.stop();
             }
         }

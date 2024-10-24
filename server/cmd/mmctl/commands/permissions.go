@@ -42,7 +42,7 @@ var RemovePermissionsCmd = &cobra.Command{
 
 var ShowRoleCmd = &cobra.Command{
 	Use:        "show <role_name>",
-	Deprecated: "please use \"role show\" instead",
+	Deprecated: "please use \"mmctl permissions role show\" instead",
 	Short:      "Show the role information",
 	Long:       "Show all the information about a role.",
 	Example:    `  permissions show system_user`,

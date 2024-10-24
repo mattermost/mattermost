@@ -243,6 +243,16 @@ describe('rhs view actions', () => {
             expect(executeCommand).not.toHaveBeenCalled();
         });
 
+        test('it should not error in case of an empty response', async () => {
+            HookActions.runSlashCommandWillBePostedHooks.mockImplementation(() => () => ({data: {}}));
+
+            const res = await store.dispatch(submitCommand(channelId, rootId, draft));
+            expect(res).toStrictEqual({});
+
+            expect(HookActions.runSlashCommandWillBePostedHooks).toHaveBeenCalled();
+            expect(executeCommand).not.toHaveBeenCalled();
+        });
+
         test('it calls submitPost on error.sendMessage', async () => {
             jest.mock('actions/channel_actions', () => ({
                 executeCommand: jest.fn((message, _args, resolve, reject) => reject({sendMessage: 'test'})),

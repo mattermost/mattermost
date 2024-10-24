@@ -40,24 +40,6 @@ export const buildZendeskSupportForm = (form: ZendeskSupportForm, formFieldIDs: 
     return formUrl;
 };
 
-export const goToSelfHostedSupportForm = (email: string, subject: string) => {
-    const form = ZendeskSupportForm.SELF_HOSTED_SUPPORT_FORM;
-    const url = buildZendeskSupportForm(form, [
-        {id: ZendeskFormFieldIDs.EMAIL, val: email},
-        {id: ZendeskFormFieldIDs.SUBJECT, val: subject},
-    ]);
-    window.open(url, '_blank');
-};
-
-export const getSelfHostedSupportLink = (email: string, subject: string) => {
-    const form = ZendeskSupportForm.SELF_HOSTED_SUPPORT_FORM;
-    const url = buildZendeskSupportForm(form, [
-        {id: ZendeskFormFieldIDs.EMAIL, val: email},
-        {id: ZendeskFormFieldIDs.SUBJECT, val: subject},
-    ]);
-    return url;
-};
-
 export const goToCloudSupportForm = (email: string, subject: string, description: string, workspaceURL: string) => {
     const form = ZendeskSupportForm.CLOUD_SUPPORT_FORM;
     let url = buildZendeskSupportForm(form, [

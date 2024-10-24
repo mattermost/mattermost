@@ -7,21 +7,13 @@ import * as rudderAnalytics from 'rudder-sdk-js';
 
 import type {TelemetryHandler} from '@mattermost/client';
 
-import {TrackMiscCategory, TrackActionCategory, TrackEnterpriseSKU, TrackProfessionalSKU, TrackInviteGroupEvent} from 'mattermost-redux/constants/telemetry';
+import {TrackMiscCategory, eventCategory, eventSKUs} from 'mattermost-redux/constants/telemetry';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
 
-const eventSKUs: {[event: string]: string[]} = {
-    [TrackInviteGroupEvent]: [TrackProfessionalSKU, TrackEnterpriseSKU],
-};
-
-const eventCategory: {[event: string]: string} = {
-    [TrackInviteGroupEvent]: TrackActionCategory,
-};
-
 export class RudderTelemetryHandler implements TelemetryHandler {
-    trackEvent(userId: string, userRoles: string, category: string, event: string, props?: any) {
+    trackEvent(userId: string, userRoles: string, category: string, event: string, props: Record<string, unknown> = {}) {
         const properties = Object.assign({
             category,
             type: event,
@@ -45,13 +37,14 @@ export class RudderTelemetryHandler implements TelemetryHandler {
         rudderAnalytics.track('event', properties, options);
     }
 
-    trackFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props?: any) {
+    trackFeatureEvent(userId: string, userRoles: string, featureName: string, event: string, props: Record<string, unknown> = {}) {
         const properties = Object.assign({
             category: getEventCategory(event),
             type: event,
             user_actual_id: userId,
             user_actual_role: getActualRoles(userRoles),
         }, props);
+
         const options = {
             context: {
                 feature: {
@@ -93,19 +86,23 @@ function getActualRoles(userRoles: string) {
 
 function getSKUs(eventName: string) {
     const skus: string[] | undefined = eventSKUs[eventName];
+
     if (skus === undefined) {
         // Next line is to be aware if you've forgotten to add a SKU, add an empty array for Team edition
         // eslint-disable-next-line
         console.warn(`Event ${eventName} has no SKUs attached`);
     }
+
     return skus ?? [];
 }
 
 function getEventCategory(eventName: string) {
     const category: string | undefined = eventCategory[eventName];
+
     if (category === undefined) {
         // eslint-disable-next-line
         console.warn(`Event ${eventName} doesn't have a category`);
     }
+
     return category ?? TrackMiscCategory;
 }

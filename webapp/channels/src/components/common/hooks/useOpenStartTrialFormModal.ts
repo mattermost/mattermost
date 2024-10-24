@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
@@ -13,7 +14,7 @@ import type {TelemetryProps} from './useOpenPricingModal';
 
 export default function useOpenStartTrialFormModal() {
     const dispatch = useDispatch();
-    return (telemetryProps?: TelemetryProps, onClose?: () => void) => {
+    return useCallback((telemetryProps?: TelemetryProps, onClose?: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.START_TRIAL_FORM_MODAL,
             dialogType: StartTrialFormModal,
@@ -22,5 +23,5 @@ export default function useOpenStartTrialFormModal() {
                 onClose,
             },
         }));
-    };
+    }, [dispatch]);
 }

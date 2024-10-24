@@ -38,12 +38,12 @@ export default function Confirm() {
                 onKeyPress={onKeyPress}
                 className='form-group'
             >
-                <p>
+                <strong>
                     <FormattedMessage
                         id='mfa.confirm.complete'
-                        defaultMessage='**Set up complete!**'
+                        defaultMessage='Set up complete!'
                     />
-                </p>
+                </strong>
                 <p>
                     <FormattedMessage
                         id='mfa.confirm.secure'
