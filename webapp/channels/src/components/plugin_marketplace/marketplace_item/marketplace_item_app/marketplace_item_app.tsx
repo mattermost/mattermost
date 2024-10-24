@@ -23,7 +23,7 @@ export type MarketplaceItemAppProps = {
     installing: boolean;
     error?: string;
 
-    trackEvent: (category: string, event: string, props?: unknown) => void;
+    trackEvent: (category: string, event: string, props?: Record<string, unknown>) => void;
 
     actions: {
         installApp: (id: string) => Promise<boolean>;
