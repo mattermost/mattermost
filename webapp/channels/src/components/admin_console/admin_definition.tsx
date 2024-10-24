@@ -2611,6 +2611,15 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.ScheduledPosts',
+                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                            isHidden: it.not(it.licensed),
+                        },
+                        {
                             type: 'number',
                             key: 'ServiceSettings.PersistentNotificationMaxRecipients',
                             label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),

@@ -1,0 +1,49 @@
+.tabs {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    margin: 0;
+
+    .nav-tabs {
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: 0;
+        padding-inline: 12px;
+
+        li {
+            margin-right: 0;
+
+            a {
+                padding: 13px 10px;
+                border: none;
+                background: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+                transition: all 0.15s ease;
+
+                &:hover,
+                &:active,
+                &:focus,
+                &:focus-within {
+                    border: none;
+                    border-radius: none;
+                    background: transparent;
+                    color: var(--center-channel-color);
+                }
+            }
+
+            &.active {
+                border-bottom: 2px solid var(--denim-button-bg);
+
+                a {
+                    color: var(--denim-button-bg);
+                }
+            }
+
+            &:not(:first-child) {
+                margin-left: 8px;
+            }
+        }
+    }
+}

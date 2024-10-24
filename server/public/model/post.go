@@ -523,17 +523,17 @@ func (o *Post) SanitizeInput() {
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {

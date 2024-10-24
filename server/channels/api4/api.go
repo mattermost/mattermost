@@ -337,6 +337,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()
 	api.InitClientPerformanceMetrics()
+	api.InitScheduledPost()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

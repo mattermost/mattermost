@@ -35,6 +35,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -1424,6 +1425,32 @@ export function getChannelMemberCountsByGroup(channelId: string) {
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
     });
+}
+
+export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Array<Channel['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.missingChannelLoader) {
+            loaders.missingChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIDs) => {
+                    return channelIDs.length ? dispatch(getChannel(channelIDs[0])) : Promise.resolve();
+                },
+                maxBatchSize: 1,
+                wait: 100,
+            });
+        }
+
+        const state = getState();
+        const missingChannelIDs = channelIDs.filter((channelId) => !getChannelSelector(state, channelId));
+
+        if (missingChannelIDs.length > 0) {
+            const loader = loaders.missingChannelLoader as DelayedDataLoader<Channel['id']>;
+            loader.queue(missingChannelIDs);
+        }
+
+        return {
+            data: missingChannelIDs,
+        };
+    };
 }
 
 export default {

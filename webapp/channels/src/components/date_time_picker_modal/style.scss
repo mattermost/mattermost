@@ -1,17 +1,11 @@
-.post-reminder-modal {
+.date-time-picker-modal {
     .modal-body {
         overflow: visible;
     }
 
     .dateTime__calendar-input {
         width: 100%;
-        border: 2px solid var(--button-bg);
         font-size: 14px;
-
-        &:hover {
-            border: 2px solid var(--button-bg);
-            cursor: pointer;
-        }
 
         &:focus-within {
             box-shadow: 0;
@@ -41,6 +35,36 @@
                     cursor: pointer;
                 }
             }
+        }
+    }
+
+    .dateTime__time-menu .dateTime__input, .dateTime__calendar-input {
+        height: 40px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        &:hover, &.isOpen {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: 0 0 0 2px var(--button-bg);
+            cursor: pointer;
+        }
+
+        .Input_wrapper {
+            button:hover {
+                background: none;
+            }
+        }
+    }
+
+    .dateTime__time-menu {
+        &.MenuWrapper--open {
+            .dateTime__input {
+                box-shadow: 0 0 0 2px var(--button-bg);
+                cursor: pointer;
+            }
+        }
+
+        .dateTime__time-icon {
+            pointer-events: none;
         }
     }
 

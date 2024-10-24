@@ -463,6 +463,7 @@ export const ModalIdentifiers = {
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
+    SCHEDULED_POST_CUSTOM_TIME_MODAL: 'scheduled_post_custom_time',
     SECURE_CONNECTION_DELETE: 'secure_connection_delete',
     SECURE_CONNECTION_CREATE_INVITE: 'secure_connection_create_invite',
     SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
@@ -2216,4 +2217,7 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+
 export default Constants;
+
