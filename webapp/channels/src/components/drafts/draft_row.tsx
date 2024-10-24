@@ -34,6 +34,7 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
+import EditPost from 'components/edit_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 
@@ -47,6 +48,8 @@ import Panel from './panel/panel';
 import PanelBody from './panel/panel_body';
 import Header from './panel/panel_header';
 import {getErrorStringFromCode} from './utils';
+
+import './draft_row.scss';
 
 type Props = {
     user: UserProfile;
@@ -67,6 +70,8 @@ function DraftRow({
     isRemote,
     scrollIntoView,
 }: Props) {
+    const [isEditing, setIsEditing] = useState(false);
+
     const isScheduledPost = 'scheduled_at' in item;
     const intl = useIntl();
 
@@ -108,6 +113,7 @@ function DraftRow({
         // This is applicable only for scheduled post.
         if (item.error_code) {
             postError = getErrorStringFromCode(intl, item.error_code);
+            postError = getErrorStringFromCode(intl, item.error_code);
         }
     } else if (rootPostDeleted) {
         postError = intl.formatMessage({id: 'drafts.error.post_not_found', defaultMessage: 'Thread not found'});
@@ -124,12 +130,15 @@ function DraftRow({
         if (!channel) {
             return '';
         }
-
         const teamId = getCurrentTeamId(state);
         return getChannelURL(state, channel, teamId);
     });
 
     const goToMessage = useCallback(async () => {
+        if (isEditing) {
+            return;
+        }
+
         if (rootId) {
             if (rootPostDeleted) {
                 return;
@@ -138,7 +147,7 @@ function DraftRow({
             return;
         }
         history.push(channelUrl);
-    }, [channelUrl, dispatch, history, rootId, rootPostDeleted]);
+    }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
     const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
@@ -232,7 +241,13 @@ function DraftRow({
         onScheduleDraft,
     ]);
 
+    const handleCancelEdit = useCallback(() => {
+        setIsEditing(false);
+    }, []);
+
     const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+        handleCancelEdit();
+
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
             scheduled_at: updatedScheduledAtTime,
@@ -242,22 +257,30 @@ function DraftRow({
         return {
             error: result.error?.message,
         };
-    }, [connectionId, dispatch, item]);
+    }, [connectionId, dispatch, item, handleCancelEdit]);
 
     const handleSchedulePostOnDelete = useCallback(async () => {
+        handleCancelEdit();
+
         const scheduledPostId = (item as ScheduledPost).id;
         const result = await dispatch(deleteScheduledPost(scheduledPostId, connectionId));
         return {
             error: result.error?.message,
         };
-    }, [item, dispatch, connectionId]);
+    }, [item, dispatch, connectionId, handleCancelEdit]);
+
+    const handleSchedulePostEdit = useCallback(() => {
+        setIsEditing((isEditing) => !isEditing);
+    }, []);
 
     const handleScheduledPostOnSend = useCallback(() => {
+        handleCancelEdit();
+
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
         handleOnSend(postDraft, undefined, {keepDraft: true});
         return Promise.resolve({});
-    }, [handleOnSend, item]);
+    }, [handleOnSend, item, handleCancelEdit]);
 
     const scheduledPostActions = useMemo(() => {
         if (!channel) {
@@ -271,6 +294,7 @@ function DraftRow({
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
                 onSend={handleScheduledPostOnSend}
+                onEdit={handleSchedulePostEdit}
             />
         );
     }, [
@@ -278,6 +302,7 @@ function DraftRow({
         handleSchedulePostOnDelete,
         handleSchedulePostOnReschedule,
         handleScheduledPostOnSend,
+        handleSchedulePostEdit,
         item,
     ]);
 
@@ -285,7 +310,7 @@ function DraftRow({
         if (rootId && !thread?.id) {
             dispatch(getPostAction(rootId));
         }
-    }, [thread?.id]);
+    }, [thread?.id, rootId]);
 
     const alertRef = useScrollOnRender();
 
@@ -345,17 +370,31 @@ function DraftRow({
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
-                    <PanelBody
-                        channelId={channel?.id}
-                        displayName={displayName}
-                        fileInfos={fileInfos}
-                        message={item.message}
-                        status={status}
-                        priority={rootId ? undefined : item.metadata?.priority}
-                        uploadsInProgress={uploadsInProgress}
-                        userId={user.id}
-                        username={user.username}
-                    />
+
+                    {
+                        isEditing &&
+                        <EditPost
+                            scheduledPost={item as ScheduledPost}
+                            onCancel={handleCancelEdit}
+                            afterSave={handleCancelEdit}
+                            onDeleteScheduledPost={handleSchedulePostOnDelete}
+                        />
+                    }
+
+                    {
+                        !isEditing &&
+                        <PanelBody
+                            channelId={channel?.id}
+                            displayName={displayName}
+                            fileInfos={fileInfos}
+                            message={item.message}
+                            status={status}
+                            priority={rootId ? undefined : item.metadata?.priority}
+                            uploadsInProgress={uploadsInProgress}
+                            userId={user.id}
+                            username={user.username}
+                        />
+                    }
                 </>
             )}
         </Panel>
