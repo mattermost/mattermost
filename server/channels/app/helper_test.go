@@ -70,7 +70,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	if err != nil {
+		panic(err)
+	}
 
 	buffer := &mlog.Buffer{}
 
@@ -260,7 +263,10 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		if appErr != nil {
+			panic(appErr)
+		}
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
@@ -278,7 +284,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	if err := mainHelper.GetSQLStore().User().InsertUsers(users); err != nil {
+		panic(err)
+	}
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -292,7 +300,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) DeleteBots() *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		if appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId); appErr != nil {
+			panic(appErr)
+		}
 	}
 	return th
 }
@@ -614,7 +624,9 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		if appErr := th.App.Srv().InvalidateAllCaches(); appErr != nil {
+			panic(appErr)
+		}
 	}
 	th.ShutdownApp()
 	if th.tempWorkspace != "" {
