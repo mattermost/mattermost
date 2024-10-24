@@ -3,6 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
+import {GlobalWorkerOptions} from 'pdfjs-dist';
 import type {RenderParameters} from 'pdfjs-dist/types/src/display/api';
 import React from 'react';
 
@@ -167,9 +168,10 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
     getPdfDocument = async () => {
         try {
             const PDFJS = await import('pdfjs-dist');
-            const worker = await import('pdfjs-dist/build/pdf.worker.entry.js');
-            PDFJS.GlobalWorkerOptions.workerSrc = worker;
-
+            GlobalWorkerOptions.workerSrc = new URL(
+                'pdfjs-dist/build/pdf.worker.js',
+                import.meta.url,
+            ).toString();
             const pdf = await PDFJS.getDocument({
                 url: this.props.fileUrl,
                 cMapUrl: getSiteURL() + '/static/cmaps/',
