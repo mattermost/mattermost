@@ -157,9 +157,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             actions.setDraft(draftStorageId, draftRef.current);
         }, Constants.SAVE_DRAFT_TIMEOUT);
 
-        const isMentions = allAtMentions(editText).length > 0;
-        setShowMentionHelper(isMentions);
-    }, [actions, draftStorageId, editText]);
+        if (!scheduledPost) {
+            const isMentions = allAtMentions(editText).length > 0;
+            setShowMentionHelper(isMentions);
+        }
+    }, [actions, draftStorageId, editText, scheduledPost]);
 
     useEffect(() => {
         const focusTextBox = () => textboxRef?.current?.focus();
