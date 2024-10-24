@@ -415,10 +415,7 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, Gl
 export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
-        let teamId = getSearchTeam(state);
-        if (!teamId) {
-            teamId = getCurrentTeamId(state);
-        }
+        const teamId = getSearchTeam(state);
 
         let previousRhsState = getRhsState(state);
         if (previousRhsState === RHSStates.CHANNEL_FILES) {
