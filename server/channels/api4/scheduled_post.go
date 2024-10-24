@@ -61,6 +61,8 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	var scheduledPost model.ScheduledPost
 	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
@@ -78,7 +80,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdScheduledPost, appErr := c.App.SaveScheduledPost(c.AppContext, &scheduledPost)
+	createdScheduledPost, appErr := c.App.SaveScheduledPost(c.AppContext, &scheduledPost, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
