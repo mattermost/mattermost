@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    reviewers:
+      - "mattermost/core-build-engineers"
+    open-pull-requests-limit: 5
+    groups:
+      Github Actions updates:
+        applies-to: version-updates
+        dependency-type: production
+    schedule:
+      # Check for updates to GitHub Actions every week
+      day: "monday"
+      time: "09:00"
+      interval: "weekly"
