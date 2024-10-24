@@ -12,11 +12,8 @@ import styled from 'styled-components';
 
 import {GlobeIcon, LockIcon, PlusIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
-import type {Team} from '@mattermost/types/teams';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -47,7 +44,7 @@ import {
 import {useRemoteClusterCreate, useSharedChannelsAdd, useSharedChannelsRemove} from './modals/modal_utils';
 import TeamSelector from './team_selector';
 import type {SharedChannelRemoteRow} from './utils';
-import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows} from './utils';
+import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows, useTeamOptions} from './utils';
 
 import {AdminConsoleListTable} from '../list_table';
 import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
@@ -73,6 +70,8 @@ export default function SecureConnectionDetail(props: Props) {
 
     const {promptCreate, saving: creating} = useRemoteClusterCreate();
 
+    const teamsById = useTeamOptions();
+
     useEffect(() => {
         // keep history cache up to date
         history.replace({...location, state: currentRemoteCluster});
@@ -87,8 +86,6 @@ export default function SecureConnectionDetail(props: Props) {
         applyPatch({display_name: value});
     };
 
-    const teams = useSelector(getActiveTeamsList);
-    const teamsById = useMemo(() => teams.reduce<IDMappedObjects<Team>>((teams, team) => ({...teams, [team.id]: team}), {}), [teams]);
     const handleTeamChange = (teamId: string) => {
         applyPatch({default_team_id: teamId});
     };
@@ -111,7 +108,7 @@ export default function SecureConnectionDetail(props: Props) {
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/environment/secure_connections'
+                        to='/admin_console/site_config/secure_connections'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -154,6 +151,7 @@ export default function SecureConnectionDetail(props: Props) {
                                 >
                                     <Input
                                         type='text'
+                                        data-testid='organization-name-input'
                                         value={remoteCluster?.display_name ?? ''}
                                         onChange={handleNameChange}
                                         autoFocus={isCreating}
@@ -170,6 +168,7 @@ export default function SecureConnectionDetail(props: Props) {
                                     })}
                                 >
                                     <TeamSelector
+                                        testId='destination-team-input'
                                         value={remoteCluster.default_team_id ?? ''}
                                         teamsById={teamsById}
                                         onChange={handleTeamChange}
@@ -191,7 +190,7 @@ export default function SecureConnectionDetail(props: Props) {
 
             <SaveChangesPanel
                 saving={isCreating ? isPendingState(creating) : isPendingState(saving)}
-                cancelLink='/admin_console/environment/secure_connections'
+                cancelLink='/admin_console/site_config/secure_connections'
                 saveNeeded={hasChanges && isFormValid}
                 onClick={isCreating ? handleCreate : save}
                 serverError={(isErrorState(saving) || isErrorState(creating)) ? (
