@@ -11,11 +11,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import Constants from 'utils/constants';
 import {passwordErrors} from 'utils/password';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BlockableLink from './blockable_link';
 import BooleanSetting from './boolean_setting';
 import CheckboxSetting from './checkbox_setting';
+import type {BaseProps, BaseState} from './old_admin_settings';
+import OLDAdminSettings from './old_admin_settings';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -84,7 +84,7 @@ function getPasswordErrorsMessage(lowercase?: boolean, uppercase?: boolean, numb
 
     return passwordErrors[key as KeyType];
 }
-export default class PasswordSettings extends AdminSettings<Props, State> {
+export default class PasswordSettings extends OLDAdminSettings<Props, State> {
     sampleErrorMsg: React.ReactNode;
 
     constructor(props: Props) {

@@ -34,7 +34,7 @@ type ClientErrorPlaceholder = {
     server_error_id: string;
 }
 
-export default abstract class AdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
+export default abstract class OLDAdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
     public constructor(props: Props) {
         super(props);
         const stateInit = {
