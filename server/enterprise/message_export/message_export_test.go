@@ -1213,6 +1213,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		})
 		require.NoError(t, err)
 		updatedPost2, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
 
 		// 3 - post deleted with a deleted file
 		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1225,7 +1226,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		time.Sleep(1 * time.Millisecond)
 		message3DeletedAt := model.GetMillis()
 		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeletedAt, users[0].Id)
+		require.NoError(t, err)
 		deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
+		require.NoError(t, err)
 		posts = append(posts, post)
 		time.Sleep(1 * time.Millisecond)
 
