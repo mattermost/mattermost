@@ -13,6 +13,11 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
@@ -133,8 +138,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 			}},
 			posts: []*model.MessageExport{
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-original-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -142,8 +146,9 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(1)),
-					PostUpdateAt:       model.NewPointer(int64(1)),
-					PostMessage:        model.NewPointer("message"),
+					PostUpdateAt:       model.NewPointer(int64(2)),
+					PostEditAt:         model.NewPointer(int64(2)),
+					PostMessage:        model.NewPointer("edited message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
 					Username:           model.NewPointer("username"),
@@ -162,16 +167,16 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					PostCreateAt:       model.NewPointer(int64(1)),
 					PostUpdateAt:       model.NewPointer(int64(2)),
 					PostDeleteAt:       model.NewPointer(int64(2)),
-					PostMessage:        model.NewPointer("edit message"),
+					PostMessage:        model.NewPointer("original message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
 					Username:           model.NewPointer("username"),
 					ChannelType:        &chanTypeDirect,
 					PostFileIds:        []string{},
 				},
+				// deleted post
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id2"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -190,8 +195,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
 				},
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id3"),
 					PostRootId:         model.NewPointer("post-root-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -247,39 +251,46 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <CorporateEmailID>test3@email</CorporateEmailID>\n",
 				"    </ParticipantEntered>\n",
 				"    <Message>\n",
+				"      <MessageId>post-original-id</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
-				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
+				"      <UpdatedType>EditedNewMsg</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
+				"      <Content>edited message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
-				"      <Content>edit message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
+				"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
+				"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
+				"      <Content>original message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <Content>message2</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
-				"      <DateTimeUTC>4</DateTimeUTC>\n",
+				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <UpdatedType>Deleted</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>4</UpdatedDateTimeUTC>\n",
 				"      <Content>delete message2</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id3</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>100</DateTimeUTC>\n",
 				"      <Content>message3</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <ParticipantLeft>\n",
 				"      <LoginName>test_bot@email</LoginName>\n",
@@ -393,6 +404,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
 				"    </ParticipantEntered>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
@@ -400,11 +412,11 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <PreviewsPost>n4w39mc1ff8y5fite4b8hacy1w</PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>100</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <ParticipantLeft>\n",
 				"      <LoginName>test@email</LoginName>\n",
@@ -527,11 +539,11 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <CorporateEmailID>test3@email</CorporateEmailID>\n",
 				"    </ParticipantEntered>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id-1</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <FileTransferStarted>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
@@ -547,11 +559,11 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <Status>Completed</Status>\n",
 				"    </FileTransferEnded>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id-2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>100</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <ParticipantLeft>\n",
 				"      <LoginName>test2@email</LoginName>\n",
@@ -605,8 +617,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 			}},
 			posts: []*model.MessageExport{
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -623,8 +634,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					PostFileIds:        []string{},
 				},
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id2"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -642,8 +652,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					PostFileIds:        []string{},
 				},
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id3"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -662,8 +671,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 					PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
 				},
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id4"),
 					PostRootId:         model.NewPointer("post-root-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -725,39 +733,43 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <CorporateEmailID>test4@email</CorporateEmailID>\n",
 				"    </ParticipantEntered>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id1</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <UpdatedType>UpdatedNoMsgChange</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
 				"      <Content>edit message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id3</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id3</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
-				"      <DateTimeUTC>4</DateTimeUTC>\n",
+				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <UpdatedType>Deleted</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>4</UpdatedDateTimeUTC>\n",
 				"      <Content>delete message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id4</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>100</DateTimeUTC>\n",
 				"      <Content>message</Content>\n",
-				"      <PreviewsPost></PreviewsPost>\n",
 				"    </Message>\n",
 				"    <ParticipantLeft>\n",
 				"      <LoginName>test_bot@email</LoginName>\n",
@@ -991,8 +1003,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 			posts: [][]*model.MessageExport{
 				{
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id1"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -1009,7 +1020,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 						PostFileIds:        []string{},
 					},
 					{
-						PostId:             model.NewPointer("post-id"),
+						PostId:             model.NewPointer("post-id2"),
 						PostOriginalId:     model.NewPointer("post-original-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
@@ -1030,8 +1041,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 				},
 				{
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id3"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -1050,8 +1060,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 						PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
 					},
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-id4"),
 						PostRootId:         model.NewPointer("post-root-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
@@ -1096,18 +1105,21 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 					"      <CorporateEmailID>testA@email</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id1</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id2</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>4</UpdatedDateTimeUTC>\n",
+					"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
 					"      <Content>edit message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>testA@email</LoginName>\n",
@@ -1174,25 +1186,27 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 					"      <CorporateEmailID>test4@email</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id3</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message2</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id3</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>5</DateTimeUTC>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>Deleted</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>5</UpdatedDateTimeUTC>\n",
 					"      <Content>delete message2</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id4</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>100</DateTimeUTC>\n",
 					"      <Content>message3</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>test_bot@email</LoginName>\n",
@@ -1450,7 +1464,6 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 				"step2": {
 					{
 						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -1484,11 +1497,11 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
@@ -1500,6 +1513,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"  </Conversation>\n",
 					"</FileDump>",
 				}, ""),
+				// We're redoing the export completely, so we'll get the original message then the deleted record
 				"step2": strings.Join([]string{
 					xml.Header,
 					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
@@ -1513,18 +1527,20 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
-					"      <DateTimeUTC>2</DateTimeUTC>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>Deleted</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
 					"      <Content>delete message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
@@ -1558,8 +1574,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 			posts: map[string][]*model.MessageExport{
 				"step1": {
 					{
-						PostId:             model.NewPointer("post-id"),
-						PostOriginalId:     model.NewPointer("post-original-id"),
+						PostId:             model.NewPointer("post-original-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
 						TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -1577,8 +1592,9 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					},
 				},
 				"step2": {
+					// new post which holds the original message contents
 					{
-						PostId:             model.NewPointer("post-id"),
+						PostId:             model.NewPointer("post-id-new"),
 						PostOriginalId:     model.NewPointer("post-original-id"),
 						TeamId:             model.NewPointer("team-id"),
 						TeamName:           model.NewPointer("team-name"),
@@ -1589,6 +1605,25 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 						PostCreateAt:       model.NewPointer(int64(1)),
 						PostUpdateAt:       model.NewPointer(int64(2)),
 						PostDeleteAt:       model.NewPointer(int64(2)),
+						PostMessage:        model.NewPointer("message"),
+						UserEmail:          model.NewPointer("test@test.com"),
+						UserId:             model.NewPointer("user-id"),
+						Username:           model.NewPointer("username"),
+						ChannelType:        &chanTypeDirect,
+						PostFileIds:        []string{},
+					},
+					// old post which has been edited
+					{
+						PostId:             model.NewPointer("post-original-id"),
+						TeamId:             model.NewPointer("team-id"),
+						TeamName:           model.NewPointer("team-name"),
+						TeamDisplayName:    model.NewPointer("team-display-name"),
+						ChannelId:          model.NewPointer("channel-id"),
+						ChannelName:        model.NewPointer("channel-name"),
+						ChannelDisplayName: model.NewPointer("channel-display-name"),
+						PostCreateAt:       model.NewPointer(int64(1)),
+						PostUpdateAt:       model.NewPointer(int64(2)),
+						PostEditAt:         model.NewPointer(int64(2)),
 						PostMessage:        model.NewPointer("edit message"),
 						UserEmail:          model.NewPointer("test@test.com"),
 						UserId:             model.NewPointer("user-id"),
@@ -1612,11 +1647,11 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-original-id</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
 					"      <Content>message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
@@ -1628,6 +1663,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"  </Conversation>\n",
 					"</FileDump>",
 				}, ""),
+				// We're redoing the export completely, so we'll get the original message then the deleted record
 				"step2": strings.Join([]string{
 					xml.Header,
 					"<FileDump xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n",
@@ -1641,11 +1677,23 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 					"      <CorporateEmailID>test@test.com</CorporateEmailID>\n",
 					"    </ParticipantEntered>\n",
 					"    <Message>\n",
+					"      <MessageId>post-id-new</MessageId>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
 					"      <UserType>user</UserType>\n",
 					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>EditedOriginalMsg</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
+					"      <EditedNewMsgId>post-original-id</EditedNewMsgId>\n",
+					"      <Content>message</Content>\n",
+					"    </Message>\n",
+					"    <Message>\n",
+					"      <MessageId>post-original-id</MessageId>\n",
+					"      <LoginName>test@test.com</LoginName>\n",
+					"      <UserType>user</UserType>\n",
+					"      <DateTimeUTC>1</DateTimeUTC>\n",
+					"      <UpdatedType>EditedNewMsg</UpdatedType>\n",
+					"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
 					"      <Content>edit message</Content>\n",
-					"      <PreviewsPost></PreviewsPost>\n",
 					"    </Message>\n",
 					"    <ParticipantLeft>\n",
 					"      <LoginName>test@test.com</LoginName>\n",
@@ -1815,10 +1863,10 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test", Id: "12345", Path: "filename.txt"},
 			},
 			expectedStarts: []any{
-				&FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
+				FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
 			},
 			expectedStops: []any{
-				&FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
+				FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt"},
@@ -1845,12 +1893,12 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test2", Id: "54321", Path: "filename2.txt"},
 			},
 			expectedStarts: []any{
-				&FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
-				&FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test2", FilePath: "filename2.txt"},
+				FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
+				FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test2", FilePath: "filename2.txt"},
 			},
 			expectedStops: []any{
-				&FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
-				&FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test2", FilePath: "filename2.txt", Status: "Completed"},
+				FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
+				FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test2", FilePath: "filename2.txt", Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt"},
@@ -1878,16 +1926,16 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
 			expectedStarts: []any{
-				&FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
+				FileUploadStartExport{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
 			},
 			expectedStops: []any{
-				&FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
+				FileUploadStopExport{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
 			expectedDeleteFileMessages: []any{
-				&PostExport{UserEmail: "test@test.com", UserType: "user", PostTime: 2, Message: "delete " + "filename.txt"},
+				PostExport{MessageId: "test", UserEmail: "test@test.com", UserType: "user", CreateAt: 1, UpdatedType: shared.FileDeleted, UpdateAt: 2, Message: "delete " + "filename.txt"},
 			},
 			expectError: false,
 		},
@@ -2114,5 +2162,132 @@ func Test_channelHasActivity(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, channelHasActivity(tt.cmhs, tt.startTime, tt.endTime), "channelHasActivity(%v, %v, %v)", tt.cmhs, tt.startTime, tt.endTime)
 		})
+	}
+}
+
+func Test_getPostExport(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	jobs.DefaultWatcherPollingInterval = 100
+	th := api4.SetupEnterprise(t).InitBasic()
+	th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
+	defer th.TearDown()
+
+	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
+	for i := 0; i < 10; i++ {
+		time.Sleep(1 * time.Millisecond)
+		start := model.GetMillis()
+
+		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
+		require.NoError(t, err)
+		require.Equal(t, 0, int(count))
+
+		var posts []*model.Post
+
+		// 0 - post edited with 3 simultaneous posts in-between - forward
+		// original post with edited message
+		originalPost, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "message 0",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, 0, originalPost.UpdateAt, "originalPost's updateAt was zero, test 1")
+		posts = append(posts, originalPost)
+
+		// If we don't sleep, the two messages might not have different CreateAt and UpdateAts
+		time.Sleep(1 * time.Millisecond)
+
+		// 1 - edited post
+		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
+			Id:        originalPost.Id,
+			CreateAt:  originalPost.CreateAt,
+			EditAt:    model.GetMillis(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "edited message 0",
+		}, originalPost)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, originalPost.UpdateAt, "originalPost's updateAt was zero, test 2")
+		require.NotEqual(t, 0, post.UpdateAt, "edited post's updateAt was zero, test 2")
+		posts = append(posts, post)
+
+		simultaneous := post.UpdateAt
+
+		// Add 8 other posts at the same updateAt
+		for j := 1; j <= 8; j++ {
+			// 2 - post 1 at same updateAt
+			post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   fmt.Sprintf("message %d", j),
+				CreateAt:  simultaneous,
+			})
+			require.NoError(t, err)
+			require.NotEqual(t, 0, post.UpdateAt)
+			posts = append(posts, post)
+		}
+
+		// Use the config fallback for simplicity
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MessageExportSettings.EnableExport = true
+			*cfg.MessageExportSettings.ExportFromTimestamp = start
+			*cfg.MessageExportSettings.BatchSize = 10
+		})
+
+		// the messages can be in any order because all have equal `updateAt`s
+		expectedExports := []PostExport{
+			{
+				MessageId:      posts[0].Id,
+				UserEmail:      th.BasicUser.Email,
+				UserType:       "user",
+				CreateAt:       posts[0].CreateAt,
+				Message:        posts[0].Message,
+				UpdateAt:       posts[1].UpdateAt, // the edit update at
+				UpdatedType:    shared.EditedOriginalMsg,
+				EditedNewMsgId: posts[1].Id,
+			},
+			{
+				MessageId:   posts[1].Id,
+				UserEmail:   th.BasicUser.Email,
+				UserType:    "user",
+				CreateAt:    posts[1].CreateAt,
+				Message:     posts[1].Message,
+				UpdateAt:    posts[1].UpdateAt,
+				UpdatedType: shared.EditedNewMsg,
+			},
+		}
+
+		for j := 2; j < 10; j++ {
+			expectedExports = append(expectedExports, PostExport{
+				MessageId: posts[j].Id,
+				UserEmail: th.BasicUser.Email,
+				UserType:  "user",
+				CreateAt:  posts[j].CreateAt,
+				Message:   posts[j].Message,
+			})
+		}
+
+		actualMessageExports, _, err := th.App.Srv().Store().Compliance().MessageExport(th.Context, model.MessageExportCursor{
+			LastPostUpdateAt: start,
+			UntilUpdateAt:    model.GetMillis(),
+		}, 10)
+		require.NoError(t, err)
+		require.Len(t, actualMessageExports, 10)
+		for _, export := range actualMessageExports {
+			require.NotEqual(t, 0, *export.PostUpdateAt)
+		}
+		results := shared.RunExportResults{}
+		var actualExports []PostExport
+
+		for i := range actualMessageExports {
+			var postExport PostExport
+			postExport, results = getPostExport(actualMessageExports, i, results)
+			actualExports = append(actualExports, postExport)
+		}
+
+		require.ElementsMatch(t, expectedExports, actualExports, fmt.Sprintf("batch %d", i))
 	}
 }

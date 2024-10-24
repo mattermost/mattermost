@@ -290,6 +290,7 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
 			Posts.DeleteAt AS PostDeleteAt,
+            Posts.EditAt AS PostEditAt,
 			Posts.Message AS PostMessage,
 			Posts.Type AS PostType,
 			Posts.Props AS PostProps,
