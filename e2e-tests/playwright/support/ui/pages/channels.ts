@@ -72,7 +72,6 @@ export default class ChannelsPage {
                 channelsUrl += `/${channelName}`;
             }
         }
-
         await this.page.goto(channelsUrl);
     }
 }

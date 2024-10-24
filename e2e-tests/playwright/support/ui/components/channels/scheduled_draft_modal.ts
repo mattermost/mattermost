@@ -43,10 +43,16 @@ export default class ScheduledDraftModal {
         return this.container.locator(`button[aria-label*='${day}${daySuffix} ${month} (${dayOfWeek})']`);
     }
 
-    async selectDay() {
+    async selectDay(dayFromToday: number = 0) {
         await this.dateInput.click();
 
         const pacificDate = this.getPacificDate();
+
+        // If dayFromToday is provided, add days to the current date
+        if (dayFromToday) {
+            pacificDate.setDate(pacificDate.getDate() + dayFromToday);
+        }
+
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
         const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
@@ -59,6 +65,10 @@ export default class ScheduledDraftModal {
         await this.confirmButton.click();
     }
 
+    /**
+     * Selecting the First time option from the dropdown for
+     * scheduled_post_job to send the drafts out
+     */
     async selectTime() {
         await this.timeLocator.click();
         const timeButton = this.timeDropdownOptions.first();
