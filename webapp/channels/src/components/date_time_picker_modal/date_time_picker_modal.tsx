@@ -34,6 +34,7 @@ type Props = {
     relativeDate?: boolean;
     className?: string;
     errorText?: string | React.ReactNode;
+    timePickerInterval?: number;
 };
 
 export default function DateTimePickerModal({onExited,
@@ -51,6 +52,7 @@ export default function DateTimePickerModal({onExited,
     relativeDate,
     className,
     errorText,
+    timePickerInterval,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
@@ -111,6 +113,7 @@ export default function DateTimePickerModal({onExited,
                 timezone={userTimezone}
                 setIsDatePickerOpen={setIsDatePickerOpen}
                 relativeDate={relativeDate}
+                timePickerInterval={timePickerInterval}
             />
 
             {bodySuffix}
