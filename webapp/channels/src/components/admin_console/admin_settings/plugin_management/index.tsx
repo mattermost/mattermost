@@ -129,8 +129,8 @@ const PluginManagement = ({
                             <>
                                 <EnablePluginsSetting
                                     onChange={handleChange}
-                                    value={settingValues[FIELD_IDS.REQUIRE_PLUGIN_SIGNATURE]}
-                                    isDisabled={generalDisable}
+                                    value={settingValues[FIELD_IDS.ENABLE]}
+                                    isDisabled={isDisabled}
                                 />
                                 <RequirePluginSignature
                                     onChange={handleChange}

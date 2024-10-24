@@ -33,7 +33,7 @@ const MaxOpenConns = ({
     const setByEnv = useIsSetByEnv('SqlSettings.MaxOpenConns');
     return (
         <TextSetting
-            id={FIELD_IDS.MAX_IDLE_CONNS}
+            id={FIELD_IDS.MAX_OPEN_CONNS}
             placeholder={placeholder}
             label={label}
             helpText={helpText}

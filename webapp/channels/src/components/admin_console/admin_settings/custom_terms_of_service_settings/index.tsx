@@ -92,6 +92,7 @@ const CustomTermsOfServiceSettings = ({
             return <LoadingScreen/>;
         }
 
+        const generalDisabled = isDisabled || !settingValues[FIELD_IDS.TERMS_ENABLED];
         return (
             <SettingsGroup>
                 <CustomTermsOfServiceEnabled
@@ -102,12 +103,12 @@ const CustomTermsOfServiceSettings = ({
                 <CustomTermsOfServiceText
                     onChange={handleChange}
                     value={settingValues[FIELD_IDS.TERMS_TEXT]}
-                    isDisabled={isDisabled || !licenseAllows}
+                    isDisabled={generalDisabled}
                 />
                 <CustomTermsOfServiceReAcceptancePeriod
                     onChange={handleChange}
                     value={settingValues[FIELD_IDS.RE_ACCEPTANCE_PERIOD]}
-                    isDisabled={isDisabled || !licenseAllows}
+                    isDisabled={generalDisabled}
                 />
             </SettingsGroup>
         );

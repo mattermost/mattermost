@@ -33,7 +33,7 @@ const GlobalRelaySMTPPassword = ({
     const setByEnv = useIsSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPPassword');
     return (
         <TextSetting
-            id={FIELD_IDS.EXPORT_JOB_START_TIME}
+            id={FIELD_IDS.GLOBAL_RELAY_SMTP_PASSWORD}
             placeholder={placeholder}
             label={label}
             helpText={helpText}

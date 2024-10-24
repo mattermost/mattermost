@@ -33,7 +33,7 @@ const QueryTimeout = ({
     const setByEnv = useIsSetByEnv('SqlSettings.QueryTimeout');
     return (
         <TextSetting
-            id={FIELD_IDS.MAX_IDLE_CONNS}
+            id={FIELD_IDS.QUERY_TIMEOUT}
             placeholder={placeholder}
             label={label}
             helpText={helpText}
