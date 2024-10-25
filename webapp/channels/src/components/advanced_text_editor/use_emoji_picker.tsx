@@ -25,7 +25,7 @@ import type {PostDraft} from 'types/store/draft';
 import {IconContainer} from './formatting_bar/formatting_icon';
 
 const useEmojiPicker = (
-    readOnlyChannel: boolean,
+    isDisabled: boolean,
     draft: PostDraft,
     caretPosition: number,
     setCaretPosition: (pos: number) => void,
@@ -116,7 +116,7 @@ const useEmojiPicker = (
 
     let emojiPicker = null;
 
-    if (enableEmojiPicker && !readOnlyChannel) {
+    if (enableEmojiPicker && !isDisabled) {
         emojiPicker = (
             <>
                 <EmojiPickerOverlay
