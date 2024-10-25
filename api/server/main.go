@@ -48,7 +48,7 @@ func main() {
 
 	// Parse the Open APIv4 Spec
 	document, err := libopenapi.NewDocument(data)
-	if err != nil {
+	if err != nil || document == nil {
 		log.Fatalf("Failed to parse OpenAPI spec: %s", err)
 	}
 
