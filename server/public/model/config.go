@@ -4529,6 +4529,62 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
+type FilterTag struct {
+	TagType string
+	TagName string
+}
+
+type ConfigFilterOptions struct {
+	GetConfigOptions
+	TagFilters []FilterTag
+}
+
+type GetConfigOptions struct {
+	RemoveMasked   bool
+	RemoveDefaults bool
+}
+
+func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error) {
+	if cfg == nil {
+		return nil, nil
+	}
+
+	defaultCfg := &Config{}
+	defaultCfg.SetDefaults()
+
+	filteredCfg, err := cfg.StringMap()
+	if err != nil {
+		return nil, err
+	}
+
+	filteredDefaultCfg, err := defaultCfg.StringMap()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range opts.TagFilters {
+		filteredCfg = structToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+		filteredDefaultCfg = structToMapFilteredByTag(defaultCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+	}
+
+	if opts.RemoveDefaults {
+		filteredCfg = stringMapDiff(filteredCfg, filteredDefaultCfg)
+	}
+
+	if opts.RemoveMasked {
+		removeFakeSettings(filteredCfg)
+	}
+
+	// only apply this if we applied some filters
+	// the alternative is to remove empty maps and slices during the filters
+	// but having this in a separate step makes it easier to understand
+	if opts.RemoveDefaults || opts.RemoveMasked || len(opts.TagFilters) > 0 {
+		removeEmptyMapsAndSlices(filteredCfg)
+	}
+
+	return filteredCfg, nil
+}
+
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
 func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any {
@@ -4576,6 +4632,90 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 	}
 
 	return out
+}
+
+// removeEmptyMapsAndSlices removes all the empty maps and slices from a map
+func removeEmptyMapsAndSlices(m map[string]any) {
+	for k, v := range m {
+		switch vt := v.(type) {
+		case map[string]any:
+			removeEmptyMapsAndSlices(vt)
+			if len(vt) == 0 {
+				delete(m, k)
+			}
+		case []any:
+			if len(vt) == 0 {
+				delete(m, k)
+			}
+		}
+	}
+}
+
+// StringMap returns a map[string]any representation of the Config struct
+func (o *Config) StringMap() (map[string]any, error) {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]any
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// stringMapDiff returns the difference between two maps with string keys
+func stringMapDiff(m1, m2 map[string]any) map[string]any {
+	result := make(map[string]any)
+
+	for k, v := range m1 {
+		if _, ok := m2[k]; !ok {
+			result[k] = v // ideally this should be never reached
+		}
+
+		if reflect.DeepEqual(v, m2[k]) {
+			continue
+		}
+
+		switch v.(type) {
+		case map[string]any:
+			// this happens during the serialization of the struct to map
+			// so we can safely assume that the type is not matching, there
+			// is a difference in the values
+			casted, ok := m2[k].(map[string]any)
+			if !ok {
+				result[k] = v
+				continue
+			}
+			res := stringMapDiff(v.(map[string]any), casted)
+			if len(res) > 0 {
+				result[k] = res
+			}
+		default:
+			result[k] = v
+		}
+	}
+
+	return result
+}
+
+// removeFakeSettings removes all the fields that have the value of FakeSetting
+// it's necessary to remove the fields that have been masked to be able to
+// export the configuration (and make it importable)
+func removeFakeSettings(m map[string]any) {
+	for k, v := range m {
+		switch vt := v.(type) {
+		case map[string]any:
+			removeFakeSettings(vt)
+		case string:
+			if v == FakeSetting {
+				delete(m, k)
+			}
+		}
+	}
 }
 
 func isTagPresent(tag string, tags []string) bool {

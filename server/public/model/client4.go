@@ -4792,6 +4792,30 @@ func (c *Client4) GetConfig(ctx context.Context) (*Config, *Response, error) {
 	return cfg, BuildResponse(r), d.Decode(&cfg)
 }
 
+// GetConfig will retrieve the server config with some sanitized items.
+func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOptions) (map[string]any, *Response, error) {
+	v := url.Values{}
+	if options.RemoveDefaults {
+		v.Set("remove_defaults", "true")
+	}
+	if options.RemoveMasked {
+		v.Set("remove_masked", "true")
+	}
+	url := c.configRoute()
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var cfg map[string]any
+	return cfg, BuildResponse(r), json.NewDecoder(r.Body).Decode(&cfg)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	r, err := c.DoAPIPost(ctx, c.configRoute()+"/reload", "")
