@@ -4,7 +4,7 @@
     --icon-opacity-hover: 0.8;
     --sys-away-indicator: #ffbc1f;
     --sys-away-indicator-dark: #997113;
-    --sys-button-bg: #166de0;
+    --sys-button-bg: #1c58d9;
     --sys-button-color: #fff;
     --sys-center-channel-bg: #fff;
     --sys-center-channel-color: #3d3c40;
@@ -17,23 +17,28 @@
     --sys-mention-highlight-link: #166de0;
     --sys-new-message-separator: #f80;
     --sys-online-indicator: #3db887;
-    --sys-sidebar-bg: #145dbf;
-    --sys-sidebar-header-bg: #1153ab;
+    --sys-sidebar-bg: #1B1D22;
+    // --sys-sidebar-bg: #E8E9ED;
+    --sys-sidebar-header-bg: #1B1D22;
+    // --sys-sidebar-header-bg: #E8E9ED;
     --sys-sidebar-header-text-color: #fff;
+    // --sys-sidebar-header-text-color: #3f4350;
     --sys-sidebar-text: #fff;
+    // --sys-sidebar-text: #3f4350;
     --sys-sidebar-text-60: #fff9;
     --sys-sidebar-text-80: #fffc;
     --sys-sidebar-text-active-border: #5d89ea;
     --sys-sidebar-text-active-color: #fff;
     --sys-sidebar-text-hover-bg: #4578bf;
     --sys-sidebar-unread-text: #fff;
+    --sys-sidebar-active-border: #5D89ea;
     --sys-denim-button-bg: #1c58d9;
     --sys-denim-center-channel-text: #3f4350;
 
     // Cloned RGB values from base/css_variables, to be used as rgba(var(--sys-color), opacity_here) to apply opacity to base colors
     --sys-away-indicator-rgb: 255, 188, 31;
     --sys-away-indicator-dark-rgb: 153, 113, 19;
-    --sys-button-bg-rgb: 22, 109, 224;
+    --sys-button-bg-rgb: 28, 88, 217;
     --sys-button-color-rgb: 255, 255, 255;
     --sys-center-channel-bg-rgb: 255, 255, 255;
     --sys-center-channel-color-rgb: 61, 60, 64;
@@ -46,10 +51,14 @@
     --sys-mention-highlight-link-rgb: 22, 109, 224;
     --sys-new-message-separator-rgb: 255, 136, 0;
     --sys-online-indicator-rgb: 61, 184, 135;
-    --sys-sidebar-bg-rgb: 20, 93, 191;
-    --sys-sidebar-header-bg-rgb: 17, 83, 171;
+    --sys-sidebar-bg-rgb: 27, 29, 34;
+    // --sys-sidebar-bg-rgb: 232, 233, 237;
+    --sys-sidebar-header-bg-rgb: 27, 29, 34;
+    // --sys-sidebar-header-bg-rgb: 232, 233, 237;
     --sys-sidebar-header-text-color-rgb: 255, 255, 255;
+    // --sys-sidebar-header-text-color-rgb: 63, 67, 80;
     --sys-sidebar-text-rgb: 255, 255, 255;
+    // --sys-sidebar-text-rgb: 63, 67, 80;
     --sys-sidebar-text-active-border-rgb: 93, 137, 234;
     --sys-sidebar-text-active-color-rgb: 255, 255, 255;
     --sys-sidebar-text-hover-bg-rgb: 69, 120, 191;
