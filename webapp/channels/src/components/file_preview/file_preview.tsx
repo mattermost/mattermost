@@ -101,6 +101,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                                     compactDisplay={false}
                                     canDownload={false}
                                 />
+                                {info.extra_info && <span className='post-image__extra-info'>{info.extra_info}</span>}
                                 {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
                                 <span className='post-image__size'>{Utils.fileSizeToString(info.size)}</span>
                             </div>
