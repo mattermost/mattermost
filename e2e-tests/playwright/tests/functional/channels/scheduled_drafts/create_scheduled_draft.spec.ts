@@ -272,7 +272,7 @@ test('should edit scheduled message', async ({pw, pages}) => {
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
     const channelPage = new pages.ChannelsPage(page);
     const scheduledDraftPage = new pages.ScheduledDraftPage(page);
