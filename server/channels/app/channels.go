@@ -81,6 +81,7 @@ type Channels struct {
 	postReminderTask *model.ScheduledTask
 
 	interruptQuitChan chan struct{}
+	loginAttemptsMut sync.Mutex
 }
 
 func NewChannels(s *Server) (*Channels, error) {

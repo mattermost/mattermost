@@ -22,6 +22,10 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, fmt.Errorf("cannot fetch channel while sharing channel %s: %w", sc.ChannelId, err)
 	}
 
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		return nil, errors.New("cannot share a direct or group channel")
+	}
+
 	// check if channel is already shared
 	scExisting, err := scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
 	if err == nil {

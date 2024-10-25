@@ -6,8 +6,6 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import AdminSettings from './admin_settings';
 import type {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
@@ -125,7 +123,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     type='number'
                     label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
-                    helpText={<FormattedMarkdownMessage {...messages.sessionIdleTimeoutDesc}/>}
+                    helpText={<FormattedMessage {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionIdleTimeoutInMinutes')}

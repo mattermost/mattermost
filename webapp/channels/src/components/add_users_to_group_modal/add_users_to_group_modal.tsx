@@ -3,7 +3,7 @@
 
 import React, {useState, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -11,8 +11,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUserToGroupMultiSelect from 'components/add_user_to_group_multiselect';
-
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -136,8 +134,8 @@ const AddUsersToGroupModal = (props: Props) => {
                                 deleteUserCallback={deleteUserCallback}
                                 groupId={props.groupId}
                                 searchOptions={searchOptions}
-                                buttonSubmitText={localizeMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
-                                buttonSubmitLoadingText={localizeMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
+                                buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
+                                buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
                                 backButtonClick={goBack}
                                 backButtonClass={'multiselect-back'}
                                 saving={saving}
