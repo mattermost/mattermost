@@ -26,15 +26,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	err := r.ParseForm()
-if err != nil {
-    c.Err = model.NewAppError("incomingWebhook",
-        "api.webhook.parse_form.app_error",
-        nil,
-        "webhook_id="+id+", error="+err.Error(),
-        http.StatusBadRequest)
-    return
-}
+	nErr := r.ParseForm()
+	if nRrr != nil {
+    		c.Err = model.NewAppError("incomingWebhook",
+        		"api.webhook.parse_form.app_error",
+        		nil,
+        		"webhook_id="+id+", error="+nErr.Error(),
+        		http.StatusBadRequest)
+    		return
+	}
 
 	var err *model.AppError
 	var mediaType string
@@ -80,24 +80,24 @@ if err != nil {
 			return
 		}
 	} else if mediaType == "multipart/form-data" {
-		err := r.ParseMultipartForm(0)
-	if err != nil {
+		nErr := r.ParseMultipartForm(0)
+	if nErr != nil {
 	    c.Err = model.NewAppError("incomingWebhook",
 	        "api.webhook.parse_multipart_form.app_error",
 	        nil,
-  	      "webhook_id="+id+", error="+err.Error(),
+  	      "webhook_id="+id+", error="+nErr.Error(),
   	      http.StatusBadRequest)
  	   return
 	}
 
 		decoder := schema.NewDecoder()
-		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
+		nErr = decoder.Decode(incomingWebhookPayload, r.PostForm)
 
-		if err != nil {
+		if nErr != nil {
 			c.Err = model.NewAppError("incomingWebhook",
 				"api.webhook.incoming.error",
 				nil,
-				"webhook_id="+id+", error: "+err.Error(),
+				"webhook_id="+id+", error: "+nErr.Error(),
 				http.StatusBadRequest,
 			)
 			return
