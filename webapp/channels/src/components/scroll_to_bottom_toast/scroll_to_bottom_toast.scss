@@ -6,21 +6,20 @@
     padding-left: 12px;
     border-radius: 4px;
 
-    // background-color: var(--center-channel-color--88);
-    background: linear-gradient(0deg, rgba(63, 67, 80, 0.9) 0%, rgba(63, 67, 80, 0.9) 100%), #fff;
+    background-color: var(--button-bg);
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.12);
-    color: var(--sidebar-text);
+    color: var(--button-color-rgb);
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
     gap: 8px;
 
     &:hover {
-        background-color: var(--center-channel-color);
+        background-color: rgba(var(--button-bg-rgb), 0.88);
     }
 
     svg {
-        fill: var(--sidebar-text);
+        fill: rgb(var(--button-color-rgb));
         vertical-align: middle;
     }
 
@@ -46,12 +45,12 @@
         border-radius: 4px;
 
         &:hover {
-            background-color: var(--center-channel-bg-08);
+            background-color: var(--button-bg);
         }
 
         svg {
             padding-top: 1px; // To align vertically
-            fill: rgba(var(--sidebar-text-rgb), 0.56);
+            fill: rgba(var(--button-bg-rgb), 0.64);
             vertical-align: middle;
         }
 
