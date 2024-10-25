@@ -108,6 +108,13 @@ const (
 	TrackReadOnlyFeature TrackFeature = "read_only_channels"
 )
 
+const (
+	TrackPropertyUser       = "user_actual_id"
+	TrackPropertyGroup      = "group_id"
+	TrackPropertyChannel    = "channel_id"
+	TrackPropertyPostAuthor = "post_owner_id"
+)
+
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool

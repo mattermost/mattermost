@@ -90,8 +90,8 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 				telemetry.TrackReadOnlyFeature,
 				"read_only_channel_posted",
 				map[string]any{
-					"user_actual_id": post.UserId,
-					"channel_id":     post.ChannelId,
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: post.ChannelId,
 				},
 			)
 		}

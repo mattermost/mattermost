@@ -869,19 +869,19 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"post_mentioned_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			} else if reason == DMMention {
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"direct_message_to_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			}
 		}
 	}
 	for groupId := range mentions.GroupMentions {
-		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{"user_actual_id": sender.Id, "group_id": groupId, "group_size": groups[groupId].MemberCount})
+		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
 	}
 	return mentionedUsersList, nil
 }
@@ -1583,7 +1583,7 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackGroupsFeature,
 			"invite_group_to_channel__post",
-			map[string]any{"user_actual_id": senderID, "group_id": group.Id},
+			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
 		)
 	}
 	if mentions.OtherPotentialMentions == nil {

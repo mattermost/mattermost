@@ -306,8 +306,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		telemetry.TrackGroupsFeature,
 		"modify_group__edit_details",
 		map[string]any{
-			"user_actual_id": c.AppContext.Session().UserId,
-			"group_id":       group.Id,
+			telemetry.TrackPropertyUser: c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup:       group.Id,
 		})
 
 	b, err := json.Marshal(group)
@@ -1352,8 +1352,8 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		telemetry.TrackGroupsFeature,
 		"modify_group__add_members",
 		map[string]any{
-			"user_actual_id": c.AppContext.Session().UserId,
-			"group_id":       group.Id,
+			telemetry.TrackPropertyUser: c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup:       group.Id,
 		})
 }
 
@@ -1420,8 +1420,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		telemetry.TrackGroupsFeature,
 		"modify_group__remove_members",
 		map[string]any{
-			"user_actual_id": c.AppContext.Session().UserId,
-			"group_id":       group.Id,
+			telemetry.TrackPropertyUser: c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup:       group.Id,
 		})
 }
 

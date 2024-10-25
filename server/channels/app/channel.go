@@ -1583,7 +1583,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackGuestFeature,
 			"add_guest_to_channel",
-			map[string]any{"user_actual_id": user.Id})
+			map[string]any{telemetry.TrackPropertyUser: user.Id})
 	}
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
@@ -2691,8 +2691,8 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 				telemetry.TrackReadOnlyFeature,
 				"read_only_channel_viewed",
 				map[string]any{
-					"user_actual_id": userID,
-					"channel_id":     channelID,
+					telemetry.TrackPropertyUser:    userID,
+					telemetry.TrackPropertyChannel: channelID,
 				},
 			)
 		}
