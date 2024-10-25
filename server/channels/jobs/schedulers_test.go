@@ -67,11 +67,13 @@ func TestScheduler(t *testing.T) {
 	jobServer.RegisterJobType(model.JobTypeDataRetention, nil, new(MockScheduler))
 	jobServer.RegisterJobType(model.JobTypeMessageExport, nil, new(MockScheduler))
 
+	sleepDuration := 2 * time.Second
+
 	t.Run("Base", func(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
@@ -87,7 +89,7 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 		jobServer.HandleClusterLeaderChange(false)
 		
 		err = jobServer.StopSchedulers()
@@ -105,7 +107,7 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
         
@@ -121,7 +123,7 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
         
@@ -135,7 +137,7 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 		jobServer.HandleClusterLeaderChange(false)
 		// After running a config change, they should stay off
 		jobServer.schedulers.handleConfigChange(nil, nil)
@@ -152,7 +154,7 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
         
-		time.Sleep(2 * time.Second)
+		_ = time.Sleep(sleepDuration)
 
 		var wg sync.WaitGroup
 		wg.Add(2)
