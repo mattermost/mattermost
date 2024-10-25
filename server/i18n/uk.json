@@ -1,35 +1,35 @@
 [
   {
     "id": "April",
-    "translation": "квітень"
+    "translation": "Квітень"
   },
   {
     "id": "August",
-    "translation": "серпень"
+    "translation": "Серпень"
   },
   {
     "id": "December",
-    "translation": "грудень"
+    "translation": "Грудень"
   },
   {
     "id": "February",
-    "translation": "лютий"
+    "translation": "Лютий"
   },
   {
     "id": "January",
-    "translation": "січень"
+    "translation": "Січень"
   },
   {
     "id": "July",
-    "translation": "липень"
+    "translation": "Липень"
   },
   {
     "id": "June",
-    "translation": "червень"
+    "translation": "Червень"
   },
   {
     "id": "March",
-    "translation": "березень"
+    "translation": "Березень"
   },
   {
     "id": "May",
@@ -49,15 +49,15 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
+    "translation": "У запиті не знайдено жодного файлу під назвою 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
+    "translation": "У запиті відсутній файл у розділі \"сертифікат\"."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Файл сертифіката не може бути відкритий."
+    "translation": "Не вдалося відкрити файл сертифіката."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -6749,15 +6749,15 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Підтвердження в архівному каналі неможливо."
+    "translation": "Ви не можете підтвердити в архівованому каналі."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Ви не можете видалити підтвердження після закінчення 5 хвилин."
+    "translation": "Ви не можете видалити підтвердження після того, як минуло 5 хвилин."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
-    "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
+    "translation": "Ви не можете видалити підтвердження в архівованому каналі."
   },
   {
     "id": "api.command_remote.invite.help",
