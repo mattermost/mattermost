@@ -386,7 +386,7 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 
 	data.BatchStartTime, err = strconv.ParseInt(strmap[JobDataBatchStartTimestamp], 10, 64)
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataBatchStartTimestamp conversion error: %w", err)
 	}
 	data.BatchStartId = strmap[JobDataBatchStartId]
 
@@ -402,37 +402,37 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 	// if the job processes some batches, is stopped, and picked up again.
 	data.JobStartTime, err = strconv.ParseInt(strmap[JobDataStartTimestamp], 10, 64)
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataStartTimestamp conversion error: %w", err)
 	}
 
 	data.JobEndTime, err = strconv.ParseInt(strmap[JobDataEndTimestamp], 10, 64)
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataEndTimestamp conversion error: %w", err)
 	}
 
 	data.JobStartId = strmap[JobDataStartId]
 
 	data.BatchSize, err = strconv.Atoi(strmap[jobDataBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataBatchSize conversion error: %w", err)
 	}
 	data.ChannelBatchSize, err = strconv.Atoi(strmap[jobDataChannelBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataChannelBatchSize conversion error: %w", err)
 	}
 	data.ChannelHistoryBatchSize, err = strconv.Atoi(strmap[jobDataChannelHistoryBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataChannelHistoryBatchSize conversion error: %w", err)
 	}
 
 	data.BatchNumber, err = strconv.Atoi(strmap[JobDataBatchNumber])
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataBatchNumber conversion error: %w", err)
 	}
 
 	data.TotalPostsExported, err = strconv.Atoi(strmap[JobDataMessagesExported])
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataMessagesExported conversion error: %w", err)
 	}
 
 	data.ExportDir = strmap[JobDataExportDir]

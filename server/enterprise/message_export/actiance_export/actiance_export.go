@@ -30,6 +30,13 @@ const (
 	ActianceWarningFilename = "warning.txt"
 )
 
+type exportUserType string
+
+const (
+	user exportUserType = "user"
+	bot  exportUserType = "bot"
+)
+
 // The root-level element of an actiance export
 type RootNode struct {
 	XMLName  xml.Name        `xml:"FileDump"`
@@ -75,11 +82,11 @@ type LeaveExport struct {
 
 // The Message element indicates the message sent by a user
 type PostExport struct {
-	XMLName   xml.Name `xml:"Message"`
-	MessageId string   `xml:"MessageId"`   // the message id in the db
-	UserEmail string   `xml:"LoginName"`   // the email of the person that sent the post
-	UserType  string   `xml:"UserType"`    // the type of the person that sent the post
-	CreateAt  int64    `xml:"DateTimeUTC"` // utc timestamp (unix milliseconds), the post's createAt
+	XMLName   xml.Name       `xml:"Message"`
+	MessageId string         `xml:"MessageId"`   // the message id in the db
+	UserEmail string         `xml:"LoginName"`   // the email of the person that sent the post
+	UserType  exportUserType `xml:"UserType"`    // the type of the person that sent the post: "user" or "bot"
+	CreateAt  int64          `xml:"DateTimeUTC"` // utc timestamp (unix milliseconds), the post's createAt
 
 	// Allows us to differentiate between:
 	// - "EditedOriginalMsg": the newly created message (new Id), which holds the pre-edited message contents. The
@@ -303,9 +310,9 @@ func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int6
 }
 
 func createdPostToExportEntry(post *model.MessageExport) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:    *post.PostId,
@@ -318,9 +325,9 @@ func createdPostToExportEntry(post *model.MessageExport) PostExport {
 }
 
 func deletedPostToExportEntry(post *model.MessageExport, newMsg string) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:    *post.PostId,
@@ -335,9 +342,9 @@ func deletedPostToExportEntry(post *model.MessageExport, newMsg string) PostExpo
 }
 
 func editedOriginalMsgToExportEntry(post *model.MessageExport) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:      *post.PostId,
@@ -353,9 +360,9 @@ func editedOriginalMsgToExportEntry(post *model.MessageExport) PostExport {
 }
 
 func editedNewMsgToExportEntry(post *model.MessageExport) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:    *post.PostId,
@@ -370,9 +377,9 @@ func editedNewMsgToExportEntry(post *model.MessageExport) PostExport {
 }
 
 func updatedPostToExportEntry(post *model.MessageExport) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:    *post.PostId,
@@ -387,9 +394,9 @@ func updatedPostToExportEntry(post *model.MessageExport) PostExport {
 }
 
 func deleteFileToExportEntry(post *model.MessageExport, message string) PostExport {
-	userType := "user"
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
 	return PostExport{
 		MessageId:    *post.PostId,
