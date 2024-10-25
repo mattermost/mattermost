@@ -77,6 +77,10 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := r.ParseForm(); err != nil {
+		c.Err = model.NewAppError("loginWithSaml", "api.user.login_with_saml.parse_form.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 	http.Redirect(w, r, data.URL, http.StatusFound)
 }
 
@@ -89,6 +93,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Validate that the user is with SAML and all that
+	if err := r.ParseForm(); err != nil {
+		c.Err = model.NewAppError("completeSaml", "api.user.complete_saml.parse_form.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 	encodedXML := r.FormValue("SAMLResponse")
 	relayState := r.FormValue("RelayState")
 
@@ -157,7 +165,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogErrorByCode(err)
 				break
 			}
-			c.App.AddDirectChannels(c.AppContext, teamId, user)
+			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
+				c.LogError("Failed to add direct channels", mlog.Err(err))
+			}
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -214,7 +224,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
-	c.App.AttachSessionCookies(c.AppContext, w, r)
+	
+	if err := c.App.AttachSessionCookies(c.AppContext, w, r); err != nil {
+		c.Logger.Error("Failed to attach session cookies", mlog.Err(err))
+	}
 
 	if hasRedirectURL {
 		if isMobile {
