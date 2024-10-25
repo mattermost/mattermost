@@ -54,7 +54,7 @@ func TestBusySet(t *testing.T) {
 }
 
 func TestBusyExpires(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	isNotBusy := func() bool {
@@ -90,7 +90,7 @@ func TestBusyExpires(t *testing.T) {
 }
 
 func TestBusyRace(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	busy.Set(500 * time.Millisecond)
