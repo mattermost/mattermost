@@ -4959,6 +4959,10 @@
     "translation": "Token does not exist or is expired"
   },
   {
+    "id": "app.desktop_token.delete.error",
+    "translation": "Unable to delete desktop token"
+  },
+  {
     "id": "app.desktop_token.validate.invalid",
     "translation": "Token is not valid or is expired"
   },
