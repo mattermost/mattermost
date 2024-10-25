@@ -352,7 +352,7 @@ type AppIface interface {
 	// SyncLdap starts an LDAP sync job.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
-	SyncLdap(rctx request.CTX, includeRemovedMembers bool)
+	SyncLdap(c request.CTX, includeRemovedMembers bool)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
@@ -1050,7 +1050,6 @@ type AppIface interface {
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
-	ReturnSessionToPool(session *model.Session)
 	RevokeAccessToken(c request.CTX, token string) *model.AppError
 	RevokeAllSessions(c request.CTX, userID string) *model.AppError
 	RevokeSession(c request.CTX, session *model.Session) *model.AppError

@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {Post, PostMetadata} from '@mattermost/types/posts';
-import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -89,22 +90,8 @@ export function submitPost(
         post = hookResult.data;
 
         if (schedulingInfo) {
-            const fileIDs = draft.fileInfos.map((fileInfo) => fileInfo.id);
-            const scheduledPost: ScheduledPost = {
-                id: '',
-                scheduled_at: schedulingInfo.scheduled_at,
-                create_at: 0,
-                update_at: post.update_at,
-                user_id: userId,
-                channel_id: post.channel_id,
-                root_id: post.root_id,
-                message: post.message,
-                props: post.props,
-                file_ids: fileIDs,
-                metadata: post.metadata,
-                priority: post.metadata.priority,
-            };
-
+            const scheduledPost = scheduledPostFromPost(post, schedulingInfo);
+            scheduledPost.file_ids = draft.fileInfos.map((fileInfo) => fileInfo.id);
             if (draft.fileInfos?.length > 0) {
                 if (!scheduledPost.metadata) {
                     scheduledPost.metadata = {} as PostMetadata;
@@ -112,7 +99,6 @@ export function submitPost(
 
                 scheduledPost.metadata.files = draft.fileInfos;
             }
-
             const response = await dispatch(createSchedulePostFromDraft(scheduledPost));
             if (afterSubmit) {
                 const result: CreatePostReturnType = {
@@ -150,7 +136,10 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             return {error: hookResult.error};
         } else if (!hookResult.data!.message && !hookResult.data!.args) {
             // do nothing with an empty return from a hook
-            return {error: new Error('command not submitted due to plugin hook')};
+            // this is allowed by the registerSlashCommandWillBePostedHook API in case
+            // a plugin intercepts and handles the command on the client side
+            // but doesn't require it to be sent to the server. (e.g., /call start).
+            return {};
         }
 
         message = hookResult.data!.message;

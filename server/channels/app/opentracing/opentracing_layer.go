@@ -15115,21 +15115,6 @@ func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(c request.CTX, us
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReturnSessionToPool")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ReturnSessionToPool(session)
-}
-
 func (a *OpenTracingAppLayer) RevokeAccessToken(c request.CTX, token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAccessToken")
@@ -17545,7 +17530,7 @@ func (a *OpenTracingAppLayer) SwitchOAuthToEmail(c request.CTX, email string, pa
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SyncLdap(rctx request.CTX, includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
@@ -17557,7 +17542,7 @@ func (a *OpenTracingAppLayer) SyncLdap(rctx request.CTX, includeRemovedMembers b
 	}()
 
 	defer span.Finish()
-	a.app.SyncLdap(rctx, includeRemovedMembers)
+	a.app.SyncLdap(c, includeRemovedMembers)
 }
 
 func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
