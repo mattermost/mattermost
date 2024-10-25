@@ -1696,7 +1696,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 }
 
 func TestSearchAllChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
@@ -1736,6 +1736,29 @@ func TestSearchAllChannels(t *testing.T) {
 		TeamId:           team.Id,
 	})
 	require.NoError(t, err)
+
+	// share the open and private channels, one homed locally and the
+	// other remotely
+	sco := &model.SharedChannel{
+		ChannelId: openChannel.Id,
+		TeamId:    openChannel.TeamId,
+		Home:      true,
+		ShareName: "testsharelocal",
+		CreatorId: th.BasicChannel.CreatorId,
+	}
+	_, scoErr := th.App.ShareChannel(th.Context, sco)
+	require.NoError(t, scoErr)
+
+	scp := &model.SharedChannel{
+		ChannelId: privateChannel.Id,
+		TeamId:    privateChannel.TeamId,
+		Home:      false,
+		RemoteId:  model.NewId(),
+		ShareName: "testshareremote",
+		CreatorId: th.BasicChannel.CreatorId,
+	}
+	_, scpErr := th.App.ShareChannel(th.Context, scp)
+	require.NoError(t, scpErr)
 
 	testCases := []struct {
 		Description        string
@@ -1846,6 +1869,11 @@ func TestSearchAllChannels(t *testing.T) {
 			"Search for exclude group constrained",
 			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeGroupConstrained: true},
 			[]string{openChannel.Id, privateChannel.Id},
+		},
+		{
+			"Search for local only channels",
+			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeRemote: true},
+			[]string{openChannel.Id, groupConstrainedChannel.Id},
 		},
 	}
 	for _, testCase := range testCases {

@@ -3,7 +3,7 @@
 
 import marked from 'marked';
 import React, {useRef} from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -25,7 +25,7 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import {getSkuDisplayName} from 'utils/subscription';
-import {fileSizeToString, localizeMessage} from 'utils/utils';
+import {fileSizeToString} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -205,7 +205,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     >
                         <LoadingWrapper
                             loading={Boolean(isUploading)}
-                            text={localizeMessage({id: 'admin.license.modal.uploading', defaultMessage: 'Uploading'})}
+                            text={defineMessage({id: 'admin.license.modal.uploading', defaultMessage: 'Uploading'})}
                         >
                             <FormattedMessage
                                 id='admin.license.modal.upload'
