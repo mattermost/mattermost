@@ -170,7 +170,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.App.SetSearchEngine(searchEngine)
 	}
 
-
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
