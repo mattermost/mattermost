@@ -197,16 +197,9 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		w.setJobProgressMessage(0, message, rctx.Logger(), job)
 	}
 
-	data, err = shared.GetInitialExportPeriodData(rctx, w.jobServer.Store, data, reportProgress)
-	if err != nil {
-		w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
-		return
-	}
-	job.Data[JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
-
 	jobParams := shared.BackendParams{
 		Config:        w.jobServer.Config(),
-		Store:         w.jobServer.Store,
+		Store:         shared.NewMessageExportStore(w.jobServer.Store),
 		HtmlTemplates: w.htmlTemplateWatcher,
 	}
 	jobParams.FileAttachmentBackend, err = shared.GetFileAttachmentBackend(rctx, w.jobServer.Config())
@@ -219,6 +212,13 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		w.setJobError(logger, job, model.NewAppError("GetExportBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
+
+	data, err = shared.GetInitialExportPeriodData(rctx, jobParams.Store, data, reportProgress)
+	if err != nil {
+		w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+		return
+	}
+	job.Data[JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
 
 	for {
 		select {
