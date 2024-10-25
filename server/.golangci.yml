@@ -201,7 +201,6 @@ issues:
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
-        channels/jobs/jobs.go|\
         channels/jobs/resend_invitation_email/worker.go|\
         channels/jobs/schedulers_test.go|\
         channels/manualtesting/manual_testing.go|\
