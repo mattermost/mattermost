@@ -53,7 +53,6 @@ func TestDecoderDecode(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-
 		defer func() {
 			err := imgFile.Close()
 			require.NoError(t, err)
