@@ -27,7 +27,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 
 	nErr := r.ParseForm()
-	if nRrr != nil {
+	if nErr != nil {
     		c.Err = model.NewAppError("incomingWebhook",
         		"api.webhook.parse_form.app_error",
         		nil,
