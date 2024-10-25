@@ -105,8 +105,8 @@ func TestUpdateBookmark(t *testing.T) {
 		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 		assert.NoError(t, err)
 		defer func() {
-			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
-			assert.NoError(t, err)
+			appErr := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+			assert.NoError(t, appErr)
 		}()
 
 		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
@@ -134,8 +134,8 @@ func TestUpdateBookmark(t *testing.T) {
 		err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
 		assert.NoError(t, err)
 		defer func() {
-			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
-			assert.NoError(t, err)
+			appErr := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+			assert.NoError(t, appErr)
 		}()
 
 		bookmark2.FileId = file2.Id
