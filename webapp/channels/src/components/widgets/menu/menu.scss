@@ -11,6 +11,8 @@
         border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
         box-shadow: var(--elevation-4);
+        overflow-x: hidden;
+        overflow-y: auto;
 
         ul {
             padding: 8px 0;
