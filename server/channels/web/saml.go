@@ -162,7 +162,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.OAuthActionSignup:
 		if teamId := relayProps["team_id"]; teamId != "" {
 			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
-				c.LogErrorByCode(err)
+				c.Logger.Error("Failed to add user to team", mlog.Err(err))
 				break
 			}
 			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
@@ -225,9 +225,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 	
-	if err := c.App.AttachSessionCookies(c.AppContext, w, r); err != nil {
-		c.Logger.Error("Failed to attach session cookies", mlog.Err(err))
-	}
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {
