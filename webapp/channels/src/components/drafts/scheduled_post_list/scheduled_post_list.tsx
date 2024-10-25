@@ -49,7 +49,7 @@ export default function ScheduledPostList({
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchMissingChannels(scheduledPosts.map((post) => post.channel_id)));
-    }, []);
+    }, [scheduledPosts]);
 
     return (
         <div className='ScheduledPostList'>
@@ -69,8 +69,10 @@ export default function ScheduledPostList({
 
             {
                 scheduledPosts.map((scheduledPost) => {
-                    // find the first scheduled posst with the target
-                    const scrollIntoView = !targetScheduledPostId.current && (scheduledPost.channel_id === targetId || scheduledPost.root_id === targetId);
+                    // find the first scheduled posst with the target and no error
+                    const isInTargetChannelOrThread = scheduledPost.channel_id === targetId || scheduledPost.root_id === targetId;
+                    const hasError = Boolean(scheduledPost.error_code);
+                    const scrollIntoView = !targetScheduledPostId.current && (isInTargetChannelOrThread && !hasError);
                     if (scrollIntoView) {
                         // if found, save the scheduled post's ID
                         targetScheduledPostId.current = scheduledPost.id;
