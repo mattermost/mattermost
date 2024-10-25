@@ -10,14 +10,17 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {createBotPatch} from '../../../support/api/bots';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot tags', () => {
-    let me;
-    let team;
-    let channel;
-    let postId;
+    let me: UserProfile;
+    let team: Team;
+    let channel: Channel;
+    let postId: string;
 
     before(() => {
         cy.apiInitSetup().then((out) => {
@@ -92,6 +95,6 @@ describe('Bot tags', () => {
     });
 });
 
-function rhsPostHasBotBadge(postId) {
+function rhsPostHasBotBadge(postId: string) {
     cy.get(`.post#searchResult_${postId} .Tag`).should('be.visible').and('have.text', 'BOT');
 }
