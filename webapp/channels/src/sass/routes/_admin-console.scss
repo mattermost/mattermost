@@ -781,9 +781,8 @@
 
     .sidebar-section-indicator {
         position: absolute;
-        top: 0;
+        top: 6px;
         right: 0;
-        height: 100%;
 
         i {
             color: alpha-color($white, 0.5);
