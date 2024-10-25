@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1287,7 +1289,7 @@ func TestGlobalRelayExport(t *testing.T) {
 			assert.NoError(t, err)
 			defer os.Remove(dest.Name())
 
-			_, warningCount, err := GlobalRelayExport(rctx, tt.posts, mockStore, fileBackend, dest, templatesContainer)
+			_, warningCount, err := GlobalRelayExport(rctx, tt.posts, shared.NewMessageExportStore(mockStore), fileBackend, dest, templatesContainer)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedWarnings, warningCount)
 
