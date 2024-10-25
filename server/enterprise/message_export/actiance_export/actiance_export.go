@@ -369,7 +369,8 @@ func buildChannelExport(startTime int64, endTime int64, channel *shared.Metadata
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (res shared.WriteExportResult, err error) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (shared.WriteExportResult, error) {
+	res := shared.WriteExportResult{}
 	start := time.Now()
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
@@ -377,10 +378,10 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
-	if err = enc.Encode(export); err != nil {
+	if err := enc.Encode(export); err != nil {
 		return res, fmt.Errorf("unable to convert export to XML: %w", err)
 	}
-	if err = enc.Flush(); err != nil {
+	if err := enc.Flush(); err != nil {
 		return res, fmt.Errorf("unable to flush the XML encoder: %w", err)
 	}
 
