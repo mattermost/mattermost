@@ -8,6 +8,8 @@ import type {FileInfo} from '@mattermost/types/files';
 import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import './image_preview.scss';
+import {FileTypes} from 'utils/constants';
+import {getFileType} from 'utils/utils';
 
 interface Props {
     fileInfo: FileInfo;
@@ -42,6 +44,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
+                style={getFileType(fileInfo.extension) === FileTypes.SVG ? {width: fileInfo.width, height: 'auto'} : {}}
             />
         </a>
     );

@@ -5,7 +5,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
+import type {CSSProperties, KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -18,7 +18,8 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
 
-import {localizeMessage, copyToClipboard} from 'utils/utils';
+import {FileTypes} from 'utils/constants';
+import {localizeMessage, copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -194,6 +195,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
     renderImageWithContainerIfNeeded = () => {
         const {
             fileInfo,
+            dimensions,
             src,
             fileURL,
             enablePublicLink,
@@ -214,6 +216,16 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
 
+        const fileType = getFileType(fileInfo?.extension ?? '');
+
+        let conditionalSVGStyles: CSSProperties = {};
+        if (fileType === FileTypes.SVG) {
+            conditionalSVGStyles = {
+                width: dimensions?.width || MIN_IMAGE_SIZE,
+                height: 'auto',
+            };
+        }
+
         const image = (
             <img
                 {...props}
@@ -228,6 +240,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
+                style={conditionalSVGStyles}
             />
         );
 
