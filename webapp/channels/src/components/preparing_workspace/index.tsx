@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {checkIfTeamExists, createTeam, updateTeam} from 'mattermost-redux/actions/teams';
+import {createTeam, updateTeam} from 'mattermost-redux/actions/teams';
 import {getProfiles} from 'mattermost-redux/actions/users';
 
 import PreparingWorkspace from './preparing_workspace';
@@ -16,7 +16,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateTeam,
             createTeam,
             getProfiles,
-            checkIfTeamExists,
         }, dispatch),
     };
 }

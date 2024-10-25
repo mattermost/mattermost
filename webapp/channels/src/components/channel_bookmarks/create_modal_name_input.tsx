@@ -33,6 +33,13 @@ type Props = {
     setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
     onAddCustomEmojiClick?: () => void;
 }
+
+const handleEmojiKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+        e.stopPropagation();
+    }
+};
+
 const CreateModalNameInput = ({
     maxLength,
     type,
@@ -50,7 +57,7 @@ const CreateModalNameInput = ({
     const {formatMessage} = useIntl();
 
     const targetRef = useRef<HTMLButtonElement>(null);
-    const getTargetRef = () => targetRef.current;
+    const getTargetRef = useCallback(() => targetRef.current, []);
 
     const icon = (
         <BookmarkIcon
@@ -62,7 +69,7 @@ const CreateModalNameInput = ({
         />
     );
 
-    const refocusEmojiButton = () => {
+    const refocusEmojiButton = useCallback(() => {
         if (!targetRef.current) {
             return;
         }
@@ -75,42 +82,36 @@ const CreateModalNameInput = ({
                 },
             },
         ));
-    };
+    }, []);
 
-    const toggleEmojiPicker = () => setShowEmojiPicker((prev) => !prev);
+    const toggleEmojiPicker = useCallback(() => setShowEmojiPicker((prev) => !prev), [setShowEmojiPicker]);
 
-    const handleEmojiClick = (selectedEmoji: Emoji) => {
+    const handleEmojiClick = useCallback((selectedEmoji: Emoji) => {
         setShowEmojiPicker(false);
         const emojiName = ('short_name' in selectedEmoji) ? selectedEmoji.short_name : selectedEmoji.name;
         setEmoji(`:${emojiName}:`);
         refocusEmojiButton();
-    };
+    }, [refocusEmojiButton, setEmoji, setShowEmojiPicker]);
 
-    const handleEmojiClear = () => {
+    const handleEmojiClear = useCallback(() => {
         setEmoji('');
-    };
+    }, [setEmoji]);
 
-    const handleEmojiClose = () => {
+    const handleEmojiClose = useCallback(() => {
         setShowEmojiPicker(false);
         refocusEmojiButton();
-    };
+    }, [refocusEmojiButton, setShowEmojiPicker]);
 
     const handleInputChange: ComponentProps<typeof Input>['onChange'] = useCallback((e) => {
         setDisplayName(e.currentTarget.value);
-    }, []);
+    }, [setDisplayName]);
 
-    const handleEmojiKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
-            e.stopPropagation();
-        }
-    };
-
-    const handleEmojiResetKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    const handleEmojiResetKeyDown = useCallback((e: React.KeyboardEvent<HTMLAnchorElement>) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
             e.stopPropagation();
             handleEmojiClear();
         }
-    };
+    }, [handleEmojiClear]);
 
     return (
         <>

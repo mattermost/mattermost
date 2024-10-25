@@ -42,7 +42,7 @@ const ProfilePopoverSelfUserRow = ({
             dialogProps: {isContentProductSettings: false, onExited: returnFocus},
         }));
         handleCloseModals();
-    }, [hide, returnFocus, handleCloseModals]);
+    }, [hide, dispatch, returnFocus, handleCloseModals]);
 
     if (userId !== currentUserId || haveOverrideProp) {
         return null;

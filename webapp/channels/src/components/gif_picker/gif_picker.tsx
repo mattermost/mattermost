@@ -18,30 +18,35 @@ type Props = {
     getRootPickerNode: () => HTMLDivElement | null;
 }
 
-const GifPicker = (props: Props) => {
+const GifPicker = ({
+    filter,
+    getRootPickerNode,
+    handleFilterChange,
+    onGifClick,
+}: Props) => {
     const handleItemClick = useCallback((gif: IGif, event: SyntheticEvent<HTMLElement, Event>) => {
-        if (props.onGifClick) {
+        if (onGifClick) {
             event.preventDefault();
 
             const imageWithMarkdown = `![${gif.title}](${gif.images.fixed_height.url})`;
-            props.onGifClick(imageWithMarkdown);
+            onGifClick(imageWithMarkdown);
         }
-    }, [props.onGifClick]);
+    }, [onGifClick]);
 
     const pickerWidth = useMemo(() => {
-        const pickerWidth = props.getRootPickerNode?.()?.getBoundingClientRect()?.width ?? GIF_DEFAULT_WIDTH;
+        const pickerWidth = getRootPickerNode?.()?.getBoundingClientRect()?.width ?? GIF_DEFAULT_WIDTH;
         return (pickerWidth - (2 * GIF_MARGIN_ENDS));
-    }, [props.getRootPickerNode]);
+    }, [getRootPickerNode]);
 
     return (
         <div>
             <GifPickerSearch
-                value={props.filter}
-                onChange={props.handleFilterChange}
+                value={filter}
+                onChange={handleFilterChange}
             />
             <GifPickerItems
                 width={pickerWidth}
-                filter={props.filter}
+                filter={filter}
                 onClick={handleItemClick}
             />
         </div>

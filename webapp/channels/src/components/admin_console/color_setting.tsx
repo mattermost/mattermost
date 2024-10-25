@@ -16,24 +16,31 @@ type Props = {
     disabled?: boolean;
 }
 
-const ColorSetting = (props: Props) => {
+const ColorSetting = ({
+    id,
+    label,
+    value,
+    disabled,
+    helpText,
+    onChange,
+}: Props) => {
     const handleChange = useCallback((color: string) => {
-        if (props.onChange) {
-            props.onChange(props.id, color);
+        if (onChange) {
+            onChange(id, color);
         }
-    }, [props.id, props.onChange]);
+    }, [id, onChange]);
 
     return (
         <Setting
-            label={props.label}
-            helpText={props.helpText}
-            inputId={props.id}
+            label={label}
+            helpText={helpText}
+            inputId={id}
         >
             <ColorInput
-                id={props.id}
-                value={props.value}
+                id={id}
+                value={value}
                 onChange={handleChange}
-                isDisabled={props.disabled}
+                isDisabled={disabled}
             />
         </Setting>
     );

@@ -17,7 +17,10 @@ interface Props {
     onChange: (value: string) => void;
 }
 
-function GifPickerSearch(props: Props) {
+function GifPickerSearch({
+    value,
+    onChange,
+}: Props) {
     const theme = useSelector(getTheme);
 
     const {formatMessage} = useIntl();
@@ -27,8 +30,8 @@ function GifPickerSearch(props: Props) {
 
         // remove trailing and leading colons
         const value = event.target?.value?.replace(/^:|:$/g, '') ?? '';
-        props.onChange(value);
-    }, [props.onChange]);
+        onChange(value);
+    }, [onChange]);
 
     const shouldUseWhiteLogo = useMemo(() => {
         const WHITE_COLOR = '#FFFFFF';
@@ -55,7 +58,7 @@ function GifPickerSearch(props: Props) {
                     autoFocus={true}
                     autoComplete='off'
                     onChange={handleChange}
-                    value={props.value}
+                    value={value}
                 />
             </div>
             <div className='gif-attribution'>

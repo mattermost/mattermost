@@ -34,13 +34,10 @@ const title = (
 );
 
 const screen = (
-    <>
-        <FormattedMessage
-            id='drafts.tutorialTip.description'
-            defaultMessage='With the new Drafts view, all of your unfinished messages are collected in one place. Return here to read, edit, or send draft messages.'
-        />
-    </>
-
+    <FormattedMessage
+        id='drafts.tutorialTip.description'
+        defaultMessage='With the new Drafts view, all of your unfinished messages are collected in one place. Return here to read, edit, or send draft messages.'
+    />
 );
 
 const prevBtn = (
@@ -71,13 +68,13 @@ const DraftsTourTip = () => {
         e.stopPropagation();
         dispatch(setDraftsTourTipPreference({[Preferences.DRAFTS_TOUR_TIP_SHOWED]: true}));
         setTipOpened(false);
-    }, []);
+    }, [dispatch]);
 
     const handleNext = useCallback(() => {
         dispatch(setDraftsTourTipPreference({[Preferences.DRAFTS_TOUR_TIP_SHOWED]: true}));
         setTipOpened(false);
         history.push(nextUrl);
-    }, []);
+    }, [dispatch, history, nextUrl]);
 
     const handleOpen = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -89,7 +86,7 @@ const DraftsTourTip = () => {
         } else {
             setTipOpened(true);
         }
-    }, []);
+    }, [dispatch, tipOpened]);
 
     const overlayPunchOut = useMeasurePunchouts(['sidebar-drafts-button'], []);
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import styled from 'styled-components';
 
 import {CompletedAnimation} from './onboarding_tasklist_animations';
 
 export interface TaskProps {
-    label: React.ReactElement;
-    icon?: React.ReactNode;
-    onClick?: () => void;
+    labelRenderer: () => React.ReactElement;
+    startTask?: (name: string) => void;
+    name: string;
     completedStatus: boolean;
 }
 
@@ -62,14 +62,15 @@ const StyledTask = styled.div`
         box-shadow 250ms ease-in-out;
 `;
 
-export const Task = (props: TaskProps): JSX.Element => {
-    const {label, completedStatus, onClick} = props;
-
-    const handleOnClick = () => {
-        if (onClick) {
-            onClick();
-        }
-    };
+export const Task = ({
+    completedStatus,
+    labelRenderer,
+    name,
+    startTask,
+}: TaskProps): JSX.Element => {
+    const handleOnClick = useCallback(() => {
+        startTask?.(name);
+    }, [name, startTask]);
 
     return (
         <StyledTask
@@ -77,7 +78,7 @@ export const Task = (props: TaskProps): JSX.Element => {
             onClick={handleOnClick}
         >
             {completedStatus && <CompletedAnimation completed={completedStatus}/>}
-            <span>{label}</span>
+            <span>{labelRenderer()}</span>
         </StyledTask>
     );
 };

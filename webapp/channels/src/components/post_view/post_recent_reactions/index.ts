@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import {toggleReaction} from 'actions/post_actions';
-import {getEmojiMap} from 'selectors/emojis';
+import {getEmojiMap, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
 
 import type {GlobalState} from 'types/store';
@@ -28,9 +28,12 @@ function mapStateToProps(state: GlobalState) {
     const emojiMap = getEmojiMap(state);
     const defaultEmojis = [emojiMap.get('thumbsup'), emojiMap.get('grinning'), emojiMap.get('white_check_mark')] as Emoji[];
 
+    const emojis = getOneClickReactionEmojis(state);
+
     return {
         defaultEmojis,
         locale,
+        emojis,
     };
 }
 

@@ -21,31 +21,36 @@ type Props = {
     openModal: typeof openModalAction;
 };
 
-export default function DeleteIntegrationLink(props: Props) {
-    const {
-        confirmButtonText = (
-            <FormattedMessage
-                id='integrations.delete.confirm.button'
-                defaultMessage='Yes, delete it'
-            />
-        ),
-        linkText = (
-            <FormattedMessage
-                id='installed_integrations.delete'
-                defaultMessage='Delete'
-            />
-        ),
-        modalMessage,
-        modalTitle = (
-            <FormattedMessage
-                id='integrations.delete.confirm.title'
-                defaultMessage='Delete Integration'
-            />
-        ),
-        onDelete,
-        openModal,
-    } = props;
+const defaultConfirmButtonText = (
+    <FormattedMessage
+        id='integrations.delete.confirm.button'
+        defaultMessage='Yes, delete it'
+    />
+);
 
+const defaultLinkText = (
+    <FormattedMessage
+        id='installed_integrations.delete'
+        defaultMessage='Delete'
+    />
+);
+
+const defaultModalTitle = (
+    <FormattedMessage
+        id='integrations.delete.confirm.title'
+        defaultMessage='Delete Integration'
+    />
+);
+
+export default function DeleteIntegrationLink({
+    confirmButtonText = defaultConfirmButtonText,
+    linkText = defaultLinkText,
+    modalMessage,
+    modalTitle = defaultModalTitle,
+    onDelete,
+    openModal,
+    subtitleText,
+}: Props) {
     const onClick = useCallback(() => {
         openModal({
             modalId: ModalId,
@@ -55,15 +60,15 @@ export default function DeleteIntegrationLink(props: Props) {
                 modalClass: 'integrations-backstage-modal',
                 message: (
                     <>
-                        {props.subtitleText && (
+                        {subtitleText && (
                             <p>
-                                {props.subtitleText}
+                                {subtitleText}
                             </p>
                         )}
                         <div className='alert alert-danger'>
                             <WarningIcon additionalClassName='mr-1'/>
                             <strong>
-                                {props.modalMessage}
+                                {modalMessage}
                             </strong>
                         </div>
                     </>
@@ -73,7 +78,7 @@ export default function DeleteIntegrationLink(props: Props) {
             },
             dialogType: ConfirmModalRedux,
         });
-    }, [confirmButtonText, modalMessage, modalTitle, onDelete, openModal]);
+    }, [confirmButtonText, modalMessage, modalTitle, onDelete, openModal, subtitleText]);
 
     return (
         <button

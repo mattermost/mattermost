@@ -166,47 +166,41 @@ const NewSearch = (): JSX.Element => {
         setFocused(true);
     }, []);
 
-    const openSearchBoxOnKeyPress = useCallback(
-        (e: React.KeyboardEvent) => {
-            if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
-                return;
-            }
-            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
-                setFocused(false);
-                return;
-            }
-            openSearchBox();
-        },
-        [openSearchBox],
-    );
-
-    const runSearch = useCallback(
-        (searchType: string, searchTerms: string) => {
-            dispatch(updateSearchType(searchType));
-            dispatch(updateSearchTerms(searchTerms));
-
-            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
-                dispatch(showSearchResults(false));
-            } else {
-                pluginSearch.forEach((pluginData: any) => {
-                    if (pluginData.pluginId === searchType) {
-                        pluginData.action(searchTerms);
-                    }
-                });
-            }
+    const openSearchBoxOnKeyPress = useCallback((e: React.KeyboardEvent) => {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
+            return;
+        }
+        if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F6)) {
             setFocused(false);
-            setCurrentChannel('');
-        },
-        [pluginSearch],
-    );
+            return;
+        }
+        openSearchBox();
+    }, [openSearchBox]);
+
+    const runSearch = useCallback((searchType: string, searchTerms: string) => {
+        dispatch(updateSearchType(searchType));
+        dispatch(updateSearchTerms(searchTerms));
+
+        if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+            dispatch(showSearchResults(false));
+        } else {
+            pluginSearch.forEach((pluginData: any) => {
+                if (pluginData.pluginId === searchType) {
+                    pluginData.action(searchTerms);
+                }
+            });
+        }
+        setFocused(false);
+        setCurrentChannel('');
+    }, [dispatch, pluginSearch]);
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         dispatch(updateSearchType(''));
         dispatch(updateSearchTerms(''));
-    }, []);
+    }, [dispatch]);
 
-    const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
+    const clearSearchType = useCallback(() => dispatch(updateSearchType('')), [dispatch]);
 
     return (
         <NewSearchContainer

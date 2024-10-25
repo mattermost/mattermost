@@ -30,12 +30,11 @@ type Props = {
     launchedBy?: string;
 }
 
-const LearnMoreTrialModal = (
-    {
-        onClose,
-        onExited,
-        launchedBy = '',
-    }: Props): JSX.Element | null => {
+const LearnMoreTrialModal = ({
+    onClose,
+    onExited,
+    launchedBy = '',
+}: Props) => {
     const {formatMessage} = useIntl();
     const [embargoed, setEmbargoed] = useState(false);
     const dispatch = useDispatch();
@@ -51,15 +50,15 @@ const LearnMoreTrialModal = (
     // close this modal once start trial btn is clicked and trial has started successfully
     const dismissAction = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.LEARN_MORE_TRIAL_MODAL));
-    }, []);
+    }, [dispatch]);
 
-    const startTrialBtn = (
+    const startTrialBtn = useMemo(() => (
         <StartTrialBtn
             handleEmbargoError={handleEmbargoError}
             telemetryId={`start_trial__learn_more_modal__${launchedBy}`}
             onClick={dismissAction}
         />
-    );
+    ), [dismissAction, handleEmbargoError, launchedBy]);
 
     const handleOnClose = useCallback(() => {
         if (onClose) {
@@ -76,52 +75,53 @@ const LearnMoreTrialModal = (
         );
     }, []);
 
-    const buttonLabel = formatMessage({id: 'learn_more_trial_modal_step.learnMoreAboutFeature', defaultMessage: 'Learn more about this feature.'});
-
-    const steps: LearnMoreTrialModalStepProps[] = useMemo(() => [
-        {
-            id: 'useSso',
-            title: formatMessage({id: 'learn_more_about_trial.modal.useSsoTitle', defaultMessage: 'Use SSO (with OpenID, SAML, Google, O365)'}),
-            description: formatMessage({id: 'learn_more_about_trial.modal.useSsoDescription', defaultMessage: 'Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.'}),
-            svgWrapperClassName: 'guestAccessSvg',
-            svgElement: (
-                <GuestAccessSvg
-                    width={400}
-                    height={180}
-                />
-            ),
-            pageURL: DocLinks.SETUP_SAML,
-            buttonLabel,
-        },
-        {
-            id: 'ldap',
-            title: formatMessage({id: 'learn_more_about_trial.modal.ldapTitle', defaultMessage: 'Synchronize your Active Directory/LDAP groups'}),
-            description: formatMessage({id: 'learn_more_about_trial.modal.ldapDescription', defaultMessage: 'Use AD/LDAP groups to organize and apply actions to multiple users at once. Manage team and channel memberships, permissions and more.'}),
-            svgWrapperClassName: 'personMacSvg',
-            svgElement: (
-                <MonitorImacLikeSVG
-                    width={400}
-                    height={180}
-                />
-            ),
-            pageURL: DocLinks.SETUP_LDAP,
-            buttonLabel,
-        },
-        {
-            id: 'systemConsole',
-            title: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
-            svgWrapperClassName: 'personBoxSvg',
-            svgElement: (
-                <SystemRolesSVG
-                    width={400}
-                    height={180}
-                />
-            ),
-            pageURL: ConsolePages.LICENSE,
-            buttonLabel,
-        },
-    ], []);
+    const steps: LearnMoreTrialModalStepProps[] = useMemo(() => {
+        const buttonLabel = formatMessage({id: 'learn_more_trial_modal_step.learnMoreAboutFeature', defaultMessage: 'Learn more about this feature.'});
+        return [
+            {
+                id: 'useSso',
+                title: formatMessage({id: 'learn_more_about_trial.modal.useSsoTitle', defaultMessage: 'Use SSO (with OpenID, SAML, Google, O365)'}),
+                description: formatMessage({id: 'learn_more_about_trial.modal.useSsoDescription', defaultMessage: 'Sign on quickly and easily with our SSO feature that works with OpenID, SAML, Google, and O365.'}),
+                svgWrapperClassName: 'guestAccessSvg',
+                svgElement: (
+                    <GuestAccessSvg
+                        width={400}
+                        height={180}
+                    />
+                ),
+                pageURL: DocLinks.SETUP_SAML,
+                buttonLabel,
+            },
+            {
+                id: 'ldap',
+                title: formatMessage({id: 'learn_more_about_trial.modal.ldapTitle', defaultMessage: 'Synchronize your Active Directory/LDAP groups'}),
+                description: formatMessage({id: 'learn_more_about_trial.modal.ldapDescription', defaultMessage: 'Use AD/LDAP groups to organize and apply actions to multiple users at once. Manage team and channel memberships, permissions and more.'}),
+                svgWrapperClassName: 'personMacSvg',
+                svgElement: (
+                    <MonitorImacLikeSVG
+                        width={400}
+                        height={180}
+                    />
+                ),
+                pageURL: DocLinks.SETUP_LDAP,
+                buttonLabel,
+            },
+            {
+                id: 'systemConsole',
+                title: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
+                description: formatMessage({id: 'learn_more_about_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
+                svgWrapperClassName: 'personBoxSvg',
+                svgElement: (
+                    <SystemRolesSVG
+                        width={400}
+                        height={180}
+                    />
+                ),
+                pageURL: ConsolePages.LICENSE,
+                buttonLabel,
+            },
+        ];
+    }, [formatMessage]);
 
     const handleOnPrevNextSlideClick = useCallback((slideIndex: number) => {
         const slideId = steps[slideIndex - 1]?.id;
@@ -143,7 +143,7 @@ const LearnMoreTrialModal = (
                     key={id}
                 />
             )),
-        [],
+        [steps],
     );
 
     const headerText = formatMessage({id: 'learn_more_trial_modal.pretitle', defaultMessage: 'With Enterprise, you can...'});

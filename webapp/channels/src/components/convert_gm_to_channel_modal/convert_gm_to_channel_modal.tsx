@@ -41,7 +41,16 @@ export type Props = {
     currentUserId: string;
 }
 
-const ConvertGmToChannelModal = (props: Props) => {
+const ConvertGmToChannelModal = ({
+    channel,
+    currentUserId,
+    onExited,
+    profilesInChannel,
+    teammateNameDisplaySetting,
+    actions: {
+        convertGroupMessageToPrivateChannel,
+    },
+}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
@@ -57,12 +66,12 @@ const ConvertGmToChannelModal = (props: Props) => {
     const [channelMemberNames, setChannelMemberNames] = useState<string[]>([]);
 
     useEffect(() => {
-        const validProfilesInChannel = props.profilesInChannel.
-            filter((user) => user.id !== props.currentUserId && user.delete_at === 0).
-            map((user) => displayUsername(user, props.teammateNameDisplaySetting));
+        const validProfilesInChannel = profilesInChannel.
+            filter((user) => user.id !== currentUserId && user.delete_at === 0).
+            map((user) => displayUsername(user, teammateNameDisplaySetting));
 
         setChannelMemberNames(validProfilesInChannel);
-    }, [props.profilesInChannel]);
+    }, [profilesInChannel]);
 
     const [commonTeamsById, setCommonTeamsById] = useState<{[id: string]: Team}>({});
     const [commonTeamsFetched, setCommonTeamsFetched] = useState<boolean>(false);
@@ -83,7 +92,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     useEffect(() => {
         const work = async () => {
-            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id));
+            const response = await dispatch(getGroupMessageMembersCommonTeams(channel.id));
             if (!mounted.current) {
                 return;
             }
@@ -116,7 +125,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             return;
         }
 
-        const {error} = await props.actions.convertGroupMessageToPrivateChannel(props.channel.id, selectedTeamId, channelName.trim(), channelURL.current.trim());
+        const {error} = await convertGroupMessageToPrivateChannel(channel.id, selectedTeamId, channelName.trim(), channelURL.current.trim());
 
         if (error) {
             if (error.server_error_id === ServerErrorId.CHANNEL_NAME_EXISTS) {
@@ -134,9 +143,9 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         setConversionError(undefined);
-        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
-        props.onExited();
-    }, [selectedTeamId, props.channel.id, channelName, channelURL.current, props.actions.moveChannelsInSidebar]);
+        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: channel.id});
+        onExited();
+    }, [selectedTeamId, convertGroupMessageToPrivateChannel, channel.id, channelName, onExited, formatMessage]);
 
     const showLoader = !commonTeamsFetched || !loadingAnimationTimeout;
     const canCreate = selectedTeamId !== undefined && channelName !== '' && !nameError && !urlError;
@@ -145,7 +154,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     if (!showLoader && Object.keys(commonTeamsById).length === 0) {
         modalProps.confirmButtonText = formatMessage({id: 'generic.okay', defaultMessage: 'Okay'});
-        modalProps.handleConfirm = props.onExited;
+        modalProps.handleConfirm = onExited;
 
         modalBody = (
             <div className='convert-gm-to-channel-modal-body error'>
@@ -153,7 +162,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             </div>
         );
     } else {
-        modalProps.handleCancel = showLoader ? undefined : props.onExited;
+        modalProps.handleCancel = showLoader ? undefined : onExited;
         modalProps.isDeleteModal = true;
         modalProps.cancelButtonText = formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'});
         modalProps.confirmButtonText = formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'});
@@ -224,7 +233,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             modalHeaderText={formatMessage({id: 'sidebar_left.sidebar_channel_modal.header', defaultMessage: 'Convert to Private Channel'})}
             compassDesign={true}
             handleConfirm={showLoader ? undefined : handleConfirm}
-            onExited={props.onExited}
+            onExited={onExited}
             autoCloseOnConfirmButton={false}
             {...modalProps}
         >

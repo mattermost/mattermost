@@ -160,6 +160,8 @@ const Skeleton = styled.div`
     position: relative;
 `;
 
+const imageStyle = {display: 'block', margin: '1rem auto', borderRadius: '4px'};
+
 const OnBoardingTaskList = (): JSX.Element | null => {
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
@@ -188,39 +190,34 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     );
     const theme = useSelector(getTheme);
 
-    const startTask = (taskName: string) => {
-        toggleTaskList();
-        handleTaskTrigger(taskName);
-    };
-
-    const initOnboardingPrefs = async () => {
-        // save to preferences the show/open-task-list to true
-        // also save the recomendedNextSteps-hide to true to avoid asserting to true
-        // the logic to firstTimeOnboarding
-        await dispatch(savePreferences(currentUserId, [
-            {
-                category: OnboardingTaskCategory,
-                user_id: currentUserId,
-                name: OnboardingTaskList.ONBOARDING_TASK_LIST_SHOW,
-                value: 'true',
-            },
-            {
-                user_id: currentUserId,
-                category: OnboardingTaskCategory,
-                name: OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN,
-                value: 'true',
-            },
-            {
-                user_id: currentUserId,
-                category: Preferences.RECOMMENDED_NEXT_STEPS,
-                name: RecommendedNextStepsLegacy.HIDE,
-                value: 'true',
-            },
-        ]));
-    };
-
     useEffect(() => {
         if (firstTimeOnboarding) {
+            const initOnboardingPrefs = async () => {
+                // save to preferences the show/open-task-list to true
+                // also save the recomendedNextSteps-hide to true to avoid asserting to true
+                // the logic to firstTimeOnboarding
+                await dispatch(savePreferences(currentUserId, [
+                    {
+                        category: OnboardingTaskCategory,
+                        user_id: currentUserId,
+                        name: OnboardingTaskList.ONBOARDING_TASK_LIST_SHOW,
+                        value: 'true',
+                    },
+                    {
+                        user_id: currentUserId,
+                        category: OnboardingTaskCategory,
+                        name: OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN,
+                        value: 'true',
+                    },
+                    {
+                        user_id: currentUserId,
+                        category: Preferences.RECOMMENDED_NEXT_STEPS,
+                        name: RecommendedNextStepsLegacy.HIDE,
+                        value: 'true',
+                    },
+                ]));
+            };
+
             initOnboardingPrefs();
         }
     }, []);
@@ -265,7 +262,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }];
         dispatch(savePreferences(currentUserId, preferences));
         trackEvent(OnboardingTaskCategory, OnboardingTaskList.DECLINED_ONBOARDING_TASK_LIST);
-    }, [currentUserId]);
+    }, [currentUserId, dispatch]);
 
     const toggleTaskList = useCallback(() => {
         const preferences = [{
@@ -276,7 +273,12 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }];
         dispatch(savePreferences(currentUserId, preferences));
         trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
-    }, [open, currentUserId]);
+    }, [currentUserId, open, dispatch]);
+
+    const startTask = useCallback((taskName: string) => {
+        toggleTaskList();
+        handleTaskTrigger(taskName);
+    }, [handleTaskTrigger, toggleTaskList]);
 
     const openVideoModal = useCallback(() => {
         toggleTaskList();
@@ -285,7 +287,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             dialogType: OnBoardingVideoModal,
             dialogProps: {},
         }));
-    }, []);
+    }, [dispatch, toggleTaskList]);
 
     if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
         return null;
@@ -333,7 +335,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                                 <img
                                     src={checklistImg}
                                     alt={'On Boarding video'}
-                                    style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
+                                    style={imageStyle}
                                 />
                                 <PlayButton
                                     onClick={openVideoModal}
@@ -348,10 +350,9 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             {tasksList.map((task) => (
                                 <Task
                                     key={OnboardingTaskCategory + task.name}
-                                    label={task.label()}
-                                    onClick={() => {
-                                        startTask(task.name);
-                                    }}
+                                    labelRenderer={task.label}
+                                    startTask={startTask}
+                                    name={task.name}
                                     completedStatus={task.status}
                                 />
                             ))}

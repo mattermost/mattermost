@@ -13,9 +13,6 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
-import {closeModal} from 'actions/views/modals';
-
 import type {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
 
@@ -38,17 +35,13 @@ function makeMapStateToProps() {
 }
 
 export type Actions = {
-    closeModal: (modalID: string) => void;
     convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
-    moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            closeModal,
             convertGroupMessageToPrivateChannel,
-            moveChannelsInSidebar,
         }, dispatch),
     };
 }
