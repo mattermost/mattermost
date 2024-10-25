@@ -7,6 +7,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {developerModeEnabled} from 'mattermost-redux/selectors/entities/general';
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {
@@ -54,7 +55,10 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                 />
             </React.Fragment>
         );
-    }, [channelId, selectedDateTime, errorMessage]);
+    }, [channelId, selectedDateTime]);
+
+    const devModeEnabled = useSelector(developerModeEnabled);
+    const timePickerInterval = devModeEnabled ? 1 : undefined;
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
@@ -89,6 +93,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             relativeDate={true}
             onCancel={onExited}
             errorText={errorMessage}
+            timePickerInterval={timePickerInterval}
         />
     );
 }
