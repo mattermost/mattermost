@@ -195,10 +195,11 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 	team, err := a.Srv().Store().Team().GetByName(teamName)
 
 	if err != nil {
-		team = &model.Team{}
+		team = &model.Team{
+			Name: teamName,
+		}
 	}
 
-	team.Name = teamName
 	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
@@ -279,11 +280,12 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true); gErr == nil {
 		channel = result
 	} else {
-		channel = &model.Channel{}
+		channel = &model.Channel{
+			Name: channelName,
+		}
 	}
 
 	channel.TeamId = team.Id
-	channel.Name = channelName
 	channel.DisplayName = *data.DisplayName
 	channel.Type = *data.Type
 
