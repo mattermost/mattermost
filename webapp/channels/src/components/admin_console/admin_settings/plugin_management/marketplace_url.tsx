@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,21 +13,18 @@ import {FIELD_IDS} from './constants';
 import {messages} from './messages';
 
 import {useIsSetByEnv} from '../hooks';
+import type {MinimalTextSettingProps} from '../types';
 
 const label = <FormattedMessage {...messages.marketplaceUrl}/>;
 
-type Props = {
-    value: ComponentProps<typeof TextSetting>['value'];
-    onChange: ComponentProps<typeof TextSetting>['onChange'];
-    isDisabled?: ComponentProps<typeof TextSetting>['disabled'];
+type Props = MinimalTextSettingProps & {
     enableUploads: boolean;
 }
 
 const MarketplaceUrl = ({
-    onChange,
     value,
-    isDisabled,
     enableUploads,
+    ...otherProps
 }: Props) => {
     const helpText = useMemo(() => {
         return (
@@ -74,9 +70,8 @@ const MarketplaceUrl = ({
             label={label}
             helpText={helpText}
             value={value}
-            onChange={onChange}
             setByEnv={setByEnv}
-            disabled={isDisabled}
+            {...otherProps}
         />
     );
 };

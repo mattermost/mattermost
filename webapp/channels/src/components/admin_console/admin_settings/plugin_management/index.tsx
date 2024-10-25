@@ -13,18 +13,14 @@ import SettingsGroup from 'components/admin_console/settings_group';
 
 import type {GlobalState} from 'types/store';
 
-import AutomaticPrepackagedPlugins from './automatic_prepackaged_plugins';
 import {FIELD_IDS} from './constants';
-import EnableMarketplace from './enable_marketplace';
-import EnablePluginsSetting from './enable_plugins_setting';
-import EnableRemoteMarketplace from './enable_remote_marketplace';
 import MarketplaceUrl from './marketplace_url';
 import {messages} from './messages';
 import OverwritePluginModal from './overwrite_plugin_modal';
 import PluginUploads from './plugin_uploads';
 import PluginsContainer from './plugins_container';
 import RemovePluginModal from './remove_plugin_modal';
-import RequirePluginSignature from './require_plugin_signature';
+import {AutomaticPrepackagedPlugins, EnableMarketplace, EnablePluginsSetting, EnableRemoteMarketplace, RequirePluginSignature} from './settings';
 
 import {useAdminSettingState} from '../hooks';
 import type {GetConfigFromStateFunction, GetStateFromConfigFunction} from '../types';
@@ -130,17 +126,17 @@ const PluginManagement = ({
                                 <EnablePluginsSetting
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.ENABLE]}
-                                    isDisabled={isDisabled}
+                                    disabled={isDisabled}
                                 />
                                 <RequirePluginSignature
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.REQUIRE_PLUGIN_SIGNATURE]}
-                                    isDisabled={generalDisable}
+                                    disabled={generalDisable}
                                 />
                                 <AutomaticPrepackagedPlugins
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.AUTOMATIC_PREPACKAGED_PLUGINS]}
-                                    isDisabled={generalDisable}
+                                    disabled={generalDisable}
                                 />
                                 <PluginUploads
                                     confirmOverwrite={confirmOverwrite}
@@ -153,17 +149,17 @@ const PluginManagement = ({
                                 <EnableMarketplace
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.ENABLE_MARKETPLACE]}
-                                    isDisabled={generalDisable}
+                                    disabled={generalDisable}
                                 />
                                 <EnableRemoteMarketplace
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.ENABLE_REMOTE_MARKETPLACE]}
-                                    isDisabled={generalDisable}
+                                    disabled={generalDisable}
                                 />
                                 <MarketplaceUrl
                                     onChange={handleChange}
                                     value={settingValues[FIELD_IDS.MARKETPLACE_URL]}
-                                    isDisabled={generalDisable || !settingValues[FIELD_IDS.ENABLE_UPLOADS] || !settingValues[FIELD_IDS.ENABLE_MARKETPLACE] || !settingValues[FIELD_IDS.ENABLE_REMOTE_MARKETPLACE]}
+                                    disabled={generalDisable || !settingValues[FIELD_IDS.ENABLE_UPLOADS] || !settingValues[FIELD_IDS.ENABLE_MARKETPLACE] || !settingValues[FIELD_IDS.ENABLE_REMOTE_MARKETPLACE]}
                                     enableUploads={settingValues[FIELD_IDS.ENABLE_UPLOADS]}
                                 />
                             </>
