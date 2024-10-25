@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -788,7 +789,11 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	if aerr != nil {
 		return nil, aerr
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			c.Logger().Error("Failed to close file", mlog.Err(err))
+		}
+	}()
 
 	aerr = a.runPluginsHook(c, t.fileinfo, file)
 	if aerr != nil {
@@ -800,7 +805,11 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 		if aerr != nil {
 			return nil, aerr
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				c.Logger().Error("Failed to close file", mlog.Err(err))
+			}
+		}()
 		t.postprocessImage(file)
 	}
 
@@ -1186,7 +1195,11 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 			rctx.Logger().Debug("Error reading image file", mlog.Err(appErr))
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				rctx.Logger().Error("Failed to close file", mlog.Err(err))
+			}
+		}()
 		img, _, release, err := prepareImage(rctx, a.ch.imgDecoder, file)
 		if err != nil {
 			rctx.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
@@ -1367,6 +1380,7 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	if err != nil {
 		return err
 	}
+
 	defer os.Remove(zipFileName)
 
 	// Create a new zip archive.
@@ -1390,7 +1404,12 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 // This is a implementation of Go's example of writing files to zip (with slight modification)
 // https://golang.org/src/archive/zip/example_test.go
 func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
-	defer w.Close()
+	defer func() {
+		if err := w.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	for _, fd := range fileDatas {
 		f, err := w.CreateHeader(&zip.FileHeader{
 			Name:     fd.Filename,
@@ -1466,7 +1485,11 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			rctx.Logger().Error("Failed to close file", mlog.Err(err))
+		}
+	}()
 	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 	})
