@@ -169,9 +169,9 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
         try {
             const PDFJS = await import('pdfjs-dist');
             GlobalWorkerOptions.workerSrc = new URL(
-                'pdfjs-dist/build/pdf.worker.js',
+                'pdfjs-dist/build/pdf.worker.min.mjs',
                 import.meta.url,
-            ).toString();
+              ).toString();
             const pdf = await PDFJS.getDocument({
                 url: this.props.fileUrl,
                 cMapUrl: getSiteURL() + '/static/cmaps/',

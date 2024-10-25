@@ -121,6 +121,12 @@ var config = {
                 test: /\/highlight\.js\/.*\.css$/,
                 type: 'asset/resource',
             },
+            {
+                test: /\.m?js$/,
+                resolve: {
+                  fullySpecified: false,
+                },
+            },
         ],
     },
     resolve: {
@@ -141,7 +147,9 @@ var config = {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
             buffer: require.resolve('buffer/'),
+            process: require.resolve('process/browser.js'),
         },
+        fullySpecified: false,
     },
     performance: {
         hints: 'warning',
@@ -149,7 +157,7 @@ var config = {
     target: 'web',
     plugins: [
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -273,6 +281,9 @@ var config = {
         //     statsFilename: 'bundlestats.json',
         // }),
     ],
+    experiments: {
+        topLevelAwait: true,
+    },
 };
 
 function generateCSP() {
