@@ -70,8 +70,7 @@ func TestFillImageTransparency(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, inputFile)
 			defer func() {
-				err := inputFile.Close()
-				require.NoError(t, err)
+				require.NoError(t, inputFile.Close())
 			}()
 
 			inputImg, format, err := d.Decode(inputFile)
@@ -87,7 +86,6 @@ func TestFillImageTransparency(t *testing.T) {
 			var b bytes.Buffer
 			err = e.EncodePNG(&b, inputImg)
 			require.NoError(t, err)
-
 			require.Equal(t, expectedBytes, b.Bytes())
 		})
 	}
@@ -97,8 +95,7 @@ func TestFillImageTransparency(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, inputFile)
 		defer func() {
-			err := inputFile.Close()
-			require.NoError(t, err)
+			require.NoError(t, inputFile.Close())
 		}()
 
 		inputImg, format, err := d.Decode(inputFile)
@@ -115,7 +112,6 @@ func TestFillImageTransparency(t *testing.T) {
 		require.Equal(t, "png", format)
 
 		FillImageTransparency(inputImg, color.RGBA{0, 255, 0, 255})
-
 		require.Equal(t, expectedImg, inputImg)
 	})
 }
