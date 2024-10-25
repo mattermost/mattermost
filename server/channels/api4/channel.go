@@ -1780,7 +1780,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, userId := range interfaceIds {
-			userIds = append(userIds, userId.(string))
+			uid, ok := userId.(string)
+
+			if !ok || !model.IsValidId(uid) {
+				c.SetInvalidParam("user_id in user_ids")
+				return
+			}
+
+			userIds = append(userIds, uid)
 		}
 	} else {
 		userId, ok2 := props["user_id"].(string)
