@@ -2660,11 +2660,13 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 	status, err := a.Srv().Platform().GetStatus(userID)
 
 	oldStatus := model.StatusOffline
-	oldChannelID := status.ActiveChannel
+
+	oldChannelID := ""
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 	} else {
 		oldStatus = status.Status
+		oldChannelID = status.ActiveChannel
 		status.ActiveChannel = channelID
 		if !status.Manual && channelID != "" {
 			status.Status = model.StatusOnline
