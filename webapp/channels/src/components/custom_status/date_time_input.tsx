@@ -33,8 +33,7 @@ const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
 const DATE_FORMAT = 'yyyy-MM-dd';
 
-export function getRoundedTime(value: Moment) {
-    const roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
     const start = moment(value);
     const diff = start.minute() % roundedTo;
     if (diff === 0) {
@@ -44,8 +43,7 @@ export function getRoundedTime(value: Moment) {
     return start.add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
-const getTimeInIntervals = (startTime: Moment): Date[] => {
-    const interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
     let time = moment(startTime);
     const nextDay = moment(startTime).add(1, 'days').startOf('day');
     const intervals: Date[] = [];
@@ -63,6 +61,7 @@ type Props = {
     timezone?: string;
     setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
     relativeDate?: boolean;
+    timePickerInterval?: number;
 }
 
 const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
@@ -97,9 +96,9 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
         if (currentTime.isSame(time, 'date')) {
-            startTime = getRoundedTime(currentTime);
+            startTime = getRoundedTime(currentTime, props.timePickerInterval);
         }
-        setTimeOptions(getTimeInIntervals(startTime));
+        setTimeOptions(getTimeInIntervals(startTime, props.timePickerInterval));
     };
 
     useEffect(setTimeAndOptions, [time]);
@@ -107,7 +106,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const currentTime = getCurrentMomentForTimezone(timezone);
-            const roundedTime = getRoundedTime(currentTime);
+            const roundedTime = getRoundedTime(currentTime, props.timePickerInterval);
             handleChange(roundedTime);
         } else {
             const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
