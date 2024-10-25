@@ -104,7 +104,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	// Enabling Redis with Postgres.
 	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres {
-		enterprise = true
 		*memoryConfig.CacheSettings.CacheType = model.CacheTypeRedis
 		redisHost := "localhost"
 		if os.Getenv("IS_CI") == "true" {
@@ -113,6 +112,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
 		*memoryConfig.CacheSettings.DisableClientCache = true
 		*memoryConfig.CacheSettings.RedisDB = 0
+		options = append(options, app.ForceEnableRedis())
 	}
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
@@ -145,7 +145,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
-	options = append(options, app.WithLicense(getLicense(enterprise, memoryConfig)))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -169,6 +168,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if searchEngine != nil {
 		th.App.SetSearchEngine(searchEngine)
 	}
+
+	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50

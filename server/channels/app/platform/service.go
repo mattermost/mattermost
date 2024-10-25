@@ -104,6 +104,10 @@ type PlatformService struct {
 	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
+
+	// This is a test mode setting used to enable Redis
+	// without a license.
+	forceEnableRedis bool
 }
 
 type HookRunner interface {
@@ -278,7 +282,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// if the license didn't have clustering. But there's an intricate deadlock
 	// where license cannot be loaded before store, and store cannot be loaded before
 	// cache. So loading license before loading cache is an uphill battle.
-	if (license == nil || !*license.Features.Cluster) && *cacheConfig.CacheType == model.CacheTypeRedis {
+	if (license == nil || !*license.Features.Cluster) && *cacheConfig.CacheType == model.CacheTypeRedis && !ps.forceEnableRedis {
 		return nil, fmt.Errorf("Redis cannot be used in an instance without a license or a license without clustering")
 	}
 
