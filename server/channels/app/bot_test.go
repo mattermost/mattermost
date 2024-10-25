@@ -200,9 +200,9 @@ func TestPatchBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("invalid username"),
-			DisplayName: sToP("an updated bot"),
-			Description: sToP("updated bot"),
+			Username:    model.NewPointer("invalid username"),
+			DisplayName: model.NewPointer("an updated bot"),
+			Description: model.NewPointer("updated bot"),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -223,9 +223,9 @@ func TestPatchBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username"),
-			DisplayName: sToP("display name"),
-			Description: sToP(strings.Repeat("x", 1025)),
+			Username:    model.NewPointer("username"),
+			DisplayName: model.NewPointer("display name"),
+			Description: model.NewPointer(strings.Repeat("x", 1025)),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -249,9 +249,9 @@ func TestPatchBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username2"),
-			DisplayName: sToP("updated bot"),
-			Description: sToP("an updated bot"),
+			Username:    model.NewPointer("username2"),
+			DisplayName: model.NewPointer("updated bot"),
+			Description: model.NewPointer("an updated bot"),
 		}
 
 		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
@@ -281,7 +281,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
-			Username: sToP(th.BasicUser2.Username),
+			Username: model.NewPointer(th.BasicUser2.Username),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -871,8 +871,4 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
-}
-
-func sToP(s string) *string {
-	return &s
 }

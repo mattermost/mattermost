@@ -273,7 +273,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
 		// Check that the Site URL can't be cleared
-		cfg.ServiceSettings.SiteURL = sToP("")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("")
 		cfg, resp, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
