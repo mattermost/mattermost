@@ -232,6 +232,41 @@ func TestExportAllUsers(t *testing.T) {
 	assert.ElementsMatch(t, deletedUsers1, deletedUsers2)
 }
 
+func TestExportAllBots(t *testing.T) {
+	th1 := Setup(t)
+	defer th1.TearDown()
+
+	u := th1.CreateUser()
+	bot, err := th1.App.CreateBot(th1.Context, &model.Bot{
+		Username:    "bot_1",
+		DisplayName: model.NewId(),
+		OwnerId:     u.Id,
+	})
+	require.Nil(t, err)
+
+	var b bytes.Buffer
+	err = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, err)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, err)
+	assert.EqualValues(t, 0, i)
+
+	u, err = th2.App.GetUserByUsername(u.Username)
+	require.Nil(t, err)
+
+	bots, err := th2.App.GetBots(th2.Context, &model.BotGetOptions{
+		OwnerId: u.Id,
+		Page:    0,
+		PerPage: 10,
+	})
+	require.Nil(t, err)
+	require.Len(t, bots, 1)
+	assert.Equal(t, bot.Username, bots[0].Username)
+}
+
 func TestExportDMChannel(t *testing.T) {
 	t.Run("Export a DM channel to another server", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
