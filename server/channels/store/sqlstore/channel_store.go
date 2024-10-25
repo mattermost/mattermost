@@ -1493,32 +1493,31 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
-	var query string
-	var args []interface{}
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		}).
+		Where(sq.NotEq{"DeleteAt": 0}).
+		OrderBy("DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-	if skipTeamMembershipCheck {
-		query = `
-			SELECT * FROM Channels
-			WHERE (TeamId = ? OR TeamId = '')
-			AND DeleteAt != 0
-			ORDER BY DisplayName LIMIT ? OFFSET ?
-		`
-		args = append(args, teamId, limit, offset)
-	} else {
-		query = `
-			SELECT * FROM Channels
-			WHERE (TeamId = ? OR TeamId = '')
-			AND DeleteAt != 0
-			AND Type != ?
-			UNION
-				SELECT * FROM Channels
-				WHERE (TeamId = ? OR TeamId = '')
-				AND DeleteAt != 0
-				AND Type = ?
-				AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
-			ORDER BY DisplayName LIMIT ? OFFSET ?
-		`
-		args = append(args, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset)
+	if !skipTeamMembershipCheck {
+		builder = builder.Where(sq.Or{
+			sq.NotEq{"Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"Type": model.ChannelTypePrivate},
+				sq.Expr("Id IN (?)", sq.Select("ChannelId").From("ChannelMembers").Where(sq.Eq{"UserId": userId})),
+			},
+		})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetDeleted_ToSql")
 	}
 
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
