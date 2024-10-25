@@ -5,7 +5,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {CSSProperties, KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
+import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -218,11 +218,13 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
-        let conditionalSVGStyles: CSSProperties = {};
+        let conditionalSVGStyleAttribute = {};
         if (fileType === FileTypes.SVG) {
-            conditionalSVGStyles = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
-                height: 'auto',
+            conditionalSVGStyleAttribute = {
+                style: {
+                    width: dimensions?.width || MIN_IMAGE_SIZE,
+                    height: 'auto',
+                },
             };
         }
 
@@ -240,7 +242,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={conditionalSVGStyles}
+                {...conditionalSVGStyleAttribute}
             />
         );
 

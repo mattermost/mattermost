@@ -33,6 +33,16 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
         return <img src={previewUrl}/>;
     }
 
+    let conditionalSVGStyleAttribute = {};
+    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
+        conditionalSVGStyleAttribute = {
+            style: {
+                width: fileInfo.width,
+                height: 'auto',
+            },
+        };
+    }
+
     return (
         <a
             className='image_preview'
@@ -44,7 +54,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                style={getFileType(fileInfo.extension) === FileTypes.SVG ? {width: fileInfo.width, height: 'auto'} : {}}
+                {...conditionalSVGStyleAttribute}
             />
         </a>
     );
