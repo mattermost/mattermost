@@ -57,7 +57,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "You cannot acknowledgment in an archived channel."
+    "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
