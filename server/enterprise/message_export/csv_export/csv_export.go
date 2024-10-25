@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -32,7 +31,7 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
+func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
@@ -252,7 +251,7 @@ func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func(
 }
 
 func getJoinLeavePosts(channels map[string]*shared.MetadataChannel,
-	postAuthorsByChannel map[string]map[string]shared.ChannelMember, db store.Store) ([]*model.MessageExport, error) {
+	postAuthorsByChannel map[string]map[string]shared.ChannelMember, db shared.MessageExportStore) ([]*model.MessageExport, error) {
 	joinLeavePosts := []*model.MessageExport{}
 	for _, channel := range channels {
 		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, []string{channel.ChannelId})
@@ -337,7 +336,7 @@ func getJoinLeavePosts(channels map[string]*shared.MetadataChannel,
 	return joinLeavePosts, nil
 }
 
-func getPostAttachments(db store.Store, post *model.MessageExport) ([]*model.FileInfo, error) {
+func getPostAttachments(db shared.MessageExportStore, post *model.MessageExport) ([]*model.FileInfo, error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
 		return []*model.FileInfo{}, nil

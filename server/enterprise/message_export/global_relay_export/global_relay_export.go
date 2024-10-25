@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -71,7 +70,7 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
+func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
 	var warningCount int
 	var attachmentsRemovedPostIDs []string
 	allExports := make(map[string][]*ChannelExport)
@@ -200,7 +199,7 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 	return attachmentsRemovedPostIDs
 }
 
-func getParticipants(db store.Store, channelExport *ChannelExport,
+func getParticipants(db shared.MessageExportStore, channelExport *ChannelExport,
 	postAuthors map[string]shared.ChannelMember) ([]ParticipantRow, error) {
 	participantsMap := map[string]ParticipantRow{}
 	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, []string{channelExport.ChannelId})

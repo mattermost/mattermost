@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -109,7 +108,7 @@ type Params struct {
 	BatchPath              string
 	BatchStartTime         int64
 	BatchEndTime           int64
-	Db                     store.Store
+	Db                     shared.MessageExportStore
 	FileAttachmentBackend  filestore.FileBackend
 	ExportBackend          filestore.FileBackend
 }
@@ -245,7 +244,7 @@ func postToExportEntry(post *model.MessageExport, createTime *int64, message str
 	}
 }
 
-func postToAttachmentsEntries(post *model.MessageExport, db store.Store) ([]any, []any, []*model.FileInfo, []any, error) {
+func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExportStore) ([]any, []any, []*model.FileInfo, []any, error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
 		return nil, nil, nil, nil, nil
