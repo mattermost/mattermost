@@ -69,7 +69,10 @@ func TestFillImageTransparency(t *testing.T) {
 			inputFile, err := os.Open(imgDir + "/" + tc.inputName)
 			require.NoError(t, err)
 			require.NotNil(t, inputFile)
-			defer inputFile.Close()
+			defer func() {
+				err := inputFile.Close()
+				require.NoError(t, err)
+			}()
 
 			inputImg, format, err := d.Decode(inputFile)
 			require.NoError(t, err)
@@ -93,14 +96,18 @@ func TestFillImageTransparency(t *testing.T) {
 		inputFile, err := os.Open(imgDir + "/fill_test_opaque.png")
 		require.NoError(t, err)
 		require.NotNil(t, inputFile)
-		defer inputFile.Close()
+		defer func() {
+			err := inputFile.Close()
+			require.NoError(t, err)
+		}()
 
 		inputImg, format, err := d.Decode(inputFile)
 		require.NoError(t, err)
 		require.NotNil(t, inputImg)
 		require.Equal(t, "png", format)
 
-		inputFile.Seek(0, 0)
+		_, err = inputFile.Seek(0, 0)
+		require.NoError(t, err)
 
 		expectedImg, format, err := d.Decode(inputFile)
 		require.NoError(t, err)
