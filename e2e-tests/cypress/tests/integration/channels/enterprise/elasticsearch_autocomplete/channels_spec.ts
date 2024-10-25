@@ -10,6 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {getAdminAccount} from '../../../../support/env';
 
 import {
@@ -20,8 +22,8 @@ import {
 } from './helpers';
 
 describe('Autocomplete with Elasticsearch - Channel', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Team;
+    let testUser: UserProfile;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();

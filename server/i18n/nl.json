@@ -10184,5 +10184,29 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Kan de extra sessie-eigenschappen niet bijwerken."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kan geen uitnodigingscode genereren voor een bevestigde cluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Kan bericht niet verwijderen, ServiceSettings.EnableAPIPostDeletion is niet ingeschakeld."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Je kan de gebruikersstatus niet wijzigen. Gebruiker wordt beheerd door LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Geen bestanden gevonden voor bericht."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Fout bij het definitief verwijderen van bestand voor bericht."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Fout bij het definitief verwijderen van bericht."
   }
 ]
