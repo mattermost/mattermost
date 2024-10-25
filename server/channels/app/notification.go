@@ -1582,7 +1582,7 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	if len(potentialGroupMembersMentioned) != 0 {
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackGroupsFeature,
-			"post_invited_groups_to_channel",
+			"invite_group_to_channel__post",
 			map[string]any{"user_actual_id": senderID, "group_id": group.Id},
 		)
 	}

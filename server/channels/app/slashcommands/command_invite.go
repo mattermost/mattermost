@@ -222,7 +222,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			if group != nil {
 				a.Srv().GetTelemetryService().SendTelemetryForFeature(
 					telemetry.TrackGroupsFeature,
-					"command_invited_groups_to_channel",
+					"invite_group_to_channel__command",
 					map[string]any{"user_actual_id": c.Session().UserId, "group_id": group.Id},
 				)
 			}
