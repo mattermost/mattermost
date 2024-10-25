@@ -253,6 +253,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
 			}
 
+			license := ps.License()
+			ps.sqlStore.UpdateLicense(license)
 			ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})
