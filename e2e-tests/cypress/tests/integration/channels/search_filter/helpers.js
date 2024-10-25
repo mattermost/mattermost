@@ -12,13 +12,13 @@ import {getRandomId} from '../../../utils';
 
 export function searchAndValidate(query, expectedResults = []) {
     // # Enter in search query, and hit enter
+    cy.uiGetSearchContainer().should('be.visible').click();
     cy.uiGetSearchBox().
         clear().
         wait(TIMEOUTS.HALF_SEC).
         type(query).
         wait(TIMEOUTS.HALF_SEC).
-        type('{enter}').
-        should('be.empty');
+        type('{enter}');
 
     cy.get('#loadingSpinner').should('not.exist');
 

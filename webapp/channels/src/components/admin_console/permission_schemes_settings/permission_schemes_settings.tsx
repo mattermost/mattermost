@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
+import {type MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -36,7 +36,7 @@ export type Props = {
         loadSchemeTeams: (id: string) => Promise<ActionResult>;
     };
     isDisabled?: boolean;
-} & WrappedComponentProps;
+};
 
 type State = {
     loading: boolean;
@@ -69,7 +69,7 @@ export const searchableStrings = [
     messages.teamOverrideSchemesNewButton,
 ];
 
-class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+export default class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -213,7 +213,7 @@ class PermissionSchemesSettings extends React.PureComponent<Props & RouteCompone
                         >
                             <LoadingWrapper
                                 loading={this.state.loadingMore}
-                                text={this.props.intl.formatMessage({id: 'admin.permissions.loadingMoreSchemes', defaultMessage: 'Loading...'})}
+                                text={defineMessage({id: 'admin.permissions.loadingMoreSchemes', defaultMessage: 'Loading...'})}
                             >
                                 <FormattedMessage {...messages.loadMoreSchemes}/>
                             </LoadingWrapper>
@@ -287,5 +287,3 @@ class PermissionSchemesSettings extends React.PureComponent<Props & RouteCompone
         );
     };
 }
-
-export default injectIntl(PermissionSchemesSettings);
