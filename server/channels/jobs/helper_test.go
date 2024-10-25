@@ -52,7 +52,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
-	configStore.Set(memoryConfig)
+	if err := configStore.Set(memoryConfig); err != nil {
+        	require.NoError(tb, err, "Failed to set config")
+        }
 
 	buffer := &mlog.Buffer{}
 
@@ -132,26 +134,26 @@ func (th *TestHelper) InitBasic() *TestHelper {
 		th.SystemAdminUser = th.CreateUser()
 		_, err := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		if err != nil {
-			panic(err)
+			require.NoError(t, err, "Failed during test execution")
 		}
 		
 		th.SystemAdminUser, err = th.App.GetUser(th.SystemAdminUser.Id)
 		if err != nil {
-			panic(err)
+			require.NoError(t, err, "Failed during test execution")
 		}
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.BasicUser = th.CreateUser()
 		th.BasicUser, err = th.App.GetUser(th.BasicUser.Id)
 		if err != nil {
-			panic(err)
+			require.NoError(t, err, "Failed during test execution")
 		}
 		userCache.BasicUser = th.BasicUser.DeepCopy()
 
 		th.BasicUser2 = th.CreateUser()
 		th.BasicUser2, err = th.App.GetUser(th.BasicUser2.Id)
 		if err != nil {
-			panic(err)
+			require.NoError(t, err, "Failed during test execution")
 		}
 		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
 	})
@@ -233,8 +235,10 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
-	}
+		if err := th.App.Srv().InvalidateAllCaches(); err != nil {
+            th.TestLogger.Error("Error invalidating caches", mlog.Err(err))
+        }
+}
 	th.ShutdownApp()
 	if th.tempWorkspace != "" {
 		err := os.RemoveAll(th.tempWorkspace)
