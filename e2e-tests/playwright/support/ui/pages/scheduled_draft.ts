@@ -118,6 +118,10 @@ export default class ScheduledDraftPage {
         expect(await this.confirmbutton.textContent()).toEqual('Yes, send now');
         await this.confirmbutton.click();
     }
+
+    async goTo(teamName: string) {
+        await this.page.goto(`/${teamName}/scheduled_posts`);
+    }
 }
 
 export {ScheduledDraftPage};

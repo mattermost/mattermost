@@ -27,18 +27,22 @@ export default class DraftPage {
 
         this.datePattern =
             /(Today|Tomorrow|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}) at \d{1,2}:\d{2} [AP]M/;
-        this.badgeCountOnScheduledTab = page.locator('a#draft_tabs-tab-1 div.drafts_tab_title span.MuiBadge-badge');
+        this.badgeCountOnScheduledTab = page.locator('a#draft_tabs-tab-0 div.drafts_tab_title span.MuiBadge-badge');
         // this.scheduledDraftPageInfo = page.locator('span:has-text("Send on")');
         this.scheduledDraftPageInfo = page.locator('.PanelHeader__info');
         this.scheduledDraftPanel = (messageContent: string) =>
             page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
         this.deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
         this.deleteIconToolTip = page.locator('text=Delete scheduled post');
-        this.rescheduleIconToolTip = page.locator('text=Reschedule post');
+        this.rescheduleIconToolTip = page.locator('text=Schedule draft');
         this.noscheduledDraftIcon = page.locator('.no-results__wrapper');
         this.scheduledDraftSendNowButton = page.locator('#draft_icon-send-outline_sendNow');
         this.scheduledDraftSendNowButtonToolTip = page.locator('text=Send now');
         this.confirmbutton = this.page.locator('button.btn-primary');
+    }
+
+    async goTo(teamName: string) {
+        await this.page.goto(`/${teamName}/drafts`);
     }
 
     async toBeVisible() {
@@ -60,7 +64,7 @@ export default class DraftPage {
         await this.scheduledDraftPanel(messageContent).isVisible();
         await this.scheduledDraftPanel(messageContent).hover();
         await this.verifyDeleteIcon();
-        await this.verifyScheduleIcon();
+        await this.verifyScheduleIcon(messageContent);
         await this.verifySendNowIcon();
     }
 
@@ -71,11 +75,12 @@ export default class DraftPage {
         await expect(this.deleteIconToolTip).toHaveText('Delete scheduled post');
     }
 
-    async verifyScheduleIcon() {
+    async verifyScheduleIcon(messageContent: string) {
+        await this.scheduledDraftPanel(messageContent).hover();
         await expect(this.scheduleIcon).toBeVisible();
         await this.scheduleIcon.hover();
         await expect(this.rescheduleIconToolTip).toBeVisible();
-        await expect(this.rescheduleIconToolTip).toHaveText('Schedule post');
+        await expect(this.rescheduleIconToolTip).toHaveText('Schedule draft');
     }
 
     async verifySendNowIcon() {
@@ -97,7 +102,7 @@ export default class DraftPage {
         await this.scheduledDraftPanel(messageContent).hover();
         await this.scheduleIcon.hover();
         await expect(this.rescheduleIconToolTip).toBeVisible();
-        await expect(this.rescheduleIconToolTip).toHaveText('Schedule post');
+        await expect(this.rescheduleIconToolTip).toHaveText('Schedule draft');
         await this.scheduleIcon.click();
     }
 
