@@ -515,8 +515,12 @@ func TestImportImportTeam(t *testing.T) {
 	teamsCount, err := th.App.Srv().Store().Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 
+	// we also assert that the team name can be upper case
+	teamName := "A" + model.NewId()
+	sanitizedTeamName := strings.ToLower(teamName)
+
 	data := imports.TeamImportData{
-		Name:            model.NewPointer(model.NewId()),
+		Name:            model.NewPointer(teamName),
 		DisplayName:     model.NewPointer("Display Name"),
 		Type:            model.NewPointer("XYZ"),
 		Description:     model.NewPointer("The team description."),
@@ -553,7 +557,7 @@ func TestImportImportTeam(t *testing.T) {
 	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all the fields are correct.
-	team, appErr := th.App.GetTeamByName(*data.Name)
+	team, appErr := th.App.GetTeamByName(sanitizedTeamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	assert.Equal(t, *data.DisplayName, team.DisplayName)
@@ -577,7 +581,7 @@ func TestImportImportTeam(t *testing.T) {
 	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all fields are correct.
-	team, appErr = th.App.GetTeamByName(*data.Name)
+	team, appErr = th.App.GetTeamByName(sanitizedTeamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	assert.Equal(t, *data.DisplayName, team.DisplayName)
@@ -667,6 +671,12 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid channel in apply mode.
 	data.Team = &teamName
+
+	// we also assert that the channel name can be upper case
+	// for the import workflow
+	data.Name = model.NewPointer("channelName")
+	sanitizedChannelName := strings.ToLower(*data.Name)
+
 	err = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, err, "Expected success in apply mode")
 
@@ -674,10 +684,10 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount+1)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
+	channel, err := th.App.GetChannelByName(th.Context, sanitizedChannelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
-	assert.Equal(t, *data.Name, channel.Name)
+	assert.Equal(t, sanitizedChannelName, channel.Name)
 	assert.Equal(t, *data.DisplayName, channel.DisplayName)
 	assert.Equal(t, *data.Type, channel.Type)
 	assert.Equal(t, *data.Header, channel.Header)
@@ -698,10 +708,10 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err = th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
+	channel, err = th.App.GetChannelByName(th.Context, sanitizedChannelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
-	assert.Equal(t, *data.Name, channel.Name)
+	assert.Equal(t, sanitizedChannelName, channel.Name)
 	assert.Equal(t, *data.DisplayName, channel.DisplayName)
 	assert.Equal(t, *data.Type, channel.Type)
 	assert.Equal(t, *data.Header, channel.Header)
@@ -719,9 +729,9 @@ func TestImportImportChannel(t *testing.T) {
 	data.DeletedAt = &now
 	err = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, err, "Expected success in apply mode")
-	aChan, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, true)
+	aChan, err := th.App.GetChannelByName(th.Context, sanitizedChannelName, team.Id, true)
 	require.Nil(t, err, "Failed to get channel from database.")
-	assert.Equal(t, *data.Name, aChan.Name)
+	assert.Equal(t, sanitizedChannelName, aChan.Name)
 }
 
 func TestImportImportUser(t *testing.T) {
