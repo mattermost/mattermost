@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-function delayRequestToRoutes(routes = [], delay = 0) {
+import {ChainableT} from 'tests/types';
+
+function delayRequestToRoutes(routes: string[] = [], delay = 0) {
     cy.on('window:before:load', (win) => addDelay(win, routes, delay));
 }
 
@@ -9,7 +11,7 @@ Cypress.Commands.add('delayRequestToRoutes', delayRequestToRoutes);
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const addDelay = (win, routes, delay) => {
+const addDelay = (win, routes: string[], delay: number) => {
     const fetch = win.fetch;
     cy.stub(win, 'fetch').callsFake((...args) => {
         for (let i = 0; i < routes.length; i++) {
@@ -54,7 +56,8 @@ const mockWebsocketsFn = (win) => {
                 }
             },
             connect() {
-                this.wrappedSocket = new RealWebSocket(...args);
+                const [param1, restOfParams] = args;
+                this.wrappedSocket = new RealWebSocket(param1, restOfParams);
                 this.wrappedSocket.onopen = this.onopen;
                 this.wrappedSocket.onmessage = this.onmessage;
                 this.wrappedSocket.onerror = this.onerror;
@@ -70,7 +73,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
-            delayRequestToRoutes: typeof delayRequestToRoutes;
+            delayRequestToRoutes(routes: string[], delay: number): ChainableT<void>;
             mockWebsockets: typeof mockWebsockets;
         }
     }
