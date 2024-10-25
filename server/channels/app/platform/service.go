@@ -50,7 +50,6 @@ type PlatformService struct {
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
-	sessionPool   sync.Pool
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
@@ -123,11 +122,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
-		},
-		sessionPool: sync.Pool{
-			New: func() any {
-				return &model.Session{}
-			},
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
@@ -303,7 +297,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
@@ -314,7 +308,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create session cache: %w", err)

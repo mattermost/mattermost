@@ -21,7 +21,7 @@ export function shouldTrackPerformance(state = store.getState()) {
     return isDevModeEnabled(state) || isTelemetryEnabled(state);
 }
 
-export function trackEvent(category, event, props) {
+export function trackEvent(category, event, props = {}) {
     const state = store.getState();
     if (
         isPerformanceDebuggingEnabled(state) &&
@@ -36,6 +36,10 @@ export function trackEvent(category, event, props) {
         // eslint-disable-next-line no-console
         console.log(event + ' - ' + Object.entries(props).map(([key, value]) => `${key}: ${value}`).join(', '));
     }
+}
+
+export function trackFeatureEvent(featureName, event, props = {}) {
+    Client4.trackFeatureEvent(featureName, event, props);
 }
 
 export function pageVisited(category, name) {
