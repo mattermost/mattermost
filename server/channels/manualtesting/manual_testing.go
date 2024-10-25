@@ -48,7 +48,10 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	uid, ok := params["uid"]
 	if ok {
 		hasher := fnv.New32a()
-		hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
+		_, err := hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
+		if err != nil {
+			c.Logger.Warn("Error hashing uid", mlog.Err(err))
+		}
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
@@ -111,12 +114,20 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			} else {
 				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-
 			return
 		}
 
-		c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		if _, err := c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email); err != nil {
+			c.Logger.Error("Error verifying email", mlog.Err(err))
+			c.Err = model.NewAppError("manualTest", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		if _, err := c.App.Srv().Store().Team().SaveMember(c.AppContext, &model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam); err != nil {
+			c.Logger.Error("Error saving team member", mlog.Err(err))
+			c.Err = model.NewAppError("manualTest", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 
 		userID = user.Id
 
@@ -142,6 +153,11 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			HttpOnly: true,
 		}
 		http.SetCookie(w, sessionCookie)
+		if err := r.ParseForm(); err != nil {
+			c.Logger.Error("Error parsing form during redirect", mlog.Err(err))
+			c.Err = model.NewAppError("manualTest", "manaultesting.manual_test.parse_form.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return
+		}
 		http.Redirect(w, r, "/channels/town-square", http.StatusTemporaryRedirect)
 	}
 
@@ -178,7 +194,7 @@ func getChannelID(a app.AppIface, channelname string, teamid string, userid stri
 		LastDeleteAt:   0,
 	})
 	if err != nil {
-		mlog.Debug("Unable to get channels")
+		mlog.Debug("Unable to get channels", mlog.Err(err))
 		return "", false
 	}
 
