@@ -326,7 +326,12 @@ async function replyToLastPost(post: any): Promise<void> {
     await post.postMenu.reply();
 }
 
-async function setupChannelPage(channelPage: ChannelsPage, draftMessage: string, teamName?: string, channelName?: string): Promise<void> {
+async function setupChannelPage(
+    channelPage: ChannelsPage,
+    draftMessage: string,
+    teamName?: string,
+    channelName?: string,
+): Promise<void> {
     await channelPage.goto(teamName, channelName);
     await channelPage.toBeVisible();
 

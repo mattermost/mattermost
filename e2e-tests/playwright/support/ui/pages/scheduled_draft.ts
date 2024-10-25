@@ -130,7 +130,7 @@ export default class ScheduledDraftPage {
     }
 
     async editText(newText: string) {
-        await this.editIcon.click()
+        await this.editIcon.click();
         await this.editBox.isVisible();
         await this.editBox.fill(newText);
         await this.editorSaveButton.isVisible();

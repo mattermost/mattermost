@@ -91,8 +91,6 @@ export default class ChannelsPostCreate {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
     }
-
-
 }
 
 export {ChannelsPostCreate};
