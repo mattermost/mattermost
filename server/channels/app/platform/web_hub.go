@@ -24,6 +24,7 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
+	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 }
 
@@ -648,8 +649,6 @@ func (i *hubConnectionIndex) Add(wc *WebConn) {
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	wc.Platform.ReturnSessionToPool(wc.GetSession())
-
 	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
