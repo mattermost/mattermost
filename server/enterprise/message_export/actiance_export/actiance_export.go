@@ -369,7 +369,8 @@ func buildChannelExport(startTime int64, endTime int64, channel *shared.Metadata
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (res shared.WriteExportResult, err error) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (shared.WriteExportResult, error) {
+	res := shared.WriteExportResult{}
 	start := time.Now()
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
