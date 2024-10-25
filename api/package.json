@@ -4,7 +4,7 @@
   "description": "This respository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
   "main": "index.js",
   "dependencies": {
-    "@redocly/cli": "^1.13.0",
+    "@redocly/cli": "^1.15.0",
     "swagger-cli": "4.0.4",
     "sync-fetch": "0.4.1",
     "yaml": "2.1.1"
