@@ -378,10 +378,10 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
-	if err = enc.Encode(export); err != nil {
+	if err := enc.Encode(export); err != nil {
 		return res, fmt.Errorf("unable to convert export to XML: %w", err)
 	}
-	if err = enc.Flush(); err != nil {
+	if err := enc.Flush(); err != nil {
 		return res, fmt.Errorf("unable to flush the XML encoder: %w", err)
 	}
 
