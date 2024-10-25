@@ -19,6 +19,9 @@ export default class ScheduledDraftPage {
     readonly scheduledDraftPanel;
     readonly scheduledDraftSendNowButton;
     readonly scheduledDraftSendNowButtonToolTip;
+    readonly editIcon;
+    readonly editBox;
+    readonly editorSaveButton;
 
     constructor(page: Page) {
         this.page = page;
@@ -39,6 +42,9 @@ export default class ScheduledDraftPage {
         this.scheduledDraftSendNowButton = page.locator('#draft_icon-send-outline_sendNow');
         this.scheduledDraftSendNowButtonToolTip = page.locator('text=Send now');
         this.confirmbutton = this.page.locator('button.btn-primary');
+        this.editIcon = page.locator('#draft_icon-pencil-outline_edit');
+        this.editBox = page.locator('textarea#edit_textbox');
+        this.editorSaveButton = page.locator('button.save');
     }
 
     async toBeVisible() {
@@ -121,6 +127,16 @@ export default class ScheduledDraftPage {
 
     async goTo(teamName: string) {
         await this.page.goto(`/${teamName}/scheduled_posts`);
+    }
+
+    async editText(newText: string) {
+        await this.editIcon.click()
+        await this.editBox.isVisible();
+        await this.editBox.fill(newText);
+        await this.editorSaveButton.isVisible();
+        await this.editorSaveButton.click();
+        await this.editBox.isHidden();
+        await this.scheduledDraftPanel(newText).isVisible();
     }
 }
 

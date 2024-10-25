@@ -41,29 +41,33 @@ function mapStateToProps(state: GlobalState, props: Props) {
     let editingPost;
     let channelId: string;
     let draft;
+    let isAuthor: boolean;
+
+    const currentUserId = getCurrentUserId(state);
 
     if (props.scheduledPost) {
         editingPost = {post: null};
         channelId = props.scheduledPost.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, props.scheduledPost.id);
+        isAuthor = true;
     } else {
         editingPost = getEditingPost(state);
         channelId = editingPost.post.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
+        isAuthor = editingPost?.post?.user_id === currentUserId;
     }
 
-    const currentUserId = getCurrentUserId(state);
     const teamId = getCurrentTeamId(state);
-
-    const isAuthor = editingPost?.post?.user_id === currentUserId;
     const deletePermission = isAuthor ? Permissions.DELETE_POST : Permissions.DELETE_OTHERS_POSTS;
     const editPermission = isAuthor ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
 
     const channel = getChannel(state, channelId);
     const useChannelMentions = haveIChannelPermission(state, teamId, channelId, Permissions.USE_CHANNEL_MENTIONS);
 
+    const canEdit = haveIChannelPermission(state, teamId, channelId, editPermission);
+
     return {
-        canEditPost: haveIChannelPermission(state, teamId, channelId, editPermission),
+        canEditPost: canEdit,
         canDeletePost: haveIChannelPermission(state, teamId, channelId, deletePermission),
         codeBlockOnCtrlEnter: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true),
         ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),

@@ -330,7 +330,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     }, [onCancel, handleAutomatedRefocusAndExit]);
 
     const handleEditScheduledPost = useCallback(async () => {
-        if (!scheduledPost || isSaveDisabled() || !channel || !onDeleteScheduledPost) {
+        const saveDisabled = isSaveDisabled();
+        if (!scheduledPost || saveDisabled || !channel || !onDeleteScheduledPost) {
             return;
         }
 

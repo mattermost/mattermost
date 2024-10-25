@@ -289,6 +289,9 @@ test('should edit scheduled message', async ({pw, pages}) => {
     // // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
+    const updatedText = 'updated text';
+    await scheduledDraftPage.editText(updatedText);
+
     // // # Go back and wait for message to arrive
     // await goBackToChannelAndWaitForMessageToArrive(page);
     //
