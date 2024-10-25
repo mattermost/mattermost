@@ -1256,7 +1256,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		rootPost1, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: channel.Id,
 			UserId:    model.NewId(),
-			Message:   NewTestId(),
+			Message:   NewTestID(),
 		})
 		require.NoError(t, err)
 
@@ -1264,7 +1264,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Save(rctx, &model.Post{
 			ChannelId: rootPost1.ChannelId,
 			UserId:    model.NewId(),
-			Message:   NewTestId(),
+			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
 		})
 		require.NoError(t, err)
@@ -1273,7 +1273,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		replyPost2, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: rootPost1.ChannelId,
 			UserId:    model.NewId(),
-			Message:   NewTestId(),
+			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
 		})
 		require.NoError(t, err)
@@ -1282,7 +1282,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Save(rctx, &model.Post{
 			ChannelId: rootPost1.ChannelId,
 			UserId:    model.NewId(),
-			Message:   NewTestId(),
+			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
 		})
 		require.NoError(t, err)
