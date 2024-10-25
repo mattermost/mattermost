@@ -2361,6 +2361,10 @@
     "translation": "invalid_request: Bad grant_type."
   },
   {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
