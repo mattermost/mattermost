@@ -87,7 +87,9 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	_, err = configStore.Set(config)
+	require.NoError(tb, err)
+
 
 	licenseFn := func() *model.License { return model.NewTestLicense() }
 
