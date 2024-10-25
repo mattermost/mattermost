@@ -13,6 +13,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
 
@@ -114,6 +115,8 @@ type Params struct {
 }
 
 func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error) {
+	start := time.Now()
+
 	// postAuthorsByChannel is a map so that we don't store duplicate authors
 	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 	metadata := shared.Metadata{
@@ -214,8 +217,10 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 		Channels: channelExports,
 	}
 
+	results.ProcessingPostsMs = time.Since(start).Milliseconds()
+
 	var err error
-	results.NumWarnings, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)
+	results.WriteExportResult, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)
 	results.NumChannels = len(channelsInThisBatch)
 	return results, err
 }
@@ -364,7 +369,9 @@ func buildChannelExport(startTime int64, endTime int64, channel *shared.Metadata
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (int, error) {
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (shared.WriteExportResult, error) {
+	res := shared.WriteExportResult{}
+	start := time.Now()
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
 	xmlData.WriteString(xml.Header)
@@ -372,10 +379,10 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
 	if err := enc.Encode(export); err != nil {
-		return 0, fmt.Errorf("unable to convert export to XML: %w", err)
+		return res, fmt.Errorf("unable to convert export to XML: %w", err)
 	}
 	if err := enc.Flush(); err != nil {
-		return 0, fmt.Errorf("unable to flush the XML encoder: %w", err)
+		return res, fmt.Errorf("unable to flush the XML encoder: %w", err)
 	}
 
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
@@ -384,18 +391,21 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 	buf := make([]byte, 1024*1024*2)
 	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
 	if err != nil {
-		return 0, fmt.Errorf("unable to create the batch temporary file: %w", err)
+		return res, fmt.Errorf("unable to create the batch temporary file: %w", err)
 	}
 	defer file.DeleteTemp(rctx.Logger(), temp)
 
 	zipFile := zip.NewWriter(temp)
 	w, err := zipFile.Create(ActianceExportFilename)
 	if err != nil {
-		return 0, fmt.Errorf("unable to create the xml file in the zipFile created with the batch temporary file: %w", err)
+		return res, fmt.Errorf("unable to create the xml file in the zipFile created with the batch temporary file: %w", err)
 	}
 	if _, err = io.CopyBuffer(w, xmlData, buf); err != nil {
-		return 0, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
+		return res, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 	}
+	res.ProcessingXmlMs = time.Since(start).Milliseconds()
+
+	start = time.Now()
 
 	var missingFiles []string
 	for _, fileInfo := range uploadedFiles {
@@ -423,37 +433,42 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 			return nil
 		}(); err != nil {
-			return 0, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
+			return res, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 		}
 	}
 
-	warningCount := len(missingFiles)
-	if warningCount > 0 {
+	res.TransferringFilesMs = time.Since(start).Milliseconds()
+	res.NumWarnings = len(missingFiles)
+	if res.NumWarnings > 0 {
 		var w io.Writer
 		w, err = zipFile.Create(ActianceWarningFilename)
 		if err != nil {
-			return warningCount, fmt.Errorf("unable to create the warning file in the zipFile created with the batch temporary file: %w", err)
+			return res, fmt.Errorf("unable to create the warning file in the zipFile created with the batch temporary file: %w", err)
 		}
 		r := strings.NewReader(strings.Join(missingFiles, "\n"))
 		if _, err = io.CopyBuffer(w, r, buf); err != nil {
-			return warningCount, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
+			return res, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
 		}
 	}
 
 	if err = zipFile.Close(); err != nil {
-		return warningCount, fmt.Errorf("unable to close the zipFile created with the batch temporary file: %w", err)
+		return res, fmt.Errorf("unable to close the zipFile created with the batch temporary file: %w", err)
 	}
 
 	_, err = temp.Seek(0, io.SeekStart)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to seek to the beginning of the the batch temporary file: %w", err)
+		return res, fmt.Errorf("unable to seek to the beginning of the the batch temporary file: %w", err)
 	}
+
+	start = time.Now()
 
 	// Try to write the file without a timeout due to the potential size of the file.
 	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, temp, batchPath)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to transfer the batch zip to the file backend: %w", err)
+		return res, fmt.Errorf("unable to transfer the batch zip to the file backend: %w", err)
 	}
 
-	return warningCount, nil
+	res.TransferringZipMs = time.Since(start).Milliseconds()
+
+	return res, nil
 }
