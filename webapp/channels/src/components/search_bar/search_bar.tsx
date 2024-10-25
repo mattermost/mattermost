@@ -10,7 +10,6 @@ import type Provider from 'components/suggestion/provider';
 import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionDate from 'components/suggestion/suggestion_date';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
@@ -167,7 +166,6 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     onChange={props.handleChange}
                     onKeyDown={handleKeyDown}
                     listComponent={SearchSuggestionList}
-                    dateComponent={SuggestionDate}
                     providers={suggestionProviders}
                     type='search'
                     delayInputUpdate={true}
