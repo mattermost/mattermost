@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {canAddReactions} from 'mattermost-redux/selectors/entities/reactions';
 
 import {toggleReaction} from 'actions/post_actions';
@@ -31,10 +32,14 @@ function makeMapStateToProps() {
         const channel = getChannel(state, channelId);
         const teamId = channel?.team_id ?? '';
 
+        const config = getConfig(state);
+        const maxUniqueReactions = parseInt(config.UniqueEmojiReactionLimitPerPost ?? '0', 10);
+
         return {
             teamId,
             reactions: getReactionsForPost(state, ownProps.post.id),
             canAddReactions: canAddReactions(state, channelId),
+            maxUniqueReactions,
         };
     };
 }
