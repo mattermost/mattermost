@@ -6279,6 +6279,12 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
+                            type: 'number',
+                            key: 'ExperimentalSettings.SuggestionDebounceDelay',
+                            label: defineMessage({ id: 'admin.experimental.suggestionDebounceDelay.title', defaultMessage: 'Suggestion Debounce Delay:' }),
+                            help_text: defineMessage({ id: 'admin.experimental.suggestionDebounceDelay.desc', defaultMessage: 'The number of milliseconds to wait after a user has stopped typing before showing autocomplete options or searching for suggestions. Affects components such as the message textbox, the Channel Members list and the Browse Channels modal.' }),
+                        },
+                        {
                             type: 'bool',
                             key: 'ExperimentalSettings.YoutubeReferrerPolicy',
                             label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
