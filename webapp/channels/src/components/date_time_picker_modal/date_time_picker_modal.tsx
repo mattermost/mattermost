@@ -60,11 +60,11 @@ export default function DateTimePickerModal({onExited,
 
     const [dateTime, setDateTime] = useState(initialTime || initialRoundedTime);
 
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const [isInteracting, setIsInteracting] = useState(false);
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
-            if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
+            if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isInteracting) {
                 event.preventDefault();
                 event.stopPropagation();
                 onExited?.();
@@ -76,7 +76,7 @@ export default function DateTimePickerModal({onExited,
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isDatePickerOpen, onExited]);
+    }, [isInteracting, onExited]);
 
     const handleChange = useCallback((dateTime: Moment) => {
         setDateTime(dateTime);
@@ -86,6 +86,12 @@ export default function DateTimePickerModal({onExited,
     const handleConfirm = useCallback(() => {
         onConfirm?.(dateTime);
     }, [dateTime, onConfirm]);
+
+    const handleEnterKeyPress = useCallback(() => {
+        if (!isInteracting) {
+            handleConfirm();
+        }
+    }, [handleConfirm, isInteracting]);
 
     return (
         <GenericModal
@@ -97,7 +103,7 @@ export default function DateTimePickerModal({onExited,
             confirmButtonText={confirmButtonText}
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
-            handleEnterKeyPress={handleConfirm}
+            handleEnterKeyPress={handleEnterKeyPress}
             className={classnames('date-time-picker-modal', className)}
             compassDesign={true}
             keyboardEscape={false}
@@ -111,7 +117,7 @@ export default function DateTimePickerModal({onExited,
                 time={dateTime}
                 handleChange={handleChange}
                 timezone={userTimezone}
-                setIsDatePickerOpen={setIsDatePickerOpen}
+                setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}
             />

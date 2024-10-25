@@ -59,14 +59,13 @@ type Props = {
     time: Moment;
     handleChange: (date: Moment) => void;
     timezone?: string;
-    setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
+    setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
 }
 
-const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
+const DateTimeInputContainer: React.FC<Props> = ({time, handleChange, timezone, setIsInteracting, relativeDate, timePickerInterval}: Props) => {
     const locale = useSelector(getCurrentLocale);
-    const {time, handleChange, timezone} = props;
     const [timeOptions, setTimeOptions] = useState<Date[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const {formatMessage} = useIntl();
@@ -75,8 +74,8 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
-        props.setIsDatePickerOpen?.(isOpen);
-    }, []);
+        setIsInteracting?.(isOpen);
+    }, [setIsInteracting]);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && isPopperOpen) {
@@ -96,9 +95,9 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
         if (currentTime.isSame(time, 'date')) {
-            startTime = getRoundedTime(currentTime, props.timePickerInterval);
+            startTime = getRoundedTime(currentTime, timePickerInterval);
         }
-        setTimeOptions(getTimeInIntervals(startTime, props.timePickerInterval));
+        setTimeOptions(getTimeInIntervals(startTime, timePickerInterval));
     };
 
     useEffect(setTimeAndOptions, [time]);
@@ -106,7 +105,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const currentTime = getCurrentMomentForTimezone(timezone);
-            const roundedTime = getRoundedTime(currentTime, props.timePickerInterval);
+            const roundedTime = getRoundedTime(currentTime, timePickerInterval);
             handleChange(roundedTime);
         } else {
             const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
@@ -135,7 +134,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     }, []);
 
     const formatDate = (date: Moment): string => {
-        return props.relativeDate ? relativeFormatDate(date, formatMessage, DATE_FORMAT) : DateTime.fromJSDate(date.toDate()).toFormat(DATE_FORMAT);
+        return relativeDate ? relativeFormatDate(date, formatMessage, DATE_FORMAT) : DateTime.fromJSDate(date.toDate()).toFormat(DATE_FORMAT);
     };
 
     const inputIcon = (
@@ -185,6 +184,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                 <div className='dateTime__time'>
                     <MenuWrapper
                         className='dateTime__time-menu'
+                        onToggle={setIsInteracting}
                     >
                         <button
                             className='style--none'
