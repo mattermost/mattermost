@@ -394,6 +394,9 @@ describe('Integrations page', () => {
         // # Enter a request url for custom slash command
         cy.findByLabelText('Request URL').should('exist').scrollIntoView().type('https://example.com');
 
+        // # Enter the desired request method
+        cy.findByLabelText('Request Method').should('exist').scrollIntoView().select('GET');
+
         // # Check the option of autocomplete
         cy.findByLabelText('Autocomplete').should('exist').scrollIntoView().click();
 
