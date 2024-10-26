@@ -63,10 +63,8 @@ export function runSlashCommandWillBePostedHooks(originalMessage: string, origin
                     };
                 }
 
-                if ('message' in result || 'args' in result) {
-                    message = result.message;
-                    args = result.args;
-                }
+                message = result.message;
+                args = result.args;
 
                 // The first plugin to consume the slash command by returning an empty object
                 // should terminate the processing by subsequent plugins.
