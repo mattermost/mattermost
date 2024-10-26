@@ -1161,10 +1161,6 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	fileInfo, err := th.App.Srv().Store().FileInfo().Get(fileId)
-	require.NoError(t, err)
-	require.NoError(t, th.cleanupTestFile(fileInfo))
-
 	err = th.cleanupTestFile(info)
 	require.NoError(t, err)
 	link = th.App.GeneratePublicLink(client.URL, info)
