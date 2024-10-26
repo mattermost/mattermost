@@ -1130,7 +1130,7 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-	if _, err := imgData.Seek(0, io.SeekStart); err != nil {
+	if _, err = imgData.Seek(0, io.SeekStart); err != nil {
 		return nil, "", nil, fmt.Errorf("prepareImage: failed to seek back to start of image data: %w", err)
 	}
 	// Flip the image to be upright
@@ -1393,7 +1393,7 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 		return err
 	}
 
-	if _, err := conglomerateZipFile.Seek(0, 0); err != nil {
+	if _, err = conglomerateZipFile.Seek(0, 0); err != nil {
 		return err
 	}
 	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
