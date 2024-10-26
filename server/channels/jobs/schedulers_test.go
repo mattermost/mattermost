@@ -67,17 +67,15 @@ func TestScheduler(t *testing.T) {
 	jobServer.RegisterJobType(model.JobTypeDataRetention, nil, new(MockScheduler))
 	jobServer.RegisterJobType(model.JobTypeMessageExport, nil, new(MockScheduler))
 
-	sleepDuration := 2 * time.Second
-
 	t.Run("Base", func(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
-        
+
 		// They should be all on here
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.NotNil(t, element)
@@ -88,13 +86,13 @@ func TestScheduler(t *testing.T) {
 		jobServer.initSchedulers()
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 		jobServer.HandleClusterLeaderChange(false)
-		
+
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
-        
+
 		// They should be turned off
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
@@ -106,11 +104,11 @@ func TestScheduler(t *testing.T) {
 		jobServer.HandleClusterLeaderChange(false)
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
-        
+
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
@@ -122,11 +120,11 @@ func TestScheduler(t *testing.T) {
 		jobServer.HandleClusterLeaderChange(true)
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
-        
+
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.NotNil(t, element)
 		}
@@ -136,14 +134,14 @@ func TestScheduler(t *testing.T) {
 		jobServer.initSchedulers()
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 		jobServer.HandleClusterLeaderChange(false)
 		// After running a config change, they should stay off
 		jobServer.schedulers.handleConfigChange(nil, nil)
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
-        
+
 		for _, element := range jobServer.schedulers.nextRunTimes {
 			assert.Nil(t, element)
 		}
@@ -153,8 +151,8 @@ func TestScheduler(t *testing.T) {
 		jobServer.initSchedulers()
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
-        
-		_ = time.Sleep(sleepDuration)
+
+		time.Sleep(2 * time.Second)
 
 		var wg sync.WaitGroup
 		wg.Add(2)
