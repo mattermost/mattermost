@@ -3707,6 +3707,22 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID 
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	start := time.Now()
+
+	err := s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.PermanentDeleteForPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	start := time.Now()
 
@@ -6215,6 +6231,22 @@ func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.OverwriteMultiple", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	start := time.Now()
+
+	err := s.PostStore.PermanentDelete(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDelete", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

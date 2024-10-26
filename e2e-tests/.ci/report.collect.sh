@@ -8,8 +8,8 @@ set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
 
-# The collected data will be written to the "e2e-tests/cypress/results/" directory
-cd ../cypress/
+# The collected data will be written to the "e2e-tests/$TEST/results/" directory
+cd "../$TEST/"
 if [ ! -d "results/" ]; then
   mme2e_log "Error: 'results/' directory does not exist. Aborting report data collection." >&2
   exit 1

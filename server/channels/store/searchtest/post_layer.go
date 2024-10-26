@@ -275,6 +275,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchAcrossTeams,
 		Tags: []string{EngineAll},
 	},
+	{
+		Name: "Should be removed from search index when deleted",
+		Fn:   testSearchPostDeleted,
+		Tags: []string{EngineAll},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -1954,4 +1959,32 @@ func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 
 	require.Len(t, results.Posts, 2)
+}
+
+func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
+	t.Run("Search for soft deleted post", func(t *testing.T) {
+		p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message to delete", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		err = th.Store.Post().Delete(th.Context, p1.Id, p1.UpdateAt, th.User.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "message to delete"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		require.Len(t, results.Posts, 0)
+	})
+
+	t.Run("Search for hard deleted post", func(t *testing.T) {
+		p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message to delete", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		err = th.Store.Post().PermanentDelete(th.Context, p2.Id)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "message to delete"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		require.Len(t, results.Posts, 0)
+	})
 }
