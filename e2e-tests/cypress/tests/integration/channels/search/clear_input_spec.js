@@ -25,11 +25,13 @@ describe('Search', () => {
         // * X should not be visible on empty input
         cy.uiGetSearchContainer().find('.input-clear-x').should('not.exist');
 
+        cy.uiGetSearchContainer().click();
+
         // # Write something on the input
-        cy.uiGetSearchBox().clear().type('abc');
+        cy.uiGetSearchBox().find('input').clear().type('abc');
 
         // * The input should contain what we wrote
-        cy.uiGetSearchBox().should('have.value', 'abc');
+        cy.uiGetSearchBox().find('input').should('have.value', 'abc');
 
         // * The X should be visible
         // # Then click X to clear the input field
@@ -50,7 +52,7 @@ describe('Search', () => {
 
         // * Verify search input field exists and not search button, as inputs contains placeholder not buttons/icons
         // and then type in a search text
-        cy.uiGetSearchBox().click().wait(TIMEOUTS.HALF_SEC).type(searchText);
+        cy.uiGetSearchBox().click().wait(TIMEOUTS.HALF_SEC).type(searchText + '{enter}');
 
         // # Click on the pinned post button from the header
         cy.uiGetChannelPinButton().click();
