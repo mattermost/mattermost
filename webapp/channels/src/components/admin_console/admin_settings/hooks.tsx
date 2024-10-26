@@ -21,10 +21,10 @@ export function useIsSetByEnv(path: string) {
     return useSelector((state: GlobalState) => isSetByEnv(getEnvironmentConfig(state), path));
 }
 
-export const useAdminSettingState = (
-    getConfigFromState: GetConfigFromStateFunction,
-    getStateFromConfig: GetStateFromConfigFunction,
-    preSave?: (values: {[x: string]: any}) => Promise<string>,
+export const useAdminSettingState = <T extends Record<string, any>>(
+    getConfigFromState: GetConfigFromStateFunction<T>,
+    getStateFromConfig: GetStateFromConfigFunction<T>,
+    preSave?: (values: T) => Promise<string>,
     handleSaved?: HandleSaveFunction,
 ) => {
     const dispatch = useDispatch();
@@ -35,7 +35,7 @@ export const useAdminSettingState = (
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
-    const [settingValues, setSettingValues] = useState<{[x: string]: any}>(() => getStateFromConfig(config, license));
+    const [settingValues, setSettingValues] = useState<T>(() => getStateFromConfig(config, license));
 
     const handleChange = useCallback((id: string, value: unknown) => {
         setSaveNeeded(true);
