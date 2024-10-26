@@ -129,7 +129,7 @@ func (a *App) elasticsearchChannelIndexCheck() {
 			UserId:    systemBot.UserId,
 			ChannelId: channel.Id,
 		}
-		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, true, false)
+		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, model.CreatePostFlags{TriggerWebhooks: true})
 		if appErr != nil {
 			a.Log().Error("elasticsearchChannelIndexCheck: error occurred creating post", mlog.Err(appErr))
 			continue
