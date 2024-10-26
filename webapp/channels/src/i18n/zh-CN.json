@@ -1405,6 +1405,7 @@
   "admin.license.trialCard.licenseExpiring": "您目前正在免费试用我们的 Mattermost 企业版许可证。",
   "admin.license.trialCard.purchase_license": "购买许可证",
   "admin.license.trialLicenseCard.expiringAfterFewDays": "您的免费试用将在 <b>{daysCount} {daysCount, plural, other {天}}</b>后到期。访问我们的客户门户并立即购买许可证，以在试用期结束后继续使用 Mattermost 专业版和企业版的功能。",
+  "admin.license.trialLicenseCard.expiringToday": "您的免费试用将在<b>今天 {time}</b> 到期。访问我们的客户门户并立即购买许可证，以在试用期结束后继续使用 Mattermost 专业版和企业版的功能",
   "admin.license.trialUpgradeAndRequest.submit": "升级服务器并开始试用",
   "admin.license.upgrade-and-trial-request.accept-terms-final-part": "此外，我同意 Mattermost {eeModalTerms} 条款。升级将下载二进制文件并更新您的团队版实例。",
   "admin.license.upgrade-and-trial-request.accept-terms-initial-part": "通过选择<strong>升级服务器并开始试用</strong>，即表示我同意 <linkEvaluation>Mattermost 软件评估协议</linkEvaluation>、<linkPrivacy>隐私政策</linkPrivacy>，并愿意接收产品相关的电子邮件。 ",
