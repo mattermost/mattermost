@@ -74,7 +74,6 @@ issues:
         channels/api4/data_retention.go|\
         channels/api4/file_test.go|\
         channels/api4/job_test.go|\
-        channels/api4/license_local.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction_test.go|\
@@ -92,7 +91,6 @@ issues:
         channels/app/authorization_test.go|\
         channels/app/auto_responder_test.go|\
         channels/app/bot.go|\
-        channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/busy_test.go|\
         channels/app/channel.go|\
@@ -109,7 +107,6 @@ issues:
         channels/app/file_helper_test.go|\
         channels/app/file_info.go|\
         channels/app/file_test.go|\
-        channels/app/group_test.go|\
         channels/app/helper_test.go|\
         channels/app/imaging/decode.go|\
         channels/app/imaging/decode_test.go|\
@@ -253,11 +250,9 @@ issues:
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
         channels/testlib/helper.go|\
-        channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
-        channels/web/response_writer_wrapper_test.go|\
         channels/web/saml.go|\
         channels/web/static.go|\
         channels/web/web.go|\
