@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -150,8 +150,6 @@ const Completed = (props: Props): JSX.Element => {
     // if Cloud, don't show
     const showStartTrialBtn = selfHostedTrialCondition && !isCloud;
 
-    const {formatMessage} = useIntl();
-
     return (
         <>
             <CSSTransition
@@ -190,7 +188,6 @@ const Completed = (props: Props): JSX.Element => {
                                 />
                             </span>
                             <StartTrialBtn
-                                message={formatMessage({id: 'start_trial.modal_btn.start_free_trial', defaultMessage: 'Start free 30-day trial'})}
                                 telemetryId='start_trial_from_onboarding_completed_task'
                                 onClick={dismissAction}
                             />

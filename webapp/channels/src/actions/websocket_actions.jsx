@@ -31,6 +31,7 @@ import {
     getChannelStats,
     markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
+    fetchAllMyChannelMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -235,6 +236,7 @@ export function reconnect() {
         }
 
         dispatch(loadChannelsForCurrentUser());
+        dispatch(fetchAllMyChannelMembers());
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));

@@ -189,15 +189,17 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 	}
 
 	rctx.Logger().Info("Importing team", fields...)
+	teamName := strings.ToLower(*data.Name)
 
 	var team *model.Team
-	team, err := a.Srv().Store().Team().GetByName(*data.Name)
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 
 	if err != nil {
-		team = &model.Team{}
+		team = &model.Team{
+			Name: teamName,
+		}
 	}
 
-	team.Name = *data.Name
 	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
@@ -264,22 +266,26 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 		return nil
 	}
 
+	teamName := strings.ToLower(*data.Team)
+	channelName := strings.ToLower(*data.Name)
+
 	rctx.Logger().Info("Importing channel", fields...)
 
-	team, err := a.Srv().Store().Team().GetByName(*data.Team)
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": *data.Team}, "", http.StatusBadRequest).Wrap(err)
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": teamName}, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var channel *model.Channel
-	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); gErr == nil {
+	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true); gErr == nil {
 		channel = result
 	} else {
-		channel = &model.Channel{}
+		channel = &model.Channel{
+			Name: channelName,
+		}
 	}
 
 	channel.TeamId = team.Id
-	channel.Name = *data.Name
 	channel.DisplayName = *data.DisplayName
 	channel.Type = *data.Type
 
@@ -722,7 +728,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		preferences = append(preferences, model.Preference{
 			UserId:   savedUser.Id,
 			Category: model.PreferenceCategoryDisplaySettings,
-			Name:     "channel_display_mode",
+			Name:     model.PreferenceNameChannelDisplayMode,
 			Value:    *data.ChannelDisplayMode,
 		})
 	}
@@ -760,6 +766,69 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			Category: model.PreferenceCategorySidebarSettings,
 			Name:     "show_unread_section",
 			Value:    *data.ShowUnreadSection,
+		})
+	}
+
+	if data.SendOnCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "send_on_ctrl_enter",
+			Value:    *data.SendOnCtrlEnter,
+		})
+	}
+
+	if data.CodeBlockCtrlEnter != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "code_block_ctrl_enter",
+			Value:    *data.CodeBlockCtrlEnter,
+		})
+	}
+
+	if data.ShowJoinLeave != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "join_leave",
+			Value:    *data.ShowJoinLeave,
+		})
+	}
+
+	if data.ShowUnreadScrollPosition != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "unread_scroll_position",
+			Value:    *data.ShowUnreadScrollPosition,
+		})
+	}
+
+	if data.SyncDrafts != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryAdvancedSettings,
+			Name:     "sync_drafts",
+			Value:    *data.SyncDrafts,
+		})
+	}
+
+	if data.LimitVisibleDmsGms != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategorySidebarSettings,
+			Name:     model.PreferenceLimitVisibleDmsGms,
+			Value:    *data.LimitVisibleDmsGms,
+		})
+	}
+
+	if data.NameFormat != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   savedUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameNameFormat,
+			Value:    *data.NameFormat,
 		})
 	}
 
@@ -1184,6 +1253,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			return err
 		}
 		usernames = append(usernames, *replyData.User)
+		if replyData.FlaggedBy != nil {
+			usernames = append(usernames, *replyData.FlaggedBy...)
+		}
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
@@ -1233,6 +1305,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		if replyData.EditAt != nil {
 			reply.EditAt = *replyData.EditAt
 		}
+		if replyData.IsPinned != nil {
+			reply.IsPinned = *replyData.IsPinned
+		}
 
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID, extractContent)
 		for _, fileID := range reply.FileIds {
@@ -1274,6 +1349,27 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 	for _, postWithData := range postsWithData {
 		a.updateFileInfoWithPostId(rctx, postWithData.post)
+
+		if postWithData.replyData.FlaggedBy != nil {
+			var preferences model.Preferences
+
+			for _, username := range *postWithData.replyData.FlaggedBy {
+				user := users[strings.ToLower(username)]
+
+				preferences = append(preferences, model.Preference{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryFlaggedPost,
+					Name:     postWithData.post.Id,
+					Value:    "true",
+				})
+			}
+
+			if len(preferences) > 0 {
+				if err := a.Srv().Store().Preference().Save(preferences); err != nil {
+					return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+		}
 	}
 
 	return nil

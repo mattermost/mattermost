@@ -108,7 +108,7 @@ func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, erro
 		return nil, errors.Wrapf(err, "getsharedchannel_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&sc, squery, args...); err != nil {
+	if err := s.GetMasterX().Get(&sc, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannel", channelId)
 		}
@@ -818,7 +818,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 		return err
 	}
 
-	updateAt := maxInt64(user.UpdateAt, user.LastPictureUpdate)
+	updateAt := max(user.UpdateAt, user.LastPictureUpdate)
 
 	query := s.getQueryBuilder().
 		Update("SharedChannelUsers AS scu").
