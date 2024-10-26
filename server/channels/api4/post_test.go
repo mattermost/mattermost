@@ -1287,7 +1287,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
-	}, channel, false, true)
+	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
@@ -1344,7 +1344,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.PostTypeJoinLeave,
 			UserId:    th.BasicUser.Id,
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		up2 := &model.Post{
@@ -1361,7 +1361,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
-	}, channel, false, true)
+	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	t.Run("new message, add files", func(t *testing.T) {
@@ -1410,7 +1410,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			UserId:    th.BasicUser.Id,
 			CreateAt:  model.GetMillis() - 2000,
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		up4 := &model.Post{
@@ -2817,39 +2817,124 @@ func TestDeletePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	resp, err := client.DeletePost(context.Background(), "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+	t.Run("Post not found", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 
-	resp, err = client.DeletePost(context.Background(), "junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("Post doesn't exist", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	resp, err = client.DeletePost(context.Background(), th.BasicPost.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("No permissions to delete a post", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	_, err = client.DeletePost(context.Background(), th.BasicPost.Id)
-	require.NoError(t, err)
+	t.Run("Try to delete a post across different user roles", func(t *testing.T) {
+		client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+		_, cErr := client.DeletePost(context.Background(), th.BasicPost.Id)
+		require.NoError(t, cErr)
 
-	post := th.CreatePost()
-	user := th.CreateUser()
+		post := th.CreatePost()
+		post2 := th.CreatePost()
+		user := th.CreateUser()
 
-	client.Logout(context.Background())
-	client.Login(context.Background(), user.Email, user.Password)
+		client.Logout(context.Background())
+		client.Login(context.Background(), user.Email, user.Password)
 
-	resp, err = client.DeletePost(context.Background(), post.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		resp, err := client.DeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
-	resp, err = client.DeletePost(context.Background(), model.NewId())
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		client.Logout(context.Background())
+		resp, err = client.DeletePost(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 
-	_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
-	require.NoError(t, err)
+		_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+
+		_, err = th.LocalClient.DeletePost(context.Background(), post2.Id)
+		require.NoError(t, err)
+	})
+}
+
+func TestPermanentDeletePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	enableAPIPostDeletion := *th.App.Config().ServiceSettings.EnableAPIPostDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIPostDeletion = &enableAPIPostDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = false })
+
+	t.Run("Post not found", func(t *testing.T) {
+		resp, err := client.PermanentDeletePost(context.Background(), "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Post doesn't exist", func(t *testing.T) {
+		resp, err := client.PermanentDeletePost(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion not available through API if EnableAPIPostDeletion is not set", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPIPostDeletion is not set", func(t *testing.T) {
+		post := th.CreatePost()
+		_, err := th.LocalClient.PermanentDeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("No permissions to permanently delete a post", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = true })
+		resp, err := client.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Try to permanently delete a post across different user roles", func(t *testing.T) {
+		client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+		resp, err := client.PermanentDeletePost(context.Background(), th.BasicPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		post := th.CreatePost()
+		post2 := th.CreatePost()
+		user := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user.Email, user.Password)
+
+		resp, err = client.PermanentDeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		client.Logout(context.Background())
+		resp, err = client.PermanentDeletePost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+
+		_, err = th.SystemAdminClient.PermanentDeletePost(context.Background(), post.Id)
+		require.NoError(t, err)
+
+		_, err = th.LocalClient.PermanentDeletePost(context.Background(), post2.Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestDeletePostEvent(t *testing.T) {
@@ -3527,13 +3612,13 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
 		dc := th.CreateDmChannel(th.CreateUser())
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Ensure that post have been read
@@ -3629,19 +3714,19 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	// user1: a root post
 	// user2: Another root mention @u1
 	user1Mention := " @" + th.BasicUser.Username
-	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, false, false)
+	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, false, false)
+	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
@@ -3745,7 +3830,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	time.Sleep(1 * time.Millisecond)

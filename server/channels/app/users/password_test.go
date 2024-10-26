@@ -107,7 +107,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 				Number:    model.NewPointer(true),
 				Symbol:    model.NewPointer(true),
 			},
-			ExpectedError: "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
 			Password: "asdASD!@#123",

@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {format} from 'utils/markdown';
-import {localizeMessage} from 'utils/utils';
 
 interface TeamEditionRightPanelProps {
     upgradingPercentage: number;
@@ -37,6 +35,8 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     setClickNormalUpgradeBtn,
 }: TeamEditionRightPanelProps) => {
     let upgradeButton = null;
+    const intl = useIntl();
+
     const onHandleUpgrade = (e: React.MouseEvent<HTMLButtonElement>) => {
         if (!handleUpgrade) {
             return;
@@ -77,21 +77,24 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     </button>
                 </p>
                 <p className='upgrade-legal-terms'>
-                    <FormattedMarkdownMessage
-                        id='admin.license.enterprise.upgrade.acceptTermsInitial'
-                        defaultMessage='By clicking **Upgrade**, I agree to the terms of the Mattermost '
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsInitial'
+                        defaultMessage='By clicking <b>Upgrade</b>, I agree to the terms of the Mattermost '
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                     <a
                         role='button'
                         onClick={openEEModal}
                     >
-                        <FormattedMarkdownMessage
-                            id='admin.license.enterprise.upgrade.eeLicenseLink'
+                        <FormattedMessage
+                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.eeLicenseLink'
                             defaultMessage='Enterprise Edition License'
                         />
                     </a>
-                    <FormattedMarkdownMessage
-                        id='admin.license.enterprise.upgrade.acceptTermsFinal'
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsFinal'
                         defaultMessage='. Upgrading will download the binary and update your team edition.'
                     />
                 </p>
@@ -114,8 +117,8 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <FormattedMarkdownMessage
-                        id='admin.license.upgraded-restart'
+                    <FormattedMessage
+                        id='admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart'
                         defaultMessage='You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:'
                     />
                 </p>
@@ -127,13 +130,13 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     >
                         <LoadingWrapper
                             loading={restarting}
-                            text={localizeMessage({
-                                id: 'admin.license.enterprise.restarting',
+                            text={intl.formatMessage({
+                                id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',
                                 defaultMessage: 'Restarting',
                             })}
                         >
                             <FormattedMessage
-                                id='admin.license.enterprise.restart'
+                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.restart'
                                 defaultMessage='Restart Server'
                             />
                         </LoadingWrapper>
