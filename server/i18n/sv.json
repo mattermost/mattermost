@@ -10176,5 +10176,25 @@
   {
     "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
     "translation": "Det går inte att generera en inbjudningskod för ett bekräftat kluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Det går inte att ta bort meddelande, ServiceSettings.EnableAPIPostDeletion är inte aktiverat."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Du kan inte ändra användarens status. Användaren hanteras av LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Hittade inte filer för inlägget."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Misslyckades med att permanent radera filen för inlägget."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Misslyckades med att permanent radera inlägget."
   }
 ]

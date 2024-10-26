@@ -84,8 +84,18 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
             addUserCallback={[Function]}
             backButtonClass="multiselect-back"
             backButtonClick={[Function]}
-            buttonSubmitLoadingText="Adding..."
-            buttonSubmitText="Add People"
+            buttonSubmitLoadingText={
+              Object {
+                "defaultMessage": "Adding...",
+                "id": "multiselect.adding",
+              }
+            }
+            buttonSubmitText={
+              Object {
+                "defaultMessage": "Add People",
+                "id": "multiselect.addPeopleToGroup",
+              }
+            }
             deleteUserCallback={[Function]}
             focusOnLoad={false}
             groupId="groupid123"
