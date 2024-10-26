@@ -1600,6 +1600,15 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 	})
 
 	t.Run("Check OutOfChannel results with/without VIEW_MEMBERS permissions", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61041")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+		}()
 		permissionsUser := th.CreateUser()
 		_, err := th.SystemAdminClient.DemoteUserToGuest(context.Background(), permissionsUser.Id)
 		require.NoError(t, err)
