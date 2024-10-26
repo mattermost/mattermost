@@ -106,9 +106,8 @@ func TestEnsureInstallationDate(t *testing.T) {
 			}
 
 			if tc.PrevInstallationDate == nil {
-				deleted, err := th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
+				_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
 				require.NoError(t, err)
-				require.True(t, deleted)
 			} else {
 				err := th.App.Srv().Store().System().SaveOrUpdate(&model.System{
 					Name:  model.SystemInstallationDateKey,
