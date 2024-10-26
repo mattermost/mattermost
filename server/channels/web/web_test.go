@@ -49,7 +49,7 @@ type TestHelper struct {
 
 	TestLogger *mlog.Logger
 
-	t *testing.T
+	t *testing.TB
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -172,7 +172,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	team, _ := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TeamOpen})
 
 	_, err := th.App.JoinUserToTeam(th.Context, team, user, "")
-	require.Nil(th.t, err)
+	require.Nil(*th.t, err)
 
 	channel, _ := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.ChannelTypeOpen, TeamId: team.Id, CreatorId: user.Id}, true)
 
@@ -187,7 +187,7 @@ func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		err := th.App.Srv().InvalidateAllCaches()
-		require.Nil(th.t, err)
+		require.Nil(*th.t, err)
 	}
 	th.Server.Shutdown()
 }
