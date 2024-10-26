@@ -300,6 +300,10 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
   {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Cannot create a direct channel with a remote user"
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "A direct channel cannot be created between these users because they do not share a team in common."
   },
@@ -334,6 +338,10 @@
   {
     "id": "api.channel.create_group.bad_user.app_error",
     "translation": "One of the provided users does not exist."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Cannot create a group channel with remote users"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -2225,6 +2233,10 @@
     "translation": "Empty array under 'license' in request."
   },
   {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Failed to copy license."
+  },
+  {
     "id": "api.license.add_license.expired.app_error",
     "translation": "License is either expired or has not yet started."
   },
@@ -2749,6 +2761,10 @@
   {
     "id": "api.remote_cluster.cluster_not_deleted",
     "translation": "Remote cluster has not been deleted"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Could not create remote cluster invite"
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -6145,6 +6161,10 @@
   {
     "id": "app.post.cloud.get.app_error",
     "translation": "Can not fetch the post as it is past the cloud's plan limit."
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Cannot create the post in a DM or GM with remote users"
   },
   {
     "id": "app.post.delete.app_error",
@@ -9609,6 +9629,18 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Invalid remote id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Invalid site url."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Invalid token."
   },
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
