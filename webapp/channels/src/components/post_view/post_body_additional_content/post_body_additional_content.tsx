@@ -17,13 +17,13 @@ import YoutubeVideo from 'components/youtube_video';
 import webSocketClient from 'client/web_websocket_client';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
-import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
+import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
 import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
 
 export type Props = {
     post: Post;
-    pluginPostWillRenderEmbedComponents?: PostWillRenderEmbedPluginComponent[];
+    pluginPostWillRenderEmbedComponents?: PostWillRenderEmbedComponent[];
     children?: JSX.Element;
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;

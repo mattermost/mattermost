@@ -41,8 +41,9 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
       key="the_component_id_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="Some text"
     />
-    <Connect(Pluggable)
+    <Pluggable
       key="post_id_1pluggable"
       pluggableName="PostDropdownMenuItem"
       postId="post_id_1"
@@ -92,8 +93,9 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
       key="the_component_id_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="Some text"
     />
-    <Connect(Pluggable)
+    <Pluggable
       key="post_id_1pluggable"
       pluggableName="PostDropdownMenuItem"
       postId="post_id_1"

@@ -16,7 +16,7 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 import Reply from './reply';
 
@@ -30,7 +30,7 @@ type Props = {
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
     threadId: string;
-    newMessagesSeparatorActions: PluginComponent[];
+    newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
 };
 
 function noop() {}

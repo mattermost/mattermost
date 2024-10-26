@@ -22,7 +22,7 @@ import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
 
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
+import type {ChannelHeaderButtonAction, PluggableText} from 'types/store/plugins';
 
 type CustomMenuProps = {
     open?: boolean;
@@ -100,7 +100,7 @@ class CustomToggle extends React.PureComponent<CustomToggleProps> {
 
 type ChannelHeaderPlugProps = {
     intl: IntlShape;
-    components: PluginComponent[];
+    components: ChannelHeaderButtonAction[];
     appBindings?: AppBinding[];
     appsEnabled: boolean;
     channel: Channel;
@@ -164,16 +164,20 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
         this.onClose();
     };
 
-    createComponentButton = (plug: PluginComponent) => {
+    createComponentButton = (plug: ChannelHeaderButtonAction) => {
         // These values are supposed to be strings based on PluginComponent, but some plugins pass non-strings,
         // so do some hacky stuff to try to convert it back to a string. DO NOT USE THIS ELSEWHERE!
-        function tooltipToAriaLabelHack(intl: IntlShape, stringOrElement: string | React.ReactElement) {
+        function tooltipToAriaLabelHack(intl: IntlShape, stringOrElement: PluggableText) {
             if (typeof stringOrElement === 'string') {
                 // This is the case that we hope for
                 return stringOrElement;
             }
 
-            if (stringOrElement.type === FormattedMessage) {
+            if (!stringOrElement) {
+                return '';
+            }
+
+            if (typeof stringOrElement === 'object' && 'type' in stringOrElement && stringOrElement.type === FormattedMessage) {
                 // This is a FormattedMessage, so extract the props to translate the text manually
                 return intl.formatMessage(
                     {
@@ -194,13 +198,17 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
             ariaLabel = tooltipToAriaLabelHack(this.props.intl, plug.dropdownText);
         }
 
+        // TODO: Remove this any and make sure the types are properly
+        // handled.
+        const tooltipText: any = plug.tooltipText ?? plug.dropdownText ?? '';
+
         return (
             <HeaderIconWrapper
                 key={'channelHeaderButton' + plug.id}
                 buttonClass='channel-header__icon'
                 onClick={() => this.fireAction(plug.action!)}
                 buttonId={plug.id + 'ChannelHeaderButton'}
-                tooltip={plug.tooltipText ?? plug.dropdownText ?? ''}
+                tooltip={tooltipText}
                 ariaLabelOverride={ariaLabel}
                 pluginId={plug.pluginId}
             >
@@ -279,7 +287,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
         );
     };
 
-    createDropdown = (plugs: PluginComponent[], appBindings: AppBinding[]) => {
+    createDropdown = (plugs: ChannelHeaderButtonAction[], appBindings: AppBinding[]) => {
         const componentItems = plugs.filter((plug) => plug.action).map((plug) => {
             return (
                 <li

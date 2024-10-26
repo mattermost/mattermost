@@ -37,7 +37,7 @@ import {
     isTextDroppableEvent,
 } from 'utils/utils';
 
-import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
+import type {FilesWillUploadHook, FileUploadMethodAction} from 'types/store/plugins';
 
 const holders = defineMessages({
     limited: {
@@ -140,7 +140,7 @@ export type Props = {
     /**
      * Plugin file upload methods to be added
      */
-    pluginFileUploadMethods: PluginComponent[];
+    pluginFileUploadMethods: FileUploadMethodAction[];
     pluginFilesWillUploadHooks: FilesWillUploadHook[];
 
     /**
