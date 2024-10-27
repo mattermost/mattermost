@@ -122,7 +122,7 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if model.IsReservedTeamName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidTeamName(*data.Name) {
+	} else if !model.IsValidTeamName(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in team names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -158,7 +158,7 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.ChannelNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidChannelIdentifier(*data.Name) {
+	} else if !model.IsValidChannelIdentifier(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in channel names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
