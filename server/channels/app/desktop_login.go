@@ -30,7 +30,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	if err != nil {
 		// Delete the token if it is expired or invalid
 		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {
-			return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.delete.error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+			a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
 		}
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.invalid", nil, "", http.StatusUnauthorized).Wrap(err)
 	}
@@ -40,14 +40,14 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	if userErr != nil {
 		// Delete the token if the user is invalid somehow
 		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {
-			return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.delete.error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+			a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
 		}
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}
 
 	// Clean up other tokens if they exist
 	if deleteErr := a.Srv().Store().DesktopTokens().DeleteByUserId(*userId); deleteErr != nil {
-		return nil, model.NewAppError("GenerateAndSaveDesktopToken", "app.desktop_token.delete.error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+		a.Log().Error("Unable to delete desktop token", mlog.Err(deleteErr))
 	}
 
 	return user, nil
