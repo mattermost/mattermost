@@ -32,8 +32,27 @@ const config = {
                 fileName: false,
             },
         ],
+        // [
+        //     'babel-plugin-transform-import-meta',
+        //     {
+        //       useBuiltinUrl: false,
+        //     },
+        // ],
     ],
     sourceType: 'unambiguous',
+    overrides: [
+        {
+          test: ['./src/**/*.ts', './src/**/*.tsx'],
+          plugins: [
+            [
+              'babel-plugin-transform-import-meta',
+              {
+                useBuiltinUrl: false,
+              },
+            ],
+          ],
+        },
+    ],
 };
 
 config.env = {
