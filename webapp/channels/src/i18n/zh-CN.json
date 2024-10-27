@@ -3527,7 +3527,7 @@
   "deactivate_member_modal.title": "停用 {username}",
   "delete_category_modal.delete": "删除",
   "delete_category_modal.deleteCategory": "删除此分类？",
-  "delete_category_modal.helpText": "**{category_name}**内的频道将转移回频道和私有消息分类。您未被从任何频道移出。",
+  "delete_category_modal.helpText": "<b>{category_name}</b>中的频道将被移动回频道和私信分类。您未被从任何频道移除。",
   "delete_channel.cancel": "取消",
   "delete_channel.confirm": "确认频道归档",
   "delete_channel.del": "归档",
