@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Team} from '@mattermost/types/teams';
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-export function createBotInteractive(team, username = `bot-${getRandomId()}`) {
+export function createBotInteractive(team: Team, username = `bot-${getRandomId()}`) {
     // # Visit the Integrations > Bot Accounts page
     cy.visit(`/${team.name}/integrations/bots`);
 
