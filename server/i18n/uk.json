@@ -6890,5 +6890,33 @@
   {
     "id": "api.channel.create_group.remote_restricted.app_error",
     "translation": "Не вдається створити груповий канал з віддаленими користувачами"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Не можна створити прямий канал із віддаленим користувачем"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Не вдалося скопіювати ліцензію."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Не вдалося створити запрошення до віддаленого кластера"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Не можна створити допис у приватному чи груповому чаті з віддаленими користувачами"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Недійсний токен."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Невірний URL веб-сайту."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Неправильний ідентифікатор віддаленого доступу."
   }
 ]
