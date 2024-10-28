@@ -6,13 +6,23 @@ export const TrackProfessionalSKU = 'professional';
 export const TrackEnterpriseSKU = 'enterprise';
 
 // Features
-export const TrackGroupsFeature: string = 'custom_groups';
+export const TrackGroupsFeature = 'custom_groups';
+export const TrackPassiveKeywordsFeature = 'passive_keywords';
 
 // Events
-export const TrackInviteGroupEvent: string = 'invite_group_to_channel';
+export const TrackInviteGroupEvent = 'invite_group_to_channel__add_member';
+export const TrackPassiveKeywordsEvent = 'update_passive_keywords';
 
 // Categories
-export const TrackActionCategory: string = 'action';
-export const TrackMiscCategory: string = 'miscellaneous';
+export const TrackActionCategory = 'action';
+export const TrackMiscCategory = 'miscellaneous';
 
-export default {TrackActionCategory, TrackMiscCategory, TrackInviteGroupEvent, TrackGroupsFeature, TrackEnterpriseSKU, TrackProfessionalSKU};
+export const eventSKUs: {[event: string]: string[]} = {
+    [TrackInviteGroupEvent]: [TrackProfessionalSKU, TrackEnterpriseSKU],
+    [TrackPassiveKeywordsEvent]: [TrackProfessionalSKU, TrackEnterpriseSKU],
+};
+
+export const eventCategory: {[event: string]: string} = {
+    [TrackInviteGroupEvent]: TrackActionCategory,
+    [TrackPassiveKeywordsEvent]: TrackActionCategory,
+};

@@ -10,11 +10,12 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Team} from '@mattermost/types/teams';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getRandomId} from '../../../utils';
 
 describe('Edit bot username', () => {
-    let team;
+    let team: Team;
 
     before(() => {
         cy.apiInitSetup().then((out) => {
@@ -68,8 +69,9 @@ describe('Edit bot username', () => {
                 // # Click update button
                 cy.get('#saveBot').click();
 
-                cy.wrap(newBotName);
+                return cy.wrap(newBotName);
             }
+            return cy.wrap(null);
         }).then((newBotName) => {
             // * Set alias for bot entry in bot list, this also checks that the bot entry exists
             cy.get('.backstage-list__item').contains('.backstage-list__item', newBotName).as('newbotEntry');
@@ -97,7 +99,7 @@ describe('Edit bot username', () => {
     const NAMING_WARNING_STANDARD = 'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.';
     const NAMING_WARNING_ENDING_PERIOD = 'Bot usernames cannot have a period as the last character';
 
-    function tryUsername(name, warningMessage) {
+    function tryUsername(name: string, warningMessage?: string) {
         cy.get('#username').clear().type(name);
         cy.get('#saveBot').click();
 
