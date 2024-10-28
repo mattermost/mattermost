@@ -34,9 +34,9 @@ type Props = {
 
 export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId}: Props) {
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
-    const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
-
-    const isDM = useSelector((state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id));
+    const isTeammateDND = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
+    const isDM = useSelector((state: GlobalState) => Boolean(getDirectChannel(state, channelId)?.teammate_id));
+    const showDndWarning = isTeammateDND && isDM;
 
     const [timestamp, setTimestamp] = useState(0);
     const [showIt, setShowIt] = useState(false);
@@ -63,7 +63,7 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
 
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
-    const showRemoteUserHour = isDM && showIt && timestamp !== 0;
+    const showRemoteUserHour = showDndWarning && showIt && timestamp !== 0;
 
     return (
         <div className='postBoxIndicator'>
