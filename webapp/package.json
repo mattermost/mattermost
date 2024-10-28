@@ -98,7 +98,8 @@
     },
     "braces": "3.0.3",
     "cheerio": "1.0.0-rc.12",
-    "@types/estree": "0.0.51"
+    "@types/estree": "0.0.51",
+    "asn1.js": "5.4.1"
   },
   "workspaces": [
     "channels",
