@@ -189,7 +189,6 @@ func (metadata *Metadata) UpdateCounts(channelId string, numMessages int, numAtt
 func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data JobData, reportProgress func(string)) (JobData, error) {
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the job anyway. The only issue is that the progress % reporting will be inaccurate.
-	// Note: we're not using JobEndTime here because totalPosts is an estimate.
 	count, err := store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: data.JobStartId, SinceUpdateAt: data.ExportPeriodStartTime, UntilUpdateAt: data.JobEndTime})
 	if err != nil {
 		rctx.Logger().Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
