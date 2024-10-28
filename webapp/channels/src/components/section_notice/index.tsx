@@ -8,15 +8,16 @@ import {useIntl} from 'react-intl';
 import Markdown from 'components/markdown';
 
 import SectionNoticeButton from './section_notice_button';
+import type {SectionNoticeButtonProp} from './types';
 
 import './section_notice.scss';
 
 type Props = {
     title: string | React.ReactElement;
     text?: string;
-    primaryButton?: SectionNoticeButton;
-    secondaryButton?: SectionNoticeButton;
-    linkButton?: SectionNoticeButton;
+    primaryButton?: SectionNoticeButtonProp;
+    secondaryButton?: SectionNoticeButtonProp;
+    linkButton?: SectionNoticeButtonProp;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
     isDismissable?: boolean;
     onDismissClick?: () => void;
