@@ -3,12 +3,8 @@
 
 import debounce from 'lodash/debounce';
 import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
-// Import the main PDFJS library
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-
-// Import the PDF worker
 import 'pdfjs-dist/build/pdf.worker.min.mjs';
-
 import type {RenderParameters} from 'pdfjs-dist/types/src/display/api';
 import React from 'react';
 
