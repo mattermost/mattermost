@@ -272,7 +272,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
-	apiClient.Logout(context.Background())
+	res,err := apiClient.Logout(context.Background())
+    require.NoError(t, err)
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
@@ -678,7 +679,10 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 
 func closeBody(r *http.Response) {
 	if r != nil && r.Body != nil {
-		io.ReadAll(r.Body)
+		bodyBytes ,err := io.ReadAll(r.Body)
+		if err != nil {
+			return 
+		}
 		r.Body.Close()
 	}
 }
