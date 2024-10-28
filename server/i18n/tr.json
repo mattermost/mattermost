@@ -7188,7 +7188,7 @@
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
-    "translation": "Belirtilen aralıkta etkin kullanıcılar alınamadı."
+    "translation": "Belirtilen aralıktaki etkin kullanıcılar alınamadı."
   },
   {
     "id": "app.upload.upload_data.update.app_error",
