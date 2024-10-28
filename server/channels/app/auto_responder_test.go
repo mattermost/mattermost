@@ -18,8 +18,11 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
-
+	defer func() {
+		err := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, err)
+	}()
+	
 	th.App.SetStatusOnline(user.Id, true)
 
 	patch := &model.UserPatch{}
@@ -56,7 +59,10 @@ func TestDisableAutoResponder(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		err := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, err)
+	}()
 
 	th.App.SetStatusOnline(user.Id, true)
 
@@ -65,16 +71,18 @@ func TestDisableAutoResponder(t *testing.T) {
 	patch.NotifyProps["auto_responder_active"] = "true"
 	patch.NotifyProps["auto_responder_message"] = "Hello, I'm unavailable today."
 
-	th.App.PatchUser(th.Context, user.Id, patch, true)
+	user, appErr := th.App.PatchUser(th.Context, user.Id, patch, true)
+    require.Nil(t, appErr)
 
-	th.App.DisableAutoResponder(th.Context, user.Id, true)
+	err := th.App.DisableAutoResponder(th.Context, user.Id, true)
+    require.Nil(t, err)
 
 	userUpdated1, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated1.NotifyProps["auto_responder_active"], "false")
 
-	th.App.DisableAutoResponder(th.Context, user.Id, true)
-
+	err = th.App.DisableAutoResponder(th.Context, user.Id, true)
+    require.Nil(t, err)
 	userUpdated2, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated2.NotifyProps["auto_responder_active"], "false")
@@ -244,7 +252,10 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		err := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, err)
+	}()
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
@@ -284,7 +295,10 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		err := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, err)
+	}()
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
@@ -333,7 +347,10 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		err := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, err)
+	}()
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
