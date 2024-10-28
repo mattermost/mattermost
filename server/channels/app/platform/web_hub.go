@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	broadcastQueueSize         = 4096
-	inactiveConnReaperInterval = 5 * time.Minute
+	broadcastQueueSize          = 4096
+	inactiveConnReaperInterval  = 5 * time.Minute
+	numRetriesForChannelMembers = 2
 )
 
 type SuiteIFace interface {
@@ -558,27 +559,25 @@ func (h *Hub) Start() {
 					}
 				}
 
+				targetConns := []*WebConn{}
 				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
 					if webConn := connIndex.ForConnection(connID); webConn != nil {
-						broadcast(webConn)
-						continue
+						targetConns = append(targetConns, webConn)
 					}
 				} else if userID := msg.GetBroadcast().UserId; userID != "" {
-					candidates := connIndex.ForUser(userID)
-					for _, webConn := range candidates {
-						broadcast(webConn)
-					}
-					continue
+					targetConns = connIndex.ForUser(userID)
 				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" {
-					candidates := connIndex.ForChannel(channelID)
-					for _, webConn := range candidates {
+					targetConns = connIndex.ForChannel(channelID)
+				}
+
+				if len(targetConns) > 0 {
+					for _, webConn := range targetConns {
 						broadcast(webConn)
 					}
 					continue
 				}
 
-				candidates := connIndex.All()
-				for webConn := range candidates {
+				for webConn := range connIndex.All() {
 					broadcast(webConn)
 				}
 			case <-h.stop:
@@ -629,7 +628,7 @@ func areAllInactive(conns []*WebConn) bool {
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
-// It requires 3 functionalities which need to be very fast:
+// It requires 4 functionalities which need to be very fast:
 // - check if a connection exists or not.
 // - get all connections for a given userID.
 // - get all connections for a given channelID.
@@ -669,10 +668,7 @@ func newHubConnectionIndex(interval time.Duration,
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 
-	cm, err := i.getChannelMembersForUser(wc.UserId)
-	if err != nil {
-		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
-	}
+	cm := i.getChannelMembersForUser(wc.UserId)
 	for chID := range cm {
 		i.byChannelID[chID] = append(i.byChannelID[chID], wc)
 	}
@@ -740,34 +736,27 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
 	}
 
 	// re-populate the cache
-	cm, err := i.getChannelMembersForUser(userID)
-	if err != nil {
-		panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
-	}
+	cm := i.getChannelMembersForUser(userID)
 	for chID := range cm {
 		i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
 	}
 }
-
-const numRetries = 2
 
 // getChannelMembersForUser is a wrapper around the store method which retries
 // for numRetries times. After that we panic, to fail loudly because it is even
 // worse to continue without the channel membership data.
 // Note: the hub has internal recovery mechanism to auto-restart in case of a panic.
 // So only one hub out of numCPU hubs will be affected.
-func (i *hubConnectionIndex) getChannelMembersForUser(userID string) (map[string]string, error) {
+func (i *hubConnectionIndex) getChannelMembersForUser(userID string) map[string]string {
 	var cm map[string]string
 	var err error
-	for ind := 0; ind < numRetries; ind++ {
+	for ind := 0; ind < numRetriesForChannelMembers; ind++ {
 		cm, err = i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
 		if err == nil {
-			return cm, nil
+			return cm
 		}
-		// It is imperative that we don't block the hub
-		time.Sleep(time.Millisecond)
 	}
-	return cm, err
+	panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
@@ -792,10 +781,6 @@ func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
 
 // ForChannel returns all connections for a channelID.
 func (i *hubConnectionIndex) ForChannel(channelID string) []*WebConn {
-	if len(i.byChannelID[channelID]) <= 1 {
-		return i.byChannelID[channelID]
-	}
-
 	// Note: this is expensive because usually there will be
 	// more than 1 member for a channel, and broadcasting
 	// is a hot path, but worth it.
