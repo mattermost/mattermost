@@ -64,11 +64,12 @@ func (b *BotPatch) Auditable() map[string]interface{} {
 
 // BotGetOptions acts as a filter on bulk bot fetching queries.
 type BotGetOptions struct {
-	OwnerId        string
-	IncludeDeleted bool
-	OnlyOrphaned   bool
-	Page           int
-	PerPage        int
+	OwnerId          string
+	IncludeDeleted   bool
+	OnlyOrphaned     bool
+	Page             int
+	PerPage          int
+	ExcludeSystemBot bool
 }
 
 // BotList is a list of bots.
