@@ -559,7 +559,7 @@ func (h *Hub) Start() {
 					}
 				}
 
-				targetConns := []*WebConn{}
+				var targetConns []*WebConn
 				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
 					if webConn := connIndex.ForConnection(connID); webConn != nil {
 						targetConns = append(targetConns, webConn)
@@ -569,8 +569,7 @@ func (h *Hub) Start() {
 				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" {
 					targetConns = connIndex.ForChannel(channelID)
 				}
-
-				if len(targetConns) > 0 {
+				if targetConns != nil {
 					for _, webConn := range targetConns {
 						broadcast(webConn)
 					}
