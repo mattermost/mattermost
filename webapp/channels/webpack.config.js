@@ -121,12 +121,6 @@ var config = {
                 test: /\/highlight\.js\/.*\.css$/,
                 type: 'asset/resource',
             },
-            {
-                test: /\.m?js$/,
-                resolve: {
-                  fullySpecified: false,
-                },
-            },
         ],
     },
     resolve: {
@@ -149,7 +143,6 @@ var config = {
             buffer: require.resolve('buffer/'),
             process: require.resolve('process/browser.js'),
         },
-        fullySpecified: false,
     },
     performance: {
         hints: 'warning',
@@ -281,9 +274,6 @@ var config = {
         //     statsFilename: 'bundlestats.json',
         // }),
     ],
-    experiments: {
-        topLevelAwait: true,
-    },
 };
 
 function generateCSP() {
