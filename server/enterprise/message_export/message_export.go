@@ -141,7 +141,7 @@ func GetDataForBatch(rctx request.CTX, data shared.JobData, params shared.Backen
 		return data, nil
 	}
 
-	rctx.Logger().Debug("Found posts to export", mlog.Int("num_posts", len(data.PostsToExport)))
+	rctx.Logger().Info("Found posts to export", mlog.Int("num_posts", len(data.PostsToExport)))
 	data.TotalPostsExported += len(data.PostsToExport)
 	data.BatchNumber++
 	data.BatchPath = shared.GetBatchPath(data.ExportDir, data.BatchStartTime, data.BatchEndTime, data.BatchNumber)

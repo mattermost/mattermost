@@ -2282,9 +2282,9 @@ func Test_getPostExport(t *testing.T) {
 		results := shared.RunExportResults{}
 		var actualExports []PostExport
 
-		for i := range actualMessageExports {
+		for _, post := range actualMessageExports {
 			var postExport PostExport
-			postExport, results = getPostExport(actualMessageExports, i, results)
+			postExport, results = getPostExport(post, results)
 			actualExports = append(actualExports, postExport)
 		}
 

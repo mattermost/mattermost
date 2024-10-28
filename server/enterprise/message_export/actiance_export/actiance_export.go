@@ -159,7 +159,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	channelsInThisBatch := make(map[string]bool)
 	results := shared.RunExportResults{}
 
-	for i, post := range p.Posts {
+	for _, post := range p.Posts {
 		if post == nil {
 			results.IgnoredPosts++
 			rctx.Logger().Warn("ignored a nil post reference in the list")
@@ -177,7 +177,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 			elementsByChannel[channelId] = append(elementsByChannel[channelId], createdPostToExportEntry(post))
 		}
 		var postExport PostExport
-		postExport, results = getPostExport(p.Posts, i, results)
+		postExport, results = getPostExport(post, results)
 		elementsByChannel[channelId] = append(elementsByChannel[channelId], postExport)
 
 		startUploads, stopUploads, uploadedFiles, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
@@ -242,7 +242,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	return results, err
 }
 
-func getPostExport(posts []*model.MessageExport, i int, results shared.RunExportResults) (PostExport, shared.RunExportResults) {
+func getPostExport(post *model.MessageExport, results shared.RunExportResults) (PostExport, shared.RunExportResults) {
 	// We have three "kinds" of posts:
 	// (using "1" and "2" for simplicity)
 	// - created:                         Id = new,  CreateAt = 1,    UpdateAt = 1, DeleteAt = 0
@@ -253,7 +253,6 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 	// We also have other ways for a post to be updated:
 	//  - a root post in a thread is replied to, when a reply is edited, or (as of 10.2) when a reply is deleted
 
-	post := posts[i]
 	if isEditedOriginalMsg(post) {
 		// Post has been edited. This is the original message.
 		results.EditedOrigMsgPosts++
