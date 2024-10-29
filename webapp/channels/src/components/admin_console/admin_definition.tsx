@@ -4668,32 +4668,7 @@ const AdminDefinition: AdminDefinitionType = {
                                             defaultMessage='When true, Mattermost allows team creation and account signup using GitLab OAuth.'
                                         />
                                     </p>
-                                    <ol>
-                                        <li>
-                                            <FormattedMessage
-                                                id='admin.gitlab.enableDescription2.step1'
-                                                defaultMessage='Log in to your GitLab account and go to Profile Settings -> Applications.'
-                                            />
-                                        </li>
-                                        <li>
-                                            <FormattedMessage
-                                                id='admin.gitlab.enableDescription2.step2'
-                                                defaultMessage={"Enter Redirect URIs \"'<your-mattermost-url>'/login/gitlab/complete\" (example: http://localhost:8065/login/gitlab/complete) and \"'<your-mattermost-url>'/signup/gitlab/complete\"."}
-                                            />
-                                        </li>
-                                        <li>
-                                            <FormattedMessage
-                                                id='admin.gitlab.enableDescription2.step3'
-                                                defaultMessage='Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.'
-                                            />
-                                        </li>
-                                        <li>
-                                            <FormattedMessage
-                                                id='admin.gitlab.enableDescription2.step4'
-                                                defaultMessage='Complete the Endpoint URLs below.'
-                                            />
-                                        </li>
-                                    </ol>
+                                    {DefinitionConstants.enableGitLabSteps}
                                 </>
                             ),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
@@ -4851,12 +4826,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.GITLAB_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.gitlab', defaultMessage: 'GitLab'}),
-                                    help_text: defineMessage({id: 'admin.gitlab.EnableMarkdownDesc', defaultMessage: '1. Log in to your GitLab account and go to Profile Settings -> Applications.\n2. Enter Redirect URIs "<loginUrlChunk>your-mattermost-url</loginUrlChunk>" (example: http://localhost:8065/login/gitlab/complete) and "<signupUrlChunk>your-mattermost-url</signupUrlChunk>".\n3. Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.'}),
-                                    help_text_values: {
-                                        loginUrlChunk: (chunk: string) => `<${chunk}>/login/gitlab/complete`,
-                                        signupUrlChunk: (chunk: string) => `<${chunk}>/signup/gitlab/complete`,
-                                    },
-                                    help_text_markdown: true,
+                                    help_text: DefinitionConstants.enableGitLabSteps,
                                 },
                                 {
                                     value: Constants.GOOGLE_SERVICE,
@@ -5190,12 +5160,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.GITLAB_SERVICE,
                                     display_name: defineMessage({id: 'admin.openid.gitlab', defaultMessage: 'GitLab'}),
-                                    help_text: defineMessage({id: 'admin.gitlab.EnableMarkdownDesc', defaultMessage: '1. Log in to your GitLab account and go to Profile Settings -> Applications.\n2. Enter Redirect URIs "<loginUrlChunk>your-mattermost-url</loginUrlChunk>" (example: http://localhost:8065/login/gitlab/complete) and "<signupUrlChunk>your-mattermost-url</signupUrlChunk>".\n3. Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.'}),
-                                    help_text_values: {
-                                        loginUrlChunk: (chunk: string) => `<${chunk}>/login/gitlab/complete`,
-                                        signupUrlChunk: (chunk: string) => `<${chunk}>/signup/gitlab/complete`,
-                                    },
-                                    help_text_markdown: false,
+                                    help_text: DefinitionConstants.enableGitLabSteps,
                                 },
                                 {
                                     value: Constants.GOOGLE_SERVICE,

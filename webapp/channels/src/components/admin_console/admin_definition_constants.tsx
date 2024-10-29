@@ -171,3 +171,32 @@ export const LOG_LEVEL_OPTIONS = [
         display_name: defineMessage({id: 'admin.log.levelOptions.WARN', defaultMessage: 'WARN'}),
     },
 ];
+
+export const enableGitLabSteps = (
+    <ol>
+        <li>
+            <FormattedMessage
+                id='admin.gitlab.enableDescription2.step1'
+                defaultMessage='Log in to your GitLab account and go to Profile Settings -> Applications.'
+            />
+        </li>
+        <li>
+            <FormattedMessage
+                id='admin.gitlab.enableDescription2.step2'
+                defaultMessage={"Enter Redirect URIs \"'<your-mattermost-url>'/login/gitlab/complete\" (example: http://localhost:8065/login/gitlab/complete) and \"'<your-mattermost-url>'/signup/gitlab/complete\"."}
+            />
+        </li>
+        <li>
+            <FormattedMessage
+                id='admin.gitlab.enableDescription2.step3'
+                defaultMessage='Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.'
+            />
+        </li>
+        <li>
+            <FormattedMessage
+                id='admin.gitlab.enableDescription2.step4'
+                defaultMessage='Complete the Endpoint URLs below.'
+            />
+        </li>
+    </ol>
+);

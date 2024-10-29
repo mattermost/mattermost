@@ -86,7 +86,7 @@ type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
 export type AdminDefinitionSettingDropdownOption = {
     value: string;
     display_name: string | MessageDescriptor;
-    help_text?: string | MessageDescriptor;
+    help_text?: string | MessageDescriptor | JSX.Element;
     help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};
     isHidden?: Check;
