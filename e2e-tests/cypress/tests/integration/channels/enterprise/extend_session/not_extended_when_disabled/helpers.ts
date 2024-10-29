@@ -19,7 +19,7 @@ export function verifyExtendedSession(testUser, sessionLengthInDays, channelUrl)
 
         // # Post a message to a channel
         const now = Date.now();
-        cy.postMessage(now);
+        cy.postMessage(`${now}`);
 
         // # Update user session which is to expire 20 sec from now
         const soonToExpire = getExpirationFromNow(thirtySeconds);
@@ -53,7 +53,7 @@ export function verifyExtendedSession(testUser, sessionLengthInDays, channelUrl)
 
             // # Post multiple times to check that the session continues and doesn't redirect to login page
             Cypress._.times(20, (i) => {
-                cy.postMessage(i);
+                cy.postMessage(`${i}`);
             });
         });
     });
