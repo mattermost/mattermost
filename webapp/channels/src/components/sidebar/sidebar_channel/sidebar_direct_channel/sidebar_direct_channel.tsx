@@ -110,7 +110,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
                 label={displayName}
                 channelLeaveHandler={this.handleLeaveChannel}
                 icon={this.getIcon()}
-                isSharedChannel={teammate.remote_id !== undefined}
+                isSharedChannel={Boolean(teammate.remote_id)}
             />
         );
     }

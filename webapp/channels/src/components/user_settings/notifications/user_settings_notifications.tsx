@@ -429,7 +429,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: ValueType<{ value: string }>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -682,7 +682,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             MenuList: () => null,
                         }}
                         aria-labelledby='mentionKeysWithHighlightInput'
-                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        onChange={this.handleChangeForCustomKeysWithHighlightInput}
                         value={this.state.customKeysWithHighlight}
                         inputValue={this.state.customKeysWithHighlightInputValue}
                         onInputChange={this.handleChangeForCustomKeysWithHighlightInputValue}
@@ -1142,9 +1142,12 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
+/**
+ * Check's if user's global notification settings for desktop and mobile are different
+ */
 export function areDesktopAndMobileSettingsDifferent(
     desktopActivity: UserNotifyProps['desktop'],
-    pushActivity: UserNotifyProps['push'],
+    pushActivity?: UserNotifyProps['push'],
     desktopThreads?: UserNotifyProps['desktop_threads'],
     pushThreads?: UserNotifyProps['push_threads'],
     isCollapsedThreadsEnabled?: boolean,

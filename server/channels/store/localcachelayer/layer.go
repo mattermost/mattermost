@@ -152,7 +152,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          RoleCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForRoles,
 		Striped:                true,
-		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets:         max(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
@@ -336,7 +336,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          UserProfileByIDSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForProfileByIds,
 		Striped:                true,
-		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets:         max(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
@@ -392,13 +392,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return
-}
-
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {
@@ -578,4 +571,14 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
+}
+
+// allocateCacheTargets is used to fill target value types
+// for getting items from cache.
+func allocateCacheTargets[T any](l int) []any {
+	toPass := make([]any, 0, l)
+	for i := 0; i < l; i++ {
+		toPass = append(toPass, new(T))
+	}
+	return toPass
 }

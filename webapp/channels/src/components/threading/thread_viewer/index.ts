@@ -55,7 +55,7 @@ function makeMapStateToProps() {
         if (selected) {
             postIds = getPostIdsForThread(state, selected.id);
             userThread = getThread(state, selected.id);
-            channel = getChannel(state, {id: selected.channel_id});
+            channel = getChannel(state, selected.channel_id);
         }
 
         return {

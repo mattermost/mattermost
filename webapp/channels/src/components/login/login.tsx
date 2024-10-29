@@ -39,10 +39,10 @@ import type {CustomizeHeaderType} from 'components/header_footer_route/header_fo
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import EntraIdIcon from 'components/widgets/icons/entra_id_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
-import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
@@ -185,7 +185,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             externalLoginOptions.push({
                 id: 'office365',
                 url,
-                icon: <LoginOffice365Icon/>,
+                icon: <EntraIdIcon/>,
                 label: formatMessage({id: 'login.office365', defaultMessage: 'Entra ID'}),
                 onClick: desktopExternalAuth(url),
             });

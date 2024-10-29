@@ -346,8 +346,7 @@ jobs:
           name: server-build-artifact
           path: server/build/
           retention-days: 2
-  ### Disabled until fixed
-  #test-migration:
-  #  name: MySQL to PostgreSQL Migration
-  #  uses: ./.github/workflows/migration.yml
-  #  secrets: inherit
+  test-migration:
+    name: MySQL to PostgreSQL Migration
+    uses: ./.github/workflows/migration.yml
+    secrets: inherit

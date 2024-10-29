@@ -10,6 +10,7 @@ describe('components/drafts/panel/', () => {
     const baseProps = {
         children: jest.fn(),
         onClick: jest.fn(),
+        hasError: false,
     };
 
     it('should match snapshot', () => {

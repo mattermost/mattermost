@@ -246,7 +246,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             <i
                 className='icon icon-plus'
                 role={'img'}
-                aria-label={Utils.localizeMessage('sidebar.team_menu.button.plusIcon', 'Plus Icon')}
+                aria-label={Utils.localizeMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
             />
         );
 

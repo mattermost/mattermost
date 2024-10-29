@@ -7819,7 +7819,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 已接受邀请 | 在线 | 最近 ping |"
+    "translation": "| 安全连接 | 显示名 | 连接 ID | 站点网址 | 默认团队 | 已接受邀请 | 在线 | 最近 ping | 已删除 |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -10156,5 +10156,13 @@
   {
     "id": "model.thread.is_valid.post_id.app_error",
     "translation": "无效的消息 ID。"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "上传文件失败。上传通道未与远程共享。"
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "无法更新额外的会话属性。"
   }
 ]

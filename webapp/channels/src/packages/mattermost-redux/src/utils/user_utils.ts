@@ -27,7 +27,7 @@ export function displayUsername(
     teammateNameDisplay: string,
     useFallbackUsername = true,
 ): string {
-    let name = useFallbackUsername ? localizeMessage('channel_loader.someone', 'Someone') : '';
+    let name = useFallbackUsername ? localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'}) : '';
     if (user) {
         if (teammateNameDisplay === Preferences.DISPLAY_PREFER_NICKNAME) {
             name = user.nickname || getFullName(user);
