@@ -6376,7 +6376,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ThemeSettings.DefaultTheme',
                             label: defineMessage({id: 'admin.experimental.defaultTheme.title', defaultMessage: 'Default Theme:'}),
                             help_text: defineMessage({id: 'admin.experimental.defaultTheme.desc', defaultMessage: 'Set a default theme that applies to all new users on the system.'}),
-                            help_text_markdown: true,
                             options: [
                                 {
                                     value: 'denim',
