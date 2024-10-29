@@ -85,8 +85,7 @@ type Hub struct {
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
-	// errRegistered   chan error
-	broadcastHooks map[string]BroadcastHook
+	broadcastHooks  map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.
@@ -104,7 +103,6 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
-		// errRegistered:   make(chan error),
 	}
 }
 
