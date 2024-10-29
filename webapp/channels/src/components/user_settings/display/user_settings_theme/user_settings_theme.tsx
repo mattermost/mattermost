@@ -27,7 +27,6 @@ type Props = {
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
     setRequireConfirm?: (requireConfirm: boolean) => void;
-    setEnforceFocus?: (enforceFocus: boolean) => void;
     allowCustomThemes: boolean;
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;

@@ -398,7 +398,6 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                     updateTab={this.updateTab}
                                     closeModal={this.closeModal}
                                     collapseModal={this.collapseModal}
-                                    setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
                                     setRequireConfirm={
                                         (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
                                             this.requireConfirm = requireConfirm!;

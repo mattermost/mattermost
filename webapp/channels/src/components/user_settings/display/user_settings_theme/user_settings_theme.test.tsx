@@ -15,14 +15,13 @@ jest.mock('utils/utils', () => ({
     a11yFocus: jest.fn(),
 }));
 
-describe('components/user_settings/display/user_settings_theme/user_settings_theme.jsx', () => {
+describe('components/user_settings/display/user_settings_theme/user_settings_theme', () => {
     const requiredProps: ComponentProps<typeof UserSettingsTheme> = {
         theme: Preferences.THEMES.denim,
         currentTeamId: 'teamId',
         selected: false,
         updateSection: jest.fn(),
         setRequireConfirm: jest.fn(),
-        setEnforceFocus: jest.fn(),
         actions: {
             saveTheme: jest.fn().mockResolvedValue({data: true}),
             deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
