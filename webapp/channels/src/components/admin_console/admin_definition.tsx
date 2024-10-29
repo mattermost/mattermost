@@ -6355,8 +6355,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ThemeSettings.AllowCustomThemes',
                             label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes:'}),
-                            help_text: defineMessage({id: 'admin.experimental.allowCustomThemes.desc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.experimental.allowCustomThemes.desc',
+                                defaultMessage: 'Enables the <b>Display > Theme > Custom Theme</b> section in Settings.',
+                            }),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             isHidden: it.any(
                                 it.not(it.licensed),
                                 it.licensedForSku('starter'),

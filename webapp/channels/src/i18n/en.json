@@ -882,7 +882,7 @@
   "admin.environment.smtp.smtpUsername.title": "SMTP Server Username:",
   "admin.environment.smtp.testing": "Testing...",
   "admin.environment.webServer": "Web Server",
-  "admin.experimental.allowCustomThemes.desc": "Enables the **Display > Theme > Custom Theme** section in Settings.",
+  "admin.experimental.allowCustomThemes.desc": "Enables the <b>Display > Theme > Custom Theme</b> section in Settings.",
   "admin.experimental.allowCustomThemes.title": "Allow Custom Themes:",
   "admin.experimental.allowedEmailDomain.desc": "(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.",
   "admin.experimental.allowedEmailDomain.title": "Allowed Email Domain",
