@@ -5800,9 +5800,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.DisableBotsWhenOwnerIsDeactivated',
                             label: defineMessage({id: 'admin.service.disableBotOwnerDeactivatedTitle', defaultMessage: 'Disable bot accounts when owner is deactivated:'}),
-                            help_text: defineMessage({id: 'admin.service.disableBotWhenOwnerIsDeactivated', defaultMessage: 'When a user is deactivated, disables all bot accounts managed by the user. To re-enable bot accounts, go to [Integrations > Bot Accounts]({siteURL}/_redirect/integrations/bots).'}),
-                            help_text_markdown: true,
-                            help_text_values: {siteURL: getSiteURL()},
+                            help_text: defineMessage({
+                                id: 'admin.service.disableBotWhenOwnerIsDeactivated',
+                                defaultMessage: 'When a user is deactivated, disables all bot accounts managed by the user. To re-enable bot accounts, go to <link>Integrations > Bot Accounts</link>.',
+                            }),
+                            help_text_values: {
+                                link: (msg: React.ReactNode) => <Link to='/_redirect/integrations/bots'>{msg}</Link>,
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.BOT_ACCOUNTS)),
                         },
                     ],

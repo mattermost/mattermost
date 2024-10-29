@@ -2314,7 +2314,7 @@
   "admin.service.developerDesc": "When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. Changing this requires a server restart before taking effect.",
   "admin.service.developerTitle": "Enable Developer Mode: ",
   "admin.service.disableBotOwnerDeactivatedTitle": "Disable bot accounts when owner is deactivated:",
-  "admin.service.disableBotWhenOwnerIsDeactivated": "When a user is deactivated, disables all bot accounts managed by the user. To re-enable bot accounts, go to [Integrations > Bot Accounts]({siteURL}/_redirect/integrations/bots).",
+  "admin.service.disableBotWhenOwnerIsDeactivated": "When a user is deactivated, disables all bot accounts managed by the user. To re-enable bot accounts, go to <link>Integrations > Bot Accounts</link>.",
   "admin.service.enableBotAccountCreation": "When true, System Admins can create bot accounts for integrations in <linkBots>Integrations > Bot Accounts</linkBots>. Bot accounts are similar to user accounts except they cannot be used to log in. See <linkDocumentation>documentation</linkDocumentation> to learn more.",
   "admin.service.enableBotTitle": "Enable Bot Account Creation: ",
   "admin.service.enforceMfaDesc": "When true, <link>multi-factor authentication</link> is required for login. New users will be required to configure MFA on signup. Logged in users without MFA configured are redirected to the MFA setup page until configuration is complete.\n \nIf your system has users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost.",
