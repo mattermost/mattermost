@@ -426,27 +426,19 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
               Monokai
             </option>
           </select>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(Popover)
+          <WithTooltip
+            id="code-popover"
+            placement="top"
+            title={
+              <div
                 className="code-popover"
-                id="code-popover"
-                popoverStyle="info"
               >
                 <img
                   alt="code theme image"
                   src=""
                   width="200"
                 />
-              </Memo(Popover)>
-            }
-            placement="top"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+              </div>
             }
           >
             <span
@@ -457,7 +449,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
                 src=""
               />
             </span>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </div>
     </div>

@@ -208,23 +208,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -653,23 +639,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "

@@ -43,7 +43,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		bucketKeys[bucketKey] = append(bucketKeys[bucketKey], key)
 	}
 	for i := 0; i < opts.Size; i++ {
-		cache.Set(keys[i], "preflight")
+		cache.SetWithDefaultExpiry(keys[i], "preflight")
 	}
 
 	wgGet := &sync.WaitGroup{}
@@ -58,7 +58,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 			case <-stopSet:
 				return
 			default:
-				_ = cache.Set(keys[i], "ignored")
+				_ = cache.SetWithDefaultExpiry(keys[i], "ignored")
 			}
 		}
 	}

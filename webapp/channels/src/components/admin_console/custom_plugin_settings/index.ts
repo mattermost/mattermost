@@ -94,9 +94,11 @@ function makeGetPluginSchema() {
                     if (section.custom) {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
+                            settings = parsePluginSettings(section.settings);
                         } else {
                             // Show warning banner for custom sections when the plugin is disabled.
                             settings = [{
+                                key: key + 'disabledWarning',
                                 type: Constants.SettingsTypes.TYPE_BANNER,
                                 label: defineMessage({
                                     id: 'admin.plugin.customSection.pluginDisabledWarning',
@@ -105,9 +107,7 @@ function makeGetPluginSchema() {
                                 banner_type: 'warning',
                             }];
                         }
-                    }
-
-                    if (settings.length === 0) {
+                    } else {
                         settings = parsePluginSettings(section.settings);
                     }
 
@@ -132,16 +132,33 @@ function makeGetPluginSchema() {
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
-                const pluginEnableSetting = getEnablePluginSetting(plugin);
-                if (pluginEnableSetting.isDisabled) {
-                    pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
-                } else {
-                    pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
-                }
+                const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
-                if (sections.length > 0) {
-                    sections[0].settings.unshift(pluginEnableSetting as AdminDefinitionSetting);
+                if (plugin.settings_schema && plugin.settings_schema.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()])) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled (custom components are not found), we show a single warning.
+                    const warningBanner = {
+                        key: 'admin.plugin.customSections.pluginDisabledWarning',
+                        type: Constants.SettingsTypes.TYPE_BANNER,
+                        label: defineMessage({id: 'admin.plugin.customSections.pluginDisabledWarning', defaultMessage: 'In order to view and configure plugin settings, enable the plugin and click Save.'}),
+                        banner_type: 'warning' as const,
+                    };
+
+                    sections = [{
+                        key: pluginEnabledConfigKey + '.Section',
+                        header: plugin.settings_schema?.header,
+                        footer: plugin.settings_schema?.footer,
+                        settings: [pluginEnableSetting, warningBanner],
+                    }];
+                } else if (sections.length > 0) {
+                    // Have a separate section on top with the plugin enable/disable setting.
+                    sections.unshift({
+                        key: pluginEnabledConfigKey + '.Section',
+                        header: plugin.settings_schema?.header,
+                        footer: plugin.settings_schema?.footer,
+                        settings: [pluginEnableSetting],
+                    });
                 } else {
+                    // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
                 }
             }

@@ -577,10 +577,28 @@ func testWebhookStoreCountIncoming(t *testing.T, rctx request.CTX, ss store.Stor
 
 	_, _ = ss.Webhook().SaveIncoming(o1)
 
-	c, err := ss.Webhook().AnalyticsIncomingCount("")
+	c, err := ss.Webhook().AnalyticsIncomingCount("", "")
 	require.NoError(t, err)
-
 	require.NotEqual(t, 0, c, "should have at least 1 incoming hook")
+
+	o2 := &model.IncomingWebhook{}
+	o2.ChannelId = model.NewId()
+	o2.UserId = model.NewId()
+	o2.TeamId = model.NewId()
+
+	_, _ = ss.Webhook().SaveIncoming(o2)
+
+	c, err = ss.Webhook().AnalyticsIncomingCount("", "")
+	require.NoError(t, err)
+	require.NotEqual(t, 1, c, "should have at least 2 incoming hooks")
+
+	c, err = ss.Webhook().AnalyticsIncomingCount(o1.TeamId, "")
+	require.NoError(t, err)
+	require.NotEqual(t, 0, c, "should have at least 1 incoming hook when filtering by TeamID")
+
+	c, err = ss.Webhook().AnalyticsIncomingCount("", o2.UserId)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, c, "should have at least 1 incoming hook when filtering by UserID")
 }
 
 func testWebhookStoreCountOutgoing(t *testing.T, rctx request.CTX, ss store.Store) {

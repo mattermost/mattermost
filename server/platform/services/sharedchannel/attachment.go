@@ -169,8 +169,12 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	}
 
 	// make sure channel is shared for the remote sender
-	if _, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(us.ChannelId, rc.RemoteId); err != nil {
+	hasRemote, err := scs.server.GetStore().SharedChannel().HasRemote(us.ChannelId, rc.RemoteId)
+	if err != nil {
 		return fmt.Errorf("could not validate upload session for remote: %w", err)
+	}
+	if !hasRemote {
+		return model.NewAppError("createUpload", "api.upload.create.upload_channel_not_shared_with_remote.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// make sure file attachments are enabled

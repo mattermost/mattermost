@@ -136,5 +136,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, _ := json.Marshal(resp)
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

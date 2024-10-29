@@ -16,7 +16,7 @@ const (
 	ClusterEventInvalidateCacheForChannel                   ClusterEvent = "inv_channel"
 	ClusterEventInvalidateCacheForChannelGuestCount         ClusterEvent = "inv_channel_guest_count"
 	ClusterEventInvalidateCacheForUser                      ClusterEvent = "inv_user"
-	ClusterEventInvalidateCacheForUserTeams                 ClusterEvent = "inv_user_teams"
+	ClusterEventInvalidateWebConnCacheForUser               ClusterEvent = "inv_user_teams"
 	ClusterEventClearSessionCacheForUser                    ClusterEvent = "clear_session_user"
 	ClusterEventInvalidateCacheForRoles                     ClusterEvent = "inv_roles"
 	ClusterEventInvalidateCacheForRolePermissions           ClusterEvent = "inv_role_permissions"

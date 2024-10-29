@@ -861,6 +861,36 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 	return r0, r1
 }
 
+// GetMfaUsedTimestamps provides a mock function with given fields: userID
+func (_m *UserStore) GetMfaUsedTimestamps(userID string) ([]int, error) {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMfaUsedTimestamps")
+	}
+
+	var r0 []int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]int, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []int); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]int)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNewUsersForTeam provides a mock function with given fields: teamID, offset, limit, viewRestrictions
 func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamID, offset, limit, viewRestrictions)
@@ -1882,6 +1912,24 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 	}
 
 	return r0, r1
+}
+
+// StoreMfaUsedTimestamps provides a mock function with given fields: userID, ts
+func (_m *UserStore) StoreMfaUsedTimestamps(userID string, ts []int) error {
+	ret := _m.Called(userID, ts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StoreMfaUsedTimestamps")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []int) error); ok {
+		r0 = rf(userID, ts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Update provides a mock function with given fields: rctx, user, allowRoleUpdate

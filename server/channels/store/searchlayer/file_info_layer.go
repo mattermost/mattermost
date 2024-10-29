@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -20,16 +22,25 @@ func (s SearchFileInfoStore) indexFile(rctx request.CTX, file *model.FileInfo) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if file.PostId == "" {
+				if file.PostId == "" && file.CreatorId != model.BookmarkFileOwner {
 					return
 				}
-				post, postErr := s.rootStore.Post().GetSingle(rctx, file.PostId, false)
-				if postErr != nil {
-					rctx.Logger().Error("Couldn't get post for file for SearchEngine indexing.", mlog.String("post_id", file.PostId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id), mlog.Err(postErr))
+				channelId := file.ChannelId
+				if file.PostId != "" {
+					post, postErr := s.rootStore.Post().GetSingle(rctx, file.PostId, false)
+					if postErr != nil {
+						rctx.Logger().Error("Couldn't get post for file for SearchEngine indexing.", mlog.String("post_id", file.PostId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id), mlog.Err(postErr))
+						return
+					}
+					channelId = post.ChannelId
+				}
+
+				if channelId == "" {
+					rctx.Logger().Error("Couldn't associate file with a channel for file for SearchEngine indexing.", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id))
 					return
 				}
 
-				if err := engineCopy.IndexFile(file, post.ChannelId); err != nil {
+				if err := engineCopy.IndexFile(file, channelId); err != nil {
 					rctx.Logger().Error("Encountered error indexing file", mlog.String("file_info_id", file.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
@@ -65,6 +76,7 @@ func (s SearchFileInfoStore) deleteFileIndexForUser(rctx request.CTX, userID str
 	}
 }
 
+//nolint:unused // Temporarily unused until the post_id is indexed with the file
 func (s SearchFileInfoStore) deleteFileIndexForPost(rctx request.CTX, postID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
@@ -124,12 +136,34 @@ func (s SearchFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, chan
 	return err
 }
 
-func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (string, error) {
-	result, err := s.FileInfoStore.DeleteForPost(rctx, postId)
+func (s SearchFileInfoStore) DeleteForPost(rctx request.CTX, postID string) (string, error) {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return "", fmt.Errorf("failed to get files for post %s: %w", postID, err)
+	}
+	result, err := s.FileInfoStore.DeleteForPost(rctx, postID)
 	if err == nil {
-		s.deleteFileIndexForPost(rctx, postId)
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
 	}
 	return result, err
+}
+
+func (s SearchFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
+	// temporary workaround because deleteFileIndexForPost is not working due to the post_id not being indexed with the file
+	files, err := s.FileInfoStore.GetForPost(postID, false, true, true)
+	if err != nil {
+		return err
+	}
+	err = s.FileInfoStore.PermanentDeleteForPost(rctx, postID)
+	if err == nil {
+		for _, file := range files {
+			s.deleteFileIndex(rctx, file.Id)
+		}
+	}
+	return err
 }
 
 func (s SearchFileInfoStore) PermanentDelete(rctx request.CTX, fileId string) error {

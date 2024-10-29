@@ -11,6 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 
 import type {PluginConfigurationSection} from 'types/plugins/user_settings';
@@ -87,6 +88,17 @@ const PluginSetting = ({
                     informChange={onSettingChanged}
                     pluginId={pluginId}
                 />);
+        } else if (setting.type === 'custom') {
+            const CustomComponent = setting.component;
+            const inputEl = (
+                <PluggableErrorBoundary
+                    key={setting.name}
+                    pluginId={pluginId}
+                >
+                    <CustomComponent informChange={onSettingChanged}/>
+                </PluggableErrorBoundary>
+            );
+            inputs.push(inputEl);
         }
     }
 
@@ -101,7 +113,6 @@ const PluginSetting = ({
                 inputs={inputs}
                 submit={updateSetting}
                 updateSection={updateSection}
-
             />
         );
     }

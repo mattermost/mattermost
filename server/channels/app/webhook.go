@@ -365,7 +365,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(c, split, channel, false, false); err != nil {
+		if _, err = a.CreatePost(c, split, channel, model.CreatePostFlags{}); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 	}
@@ -505,6 +505,19 @@ func (a *App) GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	return a.GetIncomingWebhooksPageByUser("", page, perPage)
+}
+
+func (a *App) GetIncomingWebhooksCount(teamID string, userID string) (int64, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
+		return 0, model.NewAppError("GetIncomingWebhooksCount", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	totalCount, err := a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, userID)
+	if err != nil {
+		return 0, model.NewAppError("GetIncomingWebhooksCount", "app.webhooks.get_incoming_count.app_error", map[string]any{"TeamID": teamID, "UserID": userID, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return totalCount, nil
 }
 
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {

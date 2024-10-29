@@ -49,9 +49,11 @@ import EventEmitter from 'mattermost-redux/utils/event_emitter';
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {markThreadAsRead} from 'actions/views/threads';
 import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
+import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {getSocketStatus} from 'selectors/views/websocket';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -493,13 +495,24 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markChannelAsReadOnFocus(channelId: string): ThunkActionFunc<void> {
+export function markAsReadOnFocus(): ThunkActionFunc<void, GlobalState> {
     return (dispatch, getState) => {
-        if (isManuallyUnread(getState(), channelId)) {
-            return;
+        const state = getState();
+        const currentChannelId = getCurrentChannelId(state);
+        const selectedThreadId = getSelectedThreadIdInCurrentTeam(state);
+        const selectedPostId = getSelectedPostId(state);
+
+        if (!isManuallyUnread(getState(), currentChannelId)) {
+            dispatch(markChannelAsRead(currentChannelId));
         }
 
-        dispatch(markChannelAsRead(channelId));
+        if (selectedThreadId) {
+            dispatch(markThreadAsRead(selectedThreadId));
+        }
+
+        if (currentChannelId && selectedPostId) {
+            dispatch(markThreadAsRead(selectedPostId));
+        }
     };
 }
 

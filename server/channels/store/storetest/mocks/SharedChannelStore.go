@@ -278,9 +278,9 @@ func (_m *SharedChannelStore) GetRemoteForUser(remoteId string, userId string) (
 	return r0, r1
 }
 
-// GetRemotes provides a mock function with given fields: opts
-func (_m *SharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
-	ret := _m.Called(opts)
+// GetRemotes provides a mock function with given fields: offset, limit, opts
+func (_m *SharedChannelStore) GetRemotes(offset int, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	ret := _m.Called(offset, limit, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRemotes")
@@ -288,19 +288,19 @@ func (_m *SharedChannelStore) GetRemotes(opts model.SharedChannelRemoteFilterOpt
 
 	var r0 []*model.SharedChannelRemote
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)); ok {
-		return rf(opts)
+	if rf, ok := ret.Get(0).(func(int, int, model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)); ok {
+		return rf(offset, limit, opts)
 	}
-	if rf, ok := ret.Get(0).(func(model.SharedChannelRemoteFilterOpts) []*model.SharedChannelRemote); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(int, int, model.SharedChannelRemoteFilterOpts) []*model.SharedChannelRemote); ok {
+		r0 = rf(offset, limit, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.SharedChannelRemote)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.SharedChannelRemoteFilterOpts) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(int, int, model.SharedChannelRemoteFilterOpts) error); ok {
+		r1 = rf(offset, limit, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

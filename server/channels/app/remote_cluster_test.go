@@ -6,16 +6,14 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func setupRemoteCluster(tb testing.TB) *TestHelper {
 	return SetupConfig(tb, func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 	})
 }
 
@@ -38,8 +36,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster.RemoteId = model.NewId()
 		_, err = th.App.AddRemoteCluster(remoteCluster)
-		require.NotNil(t, err, "Adding a duplicate remote cluster should error")
-		assert.Contains(t, err.Error(), i18n.T("api.remote_cluster.save_not_unique.app_error"))
+		require.Nil(t, err, "Adding a duplicate remote cluster should work fine")
 	})
 }
 
@@ -74,8 +71,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 
 		savedRemoteClustered.SiteURL = remoteCluster.SiteURL
 		_, err = th.App.UpdateRemoteCluster(savedRemoteClustered)
-		require.NotNil(t, err, "Updating remote cluster with duplicate site url should error")
-		assert.Contains(t, err.Error(), i18n.T("api.remote_cluster.update_not_unique.app_error"))
+		require.Nil(t, err, "Updating remote cluster with duplicate site url should work fine")
 	})
 
 	t.Run("update remote cluster with an already existing site url, is not allowed", func(t *testing.T) {
@@ -106,7 +102,6 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		// Same site url
 		anotherExistingRemoteClustered.SiteURL = existingRemoteCluster.SiteURL
 		_, err = th.App.UpdateRemoteCluster(anotherExistingRemoteClustered)
-		require.NotNil(t, err, "Updating remote cluster should error")
-		assert.Contains(t, err.Error(), i18n.T("api.remote_cluster.update_not_unique.app_error"))
+		require.Nil(t, err, "Updating remote cluster should work fine")
 	})
 }

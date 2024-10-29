@@ -71,7 +71,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	var useMilitaryTime bool
 	if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
-		useMilitaryTime = true
+		useMilitaryTime = false
 	} else {
 		useMilitaryTime = data.Value == "true"
 	}

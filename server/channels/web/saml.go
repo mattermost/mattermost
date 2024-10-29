@@ -178,19 +178,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
-	if err != nil {
-		handleError(err)
-		return
-	}
-	c.AppContext = c.AppContext.WithSession(session)
-
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success")
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
-
 	desktopToken := relayProps["desktop_token"]
+
+	// If it's a desktop login we generate a token and redirect to another endpoint to handle session creation
 	if desktopToken != "" {
 		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		if serverTokenErr != nil {
@@ -213,6 +203,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
+
+	// If it's not a desktop login we create a session for this SAML User that will be used in their browser or mobile app
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err != nil {
+		handleError(err)
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {

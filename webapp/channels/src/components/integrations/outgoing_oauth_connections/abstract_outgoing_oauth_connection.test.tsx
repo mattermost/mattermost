@@ -112,7 +112,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
 
         expect(submitAction).not.toBeCalled();
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('FormError').exists()).toBe(true);
+        expect(wrapper.find('Memo(FormError)').exists()).toBe(true);
     });
 
     test('should call action function', async () => {

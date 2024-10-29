@@ -1,0 +1,190 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GroupOption should match snapshot 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="more-modal__row clickable "
+      >
+        <span
+          class="more-modal__group-image"
+        >
+          <svg
+            fill="rgba(var(--center-channel-color-rgb), 0.56)"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+            />
+          </svg>
+        </span>
+        <div
+          class="more-modal__details"
+        >
+          <div
+            class="more-modal__name"
+          >
+            <span
+              class="group-display-name"
+            >
+              Group Name
+            </span>
+            <span
+              class="ml-2 light group-name"
+            >
+              @
+              groupname
+            </span>
+            <span
+              class="add-group-members"
+            >
+              Add 2 people
+              <svg
+                fill="var(--link-color)"
+                height="20"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="more-modal__row clickable "
+    >
+      <span
+        class="more-modal__group-image"
+      >
+        <svg
+          fill="rgba(var(--center-channel-color-rgb), 0.56)"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="more-modal__details"
+      >
+        <div
+          class="more-modal__name"
+        >
+          <span
+            class="group-display-name"
+          >
+            Group Name
+          </span>
+          <span
+            class="ml-2 light group-name"
+          >
+            @
+            groupname
+          </span>
+          <span
+            class="add-group-members"
+          >
+            Add 2 people
+            <svg
+              fill="var(--link-color)"
+              height="20"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;

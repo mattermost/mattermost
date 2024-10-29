@@ -122,7 +122,7 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if model.IsReservedTeamName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidTeamName(*data.Name) {
+	} else if !model.IsValidTeamName(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in team names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -158,7 +158,7 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.ChannelNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidChannelIdentifier(*data.Name) {
+	} else if !model.IsValidChannelIdentifier(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in channel names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -320,6 +320,7 @@ var validAuthServices = []string{
 	model.UserAuthServiceLdap,
 	model.ServiceGoogle,
 	model.ServiceOffice365,
+	model.ServiceOpenid,
 }
 
 func validateAuthService(authService *string) *model.AppError {
@@ -489,11 +490,19 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 }
 
 func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
-	if data.Members == nil {
+	if data.Participants == nil && data.Members == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*data.Members) != 2 {
+	if data.Participants != nil && len(data.Participants) != 2 {
+		if len(data.Participants) < model.ChannelGroupMinUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
+		} else if len(data.Participants) > model.ChannelGroupMaxUsers {
+			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if data.Members != nil && len(*data.Members) != 2 {
 		if len(*data.Members) < model.ChannelGroupMinUsers {
 			return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest)
 		} else if len(*data.Members) > model.ChannelGroupMaxUsers {
@@ -508,10 +517,18 @@ func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
 			found := false
-			for _, member := range *data.Members {
-				if favoriter == member {
+			for _, member := range data.Participants {
+				if favoriter == *member.Username {
 					found = true
 					break
+				}
+			}
+			if data.Members != nil {
+				for _, member := range *data.Members {
+					if favoriter == member {
+						found = true
+						break
+					}
 				}
 			}
 			if !found {

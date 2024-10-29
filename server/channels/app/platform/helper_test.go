@@ -57,6 +57,9 @@ func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId strin
 func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
+func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+	return true
+}
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
@@ -151,10 +154,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
 	configStore.Set(memoryConfig)
 
-	ps, err := New(ServiceConfig{
-		ConfigStore: configStore,
-		Store:       dbStore,
-	}, options...)
+	options = append(options, ConfigStore(configStore))
+
+	ps, err := New(
+		ServiceConfig{
+			Store: dbStore,
+		}, options...)
 	if err != nil {
 		panic(err)
 	}

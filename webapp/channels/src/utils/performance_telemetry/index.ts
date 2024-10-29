@@ -32,21 +32,34 @@ export function markAndReport(name: string): PerformanceMark {
  * If either the start or end mark does not exist, undefined will be returned and, if canFail is false, an error
  * will be logged.
  */
-export function measureAndReport(measureName: string, startMark: string, endMark: string | undefined, canFail = false): PerformanceMeasure | undefined {
+export function measureAndReport({
+    name,
+    startMark,
+    endMark,
+    labels,
+    canFail = false,
+}: {
+    name: string;
+    startMark: string;
+    endMark?: string;
+    labels?: Record<string, string>;
+    canFail?: boolean;
+}): PerformanceMeasure | undefined {
     const options: PerformanceMeasureOptions = {
         start: startMark,
         end: endMark,
         detail: {
+            labels,
             report: true,
         },
     };
 
     try {
-        return performance.measure(measureName, options);
+        return performance.measure(name, options);
     } catch (e) {
         if (!canFail) {
             // eslint-disable-next-line no-console
-            console.error('Unable to measure ' + measureName, e);
+            console.error('Unable to measure ' + name, e);
         }
 
         return undefined;

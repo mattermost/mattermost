@@ -99,10 +99,10 @@ State
                         <Menu
                             openLeft={true}
                             openUp={true}
-                            ariaLabel={localizeMessage(
-                                'admin.team_channel_settings.group_row.memberRole',
-                                'Member Role',
-                            )}
+                            ariaLabel={localizeMessage({
+                                id: 'admin.team_channel_settings.group_row.memberRole',
+                                defaultMessage: 'Member Role',
+                            })}
                             id={`${name}_change_role_options`}
                         >
                             <Menu.ItemAction

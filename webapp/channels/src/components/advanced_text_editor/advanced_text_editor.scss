@@ -1,5 +1,20 @@
 @import 'utils/variables';
 
+.AdvancedTextEditor__skeleton {
+    display: flex;
+    height: 122px;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10px;
+    border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    margin: 0 24px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    .btn {
+        margin: 10px
+    }
+}
+
 .AdvancedTextEditor {
     &__ctr {
         form {

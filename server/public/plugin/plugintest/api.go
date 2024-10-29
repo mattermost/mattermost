@@ -1990,6 +1990,24 @@ func (_m *API) GetPluginConfig() map[string]interface{} {
 	return r0
 }
 
+// GetPluginID provides a mock function with given fields:
+func (_m *API) GetPluginID() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPluginID")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetPluginStatus provides a mock function with given fields: id
 func (_m *API) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	ret := _m.Called(id)

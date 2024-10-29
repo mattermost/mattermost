@@ -401,24 +401,60 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
-                                    <Memo(Avatar)
-                                      className="avatar-post-preview"
-                                      size="sm"
-                                      tabIndex={-1}
-                                      url="/api/v4/users/id0/image?_=0"
-                                      username="username0"
+                                    <span
+                                      className="status-wrapper"
                                     >
-                                      <img
-                                        alt="username0 profile image"
-                                        className="Avatar Avatar-sm avatar-post-preview"
-                                        loading="lazy"
-                                        onError={[Function]}
-                                        src="/api/v4/users/id0/image?_=0"
+                                      <Memo(Avatar)
+                                        className="avatar-post-preview"
+                                        size="sm"
                                         tabIndex={-1}
-                                      />
-                                    </Memo(Avatar)>
+                                        url="/api/v4/users/id0/image?_=0"
+                                        username="username0"
+                                      >
+                                        <img
+                                          alt="username0 profile image"
+                                          className="Avatar Avatar-sm avatar-post-preview"
+                                          loading="lazy"
+                                          onError={[Function]}
+                                          src="/api/v4/users/id0/image?_=0"
+                                          tabIndex={-1}
+                                        />
+                                      </Memo(Avatar)>
+                                      <Memo(StatusIcon)
+                                        status="offline"
+                                      >
+                                        <StatusOfflineIcon
+                                          className="status "
+                                        >
+                                          <span
+                                            className="status "
+                                          >
+                                            <svg
+                                              aria-label="Offline Icon"
+                                              className="offline--icon"
+                                              height="100%"
+                                              role="img"
+                                              style={
+                                                Object {
+                                                  "clipRule": "evenodd",
+                                                  "fillRule": "evenodd",
+                                                  "strokeLinejoin": "round",
+                                                  "strokeMiterlimit": 1.41421,
+                                                }
+                                              }
+                                              viewBox="0 0 20 20"
+                                              width="100%"
+                                            >
+                                              <path
+                                                d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                              />
+                                            </svg>
+                                          </span>
+                                        </StatusOfflineIcon>
+                                      </Memo(StatusIcon)>
+                                    </span>
                                     <Username
                                       className="overflow--ellipsis text-nowrap"
                                     >
@@ -609,24 +645,60 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
-                                    <Memo(Avatar)
-                                      className="avatar-post-preview"
-                                      size="sm"
-                                      tabIndex={-1}
-                                      url="/api/v4/users/id1/image?_=0"
-                                      username="username1"
+                                    <span
+                                      className="status-wrapper"
                                     >
-                                      <img
-                                        alt="username1 profile image"
-                                        className="Avatar Avatar-sm avatar-post-preview"
-                                        loading="lazy"
-                                        onError={[Function]}
-                                        src="/api/v4/users/id1/image?_=0"
+                                      <Memo(Avatar)
+                                        className="avatar-post-preview"
+                                        size="sm"
                                         tabIndex={-1}
-                                      />
-                                    </Memo(Avatar)>
+                                        url="/api/v4/users/id1/image?_=0"
+                                        username="username1"
+                                      >
+                                        <img
+                                          alt="username1 profile image"
+                                          className="Avatar Avatar-sm avatar-post-preview"
+                                          loading="lazy"
+                                          onError={[Function]}
+                                          src="/api/v4/users/id1/image?_=0"
+                                          tabIndex={-1}
+                                        />
+                                      </Memo(Avatar)>
+                                      <Memo(StatusIcon)
+                                        status="offline"
+                                      >
+                                        <StatusOfflineIcon
+                                          className="status "
+                                        >
+                                          <span
+                                            className="status "
+                                          >
+                                            <svg
+                                              aria-label="Offline Icon"
+                                              className="offline--icon"
+                                              height="100%"
+                                              role="img"
+                                              style={
+                                                Object {
+                                                  "clipRule": "evenodd",
+                                                  "fillRule": "evenodd",
+                                                  "strokeLinejoin": "round",
+                                                  "strokeMiterlimit": 1.41421,
+                                                }
+                                              }
+                                              viewBox="0 0 20 20"
+                                              width="100%"
+                                            >
+                                              <path
+                                                d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                              />
+                                            </svg>
+                                          </span>
+                                        </StatusOfflineIcon>
+                                      </Memo(StatusIcon)>
+                                    </span>
                                     <Username
                                       className="overflow--ellipsis text-nowrap"
                                     >
@@ -817,24 +889,60 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
-                                    <Memo(Avatar)
-                                      className="avatar-post-preview"
-                                      size="sm"
-                                      tabIndex={-1}
-                                      url="/api/v4/users/id2/image?_=0"
-                                      username="username2"
+                                    <span
+                                      className="status-wrapper"
                                     >
-                                      <img
-                                        alt="username2 profile image"
-                                        className="Avatar Avatar-sm avatar-post-preview"
-                                        loading="lazy"
-                                        onError={[Function]}
-                                        src="/api/v4/users/id2/image?_=0"
+                                      <Memo(Avatar)
+                                        className="avatar-post-preview"
+                                        size="sm"
                                         tabIndex={-1}
-                                      />
-                                    </Memo(Avatar)>
+                                        url="/api/v4/users/id2/image?_=0"
+                                        username="username2"
+                                      >
+                                        <img
+                                          alt="username2 profile image"
+                                          className="Avatar Avatar-sm avatar-post-preview"
+                                          loading="lazy"
+                                          onError={[Function]}
+                                          src="/api/v4/users/id2/image?_=0"
+                                          tabIndex={-1}
+                                        />
+                                      </Memo(Avatar)>
+                                      <Memo(StatusIcon)
+                                        status="offline"
+                                      >
+                                        <StatusOfflineIcon
+                                          className="status "
+                                        >
+                                          <span
+                                            className="status "
+                                          >
+                                            <svg
+                                              aria-label="Offline Icon"
+                                              className="offline--icon"
+                                              height="100%"
+                                              role="img"
+                                              style={
+                                                Object {
+                                                  "clipRule": "evenodd",
+                                                  "fillRule": "evenodd",
+                                                  "strokeLinejoin": "round",
+                                                  "strokeMiterlimit": 1.41421,
+                                                }
+                                              }
+                                              viewBox="0 0 20 20"
+                                              width="100%"
+                                            >
+                                              <path
+                                                d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                              />
+                                            </svg>
+                                          </span>
+                                        </StatusOfflineIcon>
+                                      </Memo(StatusIcon)>
+                                    </span>
                                     <Username
                                       className="overflow--ellipsis text-nowrap"
                                     >
@@ -1025,24 +1133,60 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
-                                    <Memo(Avatar)
-                                      className="avatar-post-preview"
-                                      size="sm"
-                                      tabIndex={-1}
-                                      url="/api/v4/users/id3/image?_=0"
-                                      username="username3"
+                                    <span
+                                      className="status-wrapper"
                                     >
-                                      <img
-                                        alt="username3 profile image"
-                                        className="Avatar Avatar-sm avatar-post-preview"
-                                        loading="lazy"
-                                        onError={[Function]}
-                                        src="/api/v4/users/id3/image?_=0"
+                                      <Memo(Avatar)
+                                        className="avatar-post-preview"
+                                        size="sm"
                                         tabIndex={-1}
-                                      />
-                                    </Memo(Avatar)>
+                                        url="/api/v4/users/id3/image?_=0"
+                                        username="username3"
+                                      >
+                                        <img
+                                          alt="username3 profile image"
+                                          className="Avatar Avatar-sm avatar-post-preview"
+                                          loading="lazy"
+                                          onError={[Function]}
+                                          src="/api/v4/users/id3/image?_=0"
+                                          tabIndex={-1}
+                                        />
+                                      </Memo(Avatar)>
+                                      <Memo(StatusIcon)
+                                        status="offline"
+                                      >
+                                        <StatusOfflineIcon
+                                          className="status "
+                                        >
+                                          <span
+                                            className="status "
+                                          >
+                                            <svg
+                                              aria-label="Offline Icon"
+                                              className="offline--icon"
+                                              height="100%"
+                                              role="img"
+                                              style={
+                                                Object {
+                                                  "clipRule": "evenodd",
+                                                  "fillRule": "evenodd",
+                                                  "strokeLinejoin": "round",
+                                                  "strokeMiterlimit": 1.41421,
+                                                }
+                                              }
+                                              viewBox="0 0 20 20"
+                                              width="100%"
+                                            >
+                                              <path
+                                                d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                              />
+                                            </svg>
+                                          </span>
+                                        </StatusOfflineIcon>
+                                      </Memo(StatusIcon)>
+                                    </span>
                                     <Username
                                       className="overflow--ellipsis text-nowrap"
                                     >
@@ -1233,24 +1377,60 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               >
                                 <UserButton>
                                   <button
-                                    className="UserButton-bZNeGd lLsMM"
+                                    className="UserButton-bZNeGd gDRhSF"
                                   >
-                                    <Memo(Avatar)
-                                      className="avatar-post-preview"
-                                      size="sm"
-                                      tabIndex={-1}
-                                      url="/api/v4/users/id4/image?_=0"
-                                      username="username4"
+                                    <span
+                                      className="status-wrapper"
                                     >
-                                      <img
-                                        alt="username4 profile image"
-                                        className="Avatar Avatar-sm avatar-post-preview"
-                                        loading="lazy"
-                                        onError={[Function]}
-                                        src="/api/v4/users/id4/image?_=0"
+                                      <Memo(Avatar)
+                                        className="avatar-post-preview"
+                                        size="sm"
                                         tabIndex={-1}
-                                      />
-                                    </Memo(Avatar)>
+                                        url="/api/v4/users/id4/image?_=0"
+                                        username="username4"
+                                      >
+                                        <img
+                                          alt="username4 profile image"
+                                          className="Avatar Avatar-sm avatar-post-preview"
+                                          loading="lazy"
+                                          onError={[Function]}
+                                          src="/api/v4/users/id4/image?_=0"
+                                          tabIndex={-1}
+                                        />
+                                      </Memo(Avatar)>
+                                      <Memo(StatusIcon)
+                                        status="offline"
+                                      >
+                                        <StatusOfflineIcon
+                                          className="status "
+                                        >
+                                          <span
+                                            className="status "
+                                          >
+                                            <svg
+                                              aria-label="Offline Icon"
+                                              className="offline--icon"
+                                              height="100%"
+                                              role="img"
+                                              style={
+                                                Object {
+                                                  "clipRule": "evenodd",
+                                                  "fillRule": "evenodd",
+                                                  "strokeLinejoin": "round",
+                                                  "strokeMiterlimit": 1.41421,
+                                                }
+                                              }
+                                              viewBox="0 0 20 20"
+                                              width="100%"
+                                            >
+                                              <path
+                                                d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                                              />
+                                            </svg>
+                                          </span>
+                                        </StatusOfflineIcon>
+                                      </Memo(StatusIcon)>
+                                    </span>
                                     <Username
                                       className="overflow--ellipsis text-nowrap"
                                     >

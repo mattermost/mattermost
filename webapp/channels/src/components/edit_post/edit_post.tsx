@@ -463,7 +463,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
-    const getEmojiContainerRef = useCallback(() => textboxRef.current, [textboxRef]);
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
@@ -473,7 +472,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             <>
                 <EmojiPickerOverlay
                     show={showEmojiPicker}
-                    container={getEmojiContainerRef}
                     target={getEmojiTargetRef}
                     onHide={hideEmojiPicker}
                     onEmojiClick={handleEmojiClick}

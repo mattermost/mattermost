@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -24,8 +23,8 @@ import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import OverlayTrigger from 'components/overlay_trigger';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
+import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -221,13 +220,10 @@ const NewChannelModal = () => {
     const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError;
 
     const newBoardInfoIcon = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='right'
-            overlay={(
-                <Tooltip
-                    id='new-channel-with-board-tooltip'
-                >
+        <WithTooltip
+            id='new-channel-with-board-tooltip'
+            title={
+                <>
                     <div className='title'>
                         <FormattedMessage
                             id={'channel_modal.create_board.tooltip_title'}
@@ -240,11 +236,12 @@ const NewChannelModal = () => {
                             defaultMessage={'Use any of our templates to manage your tasks or start from scratch with your own!'}
                         />
                     </div>
-                </Tooltip>
-            )}
+                </>
+            }
+            placement='right'
         >
             <i className='icon-information-outline'/>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     return (

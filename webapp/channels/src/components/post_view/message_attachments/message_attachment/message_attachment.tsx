@@ -232,7 +232,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false};
+        const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
 
         fields.forEach((field: MessageAttachmentField, i: number) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
@@ -421,6 +421,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
                                 autolinkedUrlSchemes: [],

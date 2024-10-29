@@ -2199,6 +2199,62 @@ func (_m *ChannelStore) InvalidatePinnedPostCount(channelID string) {
 	_m.Called(channelID)
 }
 
+// IsChannelReadOnlyScheme provides a mock function with given fields: schemeID
+func (_m *ChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) {
+	ret := _m.Called(schemeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsChannelReadOnlyScheme")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(schemeID)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(schemeID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(schemeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsReadOnlyChannel provides a mock function with given fields: channelID
+func (_m *ChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsReadOnlyChannel")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MigrateChannelMembers provides a mock function with given fields: fromChannelID, fromUserID
 func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	ret := _m.Called(fromChannelID, fromUserID)
@@ -2915,21 +2971,33 @@ func (_m *ChannelStore) UpdateMemberNotifyProps(channelID string, userID string,
 }
 
 // UpdateMembersRole provides a mock function with given fields: channelID, userIDs
-func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
+func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
 	ret := _m.Called(channelID, userIDs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateMembersRole")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.ChannelMember, error)); ok {
+		return rf(channelID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.ChannelMember); ok {
 		r0 = rf(channelID, userIDs)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(channelID, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateMultipleMembers provides a mock function with given fields: members

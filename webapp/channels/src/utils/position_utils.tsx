@@ -22,17 +22,3 @@ export function popOverOverlayPosition(
     }
     return placement;
 }
-
-export function approxGroupPopOverHeight(
-    groupListHeight: number,
-    viewPortHeight: number,
-    viewportScaleFactor: number,
-    headerHeight: number,
-    maxListHeight: number,
-): number {
-    return Math.min(
-        (viewPortHeight * viewportScaleFactor) + headerHeight,
-        groupListHeight + headerHeight,
-        maxListHeight,
-    );
-}

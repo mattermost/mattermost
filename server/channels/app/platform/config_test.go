@@ -126,7 +126,7 @@ func TestIsFirstUserAccount(t *testing.T) {
 	}
 
 	// create a session, this should not affect IsFirstUserAccount
-	th.Service.sessionCache.Set("mock_session", 1)
+	th.Service.sessionCache.SetWithDefaultExpiry("mock_session", 1)
 
 	for _, te := range tests {
 		t.Run(te.name, func(t *testing.T) {

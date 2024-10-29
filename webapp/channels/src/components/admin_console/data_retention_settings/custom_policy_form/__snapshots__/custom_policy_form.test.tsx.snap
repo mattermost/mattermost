@@ -60,7 +60,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               }
               name="policyName"
               onChange={[Function]}
-              placeholder="Policy name"
+              placeholder={
+                Object {
+                  "defaultMessage": "Policy name",
+                  "id": "admin.data_retention.custom_policy.form.input",
+                }
+              }
               type="text"
               value=""
             />
@@ -89,7 +94,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               inputId="message_retention_input"
               inputType="number"
               inputValue=""
-              legend="Channel & direct message retention"
+              legend={
+                Object {
+                  "defaultMessage": "Channel & direct message retention",
+                  "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                }
+              }
               name="message_retention"
               onDropdownChange={[Function]}
               onInputChange={[Function]}
@@ -126,7 +136,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   },
                 ]
               }
-              placeholder="Channel & direct message retention"
+              placeholder={
+                Object {
+                  "defaultMessage": "Channel & direct message retention",
+                  "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                }
+              }
               value={
                 Object {
                   "label": <div>
@@ -229,7 +244,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -237,15 +251,8 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
@@ -320,7 +327,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               }
               name="policyName"
               onChange={[Function]}
-              placeholder="Policy name"
+              placeholder={
+                Object {
+                  "defaultMessage": "Policy name",
+                  "id": "admin.data_retention.custom_policy.form.input",
+                }
+              }
               type="text"
               value=""
             />
@@ -349,7 +361,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
               inputId="message_retention_input"
               inputType="number"
               inputValue="22"
-              legend="Channel & direct message retention"
+              legend={
+                Object {
+                  "defaultMessage": "Channel & direct message retention",
+                  "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                }
+              }
               name="message_retention"
               onDropdownChange={[Function]}
               onInputChange={[Function]}
@@ -386,7 +403,12 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
                   },
                 ]
               }
-              placeholder="Channel & direct message retention"
+              placeholder={
+                Object {
+                  "defaultMessage": "Channel & direct message retention",
+                  "id": "admin.data_retention.form.channelAndDirectMessageRetention",
+                }
+              }
               value={
                 Object {
                   "label": <span
@@ -486,7 +508,6 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -494,15 +515,8 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         />
       }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
-      savingMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
-        />
-      }
     />
     <Connect(Component)
       className="cancel-button"
