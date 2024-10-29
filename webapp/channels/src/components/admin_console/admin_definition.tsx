@@ -3633,8 +3633,34 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'LdapSettings.GuestFilter',
                                     label: defineMessage({id: 'admin.ldap.guestFilterTitle', defaultMessage: 'Guest Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.guestFilterFilterDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects. Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel. Note: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}),
-                                    help_text_markdown: true,
+                                    help_text: (
+                                        <>
+                                            <p>
+                                                <FormattedMessage
+                                                    id='admin.ldap.guestFilterFilterDesc1'
+                                                    defaultMessage='(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects. Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.'
+                                                />
+                                            </p>
+                                            <p>
+                                                <FormattedMessage
+                                                    id='admin.ldap.guestFilterFilterDesc2'
+                                                    defaultMessage='Note: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in <b>System Console > User Management</b>.'
+                                                    values={{
+                                                        b: (msg: React.ReactNode) => <b>{msg}</b>,
+                                                    }}
+                                                />
+                                            </p>
+                                            <p>
+                                                <FormattedMessage
+                                                    id='admin.ldap.guestFilterFilterDesc3'
+                                                    defaultMessage='Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in <b>System Console > Session Lengths</b>. It is highly recommend to manually demote users to guests in <b>System Console > User Management</b> to ensure access is restricted immediately.'
+                                                    values={{
+                                                        b: (msg: React.ReactNode) => <b>{msg}</b>,
+                                                    }}
+                                                />
+                                            </p>
+                                        </>
+                                    ),
                                     placeholder: defineMessage({id: 'admin.ldap.guestFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
