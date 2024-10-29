@@ -53,7 +53,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 		Locale:    "en",
 	}
 	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
-	th.Service.HubRegister(wc)
+	require.NoError(t, th.Service.HubRegister(wc))
 	go wc.Pump()
 	return wc
 }
@@ -105,8 +105,8 @@ func TestHubStopRaceCondition(t *testing.T) {
 	go func() {
 		wc4 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 		wc5 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
-		hub.Register(wc4)
-		hub.Register(wc5)
+		require.NoError(t, hub.Register(wc4))
+		require.NoError(t, hub.Register(wc5))
 
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
@@ -163,6 +163,9 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
 	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
 
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("GetAllChannelMembersForUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("bool"), mock.AnythingOfType("bool")).Return(map[string]string{}, nil)
+
 	mockOAuthStore := mocks.OAuthStore{}
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("OAuth").Return(&mockOAuthStore)
@@ -170,6 +173,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	// This needs to be false for the condition to trigger
@@ -439,7 +443,7 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
-			connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id)
+			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
 			require.Len(t, connIndex.byChannelID, 2)
 			require.Len(t, connIndex.ForChannel(th.BasicChannel.Id), 3)
 			require.Len(t, connIndex.ForChannel(ch.Id), 2)

@@ -48,6 +48,11 @@ type webConnSessionMessage struct {
 	isRegistered chan bool
 }
 
+type webConnRegisterMessage struct {
+	conn *WebConn
+	err  chan error
+}
+
 type webConnCheckMessage struct {
 	userID       string
 	connectionID string
@@ -68,7 +73,7 @@ type Hub struct {
 	connectionCount int64
 	platform        *PlatformService
 	connectionIndex int
-	register        chan *WebConn
+	register        chan *webConnRegisterMessage
 	unregister      chan *WebConn
 	broadcast       chan *model.WebSocketEvent
 	stop            chan struct{}
@@ -80,14 +85,15 @@ type Hub struct {
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
-	broadcastHooks  map[string]BroadcastHook
+	// errRegistered   chan error
+	broadcastHooks map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
 		platform:        ps,
-		register:        make(chan *WebConn),
+		register:        make(chan *webConnRegisterMessage),
 		unregister:      make(chan *WebConn),
 		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
 		stop:            make(chan struct{}),
@@ -98,6 +104,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
+		// errRegistered:   make(chan error),
 	}
 }
 
@@ -153,14 +160,15 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 }
 
 // HubRegister registers a connection to a hub.
-func (ps *PlatformService) HubRegister(webConn *WebConn) {
+func (ps *PlatformService) HubRegister(webConn *WebConn) error {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
 		if metrics := ps.metricsIFace; metrics != nil {
 			metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
-		hub.Register(webConn)
+		return hub.Register(webConn)
 	}
+	return nil
 }
 
 // HubUnregister unregisters a connection from a hub.
@@ -265,11 +273,17 @@ func (ps *PlatformService) WebConnCountForUser(userID string) int {
 }
 
 // Register registers a connection to the hub.
-func (h *Hub) Register(webConn *WebConn) {
+func (h *Hub) Register(webConn *WebConn) error {
+	wr := &webConnRegisterMessage{
+		conn: webConn,
+		err:  make(chan error),
+	}
 	select {
-	case h.register <- webConn:
+	case h.register <- wr:
+		return <-wr.err
 	case <-h.stop:
 	}
+	return nil
 }
 
 // Unregister unregisters a connection from the hub.
@@ -429,22 +443,27 @@ func (h *Hub) Start() {
 				req.result <- connIndex.ForUserActiveCount(req.userID)
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
-			case webConn := <-h.register:
+			case webConnReg := <-h.register:
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
-				webConn.Active.Store(true)
+				webConnReg.conn.Active.Store(true)
 
-				connIndex.Add(webConn)
+				err := connIndex.Add(webConnReg.conn)
+				if err != nil {
+					webConnReg.err <- err
+					continue
+				}
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
+				if webConnReg.conn.IsAuthenticated() && webConnReg.conn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
 					// the webconn write pump.
-					webConn.send <- webConn.createHelloMessage()
+					webConnReg.conn.send <- webConnReg.conn.createHelloMessage()
 				}
+				webConnReg.err <- nil
 			case webConn := <-h.unregister:
 				// If already removed (via queue full), then removing again becomes a noop.
 				// But if not removed, mark inactive.
@@ -503,7 +522,13 @@ func (h *Hub) Start() {
 				for _, webConn := range connIndex.ForUser(userID) {
 					webConn.InvalidateCache()
 				}
-				connIndex.InvalidateCMCacheForUser(userID)
+				err := connIndex.InvalidateCMCacheForUser(userID)
+				if err != nil {
+					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
+					for _, webConn := range connIndex.ForUser(userID) {
+						webConn.Close()
+					}
+				}
 			case activity := <-h.activity:
 				for _, webConn := range connIndex.ForUser(activity.userID) {
 					if !webConn.Active.Load() {
@@ -664,16 +689,19 @@ func newHubConnectionIndex(interval time.Duration,
 	}
 }
 
-func (i *hubConnectionIndex) Add(wc *WebConn) {
-	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
-
-	cm := i.getChannelMembersForUser(wc.UserId)
+func (i *hubConnectionIndex) Add(wc *WebConn) error {
+	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
+	if err != nil {
+		return fmt.Errorf("error getChannelMembersForUser: %v", err)
+	}
 	for chID := range cm {
 		i.byChannelID[chID] = append(i.byChannelID[chID], wc)
 	}
 
+	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
 	i.byConnectionId[wc.GetConnectionID()] = wc
+	return nil
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
@@ -718,7 +746,13 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	delete(i.byConnectionId, connectionID)
 }
 
-func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
+func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
+	// We make this query first to fail fast in case of an error.
+	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
+	if err != nil {
+		return err
+	}
+
 	// Clear out all user entries which belong to channels.
 	for chID, webConns := range i.byChannelID {
 		// https://go.dev/wiki/SliceTricks#filtering-without-allocating
@@ -735,27 +769,10 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) {
 	}
 
 	// re-populate the cache
-	cm := i.getChannelMembersForUser(userID)
 	for chID := range cm {
 		i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
 	}
-}
-
-// getChannelMembersForUser is a wrapper around the store method which retries
-// for numRetries times. After that we panic, to fail loudly because it is even
-// worse to continue without the channel membership data.
-// Note: the hub has internal recovery mechanism to auto-restart in case of a panic.
-// So only one hub out of numCPU hubs will be affected.
-func (i *hubConnectionIndex) getChannelMembersForUser(userID string) map[string]string {
-	var cm map[string]string
-	var err error
-	for ind := 0; ind < numRetriesForChannelMembers; ind++ {
-		cm, err = i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), userID, false, false)
-		if err == nil {
-			return cm
-		}
-	}
-	panic(fmt.Errorf("error while getting GetAllChannelMembersForUser: %v", err))
+	return nil
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
