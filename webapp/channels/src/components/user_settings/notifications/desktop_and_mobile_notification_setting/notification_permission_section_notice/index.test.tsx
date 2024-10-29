@@ -20,7 +20,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
-        expect(screen.getByText('Web browser notifications unsupported')).toBeInTheDocument();
+        expect(screen.getByText('Browser notifications unsupported')).toBeInTheDocument();
     });
 
     test('should render "Never granted" notice when notifications are never granted', () => {
@@ -29,7 +29,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
-        expect(screen.getByText('Web browser notifications are disabled')).toBeInTheDocument();
+        expect(screen.getByText('Browser notifications are disabled')).toBeInTheDocument();
     });
 
     test('should render "Denied" notice when notifications are denied', () => {
@@ -38,7 +38,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
-        expect(screen.getByText('Web browser notification permission was denied')).toBeInTheDocument();
+        expect(screen.getByText('Browser notification permission was denied')).toBeInTheDocument();
     });
 
     test('should render nothing when notifications are granted', () => {
