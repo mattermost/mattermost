@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -18,7 +19,7 @@ class ProfilePopoverPlugin extends React.PureComponent {
 jest.mock('actions/views/profile_popover');
 
 describe('plugins/Pluggable', () => {
-    const baseProps = {
+    const baseProps: ComponentProps<typeof Pluggable> = {
         pluggableName: '',
         components: {
             Product: [],
@@ -40,6 +41,10 @@ describe('plugins/Pluggable', () => {
             NeedsTeamComponent: [],
             CreateBoardFromTemplate: [],
             DesktopNotificationHooks: [],
+            MessageWillBePosted: [],
+            MessageWillBeUpdated: [],
+            MessageWillFormat: [],
+            SlashCommandWillBePosted: [],
         },
         theme: Preferences.THEMES.denim,
     };
