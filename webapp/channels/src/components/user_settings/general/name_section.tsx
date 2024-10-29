@@ -36,6 +36,7 @@ type Props = {
     sectionIsSaving: boolean;
     updateTab: (tab: string) => void;
 };
+
 const NameSection = ({
     activeSection,
     user,
@@ -98,12 +99,10 @@ const NameSection = ({
             (Constants.OAUTH_SERVICES.includes(user.auth_service))
         ) {
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_handled_externally'
-                        defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.field_handled_externally'
+                    defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                />
             );
         } else {
             inputs.push(
@@ -158,7 +157,7 @@ const NameSection = ({
                 </div>,
             );
 
-            const notifClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            const notifyClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault();
                 updateSection('');
                 updateTab('notifications');
@@ -167,7 +166,7 @@ const NameSection = ({
             const notifLink = (
                 <a
                     href='#'
-                    onClick={notifClick.bind(this)}
+                    onClick={notifyClick}
                 >
                     <FormattedMessage
                         id='user.settings.general.notificationsLink'
@@ -177,15 +176,13 @@ const NameSection = ({
             );
 
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.notificationsExtra'
-                        defaultMessage='By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default.'
-                        values={{
-                            notify: (notifLink),
-                        }}
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.notificationsExtra'
+                    defaultMessage='By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default.'
+                    values={{
+                        notify: (notifLink),
+                    }}
+                />
             );
 
             submit = submitName;

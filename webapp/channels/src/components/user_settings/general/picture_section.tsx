@@ -144,12 +144,10 @@ const PictureSection = ({
 
         if ((user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) && ldapPictureAttributeSet) {
             helpText = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_handled_externally'
-                        defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.field_handled_externally'
+                    defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                />
             );
         } else {
             submit = submitPicture;

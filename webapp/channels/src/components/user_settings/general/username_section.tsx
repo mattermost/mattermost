@@ -123,23 +123,19 @@ const UsernameSection = ({
             );
 
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.usernameInfo'
-                        defaultMessage='Pick something easy for teammates to recognize and recall.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.usernameInfo'
+                    defaultMessage='Pick something easy for teammates to recognize and recall.'
+                />
             );
 
             submit = submitUsername;
         } else {
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_handled_externally'
-                        defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.field_handled_externally'
+                    defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                />
             );
         }
 

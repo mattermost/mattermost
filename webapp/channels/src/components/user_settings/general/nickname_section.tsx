@@ -77,12 +77,10 @@ const NicknameSection = ({
         let submit = null;
         if ((user.auth_service === 'ldap' && ldapNicknameAttributeSet) || (user.auth_service === Constants.SAML_SERVICE && samlNicknameAttributeSet)) {
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_handled_externally'
-                        defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.field_handled_externally'
+                    defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                />
             );
         } else {
             let nicknameLabel: JSX.Element|string = (

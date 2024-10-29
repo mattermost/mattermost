@@ -79,12 +79,10 @@ const PositionSection = ({
         let submit = null;
         if ((user.auth_service === Constants.LDAP_SERVICE && ldapPositionAttributeSet) || (user.auth_service === Constants.SAML_SERVICE && samlPositionAttributeSet)) {
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_handled_externally'
-                        defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.field_handled_externally'
+                    defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                />
             );
         } else {
             let positionLabel: JSX.Element | string = (
@@ -121,12 +119,10 @@ const PositionSection = ({
             );
 
             extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.positionExtra'
-                        defaultMessage='Use Position for your role or job title. This will be shown in your profile popover.'
-                    />
-                </span>
+                <FormattedMessage
+                    id='user.settings.general.positionExtra'
+                    defaultMessage='Use Position for your role or job title. This will be shown in your profile popover.'
+                />
             );
 
             submit = submitPosition;
