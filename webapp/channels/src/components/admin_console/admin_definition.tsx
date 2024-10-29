@@ -1942,8 +1942,10 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.EnableClientPerformanceDebugging',
                             label: defineMessage({id: 'admin.service.performanceDebuggingTitle', defaultMessage: 'Enable Client Performance Debugging: '}),
-                            help_text: defineMessage({id: 'admin.service.performanceDebuggingDescription', defaultMessage: 'When true, users can access debugging settings for their account in **Settings > Advanced > Performance Debugging** to assist in diagnosing performance issues. Changing this requires a server restart before taking effect.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({id: 'admin.service.performanceDebuggingDescription', defaultMessage: 'When true, users can access debugging settings for their account in <b>Settings > Advanced > Performance Debugging</b> to assist in diagnosing performance issues. Changing this requires a server restart before taking effect.'}),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {

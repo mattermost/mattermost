@@ -2349,7 +2349,7 @@
   "admin.service.outWebhooksTitle": "Enable Outgoing Webhooks: ",
   "admin.service.overrideDescription": "When true, webhooks, slash commands and other integrations will be allowed to change the username they are posting as. Note: Combined with allowing integrations to override profile picture icons, users may be able to perform phishing attacks by attempting to impersonate other users.",
   "admin.service.overrideTitle": "Enable integrations to override usernames:",
-  "admin.service.performanceDebuggingDescription": "When true, users can access debugging settings for their account in **Settings > Advanced > Performance Debugging** to assist in diagnosing performance issues. Changing this requires a server restart before taking effect.",
+  "admin.service.performanceDebuggingDescription": "When true, users can access debugging settings for their account in <b>Settings > Advanced > Performance Debugging</b> to assist in diagnosing performance issues. Changing this requires a server restart before taking effect.",
   "admin.service.performanceDebuggingTitle": "Enable Client Performance Debugging: ",
   "admin.service.readTimeout": "Read Timeout:",
   "admin.service.readTimeoutDescription": "Maximum time allowed from when the connection is accepted to when the request body is fully read.",
