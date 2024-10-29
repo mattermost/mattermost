@@ -37,3 +37,7 @@ export function getUserAgentLabel() {
 
     return 'other';
 }
+
+export function getDesktopAppVersionLabel(appVersion?: string | null, prereleaseVersion?: string) {
+    return prereleaseVersion?.split('.')[0] ?? appVersion ?? 'unknown';
+}

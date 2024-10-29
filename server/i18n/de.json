@@ -10172,5 +10172,61 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Es ist nicht möglich, die zusätzlichen Eigenschaften der Sitzung zu aktualisieren."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kann keinen Einladungscode für einen bestätigten Cluster erzeugen"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nachricht kann nicht gelöscht werden, ServiceSettings.EnableAPIPostDeletion ist nicht aktiviert."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Du kannst den Benutzerstatus nicht ändern. Der Benutzer wird über LDAP verwaltet"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Die Dateien für die Nachricht konnten nicht gefunden werden."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Die Datei für diese Nachricht konnte nicht dauerhaft gelöscht werden."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Die Nachricht konnte nicht dauerhaft gelöscht werden."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kann keinen direkten Kanal mit einem entfernten Benutzer erstellen"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kann keinen Gruppen-Kanal mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Die Lizenz konnte nicht kopiert werden."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Konnte keine Einladung für Remote-Cluster erstellen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kann den Beitrag nicht in einer direkten- oder Gruppen-Nachricht mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ungültige Remote-ID."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ungültiger Token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ungültige URL der Website."
   }
 ]

@@ -87,6 +87,8 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
+import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
@@ -3027,6 +3029,32 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'IPFiltering',
                     component: IPFiltering,
+                },
+            },
+            secure_connection_detail: {
+                url: `site_config/secure_connections/:connection_id(create|${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnectionDetail',
+                    component: SecureConnectionDetail,
+                },
+            },
+            secure_connections: {
+                url: 'site_config/secure_connections',
+                title: defineMessage({id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'}),
+                searchableStrings: secureConnectionsSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableSharedChannels'),
+                    it.configIsTrue('ConnectedWorkspacesSettings', 'EnableRemoteClusterService'),
+                    it.licensedForFeature('SharedChannels'),
+                )),
+                schema: {
+                    id: 'SecureConnections',
+                    component: SecureConnections,
                 },
             },
         },

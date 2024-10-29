@@ -4021,6 +4021,16 @@ func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
+// PermanentDeletePost permanently deletes a post and its files from the provided post id string.
+func (c *Client4) PermanentDeletePost(ctx context.Context, postId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postRoute(postId)+"?permanent="+c.boolString(true))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(ctx context.Context, postId string, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	url := c.postRoute(postId) + "/thread"
@@ -9102,7 +9112,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 }
 
 // CreateChannelBookmark creates a channel bookmark based on the provided struct.
-func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmarkWithFileInfo, *Response, error) {
 	channelBookmarkJSON, err := json.Marshal(channelBookmark)
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9112,7 +9122,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var cb ChannelBookmark
+	var cb ChannelBookmarkWithFileInfo
 	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -9194,4 +9204,36 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 	}
 
 	return BuildResponse(res), nil
+}
+
+func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
+	v := url.Values{}
+	v.Set("in_team", options.TeamId)
+	v.Set("in_channel", options.ChannelId)
+	v.Set("include_deleted", strconv.FormatBool(options.IncludeDeleted))
+	v.Set("include_bots", strconv.FormatBool(options.IncludeBotAccounts))
+	v.Set("include_remote_users", strconv.FormatBool(options.IncludeRemoteUsers))
+
+	if len(options.Roles) > 0 {
+		v.Set("roles", strings.Join(options.Roles, ","))
+	}
+	if len(options.ChannelRoles) > 0 {
+		v.Set("channel_roles", strings.Join(options.ChannelRoles, ","))
+	}
+	if len(options.TeamRoles) > 0 {
+		v.Set("team_roles", strings.Join(options.TeamRoles, ","))
+	}
+
+	query := v.Encode()
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered?"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var stats UsersStats
+	if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
+		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &stats, BuildResponse(r), nil
 }

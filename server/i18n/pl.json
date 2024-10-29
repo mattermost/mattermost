@@ -10174,5 +10174,61 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Nie można zaktualizować dodatkowych właściwości sesji."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Nie można wygenerować kodu zaproszenia dla potwierdzonego klastra"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nie można usunąć postu, ServiceSettings.EnableAPIPostDeletion nie jest włączone."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Nie możesz modyfikować statusu użytkownika. Użytkownik jest zarządzany przez LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Nie znaleziono plików dla postu."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Nie udało się trwale usunąć pliku dla postu."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Nie udało się trwale usunąć postu."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału bezpośredniego z użytkownikiem zdalnym"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału grupowego z użytkownikami zdalnymi"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Nie udało się skopiować licencji."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Nie można utworzyć zaproszenia do zdalnego klastra"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Nie można utworzyć postu w DM lub GM ze zdalnymi użytkownikami"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Nieprawidłowy zdalny identyfikator."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Niepoprawny token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Nieprawidłowy adres URL strony."
   }
 ]
