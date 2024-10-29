@@ -4509,8 +4509,34 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.AdminAttribute',
                             label: defineMessage({id: 'admin.saml.adminAttrTitle', defaultMessage: 'Admin Attribute:'}),
                             placeholder: defineMessage({id: 'admin.saml.adminAttrEx', defaultMessage: 'E.g.: "usertype=Admin" or "isAdmin=true"'}),
-                            help_text: defineMessage({id: 'admin.saml.adminAttrDesc', defaultMessage: '(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths.** It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately. Note: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}),
-                            help_text_markdown: true,
+                            help_text: (
+                                <>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.saml.adminAttrDesc1'
+                                            defaultMessage='(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.'
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.saml.adminAttrDesc2'
+                                            defaultMessage='Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in <b>System Console > Session Lengths</b>. It is highly recommend to manually demote users to members in <b>System Console > User Management</b> to ensure access is restricted immediately.'
+                                            values={{
+                                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                                            }}
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.saml.adminAttrDesc3'
+                                            defaultMessage='Note: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in <b>System Console > User Management</b>.'
+                                            values={{
+                                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                                            }}
+                                        />
+                                    </p>
+                                </>
+                            ),
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.stateIsFalse('SamlSettings.EnableAdminAttribute'),
