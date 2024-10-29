@@ -437,6 +437,10 @@ func TestSlackUploadFile(t *testing.T) {
 		"testfile": zipReader.File[0],
 	}
 
+	ptrInt64 := func(i int64) *int64 {
+		return &i
+	}
+
 	t.Run("Should not fail when file is in limits", func(t *testing.T) {
 		importer := New(store, Actions{
 			DoUploadFile: func(_ time.Time, _, _, _, _ string, _ []byte) (*model.FileInfo, *model.AppError) {
@@ -449,10 +453,10 @@ func TestSlackUploadFile(t *testing.T) {
 
 	t.Run("Should fail when file size exceeded", func(t *testing.T) {
 		defer func() {
-			config.FileSettings.MaxFileSize = model.NewPointer(defaultLimit)
+			config.FileSettings.MaxFileSize = ptrInt64(defaultLimit)
 		}()
 
-		config.FileSettings.MaxFileSize = model.NewPointer(int64(10))
+		config.FileSettings.MaxFileSize = ptrInt64(int64(10))
 
 		importer := New(store, Actions{}, config)
 		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())
