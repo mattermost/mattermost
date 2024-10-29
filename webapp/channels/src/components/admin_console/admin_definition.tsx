@@ -3849,8 +3849,13 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'LdapSettings.GroupIdAttribute',
                                     label: defineMessage({id: 'admin.ldap.groupIdAttributeTitle', defaultMessage: 'Group ID Attribute:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as `entryUUID` for LDAP or `objectGUID` for Active Directory.'}),
-                                    help_text_markdown: true,
+                                    help_text: defineMessage({
+                                        id: 'admin.ldap.groupIdAttributeDesc',
+                                        defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as <code>entryUUID</code> for LDAP or <code>objectGUID</code> for Active Directory.',
+                                    }),
+                                    help_text_values: {
+                                        code: (msg: React.ReactNode) => <code>{msg}</code>,
+                                    },
                                     placeholder: defineMessage({id: 'admin.ldap.groupIdAttributeEx', defaultMessage: 'E.g.: "objectGUID" or "entryUUID"'}),
                                     isHidden: it.not(it.licensedForFeature('LDAPGroups')),
                                     isDisabled: it.any(
