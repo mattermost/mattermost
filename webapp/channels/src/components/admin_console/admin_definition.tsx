@@ -6241,8 +6241,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'TeamSettings.ExperimentalEnableAutomaticReplies',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.title', defaultMessage: 'Enable Automatic Replies:'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.desc', defaultMessage: 'When true, users can enable Automatic Replies in **Settings > Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.experimental.experimentalEnableAutomaticReplies.desc',
+                                defaultMessage: 'When true, users can enable Automatic Replies in <b>Settings > Notifications</b>. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.',
+                            }),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

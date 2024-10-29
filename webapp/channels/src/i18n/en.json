@@ -939,7 +939,7 @@
   "admin.experimental.enableUserTypingMessages.title": "Enable User Typing Messages:",
   "admin.experimental.experimentalEnableAuthenticationTransfer.desc": "When true, users can change their sign-in method to any that is enabled on the server, either via their Profile or the APIs. When false, Users cannot change their sign-in method, regardless of which authentication options are enabled.",
   "admin.experimental.experimentalEnableAuthenticationTransfer.title": "Allow Authentication Transfer:",
-  "admin.experimental.experimentalEnableAutomaticReplies.desc": "When true, users can enable Automatic Replies in **Settings > Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.",
+  "admin.experimental.experimentalEnableAutomaticReplies.desc": "When true, users can enable Automatic Replies in <b>Settings > Notifications</b>. Users set a custom message that will be automatically sent in response to Direct Messages. When false, disables the Automatic Direct Message Replies feature and hides it from Settings.",
   "admin.experimental.experimentalEnableAutomaticReplies.title": "Enable Automatic Replies:",
   "admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.desc": "This setting determines whether team leave/join system messages are posted in the default town-square channel.",
   "admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.title": "Enable Default Channel Leave/Join System Messages:",
