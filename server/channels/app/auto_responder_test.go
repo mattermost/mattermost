@@ -103,7 +103,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
-			false, true)
+			model.CreatePostFlags{SetOnline: true})
 
 		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
@@ -133,7 +133,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
-			false, true)
+			model.CreatePostFlags{SetOnline: true})
 
 		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, th.BasicUser, savedPost)
 
@@ -150,7 +150,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			Message:   NewTestId(),
 			UserId:    th.BasicUser.Id},
 			th.BasicChannel,
-			false, true)
+			model.CreatePostFlags{SetOnline: true})
 
 		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, th.BasicChannel, th.BasicUser, savedPost)
 
@@ -190,7 +190,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			Message:   NewTestId(),
 			UserId:    botUser.Id},
 			th.BasicChannel,
-			false, true)
+			model.CreatePostFlags{SetOnline: true})
 
 		sent, err := th.App.SendAutoResponseIfNecessary(th.Context, channel, botUser, savedPost)
 
@@ -228,7 +228,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 			Type:      model.PostTypeAutoResponder,
 		},
 			th.BasicChannel,
-			false, true)
+			model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		savedPost.CreateAt = model.GetMillisForTime(time.Now())
 
@@ -259,7 +259,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
-		false, true)
+		model.CreatePostFlags{SetOnline: true})
 
 	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
@@ -299,7 +299,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
-		false, true)
+		model.CreatePostFlags{SetOnline: true})
 
 	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -308,7 +308,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 		RootId:    parentPost.Id,
 	},
 		th.BasicChannel,
-		false, true)
+		model.CreatePostFlags{SetOnline: true})
 
 	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
@@ -348,7 +348,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
-		false, true)
+		model.CreatePostFlags{SetOnline: true})
 
 	sent, err := th.App.SendAutoResponse(th.Context, th.BasicChannel, userUpdated1, savedPost)
 
