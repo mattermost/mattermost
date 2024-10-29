@@ -810,13 +810,13 @@ export default class A11yController {
             break;
         case isKeyPressed(event, Constants.KeyCodes.ENTER):
             this.enterKeyIsPressed = true;
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.SPACE):
             if (event.target.nodeName === 'BUTTON') {
                 event.preventDefault();
                 event.stopPropagation();
                 event.target.click();
             }
+            break;
+        case isKeyPressed(event, Constants.KeyCodes.SPACE):
             break;
         case isKeyPressed(event, Constants.KeyCodes.L):
             // For the Ctrl+Shift+L keyboard shortcut
