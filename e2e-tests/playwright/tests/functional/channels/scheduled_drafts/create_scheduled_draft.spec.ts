@@ -3,7 +3,7 @@ import {test} from '@e2e-support/test_fixture';
 import {duration, wait} from '@e2e-support/util';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 
-test('should create a scheduled message from a channel', async ({pw, pages}) => {
+test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -38,7 +38,7 @@ test('should create a scheduled message from a channel', async ({pw, pages}) => 
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('should create a scheduled message under a thread post ', async ({pw, pages}) => {
+test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Threaded Message';
@@ -113,7 +113,7 @@ test('should create a scheduled message under a thread post ', async ({pw, pages
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('should rechedule a scheduled message', async ({pw, pages}) => {
+test('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -147,7 +147,7 @@ test('should rechedule a scheduled message', async ({pw, pages}) => {
     await compareMessageTimestamps(rescheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 });
 
-test('should delete a scheduled message', async ({pw, pages}) => {
+test('MM-T5645 should delete a scheduled message', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -168,7 +168,7 @@ test('should delete a scheduled message', async ({pw, pages}) => {
     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 });
 
-test('should send a scheduled message immediately', async ({pw, pages}) => {
+test('MM-T5643_9 should send a scheduled message immediately', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -193,7 +193,7 @@ test('should send a scheduled message immediately', async ({pw, pages}) => {
     await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
 });
 
-test('should create a scheduled message from a DM', async ({pw, pages}) => {
+test('MM-T5643_3 should create a scheduled message from a DM', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -230,7 +230,7 @@ test('should create a scheduled message from a DM', async ({pw, pages}) => {
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('should create a draft and then schedule it', async ({pw, pages}) => {
+test('MM-T5648 should create a draft and then schedule it', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Draft to be Scheduled';
@@ -265,7 +265,7 @@ test('should create a draft and then schedule it', async ({pw, pages}) => {
     await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 });
 
-test('should edit scheduled message', async ({pw, pages}) => {
+test('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -286,13 +286,13 @@ test('should edit scheduled message', async ({pw, pages}) => {
 
     await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
 
-    // // # Hover and verify options
+    // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
     const updatedText = 'updated text';
     await scheduledDraftPage.editText(updatedText);
 
-    // // # Go back and wait for message to arrive
+    // # Go back and wait for message to arrive
     // await goBackToChannelAndWaitForMessageToArrive(page);
     //
     // // * Verify the message has been sent and there's no more scheduled messages
