@@ -2992,7 +2992,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			AuthData:      ptrStr("bobbytables"),
+			AuthData:      model.NewPointer("bobbytables"),
 			AuthService:   "saml",
 			EmailVerified: true,
 		})
