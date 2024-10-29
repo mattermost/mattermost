@@ -189,15 +189,17 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 	}
 
 	rctx.Logger().Info("Importing team", fields...)
+	teamName := strings.ToLower(*data.Name)
 
 	var team *model.Team
-	team, err := a.Srv().Store().Team().GetByName(*data.Name)
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 
 	if err != nil {
-		team = &model.Team{}
+		team = &model.Team{
+			Name: teamName,
+		}
 	}
 
-	team.Name = *data.Name
 	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
@@ -264,22 +266,26 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 		return nil
 	}
 
+	teamName := strings.ToLower(*data.Team)
+	channelName := strings.ToLower(*data.Name)
+
 	rctx.Logger().Info("Importing channel", fields...)
 
-	team, err := a.Srv().Store().Team().GetByName(*data.Team)
+	team, err := a.Srv().Store().Team().GetByName(teamName)
 	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": *data.Team}, "", http.StatusBadRequest).Wrap(err)
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]any{"TeamName": teamName}, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var channel *model.Channel
-	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); gErr == nil {
+	if result, gErr := a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true); gErr == nil {
 		channel = result
 	} else {
-		channel = &model.Channel{}
+		channel = &model.Channel{
+			Name: channelName,
+		}
 	}
 
 	channel.TeamId = team.Id
-	channel.Name = *data.Name
 	channel.DisplayName = *data.DisplayName
 	channel.Type = *data.Type
 
