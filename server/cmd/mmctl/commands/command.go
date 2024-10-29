@@ -45,7 +45,7 @@ var CommandDeleteCmd = &cobra.Command{
 	Short:      "Delete a slash command",
 	Long:       `Delete a slash command. Commands can be specified by command ID.`,
 	Example:    `  command delete commandID`,
-	Deprecated: "please use \"archive\" instead",
+	Deprecated: "please use \"mmctl channel archive\" instead",
 	Args:       cobra.ExactArgs(1),
 	RunE:       withClient(archiveCommandCmdF),
 }
