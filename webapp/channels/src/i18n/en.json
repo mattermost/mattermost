@@ -929,7 +929,7 @@
   "admin.experimental.enableChannelViewedMessages.title": "Enable Channel Viewed WebSocket Messages:",
   "admin.experimental.enableOnboardingFlow.desc": "When true, new users are shown steps to complete as part of an onboarding process",
   "admin.experimental.enableOnboardingFlow.title": "Enable Onboarding:",
-  "admin.experimental.enableThemeSelection.desc": "Enables the **Display > Theme** tab in Settings so users can select their theme.",
+  "admin.experimental.enableThemeSelection.desc": "Enables the <b>Display > Theme</b> tab in Settings so users can select their theme.",
   "admin.experimental.enableThemeSelection.title": "Enable Theme Selection:",
   "admin.experimental.enableTutorial.desc": "When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.",
   "admin.experimental.enableTutorial.title": "Enable Tutorial:",

@@ -6338,8 +6338,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ThemeSettings.EnableThemeSelection',
                             label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.experimental.enableThemeSelection.desc',
+                                defaultMessage: 'Enables the <b>Display > Theme</b> tab in Settings so users can select their theme.',
+                            }),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             isHidden: it.any(
                                 it.not(it.licensed),
                                 it.licensedForSku('starter'),
