@@ -19,7 +19,7 @@ export default function NotificationPermissionUnsupportedSectionNotice() {
                 type='danger'
                 title={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.title',
-                    defaultMessage: 'Web browser notifications unsupported',
+                    defaultMessage: 'Browser notifications unsupported',
                 })}
                 text={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.message',

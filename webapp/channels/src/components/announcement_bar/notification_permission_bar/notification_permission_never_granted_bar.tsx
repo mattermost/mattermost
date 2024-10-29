@@ -42,7 +42,7 @@ export default function NotificationPermissionNeverGrantedBar() {
             message={
                 <FormattedMessage
                     id='announcementBar.notification.permissionNeverGrantedBar.message'
-                    defaultMessage='We need your permission to show web browser notifications.'
+                    defaultMessage='We need your permission to show notifications in the browser.'
                 />
             }
             ctaText={

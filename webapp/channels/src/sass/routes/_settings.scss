@@ -255,6 +255,8 @@
                 .section-max {
                     @include pie-clearfix;
 
+                    display: flex;
+                    flex-direction: column;
                     padding: 12px;
                     margin-bottom: 0;
                     background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -268,7 +270,6 @@
                     }
 
                     .extraContentBeforeSettingList {
-                        display: inline-block;
                         width: 100%;
                         padding-block-start: 20px;
                     }

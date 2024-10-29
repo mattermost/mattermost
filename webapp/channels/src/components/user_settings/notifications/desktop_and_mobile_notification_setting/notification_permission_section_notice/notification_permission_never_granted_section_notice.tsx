@@ -28,11 +28,11 @@ export default function NotificationPermissionNeverGrantedSectionNotice(props: P
                 type='danger'
                 title={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.title',
-                    defaultMessage: 'Web browser notifications are disabled',
+                    defaultMessage: 'Browser notifications are disabled',
                 })}
                 text={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionNeverGranted.message',
-                    defaultMessage: 'You\'re missing important message and call notifications from Mattermost. Mattermost notifications are disabled by this web browser.',
+                    defaultMessage: 'You\'re missing important message and call notifications from Mattermost. Mattermost notifications are disabled by this browser.',
                 })}
                 primaryButton={{
                     text: intl.formatMessage({

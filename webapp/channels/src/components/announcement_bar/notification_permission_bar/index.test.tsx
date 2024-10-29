@@ -38,7 +38,7 @@ describe('NotificationPermissionBar', () => {
 
         expect(container).toMatchSnapshot();
 
-        expect(screen.queryByText('Your browser does not support web browser notifications.')).toBeInTheDocument();
+        expect(screen.queryByText('Your browser does not support browser notifications.')).toBeInTheDocument();
         expect(screen.queryByText('Update your browser')).toBeInTheDocument();
     });
 
@@ -50,7 +50,7 @@ describe('NotificationPermissionBar', () => {
 
         expect(container).toMatchSnapshot();
 
-        expect(screen.getByText('We need your permission to show web browser notifications.')).toBeInTheDocument();
+        expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
         expect(screen.getByText('Enable notifications')).toBeInTheDocument();
     });
 
@@ -61,14 +61,14 @@ describe('NotificationPermissionBar', () => {
 
         renderWithContext(<NotificationPermissionBar/>, initialState);
 
-        expect(screen.getByText('We need your permission to show web browser notifications.')).toBeInTheDocument();
+        expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
 
         await waitFor(async () => {
             userEvent.click(screen.getByText('Enable notifications'));
         });
 
         expect(utilsNotifications.requestNotificationPermission).toHaveBeenCalled();
-        expect(screen.queryByText('We need your permission to show web browser notifications.')).not.toBeInTheDocument();
+        expect(screen.queryByText('We need your permission to show browser notifications.')).not.toBeInTheDocument();
     });
 
     test('should not render anything if permission is denied', () => {
