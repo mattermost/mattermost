@@ -433,7 +433,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
 
         return (
-            <React.Fragment>
+            <>
                 {fallback}
                 <div
                     className='file-preview__button'
@@ -441,7 +441,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 >
                     {this.renderImageWithContainerIfNeeded()}
                 </div>
-            </React.Fragment>
+            </>
         );
     };
 
