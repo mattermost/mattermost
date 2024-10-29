@@ -144,7 +144,7 @@ const UpdateUserGroupModal = ({
         } else {
             goBack();
         }
-    }, [mention, name, actions, groupId, goBack]);
+    }, [mention, name, actions, groupId, formatMessage, goBack]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && isSaveEnabled()) {
