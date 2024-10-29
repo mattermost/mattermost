@@ -92,7 +92,6 @@ issues:
         channels/app/authorization_test.go|\
         channels/app/auto_responder_test.go|\
         channels/app/bot.go|\
-        channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/busy_test.go|\
         channels/app/channel.go|\
@@ -112,7 +111,6 @@ issues:
         channels/app/helper_test.go|\
         channels/app/imaging/decode.go|\
         channels/app/imaging/decode_test.go|\
-        channels/app/imaging/utils_test.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
         channels/app/import_utils_test.go|\
@@ -257,7 +255,6 @@ issues:
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/static.go|\
-        channels/web/web.go|\
         channels/web/web_test.go|\
         channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
