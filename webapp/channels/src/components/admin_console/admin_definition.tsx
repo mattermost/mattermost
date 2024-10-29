@@ -5459,7 +5459,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'GuestAccountsSettings.RestrictCreationToDomains',
                             label: defineMessage({id: 'admin.guest_access.whitelistedDomainsTitle', defaultMessage: 'Whitelisted Guest Domains:'}),
                             help_text: defineMessage({id: 'admin.guest_access.whitelistedDomainsDescription', defaultMessage: '(Optional) Guest accounts can be created at the system level from this list of allowed guest domains.'}),
-                            help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.guest_access.whitelistedDomainsExample', defaultMessage: 'E.g.: "company.com, othercorp.org"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
