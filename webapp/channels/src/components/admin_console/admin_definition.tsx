@@ -707,8 +707,25 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.Forward80To443',
                             label: defineMessage({id: 'admin.service.forward80To443', defaultMessage: 'Forward port 80 to 443:'}),
                             help_text: defineMessage({id: 'admin.service.forward80To443Description', defaultMessage: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.forward80To443Description.disabled', defaultMessage: 'Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server. This setting cannot be enabled until your server is [listening](#ServiceSettings.ListenAddress) on port 443.'}),
-                            disabled_help_text_markdown: true,
+                            disabled_help_text: (
+                                <>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.service.forward80To443Description.disabled1'
+                                            defaultMessage='Forwards all insecure traffic from port 80 to secure port 443. Not recommended when using a proxy server.'
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.service.forward80To443Description.disabled2'
+                                            defaultMessage='This setting cannot be enabled until your server is <link>listening</link> on port 443.'
+                                            values={{
+                                                link: (msg: React.ReactNode) => <a href='#ServiceSettings.ListenAddress'> {msg} </a>,
+                                            }}
+                                        />
+                                    </p>
+                                </>
+                            ),
                             isDisabled: it.any(
                                 it.cloudLicensed,
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
