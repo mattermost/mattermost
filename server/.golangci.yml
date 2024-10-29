@@ -28,8 +28,6 @@ linters:
     - errcheck
 
 issues:
-  exclude-dirs:
-    - channels/store/storetest/mocks
   exclude-rules:
     - linters:
       # ignore unused warnings from enterprise code
@@ -39,8 +37,8 @@ issues:
 
     - linters:
       - revive
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
       # We need to fix the unused parameter issues and remove the exception.
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
 
     # Use a seperate set of exception for the enterprise code to allow community members to fix only the open source issues.
     - linters:
@@ -73,9 +71,7 @@ issues:
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
         channels/api4/file_test.go|\
-        channels/api4/ip_filtering_test.go|\
         channels/api4/job_test.go|\
-        channels/api4/license_local.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction_test.go|\
@@ -94,12 +90,10 @@ issues:
         channels/app/authorization_test.go|\
         channels/app/auto_responder_test.go|\
         channels/app/bot.go|\
-        channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/busy_test.go|\
         channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
-        channels/app/channel_category_test.go|\
         channels/app/channel_test.go|\
         channels/app/config_test.go|\
         channels/app/desktop_login.go|\
@@ -112,11 +106,9 @@ issues:
         channels/app/file_helper_test.go|\
         channels/app/file_info.go|\
         channels/app/file_test.go|\
-        channels/app/group_test.go|\
         channels/app/helper_test.go|\
         channels/app/imaging/decode.go|\
         channels/app/imaging/decode_test.go|\
-        channels/app/imaging/utils_test.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
         channels/app/import_utils_test.go|\
@@ -202,8 +194,6 @@ issues:
         channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
-        channels/jobs/batch_migration_worker.go|\
-        channels/jobs/batch_report_worker.go|\
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
@@ -257,14 +247,11 @@ issues:
         channels/store/storetest/thread_store.go|\
         channels/store/storetest/user_store.go|\
         channels/testlib/helper.go|\
-        channels/utils/fileutils/fileutils_test.go|\
         channels/utils/license_test.go|\
         channels/web/oauth.go|\
         channels/web/oauth_test.go|\
-        channels/web/response_writer_wrapper_test.go|\
         channels/web/saml.go|\
         channels/web/static.go|\
-        channels/web/web.go|\
         channels/web/web_test.go|\
         channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\

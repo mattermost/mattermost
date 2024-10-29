@@ -36,7 +36,7 @@ export default function UnsupportedNotificationAnnouncementBar() {
             message={
                 <FormattedMessage
                     id='announcementBar.notification.unsupportedBar.message'
-                    defaultMessage='Your browser does not support web browser notifications.'
+                    defaultMessage='Your browser does not support browser notifications.'
                 />
             }
             ctaText={
