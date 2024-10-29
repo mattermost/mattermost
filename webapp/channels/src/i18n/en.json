@@ -933,7 +933,7 @@
   "admin.experimental.enableThemeSelection.title": "Enable Theme Selection:",
   "admin.experimental.enableTutorial.desc": "When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.",
   "admin.experimental.enableTutorial.title": "Enable Tutorial:",
-  "admin.experimental.enableUserDeactivation.desc": "When true, users may deactivate their own account from **Settings > Advanced**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account.",
+  "admin.experimental.enableUserDeactivation.desc": "When true, users may deactivate their own account from <b>Settings > Advanced</b>. If a user deactivates their own account, they will get an email notification confirming they were deactivated. When false, users may not deactivate their own account.",
   "admin.experimental.enableUserDeactivation.title": "Enable Account Deactivation:",
   "admin.experimental.enableUserTypingMessages.desc": "This setting determines whether \"user is typing...\" messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.",
   "admin.experimental.enableUserTypingMessages.title": "Enable User Typing Messages:",
