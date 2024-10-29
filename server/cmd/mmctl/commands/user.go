@@ -218,11 +218,38 @@ var UserConvertCmd = &cobra.Command{
 	Args: cobra.MinimumNArgs(1),
 }
 
+const migrateAuthCmdDoc = `Migrates accounts from one authentication provider to either LDAP or SAML. For example, you can upgrade your authentication provider from Email to LDAP.
+
+Arguments:
+  from_auth:
+    The authentication service to migrate users accounts from.
+    Supported options: email, gitlab, google, ldap, office365, saml.
+
+  to_auth:
+    The authentication service to migrate users to.
+    Supported options: ldap, saml.
+
+  migration-options (ldap):
+    match_field:
+      The field that is guaranteed to be the same in both authentication services. For example, if the users emails are consistent set to email.
+      Supported options: email, username.
+
+  migration-options (saml):
+    users_file:
+      The path of a json file with the usernames and emails of all users to migrate to SAML. The username and email must be the same that the SAML service provider store. And the email must match with the email in mattermost database.
+
+      Example json content:
+        {
+          "usr1@email.com": "usr.one",
+          "usr2@email.com": "usr.two"
+        }
+`
+
 var MigrateAuthCmd = &cobra.Command{
 	Use:     "migrate-auth [from_auth] [to_auth] [migration-options]",
 	Aliases: []string{"migrate_auth"},
 	Short:   "Mass migrate user accounts authentication type",
-	Long:    `Migrates accounts from one authentication provider to another. For example, you can upgrade your authentication provider from email to ldap.`,
+	Long:    migrateAuthCmdDoc,
 	Example: "user migrate-auth email saml users.json",
 	Args: func(command *cobra.Command, args []string) error {
 		if len(args) < 2 {
@@ -351,29 +378,7 @@ func init() {
 Examples:
   mmctl {{.Example}}
 
-Arguments:
-  from_auth:
-    The authentication service to migrate users accounts from.
-    Supported options: email, gitlab, google, ldap, office365, saml.
-
-  to_auth:
-    The authentication service to migrate users to.
-    Supported options: ldap, saml.
-
-  migration-options (ldap):
-    match_field:
-      The field that is guaranteed to be the same in both authentication services. For example, if the users emails are consistent set to email.
-      Supported options: email, username.
-
-  migration-options (saml):
-    users_file:
-      The path of a json file with the usernames and emails of all users to migrate to SAML. The username and email must be the same that the SAML service provider store. And the email must match with the email in mattermost database.
-
-      Example json content:
-        {
-          "usr1@email.com": "usr.one",
-          "usr2@email.com": "usr.two"
-        }
+` + migrateAuthCmdDoc + `
 
 Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}

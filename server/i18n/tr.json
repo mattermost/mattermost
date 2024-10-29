@@ -7984,7 +7984,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Davet kabul edildi | Çevrim içi | Son iletişim |"
+    "translation": "| Güvenli bağlantı | Görüntülenecek ad | Bağlantı kimliği | Site adresi | Varsayılan takım | Davet kabul edildi | Çevrim içi | Son iletişim | Silindi |"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -10160,5 +10160,73 @@
   {
     "id": "app.import.import_direct_channel.no_members.error",
     "translation": "Doğrudan kanalın herhangi bir üyesi yok"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Yüklenen uygulama eki boyut sınırını aşıyor. Bu sınır sistem panosundan Dosya depolama alanı > En büyük dosya boyutu bölümünden değiştirilebilir"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Dosya yüklenemedi. Yükleme kanalı uzak taraf ile paylaşılmıyor."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Ek oturum özellikleri güncellenemedi."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Onaylanmış bir küme için davet kodu oluşturulamadı"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "İleti silinemedi. ServiceSettings.EnableAPIPostDeletion seçeneği açılmamış."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Kullanıcı durumunu değiştiremezsiniz. Kullanıcı LDAP tarafından yönetiliyor"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "İletinin dosyaları bulunamadı."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "İleti kalıcı olarak silinemedi."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "İletinin dosyası kalıcı olarak silinemedi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Bir uzak kullanıcı ile doğrudan kanal oluşturulamıyor"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Uzak kullanıcılar ile bir grup kanalı oluşturulamıyor"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Lisans kopyalanamadı."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Uzak küme daveti oluşturulamadı"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Uzak kullanıcılara bir doğrudan ileti veya grup iletisi gönderilemedi"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Site adresi geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Kod geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Uzak kimlik geçersiz."
   }
 ]

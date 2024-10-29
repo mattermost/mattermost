@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
@@ -39,5 +40,7 @@ func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Failed to write response", mlog.Err(err))
+	}
 }

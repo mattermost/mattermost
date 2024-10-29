@@ -62,11 +62,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
-	toPass := make([]any, 0, len(names))
-	for i := 0; i < len(names); i++ {
-		var role *model.Role
-		toPass = append(toPass, &role)
-	}
+	toPass := allocateCacheTargets[*model.Role](len(names))
 	errs := s.rootStore.doMultiReadCache(s.rootStore.roleCache, names, toPass)
 	for i, err := range errs {
 		if err != nil {

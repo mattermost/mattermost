@@ -483,7 +483,7 @@ type AppIface interface {
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
-	CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError
+	CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError
 	CheckPostReminders(rctx request.CTX)
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
@@ -491,6 +491,7 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
+	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache(rctx request.CTX)
@@ -533,7 +534,7 @@ type AppIface interface {
 	CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError)
-	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
 	CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError)
@@ -579,7 +580,7 @@ type AppIface interface {
 	DeleteOAuthApp(rctx request.CTX, appID string) *model.AppError
 	DeleteOutgoingWebhook(hookID string) *model.AppError
 	DeletePluginKey(pluginID string, key string) *model.AppError
-	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
+	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
@@ -986,9 +987,11 @@ type AppIface interface {
 	PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError)
 	PermanentDeleteAllUsers(c request.CTX) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
+	PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError
+	PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError
 	PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
-	PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError
+	PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
@@ -1022,6 +1025,8 @@ type AppIface interface {
 	RemoveDirectory(path string) *model.AppError
 	RemoveExportFile(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
+	RemoveFileFromFileStore(rctx request.CTX, path string)
+	RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo)
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
 	RemoveNotifications(c request.CTX, post *model.Post, channel *model.Channel) error
@@ -1042,7 +1047,6 @@ type AppIface interface {
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
-	ReturnSessionToPool(session *model.Session)
 	RevokeAccessToken(c request.CTX, token string) *model.AppError
 	RevokeAllSessions(c request.CTX, userID string) *model.AppError
 	RevokeSession(c request.CTX, session *model.Session) *model.AppError
@@ -1146,7 +1150,7 @@ type AppIface interface {
 	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
-	StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError
+	StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOptions, startAt int64, endAt int64) *model.AppError
 	SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

@@ -50,7 +50,6 @@ type PlatformService struct {
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
-	sessionPool   sync.Pool
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
@@ -124,11 +123,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},
-		sessionPool: sync.Pool{
-			New: func() any {
-				return &model.Session{}
-			},
-		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
 	}
@@ -169,6 +163,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				RedisAddr:     *cacheConfig.RedisAddress,
 				RedisPassword: *cacheConfig.RedisPassword,
 				RedisDB:       *cacheConfig.RedisDB,
+				DisableCache:  *cacheConfig.DisableClientCache,
 			},
 		)
 	}
@@ -292,27 +287,28 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
+	// Note: we hardcode the session and status cache to LRU because they lead
+	// to a lot of SCAN calls in case of Redis. We could potentially have a
+	// reverse mapping to avoid the scan, but this needs more complicated code.
+	// Leaving this for now.
+
 	// Needed before loading license
-	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 		DefaultExpiry:  30 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	// Note: we hardcode the session cache to LRU because the session invalidation
-	// path always iterates through the entire cache, leading to a lot of SCAN calls
-	// in case of Redis. We could potentially have a reverse mapping of userIDs to
-	// session IDs, but leaving this one for now.
 	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create session cache: %w", err)

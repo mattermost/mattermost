@@ -93,26 +93,36 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 }
 
 // DeleteOrphanedRowsByIds provides a mock function with given fields: r
-func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	ret := _m.Called(r)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOrphanedRowsByIds")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) (int64, error)); ok {
+		return rf(r)
+	}
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) int64); ok {
 		r0 = rf(r)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*model.RetentionIdsForDeletion) error); ok {
+		r1 = rf(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// ExistsOnPost provides a mock function with given fields: postId, emojiName
-func (_m *ReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
-	ret := _m.Called(postId, emojiName)
+// ExistsOnPost provides a mock function with given fields: postID, emojiName
+func (_m *ReactionStore) ExistsOnPost(postID string, emojiName string) (bool, error) {
+	ret := _m.Called(postID, emojiName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ExistsOnPost")
@@ -121,16 +131,16 @@ func (_m *ReactionStore) ExistsOnPost(postId string, emojiName string) (bool, er
 	var r0 bool
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
-		return rf(postId, emojiName)
+		return rf(postID, emojiName)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
-		r0 = rf(postId, emojiName)
+		r0 = rf(postID, emojiName)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(postId, emojiName)
+		r1 = rf(postID, emojiName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -168,9 +178,9 @@ func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*mode
 	return r0, r1
 }
 
-// GetForPostSince provides a mock function with given fields: postId, since, excludeRemoteId, inclDeleted
-func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
-	ret := _m.Called(postId, since, excludeRemoteId, inclDeleted)
+// GetForPostSince provides a mock function with given fields: postID, since, excludeRemoteID, inclDeleted
+func (_m *ReactionStore) GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error) {
+	ret := _m.Called(postID, since, excludeRemoteID, inclDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForPostSince")
@@ -179,10 +189,10 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 	var r0 []*model.Reaction
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int64, string, bool) ([]*model.Reaction, error)); ok {
-		return rf(postId, since, excludeRemoteId, inclDeleted)
+		return rf(postID, since, excludeRemoteID, inclDeleted)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string, bool) []*model.Reaction); ok {
-		r0 = rf(postId, since, excludeRemoteId, inclDeleted)
+		r0 = rf(postID, since, excludeRemoteID, inclDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Reaction)
@@ -190,7 +200,7 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
-		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
+		r1 = rf(postID, since, excludeRemoteID, inclDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -228,9 +238,9 @@ func (_m *ReactionStore) GetSingle(userID string, postID string, remoteID string
 	return r0, r1
 }
 
-// GetUniqueCountForPost provides a mock function with given fields: postId
-func (_m *ReactionStore) GetUniqueCountForPost(postId string) (int, error) {
-	ret := _m.Called(postId)
+// GetUniqueCountForPost provides a mock function with given fields: postID
+func (_m *ReactionStore) GetUniqueCountForPost(postID string) (int, error) {
+	ret := _m.Called(postID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUniqueCountForPost")
@@ -239,16 +249,16 @@ func (_m *ReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	var r0 int
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) (int, error)); ok {
-		return rf(postId)
+		return rf(postID)
 	}
 	if rf, ok := ret.Get(0).(func(string) int); ok {
-		r0 = rf(postId)
+		r0 = rf(postID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(postId)
+		r1 = rf(postID)
 	} else {
 		r1 = ret.Error(1)
 	}

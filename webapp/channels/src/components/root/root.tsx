@@ -22,6 +22,7 @@ import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_re
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import InitialLoadingScreen from 'components/initial_loading_screen';
 import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
@@ -32,6 +33,7 @@ import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import A11yController from 'utils/a11y_controller';
 import {PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -192,6 +194,11 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     private showLandingPageIfNecessary = () => {
+        // Only show Landing Page if enabled
+        if (!this.props.enableDesktopLandingPage) {
+            return;
+        }
+
         // We have nothing to redirect to if we're already on Desktop App
         // Chromebook has no Desktop App to switch to
         if (isDesktopApp() || isChromebook()) {
@@ -247,7 +254,7 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
-    componentDidUpdate(prevProps: Props) {
+    componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
             applyTheme(this.props.theme);
         }
@@ -270,6 +277,13 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (!prevProps.isConfigLoaded && this.props.isConfigLoaded) {
             this.setRudderConfig();
+        }
+
+        if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
+            if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
+                DesktopApp.reactAppInitialized();
+                InitialLoadingScreen.stop();
+            }
         }
     }
 
@@ -305,7 +319,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
             if (isUserAtRootRoute) {
                 if (isMeRequested) {
-                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history, new URLSearchParams(this.props.location.search));
                 } else if (this.props.noAccounts) {
                     this.props.history.push('/signup_user_complete');
                 }
@@ -561,4 +575,12 @@ export default class Root extends React.PureComponent<Props, State> {
             </RootProvider>
         );
     }
+}
+
+export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
+    // Note: we have specifically added admin_console to the negative lookahead as admin_console can have integrations as subpaths (admin_console/integrations/bot_accounts)
+    // and we don't want to treat those as team controller routes.
+    const TEAM_CONTROLLER_PATH_PATTERN = /^\/(?!admin_console)([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+
+    return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }

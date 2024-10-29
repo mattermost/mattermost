@@ -16,8 +16,10 @@ import LocalStorageStore from 'stores/local_storage_store';
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';
 import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
+import InitialLoadingScreen from 'components/initial_loading_screen';
 
 import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
@@ -53,13 +55,16 @@ function TeamController(props: Props) {
     useTelemetryIdentitySync();
 
     useEffect(() => {
-        async function fetchInitialChannels() {
-            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
+        InitialLoadingScreen.stop();
+        DesktopApp.reactAppInitialized();
+        async function fetchAllChannels() {
+            await props.fetchAllMyTeamsChannels();
 
             setInitialChannelsLoaded(true);
         }
 
-        fetchInitialChannels();
+        props.fetchAllMyChannelMembers();
+        fetchAllChannels();
     }, []);
 
     useEffect(() => {

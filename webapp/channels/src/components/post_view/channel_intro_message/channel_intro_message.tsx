@@ -18,7 +18,6 @@ import ChannelIntroPrivateSvg from 'components/common/svg_images_components/chan
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
@@ -285,7 +284,7 @@ function createDMIntroMessage(
                     />
                 </h2>
                 <p className='channel-intro__text'>
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='intro_messages.DM'
                         defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
                         values={{
@@ -707,7 +706,7 @@ function createSetHeaderButton(channel: Channel) {
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-            ariaLabel={Utils.localizeMessage('intro_messages.setHeader', 'Set header')}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.setHeader', defaultMessage: 'Set header'})}
             className={'action-button'}
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
@@ -755,7 +754,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser: User
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-            ariaLabel={Utils.localizeMessage('intro_messages.notificationPreferences', 'Notification Preferences')}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
             dialogProps={{channel, currentUser}}

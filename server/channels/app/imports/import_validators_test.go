@@ -393,7 +393,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	data.Name = model.NewPointer("A")
 	err = ValidateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to short name.")
+	require.Nil(t, err, "Should not have failed due to uppercased name.")
 
 	// Test team various invalid display names.
 	data = ChannelImportData{
@@ -646,6 +646,7 @@ func TestImportValidateUserAuth(t *testing.T) {
 		{model.NewPointer("foo"), model.NewPointer("foo"), false},
 		{nil, model.NewPointer(""), true},
 		{model.NewPointer(""), nil, true},
+		{model.NewPointer(model.ServiceOpenid), model.NewPointer("foo@bar.baz"), true},
 
 		{model.NewPointer("foo"), nil, false},
 		{model.NewPointer("foo"), model.NewPointer(""), false},
