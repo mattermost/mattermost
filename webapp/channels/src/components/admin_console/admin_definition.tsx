@@ -5480,8 +5480,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'GuestAccountsSettings.EnforceMultifactorAuthentication',
                             label: defineMessage({id: 'admin.guest_access.mfaTitle', defaultMessage: 'Enforce Multi-factor Authentication: '}),
-                            help_text: defineMessage({id: 'admin.guest_access.mfaDescriptionMFANotEnforced', defaultMessage: '[Multi-factor authentication](./mfa) is currently not enforced.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.guest_access.mfaDescriptionMFANotEnforced',
+                                defaultMessage: '<link>Multi-factor authentication</link> is currently not enforced.',
+                            }),
+                            help_text_values: {
+                                link: (msg: React.ReactNode) => <Link to='./mfa'>{msg}</Link>,
+                            },
                             isHidden: it.any(
                                 it.configIsFalse('ServiceSettings', 'EnableMultifactorAuthentication'),
                                 it.configIsTrue('ServiceSettings', 'EnforceMultifactorAuthentication'),
