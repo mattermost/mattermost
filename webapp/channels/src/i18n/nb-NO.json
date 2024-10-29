@@ -1522,6 +1522,7 @@
   "edit_post.editPost": "Rediger innlegget...",
   "edit_post.helper_text": "<strong>{key}ENTER</strong> for å Lagre, <strong>ESC</strong> for Avbryt",
   "edit_post.time_limit_button.for_n_seconds": "For {n} sekunder",
+  "edit_post.time_limit_button.no_limit": "Når som helst",
   "edit_post.time_limit_modal.invalid_time_limit": "Ugyldig tidsbegrensning",
   "edit_post.time_limit_modal.option_label_anytime": "Når som helst",
   "emoji_list.image": "Зураг",
