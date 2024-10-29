@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
@@ -83,7 +84,7 @@ export function submitPost(
             return {error: hookResult.error};
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit));
     };
@@ -97,7 +98,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 
         const teamId = getCurrentTeamId(state);
 
-        let args = {
+        let args: CommandArgs = {
             channel_id: channelId,
             team_id: teamId,
             root_id: rootId,
@@ -110,7 +111,10 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             return {error: hookResult.error};
         } else if (!hookResult.data!.message && !hookResult.data!.args) {
             // do nothing with an empty return from a hook
-            return {error: new Error('command not submitted due to plugin hook')};
+            // this is allowed by the registerSlashCommandWillBePostedHook API in case
+            // a plugin intercepts and handles the command on the client side
+            // but doesn't require it to be sent to the server. (e.g., /call start).
+            return {};
         }
 
         message = hookResult.data!.message;
