@@ -961,8 +961,28 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'FileSettings.DriverName',
                             label: defineMessage({id: 'admin.image.storeTitle', defaultMessage: 'File Storage System:'}),
-                            help_text: defineMessage({id: 'admin.image.storeDescription', defaultMessage: 'Storage system where files and image attachments are saved. Selecting "Amazon S3" enables fields to enter your Amazon credentials and bucket details. Selecting "Local File System" enables the field to specify a local file directory.'}),
-                            help_text_markdown: true,
+                            help_text: (
+                                <>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.image.storeDescription1'
+                                            defaultMessage='Storage system where files and image attachments are saved.'
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.image.storeDescription2'
+                                            defaultMessage='Selecting "Amazon S3" enables fields to enter your Amazon credentials and bucket details.'
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.image.storeDescription3'
+                                            defaultMessage='Selecting "Local File System" enables the field to specify a local file directory.'
+                                        />
+                                    </p>
+                                </>
+                            ),
                             options: [
                                 {
                                     value: FILE_STORAGE_DRIVER_LOCAL,
