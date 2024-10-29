@@ -28,13 +28,9 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	nErr := r.ParseForm()
 	if nErr != nil {
-    		c.Err = model.NewAppError("incomingWebhook",
-        		"api.webhook.parse_form.app_error",
-        		nil,
-        		"webhook_id="+id+", error="+nErr.Error(),
-        		http.StatusBadRequest)
-    		return
-	}
+    	c.Err = model.NewAppError("incomingWebhook", "api.webhook.parse_form.app_error", nil, "webhook_id="+id+", error="+nErr.Error(), http.StatusBadRequest)
+    	return
+}
 
 	var err *model.AppError
 	var mediaType string
