@@ -3555,9 +3555,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'LdapSettings.GroupFilter',
                                     label: defineMessage({id: 'admin.ldap.groupFilterTitle', defaultMessage: 'Group Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects. Only the groups selected by the query will be available to Mattermost. From [User Management > Groups]({siteURL}/admin_console/user_management/groups), select which AD/LDAP groups should be linked and configured.'}),
-                                    help_text_markdown: true,
-                                    help_text_values: {siteURL: getSiteURL()},
+                                    help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects. Only the groups selected by the query will be available to Mattermost. From <link>User Management > Groups</link>, select which AD/LDAP groups should be linked and configured.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <Link to='/admin_console/user_management/groups'>
+                                                {msg}
+                                            </Link>
+                                        ),
+                                    },
                                     placeholder: defineMessage({id: 'admin.ldap.groupFilterEx', defaultMessage: 'E.g.: "(objectClass=group)"'}),
                                     isHidden: it.not(it.licensedForFeature('LDAPGroups')),
                                     isDisabled: it.any(
