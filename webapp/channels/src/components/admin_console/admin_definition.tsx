@@ -6506,7 +6506,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.DisableAppBar',
                             label: defineMessage({id: 'admin.experimental.disableAppBar.title', defaultMessage: 'Disable Apps Bar:'}),
                             help_text: defineMessage({id: 'admin.experimental.disableAppBar.desc', defaultMessage: 'When false, all integrations move from the channel header to the Apps Bar. Channel header plugin icons that haven\'t explicitly registered an Apps Bar icon will be moved to the Apps Bar which may result in rendering issues.'}),
-                            help_text_markdown: true,
                             isHidden: it.licensedForFeature('Cloud'),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
