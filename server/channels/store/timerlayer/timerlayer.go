@@ -1928,6 +1928,38 @@ func (s *TimerLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 	}
 }
 
+func (s *TimerLayerChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.IsChannelReadOnlyScheme(schemeID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.IsChannelReadOnlyScheme", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.IsReadOnlyChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.IsReadOnlyChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	start := time.Now()
 

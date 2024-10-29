@@ -311,6 +311,8 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+	IsReadOnlyChannel(channelID string) (bool, error)
+	IsChannelReadOnlyScheme(schemeID string) (bool, error)
 }
 
 type ChannelMemberHistoryStore interface {

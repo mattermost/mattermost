@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post, PostMetadata} from '@mattermost/types/posts';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
@@ -87,7 +88,7 @@ export function submitPost(
             return {error: hookResult.error};
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         if (schedulingInfo) {
             const scheduledPost = scheduledPostFromPost(post, schedulingInfo);
@@ -123,7 +124,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 
         const teamId = getCurrentTeamId(state);
 
-        let args = {
+        let args: CommandArgs = {
             channel_id: channelId,
             team_id: teamId,
             root_id: rootId,

@@ -10,14 +10,17 @@
 // Stage: @prod
 // Group: @channels @bot_accounts @mfa
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot accounts ownership and API', () => {
-    let newTeam;
-    let newUser;
-    let newChannel;
-    let botId;
-    let botName;
+    let newTeam: Team;
+    let newUser: UserProfile;
+    let newChannel: Channel;
+    let botId: string;
+    let botName: string;
 
     beforeEach(() => {
         cy.apiAdminLogin();
