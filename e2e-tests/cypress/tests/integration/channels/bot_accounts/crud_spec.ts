@@ -10,13 +10,16 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Bot} from '@mattermost/types/bots';
+import {Team} from '@mattermost/types/teams';
+
 import {getRandomId} from '../../../utils';
 
 import {createBotInteractive} from './helpers';
 
 describe('Bot accounts - CRUD Testing', () => {
-    let newTeam;
-    let testBot;
+    let newTeam: Team;
+    let testBot: Bot & {fullDisplayName: string};
 
     before(() => {
         // # Create and visit new channel

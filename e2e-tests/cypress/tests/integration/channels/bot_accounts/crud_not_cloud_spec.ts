@@ -10,12 +10,14 @@
 // Stage: @prod
 // Group: @channels @not_cloud @bot_accounts
 
+import {Team} from '@mattermost/types/teams';
+
 import {getRandomId} from '../../../utils';
 
 import {createBotInteractive} from './helpers';
 
 describe('Bot accounts - CRUD Testing', () => {
-    let newTeam;
+    let newTeam: Team;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
