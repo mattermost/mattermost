@@ -11,7 +11,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -168,8 +168,9 @@ const AdvancedTextEditor = ({
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
+    const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
-    const isDisabled = Boolean(readOnlyChannel || isDMOrGMRemote);
+    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -484,11 +485,11 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'This channel is read-only. Only members with permission can post here.',
             },
         );
-    } else if (isDMOrGMRemote) {
+    } else if (!enableSharedChannelsDMs && isDMOrGMRemote) {
         createMessage = formatMessage(
             {
                 id: 'create_post.dm_or_gm_remote',
-                defaultMessage: 'Direct Messagess and Group Messages with remote users are not supported.',
+                defaultMessage: 'Direct Messages and Group Messages with remote users are not supported.',
             },
         );
     } else {
