@@ -29,9 +29,9 @@ func (_m *DesktopTokensStore) Delete(token string) error {
 	return r0
 }
 
-// DeleteByUserId provides a mock function with given fields: userId
-func (_m *DesktopTokensStore) DeleteByUserId(userId string) error {
-	ret := _m.Called(userId)
+// DeleteByUserId provides a mock function with given fields: userID
+func (_m *DesktopTokensStore) DeleteByUserId(userID string) error {
+	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteByUserId")
@@ -39,7 +39,7 @@ func (_m *DesktopTokensStore) DeleteByUserId(userId string) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -95,9 +95,9 @@ func (_m *DesktopTokensStore) GetUserId(token string, minCreatedAt int64) (*stri
 	return r0, r1
 }
 
-// Insert provides a mock function with given fields: token, createAt, userId
-func (_m *DesktopTokensStore) Insert(token string, createAt int64, userId string) error {
-	ret := _m.Called(token, createAt, userId)
+// Insert provides a mock function with given fields: token, createAt, userID
+func (_m *DesktopTokensStore) Insert(token string, createAt int64, userID string) error {
+	ret := _m.Called(token, createAt, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Insert")
@@ -105,7 +105,7 @@ func (_m *DesktopTokensStore) Insert(token string, createAt int64, userId string
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(token, createAt, userId)
+		r0 = rf(token, createAt, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
