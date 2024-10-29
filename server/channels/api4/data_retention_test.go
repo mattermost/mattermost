@@ -81,7 +81,6 @@ func TestGetPolicies(t *testing.T) {
 	t.Run("with different page and per_page", func(t *testing.T) {
 		page := 1
 		perPage := 50
-		t.Logf("Calling GetDataRetentionPolicies with page=%d, perPage=%d", page, perPage)
 		policies, resp, err := th.SystemAdminClient.GetDataRetentionPolicies(context.Background(), page, perPage)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
