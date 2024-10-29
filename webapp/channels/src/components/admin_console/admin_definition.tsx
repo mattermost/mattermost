@@ -665,8 +665,22 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'ServiceSettings.SiteURL',
                             label: defineMessage({id: 'admin.service.siteURL', defaultMessage: 'Site URL:'}),
-                            help_text: defineMessage({id: 'admin.service.siteURLDescription', defaultMessage: 'The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://example.com:8065. This setting is required. Mattermost may be hosted at a subpath. For example: http://example.com:8065/company/mattermost. A restart is required before the server will work correctly.'}),
-                            help_text_markdown: true,
+                            help_text: (
+                                <>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.service.siteURLDescription1'
+                                            defaultMessage='The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://example.com:8065. This setting is required.'
+                                        />
+                                    </p>
+                                    <p>
+                                        <FormattedMessage
+                                            id='admin.service.siteURLDescription2'
+                                            defaultMessage='Mattermost may be hosted at a subpath. For example: http://example.com:8065/company/mattermost. A restart is required before the server will work correctly.'
+                                        />
+                                    </p>
+                                </>
+                            ),
                             placeholder: defineMessage({id: 'admin.service.siteURLExample', defaultMessage: 'E.g.: "http://example.com:8065"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
