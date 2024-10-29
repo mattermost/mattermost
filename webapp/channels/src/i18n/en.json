@@ -886,7 +886,7 @@
   "admin.experimental.allowCustomThemes.title": "Allow Custom Themes:",
   "admin.experimental.allowedEmailDomain.desc": "(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.",
   "admin.experimental.allowedEmailDomain.title": "Allowed Email Domain",
-  "admin.experimental.clientSideCertCheck.desc": "When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.",
+  "admin.experimental.clientSideCertCheck.desc": "When <b>primary</b>, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When <b>secondary</b>, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.",
   "admin.experimental.clientSideCertCheck.options.primary": "primary",
   "admin.experimental.clientSideCertCheck.options.secondary": "secondary",
   "admin.experimental.clientSideCertCheck.title": "Client-Side Certification Login Method:",

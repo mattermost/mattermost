@@ -6283,8 +6283,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'ExperimentalSettings.ClientSideCertCheck',
                             label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: 'When **primary**, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.'}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.experimental.clientSideCertCheck.desc',
+                                defaultMessage: 'When <b>primary</b>, after the client side certificate is verified, user’s email is retrieved from the certificate and is used to log in without a password. When <b>secondary</b>, after the client side certificate is verified, user’s email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.',
+                            }),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             options: [
                                 {
                                     value: 'primary',
