@@ -2436,8 +2436,13 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'EmailSettings.PushNotificationContents',
                             label: defineMessage({id: 'admin.environment.notifications.pushContents.label', defaultMessage: 'Push Notification Contents:'}),
-                            help_text: defineMessage({id: 'admin.environment.notifications.pushContents.help', defaultMessage: "**Generic description with only sender name** - Includes only the name of the person who sent the message in push notifications, with no information about channel name or message contents. **Generic description with sender and channel names** - Includes the name of the person who sent the message and the channel it was sent in, but not the message contents. **Full message content sent in the notification payload** - Includes the message contents in the push notification payload that is relayed through Apple's Push Notification Service (APNS) or Google's Firebase Cloud Messaging (FCM). It is **highly recommended** this option only be used with an \"https\" protocol to encrypt the connection and protect confidential information sent in messages."}),
-                            help_text_markdown: true,
+                            help_text: defineMessage({
+                                id: 'admin.environment.notifications.pushContents.help',
+                                defaultMessage: "<b>Generic description with only sender name</b> - Includes only the name of the person who sent the message in push notifications, with no information about channel name or message contents.\n<b>Generic description with sender and channel names</b> - Includes the name of the person who sent the message and the channel it was sent in, but not the message contents.\n<b>Full message content sent in the notification payload</b> - Includes the message contents in the push notification payload that is relayed through Apple's Push Notification Service (APNS) or Google's Firebase Cloud Messaging (FCM). It is <b>highly recommended</b> this option only be used with an \"https\" protocol to encrypt the connection and protect confidential information sent in messages.",
+                            }),
+                            help_text_values: {
+                                b: (msg: React.ReactNode) => <b>{msg}</b>,
+                            },
                             options: [
                                 {
                                     value: 'generic_no_channel',
