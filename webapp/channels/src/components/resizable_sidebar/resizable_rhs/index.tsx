@@ -9,7 +9,6 @@ import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
 
 import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
 import ResizableDivider from '../resizable_divider';
-import {shouldRhsOverlapChannelView} from '../utils';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;
