@@ -97,7 +97,7 @@
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
     "web-vitals": "4.2.0",
-    "zen-observable": "0.9.0"
+    "zen-observable": "0.10.0"
   },
   "devDependencies": {
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
