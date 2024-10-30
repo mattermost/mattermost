@@ -88,7 +88,7 @@
     "regenerator-runtime": "0.13.10",
     "rudder-sdk-js": "1.0.16",
     "semver": "7.5.2",
-    "serialize-error": "8.0.1",
+    "serialize-error": "11.0.3",
     "shallow-equals": "1.0.0",
     "smooth-scroll-into-view-if-needed": "2.0.2",
     "stream-browserify": "3.0.0",
