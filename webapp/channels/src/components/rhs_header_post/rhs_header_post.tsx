@@ -168,6 +168,28 @@ class RhsHeaderPost extends React.PureComponent<Props> {
             <div className='sidebar--right__header'>
                 <span className='sidebar--right__title'>
                     {back}
+                    <WithTooltip
+                        id='closeSidebarTooltip'
+                        placement='top'
+                        title={
+                            <FormattedMessage
+                                id='rhs_header.closeSidebarTooltip'
+                                defaultMessage='Close'
+                            />
+                        }
+                    >
+                        <button
+                            id='rhsCloseButton'
+                            type='button'
+                            className='sidebar--right__close-back btn btn-icon btn-sm'
+                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                            onClick={this.props.closeRightHandSide}
+                        >
+                            <i
+                                className='icon icon-arrow-back-ios'
+                            />
+                        </button>
+                    </WithTooltip>
                     <FormattedMessage
                         id='rhs_header.details'
                         defaultMessage='Thread'

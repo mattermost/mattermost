@@ -178,8 +178,22 @@
         color: inherit;
         white-space: nowrap;
 
+        .sidebar--right__close {
+            @media screen and (min-width: 768px) and (max-width: 1080px) {
+                display: none;
+            }
+        }
+
+        .sidebar--right__close-back {
+            margin-right: 8px;
+            display: none;
+
+            @media screen and (min-width: 768px) and (max-width: 1080px) {
+                display: flex;
+            }
+        }
+
         .btn-icon {
-            margin: 0 !important;
             font-size: 20px;
         }
 

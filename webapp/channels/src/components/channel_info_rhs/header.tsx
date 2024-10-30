@@ -41,6 +41,29 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                         />
                     </button>
                 )}
+
+                <WithTooltip
+                    id='closeSidebarTooltip'
+                    placement='top'
+                    title={
+                        <FormattedMessage
+                            id='rhs_header.closeSidebarTooltip'
+                            defaultMessage='Close'
+                        />
+                    }
+                >
+                    <button
+                        id='rhsCloseButton'
+                        type='button'
+                        className='sidebar--right__close-back btn btn-icon btn-sm'
+                        aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                        onClick={onClose}
+                    >
+                        <i
+                            className='icon icon-arrow-back-ios'
+                        />
+                    </button>
+                </WithTooltip>
                 <HeaderTitle>
                     <FormattedMessage
                         id='channel_info_rhs.header.title'

@@ -19,6 +19,17 @@ exports[`components/post_edit_history should display error screen if errors are 
           <span
             class="sidebar--right__title"
           >
+            <button
+              aria-label="Close"
+              class="sidebar--right__close-back btn btn-icon btn-sm"
+              id="searchResultsCloseButton"
+              type="button"
+            >
+              <i
+                aria-label="Close Sidebar Icon"
+                class="icon icon-arrow-back-ios"
+              />
+            </button>
             Edit History
             <div
               class="sidebar--right__title__channel"
@@ -134,6 +145,17 @@ exports[`components/post_edit_history should match snapshot 1`] = `
           <span
             class="sidebar--right__title"
           >
+            <button
+              aria-label="Close"
+              class="sidebar--right__close-back btn btn-icon btn-sm"
+              id="searchResultsCloseButton"
+              type="button"
+            >
+              <i
+                aria-label="Close Sidebar Icon"
+                class="icon icon-arrow-back-ios"
+              />
+            </button>
             Edit History
             <div
               class="sidebar--right__title__channel"
