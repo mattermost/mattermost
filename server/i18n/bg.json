@@ -8526,5 +8526,9 @@
   {
     "id": "api.channel.group_message.converted.to_private_channel",
     "translation": "{{.ConvertedByUsername}} създаде този канал от групово съобщение с {{.GMMembers}}."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Не успяхме да намерим искания от вас файл."
   }
 ]
