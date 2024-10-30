@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 const (
@@ -51,7 +52,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
-	rp, err := a.CreatePost(c, post, channel, true, setOnline)
+	rp, err := a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" {
@@ -79,6 +80,22 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 			)
 		}
 	}
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsChannelReadOnlyScheme(*channel.SchemeId)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it was a post to a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: post.ChannelId,
+				},
+			)
+		}
+	}
 
 	return rp, nil
 }
@@ -95,7 +112,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		}
 	}
 
-	return a.CreatePost(c, post, channel, triggerWebhooks, setOnline)
+	return a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -140,8 +157,8 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
-	if channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError) {
+	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		return nil, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -384,7 +401,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
-	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
+	if err := a.handlePostEvents(c, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
 		c.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
@@ -2134,7 +2151,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
 		RootId:    postID,
-		ChannelId: metadata.ChannelId,
+		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
 		Message: fmt.Sprintf("You will be reminded about %s by @%s at %s", permalink, metadata.Username, parsedTime),
@@ -2223,7 +2240,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 				},
 			}
 
-			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
+			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
@@ -2463,14 +2480,14 @@ func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, t
 		newPost.ChannelId = targetChannel.Id
 
 		if i == 0 {
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, model.CreatePostFlags{})
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -2552,7 +2569,7 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: channelID,
 		Message:   T("app.post.move_thread.from_another_channel"),
 		Props:     ephemeralPostProps,
-	}, targetChannel, false, false)
+	}, targetChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}
@@ -2599,7 +2616,7 @@ func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelI
 		ChannelId: originalChannel.Id,
 		Message:   msg,
 		Props:     ephemeralPostProps,
-	}, originalChannel, false, false)
+	}, originalChannel, model.CreatePostFlags{})
 	if appErr != nil {
 		return appErr
 	}

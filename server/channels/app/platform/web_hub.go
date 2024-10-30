@@ -704,8 +704,6 @@ func (i *hubConnectionIndex) Add(wc *WebConn) error {
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	wc.Platform.ReturnSessionToPool(wc.GetSession())
-
 	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return

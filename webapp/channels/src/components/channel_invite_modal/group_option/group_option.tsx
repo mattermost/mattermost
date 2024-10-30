@@ -58,7 +58,7 @@ const GroupOption = (props: Props) => {
         for (const profile of profiles) {
             addUserProfile(profile);
         }
-        trackFeatureEvent(TrackGroupsFeature, TrackInviteGroupEvent, {});
+        trackFeatureEvent(TrackGroupsFeature, TrackInviteGroupEvent);
     }, [addUserProfile, profiles]);
 
     const onKeyDown = useCallback((e: KeyboardEvent) => {
