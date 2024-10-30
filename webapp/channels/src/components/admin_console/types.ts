@@ -38,14 +38,26 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
 
 type AdminDefinitionSettingBase = {
     key?: string;
+
     label: string | MessageDescriptor;
     label_values?: {[key: string]: any};
+
     help_text?: string | JSX.Element | MessageDescriptor;
-    help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};
+
+    /**
+     * @deprecated Use React-Intl rich formatting instead
+     */
+    help_text_markdown?: boolean;
+
     disabled_help_text?: string | JSX.Element | MessageDescriptor;
-    disabled_help_text_markdown?: boolean;
     disabled_help_text_values?: {[key: string]: any};
+
+    /**
+     * @deprecated Use React-Intl rich formatting instead
+     */
+    disabled_help_text_markdown?: boolean;
+
     onConfigLoad?: (configVal: any, config: Partial<AdminConfig>) => any;
     onConfigSave?: (displayVal: any, previousVal?: any) => any;
     isHidden?: Check;
@@ -54,7 +66,12 @@ type AdminDefinitionSettingBase = {
 
 export type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
     type: 'banner';
+
+    /**
+     * @deprecated Use React-Intl rich formatting instead
+     */
     label_markdown?: boolean;
+
     banner_type: 'info' | 'warning';
 }
 
@@ -86,9 +103,15 @@ type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
 export type AdminDefinitionSettingDropdownOption = {
     value: string;
     display_name: string | MessageDescriptor;
+
     help_text?: string | MessageDescriptor | JSX.Element;
-    help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};
+
+    /**
+     * @deprecated Use React-Intl rich formatting instead
+     */
+    help_text_markdown?: boolean;
+
     isHidden?: Check;
 }
 
