@@ -1,0 +1,13 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel:
+    config:
+      dir: "platform/services/sharedchannel"
+      inpackage: True
+      filename: "mock_{{.InterfaceName}}_test.go"
+      outpkg: "sharedchannel"
+      testonly: true
+      note: "Regenerate this file using `make sharedchannel-mocks`."
+    interfaces:
+      ServerIface:
+      AppIface:
