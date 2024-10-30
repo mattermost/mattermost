@@ -14,8 +14,6 @@ const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
-// const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
@@ -266,13 +264,6 @@ var config = {
                 sizes: '96x96',
             }],
         }),
-
-        // Disabling this plugin until we come up with better bundle analysis ci
-        // new BundleAnalyzerPlugin({
-        //     analyzerMode: 'disabled',
-        //     generateStatsFile: true,
-        //     statsFilename: 'bundlestats.json',
-        // }),
     ],
 };
 
