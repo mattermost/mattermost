@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 
 import FormattedMarkdownMessage, {CustomRenderer} from 'components/formatted_markdown_message';
 
+import {isMessageDescriptor} from 'utils/i18n';
+
 type Props = {
     isMarkdown?: boolean;
     text: string | MessageDescriptor | JSX.Element;
@@ -33,7 +35,7 @@ const SchemaText = ({
         return <span>{text}</span>;
     }
 
-    if ('id' in text) {
+    if (isMessageDescriptor(text)) {
         if (isMarkdown) {
             return (
                 <FormattedMarkdownMessage
