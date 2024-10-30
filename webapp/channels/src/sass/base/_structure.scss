@@ -274,6 +274,25 @@ body.app__body #root {
         }
     }
 
+    @media screen and (max-width: 1080px) {
+        .sidebar--right--width-holder {
+            display: none;
+        }
+
+        #sidebar-right {
+            position: absolute;
+            width: 100%;
+            grid-area: center;
+            transition: width 0.25s ease-in-out;
+            border-radius: var(--radius-l);
+            max-width: none;
+
+            .sidebar--right__expand {
+                display: none;
+            }
+        }
+    }
+
     @media screen and (min-width: 768px) and (max-width: 1200px) {
         &.rhs-open-expanded {
             .sidebar--right--width-holder {
@@ -309,10 +328,8 @@ body.app__body #root {
 
 .rhs-open #channel_view.channel-view,
 .rhs-open-expanded #channel_view.channel.view {
-    @media screen and (min-width: 1200px) {
-        padding-right: 20px;
-        margin-right: -20px;
-    }
+    padding-right: 20px;
+    margin-right: -20px;
 }
 
 img {
