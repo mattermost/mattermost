@@ -37,7 +37,7 @@ describe('Search', () => {
 
         // # Search for "apple"
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().should('be.visible').type(apple).type('{enter}');
+        cy.uiGetSearchBox().should('be.visible').first().type(apple).type('{enter}');
 
         // # Get last postId
         cy.getLastPostId().as('lastPostId');
