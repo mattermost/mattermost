@@ -15,13 +15,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -128,53 +126,8 @@ func TestHubStopRaceCondition(t *testing.T) {
 }
 
 func TestHubSessionRevokeRace(t *testing.T) {
-	th := SetupWithStoreMock(t)
+	th := Setup(t)
 	defer th.TearDown()
-
-	sess1 := &model.Session{
-		Id:             "id1",
-		UserId:         "user1",
-		DeviceId:       "",
-		Token:          "sesstoken",
-		ExpiresAt:      model.GetMillis() + 300000,
-		LastActivityAt: 10000,
-	}
-
-	mockStore := th.Service.Store.(*mocks.Store)
-
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
-	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-
-	mockSessionStore := mocks.SessionStore{}
-	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
-	mockSessionStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", mock.AnythingOfType("*request.Context"), mock.Anything, "id1").Return(sess1, nil)
-	mockSessionStore.On("Remove", "id1").Return(nil)
-
-	mockStatusStore := mocks.StatusStore{}
-	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-
-	mockChannelStore := mocks.ChannelStore{}
-	mockChannelStore.On("GetAllChannelMembersForUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("bool"), mock.AnythingOfType("bool")).Return(map[string]string{}, nil)
-
-	mockOAuthStore := mocks.OAuthStore{}
-	mockStore.On("Session").Return(&mockSessionStore)
-	mockStore.On("OAuth").Return(&mockOAuthStore)
-	mockStore.On("Status").Return(&mockStatusStore)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	// This needs to be false for the condition to trigger
 	th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -185,7 +138,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	defer s.Close()
 
 	session, err := th.Service.CreateSession(th.Context, &model.Session{
-		UserId: "testid",
+		UserId: model.NewId(),
 	})
 	require.NoError(t, err)
 
@@ -197,7 +150,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.Service.AddSessionToCache(sess1)
+	th.Service.AddSessionToCache(session)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
@@ -207,7 +160,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	}()
 
 	// This call should happen _after_ !wc.IsAuthenticated() and _before_wc.isMemberOfTeam().
-	// There's no guarantee this will happen. But that's out best bet to trigger this race.
+	// There's no guarantee this will happen. But that's our best bet to trigger this race.
 	wc1.InvalidateCache()
 
 	for i := 0; i < 10; i++ {
