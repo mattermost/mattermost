@@ -18,7 +18,7 @@ import WithTooltip from 'components/with_tooltip';
 import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
-import './style.scss';
+import './send_button.scss';
 
 type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;

@@ -48,12 +48,10 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     const bodySuffix = useMemo(() => {
         return (
-            <React.Fragment>
-                <DMUserTimezone
-                    channelId={channelId}
-                    selectedTime={selectedDateTime?.toDate()}
-                />
-            </React.Fragment>
+            <DMUserTimezone
+                channelId={channelId}
+                selectedTime={selectedDateTime?.toDate()}
+            />
         );
     }, [channelId, selectedDateTime]);
 
