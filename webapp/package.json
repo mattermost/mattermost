@@ -19,7 +19,8 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "react-intl": "6.6.2"
+    "react-intl": "6.6.2",
+    "typescript": "5.6.3"
   },
   "devDependencies": {
     "@babel/core": "7.22.0",
