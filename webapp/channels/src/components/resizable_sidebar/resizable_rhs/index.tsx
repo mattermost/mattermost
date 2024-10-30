@@ -31,7 +31,6 @@ function ResizableRhs({
 
     const defaultWidth = RHS_MIN_MAX_WIDTH[rhsSize].default;
 
-
     const handleResize = (_: number, cssVarProp: string, cssVarValue: string) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
