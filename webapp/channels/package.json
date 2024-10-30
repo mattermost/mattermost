@@ -120,7 +120,6 @@
     "@types/luxon": "3.0.2",
     "@types/mark.js": "8.11.6",
     "@types/marked": "0.7.4",
-    "@types/node": "18.19.59",
     "@types/react": "17.0.83",
     "@types/react-beautiful-dnd": "13.1.2",
     "@types/react-bootstrap": "0.32.35",
