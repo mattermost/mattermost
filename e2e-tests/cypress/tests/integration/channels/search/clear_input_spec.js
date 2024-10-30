@@ -27,7 +27,7 @@ describe('Search', () => {
         cy.uiGetSearchContainer().click();
 
         // # Write something on the input
-        cy.uiGetSearchBox().clear().wait(TIMEOUTS.HALF_SEC).type('abc').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type('abc').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
         cy.uiGetSearchContainer().click();
 
@@ -56,7 +56,7 @@ describe('Search', () => {
         // * Verify search input field exists and not search button, as inputs contains placeholder not buttons/icons
         // and then type in a search text
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().clear().wait(TIMEOUTS.HALF_SEC).type(searchText + '{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(searchText + '{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // # Now click on the saved post button from the header
         cy.uiGetSavedPostButton().click();
