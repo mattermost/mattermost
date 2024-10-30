@@ -7,9 +7,10 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
-import './image_preview.scss';
 import {FileTypes} from 'utils/constants';
 import {getFileType} from 'utils/utils';
+
+import './image_preview.scss';
 
 interface Props {
     fileInfo: FileInfo;
@@ -33,13 +34,11 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
         return <img src={previewUrl}/>;
     }
 
-    let conditionalSVGStyleAttribute = {};
+    let conditionalSVGStyleAttribute;
     if (getFileType(fileInfo.extension) === FileTypes.SVG) {
         conditionalSVGStyleAttribute = {
-            style: {
-                width: fileInfo.width,
-                height: 'auto',
-            },
+            width: fileInfo.width,
+            height: 'auto',
         };
     }
 

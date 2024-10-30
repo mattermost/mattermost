@@ -218,13 +218,11 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
-        let conditionalSVGStyleAttribute = {};
+        let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                style: {
-                    width: dimensions?.width || MIN_IMAGE_SIZE,
-                    height: 'auto',
-                },
+                width: dimensions?.width || MIN_IMAGE_SIZE,
+                height: 'auto',
             };
         }
 
@@ -242,7 +240,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                {...conditionalSVGStyleAttribute}
+                style={conditionalSVGStyleAttribute}
             />
         );
 
