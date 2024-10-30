@@ -51,7 +51,7 @@
     "style-loader": "3.3.2",
     "webpack": "5.81.0",
     "webpack-cli": "5.0.2",
-    "webpack-dev-server": "4.13.3"
+    "webpack-dev-server": "5.1.0"
   },
   "overrides": {
     "@floating-ui/react": {

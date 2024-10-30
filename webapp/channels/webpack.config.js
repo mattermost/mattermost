@@ -407,16 +407,21 @@ if (targetIsDevServer) {
         devtool: 'eval-cheap-module-source-map',
         devServer: {
             liveReload: true,
-            proxy: {
-
-                // Forward these requests to the server
-                '/api': {
+            proxy: [
+                {
+                    context: '/api',
                     ...proxyToServer,
                     ws: true,
                 },
-                '/plugins': proxyToServer,
-                '/static/plugins': proxyToServer,
-            },
+                {
+                    context: '/plugins',
+                    ...proxyToServer,
+                },
+                {
+                    context: '/static/plugins',
+                    ...proxyToServer,
+                },
+            ],
             port: 9005,
             devMiddleware: {
                 writeToDisk: false,
