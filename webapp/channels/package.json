@@ -90,7 +90,7 @@
     "semver": "7.5.2",
     "serialize-error": "8.0.1",
     "shallow-equals": "1.0.0",
-    "smooth-scroll-into-view-if-needed": "1.1.33",
+    "smooth-scroll-into-view-if-needed": "2.0.2",
     "stream-browserify": "3.0.0",
     "styled-components": "5.3.6",
     "timezones.json": "1.7.1",
