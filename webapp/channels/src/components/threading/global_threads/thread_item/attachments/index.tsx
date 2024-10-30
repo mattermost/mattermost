@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post} from '@mattermost/types/posts';
 
 import AttachmentCard from './attachment_card';
@@ -17,7 +18,7 @@ function Attachment({post}: Props) {
         return <FileCard id={post.file_ids[0]}/>;
     }
 
-    if (post.props.attachments && post.props.attachments.length) {
+    if (isMessageAttachmentArray(post.props.attachments) && post.props.attachments.length) {
         return <AttachmentCard {...post.props.attachments[0]}/>;
     }
 

@@ -3,7 +3,7 @@
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {MessageAttachment} from '@mattermost/types/message_attachments';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -194,12 +194,13 @@ const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, m
     return title;
 };
 
-const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPostMessageProps) => {
+const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPostMessageProps): string => {
     const config = getConfig(state);
     const userFromPost = getUser(state, post.user_id);
 
-    if (post.props.override_username && config.EnablePostUsernameOverride === 'true') {
-        return post.props.override_username;
+    const overrideUsername = post.props.override_username;
+    if (typeof overrideUsername === 'string' && overrideUsername && config.EnablePostUsernameOverride === 'true') {
+        return overrideUsername;
     }
     if (userFromPost) {
         return displayUsername(userFromPost, getTeammateNameDisplaySetting(state), false);
@@ -216,15 +217,15 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
     let notifyText = post.message;
 
     const msgPropsPost: Post = JSON.parse(msgProps.post);
-    const attachments: MessageAttachment[] = msgPropsPost && msgPropsPost.props && msgPropsPost.props.attachments ? msgPropsPost.props.attachments : [];
+    const attachments = isMessageAttachmentArray(msgPropsPost?.props?.attachments) ? msgPropsPost.props.attachments : [];
     let image = false;
     attachments.forEach((attachment) => {
         if (notifyText.length === 0) {
             notifyText = attachment.fallback ||
                 attachment.pretext ||
-                attachment.text;
+                attachment.text || '';
         }
-        image = image || (attachment.image_url.length > 0);
+        image = Boolean(image || (attachment.image_url?.length));
     });
 
     const strippedMarkdownNotifyText = stripMarkdown(notifyText);
@@ -308,9 +309,9 @@ function shouldSkipNotification(
 
         // We do this on a try catch block to avoid errors from malformed props
         try {
-            if (post.props && post.props.attachments) {
+            if (isMessageAttachmentArray(post.props.attachments)) {
                 const attachments = post.props.attachments;
-                function appendText(toAppend: string) {
+                function appendText(toAppend?: string) {
                     if (toAppend) {
                         text += `\n${toAppend}`;
                     }

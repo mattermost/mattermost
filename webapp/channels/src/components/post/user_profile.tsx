@@ -75,7 +75,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
         );
 
         if (isFromWebhook(post)) {
-            const overwriteName = post.props.override_username && enablePostUsernameOverride ? post.props.override_username : undefined;
+            const propOverrideName = post.props.override_username;
+            const overwriteName = typeof propOverrideName === 'string' && propOverrideName && enablePostUsernameOverride ? propOverrideName : undefined;
+            const propOverrideIcon = post.props.override_icon_url;
+            const overwriteIcon = typeof propOverrideIcon === 'string' && propOverrideIcon ? propOverrideIcon : undefined;
             userProfile = (
                 <UserProfile
                     userId={post.user_id}
@@ -83,7 +86,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     hideStatus={true}
                     overwriteName={overwriteName}
                     colorize={colorize}
-                    overwriteIcon={post.props.override_icon_url || undefined}
+                    overwriteIcon={overwriteIcon}
                 />
             );
 

@@ -6,6 +6,7 @@ import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
+import {isStringArray} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 
@@ -183,17 +184,39 @@ const postTypeMessage = {
     }),
 };
 
+export type MessageData = {
+    actorId?: string;
+    postType: string;
+    userIds: string[];
+}
+
+export function isMessageData(v: unknown): v is MessageData {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if ('actorId' in v && typeof v.actorId !== 'string') {
+        return false;
+    }
+
+    if (!('postType' in v) || typeof v.postType !== 'string') {
+        return false;
+    }
+
+    if (!('userIds' in v) || !isStringArray(v.userIds)) {
+        return false;
+    }
+
+    return true;
+}
+
 export type Props = {
     allUserIds: string[];
     allUsernames: string[];
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
-    messageData: Array<{
-        actorId?: string;
-        postType: string;
-        userIds: string[];
-    }>;
+    messageData: MessageData[];
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
     actions: {

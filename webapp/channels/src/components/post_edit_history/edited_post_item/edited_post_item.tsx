@@ -131,7 +131,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     const profileSrc = imageURLForUser(post.user_id);
 
-    const overwriteName = post.props ? post.props.override_username : '';
+    const overwriteName = typeof post.props?.override_username === 'string' ? post.props.override_username : '';
     const postHeader = (
         <div className='edit-post-history__header'>
             <span className='profile-icon'>

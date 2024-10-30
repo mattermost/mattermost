@@ -53,12 +53,8 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
     getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
         const {enablePostIconOverride, hasImageProxy, post} = this.props;
         const postProps = post.props;
-        let postIconOverrideURL = '';
-        let useUserIcon = '';
-        if (postProps) {
-            postIconOverrideURL = postProps.override_icon_url;
-            useUserIcon = postProps.use_user_icon;
-        }
+        const postIconOverrideURL = typeof postProps?.override_icon_url === 'string' ? postProps.override_icon_url : '';
+        const useUserIcon = typeof postProps?.use_user_icon === 'string' ? postProps.use_user_icon : '';
 
         if (this.props.compactDisplay) {
             return '';
@@ -96,7 +92,7 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         const src = this.getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
 
         const overrideIconEmoji = post.props ? post.props.override_icon_emoji : '';
-        const overwriteName = post.props ? post.props.override_username : '';
+        const overwriteName = typeof post.props?.override_username === 'string' ? post.props.override_username : '';
         const isEmoji = typeof overrideIconEmoji == 'string' && overrideIconEmoji !== '';
         const status = this.getStatus(fromAutoResponder, fromWebhook, user);
 

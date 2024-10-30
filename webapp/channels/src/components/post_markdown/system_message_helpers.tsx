@@ -8,20 +8,23 @@ import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 're
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
+import {isArrayOf, isStringArray} from '@mattermost/types/utilities';
 
 import {General, Posts} from 'mattermost-redux/constants';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
+import {isMessageData, type MessageData} from 'components/post_view/combined_system_message/combined_system_message';
 import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
-export function renderUsername(value: string): ReactNode {
-    const username = (value[0] === '@') ? value : `@${value}`;
+export function renderUsername(value: unknown): ReactNode {
+    const verifiedValue = typeof value === 'string' ? value : '';
+    const username = (verifiedValue[0] === '@') ? verifiedValue : `@${verifiedValue}`;
 
     const options = {
         markdown: false,
@@ -30,10 +33,11 @@ export function renderUsername(value: string): ReactNode {
     return renderFormattedText(username, options);
 }
 
-function renderFormattedText(value: string, options?: Partial<TextFormattingOptions>, post?: Post): ReactNode {
+function renderFormattedText(value: unknown, options?: Partial<TextFormattingOptions>, post?: Post): ReactNode {
+    const verifiedValue = typeof value === 'string' ? value : '';
     return (
         <Markdown
-            message={value}
+            message={verifiedValue}
             options={options}
             postId={post && post.id}
             postType={post && post.type}
@@ -189,7 +193,7 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     }
 
     const headerOptions = {
-        channelNamesMap: post.props && post.props.channel_mentions,
+        channelNamesMap: isChannelNamesMap(post.props?.channel_mentions) ? post.props.channel_mentions : undefined,
         mentionHighlight: true,
     };
 
@@ -388,12 +392,69 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
+type AddMemberProps = {
+    post_id: string;
+    not_in_channel_user_ids: string[];
+    not_in_groups_usernames: string[];
+    not_in_channel_usernames: string[];
+}
+
+function isAddMemberProps(v: unknown): v is AddMemberProps {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if (!('post_id' in v) || typeof v.post_id !== 'string') {
+        return false;
+    }
+
+    if (!('not_in_channel_user_ids' in v) || !isStringArray(v.not_in_channel_user_ids)) {
+        return false;
+    }
+
+    if (!('not_in_groups_usernames' in v) || !isStringArray(v.not_in_groups_usernames)) {
+        return false;
+    }
+
+    if (!('not_in_channel_usernames' in v) || !isStringArray(v.not_in_channel_usernames)) {
+        return false;
+    }
+
+    return true;
+}
+
+type UserActivityProp = {
+    allUserIds: string[];
+    allUsernames: string[];
+    messageData: MessageData[];
+}
+
+function isUserActivityProp(v: unknown): v is UserActivityProp {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if (!('allUserIds' in v) || !isStringArray(v.allUserIds)) {
+        return false;
+    }
+
+    if (!('allUsernames' in v) || !isStringArray(v.allUsernames)) {
+        return false;
+    }
+
+    if (!('messageData' in v) || !isArrayOf(v, isMessageData)) {
+        return false;
+    }
+
+    return true;
+}
+
 export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
         return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
     }
-    if (post.props && post.props.add_channel_member) {
+    if (isAddMemberProps(post.props?.add_channel_member)) {
         if (channel && (channel.type === General.PRIVATE_CHANNEL || channel.type === General.OPEN_CHANNEL) &&
             isUserCanManageMembers &&
             isEphemeral
@@ -416,7 +477,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         return renderGuestJoinChannelMessage(post, hideGuestTags);
     } else if (post.type === Posts.POST_TYPES.ADD_GUEST_TO_CHANNEL) {
         return renderAddGuestToChannelMessage(post, hideGuestTags);
-    } else if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY) {
+    } else if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && isUserActivityProp(post.props.user_activity)) {
         const {allUserIds, allUsernames, messageData} = post.props.user_activity;
 
         return (
@@ -443,7 +504,8 @@ function renderReminderACKMessage(post: Post, currentTeamName: string, isMilitar
     const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeamName}`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
-    const localTime = new Date(post.props.target_time * 1000);
+    const targetTime = typeof post.props.target_time === 'number' ? post.props.target_time : 0;
+    const localTime = new Date(targetTime * 1000);
 
     const reminderTime = (
         <FormattedTime
@@ -515,13 +577,14 @@ defineMessages({
 });
 
 export function renderWranglerSystemMessage(post: Post): ReactNode {
-    let values = {} as any;
-    const id = post.props.TranslationID;
-    if (post.props && post.props.MovedThreadPermalink) {
+    let values: React.ComponentProps<typeof FormattedMessage>['values'] = {};
+    const id = typeof post.props.TranslationID === 'string' ? post.props.TranslationID : '';
+    if (typeof post.props?.MovedThreadPermalink === 'string' && post.props?.MovedThreadPermalink) {
         values = {
             link: post.props.MovedThreadPermalink,
         };
-        if (post.props.NumMessages > 1) {
+        const numMessages = typeof post.props.NumMessages === 'number' ? post.props.NumMessages : 0;
+        if (numMessages > 1) {
             values.number = post.props.NumMessages;
         }
     }

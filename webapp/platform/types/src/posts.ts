@@ -84,7 +84,7 @@ export type Post = {
     original_id: string;
     message: string;
     type: PostType;
-    props: Record<string, any>;
+    props: Record<string, unknown>;
     hashtags: string;
     pending_post_id: string;
     reply_count: number;

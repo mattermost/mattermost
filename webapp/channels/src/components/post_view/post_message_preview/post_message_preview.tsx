@@ -55,12 +55,8 @@ const PostMessagePreview = (props: Props) => {
     const getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
         const {enablePostIconOverride, hasImageProxy, previewPost} = props;
         const postProps = previewPost?.props;
-        let postIconOverrideURL = '';
-        let useUserIcon = '';
-        if (postProps) {
-            postIconOverrideURL = postProps.override_icon_url;
-            useUserIcon = postProps.use_user_icon;
-        }
+        const postIconOverrideURL = typeof postProps?.override_icon_url === 'string' ? postProps.override_icon_url : '';
+        const useUserIcon = typeof postProps?.use_user_icon === 'string' ? postProps.use_user_icon : '';
 
         if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
             if (postIconOverrideURL && postIconOverrideURL !== '') {
@@ -156,6 +152,8 @@ const PostMessagePreview = (props: Props) => {
         </div>
     ) : null;
 
+    const overwriteName = typeof previewPost.props?.override_username === 'string' ? previewPost.props?.override_username : '';
+
     return (
         <PostAttachmentContainer
             className='permalink'
@@ -175,7 +173,7 @@ const PostMessagePreview = (props: Props) => {
                         <UserProfileComponent
                             userId={user?.id ?? ''}
                             disablePopover={true}
-                            overwriteName={previewPost.props?.override_username || ''}
+                            overwriteName={overwriteName}
                         />
                     </div>
                     <div className='col d-flex align-items-center'>

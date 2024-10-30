@@ -126,9 +126,10 @@ export default class RhsCard extends React.Component<Props, State> {
         }
 
         if (!content) {
+            const message = typeof selected.props?.card === 'string' ? selected.props?.card : '';
             content = (
                 <div className='info-card'>
-                    <Markdown message={(selected.props && selected.props.card) || ''}/>
+                    <Markdown message={message}/>
                 </div>
             );
         }
@@ -140,7 +141,7 @@ export default class RhsCard extends React.Component<Props, State> {
                 disablePopover={true}
             />
         );
-        if (selected.props.override_username && this.props.enablePostUsernameOverride) {
+        if (typeof selected.props.override_username === 'string' && selected.props.override_username && this.props.enablePostUsernameOverride) {
             user = (
                 <UserProfile
                     userId={selected.user_id}

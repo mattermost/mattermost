@@ -89,7 +89,7 @@ function ThreadItem({
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
-    const postAuthor = post.props?.override_username || displayName;
+    const postAuthor = typeof post.props?.override_username === 'string' ? post.props?.override_username || displayName : displayName;
 
     useEffect(() => {
         if (channel?.teammate_id) {
