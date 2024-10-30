@@ -134,11 +134,10 @@ export function isAppBinding(obj: unknown): obj is AppBinding {
         return false;
     }
 
-    if (binding.bindings !== undefined) {
-        isArrayOf(binding.bindings, isAppBinding);
+    if (binding.bindings !== undefined && !isArrayOf(binding.bindings, isAppBinding)) {
+        return false;
     }
 
-    // Perform your AppForm and AppCall specific type checks if any
     if (binding.form !== undefined && !isAppForm(binding.form)) {
         return false;
     }

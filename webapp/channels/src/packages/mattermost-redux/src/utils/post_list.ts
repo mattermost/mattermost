@@ -402,10 +402,10 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
         // When combining removed posts, the actorId does not need to be the same for each post.
         // All removed posts will be combined regardless of their respective actorIds.
         const isRemovedPost = post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL;
-        const addedUserId = typeof post.props.addedUserId === 'string' ? post.props.addedUserId : '';
-        const removedUserId = typeof post.props.removedUserId === 'string' ? post.props.removedUserId : '';
-        const addedUsername = typeof post.props.addedUsername === 'string' ? post.props.addedUsername : '';
-        const removedUsername = typeof post.props.removedUsername === 'string' ? post.props.removedUsername : '';
+        const addedUserId = typeof post.props?.addedUserId === 'string' ? post.props.addedUserId : '';
+        const removedUserId = typeof post.props?.removedUserId === 'string' ? post.props.removedUserId : '';
+        const addedUsername = typeof post.props?.addedUsername === 'string' ? post.props.addedUsername : '';
+        const removedUsername = typeof post.props?.removedUsername === 'string' ? post.props.removedUsername : '';
         const userId = isUsersRelatedPost(postType) ? addedUserId || removedUserId : '';
         const username = isUsersRelatedPost(postType) ? addedUsername || removedUsername : '';
         const prevPost = userActivities[userActivities.length - 1];
