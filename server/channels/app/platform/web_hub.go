@@ -524,7 +524,8 @@ func (h *Hub) Start() {
 				if err != nil {
 					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
 					for _, webConn := range connIndex.ForUser(userID) {
-						webConn.Close()
+						close(webConn.send)
+						connIndex.Remove(webConn)
 					}
 				}
 			case activity := <-h.activity:
