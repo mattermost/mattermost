@@ -7,9 +7,9 @@
   },
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace=platform/types --workspace=platform/client --workspace=platform/components",
-    "build": "node scripts/build.js",
-    "run": "node scripts/run.js",
-    "dev-server": "node scripts/dev-server.js",
+    "build": "node scripts/build.mjs",
+    "run": "node scripts/run.mjs",
+    "dev-server": "node scripts/dev-server.mjs",
     "test": "npm run test --workspaces --if-present",
     "test:updatesnapshot": "npm run test:updatesnapshot --workspaces --if-present",
     "test-ci": "npm run test-ci --workspaces --if-present",
