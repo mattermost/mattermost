@@ -10196,5 +10196,37 @@
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
     "translation": "İletinin dosyası kalıcı olarak silinemedi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Bir uzak kullanıcı ile doğrudan kanal oluşturulamıyor"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Uzak kullanıcılar ile bir grup kanalı oluşturulamıyor"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Lisans kopyalanamadı."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Uzak küme daveti oluşturulamadı"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Uzak kullanıcılara bir doğrudan ileti veya grup iletisi gönderilemedi"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Site adresi geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Kod geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Uzak kimlik geçersiz."
   }
 ]
