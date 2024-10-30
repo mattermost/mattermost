@@ -1,10 +1,12 @@
 #!/bin/node
 
 const fs = require('fs');
+const langmap = require('./src/i18n/langmap.js');
 
 let lines = '';
 const langIDs = [];
 const langFiles = {};
+const langLabels = {};
 
 fs.readdirSync('./src/i18n').forEach(file => {
   if (file.endsWith('.json')) {
@@ -18,11 +20,25 @@ fs.readdirSync('./src/i18n').forEach(file => {
     langIDs.push(langID);
     lines += `import ${langID.replace('-', '')} from './${file}';\n`;
     langFiles[langID] = langID.replace('-', '');
+
+    let m = langmap[langID]
+    if (!m) {
+      // We fallback to the language code prefix if we can't find a map.
+      const id = langID.includes('-') ? langID.substr(0, langID.indexOf('-')) : langID;
+      for (const k of Object.keys(langmap)) {
+        if (k.startsWith(id)) {
+          m = langmap[k];
+          break;
+        }
+      }
+    }
+
+    langLabels[langID] = m ? m["nativeName"] : langID;
   }
 });
 
-// Simply replacing double quotes with single quotes.
 lines += `\nexport const langIDs = ${JSON.stringify(langIDs)};\n`
+lines += `\nexport const langLabels = ${JSON.stringify(langLabels)};\n`
 
 // To generate the file exports we need to do a bit more work to handle ids with dashes and also output a map of literals rather than strings.
 lines += '\nexport const langFiles = {' + Object.keys(langFiles).reduce((out, id, idx) => {

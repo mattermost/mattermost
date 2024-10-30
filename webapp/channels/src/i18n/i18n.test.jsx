@@ -6,6 +6,7 @@ import {getAllLanguages, getLanguageInfo, getLanguages, isLanguageAvailable, lan
 jest.mock('./imports', () => ({
     langIDs: ['cc'],
     langFiles: {cc: 'cc.json'},
+    langLabels: {cc: 'CC Language'},
 }));
 
 describe('i18n', () => {
@@ -17,7 +18,7 @@ describe('i18n', () => {
         // with experimental languages
         expect(getAllLanguages(true)).toStrictEqual({
             cc: {
-                name: 'cc',
+                name: 'CC Language',
                 value: 'cc',
                 order: 22,
                 url: 'cc.json',
@@ -43,7 +44,7 @@ describe('i18n', () => {
         state.entities.general.config.EnableExperimentalLocales = 'true';
         expect(getLanguages(state)).toStrictEqual({
             cc: {
-                name: 'cc',
+                name: 'CC Language',
                 value: 'cc',
                 order: 22,
                 url: 'cc.json',
@@ -63,7 +64,7 @@ describe('i18n', () => {
 
         // experimental language (e.g. in progress)
         expect(getLanguageInfo('cc')).toStrictEqual({
-            name: 'cc',
+            name: 'CC Language',
             value: 'cc',
             order: 22,
             url: 'cc.json',

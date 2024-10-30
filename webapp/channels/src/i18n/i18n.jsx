@@ -7,7 +7,7 @@
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {langFiles, langIDs} from './imports';
+import {langFiles, langIDs, langLabels} from './imports';
 
 // should match the values in server/public/shared/i18n/i18n.go
 export const languages = {
@@ -152,7 +152,7 @@ export function getAllLanguages(includeExperimental) {
             ...langIDs.reduce((out, id) => {
                 out[id] = {
                     value: id,
-                    name: id,
+                    name: langLabels[id],
                     url: langFiles[id],
                     order: order++,
                 };
