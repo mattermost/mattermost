@@ -82,14 +82,14 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility support in search input
         cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
-        cy.uiGetSearchBox().find('input').focus();
+        cy.uiGetSearchBox().focus();
         cy.get('#searchHints').should('be.visible');
 
         // # Ensure User list is cached once in UI
-        cy.uiGetSearchBox().find('input').type('from:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,10 +103,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');
