@@ -185,8 +185,8 @@
         }
 
         .sidebar--right__close-back {
-            margin-right: 8px;
             display: none;
+            margin-right: 8px;
 
             @media screen and (min-width: 768px) and (max-width: 1080px) {
                 display: flex;
