@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
@@ -3490,6 +3491,38 @@ func TestAddChannelMember(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, err = client.AddChannelMember(context.Background(), privateChannel.Id, user.Id)
 		require.NoError(t, err)
+	})
+
+	t.Run("invalid request data", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			// correct type for user ids (string) but invalid value.
+			requestBody := map[string]any{"user_ids": []string{"invalid", user2.Id}}
+			requestData, err := json.Marshal(requestBody)
+			require.NoError(t, err)
+
+			res, err := client.DoAPIPost(context.Background(), "/channels/"+publicChannel.Id+"/members", string(requestData))
+			if client == th.LocalClient {
+				require.EqualError(t, err, "Invalid or missing user_id in request body.")
+			} else {
+				require.EqualError(t, err, "Invalid or missing user_id in user_ids in request body.")
+			}
+			defer res.Body.Close()
+			io.Copy(io.Discard, res.Body)
+
+			// invalid type for user ids (should be string).
+			requestBody = map[string]any{"user_ids": []any{45, user2.Id}}
+			requestData, err = json.Marshal(requestBody)
+			require.NoError(t, err)
+
+			res, err = client.DoAPIPost(context.Background(), "/channels/"+privateChannel.Id+"/members", string(requestData))
+			if client == th.LocalClient {
+				require.EqualError(t, err, "Invalid or missing user_id in request body.")
+			} else {
+				require.EqualError(t, err, "Invalid or missing user_id in user_ids in request body.")
+			}
+			defer res.Body.Close()
+			io.Copy(io.Discard, res.Body)
+		})
 	})
 }
 

@@ -10163,7 +10163,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan remote niet afmelden voor kanaal"
+    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10208,5 +10208,37 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Fout bij het definitief verwijderen van bericht."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kan geen direct kanaal maken met een gebruiker op afstand"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kan geen groepskanaal maken met externe gebruikers"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Fout bij het kopiëren van de licentie."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Kan cluster op afstand niet uitnodigen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kan het bericht niet maken in een privé-bericht of groepsbericht met externe gebruikers"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ongeldig extern id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ongeldige site-URL."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ongeldig token."
   }
 ]
