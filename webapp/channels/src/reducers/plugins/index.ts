@@ -199,6 +199,10 @@ const initialComponents: PluginsState['components'] = {
     NeedsTeamComponent: [],
     CreateBoardFromTemplate: [],
     DesktopNotificationHooks: [],
+    MessageWillBePosted: [],
+    MessageWillBeUpdated: [],
+    MessageWillFormat: [],
+    SlashCommandWillBePosted: [],
 };
 
 function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {

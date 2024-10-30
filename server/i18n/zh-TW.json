@@ -10186,5 +10186,37 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "永久刪除訊息失敗。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "無法以遠端使用者建立私人訊息頻道"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "無法以遠端使用者建立群組頻道"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "複製授權失敗。"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "無法以遠端使用者建立私人訊息與群組訊息頻道"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "無效的遠端 ID。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "無效的網站 URL。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "無效的 Token。"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "無法建立遠端叢集邀請"
   }
 ]

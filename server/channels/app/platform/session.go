@@ -14,19 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
-func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
-	if session != nil {
-		session.Id = ""
-		// All existing prop fields are cleared once the session is retrieved from the pool.
-		// To speed up that process, clear the props here to avoid doing that in the hot path.
-		//
-		// If the request handler spawns a goroutine that uses the session, it might race with this code.
-		// In that case, the handler should copy the session and use the copy in the goroutine.
-		clear(session.Props)
-		ps.sessionPool.Put(session)
-	}
-}
-
 func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) (*model.Session, error) {
 	session.Token = ""
 
@@ -133,8 +120,8 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 }
 
 func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
-	var session = ps.sessionPool.Get().(*model.Session)
-	if err := ps.sessionCache.Get(token, session); err == nil {
+	var session model.Session
+	if err := ps.sessionCache.Get(token, &session); err == nil {
 		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}
@@ -145,7 +132,7 @@ func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Sessi
 	}
 
 	if session.Id != "" {
-		return session, nil
+		return &session, nil
 	}
 
 	return ps.GetSessionContext(c, token)
@@ -205,8 +192,6 @@ func (ps *PlatformService) RevokeSession(c request.CTX, session *model.Session) 
 
 func (ps *PlatformService) RevokeAccessToken(c request.CTX, token string) error {
 	session, _ := ps.GetSession(c, token)
-
-	defer ps.ReturnSessionToPool(session)
 
 	schan := make(chan error, 1)
 	go func() {
