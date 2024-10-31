@@ -71,10 +71,10 @@ describe('Search Date Filter', () => {
         cy.uiGetSearchBox().should('have.value', `before:${today} `);
 
         // # Click "x" to the right of the search term
-        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.uiGetSearchBox().should('have.value', '');
+        cy.uiGetSearchBox().first().should('have.value', '');
 
         cy.uiGetSearchContainer().should('be.visible').click();
     });
@@ -136,7 +136,7 @@ describe('Search Date Filter', () => {
 
         // # Enter query to search box and then click "x" to the right of the search term
         cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
-        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
         cy.uiGetSearchBox().should('have.value', '');
