@@ -103,7 +103,7 @@ describe('archive tests while preventing viewing archived channels', () => {
         cy.get('.no-results__wrapper').should('be.visible');
     });
 
-    it.only('MM-T1709 Archive a channel while search results are displayed in RHS', () => {
+    it('MM-T1709 Archive a channel while search results are displayed in RHS', () => {
         const messageText = `search ${getRandomId()} pineapples`;
 
         // # Post a unique string of text in a channel
@@ -127,7 +127,7 @@ describe('archive tests while preventing viewing archived channels', () => {
         });
     });
 
-    it.only('MM-T1710 archived channels are not listed on the "in:" autocomplete', () => {
+    it('MM-T1710 archived channels are not listed on the "in:" autocomplete', () => {
         // # Archive a channel and make a mental note of the channel name
         // # Type "in:" and note the list of channels that appear
         cy.uiGetSearchContainer().click();
