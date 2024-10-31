@@ -879,7 +879,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				)
 			}
 		}
-		if user.IsRemote() && user.RemoteId != nil && *user.RemoteId != "" {
+		if user.IsRemote() {
 			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
 		}
 	}
