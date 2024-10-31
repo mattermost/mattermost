@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
@@ -3061,6 +3062,30 @@ func TestWebHubMembership(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	close(quitChan)
 	wg.Wait()
+}
+
+func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer func() {
+		th.TearDown()
+		// Asserting that the error message is present in the log
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
+		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
+		require.NoError(t, err)
+	}()
+
+	cli := th.CreateClient()
+	_, _, err := cli.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
+
+	_, err = th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE ChannelMembers RENAME to dummy`)
+	require.NoError(t, err)
+
+	wsClient, err := th.CreateWebSocketClientWithClient(cli)
+	require.NoError(t, err)
+	defer wsClient.Close()
+
+	require.NoError(t, th.TestLogger.Flush())
 }
 
 func TestDeletePostEvent(t *testing.T) {

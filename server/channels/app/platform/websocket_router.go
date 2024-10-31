@@ -59,7 +59,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 		nErr := conn.Platform.HubRegister(conn)
 		if nErr != nil {
-			conn.Platform.Log().Error("Error while registering to hub", mlog.String("user_id", conn.UserId), mlog.Err(err))
+			conn.Platform.Log().Error("Error while registering to hub", mlog.String("user_id", conn.UserId), mlog.Err(nErr))
 			conn.WebSocket.Close()
 			return
 		}

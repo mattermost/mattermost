@@ -524,8 +524,7 @@ func (h *Hub) Start() {
 				if err != nil {
 					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
 					for _, webConn := range connIndex.ForUser(userID) {
-						close(webConn.send)
-						connIndex.Remove(webConn)
+						closeAndRemoveConn(connIndex, webConn)
 					}
 				}
 			case activity := <-h.activity:
@@ -550,8 +549,7 @@ func (h *Hub) Start() {
 							mlog.String("user_id", directMsg.conn.UserId),
 							mlog.String("conn_id", directMsg.conn.GetConnectionID()))
 					}
-					close(directMsg.conn.send)
-					connIndex.Remove(directMsg.conn)
+					closeAndRemoveConn(connIndex, directMsg.conn)
 				}
 			case msg := <-h.broadcast:
 				if metrics := h.platform.metricsIFace; metrics != nil {
@@ -577,8 +575,7 @@ func (h *Hub) Start() {
 									mlog.String("user_id", webConn.UserId),
 									mlog.String("conn_id", webConn.GetConnectionID()))
 							}
-							close(webConn.send)
-							connIndex.Remove(webConn)
+							closeAndRemoveConn(connIndex, webConn)
 						}
 					}
 				}
@@ -648,6 +645,13 @@ func areAllInactive(conns []*WebConn) bool {
 		}
 	}
 	return true
+}
+
+// closeAndRemoveConn closes the send channel which will close the
+// websocket connection, and then it removes the webConn from the conn index.
+func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
+	close(conn.send)
+	connIndex.Remove(conn)
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
