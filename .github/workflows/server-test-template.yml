@@ -23,13 +23,13 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
@@ -66,7 +66,7 @@ jobs:
           docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ${{ inputs.logsartifact }}
           path: |
@@ -74,7 +74,7 @@ jobs:
             server/report.xml
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
+        uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: server/report.xml
@@ -91,7 +91,7 @@ jobs:
             * Ideally, this would have been caught in a pull request, but now a volunteer is required. If you're willing to help, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.
             * Finally, reply to this message with a link to the created JIRA ticket.
       - name: Report retried tests (pull request)
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         if: ${{ steps.report.outputs.retried > 0 && !(github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
         with:
           script: |

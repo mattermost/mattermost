@@ -43,7 +43,7 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		err := th.App.clearLatestVersionCache(th.Context)
+		err := th.App.clearLatestVersionCache()
 		require.NoError(t, err)
 		originalResult, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
 		require.Nil(t, appErr)
@@ -76,7 +76,7 @@ func TestGetLatestVersion(t *testing.T) {
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
-		err := th.App.clearLatestVersionCache(th.Context)
+		err := th.App.clearLatestVersionCache()
 		require.NoError(t, err)
 
 		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

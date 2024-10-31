@@ -241,6 +241,6 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	return releaseInfoResponse, nil
 }
 
-func (a *App) clearLatestVersionCache(rctx request.CTX) error {
+func (a *App) clearLatestVersionCache() error {
 	return latestVersionCache.Remove("latest_version_cache")
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -87,7 +88,8 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	_, _, err = configStore.Set(config)
+	require.NoError(tb, err)
 
 	licenseFn := func() *model.License { return model.NewTestLicense() }
 
