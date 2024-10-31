@@ -8554,5 +8554,29 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost е платформа с отворен код за сигурна комуникация, сътрудничество и организиране на работата между инструменти и екипи.\nMattermost съдържа два основни инструмента:\n\n**Канали** - поддържайте връзка с екипа си чрез 1:1 и групови съобщения.\n**[Playbooks](/playbooks)** - Изграждайте и конфигурирайте повтарящи се процеси за постигане на конкретни и предвидими резултати.\n\n[Преглед на документация и ръководства]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} и {{.Others}}, добавени към канала {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} и {{.Others}} други вече са в канала."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Отвори пазара"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "пазар"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Този канал се управлява от групи. Този потребител не е част от група, която е свързана с този канал."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Можете да добавите {{.FirstUser}} и {{.Others}} други потребители към този канал, след като те станат членове на екипа **{{.Team}}**."
   }
 ]
