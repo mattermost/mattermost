@@ -32,6 +32,7 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 		Params: &Params{
 			Service: "TestService",
 		},
+		
 		AppContext: request.EmptyContext(th.TestLogger),
 	}
 	responseWriter := httptest.NewRecorder()
@@ -677,15 +678,12 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 	return rp, nil
 }
 
-func closeBody(r *http.Response) {
-	if r != nil && r.Body != nil {
-		bodyBytes ,err := io.ReadAll(r.Body)
-		if err != nil {
-			return 
-		}
-		r.Body.Close()
-	}
-}
+func closeBody(r *http.Response) { 
+	if r.Body != nil { 
+		_, _ = io.Copy(io.Discard, r.Body) 
+		_ = r.Body.Close() 
+	} 
+} 
 
 type MattermostTestProvider struct {
 }
