@@ -1,7 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-@import '../../../../channels/src/sass/utils/mixins';
+@use '../../../../channels/src/sass/utils/mixins';
 
 .footer-pagination {
     display: flex;
@@ -26,8 +23,8 @@
         justify-content: center;
 
         &__button {
-            @include tertiary-button;
-            @include button-small;
+            @include mixins.tertiary-button;
+            @include mixins.button-small;
 
             &:not(:first-child) {
                 margin-left: 8px;
