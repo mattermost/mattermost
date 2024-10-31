@@ -57,7 +57,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "You cannot acknowledgment in an archived channel."
+    "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -2234,7 +2234,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Failed to copy license."
+    "translation": "Failed to copy license file content to buffer"
   },
   {
     "id": "api.license.add_license.expired.app_error",
@@ -10144,11 +10144,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
