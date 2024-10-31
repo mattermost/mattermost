@@ -8530,5 +8530,29 @@
   {
     "id": "api.command_exportlink.invalid.app_error",
     "translation": "Не успяхме да намерим искания от вас файл."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "връзка за експорт"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Можете да изтеглите своя файл от тук: {{.Link}}.\nТази връзка ще изтече след {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Не може да се извлече списъкът за експорт."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Не може да се генерира предварителен url."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Нямате достатъчно права, за да изпълните тази команда."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost е платформа с отворен код за сигурна комуникация, сътрудничество и организиране на работата между инструменти и екипи.\nMattermost съдържа два основни инструмента:\n\n**Канали** - поддържайте връзка с екипа си чрез 1:1 и групови съобщения.\n**[Playbooks](/playbooks)** - Изграждайте и конфигурирайте повтарящи се процеси за постигане на конкретни и предвидими резултати.\n\n[Преглед на документация и ръководства]({{.HelpLink}})"
   }
 ]
