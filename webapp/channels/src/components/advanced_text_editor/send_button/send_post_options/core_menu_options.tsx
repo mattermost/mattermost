@@ -10,20 +10,27 @@ import {
     TrackPropertyUser, TrackPropertyUserAgent,
     TrackScheduledPostsFeature,
 } from 'mattermost-redux/constants/telemetry';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
 
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
+    channelId: string;
 }
 
-function CoreMenuOptions({handleOnSelect}: Props) {
-    const userTimezone = useSelector(getCurrentTimezone);
+function CoreMenuOptions({handleOnSelect, channelId}: Props) {
+    const {
+        userCurrentTimezone,
+        teammateTimezone,
+        timestamp,
+        teammateDisplayName,
+    } = useTimePostBoxIndicator(channelId);
+
     const currentUserId = useSelector(getCurrentUserId);
 
     useEffect(() => {
@@ -40,9 +47,9 @@ function CoreMenuOptions({handleOnSelect}: Props) {
         );
     }, [currentUserId]);
 
-    const today = moment().tz(userTimezone);
+    const today = moment().tz(userCurrentTimezone);
     const tomorrow9amTime = moment().
-        tz(userTimezone).
+        tz(userCurrentTimezone).
         add(1, 'days').
         set({hour: 9, minute: 0, second: 0, millisecond: 0}).
         valueOf();
@@ -51,6 +58,32 @@ function CoreMenuOptions({handleOnSelect}: Props) {
         <Timestamp
             value={tomorrow9amTime.valueOf()}
             useDate={false}
+        />
+    );
+
+    const dmTeammateTimezone = (
+        <FormattedMessage
+            id='create_post_button.option.schedule_message.options.remote_user_hour'
+            defaultMessage='{time} {user} time'
+            values={{
+                user: (
+                    <span className='userDisplayName'>
+                        {teammateDisplayName}
+                    </span>
+                ),
+                time: (
+                    <Timestamp
+                        useRelative={false}
+                        value={timestamp}
+                        useDate={false}
+                        userTimezone={teammateTimezone}
+                        useTime={{
+                            hour: 'numeric',
+                            minute: 'numeric',
+                        }}
+                    />
+                ),
+            }}
         />
     );
 
@@ -67,11 +100,12 @@ function CoreMenuOptions({handleOnSelect}: Props) {
                     values={{'9amTime': timeComponent}}
                 />
             }
+            trailingElements={dmTeammateTimezone}
         />
     );
 
     const nextMonday = moment().
-        tz(userTimezone).
+        tz(userCurrentTimezone).
         day(8). // next monday; 1 = Monday, 8 = next Monday
         set({hour: 9, minute: 0, second: 0, millisecond: 0}). // 9 AM
         valueOf();
@@ -89,6 +123,7 @@ function CoreMenuOptions({handleOnSelect}: Props) {
                     values={{'9amTime': timeComponent}}
                 />
             }
+            trailingElements={dmTeammateTimezone}
         />
     );
 
@@ -105,6 +140,7 @@ function CoreMenuOptions({handleOnSelect}: Props) {
                     }}
                 />
             }
+            trailingElements={dmTeammateTimezone}
         />
     );
 
