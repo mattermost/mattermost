@@ -45,7 +45,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
     "patch-package": "8.0.0",
-    "sass": "1.71.1",
+    "sass": "1.80.5",
     "sass-loader": "16.0.2",
     "strip-ansi": "7.1.0",
     "style-loader": "4.0.0",
