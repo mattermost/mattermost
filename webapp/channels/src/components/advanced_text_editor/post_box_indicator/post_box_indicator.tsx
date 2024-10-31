@@ -21,7 +21,7 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
     const {
         showRemoteUserHour,
         isScheduledPostEnabled,
-        timestamp,
+        currentUserTimesStamp,
         teammateTimezone,
     } = useTimePostBoxIndicator(channelId);
 
@@ -31,7 +31,7 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
                 showRemoteUserHour &&
                 <RemoteUserHour
                     displayName={teammateDisplayName}
-                    timestamp={timestamp}
+                    timestamp={currentUserTimesStamp}
                     teammateTimezone={teammateTimezone}
                 />
             }

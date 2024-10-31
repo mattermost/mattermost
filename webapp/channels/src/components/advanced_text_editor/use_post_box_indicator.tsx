@@ -93,7 +93,7 @@ function useTimePostBoxIndicator(channelId: string) {
     return {
         showRemoteUserHour,
         isDM,
-        timestamp,
+        currentUserTimesStamp: timestamp,
         teammateTimezone,
         userCurrentTimezone,
         isScheduledPostEnabled: isScheduledPostEnabledValue,
