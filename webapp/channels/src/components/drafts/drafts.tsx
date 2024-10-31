@@ -3,7 +3,7 @@
 
 import {Badge} from '@mui/base';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {type match, useHistory, useRouteMatch} from 'react-router-dom';
 
@@ -51,7 +51,6 @@ function Drafts({
     user,
 }: Props) {
     const dispatch = useDispatch();
-    const {formatMessage} = useIntl();
 
     const history = useHistory();
     const match: match<{team: string}> = useRouteMatch();
@@ -119,6 +118,24 @@ function Drafts({
         );
     }, [drafts?.length]);
 
+    const heading = useMemo(() => {
+        return (
+            <FormattedMessage
+                id='drafts.heading'
+                defaultMessage='Drafts'
+            />
+        );
+    }, []);
+
+    const subtitle = useMemo(() => {
+        return (
+            <FormattedMessage
+                id={'drafts.subtitle'}
+                defaultMessage={'Any messages you\'ve started will show here'}
+            />
+        );
+    }, []);
+
     const activeTab = isDraftsTab ? 0 : 1;
 
     return (
@@ -129,16 +146,8 @@ function Drafts({
             <Header
                 level={2}
                 className='Drafts__header'
-                heading={(
-                    <FormattedMessage
-                        id='drafts.heading'
-                        defaultMessage='Drafts'
-                    />
-                )}
-                subtitle={formatMessage({
-                    id: 'drafts.subtitle',
-                    defaultMessage: 'Any messages you\'ve started will show here',
-                })}
+                heading={heading}
+                subtitle={subtitle}
             />
 
             {
