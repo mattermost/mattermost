@@ -184,9 +184,14 @@
             }
         }
 
+        .sidebar--right__back+.sidebar--right__close-back {
+            display: none;
+        }
+
         .sidebar--right__close-back {
             display: none;
-            margin-right: 8px;
+            margin-right: 4px;
+            margin-left: -8px;
 
             @media screen and (min-width: 768px) and (max-width: 1080px) {
                 display: flex;

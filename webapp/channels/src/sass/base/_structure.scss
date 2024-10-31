@@ -31,7 +31,7 @@ body {
 .sticky {
     background: $white;
 
-    > .channel-view {
+    >.channel-view {
         overflow: auto;
         height: 100vh;
         padding: 0 15px;
@@ -40,7 +40,7 @@ body {
     .inner-wrap {
         width: 100%;
 
-        > .row {
+        >.row {
             &.content {
                 min-height: calc(100vh - 89px);
 
@@ -64,7 +64,7 @@ body {
         overflow: auto;
     }
 
-    > .row {
+    >.row {
         &.main {
             position: relative;
             height: 100%;
@@ -136,7 +136,8 @@ body.app__body #root {
             "header header" min-content
             "lhs center"
             "footer footer" min-content;
-        grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
+        grid-template-columns: auto 1fr;
+        /* lhs takes its content width, center takes remaining space */
     }
 
     &.container-fluid {
@@ -242,6 +243,7 @@ body.app__body #root {
                 "header" min-content
                 "main" auto
                 "footer" min-content / auto;
+
             .team-sidebar,
             .app-bar {
                 grid-area: main;
