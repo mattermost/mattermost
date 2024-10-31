@@ -584,7 +584,8 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 
 		b, _ := json.Marshal(resp)
 
-		w.Write(b)
+		_, err = w.Write(b)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
