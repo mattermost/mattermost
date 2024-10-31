@@ -22,7 +22,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 		err := th.App.PermanentDeleteUser(th.Context, user)
 		require.Nil(t, err)
 	}()
-	
+
 	th.App.SetStatusOnline(user.Id, true)
 
 	patch := &model.UserPatch{}
@@ -72,17 +72,17 @@ func TestDisableAutoResponder(t *testing.T) {
 	patch.NotifyProps["auto_responder_message"] = "Hello, I'm unavailable today."
 
 	user, appErr := th.App.PatchUser(th.Context, user.Id, patch, true)
-    require.Nil(t, appErr)
+	require.Nil(t, appErr)
 
 	err := th.App.DisableAutoResponder(th.Context, user.Id, true)
-    require.Nil(t, err)
+	require.Nil(t, err)
 
 	userUpdated1, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated1.NotifyProps["auto_responder_active"], "false")
 
 	err = th.App.DisableAutoResponder(th.Context, user.Id, true)
-    require.Nil(t, err)
+	require.Nil(t, err)
 	userUpdated2, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated2.NotifyProps["auto_responder_active"], "false")
