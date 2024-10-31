@@ -81,7 +81,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchContainer().click();
 
         // * Verify Accessibility support in search input
-        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
+        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchbar-help-popup').and('have.attr', 'aria-label', 'Search messages');
         cy.uiGetSearchBox().focus();
         cy.get('#searchHints').should('be.visible');
 
@@ -290,7 +290,7 @@ function getUserMentionAriaLabel(displayName) {
 }
 
 function verifySearchAutocomplete(index, type = 'user') {
-    cy.uiGetSearchBox().find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
         if (type === 'user') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const usernameLength = 12;

@@ -46,9 +46,9 @@ describe('Search', () => {
         cy.uiGetSearchBox().should('have.value', searchWord);
 
         // # Click on "x" displayed on searchbox
-        cy.uiGetSearchBox().find('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
-        cy.uiGetSearchBox().find('#searchHints').should('be.visible');
-        cy.uiGetSearchBox().type('{esc}');
+        cy.uiGetSearchBox().parent().siblings('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
+        cy.uiGetSearchBox().parents('[class*="SearchInputContainer"]').siblings('#searchHints').should('be.visible');
+        cy.uiGetSearchBox().first().focus().type('{esc}');
 
         // # RHS should be visible with search results
         cy.get('#search-items-container').should('be.visible');
