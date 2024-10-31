@@ -7901,7 +7901,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Приета покана | Онлайн | Последен пинг |"
+    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Подразбиращ се екип | Приета покана | Онлайн | Последен пинг | Изтрит |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8578,5 +8578,53 @@
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
     "translation": "Можете да добавите {{.FirstUser}} и {{.Others}} други потребители към този канал, след като те станат членове на екипа **{{.Team}}**."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Отдалечената страна не може да бъде поканена към канала: {{.Error}}"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Неуспешно презареждане на конфигурацията."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Командата marketplace не се поддържа от вашето устройство."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Не може да се потвърди поканата: {{.Error}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Неуспешно актуализиране превода за сървъра."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Отдалечената страна не можа да бъде поканена, защото каналът {{.ChannelID}} не е споделен."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Възникна грешка при прилагането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Възникна грешка при извличането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Възникна грешка при извличането на клиентския IP адрес"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP филтрирането не е налично на този сървър"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Възникна грешка при създаването на изходяща OAuth връзка ."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Не може да се активира функцията за автоматично попълване за канала, тъй като схемата на индекса на каналите е остаряла. Препоръчително е да регенерирате индекса на канала. За повече информация вижте списъка с промените в Mattermost"
   }
 ]
