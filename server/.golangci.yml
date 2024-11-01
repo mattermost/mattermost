@@ -150,7 +150,6 @@ issues:
         channels/app/plugin_commands_test.go|\
         channels/app/plugin_deadlock_test.go|\
         channels/app/plugin_health_check_test.go|\
-        channels/app/plugin_hooks_test.go|\
         channels/app/plugin_install.go|\
         channels/app/plugin_reattach.go|\
         channels/app/plugin_requests.go|\
