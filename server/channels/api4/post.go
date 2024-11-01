@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
+	"github.com/slack-go/slack"
 )
 
 func (api *API) InitPost() {
@@ -57,8 +59,23 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	post.SanitizeInput()
 
+	slackToken := os.Getenv("SLACK_TOKEN")
+	if slackToken == "" {
+		fmt.Println("Error: SLACK_TOKEN environment variable is not set.")
+		return
+	}
+
 	post.UserId = c.AppContext.Session().UserId
 
+	if len(post.ChannelId) == 11 {
+		slackClient := slack.New(slackToken)
+		_, _, err := slackClient.PostMessage(post.ChannelId, slack.MsgOptionText(post.Message, false))
+		if err != nil {
+			fmt.Printf("Error sending message to Slack: %s\n", err)
+		} else {
+			fmt.Println("Message sent to Slack channel:", post.ChannelId)
+		}
+	}
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
