@@ -3,7 +3,7 @@ packages:
   github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel:
     config:
       dir: "platform/services/sharedchannel"
-      inpackage: True
+      inpackage: true
       filename: "mock_{{.InterfaceName}}_test.go"
       outpkg: "sharedchannel"
       note: "Regenerate this file using `make sharedchannel-mocks`."
