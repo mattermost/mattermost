@@ -8626,5 +8626,81 @@
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Не може да се активира функцията за автоматично попълване за канала, тъй като схемата на индекса на каналите е остаряла. Препоръчително е да регенерирате индекса на канала. За повече информация вижте списъка с промените в Mattermost"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Възникна грешка при изготвяне списъка на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Възникна грешка при изтриването на изходящата OAuth връзка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Неуспешно получаване на идентификационни данни с посочената конфигурация на връзката."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не е лицензиран за потребителски групи"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id трябва да е празно за потребителските групи"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Възникна грешка при актуализирането на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Възникна грешка при проверка на идентификацията за изходящата OAuth връзка ."
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference трябва да е 'true' за потребителските групи"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Не може да се запази чернова в изтрит канал"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функцията Чернови е забранена."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Неуспешно актуализиране на потребителския статус. Моля, добавете емотикон или персонализиран текстов статус, или и двете."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функцията за потребителски групи е забранена"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "грешка при преброяване на групите"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Неуспешно актуализиране на потребителския статус. Не съществува емотикон с даденото име."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Невъзможно е да се обработи заявката. Тялото на заявката е твърде голямо."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Изходящите OAuth връзки са недостъпни на този сървър."
   }
 ]
