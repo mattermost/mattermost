@@ -2042,8 +2042,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 25,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true, true)
-		assert.NotNil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true, true)
+		assert.NotNil(t, err2)
 		assert.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 	})
@@ -2062,8 +2062,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 	})
@@ -2081,8 +2081,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 35,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.NotNil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.NotNil(t, err2)
 		assert.Equal(t, data.LineNumber, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 	})
@@ -2101,8 +2101,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 10,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.NotNil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.NotNil(t, err2)
 		// Batch will fail when searching for teams, so no specific line
 		// is associated with the error
 		assert.Equal(t, 0, errLine)
@@ -2123,8 +2123,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 7,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.NotNil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.NotNil(t, err2)
 		// Batch will fail when searching for channels, so no specific
 		// line is associated with the error
 		assert.Equal(t, 0, errLine)
@@ -2145,8 +2145,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 2,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.NotNil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.NotNil(t, err2)
 		// Batch will fail when searching for users, so no specific line
 		// is associated with the error
 		assert.Equal(t, 0, errLine)
@@ -2167,8 +2167,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2227,8 +2227,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2248,8 +2248,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2269,8 +2269,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2307,8 +2307,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			LineNumber: 1,
 		}
 
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err, "Expected success.")
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2, "Expected success.")
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2348,8 +2348,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err, "Expected success.")
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2, "Expected success.")
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2448,8 +2448,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err, "Expected success.")
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2, "Expected success.")
 		assert.Equal(t, 0, errLine)
 		assertionCount += 2
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2502,8 +2502,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err, "Expected success.")
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2, "Expected success.")
 		assert.Equal(t, 0, errLine)
 		assertionCount += 2
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2546,8 +2546,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		assert.Nil(t, err, "Expected success.")
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		assert.Nil(t, err2, "Expected success.")
 		assert.Equal(t, 0, errLine)
 		assertionCount++
 		AssertAllPostsCount(t, th.App, initialPostCount, assertionCount, team.Id)
@@ -2672,8 +2672,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			DisplayName: model.NewPointer("Display Name 2"),
 			Type:        model.NewPointer("O"),
 		}, false)
-		team2, err := th.App.GetTeamByName(teamName2)
-		require.Nil(t, err, "Failed to get team from database.")
+		team2, err2 := th.App.GetTeamByName(teamName2)
+		require.Nil(t, err2, "Failed to get team from database.")
 
 		// Create another Channel for the another team.
 		th.App.importChannel(th.Context, &imports.ChannelImportData{
@@ -2714,8 +2714,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			},
 			LineNumber: 1,
 		}
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data, data2}, false, true)
-		assert.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data, data2}, false, true)
+		assert.Nil(t, err2)
 		assert.Equal(t, 0, errLine)
 
 		// Create a pinned message.
@@ -2815,8 +2815,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			LineNumber: 1,
 		}
 
-		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
-		require.Nil(t, err)
+		errLine, err2 := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true)
+		require.Nil(t, err2)
 		require.Equal(t, 0, errLine)
 
 		resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, importCreate)
