@@ -1,4 +1,3 @@
 node_modules
 dist
 lib
-src/i18n/imports.ts
