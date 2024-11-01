@@ -6,7 +6,6 @@ packages:
       inpackage: True
       filename: "mock_{{.InterfaceName}}_test.go"
       outpkg: "sharedchannel"
-      testonly: true
       note: "Regenerate this file using `make sharedchannel-mocks`."
     interfaces:
       ServerIface:
