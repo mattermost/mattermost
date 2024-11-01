@@ -8,4 +8,6 @@ packages:
       mockname: "{{.InterfaceName}}"
       outpkg: mocks
       recursive: true
+      exclude:
+        - mocks
       note: "Regenerate this file using `make einterfaces-mocks`."
