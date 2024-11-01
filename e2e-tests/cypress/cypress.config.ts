@@ -9,7 +9,7 @@ export default defineConfig({
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
     numTestsKeptInMemory: 0,
-    retries: 3,
+    retries: 2,
     screenshotsFolder: 'tests/screenshots',
     taskTimeout: 20000,
     video: true,
