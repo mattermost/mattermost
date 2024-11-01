@@ -393,7 +393,7 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	data.Name = model.NewPointer("A")
 	err = ValidateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to short name.")
+	require.Nil(t, err, "Should not have failed due to uppercased name.")
 
 	// Test team various invalid display names.
 	data = ChannelImportData{

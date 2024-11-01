@@ -481,14 +481,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
 
 	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
 
 	// GM posts
 	p3 := &model.Post{
@@ -496,14 +496,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p3, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
 
 	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p4, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -566,7 +566,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
 
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
@@ -576,7 +576,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, gmChannel, false, true)
+	th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -854,7 +854,7 @@ func TestBuildPostReplies(t *testing.T) {
 			fileIDs = append(fileIDs, info.Id)
 		}
 
-		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: rootID, FileIds: fileIDs}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		return post

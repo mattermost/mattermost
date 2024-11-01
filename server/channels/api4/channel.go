@@ -1299,6 +1299,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
 		IncludeSearchById:        props.IncludeSearchById,
+		ExcludeRemote:            props.ExcludeRemote,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
@@ -1779,7 +1780,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, userId := range interfaceIds {
-			userIds = append(userIds, userId.(string))
+			uid, isString := userId.(string)
+
+			if !isString || !model.IsValidId(uid) {
+				c.SetInvalidParam("user_id in user_ids")
+				return
+			}
+
+			userIds = append(userIds, uid)
 		}
 	} else {
 		userId, ok2 := props["user_id"].(string)

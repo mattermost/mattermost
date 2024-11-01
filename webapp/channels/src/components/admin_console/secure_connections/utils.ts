@@ -3,8 +3,8 @@
 
 import type {LocationDescriptor} from 'history';
 import {DateTime, Interval} from 'luxon';
-import {useCallback, useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
@@ -17,7 +17,7 @@ import {ChannelTypes} from 'mattermost-redux/action_types';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getActiveTeamsList, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
@@ -228,12 +228,18 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
     return [sharedChannelRemotes, {loading, error, fetch}] as const;
 };
 
+export const useTeamOptions = () => {
+    const teams = useSelector(getActiveTeamsList);
+    const teamsById = useMemo(() => teams.reduce<IDMappedObjects<Team>>((teams, team) => ({...teams, [team.id]: team}), {}), [teams]);
+    return teamsById;
+};
+
 export const getEditLocation = (rc: RemoteCluster): LocationDescriptor<RemoteCluster> => {
-    return {pathname: `/admin_console/environment/secure_connections/${rc.remote_id}`, state: rc};
+    return {pathname: `/admin_console/site_config/secure_connections/${rc.remote_id}`, state: rc};
 };
 
 export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
-    return {pathname: '/admin_console/environment/secure_connections/create'};
+    return {pathname: '/admin_console/site_config/secure_connections/create'};
 };
 
 const SiteURLPendingPrefix = 'pending_';

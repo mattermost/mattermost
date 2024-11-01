@@ -123,13 +123,13 @@ func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 }
 
 func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	OwnerId1 := model.NewId()
-	OwnerId2 := model.NewId()
+	OwnerID1 := model.NewId()
+	OwnerID2 := model.NewId()
 
 	deletedBot, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "deleted_bot",
 		Description:    "A deleted bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 	})
 	deletedBot.DeleteAt = 1
@@ -141,7 +141,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	permanentlyDeletedBot, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "permanently_deleted_bot",
 		Description:    "A permanently deleted bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 		DeleteAt:       0,
 	})
@@ -151,7 +151,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b1, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "b1",
 		Description:    "The first bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: model.GetMillis(),
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b1.UserId)) }()
@@ -160,7 +160,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b2, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:       "b2",
 		Description:    "The second bot",
-		OwnerId:        OwnerId1,
+		OwnerId:        OwnerID1,
 		LastIconUpdate: 0,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b2.UserId)) }()
@@ -182,7 +182,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b3, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:    "b3",
 		Description: "The third bot",
-		OwnerId:     OwnerId1,
+		OwnerId:     OwnerID1,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b3.UserId)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b3.UserId)) }()
@@ -190,7 +190,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	b4, _ := makeBotWithUser(t, rctx, ss, &model.Bot{
 		Username:    "b4",
 		Description: "The fourth bot",
-		OwnerId:     OwnerId2,
+		OwnerId:     OwnerID2,
 	})
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(b4.UserId)) }()
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b4.UserId)) }()
@@ -278,7 +278,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, creator id 1", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerId1})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerID1})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b1,
@@ -288,7 +288,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, creator id 2", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerId2})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OwnerId: OwnerID2})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b4,
@@ -296,7 +296,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 1", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerId1})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerID1})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			deletedBot,
@@ -307,7 +307,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 2", func(t *testing.T) {
-		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerId2})
+		bots, err := ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, OwnerId: OwnerID2})
 		require.NoError(t, err)
 		require.Equal(t, []*model.Bot{
 			b4,

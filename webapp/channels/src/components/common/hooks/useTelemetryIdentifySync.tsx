@@ -24,8 +24,6 @@ function useTelemetryIdentitySync() {
             Client4.setUserRoles(userRoles);
         }
     }, [userId, userRoles]);
-
-    return null;
 }
 
 export default useTelemetryIdentitySync;
