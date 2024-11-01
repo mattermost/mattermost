@@ -578,7 +578,7 @@
   "admin.compliance.enableDailyTitle": "Enable Daily Report:",
   "admin.compliance.enableDesc": "When true, Mattermost allows compliance reporting from the <strong>Compliance and Auditing</strong> tab. See <link>documentation</link> to learn more.",
   "admin.compliance.enableTitle": "Enable Compliance Reporting:",
-  "admin.compliance.newComplianceExportBanner": "This feature is replaced by a new [Compliance Export]({siteURL}/admin_console/compliance/export) feature, and will be removed in a future release. We recommend migrating to the new system.",
+  "admin.compliance.newComplianceExportBanner": "This feature is replaced by a new <link>Compliance Export</link> feature, and will be removed in a future release. We recommend migrating to the new system.",
   "admin.complianceExport.createJob.help": "Initiates a Compliance Export job immediately.",
   "admin.complianceExport.createJob.title": "Run Compliance Export Job Now",
   "admin.complianceExport.exportFormat.actiance": "Actiance XML",
