@@ -23,6 +23,10 @@ function getBaseProps(): Props {
             onClick: jest.fn(),
             text: 'secondary button title',
         },
+        tertiaryButton: {
+            onClick: jest.fn(),
+            text: 'tertiary button title',
+        },
         linkButton: {
             onClick: jest.fn(),
             text: 'link button title',
@@ -39,11 +43,13 @@ describe('PluginAction', () => {
         renderWithContext(<SectionNotice {...props}/>);
         const primaryButton = screen.getByText(props.primaryButton!.text);
         const secondaryButton = screen.getByText(props.secondaryButton!.text);
+        const tertiaryButton = screen.getByText(props.tertiaryButton!.text);
         const linkButton = screen.getByText(props.linkButton!.text);
         const closeButton = screen.getByLabelText('Dismiss notice');
 
         expect(primaryButton).toBeInTheDocument();
         expect(secondaryButton).toBeInTheDocument();
+        expect(tertiaryButton).toBeInTheDocument();
         expect(linkButton).toBeInTheDocument();
         expect(closeButton).toBeInTheDocument();
         expect(screen.queryByText(props.text as string)).toBeInTheDocument();
@@ -52,6 +58,8 @@ describe('PluginAction', () => {
         expect(props.primaryButton?.onClick).toHaveBeenCalledTimes(1);
         fireEvent.click(secondaryButton);
         expect(props.secondaryButton?.onClick).toHaveBeenCalledTimes(1);
+        fireEvent.click(tertiaryButton);
+        expect(props.tertiaryButton?.onClick).toHaveBeenCalledTimes(1);
         fireEvent.click(linkButton);
         expect(props.linkButton?.onClick).toHaveBeenCalledTimes(1);
         fireEvent.click(closeButton);
@@ -62,6 +70,7 @@ describe('PluginAction', () => {
         const props = getBaseProps();
         props.primaryButton = undefined;
         props.secondaryButton = undefined;
+        props.tertiaryButton = undefined;
         props.linkButton = undefined;
         props.isDismissable = false;
         renderWithContext(<SectionNotice {...props}/>);
