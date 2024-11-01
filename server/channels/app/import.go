@@ -96,6 +96,16 @@ func processAttachments(c request.CTX, line *imports.LineImportData, basePath st
 				}
 			}
 		}
+	case "bot":
+		if line.Bot.ProfileImage != nil {
+			path := filepath.Join(basePath, *line.Bot.ProfileImage)
+			*line.Bot.ProfileImage = path
+			if len(filesMap) > 0 {
+				if line.Bot.ProfileImageData, ok = filesMap[path]; !ok {
+					return fmt.Errorf("attachment %q not found in map", path)
+				}
+			}
+		}
 	case "emoji":
 		if line.Emoji.Image != nil {
 			path := filepath.Join(basePath, *line.Emoji.Image)
