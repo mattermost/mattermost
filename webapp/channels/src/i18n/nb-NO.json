@@ -2381,7 +2381,6 @@
   "tutorial_threads.list.Up": "OPP",
   "tutorial_threads.list.description-p2": "Bruk {upKey} / {downKey} for å navigere i trådlisten.",
   "tutorial_threads.list.title": "Trådliste",
-  "tutorial_threads.threads_pane.title": "",
   "tutorial_threads.unread.description": "Du kan bytte til <b>Uleste</b> for å vise bare tråder som er uleste.",
   "tutorial_threads.unread.title": "uleste tråder",
   "tutorial_threads.welcome.title": "Velkommen til trådet visning!",
