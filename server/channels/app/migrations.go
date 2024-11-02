@@ -105,7 +105,9 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 }
 
 func (a *App) DoEmojisPermissionsMigration() {
-	a.Srv().doEmojisPermissionsMigration()
+	if err := a.Srv().doEmojisPermissionsMigration(); err != nil {
+		mlog.Error("Failed to complete emojis permissions migration", mlog.Err(err))
+	}
 }
 
 func (s *Server) doEmojisPermissionsMigration() error {
@@ -163,7 +165,9 @@ func (s *Server) doEmojisPermissionsMigration() error {
 }
 
 func (a *App) DoGuestRolesCreationMigration() {
-	a.Srv().doGuestRolesCreationMigration()
+	if err := a.Srv().doGuestRolesCreationMigration(); err != nil {
+		mlog.Error("Failed to complete guest roles creation migration", mlog.Err(err))
+	}
 }
 
 func (s *Server) doGuestRolesCreationMigration() error {
