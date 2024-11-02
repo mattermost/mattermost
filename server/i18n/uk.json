@@ -81,7 +81,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": "Символ бренда не налаштована та не підтримується на цьому сервері.  "
+    "translation": "SAML 2.0 не налаштовано і не підтримується на цьому сервері."
   },
   {
     "id": "api.admin.test_email.body",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Порожній масив 'image' в запиті"
+    "translation": "Порожній масив 'image' у запиті."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -113,7 +113,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин"
+    "translation": "Не вдалось розібрати складову форму."
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
@@ -125,11 +125,11 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v доданний (а) в канал %v"
+    "translation": "%v доданий(а) в канал користувачем %v."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Не вдалося додати учасника до каналу"
+    "translation": "Не вдалося додати користувача до каналу."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -137,7 +137,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Не можу додати учасника до каналу цього типу"
+    "translation": "Неможливо додати користувача до цього типу каналу."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -149,11 +149,11 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
+    "translation": "Потрібно використати createDirectChannel з API для створення каналу особистих повідомлень."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Не можна створити більше {{.MaxChannelsPerTeam}} каналів для цієї команди"
+    "translation": "Неможливо створити більше {{.MaxChannelsPerTeam}} каналів для поточної команди."
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -165,11 +165,11 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Невірний ID користувача при створенні приватного каналу"
+    "translation": "Неправильний ідентифікатор користувача для створення каналу приватних повідомлень."
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Канал групи повинен мати не менше трьох і не більше восьми користувачів"
+    "translation": "Групові канали повідомлень повинні містити не менше 3 і не більше 8 користувачів."
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -177,7 +177,7 @@
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "%v архівував канал."
+    "translation": "%v заархівував канал."
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
@@ -193,7 +193,7 @@
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "У вас немає відповідних прав"
+    "translation": "Ви не маєте відповідних дозволів."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Неможливо видалити канал за замовчуванням {{.Channel}} "
+    "translation": "Неможливо покинути канал за замовчуванням {{.Channel}}."
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу "
+    "translation": "Не вдалося оновити канал."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -261,7 +261,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Неможливо видалити користувача з канал за замовчуванням {{.Channel}} "
+    "translation": "Неможливо видалити користувача з каналу за замовчуванням {{.Channel}}."
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -598,9 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "",
-      "many": "",
-      "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}"
+      "few": "Не вдалося знайти користувачів: {{.Users}}",
+      "many": "Не вдалося знайти користувачів: {{.Users}}",
+      "one": "Не вдалося знайти користувача: {{.Users}}"
     }
   },
   {
@@ -677,7 +677,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} вже знаходиться в каналі."
+    "translation": {
+      "few": "{{.User}} вже знаходяться в каналі.",
+      "many": "{{.User}} вже знаходяться в каналі.",
+      "one": "{{.User}} вже знаходиться в каналі."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -789,7 +793,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
+    "translation": "Не вдалося знайти вказаний канал. Будь ласка, використовуйте [гештег каналу](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -983,8 +987,8 @@
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
-      "many": "",
-      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
+      "many": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
+      "one": "[{{.SiteName}}] Нове сповіщення для {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
@@ -1350,17 +1354,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "few": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
-      "many": "",
-      "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
+      "few": "{{.Count}} файлів відправлено: {{.Filenames}}",
+      "many": "{{.Count}} файлів відправлено: {{.Filenames}}",
+      "one": "{{.Count}} файл відправлено: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "few": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
-      "many": "",
-      "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
+      "few": "{{.Count}} зображень надіслано: {{.Filenames}}",
+      "many": "{{.Count}} зображень надіслано: {{.Filenames}}",
+      "one": "{{.Count}} зображення надіслано: {{.Filenames}}"
     }
   },
   {
@@ -1545,7 +1549,7 @@
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Лог імпорту Mattermost Slack\r\n "
+    "translation": "Лог імпорту Mattermost Slack\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
@@ -1745,7 +1749,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Ваш обліковий запис було вимкнено на {{.ServerURL}}"
+    "translation": "Ваш обліковий запис було деактивовано за адресою {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -1753,7 +1757,7 @@
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{.SiteName}}] Ваш обліковий запис на {{.ServerURL}} деактивовано"
+    "translation": "[{{ .SiteName }}] Ваш обліковий запис на {{ .ServerURL }} було деактивовано"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -1765,7 +1769,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{.SiteName}}] Ваша електронна адреса змінилася"
+    "translation": "[{{ .SiteName }}] Ваша адреса електронної пошти змінилася"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1781,7 +1785,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{.SiteName}}] Підтвердити нову адресу електронної пошти"
+    "translation": "[{{ .SiteName }}] Підтвердіть нову адресу електронної пошти"
   },
   {
     "id": "api.templates.email_footer",
@@ -1813,15 +1817,15 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "Вас запросили"
+    "translation": "{{ .SenderName }} запросив вас приєднатися до команди {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} запросив(ла) вас приєднатися до Команди {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Багатофункціональна автентифікація була додана до вашого облікового запису в {{.SITEURL}}."
+    "translation": "До вашого облікового запису на {{ .SiteURL }} додано багатофакторну автентифікацію."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1829,11 +1833,11 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Ваше MFA було оновлено"
+    "translation": "[{{ .SiteName }}] Ваша багатофакторна автентифікація оновлена"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Багатофункціональна автентифікація була видалена з вашого облікового запису в {{.SITEURL}}."
+    "translation": "Багатофакторну автентифікацію вилучено з вашого облікового запису на {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1841,7 +1845,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Ваш пароль був {{.TeamDisplayName}} оновлений {{.TeamURL}} до {{.Method}}."
+    "translation": "Ваш пароль оновлено для {{.TeamDisplayName}} на {{ .TeamURL }} за допомогою {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1849,7 +1853,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Ваш пароль був оновлений"
+    "translation": "[{{ .SiteName }}] Ваш пароль оновлено"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1865,11 +1869,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{.SiteName}}] Скидання пароля"
+    "translation": "[{{ .SiteName }}] Скинути пароль"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Ви оновили свій метод входу в {{.SiteName}} до {{.Method}}."
+    "translation": "Ви оновили метод входу в {{ .SiteName }} на {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1881,11 +1885,11 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{.SiteName}}] Ваш спосіб входу був оновлений"
+    "translation": "[{{ .SiteName }}] Ваш метод входу оновлено"
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Токен особистого доступу до вашого облікового запису було додано {{.SITEURL}}. Вони можуть використовуватися для доступу до {{.SiteName}} з вашим обліковим записом."
+    "translation": "Персональний токен доступу додано до вашого акаунту на {{ .SiteURL }}. Він може бути використаний для доступу до {{.SiteName}} за допомогою вашого облікового запису."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1893,7 +1897,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Токен особистого доступу до вашого облікового запису"
+    "translation": "[{{ .SiteName }}] Персональний токен доступу додано до вашого облікового запису"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -1905,7 +1909,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName}}] Ваша електронна адреса змінилася "
+    "translation": "[{{ .SiteName }}] Ваше ім'я користувача змінилося"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1917,11 +1921,11 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Ви приєдналися до {{.ServerURL}}"
+    "translation": "Підтвердіть свою електронну адресу"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{.SiteName}}] Перевірка електронної пошти"
+    "translation": "[{{ .SiteName }}] Перевірка електронної пошти"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -1937,7 +1941,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Ви приєдналися {{ .ServerURL }}"
+    "translation": "Ласкаво просимо до команди"
   },
   {
     "id": "api.templates.welcome_subject",
@@ -1981,7 +1985,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Непідтримуваний постачальник послуг OAuth"
+    "translation": "Єдиний вхід (SSO) для {{.Service}} через OAuth 2.0 недоступний на цьому сервері."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2261,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Чи не вдалося оновити з'єднання з web-сокетом"
+    "translation": "URL заблоковано через спільний доступ до ресурсів з інших джерел (CORS). URL-адреса: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2853,11 +2857,11 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Повідомлення в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}} "
+    "translation": "{{ .SiteName }} Нове групове повідомлення в {{ .ChannelName}} у {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Нове повідомлення групи в {{.Month}}{{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -2993,7 +2997,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Конфігурація кластера змінилася для id = {{.id}}. Кластер може стати нестабільним та вимагати перезавантаження. Щоб переконатися, що кластер налаштовано правильно, негайно виконайте перезапуск. "
+    "translation": "Конфігурацію кластера змінено для id={{ .id }}. Кластер може працювати нестабільно і потребуватиме перезапуску. Щоб переконатися, що кластер налаштовано правильно, вам слід негайно виконати перезапуск."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3353,7 +3357,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Ідентифікатор тригера для інтерактивного діалогу закінчився. Тригерні ідентифікатори триватимуть до {{.Seconds}} секунд."
+    "translation": "Ідентифікатор тригера для інтерактивного діалогу вичерпано. Ідентифікатори тригерів живуть максимум {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -4533,7 +4537,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Умови обслуговування GitLab оновлено. Будь ласка, заходьте на gitlab.com, щоб прийняти їх, а потім спробуйте знову увійти в Mattermost."
+    "translation": "Умови використання GitLab оновилися. Будь ласка, перейдіть за посиланням {{.URL}}, щоб прийняти їх, а потім спробуйте увійти до Mattermost ще раз."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5513,7 +5517,7 @@
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} запросив вас приєднатися до команди {{ .TeamDisplayName }} як гостя"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -5649,7 +5653,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} не є учасником цього каналу."
+    "translation": "Ви можете додати {{.Users}} до цього каналу тільки якщо вони є членами команди **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -5685,7 +5689,7 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Не можу додати учасника до каналу цього типу"
+    "translation": "Не можна видалити користувача з цього типу каналу."
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -5697,7 +5701,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Ліцензія не підтримує збереження даних. "
+    "translation": "Ваша ліцензія не підтримує модерацію каналів"
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
@@ -5705,11 +5709,11 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Ліцензія не підтримує збереження даних. "
+    "translation": "Ваша ліцензія не підтримує модерацію каналів"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
+    "translation": "Ваша ліцензія не підтримує групи"
   },
   {
     "id": "api.channel.add_members.user_denied",
@@ -5721,7 +5725,7 @@
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v доданний (а) в канал %v"
+    "translation": "%v додано до каналу як гостя користувачем %v."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -6181,7 +6185,7 @@
   },
   {
     "id": "app.post.save.app_error",
-    "translation": "Не вдається зберегти публікацію"
+    "translation": "Не вдається зберегти допис."
   },
   {
     "id": "app.post.permanent_delete_by_user.app_error",
@@ -6297,7 +6301,7 @@
   },
   {
     "id": "app.file_info.save.app_error",
-    "translation": "Не вдається зберегти інформацію про файл"
+    "translation": "Не вдалося зберегти інформацію про файл."
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
@@ -6309,7 +6313,7 @@
   },
   {
     "id": "app.file_info.get_for_post.app_error",
-    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    "translation": "Не вдалося отримати інформацію про файл для допису."
   },
   {
     "id": "app.file_info.get.app_error",
@@ -6837,7 +6841,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost – це платформа з відкритим вихідним кодом для безпечного спілкування, співробітництва та організації роботи між командами з використанням різноманітних інструментів.\nMattermost складається з трьох ключових інструментів:\n\n**Channels** - Залишайтеся на зв’язку зі своєю командою за допомогою індивідуальних і групових повідомлень.\n**[Playbooks](/playbooks)** - Створіть і налаштуйте повторювані процеси для досягнення конкретних і передбачуваних результатів.\n**[Boards](/boards)** - Керуйте проектами та завданнями в структурі дошки Kanban, щоб допомогти вашій команді досягти ключових віх.\n\n[Переглянути документацію та посібники]({{.HelpLink}})"
+    "translation": "Mattermost – це платформа з відкритим вихідним кодом для безпечного спілкування, співробітництва та організації роботи між командами з використанням різноманітних інструментів.\nMattermost складається з трьох ключових інструментів:\n\n**Channels** - залишайтеся на зв’язку зі своєю командою за допомогою індивідуальних і групових повідомлень.\n**[Playbooks](/playbooks)** - створіть і налаштуйте повторювані процеси для досягнення конкретних і передбачуваних результатів.\n\n[Переглянути документацію та посібники]({{.HelpLink}})"
   },
   {
     "id": "api.command_custom_status.success",
@@ -6918,5 +6922,33 @@
   {
     "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
     "translation": "Неправильний ідентифікатор віддаленого доступу."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Неможливо виконати операцію для цього типу джерела."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Неможливо видалити допис, ServiceSettings.EnableAPIPostDeletion не увімкнено."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Не вдалося знайти файли для допису."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Ви не можете змінити статус користувача. Керування користувачем здійснюється через LDAP"
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Не вдалося остаточно видалити файл для допису."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Не вдалося остаточно видалити допис."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Не вдається встановити вміст файлу для пошуку."
   }
 ]
