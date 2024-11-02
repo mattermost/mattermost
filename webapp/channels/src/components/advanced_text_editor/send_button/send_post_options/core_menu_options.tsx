@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
+import {DateTime} from 'luxon';
 import React, {memo, useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -48,12 +48,12 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         );
     }, [currentUserId]);
 
-    const today = moment().tz(userCurrentTimezone);
-    const tomorrow9amTime = moment().
-        tz(userCurrentTimezone).
-        add(1, 'days').
+    const now = DateTime.now().setZone(userCurrentTimezone);
+    const tomorrow9amTime = DateTime.now().
+        setZone(userCurrentTimezone).
+        plus({days: 1}).
         set({hour: 9, minute: 0, second: 0, millisecond: 0}).
-        valueOf();
+        toMillis();
 
     const timeComponent = (
         <Timestamp
@@ -66,11 +66,11 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     if (isDM) {
         function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
-            const scheduledTimeUTC = moment.utc(userCurrentTimestamp);
+            const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
 
-            const teammateScheduledTime = scheduledTimeUTC.clone().tz(teammateTimezoneString);
+            const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
 
-            const formattedTime = teammateScheduledTime.format('h:mm A');
+            const formattedTime = teammateScheduledTime.toFormat('h:mm a');
 
             return formattedTime;
         }
@@ -113,11 +113,20 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         />
     );
 
-    const nextMonday = moment().
-        tz(userCurrentTimezone).
-        day(8). // next monday; 1 = Monday, 8 = next Monday
-        set({hour: 9, minute: 0, second: 0, millisecond: 0}). // 9 AM
-        valueOf();
+    function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+        // eslint-disable-next-line no-mixed-operators
+        const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
+        return dateTime.plus({days: deltaDays});
+    }
+
+    const nextMondayDateTime = getNextWeekday(now, 1).set({
+        hour: 9,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+    });
+
+    const nextMonday = nextMondayDateTime.toMillis();
 
     const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
@@ -157,9 +166,9 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     let options: React.ReactElement[] = [];
 
-    switch (today.day()) {
+    switch (now.weekday) {
     // Sunday
-    case 0:
+    case 7:
         options = [optionTomorrow];
         break;
 
@@ -180,9 +189,9 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }
 
     return (
-        <>
+        <div className='options'>
             {options}
-        </>
+        </div>
     );
 }
 
