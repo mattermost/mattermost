@@ -121,7 +121,6 @@ issues:
         channels/app/notification_test.go|\
         channels/app/oauth_test.go|\
         channels/app/onboarding_test.go|\
-        channels/app/opengraph_test.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/busy_test.go|\
