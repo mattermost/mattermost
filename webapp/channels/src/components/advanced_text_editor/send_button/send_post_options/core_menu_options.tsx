@@ -67,11 +67,8 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     if (isDM) {
         function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
             const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
-
             const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
-
             const formattedTime = teammateScheduledTime.toFormat('h:mm a');
-
             return formattedTime;
         }
 
