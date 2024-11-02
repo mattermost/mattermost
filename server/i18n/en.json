@@ -5987,6 +5987,10 @@
     "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
     "id": "app.plugin.extract.app_error",
     "translation": "An error occurred extracting the plugin bundle."
   },
