@@ -226,7 +226,9 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 
 func rollback(a *App, createdSchemeIDs []string) {
 	for _, schemeID := range createdSchemeIDs {
-		a.DeleteScheme(schemeID)
+		if _, appErr := a.DeleteScheme(schemeID); appErr != nil {
+			fmt.Printf("Failed to delete scheme with ID %s: %s\n", schemeID, appErr.Message)
+		}
 	}
 }
 
