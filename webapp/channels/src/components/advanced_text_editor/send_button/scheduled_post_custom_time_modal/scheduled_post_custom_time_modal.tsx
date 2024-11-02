@@ -5,14 +5,17 @@ import moment from 'moment';
 import type {Moment} from 'moment-timezone';
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {
     DMUserTimezone,
 } from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
+import {Preferences, scheduledPosts} from 'utils/constants';
 
 type Props = {
     channelId: string;
@@ -25,19 +28,35 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
+    const now = moment().tz(userTimezone);
+    const currentUserId = useSelector(getCurrentUserId);
+    const dispatch = useDispatch();
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
             return initialTime;
         }
 
-        const now = moment().tz(userTimezone);
         return now.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
     });
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
 
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
-        const response = await onConfirm(dateTime.valueOf());
+        const selectedTime = dateTime.valueOf();
+        const response = await onConfirm(selectedTime);
+
+        dispatch(
+            savePreferences(
+                currentUserId, 
+                [{
+                    user_id: currentUserId,
+                    category: scheduledPosts.SCHEDULED_POSTS,
+                    name: scheduledPosts.RECENTLY_USED_CUSTOM_TIME,
+                    value: JSON.stringify({used_at: now.valueOf(), custom_time: selectedTime}),
+                }]
+            )
+        );
+
         if (response.error) {
             setErrorMessage(response.error);
         } else {
