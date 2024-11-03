@@ -49,6 +49,7 @@ export type Filters = {
     channel_roles?: string[];
     team_roles?: string[];
     exclude_bots?: boolean;
+    exclude_remote?: boolean;
 };
 
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
@@ -334,6 +335,10 @@ export function filterProfiles(profiles: IDMappedObjects<UserProfile>, filters?:
         users = users.filter((user) => user.delete_at === 0);
     }
 
+    if (filters.exclude_remote) {
+        users = users.filter((user) => !user.remote_id);
+    }
+
     return users.reduce((acc, user) => {
         acc[user.id] = user;
         return acc;
@@ -371,21 +376,23 @@ export const getActiveProfilesInCurrentChannelWithoutSorting: (state: GlobalStat
     },
 );
 
-export const getProfilesNotInCurrentChannel: (state: GlobalState) => UserProfile[] = createSelector(
+export const getProfilesNotInCurrentChannel: (state: GlobalState, filters?: Filters) => UserProfile[] = createSelector(
     'getProfilesNotInCurrentChannel',
     getUsers,
     getProfileSetNotInCurrentChannel,
-    (profiles, notInCurrentChannelProfileSet) => {
-        return sortAndInjectProfiles(profiles, notInCurrentChannelProfileSet);
+    (state: GlobalState, filters?: Filters) => filters,
+    (profiles, notInCurrentChannelProfileSet, filters) => {
+        return sortAndInjectProfiles(filterProfiles(profiles, filters), notInCurrentChannelProfileSet);
     },
 );
 
-export const getProfilesInCurrentTeam: (state: GlobalState) => UserProfile[] = createSelector(
+export const getProfilesInCurrentTeam: (state: GlobalState, filters?: Filters) => UserProfile[] = createSelector(
     'getProfilesInCurrentTeam',
     getUsers,
     getProfileSetInCurrentTeam,
-    (profiles, currentTeamProfileSet) => {
-        return sortAndInjectProfiles(profiles, currentTeamProfileSet);
+    (state: GlobalState, filters?: Filters) => filters,
+    (profiles, currentTeamProfileSet, filters) => {
+        return sortAndInjectProfiles(filterProfiles(profiles, filters), currentTeamProfileSet);
     },
 );
 
@@ -524,8 +531,8 @@ export function searchProfilesNotInCurrentChannel(state: GlobalState, term: stri
     return profiles;
 }
 
-export function searchProfilesInCurrentTeam(state: GlobalState, term: string, skipCurrent = false): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentTeam(state), term);
+export function searchProfilesInCurrentTeam(state: GlobalState, term: string, skipCurrent = false, filters?: Filters): UserProfile[] {
+    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentTeam(state, filters), term);
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));
     }
