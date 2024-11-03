@@ -205,7 +205,7 @@
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Неможливо залишити канал особистих повідомлень"
+    "translation": "Неможливо покинути канал особистих повідомлень."
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -273,11 +273,11 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Ви не можете перейменовувати прямий канал повідомлень"
+    "translation": "Ви не можете перейменувати канал особистих повідомлень."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Ви не можете перейменувати канал групового повідомлення"
+    "translation": "Ви не можете перейменувати канал групових повідомлень."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -5745,7 +5745,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Неправильний текст сертифіката."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
