@@ -3,6 +3,7 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Modal} from 'react-bootstrap';
+import {defineMessage} from 'react-intl';
 
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
@@ -14,7 +15,6 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 import {usePagingMeta} from './hooks';
@@ -198,7 +198,7 @@ const UserGroupsModal = (props: Props) => {
                 <div className='user-groups-search'>
                     <Input
                         type='text'
-                        placeholder={Utils.localizeMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
+                        placeholder={defineMessage({id: 'user_groups_modal.searchGroups', defaultMessage: 'Search Groups'})}
                         onChange={handleSearch}
                         value={props.searchTerm}
                         data-testid='searchInput'

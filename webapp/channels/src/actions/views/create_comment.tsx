@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -14,47 +14,24 @@ import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selecto
 import {
     getLatestInteractablePostId,
     getLatestPostToEdit,
-    getPost,
-    makeGetPostIdsForThread,
 } from 'mattermost-redux/selectors/entities/posts';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
-import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {updateDraft} from 'actions/views/drafts';
 
-import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-
-export function clearCommentDraftUploads() {
-    return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
-        if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
-            return draft;
-        }
-
-        return {...draft, uploadsInProgress: []};
-    });
-}
-
-// Temporarily store draft manually in localStorage since the current version of redux-persist
-// we're on will not save the draft quickly enough on page unload.
-export function updateCommentDraft(rootId: string, draft?: PostDraft, save = false) {
-    const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-    return updateDraft(key, draft ?? null, rootId, save);
-}
 
 export function submitPost(
     channelId: string,
@@ -107,7 +84,7 @@ export function submitPost(
             return {error: hookResult.error};
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit));
     };
@@ -121,7 +98,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 
         const teamId = getCurrentTeamId(state);
 
-        let args = {
+        let args: CommandArgs = {
             channel_id: channelId,
             team_id: teamId,
             root_id: rootId,
@@ -134,7 +111,10 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             return {error: hookResult.error};
         } else if (!hookResult.data!.message && !hookResult.data!.args) {
             // do nothing with an empty return from a hook
-            return {error: new Error('command not submitted due to plugin hook')};
+            // this is allowed by the registerSlashCommandWillBePostedHook API in case
+            // a plugin intercepts and handles the command on the client side
+            // but doesn't require it to be sent to the server. (e.g., /call start).
+            return {};
         }
 
         message = hookResult.data!.message;
@@ -192,72 +172,6 @@ export function onSubmit(
     };
 }
 
-function makeGetCurrentUsersLatestReply() {
-    const getPostIdsInThread = makeGetPostIdsForThread();
-    return createSelector(
-        'makeGetCurrentUsersLatestReply',
-        getCurrentUserId,
-        getPostIdsInThread,
-        (state) => (id: string) => getPost(state, id),
-        (_state, rootId) => rootId,
-        (userId, postIds, getPostById, rootId) => {
-            let lastPost = null;
-
-            if (!postIds) {
-                return lastPost;
-            }
-
-            for (const id of postIds) {
-                const post = getPostById(id) || {};
-
-                // don't edit webhook posts, deleted posts, or system messages
-                if (
-                    post.user_id !== userId ||
-                    (post.props && post.props.from_webhook) ||
-                    post.state === Constants.POST_DELETED ||
-                    (post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX)) ||
-                    isPostPendingOrFailed(post)
-                ) {
-                    continue;
-                }
-
-                if (rootId) {
-                    if (post.root_id === rootId || post.id === rootId) {
-                        lastPost = post;
-                        break;
-                    }
-                } else {
-                    lastPost = post;
-                    break;
-                }
-            }
-
-            return lastPost;
-        },
-    );
-}
-
-export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> {
-    const getCurrentUsersLatestPost = makeGetCurrentUsersLatestReply();
-
-    return () => (dispatch, getState) => {
-        const state = getState();
-
-        const lastPost = getCurrentUsersLatestPost(state, rootId);
-
-        if (!lastPost) {
-            return {data: false};
-        }
-
-        return dispatch(PostActions.setEditingPost(
-            lastPost.id,
-            'reply_textbox',
-            Utils.localizeMessage({id: 'create_comment.commentTitle', defaultMessage: 'Comment'}),
-            true,
-        ));
-    };
-}
-
 export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
@@ -271,7 +185,6 @@ export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boole
         return dispatch(PostActions.setEditingPost(
             lastPostId,
             rootId ? 'reply_textbox' : 'post_textbox',
-            '', // title is no longer used
             Boolean(rootId),
         ));
     };

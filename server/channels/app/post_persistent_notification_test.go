@@ -213,7 +213,7 @@ func TestSendPersistentNotifications(t *testing.T) {
 			},
 		},
 	}
-	_, appErr := th.App.CreatePost(th.Context, p1, th.BasicChannel, false, false)
+	_, appErr := th.App.CreatePost(th.Context, p1, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	err := th.App.SendPersistentNotifications()

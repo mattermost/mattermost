@@ -215,7 +215,9 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 
 	user := imports.UserImportData{
-		ProfileImage:       profileImage,
+		Avatar: imports.Avatar{
+			ProfileImage: profileImage,
+		},
 		Username:           &username,
 		Email:              &email,
 		Password:           &password,
@@ -398,7 +400,7 @@ func createDirectChannel(members []string) imports.LineImportData {
 
 	for _, m := range members {
 		p = append(p, &imports.DirectChannelMemberImportData{
-			Username: model.NewString(m),
+			Username: model.NewPointer(m),
 		})
 	}
 

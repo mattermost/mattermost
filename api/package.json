@@ -1,7 +1,7 @@
 {
   "name": "mattermost-api-reference",
   "version": "1.0.0",
-  "description": "This respository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
+  "description": "This repository holds the API reference available at [https://api.mattermost.com](https://api.mattermost.com).",
   "main": "index.js",
   "dependencies": {
     "@redocly/cli": "^1.13.0",

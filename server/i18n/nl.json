@@ -10163,7 +10163,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan remote niet afmelden voor kanaal"
+    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10184,5 +10184,61 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "Kan de extra sessie-eigenschappen niet bijwerken."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Kan geen uitnodigingscode genereren voor een bevestigde cluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Kan bericht niet verwijderen, ServiceSettings.EnableAPIPostDeletion is niet ingeschakeld."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Je kan de gebruikersstatus niet wijzigen. Gebruiker wordt beheerd door LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Geen bestanden gevonden voor bericht."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Fout bij het definitief verwijderen van bestand voor bericht."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Fout bij het definitief verwijderen van bericht."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kan geen direct kanaal maken met een gebruiker op afstand"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kan geen groepskanaal maken met externe gebruikers"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Fout bij het kopiëren van de licentie."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Kan cluster op afstand niet uitnodigen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kan het bericht niet maken in een privé-bericht of groepsbericht met externe gebruikers"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ongeldig extern id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ongeldige site-URL."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ongeldig token."
   }
 ]
