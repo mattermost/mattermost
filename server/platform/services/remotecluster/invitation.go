@@ -12,15 +12,16 @@ import (
 )
 
 // AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
-func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName, creatorId string, siteURL string) (*model.RemoteCluster, error) {
+func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
 	rc := &model.RemoteCluster{
-		RemoteId:    invite.RemoteId,
-		Name:        name,
-		DisplayName: displayName,
-		Token:       model.NewId(),
-		RemoteToken: invite.Token,
-		SiteURL:     invite.SiteURL,
-		CreatorId:   creatorId,
+		RemoteId:      invite.RemoteId,
+		Name:          name,
+		DisplayName:   displayName,
+		DefaultTeamId: defaultTeamId,
+		Token:         model.NewId(),
+		RemoteToken:   invite.Token,
+		SiteURL:       invite.SiteURL,
+		CreatorId:     creatorId,
 	}
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)

@@ -3,17 +3,15 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-
-import {getSiteURL} from 'utils/url';
 
 const GROUP_MEMBERS_PAGE_SIZE = 20;
 
@@ -160,12 +158,18 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
         return (
             <div className='group-users'>
                 <div className='group-users--header'>
-                    <FormattedMarkdownMessage
-                        id='admin.group_settings.group_profile.group_users.ldapConnector'
+                    <FormattedMessage
+                        id='admin.group_settings.group_profile.group_users.ldapConnectorText'
                         defaultMessage={
-                            'AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)'
+                            'AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>'
                         }
-                        values={{siteURL: getSiteURL()}}
+                        values={{
+                            a: (chunks: string) => (
+                                <Link to='/admin_console/authentication/ldap'>
+                                    {chunks}
+                                </Link>
+                            ),
+                        }}
                     />
                 </div>
                 <div className='group-users--body'>

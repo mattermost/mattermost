@@ -963,8 +963,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
-		t.Skip("MM-60499")
-
+		now := model.GetMillis()
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -978,12 +977,24 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 			Emoji:       ":smile:",
 		}
 
+		bookmark2 := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test 2",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
 		// set the user for the session
 		originalSessionUserId := th.Context.Session().UserId
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
 		cb, appErr := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, cb)
+
+		cb, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
@@ -1001,6 +1012,10 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
 					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
 					require.NoError(t, err)
+
+					for _, b := range bl {
+						require.Greater(t, b.UpdateAt, now)
+					}
 				}
 			case <-timeout:
 				waiting = false

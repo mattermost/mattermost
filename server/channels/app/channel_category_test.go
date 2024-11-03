@@ -17,9 +17,15 @@ func TestSidebarCategory(t *testing.T) {
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	defer th.App.PermanentDeleteChannel(th.Context, basicChannel2)
+	defer func() {
+		err := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
+		require.Nil(t, err)
+	}()
 	user := th.CreateUser()
-	defer th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
+	defer func() {
+		err := th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
+		require.NoError(t, err)
+	}()
 	th.LinkUserToTeam(user, th.BasicTeam)
 	th.AddUserToChannel(user, basicChannel2)
 

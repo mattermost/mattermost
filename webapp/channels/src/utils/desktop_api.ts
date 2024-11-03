@@ -13,9 +13,10 @@ declare global {
     }
 }
 
-class DesktopAppAPI {
+export class DesktopAppAPI {
     private name?: string;
     private version?: string | null;
+    private prereleaseVersion?: string;
     private dev?: boolean;
 
     /**
@@ -32,6 +33,7 @@ class DesktopAppAPI {
         this.getDesktopAppInfo().then(({name, version}) => {
             this.name = name;
             this.version = semver.valid(semver.coerce(version));
+            this.prereleaseVersion = version?.split('-')?.[1];
 
             // Legacy Desktop App version, used by some plugins
             if (!window.desktop) {
@@ -61,6 +63,10 @@ class DesktopAppAPI {
 
     getAppVersion = () => {
         return this.version;
+    };
+
+    getPrereleaseVersion = () => {
+        return this.prereleaseVersion;
     };
 
     isDev = () => {
@@ -152,6 +158,10 @@ class DesktopAppAPI {
         return () => this.removePostMessageListener('history-button-return', legacyListener);
     };
 
+    onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
+        return window.desktopAPI?.onSendMetrics?.(listener);
+    };
+
     /**
      * One-ways
      */
@@ -207,8 +217,9 @@ class DesktopAppAPI {
     updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
         window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
-    signalLogin = () => window.desktopAPI?.onLogin && window.desktopAPI?.onLogin();
-    signalLogout = () => window.desktopAPI?.onLogout && window.desktopAPI?.onLogout();
+    signalLogin = () => window.desktopAPI?.onLogin?.();
+    signalLogout = () => window.desktopAPI?.onLogout?.();
+    reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
 
     /*********************************************************************
      * Helper functions for legacy code

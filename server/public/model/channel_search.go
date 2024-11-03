@@ -17,6 +17,7 @@ type ChannelSearch struct {
 	Private                  bool     `json:"private"`
 	IncludeDeleted           bool     `json:"include_deleted"`
 	IncludeSearchById        bool     `json:"include_search_by_id"`
+	ExcludeRemote            bool     `json:"exclude_remote"`
 	Deleted                  bool     `json:"deleted"`
 	Page                     *int     `json:"page,omitempty"`
 	PerPage                  *int     `json:"per_page,omitempty"`
