@@ -39,33 +39,33 @@ func TestImportImportScheme(t *testing.T) {
 
 	// Try importing an invalid scheme in dryRun mode.
 	data := imports.SchemeImportData{
-		Name:  ptrStr(model.NewId()),
-		Scope: ptrStr("team"),
+		Name:  model.NewPointer(model.NewId()),
+		Scope: model.NewPointer("team"),
 		DefaultTeamGuestRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultTeamUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultTeamAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelGuestRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
-		Description: ptrStr("description"),
+		Description: model.NewPointer("description"),
 	}
 
 	err := th.App.importScheme(th.Context, &data, true)
@@ -75,7 +75,7 @@ func TestImportImportScheme(t *testing.T) {
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
@@ -93,7 +93,7 @@ func TestImportImportScheme(t *testing.T) {
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
@@ -149,8 +149,8 @@ func TestImportImportScheme(t *testing.T) {
 	assert.True(t, role.SchemeManaged)
 
 	// Try modifying all the fields and re-importing.
-	data.DisplayName = ptrStr("new display name")
-	data.Description = ptrStr("new description")
+	data.DisplayName = model.NewPointer("new display name")
+	data.Description = model.NewPointer("new description")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
@@ -206,7 +206,7 @@ func TestImportImportScheme(t *testing.T) {
 	assert.True(t, role.SchemeManaged)
 
 	// Try changing the scope of the scheme and reimporting.
-	data.Scope = ptrStr("channel")
+	data.Scope = model.NewPointer("channel")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
@@ -233,25 +233,25 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 
 	// Try importing an invalid scheme in dryRun mode.
 	data := imports.SchemeImportData{
-		Name:  ptrStr(model.NewId()),
-		Scope: ptrStr("team"),
+		Name:  model.NewPointer(model.NewId()),
+		Scope: model.NewPointer("team"),
 		DefaultTeamUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultTeamAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
-		Description: ptrStr("description"),
+		Description: model.NewPointer("description"),
 	}
 
 	err := th.App.importScheme(th.Context, &data, true)
@@ -261,7 +261,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
@@ -279,7 +279,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
@@ -335,8 +335,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.True(t, role.SchemeManaged)
 
 	// Try modifying all the fields and re-importing.
-	data.DisplayName = ptrStr("new display name")
-	data.Description = ptrStr("new description")
+	data.DisplayName = model.NewPointer("new display name")
+	data.Description = model.NewPointer("new description")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
@@ -392,7 +392,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.True(t, role.SchemeManaged)
 
 	// Try changing the scope of the scheme and reimporting.
-	data.Scope = ptrStr("channel")
+	data.Scope = model.NewPointer("channel")
 
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
@@ -423,7 +423,7 @@ func TestImportImportRole(t *testing.T) {
 	require.Error(t, nErr, "Should have failed to import.")
 
 	// Try importing the valid role in dryRun mode.
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	err = th.App.importRole(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
@@ -441,8 +441,8 @@ func TestImportImportRole(t *testing.T) {
 	require.Error(t, nErr, "Role should not have imported.")
 
 	// Try importing a valid role with all params set.
-	data.DisplayName = ptrStr("display name")
-	data.Description = ptrStr("description")
+	data.DisplayName = model.NewPointer("display name")
+	data.Description = model.NewPointer("description")
 	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
 
 	err = th.App.importRole(th.Context, &data, false)
@@ -459,8 +459,8 @@ func TestImportImportRole(t *testing.T) {
 	assert.False(t, role.SchemeManaged)
 
 	// Try changing all the params and reimporting.
-	data.DisplayName = ptrStr("new display name")
-	data.Description = ptrStr("description")
+	data.DisplayName = model.NewPointer("new display name")
+	data.Description = model.NewPointer("description")
 	data.Permissions = &[]string{"manage_slash_commands"}
 	data.SchemeManaged = model.NewPointer(true)
 
@@ -480,7 +480,7 @@ func TestImportImportRole(t *testing.T) {
 	// Check that re-importing with only required fields doesn't update the others.
 	data2 := imports.RoleImportData{
 		Name:        &rid1,
-		DisplayName: ptrStr("new display name again"),
+		DisplayName: model.NewPointer("new display name again"),
 	}
 
 	err = th.App.importRole(th.Context, &data2, false)
@@ -533,7 +533,7 @@ func TestImportImportTeam(t *testing.T) {
 	require.Error(t, err, "Should have received an error importing an invalid team.")
 
 	// Do a valid team in dry-run mode.
-	data.Type = ptrStr("O")
+	data.Type = model.NewPointer("O")
 	appErr := th.App.importTeam(th.Context, &data, true)
 	require.Nil(t, appErr, "Received an error validating valid team.")
 
@@ -541,7 +541,7 @@ func TestImportImportTeam(t *testing.T) {
 	th.CheckTeamCount(t, teamsCount)
 
 	// Do an invalid team in apply mode, check db changes.
-	data.Type = ptrStr("XYZ")
+	data.Type = model.NewPointer("XYZ")
 	err = th.App.importTeam(th.Context, &data, false)
 	require.Error(t, err, "Import should have failed on invalid team.")
 
@@ -549,7 +549,7 @@ func TestImportImportTeam(t *testing.T) {
 	th.CheckTeamCount(t, teamsCount)
 
 	// Do a valid team in apply mode, check db changes.
-	data.Type = ptrStr("O")
+	data.Type = model.NewPointer("O")
 	appErr = th.App.importTeam(th.Context, &data, false)
 	require.Nil(t, appErr, "Received an error importing valid team: %v", err)
 
@@ -567,14 +567,14 @@ func TestImportImportTeam(t *testing.T) {
 	assert.Equal(t, scheme1.Id, *team.SchemeId)
 
 	// Alter all the fields of that team (apart from unique identifier) and import again.
-	data.DisplayName = ptrStr("Display Name 2")
-	data.Type = ptrStr("P")
-	data.Description = ptrStr("The new description")
-	data.AllowOpenInvite = ptrBool(false)
+	data.DisplayName = model.NewPointer("Display Name 2")
+	data.Type = model.NewPointer("P")
+	data.Description = model.NewPointer("The new description")
+	data.AllowOpenInvite = model.NewPointer(false)
 	data.Scheme = &scheme2.Name
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
-	data.Type = ptrStr("O")
+	data.Type = model.NewPointer("O")
 	appErr = th.App.importTeam(th.Context, &data, false)
 	require.Nil(t, appErr, "Received an error importing updated valid team.")
 
@@ -609,8 +609,8 @@ func TestImportImportChannel(t *testing.T) {
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, err := th.App.GetTeamByName(teamName)
 	require.Nil(t, err, "Failed to get team from database.")
@@ -623,10 +623,10 @@ func TestImportImportChannel(t *testing.T) {
 	chanOpen := model.ChannelTypeOpen
 	data := imports.ChannelImportData{
 		Team:        &teamName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanOpen,
-		Header:      ptrStr("Channel Header"),
-		Purpose:     ptrStr("Channel Purpose"),
+		Header:      model.NewPointer("Channel Header"),
+		Purpose:     model.NewPointer("Channel Purpose"),
 		Scheme:      &scheme1.Name,
 	}
 	err = th.App.importChannel(th.Context, &data, true)
@@ -636,8 +636,8 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Do a valid channel with a nonexistent team in dry-run mode.
-	data.Name = ptrStr("channelname")
-	data.Team = ptrStr(model.NewId())
+	data.Name = model.NewPointer("channelname")
+	data.Team = model.NewPointer(model.NewId())
 	err = th.App.importChannel(th.Context, &data, true)
 	require.Nil(t, err, "Expected success as cannot validate channel name in dry run mode.")
 
@@ -661,8 +661,8 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Do a valid channel in apply mode with a non-existent team.
-	data.Name = ptrStr("channelname")
-	data.Team = ptrStr(model.NewId())
+	data.Name = model.NewPointer("channelname")
+	data.Team = model.NewPointer(model.NewId())
 	err = th.App.importChannel(th.Context, &data, false)
 	require.NotNil(t, err, "Expected error due to non-existent team (apply mode).")
 
@@ -696,10 +696,10 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Alter all the fields of that channel.
 	cTypePr := model.ChannelTypePrivate
-	data.DisplayName = ptrStr("Changed Disp Name")
+	data.DisplayName = model.NewPointer("Changed Disp Name")
 	data.Type = &cTypePr
-	data.Header = ptrStr("New Header")
-	data.Purpose = ptrStr("New Purpose")
+	data.Header = model.NewPointer("New Header")
+	data.Purpose = model.NewPointer("New Purpose")
 	data.Scheme = &scheme2.Name
 	err = th.App.importChannel(th.Context, &data, false)
 	require.Nil(t, err, "Expected success in apply mode")
@@ -720,11 +720,11 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid archived channel.
 	now := model.GetMillis()
-	data.Name = ptrStr("archivedchannel")
-	data.DisplayName = ptrStr("Archived Channel")
+	data.Name = model.NewPointer("archivedchannel")
+	data.DisplayName = model.NewPointer("Archived Channel")
 	data.Type = &chanOpen
-	data.Header = ptrStr("Archived Channel Header")
-	data.Purpose = ptrStr("Archived Channel Purpose")
+	data.Header = model.NewPointer("Archived Channel Header")
+	data.Purpose = model.NewPointer("Archived Channel Purpose")
 	data.Scheme = &scheme1.Name
 	data.DeletedAt = &now
 	err = th.App.importChannel(th.Context, &data, false)
@@ -747,7 +747,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in dry-run mode.
 	data := imports.UserImportData{
-		Username: ptrStr(model.NewUsername()),
+		Username: model.NewPointer(model.NewUsername()),
 	}
 	err = th.App.importUser(th.Context, &data, true)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -762,8 +762,8 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in dry-run mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewUsername()),
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Username: model.NewPointer(model.NewUsername()),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}
 	appErr := th.App.importUser(th.Context, &data, true)
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
@@ -778,7 +778,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in apply mode.
 	data = imports.UserImportData{
-		Username: ptrStr(model.NewUsername()),
+		Username: model.NewPointer(model.NewUsername()),
 	}
 	err = th.App.importUser(th.Context, &data, false)
 	require.Error(t, err, "Should have failed to import invalid user.")
@@ -795,13 +795,15 @@ func TestImportImportUser(t *testing.T) {
 	username := model.NewUsername()
 	testsDir, _ := fileutils.FindDir("tests")
 	data = imports.UserImportData{
-		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
-		Username:     &username,
-		Email:        ptrStr(model.NewId() + "@example.com"),
-		Nickname:     ptrStr(model.NewId()),
-		FirstName:    ptrStr(model.NewId()),
-		LastName:     ptrStr(model.NewId()),
-		Position:     ptrStr(model.NewId()),
+		Avatar: imports.Avatar{
+			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+		},
+		Username:  &username,
+		Email:     model.NewPointer(model.NewId() + "@example.com"),
+		Nickname:  model.NewPointer(model.NewId()),
+		FirstName: model.NewPointer(model.NewId()),
+		LastName:  model.NewPointer(model.NewId()),
+		Position:  model.NewPointer(model.NewId()),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
@@ -835,16 +837,16 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, user.Roles, "system_user", "Expected roles to be system_user")
 
 	// Alter all the fields of that user.
-	data.Email = ptrStr(model.NewId() + "@example.com")
-	data.ProfileImage = ptrStr(filepath.Join(testsDir, "testgif.gif"))
-	data.AuthService = ptrStr("ldap")
+	data.Email = model.NewPointer(model.NewId() + "@example.com")
+	data.ProfileImage = model.NewPointer(filepath.Join(testsDir, "testgif.gif"))
+	data.AuthService = model.NewPointer("ldap")
 	data.AuthData = &username
-	data.Nickname = ptrStr(model.NewId())
-	data.FirstName = ptrStr(model.NewId())
-	data.LastName = ptrStr(model.NewId())
-	data.Position = ptrStr(model.NewId())
-	data.Roles = ptrStr("system_admin system_user")
-	data.Locale = ptrStr("zh_CN")
+	data.Nickname = model.NewPointer(model.NewId())
+	data.FirstName = model.NewPointer(model.NewId())
+	data.LastName = model.NewPointer(model.NewId())
+	data.Position = model.NewPointer(model.NewId())
+	data.Roles = model.NewPointer("system_admin system_user")
+	data.Locale = model.NewPointer("zh_CN")
 
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
@@ -877,7 +879,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Equal(t, *data.Roles, user.Roles, "Expected roles to be set: %v", user.Roles)
 
 	// Check Password and AuthData together.
-	data.Password = ptrStr("PasswordTest")
+	data.Password = model.NewPointer("PasswordTest")
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
@@ -886,22 +888,22 @@ func TestImportImportUser(t *testing.T) {
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
-	data.Password = ptrStr("")
+	data.Password = model.NewPointer("")
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	data.Password = ptrStr(strings.Repeat("0123456789", 10))
+	data.Password = model.NewPointer(strings.Repeat("0123456789", 10))
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	data.Password = ptrStr("TestPassword")
+	data.Password = model.NewPointer("TestPassword")
 
 	// Test team and channel memberships
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -911,7 +913,7 @@ func TestImportImportUser(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
@@ -920,11 +922,11 @@ func TestImportImportUser(t *testing.T) {
 	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username:  &username,
-		Email:     ptrStr(model.NewId() + "@example.com"),
-		Nickname:  ptrStr(model.NewId()),
-		FirstName: ptrStr(model.NewId()),
-		LastName:  ptrStr(model.NewId()),
-		Position:  ptrStr(model.NewId()),
+		Email:     model.NewPointer(model.NewId() + "@example.com"),
+		Nickname:  model.NewPointer(model.NewId()),
+		FirstName: model.NewPointer(model.NewId()),
+		LastName:  model.NewPointer(model.NewId()),
+		Position:  model.NewPointer(model.NewId()),
 	}
 
 	teamMembers, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
@@ -937,10 +939,10 @@ func TestImportImportUser(t *testing.T) {
 	// Test with an invalid team & channel membership in dry-run mode.
 	data.Teams = &[]imports.UserTeamImportData{
 		{
-			Roles: ptrStr("invalid"),
+			Roles: model.NewPointer("invalid"),
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -951,10 +953,10 @@ func TestImportImportUser(t *testing.T) {
 	// Test with an unknown team name & invalid channel membership in dry-run mode.
 	data.Teams = &[]imports.UserTeamImportData{
 		{
-			Name: ptrStr(model.NewId()),
+			Name: model.NewPointer(model.NewId()),
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -968,7 +970,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -982,7 +984,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Name: ptrStr(model.NewId()),
+					Name: model.NewPointer(model.NewId()),
 				},
 			},
 		},
@@ -1016,10 +1018,10 @@ func TestImportImportUser(t *testing.T) {
 	// Test with an invalid team & channel membership in apply mode.
 	data.Teams = &[]imports.UserTeamImportData{
 		{
-			Roles: ptrStr("invalid"),
+			Roles: model.NewPointer("invalid"),
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -1030,10 +1032,10 @@ func TestImportImportUser(t *testing.T) {
 	// Test with an unknown team name & invalid channel membership in apply mode.
 	data.Teams = &[]imports.UserTeamImportData{
 		{
-			Name: ptrStr(model.NewId()),
+			Name: model.NewPointer(model.NewId()),
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -1047,7 +1049,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Roles: ptrStr("invalid"),
+					Roles: model.NewPointer("invalid"),
 				},
 			},
 		},
@@ -1070,7 +1072,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]imports.UserChannelImportData{
 				{
-					Name: ptrStr(model.NewId()),
+					Name: model.NewPointer(model.NewId()),
 				},
 			},
 		},
@@ -1130,18 +1132,18 @@ func TestImportImportUser(t *testing.T) {
 	data.Teams = &[]imports.UserTeamImportData{
 		{
 			Name:  &teamName,
-			Theme: ptrStr(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-			Roles: ptrStr("team_user team_admin"),
+			Theme: model.NewPointer(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+			Roles: model.NewPointer("team_user team_admin"),
 			Channels: &[]imports.UserChannelImportData{
 				{
 					Name:  &channelName,
-					Roles: ptrStr("channel_user channel_admin"),
+					Roles: model.NewPointer("channel_user channel_admin"),
 					NotifyProps: &imports.UserChannelNotifyPropsImportData{
-						Desktop:    ptrStr(model.UserNotifyMention),
-						Mobile:     ptrStr(model.UserNotifyMention),
-						MarkUnread: ptrStr(model.UserNotifyMention),
+						Desktop:    model.NewPointer(model.UserNotifyMention),
+						Mobile:     model.NewPointer(model.UserNotifyMention),
+						MarkUnread: model.NewPointer(model.UserNotifyMention),
 					},
-					Favorite: ptrBool(true),
+					Favorite: model.NewPointer(true),
 				},
 			},
 		},
@@ -1177,18 +1179,18 @@ func TestImportImportUser(t *testing.T) {
 	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username:                 &username,
-		Email:                    ptrStr(model.NewId() + "@example.com"),
-		Theme:                    ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:          ptrStr("true"),
-		CollapsePreviews:         ptrStr("true"),
-		MessageDisplay:           ptrStr("compact"),
-		ColorizeUsernames:        ptrStr("true"),
-		ChannelDisplayMode:       ptrStr("centered"),
-		TutorialStep:             ptrStr("3"),
-		UseMarkdownPreview:       ptrStr("true"),
-		UseFormatting:            ptrStr("true"),
-		ShowUnreadSection:        ptrStr("true"),
-		EmailInterval:            ptrStr("immediately"),
+		Email:                    model.NewPointer(model.NewId() + "@example.com"),
+		Theme:                    model.NewPointer(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		UseMilitaryTime:          model.NewPointer("true"),
+		CollapsePreviews:         model.NewPointer("true"),
+		MessageDisplay:           model.NewPointer("compact"),
+		ColorizeUsernames:        model.NewPointer("true"),
+		ChannelDisplayMode:       model.NewPointer("centered"),
+		TutorialStep:             model.NewPointer("3"),
+		UseMarkdownPreview:       model.NewPointer("true"),
+		UseFormatting:            model.NewPointer("true"),
+		ShowUnreadSection:        model.NewPointer("true"),
+		EmailInterval:            model.NewPointer("immediately"),
 		NameFormat:               model.NewPointer("full_name"),
 		SendOnCtrlEnter:          model.NewPointer("true"),
 		CodeBlockCtrlEnter:       model.NewPointer("true"),
@@ -1225,15 +1227,15 @@ func TestImportImportUser(t *testing.T) {
 	// Change those preferences.
 	data = imports.UserImportData{
 		Username:           &username,
-		Email:              ptrStr(model.NewId() + "@example.com"),
-		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:    ptrStr("false"),
-		CollapsePreviews:   ptrStr("false"),
-		MessageDisplay:     ptrStr("clean"),
-		ColorizeUsernames:  ptrStr("false"),
-		ChannelDisplayMode: ptrStr("full"),
-		TutorialStep:       ptrStr("2"),
-		EmailInterval:      ptrStr("hour"),
+		Email:              model.NewPointer(model.NewId() + "@example.com"),
+		Theme:              model.NewPointer(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		UseMilitaryTime:    model.NewPointer("false"),
+		CollapsePreviews:   model.NewPointer("false"),
+		MessageDisplay:     model.NewPointer("clean"),
+		ColorizeUsernames:  model.NewPointer("false"),
+		ChannelDisplayMode: model.NewPointer("full"),
+		TutorialStep:       model.NewPointer("2"),
+		EmailInterval:      model.NewPointer("hour"),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1250,13 +1252,13 @@ func TestImportImportUser(t *testing.T) {
 
 	// Set Notify Without mention keys
 	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.UserNotifyAll),
-		DesktopSound:     ptrStr("true"),
-		Email:            ptrStr("true"),
-		Mobile:           ptrStr(model.UserNotifyAll),
-		MobilePushStatus: ptrStr(model.StatusOnline),
-		ChannelTrigger:   ptrStr("true"),
-		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
+		Desktop:          model.NewPointer(model.UserNotifyAll),
+		DesktopSound:     model.NewPointer("true"),
+		Email:            model.NewPointer("true"),
+		Mobile:           model.NewPointer(model.UserNotifyAll),
+		MobilePushStatus: model.NewPointer(model.StatusOnline),
+		ChannelTrigger:   model.NewPointer("true"),
+		CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1275,14 +1277,14 @@ func TestImportImportUser(t *testing.T) {
 
 	// Set Notify Props with Mention keys
 	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.UserNotifyAll),
-		DesktopSound:     ptrStr("true"),
-		Email:            ptrStr("true"),
-		Mobile:           ptrStr(model.UserNotifyAll),
-		MobilePushStatus: ptrStr(model.StatusOnline),
-		ChannelTrigger:   ptrStr("true"),
-		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
-		MentionKeys:      ptrStr("valid,misc"),
+		Desktop:          model.NewPointer(model.UserNotifyAll),
+		DesktopSound:     model.NewPointer("true"),
+		Email:            model.NewPointer("true"),
+		Mobile:           model.NewPointer(model.UserNotifyAll),
+		MobilePushStatus: model.NewPointer(model.StatusOnline),
+		ChannelTrigger:   model.NewPointer("true"),
+		CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
+		MentionKeys:      model.NewPointer("valid,misc"),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1301,14 +1303,14 @@ func TestImportImportUser(t *testing.T) {
 
 	// Change Notify Props with mention keys
 	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.UserNotifyMention),
-		DesktopSound:     ptrStr("false"),
-		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.UserNotifyNone),
-		MobilePushStatus: ptrStr(model.StatusAway),
-		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
-		MentionKeys:      ptrStr("misc"),
+		Desktop:          model.NewPointer(model.UserNotifyMention),
+		DesktopSound:     model.NewPointer("false"),
+		Email:            model.NewPointer("false"),
+		Mobile:           model.NewPointer(model.UserNotifyNone),
+		MobilePushStatus: model.NewPointer(model.StatusAway),
+		ChannelTrigger:   model.NewPointer("false"),
+		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
+		MentionKeys:      model.NewPointer("misc"),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1327,13 +1329,13 @@ func TestImportImportUser(t *testing.T) {
 
 	// Change Notify Props without mention keys
 	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.UserNotifyMention),
-		DesktopSound:     ptrStr("false"),
-		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.UserNotifyNone),
-		MobilePushStatus: ptrStr(model.StatusAway),
-		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
+		Desktop:          model.NewPointer(model.UserNotifyMention),
+		DesktopSound:     model.NewPointer("false"),
+		Email:            model.NewPointer("false"),
+		Mobile:           model.NewPointer(model.UserNotifyNone),
+		MobilePushStatus: model.NewPointer(model.StatusAway),
+		ChannelTrigger:   model.NewPointer("false"),
+		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
@@ -1354,17 +1356,17 @@ func TestImportImportUser(t *testing.T) {
 	username = model.NewUsername()
 	data = imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}
 	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          ptrStr(model.UserNotifyMention),
-		DesktopSound:     ptrStr("false"),
-		Email:            ptrStr("false"),
-		Mobile:           ptrStr(model.UserNotifyNone),
-		MobilePushStatus: ptrStr(model.StatusAway),
-		ChannelTrigger:   ptrStr("false"),
-		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
-		MentionKeys:      ptrStr("misc"),
+		Desktop:          model.NewPointer(model.UserNotifyMention),
+		DesktopSound:     model.NewPointer("false"),
+		Email:            model.NewPointer("false"),
+		Mobile:           model.NewPointer(model.UserNotifyNone),
+		MobilePushStatus: model.NewPointer(model.StatusAway),
+		ChannelTrigger:   model.NewPointer("false"),
+		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
+		MentionKeys:      model.NewPointer("misc"),
 	}
 
 	appErr = th.App.importUser(th.Context, &data, false)
@@ -1394,34 +1396,34 @@ func TestImportImportUser(t *testing.T) {
 	}()
 
 	teamSchemeData := &imports.SchemeImportData{
-		Name:        ptrStr(model.NewId()),
-		DisplayName: ptrStr(model.NewId()),
-		Scope:       ptrStr("team"),
+		Name:        model.NewPointer(model.NewId()),
+		DisplayName: model.NewPointer(model.NewId()),
+		Scope:       model.NewPointer("team"),
 		DefaultTeamGuestRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultTeamUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultTeamAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelGuestRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelUserRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
 		DefaultChannelAdminRole: &imports.RoleImportData{
-			Name:        ptrStr(model.NewId()),
-			DisplayName: ptrStr(model.NewId()),
+			Name:        model.NewPointer(model.NewId()),
+			DisplayName: model.NewPointer(model.NewId()),
 		},
-		Description: ptrStr("description"),
+		Description: model.NewPointer("description"),
 	}
 
 	appErr = th.App.importScheme(th.Context, teamSchemeData, false)
@@ -1431,11 +1433,11 @@ func TestImportImportUser(t *testing.T) {
 	require.NoError(t, nErr, "Failed to import scheme")
 
 	teamData := &imports.TeamImportData{
-		Name:            ptrStr(NewTestId()),
-		DisplayName:     ptrStr("Display Name"),
-		Type:            ptrStr("O"),
-		Description:     ptrStr("The team description."),
-		AllowOpenInvite: ptrBool(true),
+		Name:            model.NewPointer(NewTestId()),
+		DisplayName:     model.NewPointer("Display Name"),
+		Type:            model.NewPointer("O"),
+		Description:     model.NewPointer("The team description."),
+		AllowOpenInvite: model.NewPointer(true),
 		Scheme:          &teamScheme.Name,
 	}
 	appErr = th.App.importTeam(th.Context, teamData, false)
@@ -1445,11 +1447,11 @@ func TestImportImportUser(t *testing.T) {
 
 	channelData := &imports.ChannelImportData{
 		Team:        &teamName,
-		Name:        ptrStr(NewTestId()),
-		DisplayName: ptrStr("Display Name"),
+		Name:        model.NewPointer(NewTestId()),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
-		Header:      ptrStr("Channel Header"),
-		Purpose:     ptrStr("Channel Purpose"),
+		Header:      model.NewPointer("Channel Header"),
+		Purpose:     model.NewPointer("Channel Purpose"),
 	}
 	appErr = th.App.importChannel(th.Context, channelData, false)
 	assert.Nil(t, appErr)
@@ -1459,15 +1461,15 @@ func TestImportImportUser(t *testing.T) {
 	// Test with a valid team & valid channel name in apply mode.
 	userData := &imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 		Teams: &[]imports.UserTeamImportData{
 			{
 				Name:  &team.Name,
-				Roles: ptrStr("team_user team_admin"),
+				Roles: model.NewPointer("team_user team_admin"),
 				Channels: &[]imports.UserChannelImportData{
 					{
 						Name:  &channel.Name,
-						Roles: ptrStr("channel_admin channel_user"),
+						Roles: model.NewPointer("channel_admin channel_user"),
 					},
 				},
 			},
@@ -1501,15 +1503,15 @@ func TestImportImportUser(t *testing.T) {
 	deletedUserData := &imports.UserImportData{
 		Username: &username,
 		DeleteAt: &deleteAt,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 		Teams: &[]imports.UserTeamImportData{
 			{
 				Name:  &team.Name,
-				Roles: ptrStr("team_user"),
+				Roles: model.NewPointer("team_user"),
 				Channels: &[]imports.UserChannelImportData{
 					{
 						Name:  &channel.Name,
-						Roles: ptrStr("channel_user"),
+						Roles: model.NewPointer("channel_user"),
 					},
 				},
 			},
@@ -1544,15 +1546,15 @@ func TestImportImportUser(t *testing.T) {
 	// deletedGuestData := &imports.UserImportData{
 	// 	Username: &username,
 	// 	DeleteAt: &deleteAt,
-	// 	Email:    ptrStr(model.NewId() + "@example.com"),
+	// 	Email:    model.NewPointer(model.NewId() + "@example.com"),
 	// 	Teams: &[]imports.UserTeamImportData{
 	// 		{
 	// 			Name:  &team.Name,
-	// 			Roles: ptrStr("team_guest"),
+	// 			Roles: model.NewPointer("team_guest"),
 	// 			Channels: &[]imports.UserChannelImportData{
 	// 				{
 	// 					Name:  &channel.Name,
-	// 					Roles: ptrStr("channel_guest"),
+	// 					Roles: model.NewPointer("channel_guest"),
 	// 				},
 	// 			},
 	// 		},
@@ -1692,7 +1694,7 @@ func TestImportUserTeams(t *testing.T) {
 					Name: &th.BasicTeam.Name,
 					Channels: &[]imports.UserChannelImportData{
 						{
-							Name: ptrStr(model.DefaultChannelName),
+							Name: model.NewPointer(model.DefaultChannelName),
 						},
 					},
 				},
@@ -1945,10 +1947,10 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	username := model.NewUsername()
 	data := imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 		NotifyProps: &imports.UserNotifyPropsImportData{
-			Email:       ptrStr("false"),
-			MentionKeys: ptrStr(""),
+			Email:       model.NewPointer("false"),
+			MentionKeys: model.NewPointer(""),
 		},
 	}
 	require.Nil(t, th.App.importUser(th.Context, &data, false))
@@ -1984,8 +1986,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, err := th.App.GetTeamByName(teamName)
 	require.Nil(t, err, "Failed to get team from database.")
@@ -1996,7 +1998,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	channel, err := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
@@ -2006,7 +2008,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user, err := th.App.GetUserByUsername(username)
 	require.Nil(t, err, "Failed to get user from database.")
@@ -2038,8 +2040,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Hello"),
-				CreateAt: ptrInt64(model.GetMillis()),
+				Message:  model.NewPointer("Hello"),
+				CreateAt: model.NewPointer(model.GetMillis()),
 			},
 		},
 		LineNumber: 1,
@@ -2056,7 +2058,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				CreateAt: ptrInt64(model.GetMillis()),
+				CreateAt: model.NewPointer(model.GetMillis()),
 			},
 		},
 		LineNumber: 35,
@@ -2070,11 +2072,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	data = imports.LineImportWorkerData{
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
-				Team:     ptrStr(NewTestId()),
+				Team:     model.NewPointer(NewTestId()),
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message"),
-				CreateAt: ptrInt64(model.GetMillis()),
+				Message:  model.NewPointer("Message"),
+				CreateAt: model.NewPointer(model.GetMillis()),
 			},
 		},
 		LineNumber: 10,
@@ -2091,10 +2093,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
-				Channel:  ptrStr(NewTestId()),
+				Channel:  model.NewPointer(NewTestId()),
 				User:     &username,
-				Message:  ptrStr("Message"),
-				CreateAt: ptrInt64(model.GetMillis()),
+				Message:  model.NewPointer("Message"),
+				CreateAt: model.NewPointer(model.GetMillis()),
 			},
 		},
 		LineNumber: 7,
@@ -2112,9 +2114,9 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
-				User:     ptrStr(model.NewId()),
-				Message:  ptrStr("Message"),
-				CreateAt: ptrInt64(model.GetMillis()),
+				User:     model.NewPointer(model.NewId()),
+				Message:  model.NewPointer("Message"),
+				CreateAt: model.NewPointer(model.GetMillis()),
 			},
 		},
 		LineNumber: 2,
@@ -2134,7 +2136,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message"),
+				Message:  model.NewPointer("Message"),
 				CreateAt: &createAt,
 			},
 		},
@@ -2162,7 +2164,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message"),
+				Message:  model.NewPointer("Message"),
 				CreateAt: &createAt,
 			},
 		},
@@ -2191,7 +2193,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message"),
+				Message:  model.NewPointer("Message"),
 				CreateAt: &newTime,
 			},
 		},
@@ -2209,7 +2211,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message 2"),
+				Message:  model.NewPointer("Message 2"),
 				CreateAt: &createAt,
 			},
 		},
@@ -2228,7 +2230,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message 2 #hashtagmashupcity"),
+				Message:  model.NewPointer("Message 2 #hashtagmashupcity"),
 				CreateAt: &hashtagTime,
 			},
 		},
@@ -2254,7 +2256,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user2, err := th.App.GetUserByUsername(username2)
 	require.Nil(t, err, "Failed to get user from database.")
@@ -2266,7 +2268,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message with Favorites"),
+				Message:  model.NewPointer("Message with Favorites"),
 				CreateAt: &flagsTime,
 				FlaggedBy: &[]string{
 					username,
@@ -2305,11 +2307,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message with reaction"),
+				Message:  model.NewPointer("Message with reaction"),
 				CreateAt: &reactionPostTime,
 				Reactions: &[]imports.ReactionImportData{{
 					User:      &user2.Username,
-					EmojiName: ptrStr("+1"),
+					EmojiName: model.NewPointer("+1"),
 					CreateAt:  &reactionTime,
 				}},
 			},
@@ -2346,11 +2348,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("Message with reply"),
+				Message:  model.NewPointer("Message with reply"),
 				CreateAt: &replyPostTime,
 				Replies: &[]imports.ReplyImportData{{
 					User:     &user2.Username,
-					Message:  ptrStr("Message reply"),
+					Message:  model.NewPointer("Message reply"),
 					CreateAt: &replyTime,
 				}},
 			},
@@ -2392,11 +2394,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &user2.Username,
-				Message:  ptrStr("Message with reply"),
+				Message:  model.NewPointer("Message with reply"),
 				CreateAt: &replyPostTime,
 				Replies: &[]imports.ReplyImportData{{
 					User:     &username,
-					Message:  ptrStr("Message reply"),
+					Message:  model.NewPointer("Message reply"),
 					CreateAt: &replyTime,
 				}},
 			},
@@ -2416,11 +2418,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &user2.Username,
-				Message:  ptrStr("Message with reply 2"),
+				Message:  model.NewPointer("Message with reply 2"),
 				CreateAt: &replyPostTime,
 				Replies: &[]imports.ReplyImportData{{
 					User:     &username,
-					Message:  ptrStr("Message reply"),
+					Message:  model.NewPointer("Message reply"),
 					CreateAt: &replyTime,
 				}},
 			},
@@ -2440,11 +2442,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &user2.Username,
-				Message:  ptrStr("Message with reply"),
+				Message:  model.NewPointer("Message with reply"),
 				CreateAt: &replyPostTime,
 				Replies: &[]imports.ReplyImportData{{
 					User:     &username,
-					Message:  ptrStr("Message reply 2"),
+					Message:  model.NewPointer("Message reply 2"),
 					CreateAt: &replyTime,
 				}},
 			},
@@ -2470,12 +2472,12 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &user2.Username,
-				Message:  ptrStr("Message with reply"),
+				Message:  model.NewPointer("Message with reply"),
 				CreateAt: &editedReplyPostTime,
 				Replies: &[]imports.ReplyImportData{{
 					User:     &username,
-					Type:     ptrStr(model.PostTypeSystemGeneric),
-					Message:  ptrStr("Message reply 3"),
+					Type:     model.NewPointer(model.PostTypeSystemGeneric),
+					Message:  model.NewPointer("Message reply 3"),
 					CreateAt: &editedReplyTime,
 					EditAt:   &editedReplyEditTime,
 				}},
@@ -2501,8 +2503,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	teamName2 := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName2,
-		DisplayName: ptrStr("Display Name 2"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name 2"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team2, err := th.App.GetTeamByName(teamName2)
 	require.Nil(t, err, "Failed to get team from database.")
@@ -2511,7 +2513,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName2,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	_, err = th.App.GetChannelByName(th.Context, channelName, team2.Id, false)
@@ -2528,7 +2530,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("another message"),
+				Message:  model.NewPointer("another message"),
 				CreateAt: &createAt,
 			},
 		},
@@ -2540,7 +2542,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName2,
 				Channel:  &channelName,
 				User:     &username,
-				Message:  ptrStr("another message"),
+				Message:  model.NewPointer("another message"),
 				CreateAt: &createAt,
 			},
 		},
@@ -2557,9 +2559,9 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				Team:     &teamName,
 				Channel:  &channelName,
 				User:     &user2.Username,
-				Message:  ptrStr("Pinned Message"),
-				CreateAt: ptrInt64(model.GetMillis()),
-				IsPinned: ptrBool(true),
+				Message:  model.NewPointer("Pinned Message"),
+				CreateAt: model.NewPointer(model.GetMillis()),
+				IsPinned: model.NewPointer(true),
 			},
 		},
 		LineNumber: 1,
@@ -2626,19 +2628,19 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user.Username,
-					Message:  ptrStr("Thread Message"),
-					CreateAt: ptrInt64(importCreate),
+					Message:  model.NewPointer("Thread Message"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
 						User:     &user.Username,
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewed: ptrInt64(model.GetMillis()),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}, {
 						User:       &user2.Username,
-						LastViewed: ptrInt64(model.GetMillis()),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}},
 				},
 			},
@@ -2668,18 +2670,18 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user.Username,
-					Message:  ptrStr("Thread Message"),
-					CreateAt: ptrInt64(importCreate),
+					Message:  model.NewPointer("Thread Message"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
 						User:     &user.Username,
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewed: ptrInt64(model.GetMillis()),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}, {
-						User: ptrStr("invalid.user"),
+						User: model.NewPointer("invalid.user"),
 					}},
 				},
 			},
@@ -2699,18 +2701,18 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user.Username,
-					Message:  ptrStr("Thread Message"),
-					CreateAt: ptrInt64(importCreate),
+					Message:  model.NewPointer("Thread Message"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
 						User:     &user.Username,
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewed: ptrInt64(model.GetMillis()),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}, {
-						User: ptrStr("invalid.user"),
+						User: model.NewPointer("invalid.user"),
 					}},
 				},
 			},
@@ -2730,8 +2732,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Hello"),
-					CreateAt: ptrInt64(importCreate),
+					Message:  model.NewPointer("Hello"),
+					CreateAt: model.NewPointer(importCreate),
 				},
 			},
 			LineNumber: 1,
@@ -2751,16 +2753,16 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user.Username,
-					Message:  ptrStr("Hello"),
-					CreateAt: ptrInt64(importCreate),
+					Message:  model.NewPointer("Hello"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
 						User:     &user.Username,
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
 						User:       &user.Username,
-						LastViewed: ptrInt64(model.GetMillis()),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}},
 				},
 			},
@@ -2856,8 +2858,8 @@ func TestImportImportPost(t *testing.T) {
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -2868,7 +2870,7 @@ func TestImportImportPost(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
@@ -2878,7 +2880,7 @@ func TestImportImportPost(t *testing.T) {
 	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
@@ -2886,7 +2888,7 @@ func TestImportImportPost(t *testing.T) {
 	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user from database.")
@@ -2927,8 +2929,8 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Hello"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					Message:  model.NewPointer("Hello"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 1,
@@ -2946,7 +2948,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					CreateAt: ptrInt64(model.GetMillis()),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 2,
@@ -2961,11 +2963,11 @@ func TestImportImportPost(t *testing.T) {
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
-					Team:     ptrStr(NewTestId()),
+					Team:     model.NewPointer(NewTestId()),
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 7,
@@ -2981,10 +2983,10 @@ func TestImportImportPost(t *testing.T) {
 			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
-					Channel:  ptrStr(NewTestId()),
+					Channel:  model.NewPointer(NewTestId()),
 					User:     &username,
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 8,
@@ -3001,9 +3003,9 @@ func TestImportImportPost(t *testing.T) {
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
-					User:     ptrStr(model.NewId()),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(model.NewId()),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 9,
@@ -3021,7 +3023,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message"),
+					Message:  model.NewPointer("Message"),
 					CreateAt: &time,
 				},
 			},
@@ -3050,7 +3052,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username2,
-					Message:  ptrStr("Message"),
+					Message:  model.NewPointer("Message"),
 					CreateAt: &time,
 				},
 			},
@@ -3080,7 +3082,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message"),
+					Message:  model.NewPointer("Message"),
 					CreateAt: &newTime,
 				},
 			},
@@ -3099,7 +3101,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message 2"),
+					Message:  model.NewPointer("Message 2"),
 					CreateAt: &time,
 				},
 			},
@@ -3118,7 +3120,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message 2 #hashtagmashupcity"),
+					Message:  model.NewPointer("Message 2 #hashtagmashupcity"),
 					CreateAt: &hashtagTime,
 				},
 			},
@@ -3149,7 +3151,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message with Favorites"),
+					Message:  model.NewPointer("Message with Favorites"),
 					CreateAt: &flagsTime,
 					FlaggedBy: &[]string{
 						username,
@@ -3189,11 +3191,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message with reaction"),
+					Message:  model.NewPointer("Message with reaction"),
 					CreateAt: &reactionPostTime,
 					Reactions: &[]imports.ReactionImportData{{
 						User:      &user2.Username,
-						EmojiName: ptrStr("+1"),
+						EmojiName: model.NewPointer("+1"),
 						CreateAt:  &reactionTime,
 					}},
 				},
@@ -3229,11 +3231,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message with reply"),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: &replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &user2.Username,
-						Message:  ptrStr("Message reply"),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: &replyTime,
 					}},
 				},
@@ -3276,11 +3278,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user2.Username,
-					Message:  ptrStr("Message with reply"),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: &replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &username,
-						Message:  ptrStr("Message reply"),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: &replyTime,
 					}},
 				},
@@ -3301,11 +3303,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user2.Username,
-					Message:  ptrStr("Message with reply 2"),
+					Message:  model.NewPointer("Message with reply 2"),
 					CreateAt: &replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &username,
-						Message:  ptrStr("Message reply"),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: &replyTime,
 					}},
 				},
@@ -3326,11 +3328,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user2.Username,
-					Message:  ptrStr("Message with reply"),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: &replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &username,
-						Message:  ptrStr("Message reply 2"),
+						Message:  model.NewPointer("Message reply 2"),
 						CreateAt: &replyTime,
 					}},
 				},
@@ -3351,8 +3353,8 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Type:     ptrStr(model.PostTypeSystemGeneric),
-					Message:  ptrStr("Message with Type"),
+					Type:     model.NewPointer(model.PostTypeSystemGeneric),
+					Message:  model.NewPointer("Message with Type"),
 					CreateAt: &posttypeTime,
 				},
 			},
@@ -3383,7 +3385,7 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  ptrStr("Message with Type"),
+					Message:  model.NewPointer("Message with Type"),
 					CreateAt: &editatCreateTime,
 					EditAt:   &editatEditTime,
 				},
@@ -3417,11 +3419,11 @@ func TestImportImportPost(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &user2.Username,
-					Message:  ptrStr("Message with reply"),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: &now,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &username,
-						Message:  ptrStr("Message reply 2"),
+						Message:  model.NewPointer("Message reply 2"),
 						CreateAt: &before,
 					}},
 				},
@@ -3484,7 +3486,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 					Username: model.NewPointer(model.NewId()),
 				},
 			},
-			Header: ptrStr("Channel Header"),
+			Header: model.NewPointer("Channel Header"),
 		})
 		for name, data := range dataset {
 			t.Run(name, func(t *testing.T) {
@@ -3596,7 +3598,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 				// Update the channel's HEADER
-				data.Header = ptrStr("New Channel Header 2")
+				data.Header = model.NewPointer("New Channel Header 2")
 				appErr = th.App.importDirectChannel(th.Context, &data, false)
 				require.Nil(t, appErr)
 
@@ -3673,7 +3675,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 				AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 				// Update the channel's HEADER
-				data.Header = ptrStr("New Channel Header 3")
+				data.Header = model.NewPointer("New Channel Header 3")
 				appErr = th.App.importDirectChannel(th.Context, &data, false)
 				require.Nil(t, appErr)
 
@@ -3728,7 +3730,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 			Participants: []*imports.DirectChannelMemberImportData{
 				{
 					Username:     model.NewPointer(th.BasicUser.Username),
-					LastViewedAt: ptrInt64(lastView),
+					LastViewedAt: model.NewPointer(lastView),
 				},
 				{
 					Username: model.NewPointer(th.BasicUser2.Username),
@@ -3863,8 +3865,8 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 7,
@@ -3883,9 +3885,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 1,
@@ -3904,9 +3906,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						model.NewId(),
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 9,
@@ -3925,9 +3927,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate),
 				},
 			},
 			LineNumber: 1,
@@ -3956,9 +3958,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate),
 				},
 			},
 			LineNumber: 1,
@@ -3987,9 +3989,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate + 1),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate + 1),
 				},
 			},
 			LineNumber: 1,
@@ -4008,9 +4010,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message 2"),
-					CreateAt: ptrInt64(initialDate + 1),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message 2"),
+					CreateAt: model.NewPointer(initialDate + 1),
 				},
 			},
 			LineNumber: 1,
@@ -4029,9 +4031,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message 2 #hashtagmashupcity"),
-					CreateAt: ptrInt64(initialDate + 2),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message 2 #hashtagmashupcity"),
+					CreateAt: model.NewPointer(initialDate + 2),
 				},
 			},
 			LineNumber: 1,
@@ -4064,9 +4066,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 1,
@@ -4095,10 +4097,10 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Type:     ptrStr(model.PostTypeSystemGeneric),
-					Message:  ptrStr("Message with Type"),
-					CreateAt: ptrInt64(posttypeDate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Type:     model.NewPointer(model.PostTypeSystemGeneric),
+					Message:  model.NewPointer("Message with Type"),
+					CreateAt: model.NewPointer(posttypeDate),
 				},
 			},
 			LineNumber: 1,
@@ -4127,10 +4129,10 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message with EditAt"),
-					CreateAt: ptrInt64(editatCreateDate),
-					EditAt:   ptrInt64(editatEditDate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message with EditAt"),
+					CreateAt: model.NewPointer(editatCreateDate),
+					EditAt:   model.NewPointer(editatEditDate),
 				},
 			},
 			LineNumber: 1,
@@ -4161,8 +4163,8 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message with EditAt"),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message with EditAt"),
 					CreateAt: &creationTime,
 					IsPinned: &pinnedValue,
 				},
@@ -4192,20 +4194,20 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Thread Message"),
-					CreateAt: ptrInt64(importCreate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Thread Message"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser.Username),
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						User:     model.NewPointer(th.BasicUser.Username),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
-						User:       ptrStr(th.BasicUser.Username),
-						LastViewed: ptrInt64(model.GetMillis()),
+						User:       model.NewPointer(th.BasicUser.Username),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}, {
-						User:       ptrStr(th.BasicUser2.Username),
-						LastViewed: ptrInt64(model.GetMillis()),
+						User:       model.NewPointer(th.BasicUser2.Username),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}},
 				},
 			},
@@ -4235,9 +4237,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Hello"),
-					CreateAt: ptrInt64(importCreate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Hello"),
+					CreateAt: model.NewPointer(importCreate),
 				},
 			},
 			LineNumber: 1,
@@ -4258,17 +4260,17 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Hello"),
-					CreateAt: ptrInt64(importCreate),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Hello"),
+					CreateAt: model.NewPointer(importCreate),
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser.Username),
-						Message:  ptrStr("Reply"),
-						CreateAt: ptrInt64(model.GetMillis()),
+						User:     model.NewPointer(th.BasicUser.Username),
+						Message:  model.NewPointer("Reply"),
+						CreateAt: model.NewPointer(model.GetMillis()),
 					}},
 					ThreadFollowers: &[]imports.ThreadFollowerImportData{{
-						User:       ptrStr(th.BasicUser.Username),
-						LastViewed: ptrInt64(model.GetMillis()),
+						User:       model.NewPointer(th.BasicUser.Username),
+						LastViewed: model.NewPointer(model.GetMillis()),
 					}},
 				},
 			},
@@ -4330,8 +4332,8 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 4,
@@ -4351,9 +4353,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 1,
@@ -4374,9 +4376,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						user3.Username,
 						model.NewId(),
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 8,
@@ -4396,9 +4398,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate + 10),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate + 10),
 				},
 			},
 			LineNumber: 1,
@@ -4428,9 +4430,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate + 10),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate + 10),
 				},
 			},
 			LineNumber: 1,
@@ -4460,9 +4462,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(initialDate + 11),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(initialDate + 11),
 				},
 			},
 			LineNumber: 1,
@@ -4482,9 +4484,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message 2"),
-					CreateAt: ptrInt64(initialDate + 11),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message 2"),
+					CreateAt: model.NewPointer(initialDate + 11),
 				},
 			},
 			LineNumber: 1,
@@ -4504,9 +4506,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message 2 #hashtagmashupcity"),
-					CreateAt: ptrInt64(initialDate + 12),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message 2 #hashtagmashupcity"),
+					CreateAt: model.NewPointer(initialDate + 12),
 				},
 			},
 			LineNumber: 1,
@@ -4540,9 +4542,9 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser.Username,
 						th.BasicUser2.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 				},
 			},
 			LineNumber: 1,
@@ -4565,8 +4567,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
-		reactionPostTime := ptrInt64(initialDate + 22)
-		reactionTime := ptrInt64(initialDate + 23)
+		reactionPostTime := model.NewPointer(initialDate + 22)
+		reactionTime := model.NewPointer(initialDate + 23)
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
@@ -4575,12 +4577,12 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message with reaction"),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message with reaction"),
 					CreateAt: reactionPostTime,
 					Reactions: &[]imports.ReactionImportData{{
-						User:      ptrStr(th.BasicUser2.Username),
-						EmojiName: ptrStr("+1"),
+						User:      model.NewPointer(th.BasicUser2.Username),
+						EmojiName: model.NewPointer("+1"),
 						CreateAt:  reactionTime,
 					}},
 				},
@@ -4610,8 +4612,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Post with reply", func(t *testing.T) {
-		replyPostTime := ptrInt64(initialDate + 25)
-		replyTime := ptrInt64(initialDate + 26)
+		replyPostTime := model.NewPointer(initialDate + 25)
+		replyTime := model.NewPointer(initialDate + 26)
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
@@ -4620,12 +4622,12 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser.Username),
-					Message:  ptrStr("Message with reply"),
+					User:     model.NewPointer(th.BasicUser.Username),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser2.Username),
-						Message:  ptrStr("Message reply"),
+						User:     model.NewPointer(th.BasicUser2.Username),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: replyTime,
 					}},
 				},
@@ -4662,8 +4664,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Update post with replies", func(t *testing.T) {
-		replyPostTime := ptrInt64(initialDate + 25)
-		replyTime := ptrInt64(initialDate + 26)
+		replyPostTime := model.NewPointer(initialDate + 25)
+		replyTime := model.NewPointer(initialDate + 26)
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
@@ -4672,12 +4674,12 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser2.Username),
-					Message:  ptrStr("Message with reply"),
+					User:     model.NewPointer(th.BasicUser2.Username),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser.Username),
-						Message:  ptrStr("Message reply"),
+						User:     model.NewPointer(th.BasicUser.Username),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: replyTime,
 					}},
 				},
@@ -4692,8 +4694,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
-		replyPostTime := ptrInt64(initialDate + 27)
-		replyTime := ptrInt64(initialDate + 28)
+		replyPostTime := model.NewPointer(initialDate + 27)
+		replyTime := model.NewPointer(initialDate + 28)
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
@@ -4702,12 +4704,12 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser2.Username),
-					Message:  ptrStr("Message with reply 2"),
+					User:     model.NewPointer(th.BasicUser2.Username),
+					Message:  model.NewPointer("Message with reply 2"),
 					CreateAt: replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser.Username),
-						Message:  ptrStr("Message reply"),
+						User:     model.NewPointer(th.BasicUser.Username),
+						Message:  model.NewPointer("Message reply"),
 						CreateAt: replyTime,
 					}},
 				},
@@ -4722,9 +4724,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Post with reply having non-empty type and edit_at", func(t *testing.T) {
-		replyPostTime := ptrInt64(initialDate + 29)
-		replyTime := ptrInt64(initialDate + 30)
-		replyEditTime := ptrInt64(initialDate + 31)
+		replyPostTime := model.NewPointer(initialDate + 29)
+		replyTime := model.NewPointer(initialDate + 30)
+		replyEditTime := model.NewPointer(initialDate + 31)
 		data := imports.LineImportWorkerData{
 			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
@@ -4733,13 +4735,13 @@ func TestImportImportDirectPost(t *testing.T) {
 						th.BasicUser2.Username,
 						user3.Username,
 					},
-					User:     ptrStr(th.BasicUser2.Username),
-					Message:  ptrStr("Message with reply"),
+					User:     model.NewPointer(th.BasicUser2.Username),
+					Message:  model.NewPointer("Message with reply"),
 					CreateAt: replyPostTime,
 					Replies: &[]imports.ReplyImportData{{
-						User:     ptrStr(th.BasicUser.Username),
-						Type:     ptrStr(model.PostTypeSystemGeneric),
-						Message:  ptrStr("Message reply 2"),
+						User:     model.NewPointer(th.BasicUser.Username),
+						Type:     model.NewPointer(model.PostTypeSystemGeneric),
+						Message:  model.NewPointer("Message reply 2"),
 						CreateAt: replyTime,
 						EditAt:   replyEditTime,
 					}},
@@ -4775,7 +4777,7 @@ func TestImportImportEmoji(t *testing.T) {
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
 
-	data := imports.EmojiImportData{Name: ptrStr(model.NewId())}
+	data := imports.EmojiImportData{Name: model.NewPointer(model.NewId())}
 	appErr := th.App.importEmoji(th.Context, &data, true)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
@@ -4783,19 +4785,19 @@ func TestImportImportEmoji(t *testing.T) {
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
-	data.Image = ptrStr(testImage)
+	data.Image = model.NewPointer(testImage)
 	appErr = th.App.importEmoji(th.Context, &data, true)
 	assert.Nil(t, appErr, "Valid emoji should have passed dry run")
 
-	data = imports.EmojiImportData{Name: ptrStr(model.NewId())}
+	data = imports.EmojiImportData{Name: model.NewPointer(model.NewId())}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed apply mode")
 
-	data.Image = ptrStr("non-existent-file")
+	data.Image = model.NewPointer("non-existent-file")
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.NotNil(t, appErr, "Emoji with bad image file should have failed apply mode")
 
-	data.Image = ptrStr(testImage)
+	data.Image = model.NewPointer(testImage)
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
@@ -4806,12 +4808,12 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Second run should have succeeded apply mode")
 
-	data = imports.EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
+	data = imports.EmojiImportData{Name: model.NewPointer("smiley"), Image: model.NewPointer(testImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "System emoji should not fail")
 
 	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
-	data = imports.EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
+	data = imports.EmojiImportData{Name: model.NewPointer(model.NewId()), Image: model.NewPointer(largeImage)}
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	require.NotNil(t, appErr)
 	require.ErrorIs(t, appErr.Unwrap(), utils.ErrSizeLimitExceeded)
@@ -4847,8 +4849,8 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -4859,7 +4861,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
@@ -4869,7 +4871,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user3, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -4878,7 +4880,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user2 from database.")
@@ -4887,7 +4889,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	username3 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user3, appErr = th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -4895,7 +4897,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	username4 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 
 	user4, appErr := th.App.GetUserByUsername(username4)
@@ -4914,12 +4916,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 				Team:        &teamName,
 				Channel:     &channelName,
 				User:        &username3,
-				Message:     ptrStr("Message with reply"),
+				Message:     model.NewPointer("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
 				Attachments: &[]imports.AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
 				Replies: &[]imports.ReplyImportData{{
 					User:        &user4.Username,
-					Message:     ptrStr("Message reply"),
+					Message:     model.NewPointer("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImage}},
 				}},
@@ -4971,12 +4973,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 						user2.Username,
 					},
 					User:     &user3.Username,
-					Message:  ptrStr("Message with Replies"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					Message:  model.NewPointer("Message with Replies"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 					Replies: &[]imports.ReplyImportData{{
 						User:        &user2.Username,
-						Message:     ptrStr("Message reply with attachment"),
-						CreateAt:    ptrInt64(model.GetMillis()),
+						Message:     model.NewPointer("Message reply with attachment"),
+						CreateAt:    model.NewPointer(model.GetMillis()),
 						Attachments: &[]imports.AttachmentImportData{{Path: &testImage}},
 					}},
 				},
@@ -5093,7 +5095,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	username := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user1, appErr := th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user1 from database.")
@@ -5101,7 +5103,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 
 	user2, appErr := th.App.GetUserByUsername(username2)
@@ -5115,8 +5117,8 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 					user2.Username,
 				},
 				User:        &user1.Username,
-				Message:     ptrStr("Direct message"),
-				CreateAt:    ptrInt64(model.GetMillis()),
+				Message:     model.NewPointer("Direct message"),
+				CreateAt:    model.NewPointer(model.GetMillis()),
 				Attachments: &[]imports.AttachmentImportData{{Path: &testImage}},
 			},
 		},
@@ -5152,8 +5154,8 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 						user2.Username,
 					},
 					User:        &user1.Username,
-					Message:     ptrStr("Direct message"),
-					CreateAt:    ptrInt64(model.GetMillis()),
+					Message:     model.NewPointer("Direct message"),
+					CreateAt:    model.NewPointer(model.GetMillis()),
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImageFake}},
 				},
 			},
@@ -5177,8 +5179,8 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 						user2.Username,
 					},
 					User:        &user1.Username,
-					Message:     ptrStr("Direct message"),
-					CreateAt:    ptrInt64(model.GetMillis()),
+					Message:     model.NewPointer("Direct message"),
+					CreateAt:    model.NewPointer(model.GetMillis()),
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImage2}},
 				},
 			},
@@ -5202,8 +5204,8 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	teamName := model.NewRandomTeamName()
 	th.App.importTeam(th.Context, &imports.TeamImportData{
 		Name:        &teamName,
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}, false)
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -5214,7 +5216,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	th.App.importChannel(th.Context, &imports.ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
-		DisplayName: ptrStr("Display Name"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
 	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
@@ -5224,7 +5226,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	username2 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username2,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user2, appErr := th.App.GetUserByUsername(username2)
 	require.Nil(t, appErr, "Failed to get user2 from database.")
@@ -5233,7 +5235,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	username3 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username3,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 	user3, appErr := th.App.GetUserByUsername(username3)
 	require.Nil(t, appErr, "Failed to get user3 from database.")
@@ -5241,7 +5243,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	username4 := model.NewUsername()
 	th.App.importUser(th.Context, &imports.UserImportData{
 		Username: &username4,
-		Email:    ptrStr(model.NewId() + "@example.com"),
+		Email:    model.NewPointer(model.NewId() + "@example.com"),
 	}, false)
 
 	user4, appErr := th.App.GetUserByUsername(username4)
@@ -5271,12 +5273,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 				Team:        &teamName,
 				Channel:     &channelName,
 				User:        &username3,
-				Message:     ptrStr("Message with reply"),
+				Message:     model.NewPointer("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
 				Attachments: &[]imports.AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
 				Replies: &[]imports.ReplyImportData{{
 					User:        &user4.Username,
-					Message:     ptrStr("Message reply"),
+					Message:     model.NewPointer("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImage, Data: imageData}},
 				}},
@@ -5328,12 +5330,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 						user2.Username,
 					},
 					User:     &user3.Username,
-					Message:  ptrStr("Message with Replies"),
-					CreateAt: ptrInt64(model.GetMillis()),
+					Message:  model.NewPointer("Message with Replies"),
+					CreateAt: model.NewPointer(model.GetMillis()),
 					Replies: &[]imports.ReplyImportData{{
 						User:        &user2.Username,
-						Message:     ptrStr("Message reply with attachment"),
-						CreateAt:    ptrInt64(model.GetMillis()),
+						Message:     model.NewPointer("Message reply with attachment"),
+						CreateAt:    model.NewPointer(model.GetMillis()),
 						Attachments: &[]imports.AttachmentImportData{{Path: &testImage}},
 					}},
 				},

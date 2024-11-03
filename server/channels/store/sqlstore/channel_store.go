@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -3356,7 +3357,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	}
 
 	likeFields := "c.Name, c.DisplayName, c.Purpose"
-	if opts.IncludeSearchById {
+	if opts.IncludeSearchByID {
 		likeFields = likeFields + ", c.Id"
 	}
 
@@ -4321,4 +4322,41 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+func (s SqlChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
+	query := s.getQueryBuilder().Select("schemeid").From("channels").Where(sq.Eq{"id": channelID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+	// we look for schemeID to look for a custom scheme, if there is none chances are it is a writeable
+	// there might be in effect a custom scheme for the user that doesn't allow to create posts, but that wouldn't
+	// be a readonly channel but a readonly user
+	var schemaId string
+	err = s.GetReplicaX().Get(&schemaId, squery, args...)
+	if err != nil {
+		return false, nil
+	}
+	if schemaId == "" {
+		return false, nil
+	}
+	return s.IsChannelReadOnlyScheme(schemaId)
+}
+
+func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) {
+	query := s.getQueryBuilder().Select("roles.permissions").From("roles").InnerJoin("schemes ON roles.name = schemes.defaultchanneluserrole").Where(sq.Eq{"schemes.id": schemeID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	var permissions string
+	err = s.GetReplicaX().Get(&permissions, squery, args...)
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	permissionList := strings.Split(permissions, " ")
+	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }

@@ -1728,7 +1728,6 @@
   "admin.team_channel_settings.convertAndRemoveConfirmModal.cancel": "아니오, 취소하겠습니다",
   "admin.team_channel_settings.convertConfirmModal.cancel": "아니오, 취소하겠습니다",
   "admin.team_channel_settings.convertConfirmModal.toPrivateConfirm": "네, 비공개 채널로 변환하겠습니다",
-  "admin.team_channel_settings.convertConfirmModal.toPrivateMessage": "**{displayName}** 채널을 비공개 채널로 변환하면 기록과 구성원이 보존됩니다. 공개 공유 파일은 링크가 있는 사람이면 누구나 접근할 수 있습니다. 비공개 채널의 회원 자격은 초대에 의해서만 이루어집니다.\n\n**{displayName}** 채널을 비공개 채널로 변환하시겠습니까?",
   "admin.team_channel_settings.convertConfirmModal.toPrivateTitle": "{displayName} 채널을 비공개 채널로 변환하시겠습니까?",
   "admin.team_channel_settings.convertConfirmModal.toPublicConfirm": "네, 비공개 채널로 변환하겠습니다",
   "admin.team_channel_settings.convertConfirmModal.toPublicTitle": "{displayName} 채널을 공개 채널로 변환하시겠습니까?",
