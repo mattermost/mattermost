@@ -1477,7 +1477,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "Ліцензія не підтримує оновлення схеми команди "
+    "translation": "Ваша ліцензія не підтримує зміну схем дозволів"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -1605,7 +1605,7 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "Порожній масив 'image' в запиті "
+    "translation": "Порожній масив 'file' в запиті."
   },
   {
     "id": "api.team.import_team.integer.app_error",
@@ -1613,7 +1613,7 @@
   },
   {
     "id": "api.team.import_team.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
+    "translation": "У запиті відсутній файл 'file'."
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
@@ -1621,11 +1621,11 @@
   },
   {
     "id": "api.team.import_team.open.app_error",
-    "translation": "Не вдалося відкрити файл "
+    "translation": "Не вдалося відкрити файл."
   },
   {
     "id": "api.team.import_team.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин "
+    "translation": "Не вдалося розібрати складову форму."
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
@@ -1657,7 +1657,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "Електронна пошта повинна бути з певного домену (наприклад, @example.com). Будь ласка, запитайте системного адміністратора про деталі. "
+    "translation": "Користувач не може бути доданий, оскільки домен, пов'язаний з обліковим записом, не дозволений. Зверніться до системного адміністратора за додатковою інформацією."
   },
   {
     "id": "api.team.leave.left",
@@ -1665,7 +1665,7 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Не вдалося опублікувати повідомлення про приєднання / залишення "
+    "translation": "Не вдалося опублікувати повідомлення про переміщення каналу."
   },
   {
     "id": "api.team.move_channel.success",
@@ -1673,7 +1673,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "Виникла помилка отримання команди "
+    "translation": "Виникла помилка при отриманні команди."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -1681,11 +1681,11 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v вилучено з каналу. "
+    "translation": "%v вилучено з команди."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Порожній масив 'image' в запиті "
+    "translation": "Порожній масив 'image' в запиті."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -1701,7 +1701,7 @@
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
+    "translation": "У запиті відсутній файл 'image'."
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
@@ -1709,7 +1709,7 @@
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин "
+    "translation": "Не вдалося розібрати складову форму."
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
@@ -5545,11 +5545,11 @@
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
-    "translation": "У вас немає відповідних прав для редагування заголовка каналу. "
+    "translation": "У вас немає дозволів, щоб отримати список всіх команд"
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
+    "translation": "Ваша ліцензія не підтримує гостьові облікові записи"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -6950,5 +6950,157 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Не вдається встановити вміст файлу для пошуку."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Відсутній display_name в тілі запиту"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Драйвер файлового сховища не підтримує генерацію посилань."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Не вдається отримати список експорту."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} та {{.Others}} додані до каналу {{.Channel}}."
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Пароль для запрошення"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Відсутній team_id в тілі запиту"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Некоректне оновлення учасника каналу: гостя не можна зробити членом команди або адміністратором команди, будь ласка, спочатку зробіть його користувачем."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Ваша ліцензія не підтримує закладки каналів."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "У користувача відсутні права створювати закладки каналів."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не вдалося створити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Не вдалося створити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "У користувача відсутні права конвертувати групове повідомлення у приватний канал"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} створив цей канал із групового повідомлення з {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "У вас відсутні права на зміну назви, display_name та призначення особистих або групових повідомлень."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Не вдалося підтвердити запрошення: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Пароль для шифрування запрошення"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "У вас недостатньо прав для запуску цієї команди."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Не вдається згенерувати URL-адресу попереднього підпису."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} та {{.Others}} вже знаходяться на каналі."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Згенеруйте посилання для завантаження експорту."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Цим каналом керують групи.   Цей користувач не є членом групи, яка синхронізується з цим каналом."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "У вас відсутні права на зміну назви, display_name та призначення особистих або групових повідомлень."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Некоректне оновлення учасника каналу: гостя не можна призначити для одного каналу, системний адміністратор повинен підвищувати або знижувати користувачів у статусі до/з гостя."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Файл експорту не знайдено."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip ім'я файлу|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Не вдалося знайти запитуваний вами файл."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Ви можете завантажити свій файл тут: {{.Link}}. \nТермін дії цього посилання закінчується через {{.Expiration}}."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Ви можете додати до цього каналу {{.FirstUser}} та {{.Others}} інших користувачів, якщо вони є членами команди **{{.Team}}**."
   }
 ]
