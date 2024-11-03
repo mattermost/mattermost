@@ -1,35 +1,35 @@
 [
   {
     "id": "April",
-    "translation": "квітень"
+    "translation": "Квітень"
   },
   {
     "id": "August",
-    "translation": "серпень"
+    "translation": "Серпень"
   },
   {
     "id": "December",
-    "translation": "грудень"
+    "translation": "Грудень"
   },
   {
     "id": "February",
-    "translation": "лютий"
+    "translation": "Лютий"
   },
   {
     "id": "January",
-    "translation": "січень"
+    "translation": "Січень"
   },
   {
     "id": "July",
-    "translation": "липень"
+    "translation": "Липень"
   },
   {
     "id": "June",
-    "translation": "червень"
+    "translation": "Червень"
   },
   {
     "id": "March",
-    "translation": "березень"
+    "translation": "Березень"
   },
   {
     "id": "May",
@@ -49,15 +49,15 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
+    "translation": "У запиті не знайдено жодного файлу під назвою 'certificate'."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
+    "translation": "У запиті відсутній файл у розділі \"сертифікат\"."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Файл сертифіката не може бути відкритий."
+    "translation": "Не вдалося відкрити файл сертифіката."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -65,7 +65,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Помилка читання лог файлу. "
+    "translation": "Помилка читання лог файлу."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+    "translation": "Під час видалення сертифіката сталася помилка."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -173,19 +173,19 @@
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "Один із запропонованих користувачів не існує"
+    "translation": "Один з вказаних користувачів не існує."
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "% v долучився до каналу"
+    "translation": "%v архівував канал."
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Неможливо видалити канал за замовчуванням {{.Channel}}"
+    "translation": "Не вдається видалити канал за замовчуванням {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
-    "translation": "Даний канал був переміщений в архів, або видалений"
+    "translation": "Канал було заархівовано або видалено."
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
@@ -5753,7 +5753,7 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "Відсутній вузол SSO-дескрипторів постачальника ідентифікаційних даних у XML."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -5761,15 +5761,15 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "Виникла помилка під час розбору інформації метаданих, отриманих від постачальника ідентифікації до сертифіката."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "Не вдалося отримати метадані з URL-адреси постачальника ідентифікаційних даних."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "Не вдалося видалити зображення бренду, не знайдено."
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6749,15 +6749,15 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Підтвердження в архівному каналі неможливо."
+    "translation": "Ви не можете підтвердити в архівованому каналі."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Ви не можете видалити підтвердження після закінчення 5 хвилин."
+    "translation": "Ви не можете видалити підтвердження після того, як минуло 5 хвилин."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
-    "translation": "Ви не можете видалити підтвердження в заархівованому каналі."
+    "translation": "Ви не можете видалити підтвердження в архівованому каналі."
   },
   {
     "id": "api.command_remote.invite.help",
@@ -6886,5 +6886,37 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Адміністратору вже повідомлено"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Не вдається створити груповий канал з віддаленими користувачами"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Не можна створити прямий канал із віддаленим користувачем"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Не вдалося скопіювати ліцензію."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Не вдалося створити запрошення до віддаленого кластера"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Не можна створити допис у приватному чи груповому чаті з віддаленими користувачами"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Недійсний токен."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Невірний URL веб-сайту."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Неправильний ідентифікатор віддаленого доступу."
   }
 ]
