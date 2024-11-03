@@ -31,7 +31,7 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 				return
 			}
 			if _, appErr := ldapI.StartSynchronizeJob(c, false, includeRemovedMembers); appErr != nil {
-				c.Logger().Error("Failed to start LDAP synchronization job")
+				c.Logger().Error("Failed to start LDAP sync job")
 			}
 		}
 	})
