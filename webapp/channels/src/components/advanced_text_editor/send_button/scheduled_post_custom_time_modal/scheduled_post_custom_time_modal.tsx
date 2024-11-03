@@ -52,7 +52,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
                     user_id: currentUserId,
                     category: scheduledPosts.SCHEDULED_POSTS,
                     name: scheduledPosts.RECENTLY_USED_CUSTOM_TIME,
-                    value: JSON.stringify({used_at: now.valueOf(), custom_time: selectedTime}),
+                    value: JSON.stringify({update_at: moment().tz(userTimezone).valueOf(), timestamp: selectedTime}),
                 }]
             )
         );
