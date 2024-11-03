@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
-import React, {memo, useCallback, useEffect} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -33,7 +33,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
         teammateTimezone,
-        currentUserTimesStamp,
         teammateDisplayName,
         isDM,
     } = useTimePostBoxIndicator(channelId);
@@ -54,9 +53,22 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         );
     }, [currentUserId]);
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
-    const recentlyUsedCustomDateVal = JSON.parse(recentlyUsedCustomDate);
+    interface RecentlyUsedCustomDate {
+        update_at?: number;
+        timestamp?: number;
+    }
 
-    function isWithinLast30Days(timestamp: number, timeZone = 'UTC') {
+    let recentlyUsedCustomDateVal: RecentlyUsedCustomDate = {};
+
+    if (recentlyUsedCustomDate) {
+        try {
+            recentlyUsedCustomDateVal = JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
+        } catch (e) {
+            recentlyUsedCustomDateVal = {};
+        }
+    }
+
+    function isTimestampWithinLast30Days(timestamp: number, timeZone = 'UTC') {
         if (!timestamp || isNaN(timestamp)) {
             return false;
         }
@@ -68,10 +80,15 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }
 
     let recentCustomTime = null;
-    if (isWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone)) {
-        const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
+    if (
+        recentlyUsedCustomDateVal &&
+        typeof recentlyUsedCustomDateVal.update_at === 'number' &&
+        typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
+        isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone)
+    ) {
+        const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
 
-        const timestamp = (
+        const timestamp = useMemo(() => (
             <Timestamp
                 value={recentlyUsedCustomDateVal.timestamp}
                 timeZone={userCurrentTimezone}
@@ -79,20 +96,15 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 useDate={{weekday: 'long'}}
                 useTime={{hour: 'numeric', minute: 'numeric'}}
             />
-        );
+        ), [recentlyUsedCustomDateVal.timestamp, userCurrentTimezone]);
 
         recentCustomTime = (
             <>
+                <Menu.Separator/>
                 <Menu.Item
-                    key={'scheduling_time_tomorrow_9_am'}
+                    key={'recently_used_custom_time'}
                     onClick={handleRecentlyUsedCustomTime}
-                    labels={
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.recently_used_custom_time_value'
-                            defaultMessage='{customTime}'
-                            values={{weekday: 'Wednesday', customTime: timestamp}}
-                        />
-                    }
+                    labels={timestamp}
                     className='core-menu-options'
                     trailingElements={(
                         <FormattedMessage
@@ -101,7 +113,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                         />
                     )}
                 />
-                <Menu.Separator/>
             </>
         );
     }
@@ -131,8 +142,8 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         }
 
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
-
-        const dmTeammateTimezone = (
+        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
+        const teammateTimeDisplay = (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.teammate_user_hour'
                 defaultMessage="{time} {user}'s time"
@@ -142,12 +153,12 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                             {teammateDisplayName}
                         </span>
                     ),
-                    time: getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString),
+                    time: scheduledTimeInTeammateTimezone,
                 }}
             />
         );
 
-        extraProps.trailingElements = dmTeammateTimezone;
+        extraProps.trailingElements = teammateTimeDisplay;
     }
 
     const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
@@ -245,7 +256,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     return (
         <div className='options'>
-            {recentCustomTime ? [...options, recentCustomTime] : recentCustomTime}
+            {recentCustomTime ? [...options, recentCustomTime] : options}
         </div>
     );
 }
