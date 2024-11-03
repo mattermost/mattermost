@@ -97,6 +97,7 @@ issues:
         channels/app/config_test.go|\
         channels/app/desktop_login.go|\
         channels/app/email/email_test.go|\
+        channels/app/email/helper_test.go|\
         channels/app/export_test.go|\
         channels/app/file.go|\
         channels/app/file_bench_test.go|\
