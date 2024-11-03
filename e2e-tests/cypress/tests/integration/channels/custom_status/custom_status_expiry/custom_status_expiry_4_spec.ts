@@ -107,7 +107,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
 
         // # Click on the date which is dateToBeSelected
         for (let i = 0; i < months; i++) {
-            cy.get('.fa-angle-right').click();
+            cy.get('i.icon.icon-chevron-right').click();
         }
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
@@ -161,7 +161,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
 
         // # Click on the date which is dateToBeSelected
         for (let i = 0; i < months; i++) {
-            cy.get('.fa-angle-right').click();
+            cy.get('i.icon.icon-chevron-right').click();
         }
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
