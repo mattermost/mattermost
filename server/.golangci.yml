@@ -246,7 +246,6 @@ issues:
         channels/store/storetest/user_store.go|\
         channels/testlib/helper.go|\
         channels/utils/license_test.go|\
-        channels/web/oauth.go|\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/static.go|\
