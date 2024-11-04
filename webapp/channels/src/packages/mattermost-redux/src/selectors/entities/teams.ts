@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -374,8 +373,11 @@ export function searchTeamsInPolicy(teams: Team[], term: string): Team[] {
     return filterTeamsStartingWithTerm(teams, term);
 }
 
-export const getTeamIdByChannelId = createSelector(
-    'getTeamIdByChannelId',
-    (state: GlobalState, channelId: string) => state.entities.channels.channels[channelId],
-    (channel: Channel | undefined) => (channel ? channel.team_id : undefined),
-);
+export function getTeamIdByChannelId(state: GlobalState, channelId: string): string | undefined {
+    const channels = state.entities.channels.channels;
+    if (!channels) {
+        return undefined;
+    }
+    const channel = channels[channelId];
+    return channel ? channel.team_id : undefined;
+}
