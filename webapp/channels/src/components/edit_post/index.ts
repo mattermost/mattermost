@@ -37,25 +37,26 @@ type Props = {
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const config = getConfig(state);
+    const currentUserId = getCurrentUserId(state);
 
     let editingPost;
     let channelId: string;
     let draft;
+    let isAuthor;
 
     if (props.scheduledPost) {
         editingPost = {post: null};
         channelId = props.scheduledPost.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, props.scheduledPost.id);
+        isAuthor = true;
     } else {
         editingPost = getEditingPost(state);
         channelId = editingPost.post.channel_id;
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
+        isAuthor = editingPost?.post?.user_id === currentUserId;
     }
 
-    const currentUserId = getCurrentUserId(state);
     const teamId = getCurrentTeamId(state);
-
-    const isAuthor = editingPost?.post?.user_id === currentUserId;
     const deletePermission = isAuthor ? Permissions.DELETE_POST : Permissions.DELETE_OTHERS_POSTS;
     const editPermission = isAuthor ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
 
