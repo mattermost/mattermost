@@ -117,7 +117,6 @@ issues:
         channels/app/migrations.go|\
         channels/app/notification_push.go|\
         channels/app/notification_test.go|\
-        channels/app/oauth_test.go|\
         channels/app/onboarding_test.go|\
         channels/app/opengraph_test.go|\
         channels/app/permissions.go|\
