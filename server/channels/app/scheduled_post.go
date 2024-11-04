@@ -34,15 +34,8 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketScheduledPostCreated, "", scheduledPost.ChannelId, scheduledPost.UserId, nil, connectionId)
-	scheduledPostJSON, jsonErr := json.Marshal(savedScheduledPost)
-	// in case of websocket events do not break the flow, only log the error
-	if jsonErr != nil {
-		rctx.Logger().Warn("App.ScheduledPost - Failed to Marshal", mlog.Err(jsonErr))
-	} else {
-		message.Add("scheduledPost", string(scheduledPostJSON))
-		a.Publish(message)
-	}
+	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostCreated, savedScheduledPost, connectionId)
+
 	return savedScheduledPost, nil
 }
 
@@ -63,7 +56,7 @@ func (a *App) GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string)
 	return scheduledPosts, nil
 }
 
-func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, *model.AppError) {
+func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreUpdate()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
@@ -92,7 +85,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
 	}
 
-	// TODO: add WebSocket event broadcast here. This will be done in a later PR
+	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostUpdated, scheduledPost, connectionId)
 
 	return scheduledPost, nil
 }
@@ -115,7 +108,22 @@ func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, con
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
 	}
 
-	// TODO: add WebSocket event broadcast here. This will be done in a later PR
+	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostDeleted, scheduledPost, connectionId)
 
 	return scheduledPost, nil
+}
+
+func publishScheduledPostEvent(a *App, rctx request.CTX, eventType model.WebsocketEventType, scheduledPost *model.ScheduledPost, connectionId string) {
+	if scheduledPost == nil {
+		rctx.Logger().Warn("publishScheduledPostEvent called with nil scheduledPost")
+		return
+	}
+	message := model.NewWebSocketEvent(eventType, "", "", scheduledPost.UserId, nil, connectionId)
+	scheduledPostJSON, jsonErr := json.Marshal(scheduledPost)
+	if jsonErr != nil {
+		rctx.Logger().Warn("publishScheduledPostEvent - Failed to Marshal", mlog.Err(jsonErr))
+		return
+	}
+	message.Add("scheduledPost", string(scheduledPostJSON))
+	a.Publish(message)
 }

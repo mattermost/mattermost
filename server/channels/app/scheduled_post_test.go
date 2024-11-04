@@ -463,7 +463,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.ScheduledAt = newScheduledAtTime
 		createdScheduledPost.Message = "Updated Message!!!"
 
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedScheduledPost)
 
@@ -514,7 +514,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.ScheduledAt = newScheduledAtTime
 		createdScheduledPost.Message = "Updated Message!!!"
 
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Nil(t, updatedScheduledPost)
@@ -569,7 +569,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.FileIds = []string{model.NewId(), model.NewId()}
 		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 

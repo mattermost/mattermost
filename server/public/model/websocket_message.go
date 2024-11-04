@@ -92,6 +92,8 @@ const (
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
+	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
+	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
 )
 
 type WebSocketMessage interface {

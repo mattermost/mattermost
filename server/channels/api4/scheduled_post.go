@@ -147,6 +147,8 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	connectionID := r.Header.Get(model.ConnectionId)
+
 	scheduledPostId := mux.Vars(r)["scheduled_post_id"]
 	if scheduledPostId == "" {
 		c.SetInvalidURLParam("scheduled_post_id")
@@ -174,7 +176,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := c.AppContext.Session().UserId
-	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost)
+	updatedScheduledPost, appErr := c.App.UpdateScheduledPost(c.AppContext, userId, &scheduledPost, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
