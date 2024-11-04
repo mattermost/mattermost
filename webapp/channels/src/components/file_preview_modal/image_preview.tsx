@@ -53,7 +53,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                {...conditionalSVGStyleAttribute}
+                style={conditionalSVGStyleAttribute}
             />
         </a>
     );
