@@ -106,7 +106,6 @@ issues:
         channels/app/imaging/decode.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
-        channels/app/import_utils_test.go|\
         channels/app/imports/import_validators.go|\
         channels/app/integration_action.go|\
         channels/app/integration_action_test.go|\
