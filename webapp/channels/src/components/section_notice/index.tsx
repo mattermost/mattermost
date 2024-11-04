@@ -8,15 +8,17 @@ import {useIntl} from 'react-intl';
 import Markdown from 'components/markdown';
 
 import SectionNoticeButton from './section_notice_button';
+import type {SectionNoticeButtonProp} from './types';
 
 import './section_notice.scss';
 
 type Props = {
     title: string | React.ReactElement;
     text?: string;
-    primaryButton?: SectionNoticeButton;
-    secondaryButton?: SectionNoticeButton;
-    linkButton?: SectionNoticeButton;
+    primaryButton?: SectionNoticeButtonProp;
+    secondaryButton?: SectionNoticeButtonProp;
+    tertiaryButton?: SectionNoticeButtonProp;
+    linkButton?: SectionNoticeButtonProp;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
     isDismissable?: boolean;
     onDismissClick?: () => void;
@@ -36,6 +38,7 @@ const SectionNotice = ({
     text,
     primaryButton,
     secondaryButton,
+    tertiaryButton,
     linkButton,
     type = 'info',
     isDismissable,
@@ -44,7 +47,7 @@ const SectionNotice = ({
     const intl = useIntl();
     const icon = iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
-    const hasButtons = Boolean(primaryButton || secondaryButton || linkButton);
+    const hasButtons = Boolean(primaryButton || secondaryButton || tertiaryButton || linkButton);
     return (
         <div className={classNames('sectionNoticeContainer', type)}>
             <div className={'sectionNoticeContent'}>
@@ -63,9 +66,15 @@ const SectionNotice = ({
                             {secondaryButton &&
                                 <SectionNoticeButton
                                     button={secondaryButton}
-                                    buttonClass='btn-tertiary'
+                                    buttonClass='btn-secondary'
                                 />
                             }
+                            {tertiaryButton && (
+                                <SectionNoticeButton
+                                    button={tertiaryButton}
+                                    buttonClass='btn-tertiary'
+                                />
+                            )}
                             {linkButton &&
                                 <SectionNoticeButton
                                     button={linkButton}

@@ -382,12 +382,12 @@ function shouldSkipNotification(
             }
         }
 
-        if (!isExplicitlyMentioned && !skipChecks) {
+        if (!isExplicitlyMentioned) {
             return {status: 'not_sent', reason: 'not_explicitly_mentioned', data: mentionableText};
         }
-    } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL && !skipChecks) {
+    } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
         return {status: 'not_sent', reason: 'not_mentioned'};
-    } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1 && !skipChecks) {
+    } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
         // if user is not following the thread don't notify
         return {status: 'not_sent', reason: 'not_following_thread'};
     }

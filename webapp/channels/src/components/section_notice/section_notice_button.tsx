@@ -4,15 +4,17 @@
 import classNames from 'classnames';
 import React from 'react';
 
-type ButtonProps = {
-    button: SectionNoticeButton;
-    buttonClass: 'btn-primary' | 'btn-tertiary' | 'btn-link';
+import type {SectionNoticeButtonProp} from './types';
+
+type Props = {
+    button: SectionNoticeButtonProp;
+    buttonClass: 'btn-primary' | 'btn-secondary' | 'btn-tertiary' | 'btn-link';
 }
 
 const SectionNoticeButton = ({
     button,
     buttonClass,
-}: ButtonProps) => {
+}: Props) => {
     const leading = button.leadingIcon ? (<i className={classNames('icon', button.leadingIcon)}/>) : null;
     const trailing = button.trailingIcon ? (<i className={classNames('icon', button.trailingIcon)}/>) : null;
     return (

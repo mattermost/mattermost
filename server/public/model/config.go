@@ -419,6 +419,7 @@ type ServiceSettings struct {
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ScheduledPosts                                    *bool   `access:"site_posts"`
 }
 
 var MattermostGiphySdkKey string
@@ -941,6 +942,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.MaximumURLLength == nil {
 		s.MaximumURLLength = NewPointer(ServiceSettingsDefaultMaxURLLength)
+	}
+
+	if s.ScheduledPosts == nil {
+		s.ScheduledPosts = NewPointer(true)
 	}
 }
 
@@ -3188,6 +3193,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates[PluginIdPlaybooks] == nil {
 		// Enable the playbooks plugin by default
 		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdAI] == nil {
+		// Enable the AI plugin by default
+		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

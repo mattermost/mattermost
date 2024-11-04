@@ -125,7 +125,7 @@ const SendTestNotificationNotice = ({
                     })}
                     title={intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
                     primaryButton={primaryButton}
-                    secondaryButton={secondaryButton}
+                    tertiaryButton={secondaryButton}
                     type='hint'
                 />
             </div>

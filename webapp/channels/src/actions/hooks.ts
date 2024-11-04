@@ -26,11 +26,10 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
         let post = originalPost;
 
         for (const hook of hooks) {
-            // TODO fix types for this hook
-            const result: any = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
+            const result = await hook.hook?.(post); // eslint-disable-line no-await-in-loop
 
             if (result) {
-                if (result.error) {
+                if ('error' in result) {
                     return {
                         error: result.error,
                     };
@@ -55,11 +54,10 @@ export function runSlashCommandWillBePostedHooks(originalMessage: string, origin
         let args = originalArgs;
 
         for (const hook of hooks) {
-            // TODO fix types for this hook
-            const result: any = await hook.hook?.(message as any, args as any); // eslint-disable-line no-await-in-loop
+            const result = await hook.hook?.(message, args); // eslint-disable-line no-await-in-loop
 
             if (result) {
-                if (result.error) {
+                if ('error' in result) {
                     return {
                         error: result.error,
                     };
@@ -90,11 +88,10 @@ export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Po
         let post = newPost;
 
         for (const hook of hooks) {
-            // TODO fix types for this hook
-            const result: any = await hook.hook?.(post as any, oldPost as any); // eslint-disable-line no-await-in-loop
+            const result = await hook.hook?.(post, oldPost); // eslint-disable-line no-await-in-loop
 
             if (result) {
-                if (result.error) {
+                if ('error' in result) {
                     return {
                         error: result.error,
                     };
