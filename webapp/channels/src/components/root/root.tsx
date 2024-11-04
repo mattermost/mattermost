@@ -79,7 +79,7 @@ const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('compone
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
-const ComponentLibrary = makeAsyncComponent('AppBar', lazy(() => import('components/component_library')));
+const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 
 const noop = () => {};
 

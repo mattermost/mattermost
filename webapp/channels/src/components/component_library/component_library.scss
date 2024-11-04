@@ -1,8 +1,17 @@
 .clInput {
     margin-bottom: 20px;
+    display: block;
 }
 
 .clWrapper {
     width: auto;
     padding: 25px;
+}
+
+.clCenterBackground {
+    background-color: var(--center-channel-bg);
+}
+
+.clSidebarBackground {
+    background-color: var(--sidebar-bg);
 }

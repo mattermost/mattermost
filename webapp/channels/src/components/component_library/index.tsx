@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -21,6 +22,8 @@ const defaultComponent = Object.keys(componentMap)[0] as ComponentName;
 type ThemeName = keyof typeof Preferences.THEMES;
 const defaultTheme = Object.keys(Preferences.THEMES)[0] as ThemeName;
 
+type BackgroundType = 'center' | 'sidebar';
+
 const ComponentLibrary = () => {
     const [selectedComponent, setSelectedComponent] = useState<ComponentName>(defaultComponent);
     const onSelectComponent = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -30,6 +33,11 @@ const ComponentLibrary = () => {
     const [selectedTheme, setSelectedTheme] = useState(defaultTheme);
     const onSelectTheme = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedTheme(e.target.value as ThemeName);
+    }, []);
+
+    const [selectedBackground, setSelectedBackground] = useState<BackgroundType>('center');
+    const onSelectBackground = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedBackground(e.currentTarget.value as BackgroundType);
     }, []);
 
     useEffect(() => {
@@ -61,7 +69,7 @@ const ComponentLibrary = () => {
     const SelectedComponent = componentMap[selectedComponent];
     return (
         <div className={'clWrapper'}>
-            <div className={'clInput'}>
+            <label className={'clInput'}>
                 {'Component: '}
                 <select
                     onChange={onSelectComponent}
@@ -69,8 +77,8 @@ const ComponentLibrary = () => {
                 >
                     {componentOptions}
                 </select>
-            </div>
-            <div className={'clInput'}>
+            </label>
+            <label className={'clInput'}>
                 {'Theme: '}
                 <select
                     onChange={onSelectTheme}
@@ -78,9 +86,37 @@ const ComponentLibrary = () => {
                 >
                     {themeOptions}
                 </select>
-            </div>
+            </label>
+            <label className={'clInput'}>
+                {'Background: '}
+                <label>
+                    {'Center channel'}
+                    <input
+                        onChange={onSelectBackground}
+                        name={'background'}
+                        value={'center'}
+                        type={'radio'}
+                        checked={selectedBackground === 'center'}
+                    />
+                </label>
+                <label>
+                    {'Sidebar'}
+                    <input
+                        onChange={onSelectBackground}
+                        name={'background'}
+                        value={'sidebar'}
+                        type={'radio'}
+                        checked={selectedBackground === 'sidebar'}
+                    />
+                </label>
+            </label>
             <div className={'clWrapper'}>
-                <SelectedComponent/>
+                <SelectedComponent
+                    backgroundClass={classNames({
+                        clCenterBackground: selectedBackground === 'center',
+                        clSidebarBackground: selectedBackground === 'sidebar',
+                    })}
+                />
             </div>
         </div>
     );

@@ -3,6 +3,7 @@
 
 /* eslint-disable no-alert */
 
+import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
 
 import SectionNotice from 'components/section_notice';
@@ -20,7 +21,13 @@ const primaryButton = {primaryButton: {onClick: () => window.alert('primary!'), 
 const secondaryButton = {secondaryButton: {onClick: () => window.alert('secondary!'), text: 'Secondary'}};
 const linkButton = {linkButton: {onClick: () => window.alert('link!'), text: 'Link'}};
 
-const SectionNoticeComponentLibrary = () => {
+type Props = {
+    backgroundClass: string;
+};
+
+const SectionNoticeComponentLibrary = ({
+    backgroundClass,
+}: Props) => {
     const [text, textSelector] = useStringProp('text', 'Some text', true);
     const [title, titleSelector] = useStringProp('title', 'Some text', false);
     const [dismissable, dismissableSelector] = useBooleanProp('isDismissable', true);
@@ -55,31 +62,31 @@ const SectionNoticeComponentLibrary = () => {
             {titleSelector}
             {dismissableSelector}
             {sectionTypeSelector}
-            <div className='clInput'>
+            <label className='clInput'>
                 {'Show primary button: '}
                 <input
                     type='checkbox'
                     onChange={onChangePrimaryButton}
                     checked={showPrimaryButton}
                 />
-            </div>
-            <div className='clInput'>
+            </label>
+            <label className='clInput'>
                 {'Show secondary button: '}
                 <input
                     type='checkbox'
                     onChange={onChangeSecondaryButton}
                     checked={showSecondaryButton}
                 />
-            </div>
-            <div className='clInput'>
+            </label>
+            <label className='clInput'>
                 {'Show link button: '}
                 <input
                     type='checkbox'
                     onChange={onChangeLinkButton}
                     checked={showLinkButton}
                 />
-            </div>
-            <div>{components}</div>
+            </label>
+            <div className={classNames('clWrapper', backgroundClass)}>{components}</div>
         </>
     );
 };

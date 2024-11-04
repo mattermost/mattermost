@@ -5,15 +5,15 @@ import React, {useCallback, useMemo, useState} from 'react';
 
 import './component_library.scss';
 
-type HookResult = [
-    {[x: string]: any},
+type HookResult<T> = [
+    {[x: string]: T},
     JSX.Element,
 ]
 export const useStringProp = (
     propName: string,
     defaultValue: string,
     isTextarea: boolean,
-): HookResult => {
+): HookResult<string> => {
     const [value, setValue] = useState(defaultValue);
     const onChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setValue(e.target.value), []);
     const selector = useMemo(() => {
@@ -30,10 +30,10 @@ export const useStringProp = (
             />
         );
         return (
-            <div className='clInput'>
+            <label className='clInput'>
                 {`${propName}: `}
                 {input}
-            </div>
+            </label>
         );
     }, [onChange, value, propName, isTextarea]);
     const preparedProp = useMemo(() => ({[propName]: value}), [propName, value]);
@@ -44,18 +44,18 @@ export const useStringProp = (
 export const useBooleanProp = (
     propName: string,
     defaultValue: boolean,
-): HookResult => {
+): HookResult<boolean> => {
     const [value, setValue] = useState(defaultValue);
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.checked), []);
     const selector = useMemo(() => (
-        <div className='clInput'>
+        <label className='clInput'>
             {`${propName}: `}
             <input
                 type='checkbox'
                 onChange={onChange}
                 checked={value}
             />
-        </div>
+        </label>
     ), [onChange, propName, value]);
     const preparedProp = useMemo(() => ({[propName]: value}), [propName, value]);
 
@@ -64,7 +64,7 @@ export const useBooleanProp = (
 
 const ALL_OPTION = 'ALL';
 type DropdownHookResult = [
-    {[x: string]: any} | undefined,
+    {[x: string]: string} | undefined,
     {[x: string]: string[]} | undefined,
     JSX.Element,
 ];
@@ -98,7 +98,7 @@ export const useDropdownProp = (
         return toReturn;
     }, [options, allowAll]);
     const selector = useMemo(() => (
-        <div className='clInput'>
+        <label className='clInput'>
             {`${propName}: `}
             <select
                 onChange={onChange}
@@ -106,7 +106,7 @@ export const useDropdownProp = (
             >
                 {renderedOptions}
             </select>
-        </div>
+        </label>
     ), [onChange, propName, renderedOptions, value]);
     const preparedProp = useMemo(() => (value === ALL_OPTION ? undefined : ({[propName]: value})), [propName, value]);
     const preparedPossibilities = useMemo(() => (value === ALL_OPTION ? ({[propName]: options}) : undefined), [propName, value, options]);
