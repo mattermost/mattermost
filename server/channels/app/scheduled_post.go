@@ -124,7 +124,7 @@ func publishScheduledPostEvent(a *App, rctx request.CTX, eventType model.Websock
 		rctx.Logger().Warn("publishScheduledPostEvent called with nil scheduledPost")
 		return
 	}
-	message := model.NewWebSocketEvent(eventType, "", scheduledPost.ChannelId, scheduledPost.UserId, nil, connectionId)
+	message := model.NewWebSocketEvent(eventType, "", "", scheduledPost.UserId, nil, connectionId)
 	scheduledPostJSON, jsonErr := json.Marshal(scheduledPost)
 	if jsonErr != nil {
 		rctx.Logger().Warn("publishScheduledPostEvent - Failed to Marshal", mlog.Err(jsonErr))
