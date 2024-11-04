@@ -8925,7 +8925,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Nie można potwierdzić w zarchiwizowanym kanale."
+    "translation": "Nie możesz zapisać potwierdzenia w zarchiwizowanym kanale."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
