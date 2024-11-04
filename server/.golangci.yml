@@ -101,7 +101,6 @@ issues:
         channels/app/export_test.go|\
         channels/app/file.go|\
         channels/app/file_bench_test.go|\
-        channels/app/file_helper_test.go|\
         channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
