@@ -84,6 +84,7 @@ func TestDisableAutoResponder(t *testing.T) {
 	err = th.App.DisableAutoResponder(th.Context, user.Id, true)
 	require.Nil(t, err)
 	userUpdated2, err := th.App.GetUser(user.Id)
+
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated2.NotifyProps["auto_responder_active"], "false")
 }
