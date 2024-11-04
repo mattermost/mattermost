@@ -32,7 +32,6 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 		Params: &Params{
 			Service: "TestService",
 		},
-		
 		AppContext: request.EmptyContext(th.TestLogger),
 	}
 	responseWriter := httptest.NewRecorder()
@@ -273,8 +272,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.NoError(t, err)
 	rurl, _ := url.Parse(redirect)
 
-	res,err := apiClient.Logout(context.Background())
-    require.NoError(t, err)
+	_, err = apiClient.Logout(context.Background())
+	require.NoError(t, err)
 
 	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
@@ -678,12 +677,12 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 	return rp, nil
 }
 
-func closeBody(r *http.Response) { 
-	if r.Body != nil { 
-		_, _ = io.Copy(io.Discard, r.Body) 
-		_ = r.Body.Close() 
-	} 
-} 
+func closeBody(r *http.Response) {
+	if r != nil {
+		_, _ = io.Copy(io.Discard, r.Body)
+		_ = r.Body.Close()
+	}
+}
 
 type MattermostTestProvider struct {
 }
