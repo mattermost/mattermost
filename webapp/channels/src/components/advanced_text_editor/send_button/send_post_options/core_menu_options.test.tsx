@@ -44,7 +44,6 @@ const initialState = {
 };
 
 describe('CoreMenuOptions Component', () => {
-    const handleOnSelect = jest.fn();
     const teammateDisplayName = 'John Doe';
     const userCurrentTimezone = 'America/New_York';
     const teammateTimezone = {
@@ -52,265 +51,146 @@ describe('CoreMenuOptions Component', () => {
         automaticTimezone: 'Europe/London',
         manualTimezone: '',
     };
+    const handleOnSelect = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
+        handleOnSelect.mockReset();
+        useTimePostBoxIndicator.mockReturnValue({
+            userCurrentTimezone,
+            teammateTimezone,
+            teammateDisplayName,
+            isDM: false,
+        });
     });
 
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function createStateWithRecentlyUsedCustomDate(value: string) {
+        return {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                preferences: {
+                    ...initialState.entities.preferences,
+                    myPreferences: {
+                        ...initialState.entities.preferences.myPreferences,
+                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {value},
+                    },
+                },
+            },
+        };
+    }
+
+    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
+        renderWithContext(
+            <CoreMenuOptions
+                handleOnSelect={handleOnSelectOverride}
+                channelId='channelId'
+            />,
+            state,
+        );
+    }
+
+    function setMockDate(weekday: number) {
+        const mockDate = DateTime.fromObject({weekday}, {zone: userCurrentTimezone}).toJSDate();
+        jest.useFakeTimers();
+        jest.setSystemTime(mockDate);
+    }
+
     test('should render recently used custom time option when valid', () => {
-        const recentTimestamp = DateTime.now().minus({days: 7}).toMillis();
+        const recentTimestamp = DateTime.now().plus({days: 7}).toMillis();
 
         const recentlyUsedCustomDateVal = {
             update_at: DateTime.now().toMillis(),
             timestamp: recentTimestamp,
         };
 
-        const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                preferences: {
-                    ...initialState.entities.preferences,
-                    myPreferences: {
-                        ...initialState.entities.preferences.myPreferences,
-                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {value: JSON.stringify(recentlyUsedCustomDateVal)},
-                    },
-                },
-            },
-        };
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
-
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-            state,
-        );
+        renderComponent(state);
 
         expect(screen.getByText(/Recently used custom time/)).toBeInTheDocument();
-
-        jest.useRealTimers();
     });
 
     test('should not render recently used custom time when preference value is invalid JSON', () => {
-        const invalidJson = '{ invalid JSON }'; // Invalid JSON string
+        const invalidJson = '{ invalid JSON }';
 
-        const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                preferences: {
-                    ...initialState.entities.preferences,
-                    myPreferences: {
-                        ...initialState.entities.preferences.myPreferences,
-                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {
-                            value: invalidJson,
-                        },
-                    },
-                },
-            },
-        };
+        const state = createStateWithRecentlyUsedCustomDate(invalidJson);
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
-
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-            state,
-        );
+        renderComponent(state);
 
         expect(screen.queryByText(/Recently used custom time/)).not.toBeInTheDocument();
     });
 
     test('should call handleOnSelect with the correct timestamp when "Recently used custom time" is clicked', () => {
-        const recentTimestamp = DateTime.now().minus({days: 5}).toMillis();
+        const recentTimestamp = DateTime.now().plus({days: 5}).toMillis();
 
         const recentlyUsedCustomDateVal = {
             update_at: DateTime.now().toMillis(),
             timestamp: recentTimestamp,
         };
 
-        const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                preferences: {
-                    ...initialState.entities.preferences,
-                    myPreferences: {
-                        ...initialState.entities.preferences.myPreferences,
-                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {
-                            value: JSON.stringify(recentlyUsedCustomDateVal),
-                        },
-                    },
-                },
-            },
-        };
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
 
         const handleOnSelectMock = jest.fn();
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
-
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelectMock}
-                channelId='channelId'
-            />,
-            state,
-        );
+        renderComponent(state, handleOnSelectMock);
 
         const recentCustomOption = screen.getByText(/Recently used custom time/);
         fireEvent.click(recentCustomOption);
 
         expect(handleOnSelectMock).toHaveBeenCalledWith(expect.anything(), recentTimestamp);
-
-        jest.useRealTimers();
     });
 
     test('should not render recently used custom time when update_at is older than 30 days', () => {
         const outdatedUpdateAt = DateTime.now().minus({days: 35}).toMillis();
-        const recentTimestamp = DateTime.now().minus({days: 5}).toMillis();
+        const recentTimestamp = DateTime.now().plus({days: 5}).toMillis();
 
         const recentlyUsedCustomDateVal = {
             update_at: outdatedUpdateAt,
             timestamp: recentTimestamp,
         };
 
-        const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                preferences: {
-                    ...initialState.entities.preferences,
-                    myPreferences: {
-                        ...initialState.entities.preferences.myPreferences,
-                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {
-                            value: JSON.stringify(recentlyUsedCustomDateVal),
-                        },
-                    },
-                },
-            },
-        };
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
-
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-            state,
-        );
+        renderComponent(state);
 
         expect(screen.queryByText(/Recently used custom time/)).not.toBeInTheDocument();
     });
 
     it('should render tomorrow option on Sunday', () => {
-        const mockDate = DateTime.fromObject({weekday: 7}, {zone: userCurrentTimezone}).toJSDate();
-        jest.useFakeTimers();
-        jest.setSystemTime(mockDate);
+        setMockDate(7); // Sunday
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
-
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-        );
+        renderComponent();
 
         expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
         expect(screen.queryByText(/Monday at/)).not.toBeInTheDocument();
-
-        jest.useRealTimers();
     });
 
     it('should render tomorrow and next Monday options on Monday', () => {
-        const mockDate = DateTime.fromObject({weekday: 1}, {zone: userCurrentTimezone}).toJSDate();
-        jest.useFakeTimers({
-            timerLimit: 1000,
-            now: mockDate,
-        });
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
+        setMockDate(1); // Monday
 
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-        );
+        renderComponent();
 
         expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
         expect(screen.getByText(/Next Monday at/)).toBeInTheDocument();
-
-        jest.useRealTimers();
     });
 
     it('should render Monday option on Friday', () => {
-        const mockDate = DateTime.fromObject({weekday: 5}, {zone: userCurrentTimezone}).toJSDate();
-        jest.useFakeTimers({
-            timerLimit: 1000,
-            now: mockDate,
-        });
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
+        setMockDate(5); // Friday
 
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-        );
+        renderComponent();
 
         expect(screen.getByText(/Monday at/)).toBeInTheDocument();
         expect(screen.queryByText(/Tomorrow at/)).not.toBeInTheDocument();
-
-        jest.useRealTimers();
     });
 
     it('should include trailing element when isDM true', () => {
-        const mockDate = DateTime.fromObject({weekday: 2}, {zone: userCurrentTimezone}).toJSDate();
-        jest.useFakeTimers({
-            timerLimit: 1000,
-            now: mockDate,
-        });
+        setMockDate(2); // Tuesday
+
         useTimePostBoxIndicator.mockReturnValue({
             userCurrentTimezone,
             teammateTimezone,
@@ -318,38 +198,24 @@ describe('CoreMenuOptions Component', () => {
             isDM: true,
         });
 
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-        );
+        renderComponent();
 
-        // Check that the trailing element is render
+        // Check the trailing element is rendered in the component
         expect(screen.getAllByText(/John Doe/)[0]).toBeInTheDocument();
+    });
 
-        jest.useRealTimers();
+    it('should NOT include trailing element when isDM false', () => {
+        setMockDate(2); // Tuesday
+
+        renderComponent();
+
+        expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument();
     });
 
     it('should call handleOnSelect with the right timestamp if tomorrow option is clicked', () => {
-        const mockDate = DateTime.fromObject({weekday: 3}, {zone: userCurrentTimezone}).toJSDate();
-        jest.useFakeTimers({
-            timerLimit: 1000,
-            now: mockDate,
-        });
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
-            isDM: false,
-        });
+        setMockDate(3); // Wednesday
 
-        renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelect}
-                channelId='channelId'
-            />,
-        );
+        renderComponent();
 
         const tomorrowOption = screen.getByText(/Tomorrow at/);
         fireEvent.click(tomorrowOption);
@@ -361,7 +227,5 @@ describe('CoreMenuOptions Component', () => {
             toMillis();
 
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
-
-        jest.useRealTimers();
     });
 });
