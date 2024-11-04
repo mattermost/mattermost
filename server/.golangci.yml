@@ -70,7 +70,6 @@ issues:
         channels/api4/config_local.go|\
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
-        channels/api4/file_test.go|\
         channels/api4/job_test.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
