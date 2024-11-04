@@ -43,13 +43,20 @@ export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PIC
     return start.add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
-const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
+export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
     let time = moment(startTime);
     const nextDay = moment(startTime).add(1, 'days').startOf('day');
+
     const intervals: Date[] = [];
     while (time.isBefore(nextDay)) {
         intervals.push(time.toDate());
+        const utcOffset = time.utcOffset();
         time = time.add(interval, 'minutes').seconds(0).milliseconds(0);
+
+        // Account for DST end if needed to avoid displaying duplicates
+        if (utcOffset > time.utcOffset()) {
+            time = time.add(utcOffset - time.utcOffset(), 'minutes').seconds(0).milliseconds(0);
+        }
     }
 
     return intervals;
@@ -117,7 +124,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
 
     const handleTimeChange = useCallback((time: Date, e: React.MouseEvent) => {
         e.preventDefault();
-        handleChange(moment(time));
+        handleChange(timezone ? moment.tz(time, timezone) : moment(time));
         focusTimeButton();
     }, [handleChange]);
 

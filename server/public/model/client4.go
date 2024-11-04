@@ -630,7 +630,7 @@ func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *Schedu
 	return &createdScheduledPost, BuildResponse(r), nil
 }
 
-func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) ([]*ScheduledPost, *Response, error) {
+func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
 	query := url.Values{}
 	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
 
@@ -639,11 +639,11 @@ func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, incl
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	var scheduledPosts []*ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&scheduledPosts); err != nil {
+	var scheduledPostsByTeam map[string][]*ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&scheduledPostsByTeam); err != nil {
 		return nil, nil, NewAppError("GetUserScheduledPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return scheduledPosts, BuildResponse(r), nil
+	return scheduledPostsByTeam, BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {

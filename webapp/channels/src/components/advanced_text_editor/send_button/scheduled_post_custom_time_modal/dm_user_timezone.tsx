@@ -5,6 +5,7 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {General} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -28,7 +29,7 @@ const DATE_RANGES = [
 
 export function DMUserTimezone({channelId, selectedTime}: Props) {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const dmUserId = channel && channel.type === 'D' ? getUserIdFromChannelName(channel) : '';
+    const dmUserId = channel && channel.type === General.DM_CHANNEL ? getUserIdFromChannelName(channel) : '';
     const dmUser = useSelector((state: GlobalState) => getUser(state, dmUserId));
     const dmUserName = useSelector((state: GlobalState) => getDisplayNameByUser(state, dmUser));
 
