@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 import {switchToChannel} from '../../../channels/mark_as_unread/helpers';
@@ -511,7 +510,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.verifyEphemeralMessage(`Timeline for ${playbookRuns[1].name}`);
         });
 
-        it.skip('update', () => {
+        it('update', () => {
             // # Run a slash command with not enough parameters
             cy.uiPostMessageQuickly('/playbook update ');
 

@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 /* eslint-disable no-only-tests/no-only-tests */
@@ -82,7 +81,7 @@ describe('channels > rhs > status update', {testIsolation: true}, () => {
             });
         });
 
-        it.skip('description link navigates to run overview', () => {
+        it('description link navigates to run overview', () => {
             // # Run the `/playbook update` slash command.
             cy.uiPostMessageQuickly('/playbook update ');
 

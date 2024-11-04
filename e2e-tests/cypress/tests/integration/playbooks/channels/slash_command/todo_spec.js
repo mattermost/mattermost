@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 describe('channels > slash command > todo', {testIsolation: true}, () => {
@@ -222,7 +221,7 @@ describe('channels > slash command > todo', {testIsolation: true}, () => {
             });
         });
 
-        it.skip('four assigned tasks', () => {
+        it('four assigned tasks', () => {
             // # assign self four tasks
             cy.apiChangeChecklistItemAssignee(run1.id, 0, 0, testUser.id);
             cy.apiChangeChecklistItemAssignee(run1.id, 1, 1, testUser.id);
