@@ -85,15 +85,15 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "Здається, Ваша електронна пошта Mattermost встановлена вірно!"
+    "translation": "Здається, що ваша електронна пошта Mattermost встановлена вірно!"
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "Потрібно SMTP сервер"
+    "translation": "Потрібен SMTP-сервер"
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP сервер, порт або ім'я користувача змінені. Будь ласка, повторно введіть пароль SMTP для перевірки з'єднання."
+    "translation": "Змінено SMTP-сервер, порт або ім'я користувача. Будь ласка, введіть пароль SMTP ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -2557,7 +2557,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Відсутній необхідний ресурс прямого посту: created_at"
+    "translation": "Відсутній необхідний ресурс приватного допису: created_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -2577,7 +2577,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Відсутній необхідний власник прямого каналу: учасники "
+    "translation": "Відсутній необхідний атрибут приватного повідомлення: user"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
@@ -2589,7 +2589,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Імпорт emoji - зображення відсутнє або поле пусте. "
+    "translation": "Поле з назвою емодзі для імпорту відсутнє або порожнє."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5741,7 +5741,7 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Недійсний тип вмісту."
+    "translation": "Неправильний тип вмісту."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -7574,5 +7574,57 @@
   {
     "id": "app.notification.body.thread_dm.subTitle",
     "translation": "Поки вас не було, {{.SenderName}} відповів на допис у вашому особистому повідомленні."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Завантаження через mmctl до хмарного екземпляра не підтримується. Будь ласка, ознайомтеся з документацією тут: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Неможливо перевірити, чи існує файл."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Не вдається отримати час останньої модифікації файлу."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Не вдалося додати дані до файлу."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Не вдалося отримати розмір файлу."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Не вдалося прочитати файл."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Переконайтеся, що ваш контейнер Amazon S3 доступний та перевірте права доступу до нього."
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Не вдається підключитися до S3. Перевірте параметри авторизації підключення до Amazon S3 та налаштування автентифікації."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Не вдалось отримати програму для читання файлів."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Неможливо перемістити файл."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Не вдалося вилучити файл."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Не вдалося отримати доступ до файлового сховища."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Налаштування електронної пошти мають невизначені значення."
   }
 ]
