@@ -278,19 +278,15 @@ function DraftRow({
 
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
-        handleOnSend(postDraft, undefined, {keepDraft: true});
+        handleOnSend(postDraft, undefined, {keepDraft: true, ignorePostError: true});
         return Promise.resolve({});
     }, [handleOnSend, item, handleCancelEdit]);
 
     const scheduledPostActions = useMemo(() => {
-        if (!channel) {
-            return null;
-        }
-
         return (
             <ScheduledPostActions
                 scheduledPost={item as ScheduledPost}
-                channelDisplayName={channel.display_name}
+                channelDisplayName={channel?.display_name}
                 onReschedule={handleSchedulePostOnReschedule}
                 onDelete={handleSchedulePostOnDelete}
                 onSend={handleScheduledPostOnSend}

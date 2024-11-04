@@ -53,7 +53,7 @@ const sendNowTooltipText = (
 
 type Props = {
     scheduledPost: ScheduledPost;
-    channelDisplayName: string;
+    channelDisplayName?: string;
     onReschedule: (timestamp: number) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
@@ -90,6 +90,10 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
     }, [channelDisplayName, dispatch, onDelete, scheduledPost.id]);
 
     const handleSend = useCallback(() => {
+        if (!channelDisplayName) {
+            return;
+        }
+
         dispatch(openModal({
             modalId: ModalIdentifiers.SEND_DRAFT,
             dialogType: SendDraftModal,
@@ -99,6 +103,10 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             },
         }));
     }, [channelDisplayName, dispatch, onSend, scheduledPost.id]);
+
+    const showEditOption = !scheduledPost.error_code;
+    const showSendNowOption = !scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send';
+    const showRescheduleOption = !scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send';
 
     return (
         <div className='ScheduledPostActions'>
@@ -111,36 +119,38 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             />
 
             {
-                !scheduledPost.error_code && (
-                    <React.Fragment>
-                        <Action
-                            icon='icon-pencil-outline'
-                            id='edit'
-                            name='edit'
-                            tooltipText={editTooltipText}
-                            onClick={onEdit}
+                showEditOption &&
+                <Action
+                    icon='icon-pencil-outline'
+                    id='edit'
+                    name='edit'
+                    tooltipText={editTooltipText}
+                    onClick={onEdit}
 
-                        />
-
-                        <Action
-                            icon='icon-clock-send-outline'
-                            id='reschedule'
-                            name='reschedule'
-                            tooltipText={rescheduleTooltipText}
-                            onClick={handleReschedulePost}
-                        />
-
-                        <Action
-                            icon='icon-send-outline'
-                            id='sendNow'
-                            name='sendNow'
-                            tooltipText={sendNowTooltipText}
-                            onClick={handleSend}
-                        />
-                    </React.Fragment>
-                )
+                />
             }
 
+            {
+                showRescheduleOption &&
+                <Action
+                    icon='icon-clock-send-outline'
+                    id='reschedule'
+                    name='reschedule'
+                    tooltipText={rescheduleTooltipText}
+                    onClick={handleReschedulePost}
+                />
+            }
+
+            {
+                channelDisplayName && showSendNowOption &&
+                <Action
+                    icon='icon-send-outline'
+                    id='sendNow'
+                    name='sendNow'
+                    tooltipText={sendNowTooltipText}
+                    onClick={handleSend}
+                />
+            }
         </div>
     );
 }
