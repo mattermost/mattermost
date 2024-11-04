@@ -368,10 +368,6 @@ func TestBotEtag(t *testing.T) {
 	})
 }
 
-func sToP(s string) *string {
-	return &s
-}
-
 func TestBotPatch(t *testing.T) {
 	userId1 := NewId()
 	creatorId1 := NewId()
@@ -422,9 +418,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    sToP("new_username"),
+				Username:    NewPointer("new_username"),
 				DisplayName: nil,
-				Description: sToP("new description"),
+				Description: NewPointer("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -452,9 +448,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    sToP("new_username"),
-				DisplayName: sToP("new display name"),
-				Description: sToP("new description"),
+				Username:    NewPointer("new_username"),
+				DisplayName: NewPointer("new display name"),
+				Description: NewPointer("new description"),
 			},
 			&Bot{
 				UserId:         userId1,

@@ -100,7 +100,7 @@ import {
 } from 'actions/cloud';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {sendDesktopNotification} from 'actions/notification_actions';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
@@ -237,6 +237,7 @@ export function reconnect() {
 
         dispatch(loadChannelsForCurrentUser());
         dispatch(fetchAllMyChannelMembers());
+        dispatch(fetchMyCategories(currentTeamId));
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));

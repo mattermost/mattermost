@@ -39,13 +39,13 @@ on:
           - NONE
         default: NONE
       RUN_CYPRESS:
-        type: boolean
+        type: string
         description: Enable Cypress run
-        default: true
+        default: "true"
       RUN_PLAYWRIGHT:
-        type: boolean
+        type: string
         description: Enable Playwright run
-        default: true
+        default: "true"
 
 concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
@@ -219,8 +219,8 @@ jobs:
           STATUS_CHECK_CONTEXT: "${{steps.generate.outputs.status_check_context}}"
           WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
-          RUN_CYPRESS: "${{inputs.RUN_CYPRESS || ''}}"
-          RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT || ''}}"
+          RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
+          RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
@@ -237,7 +237,7 @@ jobs:
     needs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
-    if: ${{ inputs.RUN_CYPRESS }}
+    if: ${{ inputs.RUN_CYPRESS == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
@@ -270,7 +270,7 @@ jobs:
     needs:
       - generate-test-variables
     uses: ./.github/workflows/e2e-tests-ci-template.yml
-    if: ${{ inputs.RUN_PLAYWRIGHT }}
+    if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
@@ -316,8 +316,8 @@ jobs:
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
-      RUN_CYPRESS: "${{inputs.RUN_CYPRESS || ''}}"
-      RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT || ''}}"
+      RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
+      RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
