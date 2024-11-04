@@ -1804,7 +1804,6 @@
   "create_post.error_message": "Ваше повідомлення занадто довге. Кількість символів: {length}/{limit}",
   "create_post.fileProcessing": "Обробка...",
   "create_post.read_only": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом.",
-  "create_post.send_message": "Відправити повідомлення",
   "create_post.shortcutsNotSupported": "Комбінації клавіш на вашому пристрої не підтримуються.",
   "create_post.write": "Написати у {channelDisplayName}",
   "create_team.display_name.charLength": "Ім'я повинно бути довше {min} і менше {max} символів. Ви можете додати опис команди пізніше.",

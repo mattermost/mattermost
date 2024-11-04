@@ -1531,7 +1531,6 @@
   "create_post.prewritten.tip.team_hi": "Hei team!",
   "create_post.prewritten.tip.team_hi_message": ":wave: Hei team!",
   "create_post.read_only": "Denne kanalen er skrivebeskyttet. Kun medlemmer med tillatelse kan legge ut her.",
-  "create_post.send_message": "Send en melding",
   "create_post.shortcutsNotSupported": "Tastatursnarveier er ikke støttet for din enhet.",
   "create_post.write": "Skriv til {channelDisplayName}",
   "create_team.display_name.nameHelp": "Gi teamet ditt navn på hvilket som helst språk. Teamnavnet vises i menyer og overskrifter.",
