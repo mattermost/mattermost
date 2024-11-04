@@ -277,8 +277,8 @@ func TestDownloadJob(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		_, delErr := th.App.Srv().Store().Job().Delete(job.Id)
-		require.Nil(t, delErr, "Failed to delete job %s", job.Id)
-	}()
+		require.NoError(t, delErr, "Failed to delete job %s", job.Id)
+	}()	
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
