@@ -55,7 +55,7 @@ describe('Message permalink', () => {
 
         // # Search for a message in the current channel
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
+        cy.uiGetSearchBox().first().clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
 
         // # Jump to first permalink view (most recent message)
         cy.get('.search-item__jump').first().click();
@@ -73,7 +73,7 @@ describe('Message permalink', () => {
 
         // # Search for a message in the current channel
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
+        cy.uiGetSearchBox().first().clear().type('in:town-square').wait(TIMEOUTS.HALF_SEC).type('{enter}{enter}');
 
         // # Jump to first permalink view (most recent message)
         cy.get('.search-item__jump').first().click();

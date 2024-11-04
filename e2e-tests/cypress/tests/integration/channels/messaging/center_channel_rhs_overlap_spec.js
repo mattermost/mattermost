@@ -719,7 +719,7 @@ describe('Messaging', () => {
         cy.getLastPostId().then((postId) => {
             // # Search for the posted message
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchBox().should('be.visible').first().type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // # Click on post dot menu so we can edit
             cy.clickPostDotMenu(postId, 'SEARCH');
