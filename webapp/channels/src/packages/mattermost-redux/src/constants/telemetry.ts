@@ -10,7 +10,7 @@ export const TrackGroupsFeature = 'custom_groups';
 export const TrackPassiveKeywordsFeature = 'passive_keywords';
 
 // Events
-export const TrackInviteGroupEvent = 'invite_group_to_channel';
+export const TrackInviteGroupEvent = 'invite_group_to_channel__add_member';
 export const TrackPassiveKeywordsEvent = 'update_passive_keywords';
 
 // Categories
