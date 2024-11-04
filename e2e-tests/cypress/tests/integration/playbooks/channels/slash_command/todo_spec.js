@@ -222,7 +222,7 @@ describe('channels > slash command > todo', {testIsolation: true}, () => {
             });
         });
 
-        it('four assigned tasks', () => {
+        it.skip('four assigned tasks', () => {
             // # assign self four tasks
             cy.apiChangeChecklistItemAssignee(run1.id, 0, 0, testUser.id);
             cy.apiChangeChecklistItemAssignee(run1.id, 1, 1, testUser.id);

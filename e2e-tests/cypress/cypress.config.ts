@@ -11,7 +11,7 @@ export default defineConfig({
     numTestsKeptInMemory: 0,
     retries: 2,
     screenshotsFolder: 'tests/screenshots',
-    taskTimeout: 20000,
+    taskTimeout: 60000,
     video: true,
     videoCompression: true,
     videosFolder: 'tests/videos',

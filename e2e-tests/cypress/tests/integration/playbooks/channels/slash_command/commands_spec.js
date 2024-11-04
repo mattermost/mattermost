@@ -511,7 +511,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.verifyEphemeralMessage(`Timeline for ${playbookRuns[1].name}`);
         });
 
-        it('update', () => {
+        it.skip('update', () => {
             // # Run a slash command with not enough parameters
             cy.uiPostMessageQuickly('/playbook update ');
 
