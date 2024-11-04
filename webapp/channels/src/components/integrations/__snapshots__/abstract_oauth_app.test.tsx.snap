@@ -287,7 +287,12 @@ https://test.com/callback2"
           id="saveOauthApp"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
@@ -593,7 +598,12 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           id="saveOauthApp"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
