@@ -53,6 +53,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         );
     }, [currentUserId]);
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
+
     interface RecentlyUsedCustomDate {
         update_at?: number;
         timestamp?: number;
@@ -80,15 +81,14 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }
 
     let recentCustomTime = null;
+    const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
     if (
         recentlyUsedCustomDateVal &&
         typeof recentlyUsedCustomDateVal.update_at === 'number' &&
         typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
         isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone)
     ) {
-        const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
-
-        const timestamp = useMemo(() => (
+        const timestamp = (
             <Timestamp
                 value={recentlyUsedCustomDateVal.timestamp}
                 timeZone={userCurrentTimezone}
@@ -96,25 +96,23 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 useDate={{weekday: 'long'}}
                 useTime={{hour: 'numeric', minute: 'numeric'}}
             />
-        ), [recentlyUsedCustomDateVal.timestamp, userCurrentTimezone]);
-
-        recentCustomTime = (
-            <>
-                <Menu.Separator/>
-                <Menu.Item
-                    key={'recently_used_custom_time'}
-                    onClick={handleRecentlyUsedCustomTime}
-                    labels={timestamp}
-                    className='core-menu-options'
-                    trailingElements={(
-                        <FormattedMessage
-                            id='create_post_button.option.schedule_message.options.recently_used_custom_time'
-                            defaultMessage='Recently used custom time'
-                        />
-                    )}
-                />
-            </>
         );
+
+        recentCustomTime = [
+            <Menu.Separator key='recent_custom_separator'/>,
+            <Menu.Item
+                key='recently_used_custom_time'
+                onClick={handleRecentlyUsedCustomTime}
+                labels={timestamp}
+                className='core-menu-options'
+                trailingElements={(
+                    <FormattedMessage
+                        id='create_post_button.option.schedule_message.options.recently_used_custom_time'
+                        defaultMessage='Recently used custom time'
+                    />
+                )}
+            />,
+        ];
     }
 
     const now = DateTime.now().setZone(userCurrentTimezone);
@@ -255,9 +253,9 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }
 
     return (
-        <div className='options'>
-            {recentCustomTime ? [...options, recentCustomTime] : options}
-        </div>
+        <>
+            {recentCustomTime ? [...options, ...recentCustomTime] : options}
+        </>
     );
 }
 
