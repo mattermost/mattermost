@@ -31,19 +31,6 @@ export default function DeleteScheduledPostModal({
         defaultMessage: 'Yes, delete',
     });
 
-    const message = (
-        <React.Fragment>
-            <FormattedMessage
-                id={'scheduled_post.delete_modal.body'}
-                defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
-                values={{
-                    strong: (chunk: string) => <strong>{chunk}</strong>,
-                    displayName: channelDisplayName,
-                }}
-            />
-        </React.Fragment>
-    );
-
     const handleOnConfirm = useCallback(async () => {
         const response = await onConfirm();
         if (response.error) {
@@ -67,7 +54,14 @@ export default function DeleteScheduledPostModal({
             autoCloseOnConfirmButton={false}
             errorText={errorMessage}
         >
-            {message}
+            <FormattedMessage
+                id={'scheduled_post.delete_modal.body'}
+                defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
+                values={{
+                    strong: (chunk: string) => <strong>{chunk}</strong>,
+                    displayName: channelDisplayName,
+                }}
+            />
         </GenericModal>
     );
 }

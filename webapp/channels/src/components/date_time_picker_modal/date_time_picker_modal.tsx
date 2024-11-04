@@ -37,7 +37,8 @@ type Props = {
     timePickerInterval?: number;
 };
 
-export default function DateTimePickerModal({onExited,
+export default function DateTimePickerModal({
+    onExited,
     ariaLabel,
     header,
     onConfirm,

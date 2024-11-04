@@ -32,8 +32,8 @@ const usePriority = (
     shouldShowPreview: boolean,
 ) => {
     const dispatch = useDispatch();
-    const rootId = draft.rootId; //'rootId' in draft ? draft.rootId : draft.root_id;
-    const channelId = draft.channelId; //'channelId' in draft ? draft.channelId : draft.channel_id;
+    const rootId = draft.rootId;
+    const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
