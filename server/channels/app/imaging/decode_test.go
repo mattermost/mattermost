@@ -224,7 +224,6 @@ func TestDecoderDecodeMemBounded(t *testing.T) {
 		imgFile, err := os.Open(imgDir + "/test.png")
 		require.NoError(t, err)
 		require.NotNil(t, imgFile)
-
 		defer func() {
 			require.NoError(t, imgFile.Close())
 		}()
