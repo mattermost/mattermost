@@ -114,6 +114,7 @@ import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, Remot
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
@@ -4328,6 +4329,12 @@ export default class Client4 {
         }
     }
 
+    trackFeatureEvent(featureName: string, event: string, props: Record<string, unknown> = {}) {
+        if (this.telemetryHandler) {
+            this.telemetryHandler.trackFeatureEvent(this.userId, this.userRoles, featureName, event, props);
+        }
+    }
+
     pageVisited(category: string, name: string) {
         if (this.telemetryHandler) {
             this.telemetryHandler.pageVisited(this.userId, this.userRoles, category, name);
@@ -4411,6 +4418,36 @@ export default class Client4 {
         return this.doFetchWithResponse<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
             {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    // Schedule Post methods
+    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule`,
+            {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    // get user's current team's scheduled posts
+    getScheduledPosts = (teamId: string, includeDirectChannels: boolean) => {
+        return this.doFetchWithResponse<{[key: string]: ScheduledPost[]}>(
+            `${this.getPostsRoute()}/scheduled/team/${teamId}?includeDirectChannels=${includeDirectChannels}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
+            {method: 'put', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    deleteScheduledPost = (schedulePostId: string, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePostId}`,
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
     };
 }

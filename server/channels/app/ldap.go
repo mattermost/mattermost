@@ -17,21 +17,22 @@ import (
 // SyncLdap starts an LDAP sync job.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) SyncLdap(rctx request.CTX, includeRemovedMembers bool) {
-	rctx = rctx.Clone()
+func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 	a.Srv().Go(func() {
 		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
 			if !*a.Config().LdapSettings.EnableSync {
-				rctx.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
+				c.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
 				return
 			}
 
 			ldapI := a.Ldap()
 			if ldapI == nil {
-				rctx.Logger().Error("Not executing ldap sync because ldap is not available")
+				c.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			ldapI.StartSynchronizeJob(rctx, false, includeRemovedMembers)
+			if _, appErr := ldapI.StartSynchronizeJob(c, false, includeRemovedMembers); appErr != nil {
+				c.Logger().Error("Failed to start LDAP sync job")
+			}
 		}
 	})
 }
@@ -99,7 +100,7 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
 		return "", err
 	}
 

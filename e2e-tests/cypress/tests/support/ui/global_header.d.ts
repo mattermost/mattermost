@@ -41,7 +41,7 @@ declare namespace Cypress {
          * @example
          *   cy.uiOpenProductMenu().click();
          */
-        uiOpenProductMenu(item: string): Chainable;
+        uiOpenProductMenu(item: string = ''): Chainable;
 
         /**
          * Get set status button

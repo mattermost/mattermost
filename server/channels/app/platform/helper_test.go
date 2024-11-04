@@ -57,6 +57,9 @@ func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId strin
 func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
+func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+	return true
+}
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
