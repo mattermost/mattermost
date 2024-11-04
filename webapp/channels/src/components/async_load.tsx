@@ -3,7 +3,7 @@
 
 import React, {lazy, type ComponentType} from 'react';
 
-import type {PluggableComponentType, PluggableProps} from 'plugins/pluggable';
+import type {PluggableComponentType, PluggableProps} from 'plugins/pluggable/pluggable';
 
 import type {PluginsState, ProductSubComponentNames} from 'types/store/plugins';
 
@@ -17,7 +17,7 @@ export function makeAsyncComponent<ComponentProps>(displayName: string, LazyComp
     return Component;
 }
 
-export function makeAsyncPlugginComponent() {
+export function makeAsyncPluggableComponent() {
     const LazyComponent = lazy(() => import('plugins/pluggable')) as PluggableComponentType;
 
     const Component = <T extends keyof PluginsState['components'], U extends ProductSubComponentNames>(props: PluggableProps<T, U>) => (

@@ -455,7 +455,7 @@ export type SlashCommandWillBePostedHook = PluginComponent & {
 };
 
 export type MessageWillBeUpdatedHook = PluginComponent & {
-    hook: (post: Post) => Promise<{error: {message: string}} | {post: Post}>;
+    hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
 };
 
 export type PostPluginComponent = {

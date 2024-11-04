@@ -17,7 +17,7 @@ import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/r
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
-import {makeAsyncComponent, makeAsyncPlugginComponent} from 'components/async_load';
+import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
@@ -79,7 +79,7 @@ const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('compo
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 
-const Pluggable = makeAsyncPlugginComponent();
+const Pluggable = makeAsyncPluggableComponent();
 
 const noop = () => {};
 
