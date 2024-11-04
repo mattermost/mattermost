@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import {DateTime} from 'luxon';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
@@ -22,15 +23,17 @@ import Input from 'components/widgets/inputs/input/input';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-export function getRoundedTime(value: Moment) {
-    const roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+const DATE_FORMAT = 'yyyy-MM-dd';
+
+export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
     const start = moment(value);
     const diff = start.minute() % roundedTo;
     if (diff === 0) {
@@ -40,8 +43,7 @@ export function getRoundedTime(value: Moment) {
     return start.add(remainder, 'm').seconds(0).milliseconds(0);
 }
 
-export const getTimeInIntervals = (startTime: Moment): Date[] => {
-    const interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
+export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Date[] => {
     let time = moment(startTime);
     const nextDay = moment(startTime).add(1, 'days').startOf('day');
 
@@ -65,6 +67,8 @@ type Props = {
     handleChange: (date: Moment) => void;
     timezone?: string;
     setIsDatePickerOpen?: (isDatePickerOpen: boolean) => void;
+    relativeDate?: boolean;
+    timePickerInterval?: number;
 }
 
 const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
@@ -99,9 +103,9 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
         if (currentTime.isSame(time, 'date')) {
-            startTime = getRoundedTime(currentTime);
+            startTime = getRoundedTime(currentTime, props.timePickerInterval);
         }
-        setTimeOptions(getTimeInIntervals(startTime));
+        setTimeOptions(getTimeInIntervals(startTime, props.timePickerInterval));
     };
 
     useEffect(setTimeAndOptions, [time]);
@@ -109,10 +113,10 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const currentTime = getCurrentMomentForTimezone(timezone);
-            const roundedTime = getRoundedTime(currentTime);
+            const roundedTime = getRoundedTime(currentTime, props.timePickerInterval);
             handleChange(roundedTime);
         } else {
-            const dayWithTimezone = timezone ? moment.tz(day, timezone) : moment(day);
+            const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
             handleChange(dayWithTimezone.startOf('day'));
         }
         handlePopperOpenState(false);
@@ -137,8 +141,8 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
         ));
     }, []);
 
-    const formatDate = (date: Date): string => {
-        return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
+    const formatDate = (date: Moment): string => {
+        return props.relativeDate ? relativeFormatDate(date, formatMessage, DATE_FORMAT) : DateTime.fromJSDate(date.toDate()).toFormat(DATE_FORMAT);
     };
 
     const inputIcon = (
@@ -174,10 +178,10 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
                         datePickerProps={datePickerProps}
                     >
                         <Input
-                            value={formatDate(time.toDate())}
+                            value={formatDate(time)}
                             id='customStatus__calendar-input'
                             readOnly={true}
-                            className='dateTime__calendar-input'
+                            className={classNames('dateTime__calendar-input', {isOpen: isPopperOpen})}
                             label={formatMessage({id: 'dnd_custom_time_picker_modal.date', defaultMessage: 'Date'})}
                             onClick={() => handlePopperOpenState(true)}
                             tabIndex={-1}
