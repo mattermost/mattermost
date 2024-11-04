@@ -616,6 +616,9 @@ export function handleEvent(msg) {
     case SocketEvents.SCHEDULED_POST_UPDATED:
         dispatch(handleUpdateScheduledPostEvent(msg));
         break;
+    case SocketEvents.SCHEDULED_POST_DELETED:
+        dispatch(handleDeleteScheduledPostEvent(msg));
+        break;
     case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
         dispatch(handlePersistentNotification(msg));
         break;
@@ -1777,6 +1780,19 @@ function handleUpdateScheduledPostEvent(msg) {
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
+            data: {
+                scheduledPost,
+            },
+        });
+    };
+}
+
+function handleDeleteScheduledPostEvent(msg) {
+    return async (doDispatch) => {
+        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+
+        doDispatch({
+            type: ScheduledPostTypes.SCHEDULED_POST_DELETED,
             data: {
                 scheduledPost,
             },
