@@ -8,7 +8,7 @@ import type {SectionNoticeButtonProp} from './types';
 
 type Props = {
     button: SectionNoticeButtonProp;
-    buttonClass: 'btn-primary' | 'btn-tertiary' | 'btn-link';
+    buttonClass: 'btn-primary' | 'btn-secondary' | 'btn-tertiary' | 'btn-link';
 }
 
 const SectionNoticeButton = ({

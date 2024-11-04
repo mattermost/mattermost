@@ -54,7 +54,7 @@ describe('Search Date Filter', () => {
 
         // # Type before: in search field
         cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchBox().find('input').clear().type('before:');
+        cy.uiGetSearchBox().first().clear().type('before:');
 
         // * Day picker should be visible
         cy.get('.rdp').
@@ -68,13 +68,13 @@ describe('Search Date Filter', () => {
         cy.get('@dayPicker').should('not.exist');
 
         // * Verify date picker output gets put into field as expected date
-        cy.uiGetSearchBox().find('input').should('have.value', `before:${today} `);
+        cy.uiGetSearchBox().should('have.value', `before:${today} `);
 
         // # Click "x" to the right of the search term
-        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.uiGetSearchBox().find('input').should('have.value', '');
+        cy.uiGetSearchBox().first().should('have.value', '');
 
         cy.uiGetSearchContainer().should('be.visible').click();
     });
@@ -84,7 +84,7 @@ describe('Search Date Filter', () => {
 
         // # Type before: in search field
         cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchBox().find('input').clear().type('before:');
+        cy.uiGetSearchBox().first().clear().type('before:');
 
         // * Date picker should be visible
         cy.get('.rdp').
@@ -99,7 +99,7 @@ describe('Search Date Filter', () => {
         cy.get('@dayPicker').should('not.exist');
 
         // # Hit backspace with focus right after the date
-        cy.uiGetSearchBox().find('input').
+        cy.uiGetSearchBox().
             should('have.value', `before:${today} `).
             focus().
             type('{backspace}');
@@ -127,7 +127,7 @@ describe('Search Date Filter', () => {
 
         // * Filter can be removed with keyboard
         cy.uiGetSearchContainer().should('be.visible').click();
-        cy.uiGetSearchBox().find('input').
+        cy.uiGetSearchBox().
             clear().
             wait(TIMEOUTS.HALF_SEC).
             type(queryString).
@@ -135,10 +135,10 @@ describe('Search Date Filter', () => {
             should('have.value', '');
 
         // # Enter query to search box and then click "x" to the right of the search term
-        cy.uiGetSearchBox().find('input').clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
-        cy.uiGetSearchBox().find('.input-clear-x').click({force: true});
+        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(queryString);
+        cy.uiGetSearchBox().parent('.input-wrapper').siblings('.input-clear-x').click({force: true});
 
         // * The "x" to clear the search query has disappeared
-        cy.uiGetSearchBox().find('input').should('have.value', '');
+        cy.uiGetSearchBox().should('have.value', '');
     });
 });
