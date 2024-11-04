@@ -78,7 +78,10 @@ func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) 
 
 	// We might be able to add progress for this type of job in the future
 	// But for now we can just set to 0
-	worker.jobServer.SetJobProgress(job, 0)
+	if err := worker.jobServer.SetJobProgress(job, 0); err != nil {
+		worker.logger.Error("Worker: Failed to set job progress", mlog.Err(err))
+		return false
+	}
 	return false
 }
 
@@ -124,7 +127,9 @@ func (worker *BatchReportWorker) complete(rctx request.CTX, job *model.Job) erro
 	}
 
 	defer func() {
-		worker.app.CleanupReportChunks(worker.reportFormat, job.Id, fileCount)
+		if err := worker.app.CleanupReportChunks(worker.reportFormat, job.Id, fileCount); err != nil {
+			worker.logger.Error("Worker: Failed to cleanup report chunks", mlog.Err(err))
+		}
 	}()
 
 	if appErr = worker.app.SendReportToUser(rctx, job, worker.reportFormat); appErr != nil {
