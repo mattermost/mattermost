@@ -795,13 +795,15 @@ func TestImportImportUser(t *testing.T) {
 	username := model.NewUsername()
 	testsDir, _ := fileutils.FindDir("tests")
 	data = imports.UserImportData{
-		ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
-		Username:     &username,
-		Email:        model.NewPointer(model.NewId() + "@example.com"),
-		Nickname:     model.NewPointer(model.NewId()),
-		FirstName:    model.NewPointer(model.NewId()),
-		LastName:     model.NewPointer(model.NewId()),
-		Position:     model.NewPointer(model.NewId()),
+		Avatar: imports.Avatar{
+			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+		},
+		Username:  &username,
+		Email:     model.NewPointer(model.NewId() + "@example.com"),
+		Nickname:  model.NewPointer(model.NewId()),
+		FirstName: model.NewPointer(model.NewId()),
+		LastName:  model.NewPointer(model.NewId()),
+		Position:  model.NewPointer(model.NewId()),
 	}
 	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
