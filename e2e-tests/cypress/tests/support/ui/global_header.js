@@ -107,7 +107,7 @@ Cypress.Commands.add('uiGetSearchContainer', () => {
 });
 
 Cypress.Commands.add('uiGetSearchBox', () => {
-    return cy.get('#searchBox').should('be.visible');
+    return cy.get('.search-bar').should('be.visible');
 });
 
 Cypress.Commands.add('uiGetRecentMentionButton', () => {
