@@ -1713,11 +1713,11 @@
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Неможливо завантажити зображення. Сховище зображень не налаштоване. "
+    "translation": "Неможливо завантажити значок команди. Сховище зображень не налаштовано."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
+    "translation": "Неможливо завантажити значок команди. Файл занадто великий."
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
@@ -7102,5 +7102,445 @@
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
     "translation": "Ви можете додати до цього каналу {{.FirstUser}} та {{.Others}} інших користувачів, якщо вони є членами команди **{{.Team}}**."
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Унікальне ім'я для безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Сервіс безпечного з'єднання не ввімкнено."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Тепер цей канал є спільним."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[дія]"
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Відображає стан цього спільного каналу"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Невірне значення для '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "поділитись каналом"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Виникла помилка під час отримання IP-адреси клієнта"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "На цьому сервері недоступна фільтрація IP-адрес"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Неправильні вхідні параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Виникла помилка під час перевірки облікових даних вихідного OAuth-з'єднання."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Невідповідність ідентифікатора безпечного з'єднання."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Відсутній ідентифікатор безпечного з'єднання."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не ліцензовано для користувацьких груп"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference має бути 'true' для користувацьких груп"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функція користувацьких груп вимкнена"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Функцію користувацького статусу вимкнено. Будь ласка, зверніться до вашого системного адміністратора для отримання детальної інформації."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Налаштування Elasticsearch мають невизначені значення."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Неможливо виконати пошук початку файлу."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Помилка під час спроби отримати перше завершення налаштування адміністратора з магазину."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Помилка: не вказано назву організації для самостійного налаштування."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Помилка при спробі отримати з магазину статус першого візиту адміністратора на маркетплейс."
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Надішліть запрошення, зашифроване за допомогою AES 256-біт, адміністратору зовнішньої системи Mattermost разом із паролем. Для прийняття запрошення він використає слеш-команду `{{.Command}}`.\n\n```\n{{.Invitation}}\n```\n\n**Перевірте, що ваш Mattermost доступний через захищене з'єднання за адресою** {{.SiteURL}}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Виникла помилка при створенні вихідного OAuth-з'єднання."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Неможливо запросити віддаленого користувача до каналу: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Для керування спільними каналами потрібен дозвіл `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Неможливо скасувати спільний доступ до каналу, який не є спільним."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Не вдалося порівняти конфігурації"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Не вдалося оновити переклади сервера."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Не вдалося оновити статус користувача. Емодзі з таким іменем не існує."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Не вдалося оновити користувацький статус. Будь ласка, додайте або емодзі, або власний текстовий статус, або і те, і інше."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.button",
+    "translation": "Відкрити Mattermost"
+  },
+  {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Виникла внутрішня помилка сервера при створенні емодзі."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Помилка під час спроби зберегти перше повне налаштування адміністратора в магазині."
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Запит на безпечне з'єнання {{.RemoteId}} видалене."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "Ідентифікатор існуючого безпечного з'єднання. Використовуйте команду `secure-connection`, щоб додати безпечне з'єднання."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id має бути порожнім для користувацької групи"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": "У вас нові повідомлення"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "Відсутній або порожній `{{.Arg}}`"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "безпечне з'єднання"
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Відображає статус усіх захищених з'єднань"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Невідома дія `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "URL-адресу сайту не встановлено. Будь ласка, встановіть його у Системній консолі > Оточення > Веб-сервер."
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Доступні дії: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Неможливо запросити безпечне з'єднання до спільного каналу, створеного в іншому місці."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Безпечне з'єднання для спільного каналу {{.RemoteId}} не існує."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Неможливо запросити віддаленого користувача, оскільки канал {{.ChannelID}} не є спільним."
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Помилка при перевірці існування спільного каналу {{.ChannelID}}: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Помилка отримання захищених з'єднань: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Запрошення на спільний канал надіслано на адресу `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Запрошує віддалений екземпляр Mattermost до поточного спільного каналу"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Пропущена дія. Доступні дії: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Необхідно вказати дійсний ідентифікатор безпечного з'єднання для запрошення."
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "До цього каналу не запрошено жодного безпечного з'єднання."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Безпечне з'єднання вже запрошено."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "Ідентифікатор безпечного з'єднання недійсний: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Необхідно вказати дійсний ідентифікатор безпечного з'єднання, щоб скасувати запрошення"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Безпечне з'єднання | URL-адреса сайту | Тільки для читання | Запрошення прийнято | Онлайн | Остання синхронізація |"
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Службу спільних каналів вимкнено."
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[тільки для читання] - 'Так' або 'Ні'.   За замовчуванням 'Ні'"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Неможливо поділитися цим каналом: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Канал буде доступним лише для читання"
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Скасовує запрошення безпечного з'єднання з даного спільного каналу"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "Ідентифікатор безпечного з'єднання для відкликання запрошення."
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Невідома дія `{{.Action}}`. Доступні дії: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Знімає спільний доступ до поточного каналу"
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Не вдалося порівняти конфігурації"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Зміна {{.Name}} заборонена з міркувань безпеки."
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Виникла помилка під час отримання IP-фільтрів"
+  },
+  {
+    "id": "api.context.json_encoding.app_error",
+    "translation": "Помилка кодування JSON."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Неправильні вхідні параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Вихідні OAuth-з'єднання на цьому сервері недоступні."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Виникла помилка під час переліку вихідних OAuth-з'єднань."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Не вдалося отримати облікові дані з вказаною конфігурацією з'єднання."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Не вдалося знайти безпечний ідентифікатор з'єднання {{.RemoteId}}."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "помилка під час підрахунку груп"
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Не вдалося видалити останній статус. Будь ласка, спробуйте спочатку додати статус або зверніться до системного адміністратора за деталями."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Не вдалося зберегти чернетку в видаленому каналі"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функція Чернеток вимкнена."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Неможливо отримати таку кількість смайликів за іменем. За один раз можна запросити лише {{.MaxNames}} емодзі."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Помилка під час спроби зберегти статус першого відвідування ринку адміністратором у магазині."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Не вдалося знайти файл експорту."
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Безпечних з'єднань не знайдено."
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Видаляє захищене з'єднання"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Для керування безпечними з'єднаннями потрібен дозвіл `{{.Permission}}`."
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Додавання/видалення захищених з'єднань. Доступні дії: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Безпечне з'єднання | Відображуване ім'я | Ідентифікатор з'єднання | URL-адреса сайту | Команда за замовчуванням | Запрошення прийнято | Онлайн | Останній пінг | Видалено |"
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Термін дії запрошення закінчився."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Виникла помилка при видаленні вихідного OAuth-з'єднання."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Неправильні вхідні параметри."
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Назва безпечного з'єднання"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Не вдалося видалити безпечне з'єднання: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "Ідентифікатор безпечного з'єднання для видалення."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Сервіс безпечного з'єднання вимкнено."
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Помилка запрошення `{{.Name}}` на цей канал: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Цей канал більше не є спільним."
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Неможливо скасувати спільний доступ до цього каналу: {{.Error}}."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.messageButton",
+    "translation": "Переглянути це повідомлення"
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Нижче наведено короткий огляд ваших нових повідомлень."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Автозаповнення каналів не може бути увімкнено, оскільки схема індексу каналів застаріла. Рекомендується перегенерувати індекс каналів. Дивіться журнал змін Mattermost для отримання додаткової інформації"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Неможливо обробити запит. Тіло запиту занадто велике."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Не вдалося перезавантажити конфігурацію."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Виникла помилка під час застосування IP-фільтрів"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Не вдалося отримати статус для безпечних з'єднань: {{.Error}}."
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Відсутня команда. Доступні дії: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Статус для ідентифікатора каналу `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Не вдалося скасувати запрошення `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Розділяє поточний канал із зовнішнім екземпляром Mattermost."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Виникла помилка під час оновлення вихідного OAuth-з'єднання."
   }
 ]
