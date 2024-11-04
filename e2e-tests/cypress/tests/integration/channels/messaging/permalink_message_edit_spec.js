@@ -41,7 +41,7 @@ describe('Permalink message edit', () => {
 
         // # Search for searchWord
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').type(searchWord).type('{enter}');
+        cy.uiGetSearchBox().type(searchWord).type('{enter}');
 
         // # Jump to permalink view
         cy.get('.search-item__jump').first().click();
@@ -71,7 +71,7 @@ describe('Permalink message edit', () => {
 
             // # Find searchWord and verify edited post
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').should('be.visible').type(searchWord).type('{enter}');
+            cy.uiGetSearchBox().should('be.visible').first().type(searchWord).type('{enter}');
             cy.get('.search-item__jump').first().click();
 
             // # Check if url include the permalink
