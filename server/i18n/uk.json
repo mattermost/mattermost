@@ -285,11 +285,11 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Спроба виконати недійсне оновлення каналу за умовчанням {{.Channel}}"
+    "translation": "Спроба виконати некоректне оновлення каналу за замовчуванням {{.Channel}}."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Надана роль керується схемою, тому не може бути застосована безпосередньо до члену каналу"
+    "translation": "Надана роль управляється Схемою і тому не може бути застосована безпосередньо до учасника каналу."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "Надана роль керується схемою, тому не може бути застосована безпосередньо до члена команди"
+    "translation": "Вибрана роль управляється Схемою і тому не може бути застосована безпосередньо до учасника команди."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Команди відключені системним адміністратором"
+    "translation": "Команди вимкнені системним адміністратором."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -325,15 +325,15 @@
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Команда з тригером '{{.Trigger}} \"не вдалося"
+    "translation": "Не вдалося виконати команду з тригером '{{.Trigger}}'."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Команда з тригером '{{.Trigger}}' повернула порожню відповідь"
+    "translation": "Команда з тригером '{{.Trigger}}' повернула порожню відповідь."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Команда з тригером '{{.Trigger}}' повернулася відповідь {{.Status}}"
+    "translation": "Команда з тригером '{{.Trigger}}' повернула відповідь {{.Status}}."
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -341,7 +341,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Тригер команди не знайдено"
+    "translation": "Тригер команди не знайдено."
   },
   {
     "id": "api.command.invite_people.desc",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Не вдається оновити команди в команд"
+    "translation": "Неможливо оновити команди(commands) в різних командах(teams)."
   },
   {
     "id": "api.command_away.desc",
@@ -437,7 +437,7 @@
   },
   {
     "id": "api.command_channel_purpose.hint",
-    "translation": "текс"
+    "translation": "[текст]"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
@@ -445,7 +445,7 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "Ціль"
+    "translation": "мета"
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -469,11 +469,11 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Неможливо перейменувати канал особистих повідомлень"
+    "translation": "Неможливо перейменувати канали особистих повідомлень."
   },
   {
     "id": "api.command_channel_rename.hint",
-    "translation": "текст"
+    "translation": "[текст]"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
@@ -485,11 +485,11 @@
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "У вас немає прав перейменувати канал"
+    "translation": "Ви не маєте відповідних прав для перейменування каналу."
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Назва каналу має бути {{.Length}} або менше символів"
+    "translation": "Назва каналу має бути не довшим, ніж {{.Length}} символів."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
@@ -1725,7 +1725,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "Виникла помилка отримання команди "
+    "translation": "Помилка оновлення значка команди."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -1737,7 +1737,7 @@
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "Ліцензія не підтримує оновлення схеми команди "
+    "translation": "Ваша ліцензія не підтримує оновлення схеми команди"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -1805,7 +1805,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Відправлено по"
+    "translation": "Надіслано "
   },
   {
     "id": "api.templates.email_warning",
@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.templates.reset_body.button",
-    "translation": "Скинути мій пароль "
+    "translation": "Скинути пароль"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1905,7 +1905,7 @@
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "Ви оновили свою електронну адресу "
+    "translation": "Ви оновили своє ім'я користувача"
   },
   {
     "id": "api.templates.username_change_subject",
@@ -1913,7 +1913,7 @@
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Перевірте Email "
+    "translation": "Підтвердити електронну пошту"
   },
   {
     "id": "api.templates.verify_body.info",
@@ -1933,7 +1933,7 @@
   },
   {
     "id": "api.templates.welcome_body.button",
-    "translation": "Перевірте Email "
+    "translation": "Підтвердити електронну пошту"
   },
   {
     "id": "api.templates.welcome_body.info",
@@ -1961,11 +1961,11 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": "Поганий типу токен "
+    "translation": "Поганий тип токену."
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
-    "translation": "Некоректний стан "
+    "translation": "Недійсний стан"
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
@@ -2045,11 +2045,11 @@
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": "Реєстрація з електронною поштою відключена. "
+    "translation": "Реєстрація користувачів за допомогою електронної пошти вимкнена."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "Термін дії посилання на реєстрацію закінчився "
+    "translation": "Посилання для реєстрації більше не дійсне."
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
@@ -2137,7 +2137,7 @@
   },
   {
     "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "Посилання для скидання пароля прострочена "
+    "translation": "Посилання для скидання паролю більше не дійсне."
   },
   {
     "id": "api.user.reset_password.method",
@@ -2149,7 +2149,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "Символ бренда не налаштована та не підтримується на цьому сервері. "
+    "translation": "SAML 2.0 не налаштовано і не підтримується на цьому сервері."
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -2181,7 +2181,7 @@
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "У вас немає відповідних прав "
+    "translation": "Ви не маєте відповідних дозволів."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2213,7 +2213,7 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Порожній масив 'image' в запиті "
+    "translation": "Порожній масив 'image' в запиті."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -2225,23 +2225,23 @@
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
+    "translation": "У запиті відсутній файл \"image\"."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": "Не вдається відкрити файл зображення "
+    "translation": "Не вдалося відкрити файл зображення."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Неможливо обробити форму з декількох частин "
+    "translation": "Не вдалося розібрати складову форму."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Неможливо завантажити зображення. Сховище зображень не налаштоване. "
+    "translation": "Не вдалося завантажити файл. Сховище зображень не налаштоване."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
+    "translation": "Не вдалося завантажити зображення профілю. Файл занадто великий."
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
@@ -2313,7 +2313,7 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Недійсний параметр {{.Name}} "
+    "translation": "Неправильний параметр {{.Name}}."
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2473,7 +2473,7 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": "Помилка імпортування членських каналів користувача. Не вдалося зберегти налаштування. "
+    "translation": "Помилка імпорту налаштувань користувача. Не вдалося зберегти налаштування."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -5481,7 +5481,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
+    "translation": "Ваша ліцензія не підтримує гостьові облікові записи"
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -5497,7 +5497,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "Редакція не підтримує Elasticsearch. "
+    "translation": "Ваша ліцензія не підтримує гостьові акаунти."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
