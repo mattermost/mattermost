@@ -72,7 +72,7 @@ describe('Upload Files - Settings', () => {
         cy.get('#searchHints').find('.search-hint__search-type-selector button > .icon-file-text-outline').should('not.exist');
 
         // # Search for posts
-        cy.uiGetSearchBox().find('input').type('sample').type('{enter}');
+        cy.uiGetSearchBox().first().type('sample').type('{enter}');
 
         // * Verify search results do not have File button
         cy.get('.files-tab').should('not.exist');
