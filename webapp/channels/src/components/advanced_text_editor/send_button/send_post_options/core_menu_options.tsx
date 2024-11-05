@@ -29,6 +29,29 @@ type Props = {
     channelId: string;
 }
 
+interface RecentlyUsedCustomDate {
+    update_at?: number;
+    timestamp?: number;
+}
+
+function isTimestampWithinLast30Days(timestamp: number, timeZone = 'UTC') {
+    if (!timestamp || isNaN(timestamp)) {
+        return false;
+    }
+    const usedDate = DateTime.fromMillis(timestamp).setZone(timeZone);
+    const now = DateTime.now().setZone(timeZone);
+    const thirtyDaysAgo = now.minus({days: 30});
+
+    return usedDate >= thirtyDaysAgo && usedDate <= now;
+}
+
+function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
+    const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
+    const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
+    const formattedTime = teammateScheduledTime.toFormat('h:mm a');
+    return formattedTime;
+}
+
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
@@ -54,31 +77,16 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }, [currentUserId]);
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
 
-    interface RecentlyUsedCustomDate {
-        update_at?: number;
-        timestamp?: number;
-    }
-
-    let recentlyUsedCustomDateVal: RecentlyUsedCustomDate = {};
-
-    if (recentlyUsedCustomDate) {
-        try {
-            recentlyUsedCustomDateVal = JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-        } catch (e) {
-            recentlyUsedCustomDateVal = {};
+    const recentlyUsedCustomDateVal: RecentlyUsedCustomDate = useMemo(() => {
+        if (recentlyUsedCustomDate) {
+            try {
+                return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
+            } catch (e) {
+                return {};
+            }
         }
-    }
-
-    function isTimestampWithinLast30Days(timestamp: number, timeZone = 'UTC') {
-        if (!timestamp || isNaN(timestamp)) {
-            return false;
-        }
-        const usedDate = DateTime.fromMillis(timestamp).setZone(timeZone);
-        const now = DateTime.now().setZone(timeZone);
-        const thirtyDaysAgo = now.minus({days: 30});
-
-        return usedDate >= thirtyDaysAgo && usedDate <= now;
-    }
+        return {};
+    }, [recentlyUsedCustomDate]);
 
     let recentCustomTime = null;
     const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
@@ -88,13 +96,23 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
         isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone)
     ) {
+        const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
+        const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
+
         const timestamp = (
             <Timestamp
                 value={recentlyUsedCustomDateVal.timestamp}
                 timeZone={userCurrentTimezone}
                 useRelative={false}
-                useDate={{weekday: 'long'}}
-                useTime={{hour: 'numeric', minute: 'numeric'}}
+                useDate={USE_DATE_WEEKDAY_LONG}
+                useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
+            />
+        );
+
+        const trailingElement = (
+            <FormattedMessage
+                id='create_post_button.option.schedule_message.options.recently_used_custom_time'
+                defaultMessage='Recently used custom time'
             />
         );
 
@@ -105,12 +123,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 onClick={handleRecentlyUsedCustomTime}
                 labels={timestamp}
                 className='core-menu-options'
-                trailingElements={(
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.recently_used_custom_time'
-                        defaultMessage='Recently used custom time'
-                    />
-                )}
+                trailingElements={trailingElement}
             />,
         ];
     }
@@ -132,13 +145,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const extraProps: Partial<MenuItemProps> = {};
 
     if (isDM) {
-        function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
-            const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
-            const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
-            const formattedTime = teammateScheduledTime.toFormat('h:mm a');
-            return formattedTime;
-        }
-
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
         const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
         const teammateTimeDisplay = (
@@ -254,7 +260,8 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     return (
         <>
-            {recentCustomTime ? [...options, ...recentCustomTime] : options}
+            {options}
+            {recentCustomTime}
         </>
     );
 }

@@ -43,6 +43,8 @@ const initialState = {
     },
 };
 
+const recentUsedCustomDateString = 'Recently used custom time';
+
 describe('CoreMenuOptions Component', () => {
     const teammateDisplayName = 'John Doe';
     const userCurrentTimezone = 'America/New_York';
@@ -112,7 +114,7 @@ describe('CoreMenuOptions Component', () => {
 
         renderComponent(state);
 
-        expect(screen.getByText(/Recently used custom time/)).toBeInTheDocument();
+        expect(screen.getByText(recentUsedCustomDateString)).toBeInTheDocument();
     });
 
     test('should not render recently used custom time when preference value is invalid JSON', () => {
@@ -122,7 +124,7 @@ describe('CoreMenuOptions Component', () => {
 
         renderComponent(state);
 
-        expect(screen.queryByText(/Recently used custom time/)).not.toBeInTheDocument();
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
     });
 
     test('should call handleOnSelect with the correct timestamp when "Recently used custom time" is clicked', () => {
@@ -139,7 +141,7 @@ describe('CoreMenuOptions Component', () => {
 
         renderComponent(state, handleOnSelectMock);
 
-        const recentCustomOption = screen.getByText(/Recently used custom time/);
+        const recentCustomOption = screen.getByText(recentUsedCustomDateString);
         fireEvent.click(recentCustomOption);
 
         expect(handleOnSelectMock).toHaveBeenCalledWith(expect.anything(), recentTimestamp);
@@ -158,7 +160,7 @@ describe('CoreMenuOptions Component', () => {
 
         renderComponent(state);
 
-        expect(screen.queryByText(/Recently used custom time/)).not.toBeInTheDocument();
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
     });
 
     it('should render tomorrow option on Sunday', () => {
