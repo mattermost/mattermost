@@ -103,9 +103,10 @@ const (
 type TrackFeature string
 
 const (
-	TrackGuestFeature    TrackFeature = "guest_accounts"
-	TrackGroupsFeature   TrackFeature = "custom_groups"
-	TrackReadOnlyFeature TrackFeature = "read_only_channels"
+	TrackGuestFeature          TrackFeature = "guest_accounts"
+	TrackGroupsFeature         TrackFeature = "custom_groups"
+	TrackReadOnlyFeature       TrackFeature = "read_only_channels"
+	TrackSharedChannelsFeature TrackFeature = "shared_channels"
 )
 
 const (
@@ -147,9 +148,10 @@ type EventFeature struct {
 }
 
 var featureSKUS = map[TrackFeature][]TrackSKU{
-	TrackGuestFeature:    {TrackProfessionalSKU, TrackEnterpriseSKU},
-	TrackGroupsFeature:   {TrackProfessionalSKU, TrackEnterpriseSKU},
-	TrackReadOnlyFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackGuestFeature:          {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackGroupsFeature:         {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackReadOnlyFeature:       {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackSharedChannelsFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
