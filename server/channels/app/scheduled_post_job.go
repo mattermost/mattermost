@@ -341,7 +341,7 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackScheduledPosts,
-			"scheduled_posts_successfully_posted",
+			"scheduled_posts_success",
 			map[string]any{"count": len(successfulScheduledPostIDs)},
 		)
 	}
@@ -365,7 +365,7 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 	if len(failedScheduledPosts) > 0 {
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackScheduledPosts,
-			"scheduled_posts_successfully_posted",
+			"scheduled_posts_failed",
 			map[string]any{"count": len(failedScheduledPosts)},
 		)
 	}

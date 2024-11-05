@@ -6,7 +6,7 @@
 import FormData from 'form-data';
 import {
     TrackPropertyUser,
-    TrackPropertyUserAgent,
+    TrackPropertyUserAgent, TrackScheduledPostsFeature,
 } from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
 
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
@@ -4427,6 +4427,8 @@ export default class Client4 {
 
     // Schedule Post methods
     createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {TrackPropertyUser: schedulePost.user_id, TrackPropertyUserAgent: 'desktop'});
+
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
             {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
@@ -4442,13 +4444,17 @@ export default class Client4 {
     };
 
     updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'update_scheduled_post', {TrackPropertyUser: schedulePost.user_id, TrackPropertyUserAgent: 'desktop'});
+
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
             {method: 'put', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
         );
     };
 
-    deleteScheduledPost = (schedulePostId: string, connectionId: string) => {
+    deleteScheduledPost = (userId: string, schedulePostId: string, connectionId: string) => {
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'delete_scheduled_post', {TrackPropertyUser: userId, TrackPropertyUserAgent: 'desktop'});
+
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
