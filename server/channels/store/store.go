@@ -91,6 +91,7 @@ type Store interface {
 	PostPersistentNotification() PostPersistentNotificationStore
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
+	ScheduledPost() ScheduledPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -497,7 +498,9 @@ type UserStore interface {
 
 type BotStore interface {
 	Get(userID string, includeDeleted bool) (*model.Bot, error)
+	GetByUsername(username string) (*model.Bot, error)
 	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	GetAllAfter(limit int, afterId string) ([]*model.Bot, error)
 	Save(bot *model.Bot) (*model.Bot, error)
 	Update(bot *model.Bot) (*model.Bot, error)
 	PermanentDelete(userID string) error
@@ -1051,6 +1054,17 @@ type ChannelBookmarkStore interface {
 	UpdateSortOrder(bookmarkID, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 	Delete(bookmarkID string, deleteFile bool) error
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+}
+
+type ScheduledPostStore interface {
+	GetMaxMessageSize() int
+	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
+	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
+	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
+	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
+	Get(scheduledPostId string) (*model.ScheduledPost, error)
+	UpdateOldScheduledPosts(beforeTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
