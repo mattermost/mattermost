@@ -3,7 +3,7 @@
 
 import moment from 'moment-timezone';
 
-import type {ActivityEntry, Post} from '@mattermost/types/posts';
+import type {ActivityEntry, MessageData, Post, UserActivityProp} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -320,7 +320,7 @@ export function makeGenerateCombinedPost(): (state: GlobalState, combinedId: str
 }
 
 export function extractUserActivityData(userActivities: ActivityEntry[]) {
-    const messageData: any[] = [];
+    const messageData: MessageData[] = [];
     const allUserIds: string[] = [];
     const allUsernames: string[] = [];
     userActivities.forEach((activity) => {
@@ -390,9 +390,9 @@ function isSameActorsInUserActivities(prevActivity: ActivityEntry, curActivity: 
     });
     return hasAllActors;
 }
-export function combineUserActivitySystemPost(systemPosts: Post[] = []) {
+export function combineUserActivitySystemPost(systemPosts: Post[] = []): UserActivityProp | undefined {
     if (systemPosts.length === 0) {
-        return null;
+        return undefined;
     }
     const userActivities: ActivityEntry[] = [];
     systemPosts.reverse().forEach((post: Post) => {

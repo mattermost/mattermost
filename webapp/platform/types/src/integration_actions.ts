@@ -52,7 +52,7 @@ export function isPostAction(v: unknown): v is PostAction {
         return false;
     }
 
-    if ('options' in v && !isArrayOf(v, isPostActionOption)) {
+    if ('options' in v && !isArrayOf(v.options, isPostActionOption)) {
         return false;
     }
 

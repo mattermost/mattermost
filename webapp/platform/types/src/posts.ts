@@ -7,10 +7,12 @@ import type {FileInfo} from './files';
 import type {Reaction} from './reactions';
 import type {TeamType} from './teams';
 import type {UserProfile} from './users';
-import type {
-    RelationOneToOne,
-    RelationOneToMany,
-    IDMappedObjects,
+import {
+    type RelationOneToOne,
+    type RelationOneToMany,
+    type IDMappedObjects,
+    isStringArray,
+    isArrayOf,
 } from './utilities';
 
 export type PostType = 'system_add_remove' |
@@ -228,4 +230,56 @@ export type NotificationResult = {
     status: NotificationStatus;
     reason?: string;
     data?: string;
+}
+
+export type MessageData = {
+    actorId?: string;
+    postType: string;
+    userIds: string[];
+}
+
+function isMessageData(v: unknown): v is MessageData {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if ('actorId' in v && typeof v.actorId !== 'string') {
+        return false;
+    }
+
+    if (!('postType' in v) || typeof v.postType !== 'string') {
+        return false;
+    }
+
+    if (!('userIds' in v) || !isStringArray(v.userIds)) {
+        return false;
+    }
+
+    return true;
+}
+
+export type UserActivityProp = {
+    allUserIds: string[];
+    allUsernames: string[];
+    messageData: MessageData[];
+}
+
+export function isUserActivityProp(v: unknown): v is UserActivityProp {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if (!('allUserIds' in v) || !isStringArray(v.allUserIds)) {
+        return false;
+    }
+
+    if (!('allUsernames' in v) || !isStringArray(v.allUsernames)) {
+        return false;
+    }
+
+    if (!('messageData' in v) || !isArrayOf(v.messageData, isMessageData)) {
+        return false;
+    }
+
+    return true;
 }

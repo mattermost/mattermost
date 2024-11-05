@@ -6,16 +6,15 @@ import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
+import {isUserActivityProp, type Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
-import {isArrayOf, isStringArray} from '@mattermost/types/utilities';
+import {isStringArray} from '@mattermost/types/utilities';
 
 import {General, Posts} from 'mattermost-redux/constants';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
-import {isMessageData, type MessageData} from 'components/post_view/combined_system_message/combined_system_message';
 import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
@@ -417,32 +416,6 @@ function isAddMemberProps(v: unknown): v is AddMemberProps {
     }
 
     if (!('not_in_channel_usernames' in v) || !isStringArray(v.not_in_channel_usernames)) {
-        return false;
-    }
-
-    return true;
-}
-
-type UserActivityProp = {
-    allUserIds: string[];
-    allUsernames: string[];
-    messageData: MessageData[];
-}
-
-function isUserActivityProp(v: unknown): v is UserActivityProp {
-    if (typeof v !== 'object' || !v) {
-        return false;
-    }
-
-    if (!('allUserIds' in v) || !isStringArray(v.allUserIds)) {
-        return false;
-    }
-
-    if (!('allUsernames' in v) || !isStringArray(v.allUsernames)) {
-        return false;
-    }
-
-    if (!('messageData' in v) || !isArrayOf(v, isMessageData)) {
         return false;
     }
 
