@@ -218,7 +218,10 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}
 
 		if msg.Type == model.PushTypeMessage {
-			a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
+			// If we are ignoring the ack, we don't count the send
+			if session.Props[model.SessionPropDeviceNotificationDisabled] != "true" {
+				a.CountNotification(model.NotificationTypePush, tmpMessage.Platform)
+			}
 		}
 	}
 
@@ -527,7 +530,12 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
-		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
+		appErr := a.SetExtraSessionProps(session, map[string]string{
+			model.SessionPropLastRemovedDeviceId: session.DeviceId,
+		})
+		if appErr != nil {
+			return fmt.Errorf("Failed to set extra session properties: %w", appErr)
+		}
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:

@@ -28,6 +28,11 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// ClearMobileClientSessionMetadata provides a mock function with given fields:
+func (_m *MetricsInterface) ClearMobileClientSessionMetadata() {
+	_m.Called()
+}
+
 // DecrementHTTPWebSockets provides a mock function with given fields: originClient
 func (_m *MetricsInterface) DecrementHTTPWebSockets(originClient string) {
 	_m.Called(originClient)
@@ -348,6 +353,16 @@ func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveDesktopCpuUsage provides a mock function with given fields: platform, version, process, usage
+func (_m *MetricsInterface) ObserveDesktopCpuUsage(platform string, version string, process string, usage float64) {
+	_m.Called(platform, version, process, usage)
+}
+
+// ObserveDesktopMemoryUsage provides a mock function with given fields: platform, version, process, usage
+func (_m *MetricsInterface) ObserveDesktopMemoryUsage(platform string, version string, process string, usage float64) {
+	_m.Called(platform, version, process, usage)
+}
+
 // ObserveEnabledUsers provides a mock function with given fields: users
 func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 	_m.Called(users)
@@ -371,6 +386,11 @@ func (_m *MetricsInterface) ObserveMobileClientChannelSwitchDuration(platform st
 // ObserveMobileClientLoadDuration provides a mock function with given fields: platform, elapsed
 func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
 	_m.Called(platform, elapsed)
+}
+
+// ObserveMobileClientSessionMetadata provides a mock function with given fields: version, platform, value, notificationDisabled
+func (_m *MetricsInterface) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+	_m.Called(version, platform, value, notificationDisabled)
 }
 
 // ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, elapsed

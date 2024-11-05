@@ -277,7 +277,6 @@ func TestGetReplica(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description+" with license", func(t *testing.T) {
 			settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
 			if err != nil {
@@ -647,7 +646,6 @@ func TestGetAllConns(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 			settings, err := makeSqlSettings(model.DatabaseDriverPostgres)

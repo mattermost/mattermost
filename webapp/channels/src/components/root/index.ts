@@ -61,6 +61,7 @@ function mapStateToProps(state: GlobalState) {
         iosDownloadLink: config.IosAppDownloadLink,
         androidDownloadLink: config.AndroidAppDownloadLink,
         appDownloadLink: config.AppDownloadLink,
+        enableDesktopLandingPage: config.EnableDesktopLandingPage === 'true',
         permalinkRedirectTeamName: permalinkRedirectTeam ? permalinkRedirectTeam.name : '',
         showTermsOfService,
         plugins,

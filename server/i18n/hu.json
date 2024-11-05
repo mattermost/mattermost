@@ -2893,11 +2893,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verzió 14.1+"
+    "translation": "Verzió 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -2905,11 +2905,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verzió 118+"
+    "translation": "Verzió 126+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 118+"
+    "translation": "Verzió 126+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4445,7 +4445,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nem sikerült frissíteni a websocket kapcsolatot."
+    "translation": "URL blokkolva CORS miatt. Url: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -6640,7 +6640,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Biztonságos kapcsolat | Megjelenített név | Kapcsolat azonosító | Rendszer URL | Meghívó elfogadva | Elérhető | Utolsó ping  |"
+    "translation": "| Biztonságos kapcsolat | Megjelenített név | Kapcsolat azonosító | Rendszer URL | Alapértelmezett csapat | Meghívó elfogadva | Elérhető | Utolsó ping | Törölt |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",

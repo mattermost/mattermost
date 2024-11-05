@@ -390,9 +390,10 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	// add some remotes
 	for i := 0; i < 10; i++ {
 		remote := &model.SharedChannelRemote{
-			ChannelId: channel.Id,
-			CreatorId: model.NewId(),
-			RemoteId:  model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         model.NewId(),
+			RemoteId:          model.NewId(),
+			IsInviteConfirmed: true, // to avoid adding the IncludeUnconfirmed filter
 		}
 		_, err := ss.SharedChannel().SaveRemote(remote)
 		require.NoError(t, err, "couldn't add remote", err)
@@ -407,10 +408,14 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Error(t, err)
 		require.Nil(t, sc)
 
-		// make sure the remotes were deleted.
+		// make sure the remotes were marked as deleted.
 		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: channel.Id})
 		require.NoError(t, err)
-		require.Len(t, remotes, 0, "expected empty remotes list")
+		require.Len(t, remotes, 0)
+
+		deletedRemotes, err := ss.SharedChannel().GetRemotes(0, 999999, model.SharedChannelRemoteFilterOpts{ChannelId: channel.Id, IncludeDeleted: true})
+		require.NoError(t, err)
+		require.Len(t, deletedRemotes, 10)
 
 		// ensure channel's Shared flag is unset
 		channelMod, err := ss.Channel().Get(channel.Id, false)
@@ -571,6 +576,17 @@ func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.St
 		require.Error(t, err)
 		require.Nil(t, r)
 	})
+
+	t.Run("Get deleted shared channel remote by ids", func(t *testing.T) {
+		deleted, err := ss.SharedChannel().DeleteRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		r, err := ss.SharedChannel().GetRemoteByIds(remoteSaved.ChannelId, remoteSaved.RemoteId)
+		require.NoError(t, err)
+		require.Equal(t, remoteSaved.Id, r.Id)
+		require.NotZero(t, r.DeleteAt)
+	})
 }
 
 func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -587,6 +603,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		{ChannelId: channel.Id, CreatorId: creator, RemoteId: remoteId2, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
 		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true},
+		{CreatorId: creator, RemoteId: remoteId, IsInviteConfirmed: true, DeleteAt: 123},
 		{CreatorId: creator, RemoteId: remoteId},
 	}
 
@@ -641,6 +658,25 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		}
 	})
 
+	t.Run("Get shared channel remotes by remote_id including deleted", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			RemoteId:       remoteId,
+			IncludeDeleted: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 3) // only confirmed invitations
+		deletedCount := 0
+		for _, r := range remotes {
+			require.Equal(t, remoteId, r.RemoteId)
+			require.True(t, r.IsInviteConfirmed)
+			if r.DeleteAt != 0 {
+				deletedCount++
+			}
+		}
+		require.Equal(t, 1, deletedCount)
+	})
+
 	t.Run("Get shared channel remotes by invalid remote_id", func(t *testing.T) {
 		opts := model.SharedChannelRemoteFilterOpts{
 			RemoteId: model.NewId(),
@@ -652,14 +688,27 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 
 	t.Run("Get shared channel remotes by remote_id including unconfirmed", func(t *testing.T) {
 		opts := model.SharedChannelRemoteFilterOpts{
-			RemoteId:        remoteId,
-			InclUnconfirmed: true,
+			RemoteId:           remoteId,
+			IncludeUnconfirmed: true,
 		}
 		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 3)
 		for _, r := range remotes {
 			require.Equal(t, remoteId, r.RemoteId)
+		}
+	})
+
+	t.Run("Get only unconfirmed shared channel remotes for remote", func(t *testing.T) {
+		opts := model.SharedChannelRemoteFilterOpts{
+			RemoteId:         remoteId,
+			ExcludeConfirmed: true,
+		}
+		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
+		require.NoError(t, err, "should not error", err)
+		require.Len(t, remotes, 1)
+		for _, r := range remotes {
+			require.False(t, r.IsInviteConfirmed)
 		}
 	})
 
@@ -703,8 +752,8 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 
 	t.Run("Get shared channel remotes excluding shared from home including unconfirmed", func(t *testing.T) {
 		opts := model.SharedChannelRemoteFilterOpts{
-			ExcludeHome:     true,
-			InclUnconfirmed: true,
+			ExcludeHome:        true,
+			IncludeUnconfirmed: true,
 		}
 		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
@@ -748,6 +797,20 @@ func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("wrong remote id", func(t *testing.T) {
 		has, err := ss.SharedChannel().HasRemote(channel.Id, model.NewId())
+		require.NoError(t, err)
+		assert.False(t, has)
+	})
+
+	t.Run("deleted remote", func(t *testing.T) {
+		scr, err := ss.SharedChannel().GetRemoteByIds(channel.Id, remote1)
+		require.NoError(t, err)
+		require.NotEmpty(t, scr.Id)
+
+		deleted, err := ss.SharedChannel().DeleteRemote(scr.Id)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		has, err := ss.SharedChannel().HasRemote(channel.Id, remote1)
 		require.NoError(t, err)
 		assert.False(t, has)
 	})
@@ -888,8 +951,8 @@ func testDeleteSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Stor
 		require.True(t, deleted, "expected true from delete remote")
 
 		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
-		require.Error(t, err)
-		require.Nil(t, r)
+		require.NoError(t, err)
+		require.NotZero(t, r.DeleteAt)
 	})
 
 	t.Run("Delete non-existent shared channel remote", func(t *testing.T) {

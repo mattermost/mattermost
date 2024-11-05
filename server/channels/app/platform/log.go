@@ -121,7 +121,7 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 
 	if *ps.Config().LogSettings.EnableFile {
@@ -175,10 +175,10 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 					var entry *model.LogEntry
 					err = json.Unmarshal(line, &entry)
 					if err != nil {
-						mlog.Debug("Failed to parse line, skipping")
+						rctx.Logger().Debug("Failed to parse line, skipping")
 					} else {
 						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
-						filtered = isLogFilteredByDate(logFilter, entry) || filtered
+						filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 					}
 
 					if filtered {
@@ -257,7 +257,7 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 	return true
 }
 
-func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
 		return false
 	}
@@ -273,7 +273,7 @@ func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool
 
 	timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
 	if err != nil {
-		mlog.Debug("Cannot parse timestamp, skipping")
+		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false
 	}
 

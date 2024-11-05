@@ -26,7 +26,7 @@ import type {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
     Address,
@@ -110,12 +110,15 @@ import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageRe
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {Reaction} from '@mattermost/types/reactions';
+import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
+import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
     Team,
@@ -140,7 +143,7 @@ import type {
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
 } from '@mattermost/types/users';
-import type {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
+import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -325,6 +328,14 @@ export default class Client4 {
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
         return `${this.getBaseRoute()}/users/${userId}/teams/${teamId}/channels/categories`;
+    }
+
+    getRemoteClustersRoute() {
+        return `${this.getBaseRoute()}/remotecluster`;
+    }
+
+    getRemoteClusterRoute(remoteId: string) {
+        return `${this.getRemoteClustersRoute()}/${remoteId}`;
     }
 
     getPostsRoute() {
@@ -1025,8 +1036,8 @@ export default class Client4 {
         );
     };
 
-    startUsersBatchExport = (dateRange: string) => {
-        const queryString = buildQueryString({date_range: dateRange});
+    startUsersBatchExport = (filter: UserReportFilter) => {
+        const queryString = buildQueryString(filter);
         return this.doFetch<StatusOK>(
             `${this.getReportsRoute()}/users/export${queryString}`,
             {method: 'post'},
@@ -1942,23 +1953,24 @@ export default class Client4 {
         );
     };
 
-    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): Promise<ChannelsWithTotalCount>;
-    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): Promise<ChannelWithTeamData[]>;
-    searchAllChannels(term: string, opts: ChannelSearchOpts = {}) {
+    searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): Promise<ChannelsWithTotalCount>;
+    searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): Promise<ChannelWithTeamData[]>;
+    searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}) {
         const body = {
             term,
             ...opts,
         };
         const includeDeleted = Boolean(opts.include_deleted);
         const nonAdminSearch = Boolean(opts.nonAdminSearch);
-        let queryParams: {include_deleted?: boolean; system_console?: boolean} = {include_deleted: includeDeleted};
+        const excludeRemote = Boolean(opts.exclude_remote);
+        let queryParams: {include_deleted?: boolean; system_console?: boolean; exclude_remote?: boolean} = {include_deleted: includeDeleted, exclude_remote: excludeRemote};
         if (nonAdminSearch) {
             queryParams = {system_console: false};
             delete body.nonAdminSearch;
         }
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}/search${buildQueryString(queryParams)}`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'post', body: JSON.stringify(body), signal: opts.signal},
         );
     }
 
@@ -2069,6 +2081,89 @@ export default class Client4 {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}`,
             {method: 'delete'},
+        );
+    };
+
+    // Remote Clusters Routes
+
+    getRemoteClusters = (options: {excludePlugins: boolean}) => {
+        return this.doFetch<RemoteCluster[]>(
+            `${this.getRemoteClustersRoute()}${buildQueryString({exclude_plugins: options.excludePlugins})}`,
+            {method: 'GET'},
+        );
+    };
+
+    getRemoteCluster = (remoteId: string) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'GET'},
+        );
+    };
+
+    createRemoteCluster = (remoteCluster: PartialExcept<RemoteClusterWithPassword, 'name' | 'display_name'>) => {
+        return this.doFetch<{invite: string; password: string; remote_cluster: RemoteCluster}>(
+            `${this.getRemoteClustersRoute()}`,
+            {method: 'POST', body: JSON.stringify(remoteCluster)},
+        );
+    };
+
+    patchRemoteCluster = (remoteId: string, patch: Partial<RemoteClusterPatch>) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    deleteRemoteCluster = (remoteId: string) => {
+        return this.doFetch(
+            `${this.getRemoteClusterRoute(remoteId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    acceptInviteRemoteCluster = (remoteClusterAcceptInvite: RemoteClusterAcceptInvite) => {
+        return this.doFetch<RemoteCluster>(
+            `${this.getRemoteClustersRoute()}/accept_invite`,
+            {method: 'POST', body: JSON.stringify(remoteClusterAcceptInvite)},
+        );
+    };
+
+    generateInviteRemoteCluster = (remoteId: string, remoteCluster: Partial<Pick<RemoteClusterWithPassword, 'password'>>) => {
+        return this.doFetch<string>(
+            `${this.getRemoteClusterRoute(remoteId)}/generate_invite`,
+            {method: 'POST', body: JSON.stringify(remoteCluster)},
+        );
+    };
+
+    // Shared Channels Routes
+
+    getSharedChannelRemotes = (
+        remoteId: string,
+        filters: {
+            exclude_remote?: boolean;
+            exclude_home?: boolean;
+            include_deleted?: boolean;
+            include_unconfirmed?: boolean;
+            exclude_confirmed?: boolean;
+        },
+    ) => {
+        return this.doFetch<SharedChannelRemote[]>(
+            `${this.getRemoteClusterRoute(remoteId)}/sharedchannelremotes${buildQueryString(filters)}`,
+            {method: 'GET'},
+        );
+    };
+
+    sharedChannelRemoteInvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/invite`,
+            {method: 'POST'},
+        );
+    };
+
+    sharedChannelRemoteUninvite = (remoteId: string, channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
+            {method: 'POST'},
         );
     };
 
@@ -2514,6 +2609,7 @@ export default class Client4 {
             ActiveSearchBackend: string;
             database_status: string;
             filestore_status: string;
+            root_status: boolean;
         }>(
             `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId, use_rest_semantics: true})}`,
             {method: 'get'},
@@ -4179,7 +4275,11 @@ export default class Client4 {
 
         let data;
         try {
-            data = await response.json();
+            if (headers.get('Content-Type') === 'application/json') {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
         } catch (err) {
             throw new ClientError(this.getUrl(), {
                 message: 'Received invalid response from the server.',
@@ -4226,6 +4326,12 @@ export default class Client4 {
     trackEvent(category: string, event: string, props?: any) {
         if (this.telemetryHandler) {
             this.telemetryHandler.trackEvent(this.userId, this.userRoles, category, event, props);
+        }
+    }
+
+    trackFeatureEvent(featureName: string, event: string, props: Record<string, unknown> = {}) {
+        if (this.telemetryHandler) {
+            this.telemetryHandler.trackFeatureEvent(this.userId, this.userRoles, featureName, event, props);
         }
     }
 
@@ -4312,6 +4418,36 @@ export default class Client4 {
         return this.doFetchWithResponse<Channel>(
             `${this.getChannelRoute(channelId)}/convert_to_channel?team_id=${teamId}`,
             {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
+    // Schedule Post methods
+    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule`,
+            {method: 'post', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    // get user's current team's scheduled posts
+    getScheduledPosts = (teamId: string, includeDirectChannels: boolean) => {
+        return this.doFetchWithResponse<{[key: string]: ScheduledPost[]}>(
+            `${this.getPostsRoute()}/scheduled/team/${teamId}?includeDirectChannels=${includeDirectChannels}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
+            {method: 'put', body: JSON.stringify(schedulePost), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    deleteScheduledPost = (schedulePostId: string, connectionId: string) => {
+        return this.doFetchWithResponse<ScheduledPost>(
+            `${this.getPostsRoute()}/schedule/${schedulePostId}`,
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
     };
 }

@@ -445,3 +445,48 @@ func TestSessionsLimit(t *testing.T) {
 		require.Equal(t, sessions[i].Id, sess.Id)
 	}
 }
+
+func TestSetExtraSessionProps(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	session, _ := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+
+	resetSession := func(session *model.Session) {
+		session.AddProp("testProp", "")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+	t.Run("do not update the session if there are no props", func(t *testing.T) {
+		defer resetSession(session)
+		th.App.SetExtraSessionProps(session, map[string]string{})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+	})
+	t.Run("update the session with the selected prop", func(t *testing.T) {
+		defer resetSession(session)
+		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
+	})
+	t.Run("do not update the session if the prop is the same", func(t *testing.T) {
+		defer resetSession(session)
+		session.AddProp("testProp", "true")
+		th.Server.Store().Session().UpdateProps(session)
+		th.App.ClearSessionCacheForUser(session.UserId)
+
+		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		updatedSession, _ := th.App.GetSession(session.Token)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, session, updatedSession)
+		assert.Equal(t, session, storeSession)
+		assert.Equal(t, "true", updatedSession.Props["testProp"])
+		assert.Equal(t, "true", storeSession.Props["testProp"])
+	})
+}

@@ -59,16 +59,17 @@ describe('Search in DMs', () => {
         cy.postMessage(message);
 
         // # Type `in:` in searchbox
-        cy.get('#searchBox').type('in:');
+        cy.uiGetSearchContainer().should('be.visible').click();
+        cy.uiGetSearchBox().type('in:');
 
         // # Select user from suggestion list
         cy.contains('.suggestion-list__item', `@${otherUser.username}`).scrollIntoView().click();
 
         // # Validate searchbox contains the username
-        cy.get('#searchBox').should('have.value', 'in:@' + otherUser.username + ' ');
+        cy.uiGetSearchBox().should('have.value', 'in:@' + otherUser.username + ' ');
 
         // # Press Enter in searchbox
-        cy.get('#searchBox').type(message).type('{enter}');
+        cy.uiGetSearchBox().type(message).type('{enter}');
 
         // # Search message in each filtered result
         cy.get('#search-items-container').find('.search-highlight').each(($el) => {

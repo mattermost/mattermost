@@ -17,7 +17,7 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventPublish, ps.ClusterPublishHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateStatus, ps.ClusterUpdateStatusHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
-	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserTeams, ps.clusterInvalidateCacheForUserTeamsHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateWebConnCacheForUser, ps.clusterInvalidateWebConnSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
@@ -67,13 +67,13 @@ func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterM
 	ps.InvalidateAllCachesSkipSend()
 }
 
-func (ps *PlatformService) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	ps.invalidateWebConnSessionCacheForUser(string(msg.Data))
+func (ps *PlatformService) clusterInvalidateWebConnSessionCacheForUserHandler(msg *model.ClusterMessage) {
+	ps.invalidateWebConnSessionCacheForUserSkipClusterSend(string(msg.Data))
 }
 
 func (ps *PlatformService) ClearSessionCacheForUserSkipClusterSend(userID string) {
 	ps.ClearUserSessionCacheLocal(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.invalidateWebConnSessionCacheForUserSkipClusterSend(userID)
 }
 
 func (ps *PlatformService) ClearSessionCacheForAllUsersSkipClusterSend() {
@@ -103,7 +103,7 @@ func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage)
 	}
 }
 
-func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
+func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(userID string) {
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		hub.InvalidateUser(userID)

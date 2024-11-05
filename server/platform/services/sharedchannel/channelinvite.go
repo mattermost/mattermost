@@ -6,12 +6,14 @@ package sharedchannel
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -50,6 +52,30 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		return err
 	}
 
+	// if the remote is not currently online, we store the invite to
+	// send it when the connection is restored
+	if !rc.IsOnline() {
+		if len(options) > 0 {
+			// pending invites with options are currently not supported
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, model.ErrOfflineRemote))
+			return model.ErrOfflineRemote
+		}
+
+		scr := &model.SharedChannelRemote{
+			ChannelId:         sc.ChannelId,
+			CreatorId:         userId,
+			RemoteId:          rc.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: false,
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
+			return err
+		}
+
+		return nil
+	}
+
 	invite := channelInviteMsg{
 		ChannelId:   channel.Id,
 		ReadOnly:    sc.ReadOnly,
@@ -78,19 +104,50 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			return
 		}
 
-		scr := &model.SharedChannelRemote{
-			ChannelId:         sc.ChannelId,
-			CreatorId:         userId,
-			RemoteId:          rc.RemoteId,
-			IsInviteAccepted:  true,
-			IsInviteConfirmed: true,
-			LastPostCreateAt:  model.GetMillis(),
-			LastPostUpdateAt:  model.GetMillis(),
-		}
-		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
+		existingScr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(sc.ChannelId, rc.RemoteId)
+		var errNotFound *store.ErrNotFound
+		if err != nil && !errors.As(err, &errNotFound) {
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, err))
 			return
 		}
+
+		curTime := model.GetMillis()
+		if existingScr != nil {
+			if existingScr.DeleteAt == 0 && existingScr.IsInviteConfirmed {
+				// the shared channel remote exists and is not
+				// deleted, nothing to do here
+				return
+			}
+
+			// the shared channel remote was deleted in the past or
+			// pending confirmation, so with the new invite we restore
+			// it
+			existingScr.DeleteAt = 0
+			existingScr.UpdateAt = curTime
+			existingScr.LastPostCreateAt = curTime
+			existingScr.LastPostUpdateAt = curTime
+			existingScr.IsInviteConfirmed = true
+			if _, sErr := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); sErr != nil {
+				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
+				return
+			}
+		} else {
+			// the shared channel remote doesn't exists, so we create it
+			scr := &model.SharedChannelRemote{
+				ChannelId:         sc.ChannelId,
+				CreatorId:         userId,
+				RemoteId:          rc.RemoteId,
+				IsInviteAccepted:  true,
+				IsInviteConfirmed: true,
+				LastPostCreateAt:  curTime,
+				LastPostUpdateAt:  curTime,
+			}
+			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
+				return
+			}
+		}
+
 		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 	}
@@ -105,28 +162,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
-		if err != nil || !resp.IsSuccess() {
-			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Err)))
-			return
-		}
-
-		scr := &model.SharedChannelRemote{
-			ChannelId:         sc.ChannelId,
-			CreatorId:         userId,
-			RemoteId:          rc.RemoteId,
-			IsInviteAccepted:  true,
-			IsInviteConfirmed: true,
-			LastPostCreateAt:  model.GetMillis(),
-			LastPostUpdateAt:  model.GetMillis(),
-		}
-		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
-			return
-		}
-		scs.NotifyChannelChanged(sc.ChannelId)
-		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
-	})
+	return rcs.SendMsg(ctx, msg, rc, onInvite)
 }
 
 func combineErrors(err error, serror string) string {
@@ -162,43 +198,63 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	)
 
 	// check if channel already exists
+	existingScr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(invite.ChannelId, rc.RemoteId)
+	var errNotFound *store.ErrNotFound
+	if err != nil && !errors.As(err, &errNotFound) {
+		return fmt.Errorf("cannot get deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
+	}
+
+	if existingScr != nil && existingScr.DeleteAt == 0 {
+		// the channel is already shared, nothing to do
+		return nil
+	}
+
 	var channel *model.Channel
 	var created bool
-	_, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
-	if err == nil {
-		// the channel already exists on this server; could be the remote is trying to re-share it (not allowed at this time).
-		// If the channel is already shared with the remote, it will remain so.
-		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
-	}
+	if existingScr == nil {
+		var err error
+		_, err = scs.server.GetStore().Channel().Get(invite.ChannelId, true)
+		if err == nil {
+			// the channel already exists on this server and was not
+			// previously shared, so we reject the invite
+			return fmt.Errorf("cannot create new shared channel (channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
+		}
 
-	// create new local channel to sync with the remote channel
-	if channel, created, err = scs.handleChannelCreation(invite, rc); err != nil {
-		return err
-	}
+		// create new local channel to sync with the remote channel
+		if channel, created, err = scs.handleChannelCreation(invite, rc); err != nil {
+			return err
+		}
 
-	// sanity check to ensure the channel returned has the expected id. Otherwise sync will not work as expected and will fail
-	// silently.
-	if invite.ChannelId != channel.Id {
-		// as of this writing, this scenario should only be possible if the invite included a DM channel invitation with a
-		// combination of two user ids (one remote, one local) that already have a DM on this server. Very unlikely unless
-		// the remote is compromised AND has knowledge of the local user id.
-		// Another possibility would be an actual user ID collision between two servers, where the likelihood is
-		// infinitesimally small
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Channel invite failed - channel created/fetched with wrong id",
-			mlog.String("remote", rc.DisplayName),
-			mlog.String("channel_id", invite.ChannelId),
-			mlog.String("channel_type", invite.Type),
-			mlog.String("channel_name", invite.Name),
-			mlog.String("team_id", invite.TeamId),
-			mlog.Array("dm_partics", invite.DirectParticipantIDs),
-		)
-		return fmt.Errorf("cannot create shared channel (DM channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
-	}
+		// sanity check to ensure the channel returned has the expected id. Otherwise sync will not work as expected and will fail
+		// silently.
+		if invite.ChannelId != channel.Id {
+			// as of this writing, this scenario should only be possible if the invite included a DM channel invitation with a
+			// combination of two user ids (one remote, one local) that already have a DM on this server. Very unlikely unless
+			// the remote is compromised AND has knowledge of the local user id.
+			// Another possibility would be an actual user ID collision between two servers, where the likelihood is
+			// infinitesimally small
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Channel invite failed - channel created/fetched with wrong id",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("channel_id", invite.ChannelId),
+				mlog.String("channel_type", invite.Type),
+				mlog.String("channel_name", invite.Name),
+				mlog.String("team_id", invite.TeamId),
+				mlog.Array("dm_partics", invite.DirectParticipantIDs),
+			)
+			return fmt.Errorf("cannot create shared channel (DM channel_id=%s): %w", invite.ChannelId, model.ErrChannelAlreadyExists)
+		}
 
-	// mark the newly created channel read-only if requested in the invite
-	if invite.ReadOnly {
-		if err := scs.makeChannelReadOnly(channel); err != nil {
-			return fmt.Errorf("cannot make channel readonly `%s`: %w", invite.ChannelId, err)
+		// mark the newly created channel read-only if requested in the invite
+		if invite.ReadOnly {
+			if err := scs.makeChannelReadOnly(channel); err != nil {
+				return fmt.Errorf("cannot make channel readonly `%s`: %w", invite.ChannelId, err)
+			}
+		}
+	} else {
+		var err error
+		channel, err = scs.server.GetStore().Channel().Get(invite.ChannelId, true)
+		if err != nil {
+			return fmt.Errorf("cannot get channel (channel_id=%s) to restore a shared channel remote: %w", invite.ChannelId, err)
 		}
 	}
 
@@ -206,7 +262,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		ChannelId:        channel.Id,
 		TeamId:           channel.TeamId,
 		Home:             false,
-		ReadOnly:         invite.ReadOnly,
+		ReadOnly:         existingScr == nil && invite.ReadOnly, // only set read only flag for new shares
 		ShareName:        channel.Name,
 		ShareDisplayName: channel.DisplayName,
 		SharePurpose:     channel.Purpose,
@@ -224,25 +280,36 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
-	sharedChannelRemote := &model.SharedChannelRemote{
-		Id:                model.NewId(),
-		ChannelId:         channel.Id,
-		CreatorId:         channel.CreatorId,
-		IsInviteAccepted:  true,
-		IsInviteConfirmed: true,
-		RemoteId:          rc.RemoteId,
-		LastPostCreateAt:  model.GetMillis(),
-		LastPostUpdateAt:  model.GetMillis(),
-	}
-
-	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {
-		// delete the newly created channel since we could not create a SharedChannelRemote record for it,
-		// and delete the newly created SharedChannel record as well.
-		if created {
-			scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
+	curTime := model.GetMillis()
+	if existingScr != nil {
+		existingScr.DeleteAt = 0
+		existingScr.UpdateAt = curTime
+		existingScr.LastPostCreateAt = curTime
+		existingScr.LastPostUpdateAt = curTime
+		if _, err := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
+			return fmt.Errorf("cannot restore deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
-		scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
-		return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
+	} else {
+		scr := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         channel.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc.RemoteId,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+
+		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			// delete the newly created channel since we could not create a SharedChannelRemote record for it,
+			// and delete the newly created SharedChannel record as well.
+			if created {
+				scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
+			}
+			scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
+			return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
+		}
 	}
 	return nil
 }

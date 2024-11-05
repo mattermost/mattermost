@@ -14,13 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
-func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
-	if session != nil {
-		session.Id = ""
-		ps.sessionPool.Put(session)
-	}
-}
-
 func (ps *PlatformService) CreateSession(c request.CTX, session *model.Session) (*model.Session, error) {
 	session.Token = ""
 
@@ -58,12 +51,9 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 			return nil
 		}
 
-		toPass := make([]any, 0, len(keys))
-		for i := 0; i < len(keys); i++ {
-			var session *model.Session
-			toPass = append(toPass, &session)
-		}
-
+		// This always needs to be model.Session, not *model.Session.
+		// Otherwise the msp unmarshaler will fail to work.
+		toPass := allocateCacheTargets[model.Session](len(keys))
 		errs := ps.sessionCache.GetMulti(keys, toPass)
 		for i, err := range errs {
 			if err != nil {
@@ -72,7 +62,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 				}
 				continue
 			}
-			gotSession := *(toPass[i].(**model.Session))
+			gotSession := toPass[i].(*model.Session)
 			if gotSession == nil {
 				ps.logger.Warn("Found nil session in ClearUserSessionCacheLocal. This is not expected")
 				continue
@@ -130,8 +120,8 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 }
 
 func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Session, error) {
-	var session = ps.sessionPool.Get().(*model.Session)
-	if err := ps.sessionCache.Get(token, session); err == nil {
+	var session model.Session
+	if err := ps.sessionCache.Get(token, &session); err == nil {
 		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}
@@ -142,7 +132,7 @@ func (ps *PlatformService) GetSession(c request.CTX, token string) (*model.Sessi
 	}
 
 	if session.Id != "" {
-		return session, nil
+		return &session, nil
 	}
 
 	return ps.GetSessionContext(c, token)
@@ -202,8 +192,6 @@ func (ps *PlatformService) RevokeSession(c request.CTX, session *model.Session) 
 
 func (ps *PlatformService) RevokeAccessToken(c request.CTX, token string) error {
 	session, _ := ps.GetSession(c, token)
-
-	defer ps.ReturnSessionToPool(session)
 
 	schan := make(chan error, 1)
 	go func() {

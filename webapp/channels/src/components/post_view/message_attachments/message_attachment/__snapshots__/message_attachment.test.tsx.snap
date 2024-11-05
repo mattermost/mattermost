@@ -424,6 +424,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like https://mattermost.com?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -469,6 +470,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Do you like :pizza:?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -514,6 +516,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the a
           message="Don't you like emojis?"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -559,6 +562,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           message="footer"
           options={
             Object {
+              "atMentions": false,
               "autolinkedUrlSchemes": Array [],
               "mentionHighlight": false,
               "renderer": LinkOnlyRenderer {
@@ -620,6 +624,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_1"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }
@@ -654,6 +659,7 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
             message="title_2"
             options={
               Object {
+                "atMentions": false,
                 "markdown": false,
                 "mentionHighlight": false,
               }

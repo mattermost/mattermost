@@ -19,7 +19,7 @@ import (
 func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
 	if scService == nil || !scService.Active() {
-		return nil, model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}
 	return scService, nil

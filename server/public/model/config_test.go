@@ -1387,7 +1387,7 @@ func TestConfigSanitize(t *testing.T) {
 		QueryTimeLag:     NewPointer("QueryTimeLag"),
 	}}
 
-	c.Sanitize()
+	c.Sanitize(nil)
 
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
@@ -1409,10 +1409,150 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("with default config", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		c.Sanitize()
+		c.Sanitize(nil)
 
 		assert.Len(t, c.SqlSettings.ReplicaLagSettings, 0)
 	})
+}
+
+func TestPluginSettingsSanitize(t *testing.T) {
+	plugins := map[string]map[string]any{
+		"plugin.id": {
+			"somesetting":  "some value",
+			"secrettext":   "a secret",
+			"secretnumber": 123,
+		},
+		"another.plugin": {
+			"somesetting": 456,
+		},
+	}
+
+	for name, tc := range map[string]struct {
+		manifests []*Manifest
+		expected  map[string]map[string]any
+	}{
+		"nil list of manifests": {
+			manifests: nil,
+			expected: map[string]map[string]any{
+				"plugin.id": {
+					"somesetting":  FakeSetting,
+					"secrettext":   FakeSetting,
+					"secretnumber": FakeSetting,
+				},
+				"another.plugin": {
+					"somesetting": FakeSetting,
+				},
+			},
+		},
+		"empty list of manifests": {
+			manifests: []*Manifest{},
+			expected: map[string]map[string]any{
+				"plugin.id": {
+					"somesetting":  FakeSetting,
+					"secrettext":   FakeSetting,
+					"secretnumber": FakeSetting,
+				},
+				"another.plugin": {
+					"somesetting": FakeSetting,
+				},
+			},
+		},
+		"one plugin installed": {
+			manifests: []*Manifest{
+				{
+					Id: "plugin.id",
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+							{
+								Key:    "secrettext",
+								Type:   "text",
+								Secret: true,
+							},
+							{
+								Key:    "secretnumber",
+								Type:   "number",
+								Secret: true,
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				"plugin.id": {
+					"somesetting":  "some value",
+					"secrettext":   FakeSetting,
+					"secretnumber": FakeSetting,
+				},
+			},
+		},
+		"two plugins installed": {
+			manifests: []*Manifest{
+				{
+					Id: "plugin.id",
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+							{
+								Key:    "secrettext",
+								Type:   "text",
+								Secret: true,
+							},
+							{
+								Key:    "secretnumber",
+								Type:   "number",
+								Secret: true,
+							},
+						},
+					},
+				},
+				{
+					Id: "another.plugin",
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "number",
+								Secret: false,
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				"plugin.id": {
+					"somesetting":  "some value",
+					"secrettext":   FakeSetting,
+					"secretnumber": FakeSetting,
+				},
+				"another.plugin": {
+					"somesetting": 456,
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if name != "one plugin installed" {
+				return
+			}
+
+			c := PluginSettings{}
+			c.SetDefaults(*NewLogSettings())
+			c.Plugins = plugins
+
+			c.Sanitize(tc.manifests)
+
+			assert.Equal(t, tc.expected, c.Plugins, name)
+		})
+	}
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
@@ -1660,6 +1800,39 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultAIPluginState(t *testing.T) {
+	t.Run("should enable AI plugin by default on self-hosted", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should not re-enable AI plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"mattermost-ai": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+}
+
 func TestConfigGetMessageRetentionHours(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -1760,4 +1933,38 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			require.Equal(t, test.value, test.config.DataRetentionSettings.GetFileRetentionHours())
 		})
 	}
+}
+
+func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
+	t.Run("if the config is new, default values should be established", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+
+	t.Run("if the config is being updated and server federation settings had no values, experimental settings values should be migrated", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		c.ConnectedWorkspacesSettings = ConnectedWorkspacesSettings{}
+		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+
+		c.SetDefaults()
+		require.True(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+
+	t.Run("if the config is being updated and server federation settings already have values, they should not change", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		c.ConnectedWorkspacesSettings.EnableSharedChannels = NewPointer(false)
+		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = NewPointer(true)
+		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+
+		c.SetDefaults()
+		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
+		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
 }

@@ -113,7 +113,7 @@ func TestDiffSanitized(t *testing.T) {
 					Path: "",
 					BaseVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil)
 						return *cfg
 					}(),
 					ActualVal: model.Config{},
@@ -131,7 +131,7 @@ func TestDiffSanitized(t *testing.T) {
 					BaseVal: model.Config{},
 					ActualVal: func() model.Config {
 						cfg := defaultConfigGen()
-						cfg.Sanitize()
+						cfg.Sanitize(nil)
 						return *cfg
 					}(),
 				},
@@ -789,6 +789,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"mattermost-ai": {
+							Enable: true,
+						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -821,6 +824,9 @@ func TestDiff(t *testing.T) {
 						"com.mattermost.calls": {
 							Enable: true,
 						},
+						"mattermost-ai": {
+							Enable: true,
+						},
 						"playbooks": {
 							Enable: true,
 						},
@@ -843,6 +849,9 @@ func TestDiff(t *testing.T) {
 					BaseVal: defaultConfigGen().PluginSettings.PluginStates,
 					ActualVal: map[string]*model.PluginState{
 						"com.mattermost.calls": {
+							Enable: true,
+						},
+						"mattermost-ai": {
 							Enable: true,
 						},
 						"playbooks": {

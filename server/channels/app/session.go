@@ -68,7 +68,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
-	rc, appErr := a.GetRemoteCluster(remoteId)
+	rc, appErr := a.GetRemoteCluster(remoteId, false)
 	if appErr == nil && subtle.ConstantTimeCompare([]byte(rc.Token), []byte(token)) == 1 {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
@@ -223,10 +223,6 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) ReturnSessionToPool(session *model.Session) {
-	a.ch.srv.platform.ReturnSessionToPool(session)
-}
-
 func (a *App) ClearSessionCacheForUser(userID string) {
 	a.ch.srv.platform.ClearUserSessionCache(userID)
 }
@@ -286,6 +282,29 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
 	if err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError {
+	changed := false
+	for k, v := range newProps {
+		if session.Props[k] == v {
+			continue
+		}
+
+		session.AddProp(k, v)
+		changed = true
+	}
+
+	if !changed {
+		return nil
+	}
+
+	err := a.Srv().Store().Session().UpdateProps(session)
+	if err != nil {
+		return model.NewAppError("SetExtraSessionProps", "app.session.set_extra_session_prop.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

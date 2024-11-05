@@ -32,7 +32,8 @@ import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import A11yController from 'utils/a11y_controller';
-import {PageLoadContext} from 'utils/constants';
+import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -193,6 +194,11 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     private showLandingPageIfNecessary = () => {
+        // Only show Landing Page if enabled
+        if (!this.props.enableDesktopLandingPage) {
+            return;
+        }
+
         // We have nothing to redirect to if we're already on Desktop App
         // Chromebook has no Desktop App to switch to
         if (isDesktopApp() || isChromebook()) {
@@ -275,6 +281,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
+                DesktopApp.reactAppInitialized();
                 InitialLoadingScreen.stop();
             }
         }
@@ -312,7 +319,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
             if (isUserAtRootRoute) {
                 if (isMeRequested) {
-                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history);
+                    this.props.actions.redirectToOnboardingOrDefaultTeam(this.props.history, new URLSearchParams(this.props.location.search));
                 } else if (this.props.noAccounts) {
                     this.props.history.push('/signup_user_complete');
                 }
@@ -571,6 +578,9 @@ export default class Root extends React.PureComponent<Props, State> {
 }
 
 export function doesRouteBelongToTeamControllerRoutes(pathname: RouteComponentProps['location']['pathname']): boolean {
-    const TEAM_CONTROLLER_PATH_PATTERN = /^\/([a-z0-9\-_]+)\/(channels|messages|threads|drafts|integrations|emoji)(\/.*)?$/;
+    // Note: we have specifically added admin_console to the negative lookahead as admin_console can have integrations as subpaths (admin_console/integrations/bot_accounts)
+    // and we don't want to treat those as team controller routes.
+    const TEAM_CONTROLLER_PATH_PATTERN = new RegExp(`^/(?!admin_console)([a-z0-9\\-_]+)/(channels|messages|threads|drafts|integrations|emoji|${SCHEDULED_POST_URL_SUFFIX})(/.*)?$`);
+
     return TEAM_CONTROLLER_PATH_PATTERN.test(pathname);
 }
