@@ -29,10 +29,10 @@ interface User {
     password: string;
 }
 
-interface UserCollection {
-    admins: User[];
-    guests: User[];
-    regulars: User[];
+export interface UserCollection {
+    admins: Record<string, Partial<User>>;
+    guests: Record<string, Partial<User>>;
+    regulars: Record<string, Partial<User>>;
 }
 
 interface OktaResponse<T = any> {
@@ -362,7 +362,7 @@ declare global {
             oktaAddUsers: typeof oktaAddUsers;
             oktaRemoveUsers: typeof oktaRemoveUsers;
             checkOktaLoginPage: typeof checkOktaLoginPage;
-            doOktaLogin: typeof doOktaLogin;
+            doOktaLogin(user: User): ChainableT<void>;
         }
     }
 }

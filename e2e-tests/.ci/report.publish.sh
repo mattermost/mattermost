@@ -24,7 +24,7 @@ if [ "$TYPE" = "PR" ]; then
 fi
 
 # Env vars used during the test. Their values will be included in the report
-: ${TEST:?} # See E2E tests' readme; usually set to 'cypress'
+: ${TEST:?} # See E2E tests' readme
 : ${BRANCH:?} # May be either a ref, a commit hash, or 'server-pr-PR_NUMBER' (if TYPE=PR)
 : ${BUILD_ID:?}
 : ${SERVER:?} # May be either 'onprem' or 'cloud'
@@ -89,11 +89,23 @@ if [ -n "${AWS_S3_BUCKET:-}" ]; then
   mme2e_log "S3 report upload enabled."
 fi
 
-cd ../cypress/
+# Double check that the "results/" subdirectory to collect report informations from exists
+cd "../${TEST}/"
 if [ ! -d "results/" ]; then
-  mme2e_log "Error: 'results/' directory does not exist. Aborting report generation." >&2
+  mme2e_log "Error: 'results/' directory does not exist. Aborting report data collection." >&2
   exit 1
 fi
 
-npm i
-node save_report.js
+case "$TEST" in
+  cypress)
+    npm i
+    node save_report.js
+    ;;
+  playwright)
+    if [ -n "$WEBHOOK_URL" ]; then
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i
+      # Utilize environment data and report files to generate the webhook body
+      ./report.webhookgen.js | curl -X POST -fsSL -H 'Content-Type: application/json' -d @- "$WEBHOOK_URL"
+    fi
+    ;;
+esac

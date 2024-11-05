@@ -1240,7 +1240,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
-	mockSessionStore.On("UpdateDeviceId", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("int64")).Return("testdeviceID", nil)
+	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -1316,7 +1316,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
-	mockSessionStore.On("UpdateDeviceId", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("int64")).Return("testdeviceID", nil)
+	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -1670,7 +1670,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)
-		mockSessionStore.On("UpdateDeviceId", sess1.Id, "deviceID"+u.Id, mock.AnythingOfType("int64")).Return("deviceID"+u.Id, nil)
+		mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
 
 		testData = append(testData, userSession{
 			user:    u,

@@ -292,7 +292,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
-		defer c.App.ReturnSessionToPool(session)
 
 		if err != nil {
 			c.Logger.Info("Invalid session", mlog.Err(err))
@@ -450,7 +449,9 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	if IsAPICall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthAPICall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(c.Err.StatusCode)
-		w.Write([]byte(c.Err.ToJSON()))
+		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
+			c.Logger.Error("Failed to write error response", mlog.Err(err))
+		}
 	} else {
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 	}

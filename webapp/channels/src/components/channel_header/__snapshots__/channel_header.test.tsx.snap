@@ -74,14 +74,13 @@ exports[`components/ChannelHeader should match snapshot with last active display
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -353,14 +352,13 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -563,34 +561,30 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -788,34 +782,30 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -1013,34 +1003,30 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -1238,34 +1224,30 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -1463,34 +1445,30 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -1709,34 +1687,30 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -1934,34 +1908,30 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -2201,14 +2171,13 @@ exports[`components/ChannelHeader should render properly when custom status is e
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -2478,14 +2447,13 @@ exports[`components/ChannelHeader should render properly when custom status is s
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -2733,34 +2701,30 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -2958,34 +2922,30 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -3183,34 +3143,30 @@ exports[`components/ChannelHeader should render properly when populated with cha
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -3434,34 +3390,30 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"
@@ -3661,54 +3613,47 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             <HeaderIconWrapper
               buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="member_rhs"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-account-outline channel-header__members"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    -
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Members"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-account-outline channel-header__members"
+              />
+              <span
+                className="icon__text"
+                id="channelMemberCountText"
+              >
+                -
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
               buttonId="channelHeaderPinButton"
-              iconComponent={
-                <React.Fragment>
-                  <i
-                    aria-hidden="true"
-                    className="icon icon-pin-outline channel-header__pin"
-                  />
-                  <span
-                    className="icon__text"
-                    id="channelPinnedPostCountText"
-                  >
-                    2
-                  </span>
-                </React.Fragment>
-              }
               onClick={[Function]}
               tooltip="Pinned messages"
-            />
+            >
+              <i
+                aria-hidden="true"
+                className="icon icon-pin-outline channel-header__pin"
+              />
+              <span
+                className="icon__text"
+                id="channelPinnedPostCountText"
+              >
+                2
+              </span>
+            </HeaderIconWrapper>
             <HeaderIconWrapper
               buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
               buttonId="channelHeaderFilesButton"
-              iconComponent={
-                <i
-                  className="icon icon-file-text-outline"
-                />
-              }
               onClick={[Function]}
               tooltip="Channel files"
-            />
+            >
+              <i
+                className="icon icon-file-text-outline"
+              />
+            </HeaderIconWrapper>
           </div>
           <div
             className="channel-header__description"

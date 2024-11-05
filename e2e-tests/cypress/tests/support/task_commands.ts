@@ -13,7 +13,7 @@ import {ChainableT} from '../types';
 * @param {Object} channelId - where a post will be posted
 */
 
-interface PostMessageResp {
+export interface PostMessageResp {
     id: string;
     status: number;
     data: any;
@@ -28,6 +28,16 @@ interface PostMessageArg {
     channelId: string;
     rootId?: string;
     createAt?: number;
+}
+
+interface PostMessageRequest {
+    token: string;
+    message: string;
+    props?;
+    channelId: string;
+    rootId?;
+    createAt?;
+    failOnStatus?: boolean;
 }
 
 function postMessageAs(arg: PostMessageArg): ChainableT<PostMessageResp> {
@@ -149,7 +159,7 @@ Cypress.Commands.add('externalRequest', externalRequest);
 * @param {Object} channelId - where a post will be posted
 */
 
-function postBotMessage({token, message, props, channelId, rootId, createAt, failOnStatus = true}): ChainableT<PostMessageResp> {
+function postBotMessage({token, message, props, channelId, rootId, createAt, failOnStatus = true}: PostMessageRequest): ChainableT<PostMessageResp> {
     const baseUrl = Cypress.config('baseUrl');
 
     return cy.task('postBotMessage', {token, message, props, channelId, rootId, createAt, baseUrl}).then(({status, data}) => {

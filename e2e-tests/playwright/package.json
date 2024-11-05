@@ -22,6 +22,7 @@
         "async-wait-until": "2.0.12",
         "axe-core": "4.10.0",
         "chalk": "4.1.2",
+        "dayjs": "1.11.13",
         "deepmerge": "4.3.1",
         "dotenv": "16.4.5",
         "form-data-encoder": "4.0.2",

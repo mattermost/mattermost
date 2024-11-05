@@ -9,7 +9,7 @@ import styled, {css} from 'styled-components';
 import glyphMap from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
-export type TagVariant = 'info' | 'success' | 'warning' | 'danger';
+export type TagVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim';
 
 export type TagSize = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -26,10 +26,6 @@ type Props = {
 type TagWrapperProps = Required<Pick<Props, 'uppercase'>>;
 
 const TagWrapper = styled.div<TagWrapperProps>`
-    --tag-bg: var(--semantic-color-general);
-    --tag-bg-opacity: 0.08;
-    --tag-color: var(--semantic-color-general);
-
     appearance: none;
 
     display: inline-flex;
@@ -84,38 +80,39 @@ const TagWrapper = styled.div<TagWrapperProps>`
         padding: 2px 5px;
     }
 
-    &.Tag--info,
-    &.Tag--success,
-    &.Tag--warning,
-    &.Tag--danger {
-        --tag-bg-opacity: 1;
-        --tag-color: 255, 255, 255;
-    }
+    background: rgba(var(--semantic-color-general), 0.08);
+    color: rgb(var(--semantic-color-general));
 
     &.Tag--info {
-        --tag-bg: var(--semantic-color-info);
+        background: rgba(var(--semantic-color-info), 1);
+        color: rgb(255, 255, 255);
     }
 
     &.Tag--success {
-        --tag-bg: var(--semantic-color-success);
+        background: rgba(var(--semantic-color-success), 1);
+        color: rgb(255, 255, 255);
     }
 
     &.Tag--warning {
-        --tag-bg: var(--semantic-color-warning);
+        background: rgba(var(--semantic-color-warning), 1);
+        color: rgb(255, 255, 255);
     }
 
     &.Tag--danger {
-        --tag-bg: var(--semantic-color-danger);
+        background: rgba(var(--semantic-color-danger), 1);
+        color: rgb(255, 255, 255);
     }
 
-    background: rgba(var(--tag-bg), var(--tag-bg-opacity));
-    color: rgb(var(--tag-color));
+    &.Tag--dangerDim {
+        background: rgba(var(--semantic-color-danger), 0.08);
+        color: rgb(var(--semantic-color-danger));
+    }
 
     ${({onClick}) => typeof onClick === 'function' && (
         css`
             &:hover,
             &:focus {
-                background: rgba(var(--tag-bg), 0.08);
+                background: rgba(var(--semantic-color-general), 0.08);
                 cursor: pointer;
             }
         `

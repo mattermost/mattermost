@@ -30,7 +30,9 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 				c.Logger().Error("Not executing ldap sync because ldap is not available")
 				return
 			}
-			ldapI.StartSynchronizeJob(c, false, includeRemovedMembers)
+			if _, appErr := ldapI.StartSynchronizeJob(c, false, includeRemovedMembers); appErr != nil {
+				c.Logger().Error("Failed to start LDAP sync job")
+			}
 		}
 	})
 }
@@ -98,7 +100,7 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
 		return "", err
 	}
 
