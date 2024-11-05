@@ -7858,5 +7858,21 @@
   {
     "id": "api.payload.parse.error",
     "translation": "Виникла помилка при розборі корисного навантаження."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Недійсна тема."
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Віддалений кластер не знайдено"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Не вдалося розшифрувати запрошення до віддаленого кластера за допомогою наданого пароля"
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Недійсний ідентифікатор."
   }
 ]
