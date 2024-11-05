@@ -4427,7 +4427,7 @@ export default class Client4 {
 
     // Schedule Post methods
     createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {TrackPropertyUser: schedulePost.user_id, TrackPropertyUserAgent: 'desktop'});
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
@@ -4444,7 +4444,7 @@ export default class Client4 {
     };
 
     updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'update_scheduled_post', {TrackPropertyUser: schedulePost.user_id, TrackPropertyUserAgent: 'desktop'});
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'update_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
@@ -4453,7 +4453,7 @@ export default class Client4 {
     };
 
     deleteScheduledPost = (userId: string, schedulePostId: string, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'delete_scheduled_post', {TrackPropertyUser: userId, TrackPropertyUserAgent: 'desktop'});
+        this.trackFeatureEvent(TrackScheduledPostsFeature, 'delete_scheduled_post', {[TrackPropertyUser]: userId, [TrackPropertyUserAgent]: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
