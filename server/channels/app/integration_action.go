@@ -496,6 +496,10 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
+	if resp.ContentLength == 0 {
+		return &model.SubmitDialogResponse{}, nil
+	}
+
 	var response model.SubmitDialogResponse
 	err = json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
 	if err != nil {
