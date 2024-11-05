@@ -53,6 +53,7 @@ function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teamma
 }
 
 function shouldShowRecentlyUsedCustomTime(
+    nowMillis: number,
     recentlyUsedCustomDateVal: RecentlyUsedCustomDate,
     userCurrentTimezone: string,
     tomorrow9amTime: number,
@@ -61,6 +62,7 @@ function shouldShowRecentlyUsedCustomTime(
     return recentlyUsedCustomDateVal &&
     typeof recentlyUsedCustomDateVal.update_at === 'number' &&
     typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
+    recentlyUsedCustomDateVal.timestamp > nowMillis &&
     recentlyUsedCustomDateVal.timestamp !== tomorrow9amTime &&
     recentlyUsedCustomDateVal.timestamp !== nextMonday &&
     isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
@@ -126,7 +128,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     let recentCustomTime = null;
     const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
     if (
-        shouldShowRecentlyUsedCustomTime(recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
+        shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
     ) {
         const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
         const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;

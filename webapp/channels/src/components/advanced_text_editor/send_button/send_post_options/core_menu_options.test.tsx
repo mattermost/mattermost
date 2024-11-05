@@ -163,6 +163,79 @@ describe('CoreMenuOptions Component', () => {
         expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
     });
 
+    test('should not render recently used custom time when timestamp is in the past', () => {
+        const now = DateTime.now().setZone(userCurrentTimezone);
+        const nowMillis = now.toMillis();
+
+        jest.useFakeTimers();
+        jest.setSystemTime(now.toJSDate());
+
+        const pastTimestamp = now.minus({days: 1}).toMillis();
+
+        const recentlyUsedCustomDateVal = {
+            update_at: nowMillis,
+            timestamp: pastTimestamp,
+        };
+
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
+
+        renderComponent(state);
+
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
+    });
+
+    test('should not render recently used custom time when timestamp equals tomorrow9amTime', () => {
+        setMockDate(3);
+
+        const now = DateTime.now().setZone(userCurrentTimezone);
+        const nowMillis = now.toMillis();
+
+        const tomorrow9amTime = now.plus({days: 1}).
+            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+            toMillis();
+
+        const recentlyUsedCustomDateVal = {
+            update_at: nowMillis,
+            timestamp: tomorrow9amTime,
+        };
+
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
+
+        renderComponent(state);
+
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
+    });
+
+    test('should not render recently used custom time when timestamp equals nextMonday', () => {
+        setMockDate(3);
+
+        const now = DateTime.now().setZone(userCurrentTimezone);
+        const nowMillis = now.toMillis();
+
+        function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+            const deltaDays = ((targetWeekday - dateTime.weekday) + 7) % 7 || 7;
+            return dateTime.plus({days: deltaDays});
+        }
+
+        const nextMonday = getNextWeekday(now, 1).set({
+            hour: 9,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+        }).toMillis();
+
+        const recentlyUsedCustomDateVal = {
+            update_at: nowMillis,
+            timestamp: nextMonday,
+        };
+
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
+
+        renderComponent(state);
+
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
+    });
+
     it('should render tomorrow option on Sunday', () => {
         setMockDate(7); // Sunday
 
