@@ -105,7 +105,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
     }, [channelDisplayName, dispatch, onSend, scheduledPost.id]);
 
     const showEditOption = !scheduledPost.error_code;
-    const showSendNowOption = !scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send';
+    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channelDisplayName;
     const showRescheduleOption = !scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send';
 
     return (
@@ -142,7 +142,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
             }
 
             {
-                channelDisplayName && showSendNowOption &&
+                showSendNowOption &&
                 <Action
                     icon='icon-send-outline'
                     id='sendNow'

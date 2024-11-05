@@ -50,12 +50,6 @@ const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
 });
 
 export function getErrorStringFromCode(intl: IntlShape, errorCode: ScheduledPostErrorCode = 'unknown') {
-    const textDefinition = errorCodeToErrorMessage[errorCode];
-    if (!textDefinition) {
-        // this is to prevent UI from crashing in case
-        // an unknown error code is sent in API response somehow
-        return intl.formatMessage(errorCodeToErrorMessage.unknown).toUpperCase();
-    }
-
-    return intl.formatMessage(errorCodeToErrorMessage[errorCode]).toUpperCase();
+    const textDefinition = errorCodeToErrorMessage[errorCode] ?? errorCodeToErrorMessage.unknown;
+    return intl.formatMessage(textDefinition).toUpperCase();
 }
