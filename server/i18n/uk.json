@@ -577,7 +577,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Під час розширення попереднього перегляду сталася помилка"
+    "translation": "Виникла помилка під час відкриття попереднього перегляду."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Не вдається знайти канал"
+    "translation": "Не вдалось знайти канал."
   },
   {
     "id": "api.command_join.name",
@@ -765,7 +765,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Не вдається знайти користувача"
+    "translation": "Не вдалося знайти користувача."
   },
   {
     "id": "api.command_msg.name",
@@ -889,7 +889,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "Команда пошуку не підтримується на вашому пристрої"
+    "translation": "Команда пошуку не підтримується на вашому пристрої."
   },
   {
     "id": "api.command_settings.desc",
@@ -913,7 +913,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Гарячі клавіші недоступні на вашому пристрої"
+    "translation": "Гарячі клавіші не підтримуються на вашому пристрої."
   },
   {
     "id": "api.command_shrug.desc",
@@ -937,11 +937,11 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Недійсний або відсутній {{.Name}} в тілі запиту"
+    "translation": "Невірний або відсутній {{.Name}} в тілі запиту."
   },
   {
     "id": "api.context.invalid_param.app_error",
-    "translation": "Недійсний параметр {{.Name}}"
+    "translation": "Недійсний параметр {{.Name}}."
   },
   {
     "id": "api.context.invalid_token.error",
@@ -7626,5 +7626,237 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Налаштування електронної пошти мають невизначені значення."
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Ви не маєте дозволу на керування цим типом завдання"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Встановлено невірний статус"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Розмір завантаженого плагіна перевищує ліміт. Цей ліміт можна змінити в системній консолі через Сховище файлів > Максимальний розмір файлу"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Параметри Before та After для getThreadsForUser є взаємовиключними"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Неможливо приховати як активних, так і неактивних користувачів."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Вказано невірний ідентифікатор команди."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Недопустимий або занадто великий розмір сторінки."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Не вдалося отримати пробну ліцензію, спробуйте ще раз або зверніться до support@mattermost.com."
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Не вдалося перевірити, чи може бути розпочато пробний період"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Для використання цієї кінцевої точки потрібна ліцензія E10 або E20."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "Кількість отриманих ідентифікаторів повідомлень перевищила максимальний розмір {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Не вдалося розібрати тіло запиту."
+  },
+  {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Неможливо оновити бічну панель відповідно до видалених налаштувань"
+  },
+  {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Сесію завершено: будь ласка, увійдіть знову, щоб продовжити отримувати сповіщення. Сесії для {{.siteName}} налаштовані вашим системним адміністратором так, що вони закінчуються кожні {{.hoursCount}} годин(и)."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "Під час видалення безпечного з’єднання сталася помилка."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "Ми зіткнулися з помилкою при отриманні безпечного з'єднання."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Переміщення обговорень вимкнено"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Неправильний запит."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Повідомлення постійних сповіщень повинні мати як мінімум 1 отримувача."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Не вдалося згенерувати код запрошення для підтвердженого кластера"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Не вдалося отримати URL-адресу сайту екземпляра"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Не вдалося прийняти запрошення до віддаленого кластера"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Не вдалося зашифрувати запрошення до віддаленого кластера за допомогою наданого пароля"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Не вдалося декодувати base64 рядок"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Віддалений кластер не видалено"
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Не вдалося завантажити файл. Неправильний ідентифікатор каналу: {{.channelId}}"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Налаштування файлового сховища містять незаповнені значення."
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": "Канал, вказаний у запиті, не належить користувачеві"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Тип завдання, яке ви намагаєтеся створити, є недійсним"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Не вдалося завантажити це завдання"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Тип завдання, який ви намагаєтеся завантажити, наразі не підтримується"
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Типи завдань, які ви намагаєтесь отримати, не містять дозволів"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Недійсний робоча адреса електронної пошти для пробної версії"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Не вдалося застосувати нову пробну ліцензію. Ви вже застосовували пробну ліцензію до цього екземпляра Mattermost. Якщо ви хочете продовжити пробний період, будь ласка, [зв'яжіться з нашою командою продажів] (https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Ми не змогли обробити запит через обмеження для країн, на які накладено ембарго. [Дізнайтеся більше в нашій документації] (https://mattermost.com/pl/limitations-for-embargoed-countries) або зверніться за адресою legal@mattermost.com з питаннями щодо експортних обмежень."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Аутентифікацію завершено"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Користувач не має права створювати пріоритетне повідомлення або постійне сповіщення."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Постійні сповіщення повинні мати пріоритет \"Терміново\"."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Не вдається оновити бічну панель відповідно до оновлених налаштувань"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Перенаправляємо вас назад до додатку."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} не отримав сповіщення про цю згадку, оскільки він не є учасником цієї команди."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} та @{{.LastUsername}} не були сповіщені про цю згадку, оскільки вони не є учасниками цієї команди."
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Не вдалося отримати очікуюче повідомлення."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "У вас відсутні дозволи на переміщення цього обговорення."
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Відповісти у {{.channelName}}"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Некорректна схема користувацького URL"
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Перевірка постійного сповіщення не пройшла."
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Не вдалося записати файл."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Параметри OnlyThreads та OnlyTotals для getThreadsForUser є взаємовиключними"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "для кінцевої точки API потрібна ліцензія"
+  },
+  {
+    "id": "api.license.upgrade_needed.app_error",
+    "translation": "Функція вимагає оновлення до Корпоративної Версії."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Тільки кореневі дописи можуть мати пріоритет."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " відповів у темі, за якою ви стежите."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " відповів(ла) в обговоренні."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Тепер ви можете закрити цю вкладку браузера."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Повідомлення постійних сповіщеннь дозволяє максимально {{.MaxRecipients}} одержувачів."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "Щоб отримати ліцензію, ви повинні прийняти Угоду про оцінку програмного забезпечення Mattermost та Політику конфіденційності."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Виникла помилка при розборі корисного навантаження."
   }
 ]
