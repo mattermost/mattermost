@@ -391,14 +391,14 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
-type AddMemberProps = {
+export type AddMemberProps = {
     post_id: string;
     not_in_channel_user_ids: string[];
     not_in_groups_usernames: string[];
     not_in_channel_usernames: string[];
 }
 
-function isAddMemberProps(v: unknown): v is AddMemberProps {
+export function isAddMemberProps(v: unknown): v is AddMemberProps {
     if (typeof v !== 'object' || !v) {
         return false;
     }

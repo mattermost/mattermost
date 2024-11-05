@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import uniqWith from 'lodash/uniqWith';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -25,14 +25,11 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+// We only define the props used in this component for
+// clarity. If more props are needed in the future,
+// feel free to add them.
 type PluginRequest = {
     user_id: string;
-    required_feature: string;
-    required_plan: string;
-    create_at: string;
-    sent_at: string;
-    plugin_name: string;
-    plugin_id: string;
 }
 
 function isPluginRequest(v: unknown): v is PluginRequest {
@@ -46,41 +43,17 @@ function isPluginRequest(v: unknown): v is PluginRequest {
         return false;
     }
 
-    if (typeof request.required_feature !== 'string') {
-        return false;
-    }
-
-    if (typeof request.required_plan !== 'string') {
-        return false;
-    }
-
-    if (typeof request.create_at !== 'string') {
-        return false;
-    }
-
-    if (typeof request.sent_at !== 'string') {
-        return false;
-    }
-
-    if (typeof request.plugin_name !== 'string') {
-        return false;
-    }
-
-    if (typeof request.plugin_id !== 'string') {
-        return false;
-    }
-
     return true;
 }
 
 type RequestedPlugins = Record<string, PluginRequest[]>
 
-type CustomPostProps = {
+export type CustomPostProps = {
     requested_plugins_by_plugin_ids: RequestedPlugins;
     requested_plugins_by_user_ids: RequestedPlugins;
 }
 
-function isCustomPostProps(v: unknown): v is CustomPostProps {
+export function isCustomPostProps(v: unknown): v is CustomPostProps {
     if (typeof v !== 'object' || !v) {
         return false;
     }
@@ -113,7 +86,7 @@ const InstallLink = (props: {pluginId: string; pluginName: string}) => {
         >
             <FormattedMessage
                 id='marketplace_modal.list.install.plugin'
-                defaultMessage={`Install ${props.pluginName}`}
+                defaultMessage={'Install {plugin}'}
                 values={{
                     plugin: props.pluginName,
                 }}
@@ -139,7 +112,7 @@ const ConfigureLink = (props: {pluginId: string; pluginName: string}) => {
             >
                 <FormattedMessage
                     id='marketplace_modal.list.configure.plugin'
-                    defaultMessage={`Configure ${props.pluginName}`}
+                    defaultMessage={'Configure {plugin}'}
                     values={{
                         plugin: props.pluginName,
                     }}
@@ -185,7 +158,6 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
 
     const dispatch = useDispatch();
     const {formatMessage, formatList} = useIntl();
-    const [pluginsByPluginIds, setPluginsByPluginIds] = useState<RequestedPlugins>({});
 
     const postProps = isCustomPostProps(props.post.props) ? props.post.props : undefined;
     const requestedPluginsByPluginIds = postProps?.requested_plugins_by_plugin_ids;
@@ -193,6 +165,12 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
 
     const userProfiles = useSelector(getUsers);
     const marketplacePlugins: MarketplacePlugin[] = useSelector(getPlugins);
+    const marketplacePluginsNamesById = useMemo(() => {
+        return marketplacePlugins.reduce<Record<string, string>>((acc, v) => {
+            acc[v.manifest.id] = v.manifest.name;
+            return acc;
+        }, {});
+    }, [marketplacePlugins]);
 
     const getUserIdsForUsersThatRequestedFeature = (requests: PluginRequest[]): string[] => requests.map((request: PluginRequest) => request.user_id);
 
@@ -200,32 +178,16 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
         if (!marketplacePlugins.length) {
             dispatch(fetchListing());
         }
-    }, [dispatch, fetchListing, marketplacePlugins.length]);
+    }, [dispatch, marketplacePlugins.length]);
 
     useEffect(() => {
         // process the plugins once the marketplace plugins are fetched and the plugins are available from the props
-        if (requestedPluginsByPluginIds && marketplacePlugins.length && !Object.keys(pluginsByPluginIds).length) {
-            const plugins = {} as RequestedPlugins;
-            const mPlugins = marketplacePlugins.reduce((acc, mPlugin) => {
-                return {
-                    ...acc,
-                    [mPlugin.manifest.id as keyof string]: mPlugin,
-                };
-            }, {}) as {[ key: string]: MarketplacePlugin};
-
+        if (requestedPluginsByPluginIds && marketplacePlugins.length) {
             for (const pluginId of Object.keys(requestedPluginsByPluginIds)) {
-                plugins[pluginId] = requestedPluginsByPluginIds[pluginId].map((currPlugin: PluginRequest) => {
-                    return {
-                        ...currPlugin,
-                        plugin_name: mPlugins[pluginId].manifest.name || pluginId,
-                        plugin_id: pluginId,
-                    };
-                });
                 dispatch(getMissingProfilesByIds(getUserIdsForUsersThatRequestedFeature(requestedPluginsByPluginIds[pluginId])));
             }
-            setPluginsByPluginIds(plugins);
         }
-    }, [dispatch, marketplacePlugins, requestedPluginsByPluginIds, pluginsByPluginIds]);
+    }, [dispatch, marketplacePlugins, requestedPluginsByPluginIds]);
 
     const createUsernameMessage = (requests: PluginRequest[]) => {
         if (requests.length >= 5) {
@@ -266,13 +228,13 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
         atPlanMentions: true,
         markdown: false,
     };
-    const pluginIds = Object.keys(pluginsByPluginIds);
-    if (pluginIds.length && requestedPluginsByUserIds) {
+    const pluginIds = Object.keys(requestedPluginsByPluginIds || {});
+    if (pluginIds.length && requestedPluginsByUserIds && requestedPluginsByPluginIds) {
         let post;
         const messageBuilder: string[] = [];
         const userIds = Object.keys(requestedPluginsByUserIds);
         if (userIds.length === 1 && pluginIds.length === 1) {
-            const pluginName = pluginsByPluginIds[pluginIds[0]][0].plugin_name;
+            const pluginName = marketplacePluginsNamesById[pluginIds[0]];
             messageBuilder.push('@' + userProfiles[userIds[0]]?.username);
             messageBuilder.push(' ' + formatMessage({id: 'postypes.custom_open_plugin_install_post_rendered.plugin_request', defaultMessage: 'requested installing the {pluginRequests} app.'}, {pluginRequests: pluginName}));
 
@@ -315,19 +277,18 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
             customMessageBody.push(post);
         } else {
             messageBuilder.push(formatMessage({id: 'postypes.custom_open_plugin_install_post_rendered.app_installation_request_text', defaultMessage: 'You’ve received the following app installation requests:'}));
-            const pluginIds = Object.keys(pluginsByPluginIds);
-
             post = (
                 <ul
                     style={usersListStyle}
                     key={pluginIds.join('')}
                 >
                     {pluginIds.map((pluginId) => {
-                        const plugins = pluginsByPluginIds[pluginId];
+                        const plugins = requestedPluginsByPluginIds[pluginId];
+                        const pluginName = marketplacePluginsNamesById[pluginId];
                         const uniqueUserRequestsForPlugins = uniqWith(plugins, (one, two) => one.user_id === two.user_id);
                         const installRequests = [];
                         installRequests.push(createUsernameMessage(uniqueUserRequestsForPlugins));
-                        installRequests.push(' ' + formatMessage({id: 'postypes.custom_open_plugin_install_post_rendered.plugin_request', defaultMessage: 'requested installing the {pluginRequests} app.'}, {pluginRequests: uniqueUserRequestsForPlugins[0].plugin_name}));
+                        installRequests.push(' ' + formatMessage({id: 'postypes.custom_open_plugin_install_post_rendered.plugin_request', defaultMessage: 'requested installing the {pluginRequests} app.'}, {pluginRequests: pluginName}));
 
                         return (
                             <li key={pluginId}>
@@ -340,7 +301,7 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
                                 {' '}
                                 <InstallAndConfigureLink
                                     pluginId={pluginId}
-                                    pluginName={uniqueUserRequestsForPlugins[0].plugin_name}
+                                    pluginName={pluginName}
                                 />
                             </li>
                         );
