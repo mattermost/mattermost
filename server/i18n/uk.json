@@ -7874,5 +7874,29 @@
   {
     "id": "api.remote_cluster.invalid_id.app_error",
     "translation": "Недійсний ідентифікатор."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "Під час збереження безпечного з’єднання сталася помилка."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Неможливо отримати таку кількість ролей за іменами. За один раз можна запросити лише {{.MaxNames}} ролей."
+  },
+  {
+    "id": "api.remote_cluster.update.app_error",
+    "translation": "Ми зіткнулися з помилкою при оновленні захищеного з'єднання."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Безпечне з'єднання з тією самою URL-адресою вже існує."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "Служба віддаленого кластера не ввімкнена."
+  },
+  {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Безпечне з'єднання вже додано."
   }
 ]
