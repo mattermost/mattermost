@@ -157,3 +157,7 @@ export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) 
         return null;
     },
 );
+
+export function developerModeEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableDeveloper === 'true';
+}

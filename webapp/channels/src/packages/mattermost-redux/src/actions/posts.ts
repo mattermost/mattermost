@@ -173,6 +173,7 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
 export type CreatePostReturnType = {
     created?: boolean;
     pending?: string;
+    error?: string;
 }
 
 export function createPost(
