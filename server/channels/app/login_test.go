@@ -48,10 +48,9 @@ func TestCWSLogin(t *testing.T) {
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {
 		token := model.NewToken(TokenTypeCWSAccess, "")
-
 		defer func() {
-			err := th.App.DeleteToken(token)
-			require.NoError(t, err)
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
 		}()
 
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
@@ -61,18 +60,17 @@ func TestCWSLogin(t *testing.T) {
 		require.Equal(t, th.BasicUser.Username, user.Username)
 		_, appErr := th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.NoError(t, appErr)
-		err = th.App.DeleteToken(token)
-		require.NoError(t, err)
+		appErr = th.App.DeleteToken(token)
+		require.Nil(t, appErr)
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(TokenTypeCWSAccess, "")
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-
 		defer func() {
-			err := th.App.DeleteToken(token)
-			require.NoError(t, err)
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
 		}()
 
 		user, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
