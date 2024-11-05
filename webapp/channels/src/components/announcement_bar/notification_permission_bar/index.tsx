@@ -8,7 +8,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import NotificationPermissionNeverGrantedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_never_granted_bar';
 import NotificationPermissionUnsupportedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_unsupported_bar';
-import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
+import {getDesktopAppNotificationPermission, useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
 import {
     isNotificationAPISupported,
@@ -16,12 +16,10 @@ import {
     NotificationPermissionNeverGranted,
     getNotificationPermission,
 } from 'utils/notifications';
+import {isDesktopApp} from 'utils/user_agent';
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
-
-    // This allows us to popup the notification permission prompt for desktop app
-    useDesktopAppNotificationPermission();
 
     if (!isLoggedIn) {
         return null;
@@ -30,6 +28,12 @@ export default function NotificationPermissionBar() {
     // When browser does not support notification API, we show the notification bar to update browser
     if (!isNotificationAPISupported()) {
         return <NotificationPermissionUnsupportedBar/>;
+    }
+
+    if (isDesktopApp()) {
+        // This allows us to popup the notification permission prompt for desktop app
+        getDesktopAppNotificationPermission();
+        return null;
     }
 
     // When user has not granted permission, we show the notification bar to request permission

@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
+import type {DesktopNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
+import {getDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 import Tag from 'components/widgets/tag/tag';
 
 import {
@@ -17,7 +18,16 @@ import {
 export default function NotificationPermissionTitleTag() {
     const {formatMessage} = useIntl();
 
-    const desktopPermission = useDesktopAppNotificationPermission();
+    const [desktopNotificationPermission, setDesktopNotificationPermission] = useState<DesktopNotificationPermission>(undefined);
+
+    useEffect(() => {
+        async function getDesktopAppNotificationPermissionAndSetState() {
+            const permission = await getDesktopAppNotificationPermission();
+            setDesktopNotificationPermission(permission);
+        }
+
+        getDesktopAppNotificationPermissionAndSetState();
+    }, []);
 
     if (!isNotificationAPISupported()) {
         return (
@@ -36,7 +46,7 @@ export default function NotificationPermissionTitleTag() {
     if (
         getNotificationPermission() === NotificationPermissionNeverGranted ||
         getNotificationPermission() === NotificationPermissionDenied ||
-        desktopPermission === NotificationPermissionDenied
+        desktopNotificationPermission === NotificationPermissionDenied
     ) {
         return (
             <Tag
