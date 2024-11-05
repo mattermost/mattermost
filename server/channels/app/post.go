@@ -97,6 +97,21 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		}
 	}
 
+	if channel.IsShared() {
+		// if not marked as shared we don't try to reach the store, but needs double checking as it might not be truly shared
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channel.Id)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: channel.Id,
+				},
+			)
+		}
+	}
+
 	return rp, nil
 }
 
@@ -2151,7 +2166,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
 		RootId:    postID,
-		ChannelId: metadata.ChannelId,
+		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
 		Message: fmt.Sprintf("You will be reminded about %s by @%s at %s", permalink, metadata.Username, parsedTime),

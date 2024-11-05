@@ -57,7 +57,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "You cannot acknowledgment in an archived channel."
+    "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -2361,6 +2361,10 @@
     "translation": "invalid_request: Bad grant_type."
   },
   {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -2837,6 +2841,14 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Invalid email_token"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "scheduled posts feature is disabled"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Scheduled posts feature requires a license"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
@@ -4479,6 +4491,10 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.bot.update.app_error",
+    "translation": "Unable to update the bot."
+  },
+  {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Unable to add the user as a member of the channel."
   },
@@ -4955,6 +4971,22 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Failed to delete scheduled post from database."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "You do not have permission to delete this resource."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },
@@ -5135,6 +5167,10 @@
     "translation": "Unable to set the searchable content of the file."
   },
   {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Error occurred fetching scheduled posts."
+  },
+  {
     "id": "app.group.crud_permission",
     "translation": "Unable to perform operation for that source type."
   },
@@ -5211,6 +5247,10 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Unable to find owner of the bot"
+  },
+  {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Unable to archive imported channel."
   },
@@ -5253,6 +5293,10 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Import data line has type \"bot\" but the bot object is null"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -5349,6 +5393,10 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot owner is missing"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -6467,6 +6515,14 @@
     "translation": "Unsupported report format."
   },
   {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Cannot schedule post in an archived channel."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Error occurred saving the scheduled post."
+  },
+  {
     "id": "app.scheme.delete.app_error",
     "translation": "Unable to delete this scheme."
   },
@@ -6789,6 +6845,22 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Failed to save updated scheduled post in database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "You do not have permission to update this resource."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -9645,6 +9717,22 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Cannot schedule an empty post. Scheduled post must have at least a message or file attachments."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Scheduled post must have an ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
   },
   {
     "id": "model.scheme.is_valid.app_error",
