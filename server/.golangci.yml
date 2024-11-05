@@ -70,7 +70,6 @@ issues:
         channels/api4/config_local.go|\
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
-        channels/api4/file_test.go|\
         channels/api4/job_test.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
@@ -84,46 +83,32 @@ issues:
         channels/api4/team_local.go|\
         channels/api4/team_test.go|\
         channels/api4/user_test.go|\
-        channels/api4/webhook_test.go|\
-        channels/app/admin.go|\
-        channels/app/app_test.go|\
-        channels/app/authorization_test.go|\
+        channels/api4/websocket_test.go|\
         channels/app/auto_responder_test.go|\
-        channels/app/bot.go|\
+        channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/busy_test.go|\
         channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
         channels/app/channel_test.go|\
         channels/app/config_test.go|\
-        channels/app/desktop_login.go|\
-        channels/app/email/email_test.go|\
-        channels/app/email/helper_test.go|\
         channels/app/export.go|\
         channels/app/export_test.go|\
         channels/app/file.go|\
         channels/app/file_bench_test.go|\
-        channels/app/file_helper_test.go|\
         channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/imaging/decode.go|\
-        channels/app/imaging/decode_test.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
-        channels/app/import_utils_test.go|\
         channels/app/imports/import_validators.go|\
         channels/app/integration_action.go|\
         channels/app/integration_action_test.go|\
         channels/app/job_test.go|\
-        channels/app/ldap.go|\
         channels/app/login_test.go|\
         channels/app/migrations.go|\
-        channels/app/notification_push.go|\
-        channels/app/notification_test.go|\
-        channels/app/oauth_test.go|\
         channels/app/onboarding_test.go|\
-        channels/app/opengraph_test.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/busy_test.go|\
@@ -149,12 +134,10 @@ issues:
         channels/app/plugin_api_tests/manual.test_http_hijack_plugin/main.go|\
         channels/app/plugin_api_tests/manual.test_serve_metrics_plugin/main.go|\
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
-        channels/app/plugin_commands_test.go|\
         channels/app/plugin_deadlock_test.go|\
         channels/app/plugin_health_check_test.go|\
         channels/app/plugin_hooks_test.go|\
         channels/app/plugin_install.go|\
-        channels/app/plugin_reattach.go|\
         channels/app/plugin_requests.go|\
         channels/app/plugin_signature.go|\
         channels/app/plugin_signature_test.go|\
@@ -166,7 +149,6 @@ issues:
         channels/app/post_persistent_notification_test.go|\
         channels/app/post_test.go|\
         channels/app/product_notices_test.go|\
-        channels/app/role_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
         channels/app/server_test.go|\
@@ -199,7 +181,6 @@ issues:
         channels/jobs/hosted_purchase_screening/worker.go|\
         channels/jobs/jobs.go|\
         channels/jobs/resend_invitation_email/worker.go|\
-        channels/jobs/schedulers_test.go|\
         channels/manualtesting/manual_testing.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
@@ -248,7 +229,6 @@ issues:
         channels/store/storetest/user_store.go|\
         channels/testlib/helper.go|\
         channels/utils/license_test.go|\
-        channels/web/oauth.go|\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
         channels/web/static.go|\
