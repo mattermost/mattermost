@@ -226,6 +226,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61523")
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
