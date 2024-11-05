@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"net/http"
 	"time"
 
@@ -337,6 +338,12 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 			)
 			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
 		}
+
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackScheduledPosts,
+			"scheduled_posts_successfully_posted",
+			map[string]any{"count": len(successfulScheduledPostIDs)},
+		)
 	}
 
 	return nil
@@ -353,5 +360,13 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 				mlog.Err(err),
 			)
 		}
+	}
+
+	if len(failedScheduledPosts) > 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackScheduledPosts,
+			"scheduled_posts_successfully_posted",
+			map[string]any{"count": len(failedScheduledPosts)},
+		)
 	}
 }

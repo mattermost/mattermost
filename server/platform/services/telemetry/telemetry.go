@@ -106,6 +106,7 @@ const (
 	TrackGuestFeature    TrackFeature = "guest_accounts"
 	TrackGroupsFeature   TrackFeature = "custom_groups"
 	TrackReadOnlyFeature TrackFeature = "read_only_channels"
+	TrackScheduledPosts  TrackFeature = "scheduled_posts"
 )
 
 const (
@@ -113,6 +114,7 @@ const (
 	TrackPropertyGroup      = "group_id"
 	TrackPropertyChannel    = "channel_id"
 	TrackPropertyPostAuthor = "post_owner_id"
+	TrackPropertyUserAgent  = "user_agent"
 )
 
 type ServerIface interface {

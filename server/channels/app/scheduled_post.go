@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,6 +34,15 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	}
 
 	// TODO: add WebSocket event broadcast here
+
+	a.Srv().telemetryService.SendTelemetryForFeature(
+		telemetry.TrackScheduledPosts,
+		"scheduled_post_created",
+		map[string]interface{}{
+			telemetry.TrackPropertyUser:      scheduledPost.UserId,
+			telemetry.TrackPropertyUserAgent: rctx.UserAgent(),
+		},
+	)
 
 	return savedScheduledPost, nil
 }
