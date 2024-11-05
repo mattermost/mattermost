@@ -13,7 +13,7 @@ import (
 const maxUserAgentVersionLength = 128
 
 var platformNames = map[uasurfer.Platform]string{
-	uasurfer.PlatformUnknown:      "Windows",
+	uasurfer.PlatformUnknown:      "Unknown",
 	uasurfer.PlatformWindows:      "Windows",
 	uasurfer.PlatformMac:          "Macintosh",
 	uasurfer.PlatformLinux:        "Linux",
