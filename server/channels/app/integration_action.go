@@ -67,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -453,11 +453,15 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
+	}
+
+	if dialogErr := request.IsValid(); dialogErr != nil {
+		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId

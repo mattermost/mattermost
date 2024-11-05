@@ -9,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import configureStore from 'store';
 
+import {getAllLanguages} from 'i18n/i18n';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import UserSettingsDisplay from './user_settings_display';
@@ -26,6 +27,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     const requiredProps = {
+        adminMode: false,
         user: user as UserProfile,
         updateSection: jest.fn(),
         activeSection: '',
@@ -35,7 +37,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         setEnforceFocus: jest.fn(),
         enableLinkPreviews: true,
         enableThemeSelection: false,
-        defaultClientLocale: 'en',
+        locales: getAllLanguages(),
+        userLocale: 'en',
         canCreatePublicChannel: true,
         canCreatePrivateChannel: true,
         timezoneLabel: '',
@@ -70,6 +73,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             autoUpdateTimezone: jest.fn(),
             savePreferences: jest.fn(),
             updateMe: jest.fn(),
+            patchUser: jest.fn(),
         },
 
         configTeammateNameDisplay: '',

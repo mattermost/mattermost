@@ -21,6 +21,7 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
         className="no-results__title"
       >
         <MemoizedFormattedMessage
+          defaultMessage="No results for “{channelName}”"
           id="no_results.search.title"
         />
       </h3>
@@ -28,6 +29,7 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
         className="no-results__subtitle"
       >
         <MemoizedFormattedMessage
+          defaultMessage="Check the spelling or try another search."
           id="no_results.search.subtitle"
         />
       </div>
@@ -84,6 +86,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No files yet"
         id="no_results.channel_files.title"
       />
     </h3>
@@ -91,6 +94,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="Files posted in this channel will show here."
         id="no_results.channel_files.subtitle"
       />
     </div>
@@ -112,6 +116,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No files found"
         id="no_results.channel_files_filtered.title"
       />
     </h3>
@@ -119,6 +124,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="This channel doesn't contains any file with the selected file format."
         id="no_results.channel_files_filtered.subtitle"
       />
     </div>
@@ -140,6 +146,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No results for “{channelName}”"
         id="no_results.channel_search.title"
       />
     </h3>
@@ -147,6 +154,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="Check the spelling or try another search."
         id="no_results.channel_search.subtitle"
       />
     </div>
@@ -168,6 +176,7 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No saved messages yet"
         id="no_results.flagged_posts.title"
       />
     </h3>
@@ -175,6 +184,7 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="To save something for later, open the context menu on a message and choose {buttonText}. Saved messages are only visible to you"
         id="no_results.flagged_posts.subtitle"
       />
     </div>
@@ -196,6 +206,7 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No mentions yet"
         id="no_results.mentions.title"
       />
     </h3>
@@ -203,6 +214,7 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="Messages where someone mentions you or includes your trigger words are saved here."
         id="no_results.mentions.subtitle"
       />
     </div>
@@ -224,6 +236,7 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
       className="no-results__title"
     >
       <MemoizedFormattedMessage
+        defaultMessage="No pinned messages yet"
         id="no_results.pinned_messages.title"
       />
     </h3>
@@ -231,6 +244,7 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
+        defaultMessage="To pin important messages, open the context menu on a message and choose {text}. Pinned messages will be visible to everyone in this channel."
         id="no_results.pinned_messages.subtitle"
       />
     </div>

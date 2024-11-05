@@ -44,11 +44,16 @@ export type PluginsState = {
         NeedsTeamComponent: NeedsTeamComponent[];
         CreateBoardFromTemplate: PluginComponent[];
         DesktopNotificationHooks: DesktopNotificationHook[];
+        SlashCommandWillBePosted: SlashCommandWillBePostedHook[];
+        MessageWillBePosted: MessageWillBePostedHook[];
+        MessageWillBeUpdated: MessageWillBeUpdatedHook[];
+        MessageWillFormat: MessageWillFormatHook[];
     };
 
     postTypes: {
         [postType: string]: PostPluginComponent;
     };
+
     postCardTypes: {
         [postType: string]: PostPluginComponent;
     };
@@ -56,11 +61,19 @@ export type PluginsState = {
     adminConsoleReducers: {
         [pluginId: string]: any;
     };
+
     adminConsoleCustomComponents: {
         [pluginId: string]: {
             [settingName: string]: AdminConsolePluginComponent;
         };
     };
+
+    adminConsoleCustomSections: {
+        [pluginId: string]: {
+            [sectionKey: string]: AdminConsolePluginCustomSection;
+        };
+    };
+
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
     };
@@ -103,7 +116,6 @@ export type PluginComponent = {
     filter?: (id: string) => boolean;
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
-    hook?: (post: Post, message?: string) => string;
 };
 
 export type AppBarComponent = PluginComponent & {
@@ -147,6 +159,12 @@ export type AdminConsolePluginComponent = {
     options: {
         showTitle: boolean;
     };
+};
+
+export type AdminConsolePluginCustomSection = {
+    pluginId: string;
+    key: string;
+    component: React.Component;
 };
 
 export type PostWillRenderEmbedPluginComponent = {
@@ -245,3 +263,30 @@ export type DesktopNotificationHook = PluginComponent & {
         args?: DesktopNotificationArgs;
     }>;
 }
+
+type SlashCommandWillBePostedArgs = {
+    channel_id: string;
+    team_id?: string;
+    root_id?: string;
+}
+export type SlashCommandWillBePostedHook = PluginComponent & {
+    hook: (message: string, args: SlashCommandWillBePostedArgs) => Promise<(
+        {error: {message: string}} | {message: string; args: SlashCommandWillBePostedArgs} | Record<string, never>
+    )>;
+};
+
+export type MessageWillBePostedHook = PluginComponent & {
+    hook: (post: Post) => Promise<(
+        {error: {message: string}} | {post: Post}
+    )>;
+};
+
+export type MessageWillBeUpdatedHook = PluginComponent & {
+    hook: (newPost: Partial<Post>, oldPost: Post) => Promise<(
+        {error: {message: string}} | {post: Partial<Post>}
+    )>;
+};
+
+export type MessageWillFormatHook = PluginComponent & {
+    hook: (post: Post, message: string) => string;
+};

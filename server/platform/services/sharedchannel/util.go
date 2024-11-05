@@ -18,7 +18,7 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 		return
 	}
 
-	realUsername, ok := user.GetProp(KeyRemoteUsername)
+	realUsername, ok := user.GetProp(model.UserPropsKeyRemoteUsername)
 	if !ok {
 		return
 	}
@@ -93,15 +93,6 @@ func mungUsername(username string, remotename string, suffix string, maxLen int)
 	}
 
 	return fmt.Sprintf("%s%s%s:%s%s", username, suffix, userEllipses, remotename, remoteEllipses)
-}
-
-// mungEmail creates a unique email address using a UID and remote name.
-func mungEmail(remotename string, maxLen int) string {
-	s := fmt.Sprintf("%s@%s", model.NewId(), remotename)
-	if len(s) > maxLen {
-		s = s[:maxLen]
-	}
-	return s
 }
 
 func isConflictError(err error) (string, bool) {

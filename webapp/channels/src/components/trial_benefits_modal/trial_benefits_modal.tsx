@@ -104,7 +104,7 @@ const TrialBenefitsModal = ({
         {
             id: 'systemConsole',
             title: formatMessage({id: 'trial_benefits.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'trial_benefits.modal.systemConsoleDescription', defaultMessage: 'Use System Roles to give designated users read and/or write access to select sections of System Console.'}),
+            description: formatMessage({id: 'trial_benefits.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
             svgWrapperClassName: 'personBoxSvg',
             svgElement: (
                 <SystemRolesSVG

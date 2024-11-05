@@ -91,7 +91,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
           }
           onChange={[Function]}
-          value="#14213e"
+          value="#162545"
         />
       </div>
       <div
@@ -426,27 +426,19 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
               Monokai
             </option>
           </select>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(Popover)
+          <WithTooltip
+            id="code-popover"
+            placement="top"
+            title={
+              <div
                 className="code-popover"
-                id="code-popover"
-                popoverStyle="info"
               >
                 <img
                   alt="code theme image"
-                  src={null}
+                  src=""
                   width="200"
                 />
-              </Memo(Popover)>
-            }
-            placement="top"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+              </div>
             }
           >
             <span
@@ -454,10 +446,10 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             >
               <img
                 alt="code theme image"
-                src={null}
+                src=""
               />
             </span>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </div>
     </div>
@@ -559,7 +551,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
         onClick={[Function]}
         onCopy={[Function]}
         onPaste={[Function]}
-        value="{\\"sidebarBg\\":\\"#1e325c\\",\\"sidebarText\\":\\"#ffffff\\",\\"sidebarUnreadText\\":\\"#ffffff\\",\\"sidebarTextHoverBg\\":\\"#28427b\\",\\"sidebarTextActiveBorder\\":\\"#5d89ea\\",\\"sidebarTextActiveColor\\":\\"#ffffff\\",\\"sidebarHeaderBg\\":\\"#192a4d\\",\\"sidebarHeaderTextColor\\":\\"#ffffff\\",\\"sidebarTeamBarBg\\":\\"#14213e\\",\\"onlineIndicator\\":\\"#3db887\\",\\"awayIndicator\\":\\"#ffbc1f\\",\\"dndIndicator\\":\\"#d24b4e\\",\\"mentionBg\\":\\"#ffffff\\",\\"mentionBj\\":\\"#ffffff\\",\\"mentionColor\\":\\"#1e325c\\",\\"centerChannelBg\\":\\"#ffffff\\",\\"centerChannelColor\\":\\"#3f4350\\",\\"newMessageSeparator\\":\\"#cc8f00\\",\\"linkColor\\":\\"#386fe5\\",\\"buttonBg\\":\\"#1c58d9\\",\\"buttonColor\\":\\"#ffffff\\",\\"errorTextColor\\":\\"#d24b4e\\",\\"mentionHighlightBg\\":\\"#ffd470\\",\\"mentionHighlightLink\\":\\"#1b1d22\\",\\"codeTheme\\":\\"github\\"}"
+        value="{\\"sidebarBg\\":\\"#1e325c\\",\\"sidebarText\\":\\"#ffffff\\",\\"sidebarUnreadText\\":\\"#ffffff\\",\\"sidebarTextHoverBg\\":\\"#28427b\\",\\"sidebarTextActiveBorder\\":\\"#5d89ea\\",\\"sidebarTextActiveColor\\":\\"#ffffff\\",\\"sidebarHeaderBg\\":\\"#192a4d\\",\\"sidebarHeaderTextColor\\":\\"#ffffff\\",\\"sidebarTeamBarBg\\":\\"#162545\\",\\"onlineIndicator\\":\\"#3db887\\",\\"awayIndicator\\":\\"#ffbc1f\\",\\"dndIndicator\\":\\"#d24b4e\\",\\"mentionBg\\":\\"#ffffff\\",\\"mentionBj\\":\\"#ffffff\\",\\"mentionColor\\":\\"#1e325c\\",\\"centerChannelBg\\":\\"#ffffff\\",\\"centerChannelColor\\":\\"#3f4350\\",\\"newMessageSeparator\\":\\"#cc8f00\\",\\"linkColor\\":\\"#386fe5\\",\\"buttonBg\\":\\"#1c58d9\\",\\"buttonColor\\":\\"#ffffff\\",\\"errorTextColor\\":\\"#d24b4e\\",\\"mentionHighlightBg\\":\\"#ffd470\\",\\"mentionHighlightLink\\":\\"#1b1d22\\",\\"codeTheme\\":\\"github\\"}"
       />
       <div
         className="mt-3"

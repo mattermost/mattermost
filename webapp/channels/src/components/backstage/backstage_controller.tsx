@@ -66,7 +66,7 @@ type Props = {
     /**
      * Current team.
      */
-    team: Team;
+    team?: Team;
 
     /**
      * Object from react-router
@@ -245,7 +245,7 @@ const BackstageGlobalStyle = createGlobalStyle`
     #root {
         > #global-header,
         > .team-sidebar,
-        > .sidebar--right,
+        > .main-wrapper .sidebar--right,
         > .app-bar {
             display: none;
         }

@@ -190,7 +190,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
@@ -233,7 +233,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
@@ -1105,7 +1105,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }
@@ -1799,7 +1799,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }
@@ -2548,7 +2548,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }
@@ -3242,7 +3242,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }
@@ -3539,7 +3539,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="user_management/system_roles"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
@@ -3775,7 +3775,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="site_config/announcement_banner"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
@@ -4035,7 +4035,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }
@@ -4421,7 +4421,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Roles"
+                  defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
               }
@@ -4648,7 +4648,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               }
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Announcement Banner"
+                  defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
               }
@@ -4960,7 +4960,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               name="integrations/gif"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="GIF (Beta)"
+                  defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
               }

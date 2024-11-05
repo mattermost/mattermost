@@ -163,11 +163,11 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		require.True(t, ok)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
 		})
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
-		require.Error(t, err)
+		require.NotNil(t, err)
 		assert.Contains(t, err.DetailedError, "context deadline exceeded")
 	})
 }
@@ -530,7 +530,7 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	newPost, nErr := th.App.Srv().Store().Post().GetSingle(post.Id, false)
+	newPost, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
 
 	assert.True(t, newPost.IsPinned)

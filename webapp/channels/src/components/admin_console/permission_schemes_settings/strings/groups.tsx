@@ -35,6 +35,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Write, edit and delete posts.',
         },
     }),
+    create_post: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_post.name',
+            defaultMessage: 'Create Posts',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_post.description',
+            defaultMessage: 'Allow users to create posts.',
+        },
+    }),
     private_channel: defineMessages({
         name: {
             id: 'admin.permissions.group.private_channel.name',

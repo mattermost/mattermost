@@ -76,7 +76,7 @@ const connectionUrl = 'https://mymattermostserver.example.com/api/v4/websocket';
 const authToken = process.env.TOKEN;
 
 const wsClient = new WebSocketClient();
-wsClient.authorize(connectionUrl, authToken);
+wsClient.initialize(connectionUrl, authToken);
 
 wsClient.addMessageListener((msg) => {
     if (msg.event === 'posted') {

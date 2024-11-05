@@ -1,0 +1,69 @@
+
+.channelBookmarksMenuButton {
+    position: relative;
+    display: flex;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-family: Open Sans;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 5px;
+
+    &.withLabel {
+        padding: 4px 12px 4px 6px;
+        border-radius: 12px;
+    }
+
+    &[disabled] {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &:hover:enabled {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active:enabled,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+    }
+}
+
+.channelBookmarksDotMenuButton {
+    display: flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 8%);
+    background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 8%);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-family: Open Sans;
+    font-size: 12px;
+    font-weight: 600;
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 16%);
+        background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 16%);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 16%);
+        background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
+        color: rgb(var(--button-bg-rgb));
+    }
+}
+
+#bookmark-create-file-input,
+#bookmark-create-file-input-in-modal {
+    display: none;
+}

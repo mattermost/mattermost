@@ -95,7 +95,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     submit={[Function]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Email Notifications"
+        defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
     }
@@ -109,16 +109,16 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Email Notifications"
+          defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
-            Email Notifications
+            Email notifications
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-9 col-sm-offset-3"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -208,23 +208,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -289,7 +275,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -308,7 +294,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -327,7 +313,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -479,7 +465,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     submit={[Function]}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Email Notifications"
+        defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
     }
@@ -493,16 +479,16 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         id="settingTitle"
       >
         <FormattedMessage
-          defaultMessage="Email Notifications"
+          defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
-            Email Notifications
+            Email notifications
           </span>
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-9 col-sm-offset-3"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -653,23 +639,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           >
             <hr />
             <SaveButton
-              btnClass=""
-              defaultMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Save"
-                  id="save_button.save"
-                />
-              }
               disabled={false}
-              extraClasses=""
               onClick={[Function]}
               saving={false}
-              savingMessage={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Saving"
-                  id="save_button.saving"
-                />
-              }
             >
               <button
                 className="btn btn-primary "
@@ -744,7 +716,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   serverError=""
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -824,7 +796,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -898,16 +870,8 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       <React.Fragment>
         <hr />
         <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Thread reply notifications"
-              id="user.settings.notifications.threads.desktop"
-            />
-          </legend>
           <div
-            className="checkbox"
+            className="checkbox single-checkbox"
           >
             <label>
               <input
@@ -918,19 +882,10 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 type="checkbox"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Notify me about threads I'm following"
-                id="user.settings.notifications.threads.allActivity"
+                defaultMessage="Notify me about replies to threads I’m following"
+                id="user.settings.notifications.email.notifyForthreads"
               />
             </label>
-            <br />
-          </div>
-          <div
-            className="mt-5"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="When enabled, any reply to a thread you're following will send an email notification."
-              id="user.settings.notifications.email_threads"
-            />
           </div>
         </fieldset>
       </React.Fragment>,
@@ -942,7 +897,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }
@@ -1022,7 +977,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   submit={[Function]}
   title={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Email Notifications"
+      defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
   }

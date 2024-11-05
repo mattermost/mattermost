@@ -16,6 +16,7 @@ import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
 import type {UserProfile, UserNotifyProps} from '@mattermost/types/users';
 
 export const DEFAULT_SERVER = 'http://localhost:8065';
@@ -553,6 +554,23 @@ class TestHelper {
         };
     };
 
+    fakeThread = (userId: string, channelId: string, override?: Partial<UserThread>): UserThread => {
+        return {
+            id: this.generateId(),
+            reply_count: 0,
+            last_reply_at: 0,
+            last_viewed_at: 0,
+            participants: [],
+            unread_replies: 0,
+            unread_mentions: 0,
+            is_following: true,
+            post: {
+                channel_id: channelId,
+                user_id: userId,
+            },
+            ...override,
+        };
+    };
     getFileInfoMock = (override: Partial<FileInfo>): FileInfo => {
         return {
             id: '',

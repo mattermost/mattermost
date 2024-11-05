@@ -3128,14 +3128,6 @@
     "translation": "검색 결과를 디코딩하지 못했습니다"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch가 이미 중지되었습니다."
   },
@@ -4444,10 +4436,6 @@
     "translation": "Please enter a valid email address."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
   },
@@ -4938,10 +4926,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "크기 제한을 초과했습니다. [최대 페이지 크기]를 확인하십시오 (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "팀 또는 채널 구성원 자격 삭제 오류"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5518,10 +5502,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "엔터프라이즈 에디션 라이선스가 만료되었으며 일부 기능이 비활성화될 수 있습니다. 지금 라이선스를 갱신해주세요."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "지금 라이선스를 갱신하세요"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6392,10 +6372,6 @@
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 파일을 첨부했습니다."
   },
@@ -6996,10 +6972,6 @@
     "translation": "보안 연결에서 초대"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "초대를 해독할 수 없습니다. 잘못된 암호 또는 손상 초대: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.fetch_status.error",
     "translation": "보안 연결을 가져올 수 없음: {{.Error}}"
   },
@@ -7408,10 +7380,6 @@
     "translation": "시스템"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "바로 갱신"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subject",
     "translation": "축하합니다!"
   },
@@ -7422,14 +7390,6 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "이 기능을 사용하기 위해선 엔터프라이즈 에디션으로 업그레이드해야 합니다."
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "이 라이선스는 포탈에 갱신할 수 없습니다"
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "라이선스 갱신 링크를 가져오는 중에 오류가 발생했습니다"
   },
   {
     "id": "api.invalid_redirect_url",
@@ -7592,10 +7552,6 @@
     "translation": "사용자 정의 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "라이선스 갱신 링크를 생성하지 못했습니다"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "추가하거나 삭제하려고 하는 권한 중 허용되지 않는 권한이 있습니다"
   },
@@ -7752,10 +7708,6 @@
     "translation": "Mattermost는 도구와 팀을 넘나드는 안전한 소통, 협업, 작업 조율을 위한 오픈소스 플랫폼입니다.\nMattermost는 세가지 핵심 도구를 갖고 있습니다:\n\n**채널** - 1:1 및 그룹 채팅을 통해 팀과의 소통을 유지하세요.\n**[플레이북](/playbooks)** - 반복가능한 작업들을 구성하여 구체적이고 예측 가능한 결과를 만드세요.\n**[보드](/boards)** - 팀의 핵심 마일스톤에 도달하기 위해 칸반 보드에서 작업을 만들고 프로젝트를 관리하세요.\n\n[문서 및 가이드 살펴보기]({{.HelpLink}})"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "연체 알림 전자우편을 보내기 위한 필수 항목이 누락되었습니다."
-  },
-  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "스토어에서 첫 번째 관리자의 설정을 저장하는 동안 오류가 발생했습니다."
   },
@@ -7880,14 +7832,6 @@
     "translation": "api 엔드포인트는 라이선스를 필요로 합니다"
   },
   {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "들어오는 webhook 카운트를 얻어오지 못했습니다"
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "활성화된 전체 사용자수를 얻어올 수 없습니다."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "다운로드하려는 작업타입은 잠시 지원되지 않습니다"
   },
@@ -7988,40 +7932,8 @@
     "translation": "도움이 필요하거나 질문이 있으신가요? 다음 주소로 전자우편을 보내주세요 "
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Mattermost Cloud 청구서 마감일"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Mattermost Cloud 구독에 대한 결제가 완료되었습니다"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "청구서를 검토하고 결제 방법을 추가하려면 지금 결제를 선택합니다."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "가장 최근 청구 기간에 대한 Mattermost Cloud 청구서가 처리되었습니다. 하지만 결제 세부 정보가 등록되어 있지 않습니다."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "지금 결제하기"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "결제가 성공하지 못했습니다"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "그들은 다음과 같은 이유를 제시했습니다:"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Mattermost 구독이 갱신될 예정입니다"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "갱신하려면 고객 계정으로 로그인하세요"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -8042,86 +7954,6 @@
   {
     "id": "api.templates.email_us_anytime_at",
     "translation": "언제든지 다음 주소로 전자우편을 보내주세요 "
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Mattermost 워크스페이스가 다운그레이드되었습니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "또한 Cloud Free 제한으로 인해 데이터가 보관 처리되었을 수도 있습니다."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "데이터 보관을 해제하고 유료 기능을 계속 사용하려면 결제 정보를 업데이트하세요."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "중요한 비즈니스 운영에 Cloud Professional 또는 Enterprise 기능을 사용하는 경우 이러한 기능을 더 이상 사용할 수 없으며 성능이 저하됩니다."
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Mattermost Cloud 워크스페이스가 다운그레이드되었습니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "플랜과 가격 보기"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "지금 결제 정보를 업데이트하거나 Cloud Free로 다운그레이드하세요."
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "워크스페이스가 15일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Mattermost {{.Plan}} 플랜이 15일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Cloud Free로 다운그레이드"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "결제가 완료되지 않았습니다"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "가장 최근 결제를 처리하지 못했습니다."
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Mattermost 워크스페이스가 30일 후에 다운그레이드됩니다"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "모든 제한 문서 보기."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "결제 갱신"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "메시지 역사"
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "파일"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -8162,22 +7994,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "이미지 제한 확인에 실패했습니다. 해상도가 너무 높습니다."
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Mattermots 업그레이드 확인"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "업그레이드 되었습니다!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다. {{.Data}}에 결제가 됩니다"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "{{.WorkspaceName}} 워크스페이스가 업그레이드 되었습니다."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",

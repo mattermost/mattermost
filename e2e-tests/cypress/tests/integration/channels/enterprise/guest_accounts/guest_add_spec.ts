@@ -78,10 +78,10 @@ describe('Guest Account - Guest User Experience', () => {
         cy.sendDirectMessageToUser(guestUser, 'hello');
 
         // # Search for the Guest User
-        cy.get('#searchBox').wait(TIMEOUTS.FIVE_SEC).type(`in:${guestUser.username}`);
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().wait(TIMEOUTS.FIVE_SEC).type(`in:${guestUser.username}`);
 
         // * Verify Guest Badge is not displayed at Search auto-complete
-        cy.get('#search-autocomplete__popover').should('be.visible');
         cy.contains('.suggestion-list__item', guestUser.username).should('be.visible').within(($el) => {
             cy.wrap($el).find('.Tag').should('not.exist');
         });

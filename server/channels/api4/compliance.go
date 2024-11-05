@@ -16,10 +16,10 @@ import (
 )
 
 func (api *API) InitCompliance() {
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport)).Methods("POST")
-	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport)).Methods("GET")
-	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(createComplianceReport)).Methods(http.MethodPost)
+	api.BaseRoutes.Compliance.Handle("/reports", api.APISessionRequired(getComplianceReports)).Methods(http.MethodGet)
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(getComplianceReport)).Methods(http.MethodGet)
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadComplianceReport)).Methods(http.MethodGet)
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {

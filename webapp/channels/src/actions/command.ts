@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CommandArgs} from '@mattermost/types/integrations';
+import type {AppCallResponse} from '@mattermost/types/apps';
+import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {unfavoriteChannel} from 'mattermost-redux/actions/channels';
@@ -39,7 +40,14 @@ import type {GlobalState} from 'types/store';
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
 
-export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<boolean, GlobalState> {
+export type ExecuteCommandReturnType = {
+    frontendHandled?: boolean;
+    silentFailureReason?: Error;
+    commandResponse?: CommandResponse;
+    appResponse?: AppCallResponse;
+}
+
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
 
@@ -50,11 +58,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             cmdLength = msg.length;
         }
         const cmd = msg.substring(0, cmdLength).toLowerCase();
-        if (cmd === '/code') {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trimEnd();
-        } else {
-            msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
-        }
+        msg = cmd + ' ' + msg.substring(cmdLength, msg.length).trim();
 
         // Add track event for certain slash commands
         const commandsWithTelemetry = [
@@ -71,25 +75,28 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         switch (cmd) {
         case '/search':
             dispatch(PostActions.searchForTerm(msg.substring(cmdLength + 1, msg.length)));
-            return {data: true};
+            return {data: {frontendHandled: true}};
         case '/shortcuts':
             if (UserAgent.isMobile()) {
-                const error = {message: localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
+                const error = {message: localizeMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device'})};
                 return {error};
             }
 
             dispatch(openModal({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL, dialogType: KeyboardShortcutsModal}));
-            return {data: true};
+            return {data: {frontendHandled: true}};
         case '/leave': {
             // /leave command not supported in reply threads.
             if (args.channel_id && args.root_id) {
                 dispatch(GlobalActions.sendEphemeralPost('/leave is not supported in reply threads. Use it in the center channel instead.', args.channel_id, args.root_id));
-                return {data: true};
+                return {data: {frontendHandled: true}};
             }
-            const channel = getCurrentChannel(state) || {};
+            const channel = getCurrentChannel(state);
+            if (!channel) {
+                return {data: {silentFailureReason: new Error('cannot find current channel')}};
+            }
             if (channel.type === Constants.PRIVATE_CHANNEL) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
-                return {data: true};
+                return {data: {frontendHandled: true}};
             }
             if (
                 channel.type === Constants.DM_CHANNEL ||
@@ -115,26 +122,26 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                     dispatch(unfavoriteChannel(channel.id));
                 }
 
-                return {data: true};
+                return {data: {frontendHandled: true}};
             }
             break;
         }
         case '/settings':
             dispatch(openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}}));
-            return {data: true};
+            return {data: {frontendHandled: true}};
         case '/marketplace':
             // check if user has permissions to access the read plugins
             if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
-                return {error: {message: localizeMessage('marketplace_command.no_permission', 'You do not have the appropriate permissions to access the marketplace.')}};
+                return {error: {message: localizeMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
             }
 
             // check config to see if marketplace is enabled
             if (!isMarketplaceEnabled(state)) {
-                return {error: {message: localizeMessage('marketplace_command.disabled', 'The marketplace is disabled. Please contact your System Administrator for details.')}};
+                return {error: {message: localizeMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
             }
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
-            return {data: true};
+            return {data: {frontendHandled: true}};
         case '/collapse':
         case '/expand':
             dispatch(PostActions.resetEmbedVisibility());
@@ -170,14 +177,14 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
                         if (callResp.text) {
                             dispatch(postEphemeralCallResponseForCommandArgs(callResp, callResp.text, args));
                         }
-                        return {data: true};
+                        return {data: {appResponse: callResp}};
                     case AppCallResponseTypes.FORM:
                         if (callResp.form) {
                             dispatch(openAppsModal(callResp.form, creq.context));
                         }
-                        return {data: true};
+                        return {data: {appResponse: callResp}};
                     case AppCallResponseTypes.NAVIGATE:
-                        return {data: true};
+                        return {data: {appResponse: callResp}};
                     default:
                         return createErrorMessage(intlShim.formatMessage(
                             {
@@ -210,7 +217,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
 
         if (msg.trim() === '/logout') {
             GlobalActions.emitUserLoggedOutEvent(hasGotoLocation ? data.goto_location : '/');
-            return {data: true};
+            return {data: {response: data}};
         }
 
         if (data.trigger_id) {
@@ -227,6 +234,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             }
         }
 
-        return {data: true};
+        return {data: {response: data}};
     };
 }

@@ -13,15 +13,14 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import InfoToast from 'components/info_toast/info_toast';
-import OverlayTrigger from 'components/overlay_trigger';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostMessageContainer from 'components/post_view/post_message_view';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tooltip from 'components/tooltip';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 
 import RestorePostModal from '../restore_post_modal';
@@ -171,21 +170,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         </div>
     );
 
-    const tooltip = (
-        <Tooltip
-            id='editPostRestoreTooltip'
-            className='hidden-xs'
-        >
-            {formatMessage(itemMessages.helpText)}
-        </Tooltip>
-    );
-
     const restoreButton = isCurrent ? null : (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='editPostRestoreTooltip'
             placement='left'
-            overlay={tooltip}
+            title={formatMessage(itemMessages.helpText)}
         >
             <IconButton
                 className='edit-post-history__icon__button restore-icon'
@@ -195,7 +184,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
             />
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     const postContainerClass = classNames('edit-post-history__container', {'edit-post-history__container__background': open});

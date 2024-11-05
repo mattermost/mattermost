@@ -5,13 +5,16 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
@@ -25,32 +28,34 @@ const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 const postPriorityConfigDefaultTrueMigrationKey = "PostPriorityConfigDefaultTrueMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
-func (a *App) DoAdvancedPermissionsMigration() {
-	a.Srv().doAdvancedPermissionsMigration()
+func (a *App) DoAdvancedPermissionsMigration() error {
+	return a.Srv().doAdvancedPermissionsMigration()
 }
 
-func (s *Server) doAdvancedPermissionsMigration() {
+func (s *Server) doAdvancedPermissionsMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
 
-	allSucceeded := true
-
+	var multiErr *multierror.Error
 	for _, role := range roles {
 		_, err := s.Store().Role().Save(role)
 		if err == nil {
 			continue
 		}
+		mlog.Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
 		fetchedRole, err := s.Store().Role().GetByName(context.Background(), role.Name)
 		if err != nil {
-			mlog.Fatal("Failed to migrate role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to migrate role to database: %w", err))
 			continue
 		}
 
@@ -62,20 +67,19 @@ func (s *Server) doAdvancedPermissionsMigration() {
 			role.Id = fetchedRole.Id
 			if _, err = s.Store().Role().Save(role); err != nil {
 				// Role is not the same, but failed to update.
-				mlog.Fatal("Failed to migrate role to database.", mlog.Err(err))
-				allSucceeded = false
+				multiErr = multierror.Append(multiErr, fmt.Errorf("failed to migrate role to database: %w", err))
 			}
 		}
 	}
 
-	if !allSucceeded {
-		return
+	if multiErr != nil {
+		return multiErr
 	}
 
 	config := s.platform.Config()
 	*config.ServiceSettings.PostEditTimeLimit = -1
 	if _, _, err := s.platform.SaveConfig(config, true); err != nil {
-		mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
+		return fmt.Errorf("failed to update config in Advanced Permissions Phase 1 Migration: %w", err)
 	}
 
 	system := model.System{
@@ -84,8 +88,10 @@ func (s *Server) doAdvancedPermissionsMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark advanced permissions migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark advanced permissions migration as completed: %w", err)
 	}
+
+	return nil
 }
 
 func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
@@ -102,10 +108,13 @@ func (a *App) DoEmojisPermissionsMigration() {
 	a.Srv().doEmojisPermissionsMigration()
 }
 
-func (s *Server) doEmojisPermissionsMigration() {
+func (s *Server) doEmojisPermissionsMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(EmojisPermissionsMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	var role *model.Role
@@ -117,22 +126,19 @@ func (s *Server) doEmojisPermissionsMigration() {
 	// Emoji creation is set to all by default
 	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	if err != nil {
-		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get role for system user: %w", err)
 	}
 
 	if role != nil {
 		role.Permissions = append(role.Permissions, model.PermissionCreateEmojis.Id, model.PermissionDeleteEmojis.Id)
 		if _, nErr := s.Store().Role().Save(role); nErr != nil {
-			mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(nErr))
-			return
+			return fmt.Errorf("failed to save role: %w", nErr)
 		}
 	}
 
 	systemAdminRole, err = s.GetRoleByName(context.Background(), model.SystemAdminRoleId)
 	if err != nil {
-		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get role for system admin: %w", err)
 	}
 
 	systemAdminRole.Permissions = append(systemAdminRole.Permissions,
@@ -141,8 +147,7 @@ func (s *Server) doEmojisPermissionsMigration() {
 		model.PermissionDeleteOthersEmojis.Id,
 	)
 	if _, err := s.Store().Role().Save(systemAdminRole); err != nil {
-		mlog.Fatal("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to save role: %w", err)
 	}
 
 	system := model.System{
@@ -151,46 +156,46 @@ func (s *Server) doEmojisPermissionsMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark emojis permissions migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark emojis permissions migration as completed: %w", err)
 	}
+
+	return nil
 }
 
 func (a *App) DoGuestRolesCreationMigration() {
 	a.Srv().doGuestRolesCreationMigration()
 }
 
-func (s *Server) doGuestRolesCreationMigration() {
+func (s *Server) doGuestRolesCreationMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(GuestRolesCreationMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-
-	allSucceeded := true
+	var multiErr *multierror.Error
 	if _, err := s.Store().Role().GetByName(context.Background(), model.ChannelGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.ChannelGuestRoleId]); err != nil {
-			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.TeamGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.TeamGuestRoleId]); err != nil {
-			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemGuestRoleId]); err != nil {
-			mlog.Fatal("Failed to create new guest role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
 
 	schemes, err := s.Store().Scheme().GetAllPage("", 0, 1000000)
 	if err != nil {
-		mlog.Fatal("Failed to get all schemes.", mlog.Err(err))
-		allSucceeded = false
+		multiErr = multierror.Append(multiErr, fmt.Errorf("failed to get all schemes: %w", err))
 	}
 	for _, scheme := range schemes {
 		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
@@ -204,8 +209,7 @@ func (s *Server) doGuestRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(teamGuestRole); err != nil {
-					mlog.Fatal("Failed to create new guest role for custom scheme.", mlog.Err(err))
-					allSucceeded = false
+					multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role for custom scheme: %w", err))
 				} else {
 					scheme.DefaultTeamGuestRole = savedRole.Name
 				}
@@ -220,22 +224,20 @@ func (s *Server) doGuestRolesCreationMigration() {
 			}
 
 			if savedRole, err := s.Store().Role().Save(channelGuestRole); err != nil {
-				mlog.Fatal("Failed to create new guest role for custom scheme.", mlog.Err(err))
-				allSucceeded = false
+				multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role for custom scheme: %w", err))
 			} else {
 				scheme.DefaultChannelGuestRole = savedRole.Name
 			}
 
 			_, err := s.Store().Scheme().Save(scheme)
 			if err != nil {
-				mlog.Fatal("Failed to update custom scheme.", mlog.Err(err))
-				allSucceeded = false
+				multiErr = multierror.Append(multiErr, fmt.Errorf("failed to update custom scheme: %w", err))
 			}
 		}
 	}
 
-	if !allSucceeded {
-		return
+	if multiErr != nil {
+		return multiErr
 	}
 
 	system := model.System{
@@ -244,44 +246,45 @@ func (s *Server) doGuestRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark guest roles creation migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark guest roles creation migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (a *App) DoSystemConsoleRolesCreationMigration() {
-	a.Srv().doSystemConsoleRolesCreationMigration()
+func (a *App) DoSystemConsoleRolesCreationMigration() error {
+	return a.Srv().doSystemConsoleRolesCreationMigration()
 }
 
-func (s *Server) doSystemConsoleRolesCreationMigration() {
+func (s *Server) doSystemConsoleRolesCreationMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(SystemConsoleRolesCreationMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-
-	allSucceeded := true
+	var multiErr *multierror.Error
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemManagerRoleId]); err != nil {
-			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemManagerRoleId))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemManagerRoleId, err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemReadOnlyAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemReadOnlyAdminRoleId]); err != nil {
-			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemReadOnlyAdminRoleId))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemReadOnlyAdminRoleId, err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemUserManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemUserManagerRoleId]); err != nil {
-			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemUserManagerRoleId))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemUserManagerRoleId, err))
 		}
 	}
 
-	if !allSucceeded {
-		return
+	if multiErr != nil {
+		return multiErr
 	}
 
 	system := model.System{
@@ -290,28 +293,26 @@ func (s *Server) doSystemConsoleRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark system console roles creation migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark system console roles creation migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doCustomGroupAdminRoleCreationMigration() {
+func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(CustomGroupAdminRoleCreationMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-
-	allSucceeded := true
 	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
-			mlog.Fatal("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemCustomGroupAdminRoleId))
-			allSucceeded = false
+			return fmt.Errorf("failed to create new role %s: %w", model.SystemCustomGroupAdminRoleId, err)
 		}
-	}
-
-	if !allSucceeded {
-		return
 	}
 
 	system := model.System{
@@ -320,18 +321,23 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark custom group admin role creation migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark custom group admin role creation migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
+func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.FileSettings.ExtractContent = model.NewBool(true)
+		config.FileSettings.ExtractContent = model.NewPointer(true)
 	})
 
 	system := model.System{
@@ -340,47 +346,46 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark content extraction config migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark content extraction config migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doPlaybooksRolesCreationMigration() {
+func (s *Server) doPlaybooksRolesCreationMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(PlaybookRolesCreationMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-
-	allSucceeded := true
+	var multiErr *multierror.Error
 	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookAdminRoleId]); err != nil {
-			mlog.Fatal("Failed to create new playbook admin role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookAdminRoleId, err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookMemberRoleId]); err != nil {
-			mlog.Fatal("Failed to create new playbook member role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookMemberRoleId, err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.RunAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunAdminRoleId]); err != nil {
-			mlog.Fatal("Failed to create new run admin role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ffailed to create new playbook %q role to database: %w", model.RunAdminRoleId, err))
 		}
 	}
 	if _, err := s.Store().Role().GetByName(context.Background(), model.RunMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunMemberRoleId]); err != nil {
-			mlog.Fatal("Failed to create new run member role to database.", mlog.Err(err))
-			allSucceeded = false
+			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.RunMemberRoleId, err))
 		}
 	}
 	schemes, err := s.Store().Scheme().GetAllPage(model.SchemeScopeTeam, 0, 1000000)
 	if err != nil {
-		mlog.Fatal("Failed to get all schemes.", mlog.Err(err))
-		allSucceeded = false
+		multiErr = multierror.Append(multiErr, fmt.Errorf("failed to get all schemes: %w", err))
 	}
 
 	for _, scheme := range schemes {
@@ -394,8 +399,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(playbookAdminRole); err != nil {
-					mlog.Fatal("Failed to create new playbook admin role for existing custom scheme.", mlog.Err(err))
-					allSucceeded = false
+					multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role for existing custom scheme: %w", model.PlaybookAdminRoleId, err))
 				} else {
 					scheme.DefaultPlaybookAdminRole = savedRole.Name
 				}
@@ -409,8 +413,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(playbookMember); err != nil {
-					mlog.Fatal("Failed to create new playbook member role for existing custom scheme.", mlog.Err(err))
-					allSucceeded = false
+					multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role for existing custom scheme: %w", model.PlaybookMemberRoleId, err))
 				} else {
 					scheme.DefaultPlaybookMemberRole = savedRole.Name
 				}
@@ -425,8 +428,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(runAdminRole); err != nil {
-					mlog.Fatal("Failed to create new run admin role for existing custom scheme.", mlog.Err(err))
-					allSucceeded = false
+					multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role for existing custom scheme: %w", model.RunAdminRoleId, err))
 				} else {
 					scheme.DefaultRunAdminRole = savedRole.Name
 				}
@@ -441,22 +443,20 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 				}
 
 				if savedRole, err := s.Store().Role().Save(runMemberRole); err != nil {
-					mlog.Fatal("Failed to create new run member role for existing custom scheme.", mlog.Err(err))
-					allSucceeded = false
+					multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role for existing custom scheme: %w", model.RunMemberRoleId, err))
 				} else {
 					scheme.DefaultRunMemberRole = savedRole.Name
 				}
 			}
 			_, err := s.Store().Scheme().Save(scheme)
 			if err != nil {
-				mlog.Fatal("Failed to update custom scheme.", mlog.Err(err))
-				allSucceeded = false
+				multiErr = multierror.Append(multiErr, fmt.Errorf("failed to update custom scheme: %w", err))
 			}
 		}
 	}
 
-	if !allSucceeded {
-		return
+	if multiErr != nil {
+		return multiErr
 	}
 
 	system := model.System{
@@ -465,36 +465,46 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark playbook roles creation migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-// arbitrary choice, though if there is an longstanding installation with less than 10 messages,
-// putting the first admin through onboarding shouldn't be very disruptive.
-const existingInstallationPostsThreshold = 10
+func (s *Server) doFirstAdminSetupCompleteMigration() error {
+	// arbitrary choice, though if there is an longstanding installation with less than 10 messages,
+	// putting the first admin through onboarding shouldn't be very disruptive.
+	const existingInstallationPostsThreshold = 10
 
-func (s *Server) doFirstAdminSetupCompleteMigration() {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(FirstAdminSetupCompleteKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	teams, err := s.Store().Team().GetAll()
 	if err != nil {
 		// can not confirm that admin has started in this case.
-		return
+		return fmt.Errorf("could not get teams: %w", err)
 	}
 
 	if len(teams) == 0 {
 		// No teams, and no existing preference. This is most likely a new instance.
 		// So do not mark that the admin has already done the first time setup.
-		return
+		return nil
 	}
 
 	// if there are teams, then if this isn't a new installation, there should be posts
 	postCount, err := s.Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
-	if err != nil || postCount < existingInstallationPostsThreshold {
-		return
+	if err != nil {
+		return fmt.Errorf("could not get posts count from the database: %w", err)
+	} else if postCount < existingInstallationPostsThreshold {
+		mlog.Info("Post count is lower than expected, aborting migration",
+			mlog.Int("expected", int(existingInstallationPostsThreshold)),
+			mlog.Int("actual", int(postCount)))
+		return nil
 	}
 
 	system := model.System{
@@ -503,14 +513,19 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark first admin setup migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark first admin setup migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doRemainingSchemaMigrations() {
+func (s *Server) doRemainingSchemaMigrations() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(remainingSchemaMigrationsKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	if teams, err := s.Store().Team().GetByEmptyInviteID(); err != nil {
@@ -519,7 +534,7 @@ func (s *Server) doRemainingSchemaMigrations() {
 		for _, team := range teams {
 			team.InviteId = model.NewId()
 			if _, err := s.Store().Team().Update(team); err != nil {
-				mlog.Error("Error updating Team InviteIDs", mlog.String("team_id", team.Id), mlog.Err(err))
+				return fmt.Errorf("error updating Team InviteIDs %q: %w", team.Id, err)
 			}
 		}
 	}
@@ -530,18 +545,23 @@ func (s *Server) doRemainingSchemaMigrations() {
 	}
 
 	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Fatal("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark the remaining schema migrations as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
+func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(postPriorityConfigDefaultTrueMigrationKey); err == nil {
-		return
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.ServiceSettings.PostPriority = model.NewBool(true)
+		config.ServiceSettings.PostPriority = model.NewPointer(true)
 	})
 
 	system := model.System{
@@ -550,78 +570,101 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 
 	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
-		mlog.Fatal("Failed to mark post priority config migration as completed.", mlog.Err(err))
+		return fmt.Errorf("failed to mark post priority config migration as completed: %w", err)
 	}
+
+	return nil
 }
 
-func (s *Server) doCloudS3PathMigrations(c request.CTX) {
+func (s *Server) doCloudS3PathMigrations(c request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
-		return
+		return nil
 	}
 
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyS3Path); err == nil {
-		return
+		return nil
 	}
 
 	// If there is a job already pending, no need to schedule again.
 	// This is possible if the pod was rolled over.
 	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeS3PathMigration, model.JobStatusPending)
 	if err != nil {
-		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
 	if len(jobs) > 0 {
-		return
+		return nil
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeS3PathMigration, nil); appErr != nil {
-		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
-		return
+		return fmt.Errorf("failed to start job for migrating s3 file paths: %w", appErr)
 	}
+
+	return nil
 }
 
-func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) {
+func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
-		return
+		return nil
 	}
 
 	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
 	if err != nil {
-		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
 	if len(jobs) > 0 {
-		return
+		return nil
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
-		mlog.Fatal("failed to start job for deleting empty drafts", mlog.Err(appErr))
-		return
+		return fmt.Errorf("failed to start job for deleting empty drafts: %w", appErr)
 	}
+
+	return nil
 }
 
-func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) {
+func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteOrphanDrafts); err == nil {
-		return
+		return nil
 	}
 
 	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
 	if err != nil {
-		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
-		return
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
 	}
 	if len(jobs) > 0 {
-		return
+		return nil
 	}
 
 	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
-		mlog.Fatal("failed to start job for deleting orphan drafts", mlog.Err(appErr))
-		return
+		return fmt.Errorf("failed to start job for deleting orphan drafts: %w", appErr)
 	}
+
+	return nil
+}
+
+func (s *Server) doDeleteDmsPreferencesMigration(c request.CTX) error {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteDmsPreferences); err == nil {
+		return nil
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteDmsPreferencesMigration, model.JobStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get jobs by type and status: %w", err)
+	}
+	if len(jobs) > 0 {
+		return nil
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteDmsPreferencesMigration, nil); appErr != nil {
+		return fmt.Errorf("failed to start job for deleting dm preferences: %w", appErr)
+	}
+
+	return nil
 }
 
 func (a *App) DoAppMigrations() {
@@ -629,25 +672,54 @@ func (a *App) DoAppMigrations() {
 }
 
 func (s *Server) doAppMigrations() {
-	c := request.EmptyContext(s.Log())
-
-	s.doAdvancedPermissionsMigration()
-	s.doEmojisPermissionsMigration()
-	s.doGuestRolesCreationMigration()
-	s.doSystemConsoleRolesCreationMigration()
-	s.doCustomGroupAdminRoleCreationMigration()
-	// This migration always must be the last, because can be based on previous
-	// migrations. For example, it needs the guest roles migration.
-	err := s.doPermissionsMigrations()
-	if err != nil {
-		mlog.Fatal("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
+	type migration struct {
+		name    string
+		handler func() error
 	}
-	s.doContentExtractionConfigDefaultTrueMigration()
-	s.doPlaybooksRolesCreationMigration()
-	s.doFirstAdminSetupCompleteMigration()
-	s.doRemainingSchemaMigrations()
-	s.doPostPriorityConfigDefaultTrueMigration()
-	s.doCloudS3PathMigrations(c)
-	s.doDeleteEmptyDraftsMigration(c)
-	s.doDeleteOrphanDraftsMigration(c)
+	m1 := []migration{
+		{"Advanced Permissions Migration", s.doAdvancedPermissionsMigration},
+		{"Emojis Permissions Migration", s.doEmojisPermissionsMigration},
+		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
+		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
+		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
+		// This migration always run after dependent migrations such as the guest roles migration.
+		{"Permissions Migrations", s.doPermissionsMigrations},
+		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
+		{"Playbooks Roles Creation Migration", s.doPlaybooksRolesCreationMigration},
+		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
+		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
+		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
+	}
+
+	for i := range m1 {
+		err := m1[i].handler()
+		if err != nil {
+			mlog.Fatal("Failed to run app migration",
+				mlog.String("migration", m1[i].name),
+				mlog.Err(err),
+			)
+		}
+	}
+
+	type migrationContext struct {
+		name    string
+		handler func(request.CTX) error
+	}
+	m2 := []migrationContext{
+		{"Encode S3 Image Paths Migration", s.doCloudS3PathMigrations},
+		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
+		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
+		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
+	}
+
+	c := request.EmptyContext(s.Log())
+	for i := range m2 {
+		err := m2[i].handler(c)
+		if err != nil {
+			mlog.Fatal("Failed to run app migration",
+				mlog.String("migration", m2[i].name),
+				mlog.Err(err),
+			)
+		}
+	}
 }

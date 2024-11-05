@@ -7,7 +7,6 @@ import React from 'react';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import FileAttachment from './file_attachment';
@@ -168,15 +167,12 @@ describe('FileAttachment', () => {
 
     test('should blur file attachment link after click', () => {
         const props = {...baseProps, compactDisplay: true};
-        const wrapper = mountWithIntl(<FileAttachment {...props}/>);
-        const e = {
-            preventDefault: jest.fn(),
-            target: {blur: jest.fn()},
-        };
+        renderWithContext(<FileAttachment {...props}/>);
 
-        const a = wrapper.find('#file-attachment-link');
-        a.simulate('click', e);
-        expect(e.target.blur).toHaveBeenCalled();
+        const link = screen.getByText(baseProps.fileInfo.name);
+        const blur = jest.spyOn(link, 'blur');
+        screen.getByText(baseProps.fileInfo.name).click();
+        expect(blur).toHaveBeenCalled();
     });
 
     describe('archived file', () => {

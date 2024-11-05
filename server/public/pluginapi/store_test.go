@@ -37,9 +37,9 @@ func TestStore(t *testing.T) {
 	t.Run("master db fallback", func(t *testing.T) {
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
-				DriverName:                  model.NewString("ramsql"),
-				DataSource:                  model.NewString("TestStore-master-db"),
-				ConnMaxLifetimeMilliseconds: model.NewInt(2),
+				DriverName:                  model.NewPointer("ramsql"),
+				DataSource:                  model.NewPointer("TestStore-master-db"),
+				ConnMaxLifetimeMilliseconds: model.NewPointer(2),
 			},
 		}
 
@@ -69,10 +69,10 @@ func TestStore(t *testing.T) {
 	t.Run("replica db singleton", func(t *testing.T) {
 		config := &model.Config{
 			SqlSettings: model.SqlSettings{
-				DriverName:                  model.NewString("ramsql"),
-				DataSource:                  model.NewString("TestStore-master-db"),
+				DriverName:                  model.NewPointer("ramsql"),
+				DataSource:                  model.NewPointer("TestStore-master-db"),
 				DataSourceReplicas:          []string{"TestStore-master-db"},
-				ConnMaxLifetimeMilliseconds: model.NewInt(2),
+				ConnMaxLifetimeMilliseconds: model.NewPointer(2),
 			},
 		}
 

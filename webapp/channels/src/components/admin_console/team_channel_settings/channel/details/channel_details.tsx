@@ -40,8 +40,8 @@ import SaveChangesPanel from '../../save_changes_panel';
 
 export interface ChannelDetailsProps {
     channelID: string;
-    channel: Channel;
-    team: Partial<Team>;
+    channel?: Channel;
+    team?: Team;
     groups: Group[];
     totalGroups: number;
     allGroups: Record<string, Group>;
@@ -108,9 +108,9 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     constructor(props: ChannelDetailsProps) {
         super(props);
         this.state = {
-            isSynced: Boolean(props.channel.group_constrained),
-            isPublic: props.channel.type === Constants.OPEN_CHANNEL,
-            isDefault: props.channel.name === Constants.DEFAULT_CHANNEL,
+            isSynced: Boolean(props.channel?.group_constrained),
+            isPublic: props.channel?.type === Constants.OPEN_CHANNEL,
+            isDefault: props.channel?.name === Constants.DEFAULT_CHANNEL,
             isPrivacyChanging: false,
             saving: false,
             totalGroups: props.totalGroups,
@@ -127,25 +127,25 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             previousServerError: undefined,
             channelPermissions: props.channelPermissions,
             teamScheme: props.teamScheme,
-            isLocalArchived: props.channel.delete_at > 0,
+            isLocalArchived: props.channel?.delete_at !== 0,
             showArchiveConfirmModal: false,
         };
     }
 
     componentDidUpdate(prevProps: ChannelDetailsProps) {
         const {channel, totalGroups, actions} = this.props;
-        if (channel.id !== prevProps.channel.id || totalGroups !== prevProps.totalGroups) {
+        if (channel?.id !== prevProps.channel?.id || totalGroups !== prevProps.totalGroups) {
             this.setState({
                 totalGroups,
-                isSynced: Boolean(channel.group_constrained),
-                isPublic: channel.type === Constants.OPEN_CHANNEL,
-                isDefault: channel.name === Constants.DEFAULT_CHANNEL,
-                isLocalArchived: channel.delete_at > 0,
+                isSynced: Boolean(channel?.group_constrained),
+                isPublic: channel?.type === Constants.OPEN_CHANNEL,
+                isDefault: channel?.name === Constants.DEFAULT_CHANNEL,
+                isLocalArchived: channel?.delete_at !== 0,
             });
         }
 
         // If we don't have the team and channel on mount, we need to request the team after we load the channel
-        if (!prevProps.team.id && !prevProps.channel.team_id && channel.team_id) {
+        if (!prevProps.team?.id && !prevProps.channel?.team_id && channel?.team_id) {
             actions.getTeam(channel.team_id).
                 then(async (data: any) => {
                     if (data.data && data.data.scheme_id) {
@@ -167,7 +167,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             actions.getChannel(channelID);
         }
 
-        if (channel.team_id) {
+        if (channel?.team_id) {
             actions.getTeam(channel.team_id).
                 then(async (data: any) => {
                     if (data.data && data.data.scheme_id) {
@@ -206,7 +206,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private setToggles = (isSynced: boolean, isPublic: boolean) => {
         const {channel} = this.props;
-        const isOriginallyPublic = channel.type === Constants.OPEN_CHANNEL;
+        const isOriginallyPublic = channel?.type === Constants.OPEN_CHANNEL;
         this.setState(
             {
                 saveNeeded: true,
@@ -355,7 +355,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             this.setState({showArchiveConfirmModal: true});
             return;
         }
-        const isOriginallyPublic = channel.type === Constants.OPEN_CHANNEL;
+        const isOriginallyPublic = channel?.type === Constants.OPEN_CHANNEL;
         if (isSynced) {
             isPublic = false;
             isPrivacyChanging = isOriginallyPublic;
@@ -380,11 +380,16 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     };
 
     private handleSubmit = async () => {
+        const {groups: origGroups, channelID, actions, channel} = this.props;
+
+        if (!channel) {
+            return;
+        }
+
         this.setState({showConvertConfirmModal: false, showRemoveConfirmModal: false, showConvertAndRemoveConfirmModal: false, showArchiveConfirmModal: false, saving: true});
         const {groups, isSynced, isPublic, isPrivacyChanging, channelPermissions, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
         let serverError: JSX.Element | undefined;
         let saveNeeded = false;
-        const {groups: origGroups, channelID, actions, channel} = this.props;
 
         if (this.channelToBeArchived()) {
             const result = await actions.deleteChannel(channel.id);
@@ -607,13 +612,13 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private channelToBeArchived = (): boolean => {
         const {isLocalArchived} = this.state;
-        const isServerArchived = this.props.channel.delete_at !== 0;
+        const isServerArchived = this.props.channel?.delete_at !== 0;
         return isLocalArchived && !isServerArchived;
     };
 
     private channelToBeRestored = (): boolean => {
         const {isLocalArchived} = this.state;
-        const isServerArchived = this.props.channel.delete_at !== 0;
+        const isServerArchived = this.props.channel?.delete_at !== 0;
         return !isLocalArchived && isServerArchived;
     };
 
@@ -681,7 +686,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.setState(newState);
     };
 
-    public render = (): JSX.Element => {
+    public render = () => {
         const {
             totalGroups,
             saving,
@@ -703,6 +708,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             showArchiveConfirmModal,
         } = this.state;
         const {channel, team} = this.props;
+
+        if (!channel) {
+            return null;
+        }
+
         const missingGroup = (og: {id: string}) => !groups.find((g: Group) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
         const nonArchivedContent = (
@@ -722,7 +732,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         teamSchemeID={teamScheme?.id}
                         teamSchemeDisplayName={teamScheme?.display_name}
                         guestAccountsEnabled={this.props.guestAccountsEnabled}
-                        isPublic={this.props.channel.type === Constants.OPEN_CHANNEL}
+                        isPublic={channel.type === Constants.OPEN_CHANNEL}
                         readOnly={this.props.isDisabled}
                     />
                 }
@@ -814,7 +824,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             message={
                                 <FormattedMessage
                                     id='admin.channel_settings.channel_detail.archive_confirm.message'
-                                    defaultMessage='Saving will archive the channel from the team and make its contents inaccessible for all users. Are you sure you wish to save and archive this channel?'
+                                    defaultMessage={'Saving will archive the channel from the team and make it\'s contents inaccessible for all users. Are you sure you wish to save and archive this channel?'}
                                 />
                             }
                             confirmButtonText={

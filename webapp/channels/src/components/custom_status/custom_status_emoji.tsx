@@ -1,20 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, memo} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
+import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -33,10 +30,10 @@ interface Props {
 function CustomStatusEmoji({
     emojiSize = 16,
     showTooltip = false,
-    tooltipDirection = 'top',
     spanStyle = {},
     emojiStyle = {
         marginLeft: 4,
+        marginTop: -1,
     },
     userID = '',
     onClick,
@@ -48,6 +45,37 @@ function CustomStatusEmoji({
 
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, customStatus));
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
+
+    const [placement, setPlacement] = useState('bottom');
+    const emojiRef = useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        function handleMouseEnter() {
+            if (emojiRef.current) {
+                const boundingRect = emojiRef.current.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                const threshold = windowHeight * 0.8;
+
+                if (boundingRect.bottom >= threshold) {
+                    setPlacement('top');
+                } else {
+                    setPlacement('bottom');
+                }
+            }
+        }
+
+        const emojiElement = emojiRef.current;
+        if (emojiElement) {
+            emojiElement.addEventListener('mouseenter', handleMouseEnter);
+        }
+
+        return () => {
+            if (emojiElement) {
+                emojiElement.removeEventListener('mouseenter', handleMouseEnter);
+            }
+        };
+    }, []);
+
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
     }
@@ -66,29 +94,21 @@ function CustomStatusEmoji({
     }
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={tooltipDirection}
-            overlay={
-                <Tooltip id='custom-status-tooltip'>
+        <WithTooltip
+            id='custom-status-tooltip'
+            title={
+                <>
                     <div className='custom-status'>
-                        <RenderEmoji
-                            emojiName={customStatus.emoji}
-                            size={14}
-                            emojiStyle={{
-                                marginTop: 2,
-                            }}
-                        />
-                        {customStatus.text &&
+                        {customStatus.text && (
                             <span
                                 className='custom-status-text'
                                 style={{marginLeft: 5}}
                             >
                                 {customStatus.text}
                             </span>
-                        }
+                        )}
                     </div>
-                    {customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR &&
+                    {customStatus.expires_at && customStatus.duration !== CustomStatusDuration.DONT_CLEAR && (
                         <div>
                             <ExpiryTime
                                 time={customStatus.expires_at}
@@ -96,14 +116,20 @@ function CustomStatusEmoji({
                                 className='custom-status-expiry'
                             />
                         </div>
-                    }
-                </Tooltip>
+                    )}
+                </>
             }
+            emoji={customStatus.emoji}
+            emojiStyle='large'
+            placement={placement}
         >
-            <span style={spanStyle}>
+            <span
+                ref={emojiRef}
+                style={spanStyle}
+            >
                 {statusEmoji}
             </span>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 }
 

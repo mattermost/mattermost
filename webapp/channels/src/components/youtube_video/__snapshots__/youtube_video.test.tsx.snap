@@ -30,6 +30,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
     }
     postId="post_id_1"
     show={true}
+    youtubeReferrerPolicy={false}
   >
     <div
       className="post__embed-container"
@@ -44,7 +45,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
           <span
             className="video-title"
           >
-            <ExternalLink
+            <ForwardRef
               href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
               location="youtube_video"
             >
@@ -57,7 +58,7 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
               >
                 Youtube title
               </a>
-            </ExternalLink>
+            </ForwardRef>
           </span>
         </h4>
         <div
@@ -118,12 +119,12 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       <span
         className="video-title"
       >
-        <ExternalLink
+        <ForwardRef
           href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
           location="youtube_video"
         >
           Youtube title
-        </ExternalLink>
+        </ForwardRef>
       </span>
     </h4>
     <div
@@ -131,10 +132,56 @@ exports[`YoutubeVideo should match snapshot for playing state 1`] = `
       onClick={[Function]}
     >
       <iframe
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen={true}
         frameBorder="0"
         height="360px"
+        referrerPolicy="no-referrer"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
         src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
+        title="Youtube title"
+        width="480px"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`YoutubeVideo should match snapshot for playing state and \`youtubeReferrerPolicy = true\` 1`] = `
+<div
+  className="post__embed-container"
+>
+  <div>
+    <h4>
+      <span
+        className="video-type"
+      >
+        YouTube - 
+      </span>
+      <span
+        className="video-title"
+      >
+        <ForwardRef
+          href="https://www.youtube.com/watch?v=xqCoNej8Zxo"
+          location="youtube_video"
+        >
+          Youtube title
+        </ForwardRef>
+      </span>
+    </h4>
+    <div
+      className="video-div embed-responsive-item"
+      onClick={[Function]}
+    >
+      <iframe
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen={true}
+        frameBorder="0"
+        height="360px"
+        referrerPolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+        src="https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&autohide=1&border=0&wmode=opaque&fs=1&enablejsapi=1"
+        title="Youtube title"
         width="480px"
       />
     </div>

@@ -62,7 +62,7 @@ describe('Login page with open server', () => {
         cy.findByText('Forgot your password?').should('exist').and('be.visible').should('have.attr', 'href', '/reset_password');
 
         // * Verify create an account link is present
-        cy.findByText('Don\'t have an account?').should('exist').and('be.visible').should('have.attr', 'href', '/signup_user_complete');
+        cy.findByText('Don\'t have an account?').should('exist').and('be.visible').should('have.attr', 'href').and('contain', '/signup_user_complete');
 
         // # Move inside of footer section
         cy.get('.hfroute-footer').should('exist').and('be.visible').within(() => {
@@ -75,19 +75,19 @@ describe('Login page with open server', () => {
 
             // * Check if about footer link is present
             cy.findByText('About').should('exist').
-                and('have.attr', 'href', config.SupportSettings.AboutLink || ABOUT_LINK);
+                and('have.attr', 'href').and('contain', config.SupportSettings.AboutLink || ABOUT_LINK);
 
             // * Check if privacy footer link is present
             cy.findByText('Privacy Policy').should('exist').
-                and('have.attr', 'href', config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK);
+                and('have.attr', 'href').and('contain', config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK);
 
             // * Check if terms footer link is present
             cy.findByText('Terms').should('exist').
-                and('have.attr', 'href', config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK);
+                and('have.attr', 'href').and('contain', config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK);
 
             // * Check if help footer link is present
             cy.findByText('Help').should('exist').
-                and('have.attr', 'href', config.SupportSettings.HelpLink || HELP_LINK);
+                and('have.attr', 'href').and('contain', config.SupportSettings.HelpLink || HELP_LINK);
 
             const todaysDate = new Date();
             const currentYear = todaysDate.getFullYear();

@@ -12,8 +12,6 @@ import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 
-import BetaTag from 'components/widgets/tag/beta_tag';
-
 import Menu, {MenuGroup, MenuItem, ToggleItem} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
@@ -55,11 +53,6 @@ const Header = styled.h4`
     line-height: 20px;
     padding: 14px 16px 6px;
     text-align: left;
-`;
-
-const Feedback = styled.a`
-    margin-left: auto;
-    font-size: 11px;
 `;
 
 const Footer = styled.div`
@@ -137,8 +130,6 @@ function PostPriorityPicker({
         onClose();
     };
 
-    const feedbackLink = postAcknowledgementsEnabled ? 'https://forms.gle/noA8Azg7RdaBZtMB6' : 'https://forms.gle/mMcRFQzyKAo9Sv49A';
-
     return (
         <Picker className='PostPriorityPicker'>
             <Header className='modal-title'>
@@ -146,17 +137,6 @@ function PostPriorityPicker({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
-                <BetaTag/>
-                <Feedback
-                    href={feedbackLink}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                >
-                    <FormattedMessage
-                        id={'post_priority.picker.feedback'}
-                        defaultMessage={'Give feedback'}
-                    />
-                </Feedback>
             </Header>
             <div role='application'>
                 <Menu className='Menu'>

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_view/PostReaction should match snapshot 1`] = `
-<Connect(Component)
+<Memo(ChannelPermissionGate)
   channelId="current_channel_id"
   permissions={
     Array [
@@ -39,5 +39,5 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
       />
     </button>
   </WithTooltip>
-</Connect(Component)>
+</Memo(ChannelPermissionGate)>
 `;

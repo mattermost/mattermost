@@ -5,7 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,10 +16,15 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {a11yFocus} from 'utils/utils';
 
-type Props = {
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
+}
+
+type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
     savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     showUnreadsCategory: boolean;
     updateSection: (section: string) => void;
@@ -75,10 +80,15 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
     };
 
     handleSubmit = async () => {
+        if (!this.props.userId) {
+            // Only for type safety, won't actually happen
+            return;
+        }
+
         this.setState({isSaving: true});
 
-        await this.props.savePreferences(this.props.currentUserId, [{
-            user_id: this.props.currentUserId,
+        await this.props.savePreferences(this.props.userId, [{
+            user_id: this.props.userId,
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.SHOW_UNREAD_SECTION,
             value: this.state.checked.toString(),

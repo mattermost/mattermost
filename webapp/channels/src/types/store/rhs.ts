@@ -34,6 +34,7 @@ export type RhsViewState = {
     searchType: SearchType;
     pluggableId: string;
     searchResultsTerms: string;
+    searchResultsType: string;
     isSearchingFlaggedPost: boolean;
     isSearchingPinnedPost: boolean;
     isSidebarOpen: boolean;
@@ -41,6 +42,7 @@ export type RhsViewState = {
     isMenuOpen: boolean;
     editChannelMembers: boolean;
     size: SidebarSize;
+    shouldFocusRHS: boolean;
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;

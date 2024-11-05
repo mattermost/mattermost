@@ -175,6 +175,7 @@ describe('playbooks > list', {testIsolation: true}, () => {
             // # Drop loaded fixture onto playbook list
             cy.findByTestId('playbook-list-scroll-container').selectFile(validPlaybookExport, {
                 action: 'drag-drop',
+                force: true,
             });
 
             // * Verify that a new playbook was created.

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
@@ -191,9 +192,15 @@ func trimInput(input string) string {
 	return input
 }
 
-func maxInt64(a, b int64) int64 {
-	if a > b {
-		return a
+// Adds backtiks to the column name for MySQL, this is required if
+// the column name is a reserved keyword.
+//
+//	`ColumnName` -  MySQL
+//	ColumnName   -  Postgres
+func quoteColumnName(driver string, columnName string) string {
+	if driver == model.DatabaseDriverMysql {
+		return fmt.Sprintf("`%s`", columnName)
 	}
-	return b
+
+	return columnName
 }

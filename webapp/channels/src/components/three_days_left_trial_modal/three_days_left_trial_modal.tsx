@@ -87,7 +87,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
         {
             id: 'systemConsole',
             title: formatMessage({id: 'three_days_left_trial.modal.systemConsoleTitle', defaultMessage: 'Provide controlled access to the System Console'}),
-            description: formatMessage({id: 'three_days_left_trial.modal.systemConsoleDescription', defaultMessage: 'Use System Roles to give designated users read and/or write access to select sections of System Console.'}),
+            description: formatMessage({id: 'three_days_left_trial.modal.systemConsoleDescription', defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.'}),
             svgWrapperClassName: 'personBoxSvg',
             svgElement: (
                 <SystemRolesSVG

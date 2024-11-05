@@ -33,6 +33,7 @@ export default function CheckboxSettingItem({
     inputFieldTitle,
     handleChange,
     className,
+    dataTestId,
     descriptionAboveContent = false,
 }: Props) {
     const content = (
@@ -59,6 +60,7 @@ export default function CheckboxSettingItem({
             content={content}
             title={title}
             description={description}
+            dataTestId={dataTestId}
             className={className}
             descriptionAboveContent={descriptionAboveContent}
         />

@@ -16,7 +16,7 @@ jest.mock('mattermost-redux/actions/users', () => {
     };
 });
 
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {mockStore} from 'tests/test_store';
 
@@ -149,7 +149,7 @@ describe('components/widgets/users/Avatars', () => {
             mountOptions,
         );
 
-        expect(wrapper.find(SimpleTooltip).find({id: 'names-overflow'}).prop('content')).toBe('first.last4, first.last5');
+        expect(wrapper.find(WithTooltip).find({id: 'names-overflow'}).prop('title')).toBe('first.last4, first.last5');
     });
 
     test('should fetch missing users', () => {
@@ -178,6 +178,6 @@ describe('components/widgets/users/Avatars', () => {
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/1/image?_=1620680333191'}).exists()).toBe(true);
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/6/image?_=0'}).exists()).toBe(true);
         expect(wrapper.find(Avatar).find({url: '/api/v4/users/7/image?_=0'}).exists()).toBe(true);
-        expect(wrapper.find(SimpleTooltip).find({id: 'names-overflow'}).prop('content')).toBe('first.last2, Someone, Someone');
+        expect(wrapper.find(WithTooltip).find({id: 'names-overflow'}).prop('title')).toBe('first.last2, Someone, Someone');
     });
 });

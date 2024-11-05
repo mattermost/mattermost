@@ -13,8 +13,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
@@ -56,7 +55,7 @@ type Props = {
     /**
      * Object with info about current team
      */
-    team: Team;
+    team?: Team;
 
     /**
      * String with the current team URL
@@ -190,7 +189,9 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
-        getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        if (this.props.team) {
+            getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        }
     };
 
     handleCancel = (e?: MouseEvent) => {
@@ -254,9 +255,6 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
         const fullUrl = this.props.currentTeamUrl + '/channels';
         const shortUrl = `${getShortenedURL(fullUrl, 35)}/`;
-        const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
-        );
 
         return (
             <Modal
@@ -308,13 +306,13 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                             <label className='control-label'>{urlInputLabel}</label>
 
                             <div className={urlInputClass}>
-                                <OverlayTrigger
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                <WithTooltip
+                                    id='renameChannelModalShortUrlTooltip'
                                     placement='top'
-                                    overlay={urlTooltip}
+                                    title={fullUrl}
                                 >
                                     <span className='input-group-addon'>{shortUrl}</span>
-                                </OverlayTrigger>
+                                </WithTooltip>
                                 <input
                                     onChange={this.onNameChange}
                                     type='text'

@@ -126,7 +126,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 
 		isNil(t, &store, "key")
 	})
@@ -461,7 +461,7 @@ func TestMemoryStoreDeleteAll(t *testing.T) {
 	})
 }
 
-func isNil(t *testing.T, store *pluginapi.MemoryStore, key string) {
+func isNil(t require.TestingT, store *pluginapi.MemoryStore, key string) {
 	var out []byte
 	err := store.Get(key, &out)
 	require.NoError(t, err)

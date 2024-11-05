@@ -43,7 +43,7 @@ func TestCWSLogin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	license := model.NewTestLicense()
-	license.Features.Cloud = model.NewBool(true)
+	license.Features.Cloud = model.NewPointer(true)
 	th.App.Srv().SetLicense(license)
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {

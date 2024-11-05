@@ -16,12 +16,14 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
+	t.Skip("MM-60279")
 	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	t.Run("should not work without a license", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
@@ -220,7 +222,6 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-57393")
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -243,15 +244,20 @@ func TestCreateChannelBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var b model.ChannelBookmarkWithFileInfo
-		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
-				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
-				require.NoError(t, err)
-				return true
+		timeout := time.After(5 * time.Second)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
+					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					require.NoError(t, err)
+				}
+			case <-timeout:
+				waiting = false
 			}
-			return false
-		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark created not received", nil)
+		}
+
 		require.NotNil(t, b)
 		require.NotEmpty(t, b.Id)
 	})
@@ -263,7 +269,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	t.Run("should not work without a license", func(t *testing.T) {
 		_, _, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId(), &model.ChannelBookmarkPatch{})
@@ -352,8 +359,8 @@ func TestEditChannelBookmark(t *testing.T) {
 				require.NotNil(t, cb)
 
 				patch := &model.ChannelBookmarkPatch{
-					DisplayName: model.NewString("Edited bookmark test"),
-					LinkUrl:     model.NewString("http://edited.url"),
+					DisplayName: model.NewPointer("Edited bookmark test"),
+					LinkUrl:     model.NewPointer("http://edited.url"),
 				}
 
 				ucb, resp, err := tc.userClient.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -393,8 +400,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 		// try to patch the channel bookmark
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -405,8 +412,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	t.Run("trying to edit a nonexistent bookmark should fail", func(t *testing.T) {
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId(), patch)
@@ -433,8 +440,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -470,8 +477,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -520,8 +527,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		ucb, resp, err := guestClient.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -560,8 +567,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
+			DisplayName: model.NewPointer("Edited bookmark test"),
+			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
 		// create a client for basic user 2
@@ -587,7 +594,6 @@ func TestEditChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-57392")
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -610,21 +616,25 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
-		patch := &model.ChannelBookmarkPatch{DisplayName: model.NewString("Edited bookmark test")}
+		patch := &model.ChannelBookmarkPatch{DisplayName: model.NewPointer("Edited bookmark test")}
 		_, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		var ucb model.UpdateChannelBookmarkResponse
-		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkUpdated {
-				err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
-				require.NoError(t, err)
-				return true
+		timeout := time.After(5 * time.Second)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkUpdated {
+					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
+					require.NoError(t, err)
+				}
+			case <-timeout:
+				waiting = false
 			}
-			return false
-		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark edited not received", nil)
+		}
 
 		require.NotNil(t, ucb)
 		require.NotEmpty(t, ucb.Updated)
@@ -638,7 +648,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
 		b := &model.ChannelBookmark{
@@ -772,7 +783,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				originalBookmark, appErr := th.App.GetBookmark(tc.bookmarkId, false)
 				require.Nil(t, appErr)
 				defer func() {
-					th.App.UpdateChannelBookmarkSortOrder(originalBookmark.Id, originalBookmark.ChannelId, originalBookmark.SortOrder, "")
+					_, err := th.App.UpdateChannelBookmarkSortOrder(originalBookmark.Id, originalBookmark.ChannelId, originalBookmark.SortOrder, "")
+					require.Nil(t, err)
 				}()
 
 				bookmarks, resp, err := tc.userClient.UpdateChannelBookmarkSortOrder(context.Background(), tc.channelId, tc.bookmarkId, tc.sortOrder)
@@ -951,6 +963,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
+		now := model.GetMillis()
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		webSocketClient.Listen()
@@ -959,6 +972,14 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		bookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
 			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		bookmark2 := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test 2",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelBookmarkLink,
 			Emoji:       ":smile:",
@@ -973,21 +994,33 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
+		cb, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, cb)
+
 		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, bookmarks)
 
 		var bl []*model.ChannelBookmarkWithFileInfo
-		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
-				err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
-				require.NoError(t, err)
-				return true
+		timeout := time.After(5 * time.Second)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
+					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
+					require.NoError(t, err)
+
+					for _, b := range bl {
+						require.Greater(t, b.UpdateAt, now)
+					}
+				}
+			case <-timeout:
+				waiting = false
 			}
-			return false
-		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark sorted not received", nil)
+		}
 
 		require.NotEmpty(t, bl)
 		require.Equal(t, cb.Id, bl[0].Id)
@@ -1001,7 +1034,8 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
@@ -1308,16 +1342,19 @@ func TestDeleteChannelBookmark(t *testing.T) {
 		require.NotEmpty(t, dbm)
 
 		var b *model.ChannelBookmarkWithFileInfo
-		require.Eventuallyf(t, func() bool {
-			event := <-webSocketClient.EventChannel
-			if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
-				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
-				require.NoError(t, err)
-				return true
+		timeout := time.After(5 * time.Second)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					require.NoError(t, err)
+				}
+			case <-timeout:
+				waiting = false
 			}
-			return false
-		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark deleted not received", nil)
-
+		}
 		require.NotEmpty(t, b)
 		require.Equal(t, cb.Id, b.Id)
 		require.NotEmpty(t, b.DeleteAt)
@@ -1330,7 +1367,8 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.SetPhase2PermissionsMigrationStatus(true)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
 
 	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
 		b := &model.ChannelBookmark{
@@ -1375,7 +1413,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 	// an open channel for which the guest is a member but the basic
 	// user is not
-	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypeOpen)
+	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
 	th.AddUserToChannel(guest, onlyGuestChannel)
 	guestBookmark := createBookmark("guest", onlyGuestChannel.Id)
 

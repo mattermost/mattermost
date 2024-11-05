@@ -248,7 +248,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -266,7 +266,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -300,7 +300,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(2)
 
@@ -347,7 +347,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(2)
 
@@ -383,28 +383,28 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 	s.Run("Multiple team pages", func() {
 		printer.Clean()
 
-		mockTeamsPage1 := make([]*model.Team, APILimitMaximum)
-		for i := 0; i < APILimitMaximum; i++ {
+		mockTeamsPage1 := make([]*model.Team, DefaultPageSize)
+		for i := 0; i < DefaultPageSize; i++ {
 			mockTeamsPage1[i] = &model.Team{Name: fmt.Sprintf("Team%d", i)}
 		}
-		mockTeamsPage2 := []*model.Team{{Name: fmt.Sprintf("Team%d", APILimitMaximum)}}
+		mockTeamsPage2 := []*model.Team{{Name: fmt.Sprintf("Team%d", DefaultPageSize)}}
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 0, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 0, DefaultPageSize).
 			Return(mockTeamsPage1, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.TODO(), "", 1, APILimitMaximum).
+			GetAllTeams(context.TODO(), "", 1, DefaultPageSize).
 			Return(mockTeamsPage2, &model.Response{}, nil).
 			Times(1)
 
 		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), APILimitMaximum+1)
-		for i := 0; i < APILimitMaximum+1; i++ {
+		s.Require().Len(printer.GetLines(), DefaultPageSize+1)
+		for i := 0; i < DefaultPageSize+1; i++ {
 			s.Require().Equal(printer.GetLines()[i].(*model.Team).Name, fmt.Sprintf("Team%d", i))
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -734,8 +734,10 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		cmd.Flags().Bool("private", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+
+		expectedError := "Unable to find team 'team1'"
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError, printer.GetErrorLines()[0])
 	})
 
 	s.Run("Modify teams, set to private", func() {
@@ -823,8 +825,10 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 		cmd.Flags().Bool("public", true, "")
 
 		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to modify team 'team1' error: an error occurred modifying a team",
+
+		expectedError := "Unable to modify team 'team1' error: an error occurred modifying a team"
+		s.Require().ErrorContains(err, expectedError)
+		s.Require().Equal(expectedError,
 			printer.GetErrorLines()[0])
 	})
 }

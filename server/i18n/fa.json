@@ -1384,10 +1384,6 @@
     "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد که حداقل از یک حرف کوچک تشکیل شده باشد."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "رمز ورود شما باید حداقل شامل {{.Min}} نویسه باشد."
-  },
-  {
     "id": "model.channel.is_valid.update_at.app_error",
     "translation": "به روزرسانی در باید یک زمان معتبر باشد."
   },
@@ -1824,10 +1820,6 @@
     "translation": "دسترسی به همه کاربران با استفاده از AD/LDAP امکان پذیر نیست."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "خطای حذف عضویت تیم یا کانال"
-  },
-  {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
     "translation": "حسابی با این نام کاربری از قبل وجود دارد. لطفاً با سرپرست خود تماس بگیرید."
   },
@@ -1924,20 +1916,12 @@
     "translation": "جستجوی الاستیک از قبل متوقف شده است."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک راه اندازی نشد."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "نسخه سرور جستجوی الاستیک دریافت نشد."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "پردازنده انبوه جستجوی الاستیک ایجاد نشد."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -2630,10 +2614,6 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "خطا در خواندن پرونده واردات داده."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "در حین import کردن، پیوست فایل خوانده نشد."
   },
   {
     "id": "app.import.attachment.file_upload.error",
@@ -3372,10 +3352,6 @@
     "translation": "پیکربندی خوشه برای id={{ .id }} تغییر کرده است. خوشه ممکن است ناپایدار شود و نیاز به راه اندازی مجدد باشد. برای اطمینان از پیکربندی صحیح خوشه ، باید بلافاصله یک راه اندازی مجدد را شروع کنید."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "نقطه پایانی API خوشه یافت نشد."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " پرونده ای را ضمیمه کرد."
   },
@@ -3756,10 +3732,6 @@
     "translation": "بررسی خالی بودن فروشگاه کاربر انجام نشد."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "هیچ ایمیلی با موفقیت ارسال نشد"
-  },
-  {
     "id": "app.team.get_by_invite_id.finding.app_error",
     "translation": "تیم موجود یافت نشد."
   },
@@ -3826,10 +3798,6 @@
   {
     "id": "app.status.get.app_error",
     "translation": "هنگام بازیابی وضعیت با خطا روبرو شد."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "هنگام ایجاد یک کانال به اشتراک گذاشته شده مستقیم با خطایی مواجه شد."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -4384,18 +4352,6 @@
     "translation": "زمانی که شما دور بودید، {{.SenderName}} یک پیام مستقیم جدید برای شما ارسال کرد."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "مجوزی وجود ندارد"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "این نوع مجوز از تولید توکن تمدید، پشتیبانی نمی کند"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "ایجاد توکن تمدید جدید ناموفق بود."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "به روزرسانی کار امکان پذیر نیست."
   },
@@ -4756,10 +4712,6 @@
     "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
   },
   {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "اکنون مجوز را تمدید کنید"
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -4770,46 +4722,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "مشاهده پیام"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "سررسید فاکتور Mattermost Cloud شماست"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "پرداخت برای اشتراک Mattermost Cloud شما باید انجام شود"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "برای بررسی فاکتور و افزودن روش پرداخت، اکنون پرداخت را انتخاب کنید."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "فاکتور Mattermost Cloud شما برای آخرین دوره صورتحساب پردازش شده است. با این حال، ما جزئیات پرداخت شما را در پرونده نداریم."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "الان پرداخت کن"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "پرداخت ناموفق"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "اقدام مورد نیاز: پرداخت برای Mattermost Cloud انجام نشد"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "برای اطمینان از اشتراک بدون وقفه در Mattermost Cloud، لطفاً با موسسه مالی خود تماس بگیرید تا مشکل اساسی را برطرف کند یا اطلاعات پرداخت خود را به روز کنید. پس از به‌روزرسانی اطلاعات پرداخت، Mattermost تلاش می‌کند تا هرگونه موجودی معوق را تسویه کند."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "آنها دلیل زیر را بیان کردند:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "موسسه مالی شما پرداختی از {{.CardBrand}} ****{{.LastFour}} مرتبط با فضای کاری Mattermost Cloud شما را رد کرد."
   },
   {
     "id": "api.templates.password_change_subject",
@@ -4848,20 +4760,12 @@
     "translation": "اشتراک Mattermost شما آماده تمدید است"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "برای تمدید به حساب مشتری خود وارد شوید"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}، اشتراک شما قرار است تا {{.Days}} روز دیگر منقضی شود. ما امیدواریم که همکاری تیمی منعطف و امنی را که Mattermost فعال می‌کند، تجربه کرده باشید. به زودی تمدید کنید تا مطمئن شوید که تیم شما همچنان از این مزایا بهره مند خواهد شد."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "مجوز شما برای تمدید آماده شده است"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "اکنون تمدید کنید"
   },
   {
     "id": "api.templates.invite_subject",
@@ -4978,10 +4882,6 @@
   {
     "id": "api.templates.deactivate_body.info",
     "translation": "شما حساب خود را در {{ .SiteURL }} غیرفعال کردید."
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© ۲۰۲۱ Mattermost, Inc. ۵۳۰ Lytton Avenue, طبقه دوم, Palo Alto, CA, ۹۴۳۰۱"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
@@ -6052,10 +5952,6 @@
     "translation": "مجوز برای ایمیل های تمدید ارسال نشد"
   },
   {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "لینک تمدید مجوز ایجاد نشد"
-  },
-  {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "مجوز شما از طرح های مجوز بروزرسانی پشتیبانی نمی کند"
   },
@@ -6444,10 +6340,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "خطا در دریافت لینک تمدید مجوز"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -8524,10 +8416,6 @@
     "translation": "دعوت از اتصال امن"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "دعوت رمزگشایی نشد. رمز عبور نادرست یا دعوت نامه خراب است: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[action]"
   },
@@ -8618,5 +8506,9 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "تا زمانی که بیصدایی کانال خاموش نشود ، اعلانی برای {{.Channel}} دریافت نخواهید کرد."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "شما نمی توانید یک تاییدیه را در یک کانال بایگانی شده حذف کنید."
   }
 ]

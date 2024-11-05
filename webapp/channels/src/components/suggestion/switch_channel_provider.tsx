@@ -3,16 +3,17 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {defineMessages} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -219,7 +220,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage('channel_switch_modal.deactivated', 'Deactivated'));
+            deactivated = (' - ' + Utils.localizeMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -227,7 +228,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+                name += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -242,7 +243,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         sharedIcon = (
             <SharedChannelIndicator
                 className='shared-channel-icon'
-                channelType={channel.type as ChannelType}
             />
         );
     }
@@ -545,7 +545,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
+            displayName += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
         }
 
         return {
@@ -838,12 +838,12 @@ export default class SwitchChannelProvider extends Provider {
         if (!teamId) {
             return;
         }
-        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannelsAndChannelMembersREST());
+        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannels());
         let channels;
 
         try {
             const {data} = await channelsAsync;
-            channels = data.channels as Channel[];
+            channels = data as Channel[];
         } catch (err) {
             this.store.dispatch(logError(err));
             return;
@@ -863,3 +863,22 @@ export default class SwitchChannelProvider extends Provider {
         });
     }
 }
+
+defineMessages({
+    moreChannels: {
+        id: 'suggestion.mention.morechannels',
+        defaultMessage: 'Other Channels',
+    },
+    privateChannelsDivider: {
+        id: 'suggestion.mention.private.channels',
+        defaultMessage: 'Private Channels',
+    },
+    recentChannels: {
+        id: 'suggestion.mention.recent.channels',
+        defaultMessage: 'Recent',
+    },
+    unreadChannels: {
+        id: 'suggestion.mention.unread',
+        defaultMessage: 'Unread',
+    },
+});

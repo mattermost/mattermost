@@ -1,6 +1,7 @@
 @charset 'UTF-8';
 
-@import 'utils/module';
+@import 'utils/mixins';
+@import 'utils/variables';
 
 .TeamIcon__content {
     display: flex;
@@ -17,6 +18,10 @@
 }
 
 .TeamIcon__initials {
+    font-family: Metropolis, sans-serif;
+    letter-spacing: 0.02em;
+    user-select: none;
+
     &.TeamIcon__initials__lg {
         font-size: 3em;
     }

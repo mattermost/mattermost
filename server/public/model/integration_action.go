@@ -20,11 +20,22 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
 )
 
 const (
-	PostActionTypeButton = "button"
-	PostActionTypeSelect = "select"
+	PostActionTypeButton              = "button"
+	PostActionTypeSelect              = "select"
+	DialogTitleMaxLength              = 24
+	DialogElementDisplayNameMaxLength = 24
+	DialogElementNameMaxLength        = 300
+	DialogElementHelpTextMaxLength    = 150
+	DialogElementTextMaxLength        = 150
+	DialogElementTextareaMaxLength    = 3000
+	DialogElementSelectMaxLength      = 3000
+	DialogElementBoolMaxLength        = 150
 )
 
 var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
@@ -333,6 +344,148 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 
 func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s, timeout)
+}
+
+func (r *OpenDialogRequest) IsValid() error {
+	var multiErr *multierror.Error
+	if r.URL == "" {
+		multiErr = multierror.Append(multiErr, errors.New("empty URL"))
+	}
+
+	if r.TriggerId == "" {
+		multiErr = multierror.Append(multiErr, errors.New("empty trigger id"))
+	}
+
+	err := r.Dialog.IsValid()
+	if err != nil {
+		multiErr = multierror.Append(multiErr, err)
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+func (d *Dialog) IsValid() error {
+	var multiErr *multierror.Error
+
+	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
+	}
+
+	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
+		multiErr = multierror.Append(multiErr, errors.New("invalid icon url"))
+	}
+
+	if len(d.Elements) != 0 {
+		elementMap := make(map[string]bool)
+
+		for _, element := range d.Elements {
+			if elementMap[element.Name] {
+				multiErr = multierror.Append(multiErr, errors.Errorf("duplicate dialog element %q", element.Name))
+			}
+			elementMap[element.Name] = true
+
+			err := element.IsValid()
+			if err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q field is not valid", element.Name))
+			}
+		}
+	}
+	return multiErr.ErrorOrNil()
+}
+
+func (e *DialogElement) IsValid() error {
+	var multiErr *multierror.Error
+	textSubTypes := map[string]bool{
+		"":         true,
+		"text":     true,
+		"email":    true,
+		"number":   true,
+		"tel":      true,
+		"url":      true,
+		"password": true,
+	}
+
+	if e.MinLength < 0 {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
+	}
+	if e.MinLength > e.MaxLength {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
+	}
+
+	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
+
+	switch e.Type {
+	case "text":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
+		if _, ok := textSubTypes[e.SubType]; !ok {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
+		}
+
+	case "textarea":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextareaMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextareaMaxLength))
+
+		if _, ok := textSubTypes[e.SubType]; !ok {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
+		}
+
+	case "select":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
+		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
+		}
+		if e.DataSource == "" && !isDefaultInOptions(e.Default, e.Options) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		}
+
+	case "bool":
+		if e.Default != "" && e.Default != "true" && e.Default != "false" {
+			multiErr = multierror.Append(multiErr, errors.New("invalid default of bool"))
+		}
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementBoolMaxLength))
+
+	case "radio":
+		if !isDefaultInOptions(e.Default, e.Options) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		}
+
+	default:
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool {
+	if defaultValue == "" {
+		return true
+	}
+
+	for _, option := range options {
+		if defaultValue == option.Value {
+			return true
+		}
+	}
+
+	return false
+}
+
+func checkMaxLength(fieldName string, field string, length int) error {
+	var valid bool
+	// DisplayName and Name are required fields
+	if fieldName == "DisplayName" || fieldName == "Name" {
+		valid = len(field) > 0 && len(field) > length
+	} else {
+		valid = len(field) > length
+	}
+	if valid {
+		return errors.Errorf("%v cannot be longer than %d characters", fieldName, length)
+	}
+	return nil
 }
 
 func (o *Post) StripActionIntegrations() {

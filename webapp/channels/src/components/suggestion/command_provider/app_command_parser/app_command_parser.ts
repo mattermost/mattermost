@@ -58,7 +58,8 @@ import type {
     AutocompleteSuggestion,
     AutocompleteStaticSelect,
     Channel,
-    ExtendedAutocompleteSuggestion} from './app_command_parser_dependencies';
+    ExtendedAutocompleteSuggestion,
+    intlShim} from './app_command_parser_dependencies';
 
 export enum ParseState {
     Start = 'Start',
@@ -95,9 +96,7 @@ interface FormsCache {
     getSubmittableForm: (location: string, binding: AppBinding) => Promise<{form?: AppForm; error?: string} | undefined>;
 }
 
-interface Intl {
-    formatMessage(config: {id: string; defaultMessage: string}, values?: {[name: string]: any}): string;
-}
+type Intl = typeof intlShim;
 
 const getCommandBindings = makeAppBindingsSelector(AppBindingLocations.COMMAND);
 const getRHSCommandBindings = makeRHSAppBindingSelector(AppBindingLocations.COMMAND);
@@ -1329,7 +1328,11 @@ export class AppCommandParser {
                 const getChannel = async (channelName: string) => {
                     let channel = selectChannelByName(this.store.getState(), channelName);
                     if (!channel) {
-                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(getCurrentTeam(this.store.getState()).name, channelName) as any);
+                        const team = getCurrentTeam(this.store.getState());
+                        if (!team) {
+                            return null;
+                        }
+                        const dispatchResult = await this.store.dispatch(getChannelByNameAndTeamName(team.name, channelName) as any);
                         if ('error' in dispatchResult) {
                             return null;
                         }
@@ -1448,7 +1451,7 @@ export class AppCommandParser {
     };
 
     // getChannel gets the channel in which the user is typing the command
-    private getChannel = (): Channel | null => {
+    private getChannel = (): Channel | undefined => {
         const state = this.store.getState();
         return selectChannel(state, this.channelID);
     };

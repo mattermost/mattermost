@@ -1280,10 +1280,6 @@
     "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter, dan harus terdapat minimal satu huruf kecil."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Kata sandi Anda harus berjumlah paling sedikit {{.Min}} karakter."
-  },
-  {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Nama tidak valid"
   },
@@ -3092,10 +3088,6 @@
     "translation": "{{.ConvertedByUsername}} membuat saluran ini dari sebuah pesan grup dengan {{.GMMembers}}."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Kolom yang harus diisi tidak lengkap untuk mengirim email tunggakan."
-  },
-  {
     "id": "api.cloud.license_error",
     "translation": "Lisensi Anda tidak mendukung permintaan cloud."
   },
@@ -3304,10 +3296,6 @@
   {
     "id": "api.command_remote.displayname.hint",
     "translation": "Nama tampilan untuk koneksi aman"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Tidak dapat mendekripsi undangan. Kata sandi salah atau undangan rusak: {{.Error}}"
   },
   {
     "id": "api.command_remote.invite_summary",

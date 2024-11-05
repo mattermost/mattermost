@@ -304,7 +304,6 @@
   "team_members_dropdown.teamMembers": "ສະມາຊິກທີມທັງໝົດ",
   "user.settings.general.close": "ປິດ",
   "user.settings.notifications.emailNotifications": "ເປີດໃຊ້ການແຈ້ງເຕືອນ: ",
-  "user.settings.notifications.push": "ເປີດໃຊ້ການແຈ້ງເຕືອນ: ",
   "user.settings.security.close": "ປິດ",
   "user.settings.security.logoutActiveSessions.icon": "ເສັກເຊີນທີ່ໃຊ້ງານຢູ່",
   "user.settings.security.passwordError": "ຄຳທິກເກີຕ້ອງມີຢ່າງໜ້ອຍ {min} ແລະສູງສຸດ {max} ຄຳທີ່ມີຢູ່",

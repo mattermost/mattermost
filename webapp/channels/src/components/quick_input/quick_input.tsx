@@ -8,10 +8,7 @@ import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AutosizeTextarea from 'components/autosize_textarea';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 export type Props = {
 
@@ -69,6 +66,11 @@ export type Props = {
     onKeyUp?: (event: React.KeyboardEvent) => void;
 
     /**
+     * Callback to handle the key down of the input
+     */
+    onKeyDown?: (event: React.KeyboardEvent) => void;
+
+    /**
      * When true, and an onClear callback is defined, show an X on the input field even if
      * the input is empty.
      */
@@ -83,6 +85,7 @@ export type Props = {
     type?: string;
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
+    tabIndex?: number;
 }
 
 // A component that can be used to make controlled inputs that function properly in certain
@@ -147,7 +150,7 @@ export class QuickInput extends React.PureComponent<Props> {
     };
 
     render() {
-        let clearableTooltipText = this.props.clearableTooltipText;
+        let clearableTooltipText = this.props.clearableTooltipText || '';
         if (!clearableTooltipText) {
             clearableTooltipText = (
                 <FormattedMessage
@@ -156,12 +159,6 @@ export class QuickInput extends React.PureComponent<Props> {
                 />
             );
         }
-
-        const clearableTooltip = (
-            <Tooltip id={'InputClearTooltip'}>
-                {clearableTooltipText}
-            </Tooltip>
-        );
 
         const {
             value,
@@ -200,14 +197,16 @@ export class QuickInput extends React.PureComponent<Props> {
             {inputElement}
             {showClearButton &&
             <div
+                data-testid='input-clear'
                 className={classNames(clearClassName, 'input-clear visible')}
                 onMouseDown={this.onClear}
                 onTouchEnd={this.onClear}
+                role='button'
             >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                <WithTooltip
+                    id='inputClearTooltip'
+                    title={clearableTooltipText}
                     placement={tooltipPosition}
-                    overlay={clearableTooltip}
                 >
                     <span
                         className='input-clear-x'
@@ -215,7 +214,7 @@ export class QuickInput extends React.PureComponent<Props> {
                     >
                         <i className='icon icon-close-circle'/>
                     </span>
-                </OverlayTrigger>
+                </WithTooltip>
             </div>
             }
         </div>);

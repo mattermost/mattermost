@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
@@ -31,9 +30,9 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
@@ -67,7 +66,6 @@ type State = {
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
     serverError: null;
-    errorTooltip: boolean;
     customComponentWrapperClass: string;
     confirmNeededId: string;
     showConfirmId: string;
@@ -99,7 +97,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
-    private errorMessageRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
@@ -130,13 +127,11 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             saveNeeded: false,
             saving: false,
             serverError: null,
-            errorTooltip: false,
             customComponentWrapperClass: '',
             confirmNeededId: '',
             showConfirmId: '',
             clientWarning: '',
         };
-        this.errorMessageRef = React.createRef();
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
@@ -146,7 +141,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 saveNeeded: false,
                 saving: false,
                 serverError: null,
-                errorTooltip: false,
                 ...SchemaAdminSettings.getStateFromConfig(props.config, props.schema, props.roles),
             };
         }
@@ -517,7 +511,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] || setting.default || '';
+            value = this.state[setting.key] ?? (setting.default || '');
         }
 
         let footer = null;
@@ -578,7 +572,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 id={setting.key}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || setting.default || false}
+                value={this.state[setting.key] ?? (setting.default || false)}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -618,7 +612,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
-        const selectedValue = this.state[setting.key] || values[0].value;
+        const selectedValue = this.state[setting.key] ?? values[0].value;
 
         let selectedOptionForHelpText = null;
         for (const option of options) {
@@ -696,7 +690,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 values={values}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || values[0].value}
+                value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -738,7 +732,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 values={values}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || values[0].value}
+                value={this.state[setting.key] ?? values[0].value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -762,7 +756,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 values={values}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || defaultOption}
+                value={this.state[setting.key] ?? defaultOption}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -803,7 +797,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 helpText={this.renderSettingHelpText(setting)}
                 regenerateHelpText={setting.regenerate_help_text}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
-                value={this.state[setting.key] || setting.default || ''}
+                value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleGeneratedChange}
@@ -870,7 +864,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
                 placeholder={setting.placeholder}
-                value={this.state[setting.key] || setting.default || ''}
+                value={this.state[setting.key] ?? (setting.default || '')}
                 disabled={this.isDisabled(setting)}
                 onChange={this.handleChange}
             />
@@ -1073,6 +1067,17 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     });
                 }
 
+                if (section.component) {
+                    const CustomComponent = section.component;
+                    sections.push((
+                        <CustomComponent
+                            settingsList={settingsList}
+                            key={section.key}
+                        />
+                    ));
+                    return;
+                }
+
                 let header;
                 if (section.header) {
                     header = (
@@ -1097,8 +1102,28 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     );
                 }
 
+                // This is a bit of special case since designs for plugin config expect the Enable/Disable setting
+                // to be on top and out of the sections.
+                if (section.key.startsWith('PluginSettings.PluginStates') && section.key.endsWith('Enable.Section')) {
+                    sections.push(
+                        <SettingsGroup
+                            container={false}
+                            key={section.key}
+                        >
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </SettingsGroup>,
+                    );
+
+                    return;
+                }
+
                 sections.push(
-                    <div className={'config-section'}>
+                    <div
+                        className={'config-section'}
+                        key={section.key}
+                    >
                         <SettingsGroup
                             show={true}
                             title={section.title}
@@ -1122,19 +1147,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         return null;
-    };
-
-    closeTooltip = () => {
-        this.setState({errorTooltip: false});
-    };
-
-    openTooltip = (e: React.MouseEvent<HTMLDivElement>) => {
-        const elm = e.currentTarget.querySelector<HTMLLabelElement>('.control-label');
-        if (!elm) {
-            return;
-        }
-        const isElipsis = elm.offsetWidth < elm.scrollWidth;
-        this.setState({errorTooltip: isElipsis});
     };
 
     doSubmit = async (getStateFromConfig: (config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema, roles?: Record<string, Role>) => Partial<State>) => {
@@ -1337,30 +1349,24 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                    <div
-                        className='error-message'
-                        data-testid='errorMessage'
-                        ref={this.errorMessageRef}
-                        onMouseOver={this.openTooltip}
-                        onMouseOut={this.closeTooltip}
-                    >
-                        <FormError
-                            iconClassName='fa-exclamation-triangle'
-                            textClassName='has-warning'
-                            error={this.state.clientWarning}
-                        />
-
-                        <FormError error={this.state.serverError}/>
-                    </div>
-                    <Overlay
-                        show={this.state.errorTooltip}
+                    <WithTooltip
+                        id='error-tooltip'
                         placement='top'
-                        target={this.errorMessageRef.current!}
+                        title={this.state?.serverError ?? ''}
                     >
-                        <Tooltip id='error-tooltip' >
-                            {this.state.serverError}
-                        </Tooltip>
-                    </Overlay>
+                        <div
+                            className='error-message'
+                            data-testid='errorMessage'
+                        >
+                            <FormError
+                                iconClassName='fa-exclamation-triangle'
+                                textClassName='has-warning'
+                                error={this.state.clientWarning}
+                            />
+
+                            <FormError error={this.state.serverError}/>
+                        </div>
+                    </WithTooltip>
                 </div>
             </div>
         );

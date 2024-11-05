@@ -99,6 +99,7 @@ export type Post = {
     message_source?: string;
     is_following?: boolean;
     exists?: boolean;
+    remote_id?: string;
 };
 
 export type PostState = 'DELETED';
@@ -220,4 +221,11 @@ export type PostInfo = {
     team_type: TeamType;
     team_display_name: string;
     has_joined_team: boolean;
+}
+
+export type NotificationStatus = 'error' | 'not_sent' | 'unsupported' | 'success';
+export type NotificationResult = {
+    status: NotificationStatus;
+    reason?: string;
+    data?: string;
 }

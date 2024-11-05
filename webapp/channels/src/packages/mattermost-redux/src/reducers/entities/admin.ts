@@ -654,7 +654,7 @@ export default combineReducers({
     // array of LogObjects each representing a log entry (JSON)
     logs,
 
-    // array of strings each representing a log entry (legacy)
+    // array of strings each representing a log entry (legacy) with pagination
     plainLogs,
 
     // object where every key is an audit id and has an object with audit details

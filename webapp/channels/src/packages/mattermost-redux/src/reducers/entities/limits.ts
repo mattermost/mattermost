@@ -6,13 +6,13 @@ import {combineReducers} from 'redux';
 
 import {LimitsTypes} from 'mattermost-redux/action_types';
 
-function usersLimits(state = {}, action: AnyAction) {
+function serverLimits(state = {}, action: AnyAction) {
     switch (action.type) {
-    case LimitsTypes.RECIEVED_USERS_LIMITS: {
-        const usersLimits = action.data;
+    case LimitsTypes.RECIEVED_APP_LIMITS: {
+        const serverLimits = action.data;
         return {
             ...state,
-            ...usersLimits,
+            ...serverLimits,
         };
     }
     default:
@@ -21,5 +21,5 @@ function usersLimits(state = {}, action: AnyAction) {
 }
 
 export default combineReducers({
-    usersLimits,
+    serverLimits,
 });

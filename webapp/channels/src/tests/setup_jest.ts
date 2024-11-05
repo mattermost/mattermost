@@ -9,12 +9,11 @@ import Adapter from 'enzyme-adapter-react-17-updated';
 import '@testing-library/jest-dom';
 import 'isomorphic-fetch';
 
+import './performance_mock';
 import './redux-persist_mock';
 import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
-
-global.performance = {} as any;
 
 configure({adapter: new (Adapter as any)()});
 
@@ -47,6 +46,8 @@ jest.mock('@mui/styled-engine', () => {
     return styledEngineSc;
 });
 
+global.ResizeObserver = require('resize-observer-polyfill');
+
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {
@@ -61,6 +62,7 @@ function isDependencyWarning(params: string[]) {
         paramsHasComponent('Portal') ||
         paramsHasComponent('Overlay') ||
         paramsHasComponent('Position') ||
+        paramsHasComponent('Dropdown') ||
 
         // React-Select
         paramsHasComponent('Select')

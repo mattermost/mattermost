@@ -1,27 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import styled from 'styled-components';
 
-import type {GlobalState} from '@mattermost/types/store';
-
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
+import ExternalLink from 'components/external_link';
 
-import {makeAsyncComponent} from 'components/async_load';
-
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {isTrialLicense} from 'utils/license_utils';
+import {LicenseLinks} from 'utils/constants';
 
 import './menu_item.scss';
 
-const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
-const LearnMoreTrialModal = makeAsyncComponent('LearnMoreTrialModal', React.lazy(() => import('components/learn_more_trial_modal/learn_more_trial_modal')));
+const FreeVersionBadge = styled.div`
+     position: relative;
+     top: 1px;
+     display: flex;
+     padding: 2px 6px;
+     border-radius: var(--radius-s);
+     margin-bottom: 6px;
+     background: rgba(var(--center-channel-color-rgb), 0.08);
+     color: rgba(var(--center-channel-color-rgb), 0.75);
+     font-family: 'Open Sans', sans-serif;
+     font-size: 10px;
+     font-weight: 600;
+     letter-spacing: 0.025em;
+     line-height: 16px;
+`;
 
 type Props = {
     id: string;
@@ -29,43 +36,11 @@ type Props = {
 
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, []);
-
-    const openLearnMoreTrialModal = () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'open_learn_more_trial_modal',
-        );
-        dispatch(openModal({
-            modalId: ModalIdentifiers.LEARN_MORE_TRIAL_MODAL,
-            dialogType: LearnMoreTrialModal,
-        }));
-    };
-
-    const openTrialBenefitsModal = () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL,
-            'open_trial_benefits_modal_from_menu',
-        );
-        dispatch(openModal({
-            modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
-            dialogType: TrialBenefitsModal,
-        }));
-    };
-
-    const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const license = useSelector(getLicense);
-    const isPrevLicensed = prevTrialLicense?.IsLicensed;
     const isCurrentLicensed = license?.IsLicensed;
-    const isCurrentLicenseTrial = isTrialLicense(license);
 
-    // Show this CTA if the instance is currently not licensed and has never had a trial license loaded before
-    const show = (isCurrentLicensed === 'false' && isPrevLicensed === 'false') || isCurrentLicenseTrial;
-    if (!show) {
+    if (isCurrentLicensed === 'true') {
         return null;
     }
 
@@ -75,24 +50,25 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
             role='menuitem'
             id={props.id}
         >
-            {isCurrentLicenseTrial ? <>
-                <div style={{display: 'inline'}}>
-                    <span>
-                        {formatMessage({id: 'navbar_dropdown.reviewTrialBenefits', defaultMessage: 'Review the features you get with Enterprise. '})}
-                    </span>
-                    <button onClick={openTrialBenefitsModal}>
-                        {formatMessage({id: 'navbar_dropdown.learnMoreTrialBenefits', defaultMessage: 'Learn More'})}
-                    </button>
-                </div>
-            </> : <>
-                <div className='start_trial_content'>
-                    {formatMessage({id: 'navbar_dropdown.tryTrialNow', defaultMessage: 'Try Enterprise for free now!'})}
-                </div>
-                <button onClick={openLearnMoreTrialModal}>
-                    {formatMessage({id: 'navbar_dropdown.learnMore', defaultMessage: 'Learn More'})}
-                </button>
-            </>
-            }
+            <FreeVersionBadge>{'FREE EDITION'}</FreeVersionBadge>
+            <div className='editionText'>
+                {formatMessage(
+                    {
+                        id: 'navbar_dropdown.versionText',
+                        defaultMessage: 'This is the free <link>unsupported</link> edition of Mattermost.',
+                    },
+                    {
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                location='menu_start_trial.unsupported-link'
+                                href={LicenseLinks.UNSUPPORTED}
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    },
+                )}
+            </div>
         </li>
     );
 };

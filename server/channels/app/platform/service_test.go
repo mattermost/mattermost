@@ -35,9 +35,10 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
 		configStore.Set(&cfg)
-		ps, err := New(ServiceConfig{
-			ConfigStore: configStore,
-		})
+		ps, err := New(
+			ServiceConfig{},
+			ConfigStore(configStore),
+		)
 		require.NoError(t, err)
 		require.Same(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceReplicas, 1)
@@ -46,12 +47,14 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
 		configStore.Set(&cfg)
-		ps, err := New(ServiceConfig{
-			ConfigStore: configStore,
-		}, func(ps *PlatformService) error {
-			ps.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
+		ps, err := New(
+			ServiceConfig{},
+			ConfigStore(configStore),
+			func(ps *PlatformService) error {
+				ps.licenseValue.Store(model.NewTestLicense())
+				return nil
+			},
+		)
 		require.NoError(t, err)
 		require.NotSame(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceReplicas, 1)
@@ -60,9 +63,10 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
 		configStore.Set(&cfg)
-		ps, err := New(ServiceConfig{
-			ConfigStore: configStore,
-		})
+		ps, err := New(
+			ServiceConfig{},
+			ConfigStore(configStore),
+		)
 		require.NoError(t, err)
 		require.Same(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetSearchReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceSearchReplicas, 1)
@@ -71,12 +75,14 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
 		configStore.Set(&cfg)
-		ps, err := New(ServiceConfig{
-			ConfigStore: configStore,
-		}, func(ps *PlatformService) error {
-			ps.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
+		ps, err := New(
+			ServiceConfig{},
+			ConfigStore(configStore),
+			func(ps *PlatformService) error {
+				ps.licenseValue.Store(model.NewTestLicense())
+				return nil
+			},
+		)
 		require.NoError(t, err)
 		require.NotSame(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetSearchReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceSearchReplicas, 1)
@@ -98,7 +104,7 @@ func TestMetrics(t *testing.T) {
 		// there is no config listener for the metrics
 		// we handle it on config save step
 		cfg := th.Service.Config().Clone()
-		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
 		th.Service.SaveConfig(cfg, false)
 
 		require.NotNil(t, th.Service.metrics)
@@ -109,7 +115,7 @@ func TestMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		cfg.MetricsSettings.Enable = model.NewBool(false)
+		cfg.MetricsSettings.Enable = model.NewPointer(false)
 		th.Service.SaveConfig(cfg, false)
 
 		_, err = http.Get(metricsAddr)

@@ -22,7 +22,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import useTooltip from 'components/common/hooks/useTooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import PostPriorityPicker from './post_priority_picker';
 
@@ -41,16 +41,6 @@ function PostPriorityPickerOverlay({
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const {formatMessage} = useIntl();
-
-    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
-    const {
-        setReference: setTooltipRef,
-        getReferenceProps: getTooltipReferenceProps,
-        tooltip,
-    } = useTooltip({
-        placement: 'top',
-        message: messagePriority,
-    });
 
     const handleClose = useCallback(() => {
         setPickerOpen(false);
@@ -91,11 +81,14 @@ function PostPriorityPickerOverlay({
         useRole(pickerContext),
     ]);
 
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
+
     return (
         <>
-            <div
-                ref={setTooltipRef}
-                {...getTooltipReferenceProps()}
+            <WithTooltip
+                id='postPriorityPickerOverlayTooltip'
+                placement='top'
+                title={messagePriority}
             >
                 <IconContainer
                     id='messagePriority'
@@ -111,7 +104,7 @@ function PostPriorityPickerOverlay({
                         color='currentColor'
                     />
                 </IconContainer>
-            </div>
+            </WithTooltip>
             <FloatingPortal id='root-portal'>
                 {pickerOpen && (
                     <FloatingFocusManager
@@ -140,7 +133,6 @@ function PostPriorityPickerOverlay({
                     </FloatingFocusManager>
                 )}
             </FloatingPortal>
-            {!pickerOpen && tooltip}
         </>
     );
 }

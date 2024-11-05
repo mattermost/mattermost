@@ -64,7 +64,7 @@ const ToggleWrapper = styled.div`
 
 const StyledCheckIcon = styled(CheckIcon)`
     display: flex;
-    margin-left: auto;
+    margin-left: 24px;
     fill: var(--button-bg);
 `;
 
@@ -79,6 +79,7 @@ const Menu = styled.ul`
         margin: 0;
         color: var(--center-channel-color-rgb);
         list-style: none;
+        max-width:320px;
     }
 `;
 

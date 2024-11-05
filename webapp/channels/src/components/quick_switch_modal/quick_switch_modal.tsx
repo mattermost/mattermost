@@ -9,7 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
@@ -96,7 +95,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         this.focusTextbox();
     };
 
-    private onHide = (): void => {
+    private hideOnSelect = (): void => {
         this.focusPostTextbox();
         this.setState({
             text: '',
@@ -113,6 +112,16 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 }
             });
         }
+    };
+
+    private hideOnCancel = () => {
+        this.props.onExited?.();
+        setTimeout(() => {
+            const modalButton = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
+            if (modalButton) {
+                modalButton.focus();
+            }
+        });
     };
 
     private onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -137,12 +146,12 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             }
             switchToChannel(selectedChannel).then((result: ActionResult) => {
                 if ('data' in result) {
-                    this.onHide();
+                    this.hideOnSelect();
                 }
             });
         } else {
             getHistory().push('/' + selected.name);
-            this.onHide();
+            this.hideOnSelect();
         }
     };
 
@@ -170,16 +179,19 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         let help;
         if (this.props.isMobileView) {
             help = (
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='quick_switch_modal.help_mobile'
                     defaultMessage='Type to find a channel.'
                 />
             );
         } else {
             help = (
-                <FormattedMarkdownMessage
-                    id='quick_switch_modal.help_no_team'
-                    defaultMessage='Type to find a channel. Use **UP/DOWN** to browse, **ENTER** to select, **ESC** to dismiss.'
+                <FormattedMessage
+                    id='quickSwitchModal.help_no_team'
+                    defaultMessage='Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.'
+                    values={{
+                        b: (chunks: string) => <b>{chunks}</b>,
+                    }}
                 />
             );
         }
@@ -188,7 +200,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
             <Modal
                 dialogClassName='a11y__modal channel-switcher'
                 show={true}
-                onHide={this.onHide}
+                onHide={this.hideOnCancel}
                 enforceFocus={false}
                 restoreFocus={false}
                 role='dialog'
@@ -222,7 +234,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             // @ts-ignore
                             ref={this.setSwitchBoxRef}
                             id='quickSwitchInput'
-                            aria-label={Utils.localizeMessage('quick_switch_modal.input', 'quick switch input')}
+                            aria-label={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
                             className='form-control focused'
                             onChange={this.onChange}
                             value={this.state.text}

@@ -520,11 +520,8 @@ describe('Actions.User', () => {
         });
     });
 
-    test('Should call p-queue APIs on loadProfilesForGM', async () => {
+    test('Should call getProfilesInGroupChannels on loadProfilesForGM', async () => {
         const gmChannel = {id: 'gmChannel', type: General.GM_CHANNEL, team_id: '', delete_at: 0};
-        UserActions.queue.add = jest.fn().mockReturnValue(jest.fn());
-        UserActions.queue.onEmpty = jest.fn();
-
         const user = TestHelper.fakeUser();
 
         const profiles = {
@@ -555,7 +552,7 @@ describe('Actions.User', () => {
                     profiles,
                     statuses: {},
                     profilesInChannel: {
-                        [gmChannel.id]: new Set(['current_user_id']),
+                        [gmChannel.id]: new Set([]),
                     },
                 },
                 teams: {
@@ -605,9 +602,10 @@ describe('Actions.User', () => {
 
         const testStore = mockStore(state);
         store.getState.mockImplementation(testStore.getState);
+        store.dispatch.mockImplementation(testStore.dispatch);
+        const actions = testStore.getActions();
 
         await UserActions.loadProfilesForGM();
-        expect(UserActions.queue.onEmpty).toHaveBeenCalled();
-        expect(UserActions.queue.add).toHaveBeenCalled();
+        expect(actions).toEqual([{args: [['gmChannel']], type: 'MOCK_GET_PROFILES_IN_GROUP_CHANNELS'}]);
     });
 });

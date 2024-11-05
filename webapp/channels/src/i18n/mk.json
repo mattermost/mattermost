@@ -122,13 +122,6 @@
   "center_panel.archived.closeChannel": "Затвори Канал",
   "user.settings.notifications.email.send": "Прати е-мајл нотификација",
   "user.settings.notifications.emailInfo": "Е-маил нотификации се праќаат за спомнувања и дирекни пораки кофа сте офлајн или не сте онлајн за повеќе од 5 минути.",
-  "user.settings.notifications.never": "Никогаш",
-  "user.settings.notifications.onlyMentions": "Само за спомнувања и директни пораки",
-  "user.settings.push_notification.away": "Недостапни или офлајн",
-  "user.settings.push_notification.disabled": "Пуш нотификации не се вклучени",
-  "user.settings.push_notification.disabled_long": "Пуш нотификации не се вклучени од вашиот Системски Администратор.",
-  "user.settings.push_notification.offline": "Офлајн",
-  "user.settings.push_notification.online": "Онлајн, недостапен или офлајн",
   "web.root.signup_info": "Цела тимска комуникација во една место, со пребарување и достапност од секаде",
   "widget.input.required": "Ова поле е задолжително",
   "widget.passwordInput.createPassword": "Одберете лозинка",
@@ -141,6 +134,5 @@
   "workspace_limits.archived_file.archived": "Фајлот е архивиран",
   "workspace_limits.archived_file.archived_compact": "(архивиран)",
   "workspace_limits.archived_file.tooltip_description": "Вашето работно место го достигна ограничувањето за скадирање на фајлови од {storageLimit}. Да го видите ова пак, надградете во платен план",
-  "workspace_limits.archived_file.tooltip_title": "Одархивирај го овој фајл со надградба",
-  "workspace_limits.banner_upgrade_reason.free": "Вашето работно место ги надмина ограничувањата на дата на планот {planName}. Надградете на платен план за додатен капацитет."
+  "workspace_limits.archived_file.tooltip_title": "Одархивирај го овој фајл со надградба"
 }

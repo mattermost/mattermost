@@ -26,10 +26,14 @@ func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channel
 	bookmark := &model.ChannelBookmark{
 		ChannelId:   channelId,
 		DisplayName: name,
-		LinkUrl:     "https://mattermost.com",
 		Type:        bookmarkType,
 		Emoji:       ":smile:",
-		FileId:      fileId,
+	}
+	if bookmarkType == model.ChannelBookmarkLink {
+		bookmark.LinkUrl = "https://mattermost.com"
+	}
+	if bookmarkType == model.ChannelBookmarkFile {
+		bookmark.FileId = fileId
 	}
 
 	return bookmark
@@ -486,13 +490,13 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(-1), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(5), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 	})
 
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
-		assert.Error(t, appErr)
+		assert.NotNil(t, appErr)
 	})
 }

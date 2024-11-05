@@ -9,8 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
 import FormError from 'components/form_error';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -193,19 +192,14 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             let overlay;
             if (!this.props.disabled) {
                 overlay = (
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                    <WithTooltip
+                        id='removeIcon'
+                        title={
+                            <FormattedMessage
+                                id='admin.team.removeBrandImage'
+                                defaultMessage='Remove brand image'
+                            />}
                         placement='right'
-                        overlay={
-                            <Tooltip id='removeIcon'>
-                                <div aria-hidden={true}>
-                                    <FormattedMessage
-                                        id='admin.team.removeBrandImage'
-                                        defaultMessage='Remove brand image'
-                                    />
-                                </div>
-                            </Tooltip>
-                        }
                     >
                         <button
                             type='button'
@@ -214,7 +208,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                         >
                             <span aria-hidden={true}>{'×'}</span>
                         </button>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 );
             }
             img = (

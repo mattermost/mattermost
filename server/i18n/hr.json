@@ -1,7 +1,7 @@
 [
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML 2.0 nije konfiguriran ili podržan na ovom poslužitelju."
+    "translation": "SAML 2.0 nije konfiguriran ili podržan na ovom serveru."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML 2.0 nije konfiguriran ili podržan na ovom poslužitelju."
+    "translation": "SAML 2.0 nije konfiguriran ili podržan na ovom serveru."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
@@ -712,10 +712,6 @@
     "translation": "[poruka]"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Datoteke"
-  },
-  {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Saznaj više"
   },
@@ -998,10 +994,6 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v je napustio/la tim."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Obnovi licencu sada"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",

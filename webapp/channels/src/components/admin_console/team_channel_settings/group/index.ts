@@ -8,8 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
-import {t} from 'utils/i18n';
-
 import type {GlobalState} from 'types/store';
 
 import GroupList from './group_list';
@@ -32,8 +30,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         data: ownProps.groups,
         removeGroup: ownProps.onGroupRemoved,
         setNewGroupRole: ownProps.setNewGroupRole,
-        emptyListTextId: ownProps.isModeSync ? t('admin.team_channel_settings.group_list.no-synced-groups') : t('admin.team_channel_settings.group_list.no-groups'),
-        emptyListTextDefaultMessage: ownProps.isModeSync ? 'At least one group must be specified' : 'No groups specified yet',
         total: ownProps.totalGroups,
     };
 }

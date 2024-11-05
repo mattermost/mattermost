@@ -20,7 +20,7 @@ func TestMessageExportNotEnabled(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.Config()
-	config.MessageExportSettings.EnableExport = model.NewBool(false)
+	config.MessageExportSettings.EnableExport = model.NewPointer(false)
 	th.SetConfig(config)
 
 	// should fail fast because the feature isn't enabled
@@ -32,7 +32,7 @@ func TestMessageExportInvalidFormat(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.Config()
-	config.MessageExportSettings.EnableExport = model.NewBool(true)
+	config.MessageExportSettings.EnableExport = model.NewPointer(true)
 	th.SetConfig(config)
 
 	// should fail fast because format isn't supported
@@ -44,7 +44,7 @@ func TestMessageExportNegativeExportFrom(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.Config()
-	config.MessageExportSettings.EnableExport = model.NewBool(true)
+	config.MessageExportSettings.EnableExport = model.NewPointer(true)
 	th.SetConfig(config)
 
 	// should fail fast because export from must be a valid timestamp
@@ -56,7 +56,7 @@ func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.Config()
-	config.MessageExportSettings.EnableExport = model.NewBool(true)
+	config.MessageExportSettings.EnableExport = model.NewPointer(true)
 	th.SetConfig(config)
 
 	// should fail fast because timeout seconds must be a positive int

@@ -16,7 +16,7 @@ type Props = {
     setHasChangeTabError: (hasChangesError: boolean) => void;
     closeModal: () => void;
     collapseModal: () => void;
-    team: Team;
+    team?: Team;
 };
 
 const TeamSettings = ({
@@ -28,7 +28,7 @@ const TeamSettings = ({
     hasChangeTabError,
     setHasChanges,
     setHasChangeTabError,
-}: Props): JSX.Element | null => {
+}: Props) => {
     if (!team) {
         return null;
     }

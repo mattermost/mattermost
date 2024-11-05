@@ -16,6 +16,7 @@ const LearnAboutTeamsLink = () => {
                 values={{
                     a: (chunks) => (
                         <ExternalLink
+                            location='learn_about_teams'
                             href='https://mattermost.com/pl/mattermost-academy-team-training'
                         >
                             <i className='icon icon-lightbulb-outline'/>

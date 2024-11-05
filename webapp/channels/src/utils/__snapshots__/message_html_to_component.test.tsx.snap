@@ -129,10 +129,10 @@ Array [
   </p>,
   "
 ",
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="x^2 + y^2 = z^2"
   />,
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
   />,
   <p>

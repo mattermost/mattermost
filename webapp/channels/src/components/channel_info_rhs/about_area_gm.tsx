@@ -89,7 +89,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                                 userId={user.id}
                                 username={user.username}
                                 channelId={channel.id}
-                                popoverPlacement='left'
                             />
                         </ProfilePictureContainer>
                     ))}
@@ -99,7 +98,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                         <React.Fragment key={user.id}>
                             <UserProfileElement
                                 userId={user.id}
-                                isRHS={true}
                                 channelId={channel.id}
                             />
                             {(i + 1 !== length) && (<span>{', '}</span>)}

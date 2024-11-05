@@ -20,7 +20,7 @@ import type {PluginComponent} from 'types/store/plugins';
 import './call_button.scss';
 
 type Props = {
-    currentChannel: Channel;
+    currentChannel?: Channel;
     channelMember?: ChannelMembership;
     pluginCallComponents: PluginComponent[];
     sidebarOpen: boolean;

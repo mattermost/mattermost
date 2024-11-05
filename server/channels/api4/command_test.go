@@ -1130,8 +1130,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 		[]*model.ChannelModerationPatch{{
 			Name: &model.PermissionCreatePost.Id,
 			Roles: &model.ChannelModeratedRolesPatch{
-				Guests:  model.NewBool(false),
-				Members: model.NewBool(false),
+				Guests:  model.NewPointer(false),
+				Members: model.NewPointer(false),
 			},
 		}})
 	require.Nil(t, appErr)

@@ -54,4 +54,17 @@ describe('Actions.Admin', () => {
                     },
                 }}});
     });
+
+    test('Register a custom plugin section adds the component to the state', async () => {
+        expect(store.getState().plugins.adminConsoleCustomSections).toEqual({});
+
+        store.dispatch(Actions.registerAdminConsoleCustomSection('plugin-id', 'sectionA', React.Component));
+        expect(store.getState().plugins.adminConsoleCustomSections).toEqual(
+            {'plugin-id': {
+                sectiona: {
+                    key: 'sectionA',
+                    pluginId: 'plugin-id',
+                    component: React.Component,
+                }}});
+    });
 });

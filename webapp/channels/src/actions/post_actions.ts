@@ -4,10 +4,12 @@
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
 import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -15,7 +17,13 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {
+    DispatchFunc,
+    ActionFunc,
+    ActionFuncAsync,
+    ThunkActionFunc,
+    GetStateFunc,
+} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -25,6 +33,7 @@ import {removeDraft} from 'actions/views/drafts';
 import {closeModal, openModal} from 'actions/views/modals';
 import * as RhsActions from 'actions/views/rhs';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
+import {getConnectionId} from 'selectors/general';
 import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
@@ -40,12 +49,16 @@ import {
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
-import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
+import {completePostReceive} from './new_post';
+import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
+
+export type CreatePostOptions = {
+    keepDraft?: boolean;
+}
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
@@ -106,29 +119,55 @@ export function unflagPost(postId: string): ActionFuncAsync {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[]): ActionFuncAsync {
-    return async (dispatch) => {
+function addRecentEmojisForMessage(message: string): ActionFunc {
+    return (dispatch) => {
         // parse message and emit emoji event
-        const emojis = matchEmoticons(post.message);
+        const emojis = matchEmoticons(message);
         if (emojis) {
             const trimmedEmojis = emojis.map((emoji) => emoji.substring(1, emoji.length - 1));
             dispatch(addRecentEmojis(trimmedEmojis));
         }
+        return {data: true};
+    };
+}
 
-        let result;
-        if (UserAgent.isIosClassic()) {
-            result = await dispatch(PostActions.createPostImmediately(post, files));
-        } else {
-            result = await dispatch(PostActions.createPost(post, files));
+export function createPost(
+    post: Post,
+    files: FileInfo[],
+    afterSubmit?: (response: SubmitPostReturnType) => void,
+    options?: OnSubmitOptions,
+): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+    return async (dispatch) => {
+        dispatch(addRecentEmojisForMessage(post.message));
+
+        const result = await dispatch(PostActions.createPost(post, files, afterSubmit));
+
+        if (!options?.keepDraft) {
+            if (post.root_id) {
+                dispatch(storeCommentDraft(post.root_id, null));
+            } else {
+                dispatch(storeDraft(post.channel_id, null));
+            }
         }
 
-        if (post.root_id) {
-            dispatch(storeCommentDraft(post.root_id, null));
-        } else {
-            dispatch(storeDraft(post.channel_id, null));
-        }
-
+        options?.afterOptimisticSubmit?.();
         return result;
+    };
+}
+
+export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        dispatch(addRecentEmojisForMessage(scheduledPost.message));
+
+        const state = getState() as GlobalState;
+        const connectionId = getConnectionId(state);
+        const channel = state.entities.channels.channels[scheduledPost.channel_id];
+        const result = await dispatch(createSchedulePost(scheduledPost, channel.team_id, connectionId));
+
+        return {
+            created: !result.error && result.data,
+            error: result.error,
+        };
     };
 }
 
@@ -146,23 +185,23 @@ function storeCommentDraft(rootPostId: string, draft: null): ActionFunc {
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string): ActionFunc<unknown, GlobalState> {
-    return (dispatch, getState) => {
+export function submitReaction(postId: string, action: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
         const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
 
         if (action === '+' && !isReactionAlreadyAddedToPost) {
-            dispatch(addReaction(postId, emojiName));
+            return dispatch(addReaction(postId, emojiName));
         } else if (action === '-' && isReactionAlreadyAddedToPost) {
-            dispatch(PostActions.removeReaction(postId, emojiName));
+            return dispatch(PostActions.removeReaction(postId, emojiName));
         }
-        return {data: true};
+        return {error: new Error(`unknown action ${action}`)};
     };
 }
 
-export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<unknown, GlobalState> {
+export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
@@ -176,9 +215,9 @@ export function toggleReaction(postId: string, emojiName: string): ActionFuncAsy
     };
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFunc {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
     const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const config = getConfig(state);
         const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
@@ -193,12 +232,12 @@ export function addReaction(postId: string, emojiName: string): ActionFunc {
                     onExited: () => closeModal(ModalIdentifiers.REACTION_LIMIT_REACHED),
                 },
             }));
-            return {data: false};
+            return {error: new Error('reached reaction limit')};
         }
 
-        dispatch(PostActions.addReaction(postId, emojiName));
         dispatch(addRecentEmoji(emojiName));
-        return {data: true};
+        const result = await dispatch(PostActions.addReaction(postId, emojiName));
+        return result;
     };
 }
 
@@ -277,7 +316,7 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean, GlobalState>
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = false): ActionFunc<boolean> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -290,7 +329,7 @@ export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = 
         const license = state.entities.general.license;
         const userId = getCurrentUserId(state);
         const channel = getChannel(state, post.channel_id);
-        const teamId = channel.team_id || '';
+        const teamId = channel?.team_id || '';
 
         const canEditNow = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 
@@ -299,7 +338,7 @@ export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = 
         if (canEditNow) {
             dispatch({
                 type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, title, isRHS, show: true},
+                data: {postId, refocusId, isRHS, show: true},
             });
         }
 

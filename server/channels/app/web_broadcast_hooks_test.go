@@ -83,6 +83,102 @@ func TestAddFollowersHook_Process(t *testing.T) {
 	})
 }
 
+func TestPostedAckHook_Process(t *testing.T) {
+	hook := &postedAckBroadcastHook{}
+	userID := model.NewId()
+	webConn := &platform.WebConn{
+		UserId:    userID,
+		Platform:  &platform.PlatformService{},
+		PostedAck: true,
+	}
+	webConn.Active.Store(true)
+	webConn.SetSession(&model.Session{})
+
+	t.Run("should ack if user is in the list of users to notify", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{userID},
+		})
+
+		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+	})
+
+	t.Run("should not ack if user is not in the list of users to notify", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should not ack if you are the user who posted", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": userID,
+			"channel_type":   model.ChannelTypeOpen,
+			"users":          []string{userID},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should ack if the channel is a DM", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, webConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeDirect,
+			"users":          []string{},
+		})
+
+		assert.True(t, msg.Event().GetData()["should_ack"].(bool))
+	})
+
+	t.Run("should not ack if posted ack is false", func(t *testing.T) {
+		noAckWebConn := &platform.WebConn{
+			UserId:    userID,
+			Platform:  &platform.PlatformService{},
+			PostedAck: false,
+		}
+		noAckWebConn.Active.Store(true)
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, noAckWebConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeDirect,
+			"users":          []string{},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+
+	t.Run("should not ack if connection is not active", func(t *testing.T) {
+		inactiveWebConn := &platform.WebConn{
+			UserId:    userID,
+			Platform:  &platform.PlatformService{},
+			PostedAck: false,
+		}
+		inactiveWebConn.Active.Store(true)
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		hook.Process(msg, inactiveWebConn, map[string]any{
+			"posted_user_id": model.NewId(),
+			"channel_type":   model.ChannelTypeDirect,
+			"users":          []string{},
+		})
+
+		assert.Nil(t, msg.Event().GetData()["should_ack"])
+	})
+}
+
 func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	addMentionsHook := &addMentionsBroadcastHook{}
 	addFollowersHook := &addFollowersBroadcastHook{}
@@ -111,4 +207,60 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["followers"])
 		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["mentions"])
 	})
+}
+
+func TestPermalinkBroadcastHook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    th.App,
+		UserId:   session.UserId,
+	}
+	hook := &permalinkBroadcastHook{}
+
+	refPost := th.CreatePost(th.BasicChannel)
+
+	th.BasicPost.Metadata.Embeds = append(th.BasicPost.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: &model.Permalink{
+		PreviewPost: model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel),
+	}})
+	originalJSON, err := th.BasicPost.ToJSON()
+	require.NoError(t, err)
+
+	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+	th.BasicPost.Metadata.Embeds[0].Data = nil
+	removedJSON, err := th.BasicPost.ToJSON()
+	require.NoError(t, err)
+
+	wsEvent.Add("post", removedJSON)
+	msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+	// User has permission.
+	err = hook.Process(msg, wc, map[string]any{
+		"preview_channel": th.BasicChannel,
+		"post_json":       originalJSON,
+	})
+	require.NoError(t, err)
+
+	gotJSON, ok := msg.Get("post").(string)
+	require.True(t, ok)
+	require.Equal(t, originalJSON, gotJSON)
+
+	msg = platform.MakeHookedWebSocketEvent(wsEvent)
+	// User does not exist, and thus won't have permission to the channel.
+	wc.UserId = "otheruser"
+	err = hook.Process(msg, wc, map[string]any{
+		"preview_channel": th.BasicChannel,
+		"post_json":       originalJSON,
+	})
+	require.NoError(t, err)
+	gotJSON, ok = msg.Get("post").(string)
+	require.True(t, ok)
+	require.Equal(t, removedJSON, gotJSON)
 }

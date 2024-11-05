@@ -21,6 +21,9 @@ describe('Message Reply', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             newChannel = channel;
             cy.visit(`/${team.name}/channels/${channel.name}`);
+
+            // # Wait for the page to fully load before continuing
+            cy.get('#sidebar-header-container').should('be.visible').and('have.text', team.display_name);
         });
     });
 
@@ -43,9 +46,11 @@ describe('Message Reply', () => {
             cy.clickPostCommentIcon(postId);
 
             // # Reply with the attachment
-            cy.postMessageReplyInRHS('A reply to an older post with attachment');
+            const replyText = 'A reply to an older post with attachment';
+            cy.postMessageReplyInRHS(replyText);
 
             // # Get the latest reply post
+            cy.uiWaitUntilMessagePostedIncludes(replyText);
             cy.getLastPostId().then((replyId) => {
                 // * Verify that the reply is in the channel view with matching text
                 cy.get(`#post_${replyId}`).within(() => {

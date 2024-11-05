@@ -83,6 +83,56 @@ export function getGroupChannels(state: GlobalState, id: string) {
     return getGroupSyncables(state, id).channels;
 }
 
+export const getAllCustomGroups: (state: GlobalState) => Group[] = createSelector(
+    'getAllCustomGroups',
+    getAllGroups,
+    (groups) => {
+        return Object.entries(groups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0 && entry[1].source === GroupSource.Custom)).map((entry) => entry[1]);
+    },
+);
+
+export const getGroupsAssociatedToTeamForReference: (state: GlobalState, teamID: string) => Group[] = createSelector(
+    'getGroupsAssociatedToTeamForReference',
+    getAllGroups,
+    (state: GlobalState, teamID: string) => getTeamGroupIDSet(state, teamID),
+    (allGroups, teamGroupIDSet) => {
+        return Object.entries(allGroups).filter(([groupID]) => teamGroupIDSet.has(groupID)).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0)).map((entry) => entry[1]);
+    },
+);
+
+export const getAssociatedGroupsForReference: (state: GlobalState, teamId: string, channelId?: string) => Group[] = createSelector(
+    'getAssociatedGroupsForReference',
+    (state, teamId) => Boolean(getTeam(state, teamId)?.group_constrained),
+    (state, _, channelId) => Boolean(getChannel(state, channelId)?.group_constrained),
+    getGroupsAssociatedToTeamForReference,
+    (state, _, channelId) => (channelId ? getGroupsAssociatedToChannelForReference(state, channelId) : undefined),
+    getAllCustomGroups,
+    (state) => getAllAssociatedGroupsForReference(state, false),
+    (
+        teamConstrained,
+        channelConstrained,
+        groupsFromTeam,
+        groupsFromChannel,
+        customGroups,
+        allGroups,
+    ) => {
+        if (teamConstrained && channelConstrained) {
+            const groupSet = new Set<Group>(groupsFromChannel);
+            return [...(groupsFromChannel || []), ...(groupsFromTeam.filter((item) => !groupSet.has(item))), ...customGroups];
+        }
+
+        if (teamConstrained) {
+            return [...customGroups, ...groupsFromTeam];
+        }
+
+        if (channelConstrained) {
+            return [...customGroups, ...(groupsFromChannel || [])];
+        }
+
+        return allGroups;
+    },
+);
+
 export const getAssociatedGroupsByName: (state: GlobalState, teamID: string, channelId: string) => Record<string, Group> = createSelector(
     'getAssociatedGroupsByName',
     getAssociatedGroupsForReference,
@@ -100,7 +150,7 @@ export const getAssociatedGroupsByName: (state: GlobalState, teamID: string, cha
     },
 );
 
-export const getAssociatedGroupsForReferenceByMention: (state: GlobalState, teamID: string, channelId: string) => Map<string, Group> = createSelector(
+export const getAssociatedGroupsForReferenceByMention: (state: GlobalState, teamID: string, channelId?: string) => Map<string, Group> = createSelector(
     'getAssociatedGroupsForReferenceByMention',
     getAssociatedGroupsForReference,
     (groups) => {
@@ -115,30 +165,6 @@ export function searchAssociatedGroupsForReferenceLocal(state: GlobalState, term
     }
     const filteredGroups = filterGroupsMatchingTerm(groups, term);
     return filteredGroups;
-}
-
-export function getAssociatedGroupsForReference(state: GlobalState, teamId: string, channelId: string): Group[] {
-    const team = getTeam(state, teamId);
-    const channel = getChannel(state, channelId);
-
-    let groupsForReference = [];
-    if (team && team.group_constrained && channel && channel.group_constrained) {
-        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
-        const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
-        const customGroups = getAllCustomGroups(state);
-        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
-    } else if (team && team.group_constrained) {
-        const customGroups = getAllCustomGroups(state);
-        const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
-        groupsForReference = [...customGroups, ...groupsFromTeam];
-    } else if (channel && channel.group_constrained) {
-        const customGroups = getAllCustomGroups(state);
-        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
-        groupsForReference = [...customGroups, ...groupsFromChannel];
-    } else {
-        groupsForReference = getAllAssociatedGroupsForReference(state, false);
-    }
-    return groupsForReference;
 }
 
 const teamGroupIDs = (state: GlobalState, teamID: string) => state.entities.teams.groupsAssociatedToTeam[teamID]?.ids || [];
@@ -192,7 +218,7 @@ export const getGroupsNotAssociatedToChannel: (state: GlobalState, channelID: st
     (state: GlobalState, channelID: string, teamID: string) => getGroupsAssociatedToTeam(state, teamID),
     (allGroups, channelGroupIDSet, team, teamGroups) => {
         let result = Object.values(allGroups).filter((group) => !channelGroupIDSet.has(group.id) && group.source === GroupSource.Ldap);
-        if (team.group_constrained) {
+        if (team?.group_constrained) {
             const gids = teamGroups.map((group) => group.id);
             result = result.filter((group) => gids?.includes(group.id));
         }
@@ -206,15 +232,6 @@ export const getGroupsAssociatedToChannel: (state: GlobalState, channelID: strin
     (state: GlobalState, channelID: string) => getChannelGroupIDSet(state, channelID),
     (allGroups, channelGroupIDSet) => {
         return Object.entries(allGroups).filter(([groupID]) => channelGroupIDSet.has(groupID)).map((entry) => entry[1]);
-    },
-);
-
-export const getGroupsAssociatedToTeamForReference: (state: GlobalState, teamID: string) => Group[] = createSelector(
-    'getGroupsAssociatedToTeamForReference',
-    getAllGroups,
-    (state: GlobalState, teamID: string) => getTeamGroupIDSet(state, teamID),
-    (allGroups, teamGroupIDSet) => {
-        return Object.entries(allGroups).filter(([groupID]) => teamGroupIDSet.has(groupID)).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0)).map((entry) => entry[1]);
     },
 );
 
@@ -261,14 +278,6 @@ export const getAllGroupsForReferenceByName: (state: GlobalState) => Record<stri
         }
 
         return groupsByName;
-    },
-);
-
-export const getAllCustomGroups: (state: GlobalState) => Group[] = createSelector(
-    'getAllCustomGroups',
-    getAllGroups,
-    (groups) => {
-        return Object.entries(groups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0 && entry[1].source === GroupSource.Custom)).map((entry) => entry[1]);
     },
 );
 

@@ -11,12 +11,12 @@ jobs:
   build-docker:
     name: cd/Push mirrored docker images
     if: github.repository_owner == 'mattermost'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: cd/Login to Docker Hub
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}

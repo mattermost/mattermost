@@ -235,17 +235,20 @@ type PostForExport struct {
 	ChannelName string
 	Username    string
 	ReplyCount  int
+	FlaggedBy   StringArray
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      StringArray
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy StringArray
 }
 
 type PostForIndexing struct {
@@ -258,6 +261,22 @@ type FileForIndexing struct {
 	FileInfo
 	ChannelId string `json:"channel_id"`
 	Content   string `json:"content"`
+}
+
+// ShouldIndex tells if a file should be indexed or not.
+// index files which are-
+// a. not deleted
+// b. have an associated post ID, if no post ID, then,
+// b.i. the file should belong to the channel's bookmarks, as indicated by the "CreatorId" field.
+//
+// Files not passing this criteria will be deleted from ES index.
+// We're deleting those files from ES index instead of simply skipping them while fetching a batch of files
+// because existing ES indexes might have these files already indexed, so we need to remove them from index.
+func (file *FileForIndexing) ShouldIndex() bool {
+	// NOTE - this function is used in server as well as Enterprise code.
+	// Make sure to update public package dependency in both server and Enterprise code when
+	// updating the logic here and to test both places.
+	return file != nil && file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == BookmarkFileOwner)
 }
 
 // ShallowCopy is an utility function to shallow copy a Post to the given
@@ -294,7 +313,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewBool(*o.IsFollowing)
+		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -317,6 +336,11 @@ func (o *Post) ToJSON() (string, error) {
 func (o *Post) EncodeJSON(w io.Writer) error {
 	o.StripActionIntegrations()
 	return json.NewEncoder(w).Encode(o)
+}
+
+type CreatePostFlags struct {
+	TriggerWebhooks bool
+	SetOnline       bool
 }
 
 type GetPostsSinceOptions struct {
@@ -488,18 +512,28 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// Remove any input data from the post object that is not user controlled
+func (o *Post) SanitizeInput() {
+	o.DeleteAt = 0
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
+}
+
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {
@@ -849,8 +883,11 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
-		if embed.Type == PostEmbedPermalink {
+		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
 				return previewPost
 			}

@@ -6,16 +6,15 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import AdminSettings from './admin_settings';
-import type {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseState, BaseProps} from './old_admin_settings';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 interface State extends BaseState {
     extendSessionLengthWithActivity: ServiceSettings['ExtendSessionLengthWithActivity'];
+    terminateSessionsOnPasswordChange: ServiceSettings['TerminateSessionsOnPasswordChange'];
     sessionLengthWebInHours: ServiceSettings['SessionLengthWebInHours'];
     sessionLengthMobileInHours: ServiceSettings['SessionLengthMobileInHours'];
     sessionLengthSSOInHours: ServiceSettings['SessionLengthSSOInHours'];
@@ -39,6 +38,8 @@ const messages = defineMessages({
     sessionIdleTimeout: {id: 'admin.service.sessionIdleTimeout', defaultMessage: 'Session Idle Timeout (minutes):'},
     extendSessionLengthActivity_label: {id: 'admin.service.extendSessionLengthActivity.label', defaultMessage: 'Extend session length with activity: '},
     extendSessionLengthActivity_helpText: {id: 'admin.service.extendSessionLengthActivity.helpText', defaultMessage: 'When true, sessions will be automatically extended when the user is active in their Mattermost client. Users sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. '},
+    terminateSessionsOnPasswordChange_label: {id: 'admin.service.terminateSessionsOnPasswordChange.label', defaultMessage: 'Terminate Sessions on Password Change: '},
+    terminateSessionsOnPasswordChange_helpText: {id: 'admin.service.terminateSessionsOnPasswordChange.helpText', defaultMessage: 'When true, all sessions of a user will expire if their password is changed by themselves or an administrator.'},
     webSessionHours: {id: 'admin.service.webSessionHours', defaultMessage: 'Session Length AD/LDAP and Email (hours):'},
     mobileSessionHours: {id: 'admin.service.mobileSessionHours', defaultMessage: 'Session Length Mobile (hours):'},
     ssoSessionHours: {id: 'admin.service.ssoSessionHours', defaultMessage: 'Session Length SSO (hours):'},
@@ -68,11 +69,12 @@ export const searchableStrings = [
     messages.sessionIdleTimeoutDesc,
 ];
 
-export default class SessionLengthSettings extends AdminSettings<Props, State> {
+export default class SessionLengthSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         const MINIMUM_IDLE_TIMEOUT = 5;
 
         config.ServiceSettings.ExtendSessionLengthWithActivity = this.state.extendSessionLengthWithActivity;
+        config.ServiceSettings.TerminateSessionsOnPasswordChange = this.state.terminateSessionsOnPasswordChange;
         config.ServiceSettings.SessionLengthWebInHours = this.parseIntNonZero(this.state.sessionLengthWebInHours);
         config.ServiceSettings.SessionLengthMobileInHours = this.parseIntNonZero(this.state.sessionLengthMobileInHours);
         config.ServiceSettings.SessionLengthSSOInHours = this.parseIntNonZero(this.state.sessionLengthSSOInHours);
@@ -85,6 +87,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
     getStateFromConfig(config: AdminConfig) {
         return {
             extendSessionLengthWithActivity: config.ServiceSettings.ExtendSessionLengthWithActivity,
+            terminateSessionsOnPasswordChange: config.ServiceSettings.TerminateSessionsOnPasswordChange,
             sessionLengthWebInHours: config.ServiceSettings.SessionLengthWebInHours,
             sessionLengthMobileInHours: config.ServiceSettings.SessionLengthMobileInHours,
             sessionLengthSSOInHours: config.ServiceSettings.SessionLengthSSOInHours,
@@ -120,7 +123,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     type='number'
                     label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
-                    helpText={<FormattedMarkdownMessage {...messages.sessionIdleTimeoutDesc}/>}
+                    helpText={<FormattedMessage {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionIdleTimeoutInMinutes')}
@@ -138,6 +141,15 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     value={this.state.extendSessionLengthWithActivity}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.ExtendSessionLengthWithActivity')}
+                    disabled={this.props.isDisabled}
+                />
+                <BooleanSetting
+                    id='terminateSessionsOnPasswordChange'
+                    label={<FormattedMessage {...messages.terminateSessionsOnPasswordChange_label}/>}
+                    helpText={<FormattedMessage {...messages.terminateSessionsOnPasswordChange_helpText}/>}
+                    value={this.state.terminateSessionsOnPasswordChange}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('ServiceSettings.TerminateSessionsOnPasswordChange')}
                     disabled={this.props.isDisabled}
                 />
                 <TextSetting

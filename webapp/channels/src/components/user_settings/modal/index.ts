@@ -6,9 +6,11 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {sendVerificationEmail} from 'mattermost-redux/actions/users';
+import {getUserPreferences} from 'mattermost-redux/actions/preferences';
+import {getUser, sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {getUserPreferences as getUserPreferencesSelector} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser, getUser as getUserSelector} from 'mattermost-redux/selectors/entities/users';
 
 import {getPluginUserSettings} from 'selectors/plugins';
 
@@ -18,14 +20,19 @@ import type {GlobalState} from 'types/store';
 
 const UserSettingsModalAsync = makeAsyncComponent('UserSettingsModal', lazy(() => import('./user_settings_modal')));
 
-function mapStateToProps(state: GlobalState) {
+import type {OwnProps} from './user_settings_modal';
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
 
     const sendEmailNotifications = config.SendEmailNotifications === 'true';
     const requireEmailVerification = config.RequireEmailVerification === 'true';
 
+    const user = ownProps.adminMode && ownProps.userID ? getUserSelector(state, ownProps.userID) : getCurrentUser(state);
+
     return {
-        currentUser: getCurrentUser(state),
+        user,
+        userPreferences: ownProps.adminMode && ownProps.userID ? getUserPreferencesSelector(state, ownProps.userID) : undefined,
         sendEmailNotifications,
         requireEmailVerification,
         pluginSettings: getPluginUserSettings(state),
@@ -36,6 +43,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             sendVerificationEmail,
+            getUserPreferences,
+            getUser,
         }, dispatch),
     };
 }

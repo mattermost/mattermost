@@ -9,7 +9,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import PriorityLabels from 'components/advanced_create_post/priority_labels';
+import PriorityLabels from 'components/advanced_text_editor/priority_labels';
 import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
@@ -21,7 +21,7 @@ import type {PostDraft} from 'types/store/draft';
 import './panel_body.scss';
 
 type Props = {
-    channelId: string;
+    channelId?: string;
     displayName: string;
     fileInfos: PostDraft['fileInfos'];
     message: string;
@@ -55,7 +55,6 @@ function PanelBody({
     }, [currentRelativeTeamUrl]);
 
     return (
-
         <div className='DraftPanelBody post'>
             <div className='DraftPanelBody__left post__img'>
                 <ProfilePicture

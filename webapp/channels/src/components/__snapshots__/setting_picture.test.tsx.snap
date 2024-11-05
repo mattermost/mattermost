@@ -10,7 +10,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -46,8 +46,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -89,7 +88,12 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -125,7 +129,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -151,8 +155,7 @@ exports[`components/SettingItemMin should match snapshot with active Save button
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -194,7 +197,12 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -230,7 +238,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -266,8 +274,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -309,7 +316,12 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
           >
             <Memo(LoadingWrapper)
               loading={true}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -345,7 +357,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -393,8 +405,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -436,7 +447,12 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -472,7 +488,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -508,8 +524,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -551,7 +566,12 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -587,7 +607,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -635,8 +655,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -678,7 +697,12 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -714,7 +738,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -739,29 +763,15 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="removeIcon"
-              >
-                <div
-                  aria-hidden={true}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Remove This Icon"
-                    id="setting_picture.remove"
-                  />
-                </div>
-              </Tooltip>
-            }
+          <WithTooltip
+            disabled={false}
+            id="removeIcon"
             placement="right"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove This Icon"
+                id="setting_picture.remove"
+              />
             }
           >
             <button
@@ -783,7 +793,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 />
               </span>
             </button>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </li>
       <div
@@ -804,8 +814,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -847,7 +856,12 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"
@@ -883,7 +897,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
     Profile Picture
   </h4>
   <div
-    className="col-xs-offset-3 col-xs-8"
+    className="col-sm-10 col-sm-offset-2"
   >
     <div
       aria-describedby="setting-picture__helptext"
@@ -908,29 +922,15 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            delayShow={400}
-            overlay={
-              <Tooltip
-                id="removeIcon"
-              >
-                <div
-                  aria-hidden={true}
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Remove Profile Picture"
-                    id="setting_picture.remove_profile_picture"
-                  />
-                </div>
-              </Tooltip>
-            }
+          <WithTooltip
+            disabled={false}
+            id="removeIcon"
             placement="right"
-            trigger={
-              Array [
-                "hover",
-                "focus",
-              ]
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Remove Profile Picture"
+                id="setting_picture.remove_profile_picture"
+              />
             }
           >
             <button
@@ -952,7 +952,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 />
               </span>
             </button>
-          </OverlayTrigger>
+          </WithTooltip>
         </div>
       </li>
       <div
@@ -973,8 +973,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
         className="setting-list-item"
       >
         <hr />
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -1016,7 +1015,12 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           >
             <Memo(LoadingWrapper)
               loading={false}
-              text="Uploading..."
+              text={
+                Object {
+                  "defaultMessage": "Uploading...",
+                  "id": "setting_picture.uploading",
+                }
+              }
             >
               <MemoizedFormattedMessage
                 defaultMessage="Save"

@@ -10,7 +10,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   compassDesign={true}
   enforceFocus={false}
   headerButton={
-    <Memo(Connect(TeamPermissionGate))
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "create_public_channel",
@@ -30,7 +30,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
           id="more_channels.create"
         />
       </button>
-    </Memo(Connect(TeamPermissionGate))>
+    </Memo(TeamPermissionGate)>
   }
   id="browseChannelsModal"
   keyboardEscape={true}
@@ -128,7 +128,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
             id="more_channels.searchError"
           />
         </p>
-        <Memo(Connect(TeamPermissionGate))
+        <Memo(TeamPermissionGate)
           permissions={
             Array [
               "create_public_channel",
@@ -151,7 +151,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
               id="more_channels.create"
             />
           </button>
-        </Memo(Connect(TeamPermissionGate))>
+        </Memo(TeamPermissionGate)>
       </React.Fragment>
     }
     rememberHideJoinedChannelsChecked={false}

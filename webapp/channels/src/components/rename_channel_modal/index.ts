@@ -20,7 +20,7 @@ const mapStateToPropsRenameChannel = createSelector(
     (state: GlobalState) => {
         const currentTeamId = state.entities.teams.currentTeamId;
         const team = getTeam(state, currentTeamId);
-        const currentTeamUrl = `${getSiteURL()}/${team.name}`;
+        const currentTeamUrl = `${getSiteURL()}/${team ? team.name : ''}`;
         return {
             currentTeamUrl,
             team,

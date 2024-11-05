@@ -54,6 +54,7 @@ const GroupSettings = ({isDisabled}: Props) => {
                         subtitleValues={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
+                                    location='group_settings.ldap_groups'
                                     href={`${siteURL}/admin_console/authentication/ldap`}
                                 >
                                     {msg}

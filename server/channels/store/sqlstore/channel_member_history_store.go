@@ -153,7 +153,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
 	for _, channelMemberHistory := range histories {
 		channelMemberHistory.JoinTime = startTime
-		channelMemberHistory.LeaveTime = model.NewInt64(endTime)
+		channelMemberHistory.LeaveTime = model.NewPointer(endTime)
 	}
 	return histories, nil
 }

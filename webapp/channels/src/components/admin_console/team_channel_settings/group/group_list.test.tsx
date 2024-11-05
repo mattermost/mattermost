@@ -31,14 +31,12 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
                 totalGroups={0}
                 onPageChangedCallback={jest.fn()}
                 total={testGroups.length}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
                 actions={actions}
                 removeGroup={jest.fn()}
                 type='team'
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -64,14 +62,12 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
                 totalGroups={0}
                 onPageChangedCallback={jest.fn()}
                 total={30}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
                 actions={actions}
                 type='team'
                 removeGroup={jest.fn()}
                 setNewGroupRole={jest.fn()}
             />);
-        wrapper.setState({loading: false});
+
         expect(wrapper).toMatchSnapshot();
     });
 });

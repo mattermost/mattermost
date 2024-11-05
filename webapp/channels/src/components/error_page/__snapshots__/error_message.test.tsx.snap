@@ -108,8 +108,12 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
       values={
         Object {
           "link": <ErrorLink
-            defaultMessage="Google Apps"
-            messageId="error.oauth_missing_code.google.link"
+            message={
+              Object {
+                "defaultMessage": "Google Apps",
+                "id": "error.oauth_missing_code.google.link",
+              }
+            }
             url="https://docs.mattermost.com/deployment/sso-google.html"
           />,
         }
@@ -123,8 +127,12 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
       values={
         Object {
           "link": <ErrorLink
-            defaultMessage="Office 365"
-            messageId="error.oauth_missing_code.office365.link"
+            message={
+              Object {
+                "defaultMessage": "Entra ID",
+                "id": "error.oauth_missing_code.office365.link",
+              }
+            }
             url="https://docs.mattermost.com/deployment/sso-office.html"
           />,
         }
@@ -138,8 +146,12 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
       values={
         Object {
           "link": <ErrorLink
-            defaultMessage="GitLab"
-            messageId="error.oauth_missing_code.gitlab.link"
+            message={
+              Object {
+                "defaultMessage": "GitLab",
+                "id": "error.oauth_missing_code.gitlab.link",
+              }
+            }
             url="https://docs.mattermost.com/deployment/sso-gitlab.html"
           />,
         }
@@ -153,8 +165,12 @@ exports[`components/error_page/ErrorMessage should match snapshot, oauth_missing
       values={
         Object {
           "link": <ErrorLink
-            defaultMessage="Troubleshooting forum"
-            messageId="error.oauth_missing_code.forum.link"
+            message={
+              Object {
+                "defaultMessage": "Troubleshooting forum",
+                "id": "error.oauth_missing_code.forum.link",
+              }
+            }
             url="https://forum.mattermost.com/c/trouble-shoot"
           />,
         }

@@ -23,7 +23,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     teamId: string;
-    team: Team;
+    team?: Team;
     filters: GetFilteredUsersStatsOpts;
 
     users: UserProfile[];

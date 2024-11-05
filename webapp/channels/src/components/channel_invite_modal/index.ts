@@ -5,9 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
 import {getProfilesNotInChannel, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
@@ -50,7 +48,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
         let profilesNotInCurrentTeam: UserProfile[];
-        let membersInTeam: RelationOneToOne<UserProfile, TeamMembership>;
+        let membersInTeam;
 
         if (props.channelId && props.teamId) {
             profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
@@ -72,7 +70,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
         const emailInvitationsEnabled = config.EnableEmailInvitations === 'true';
         const isLicensed = license && license.IsLicensed === 'true';
-        const isGroupConstrained = Boolean(currentTeam.group_constrained);
+        const isGroupConstrained = Boolean(currentTeam?.group_constrained);
         const canInviteGuests = !isGroupConstrained && isLicensed && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
         const enableCustomUserGroups = isCustomGroupsEnabled(state);
 

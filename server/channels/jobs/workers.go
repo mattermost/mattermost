@@ -7,8 +7,8 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 )
 
 type Workers struct {

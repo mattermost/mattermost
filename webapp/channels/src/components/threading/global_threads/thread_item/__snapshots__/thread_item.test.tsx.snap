@@ -45,14 +45,15 @@ exports[`components/threading/global_threads/thread_item should report total num
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        id="threadActionMenu"
+        placement="top"
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -62,7 +63,7 @@ exports[`components/threading/global_threads/thread_item should report total num
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div
@@ -169,14 +170,15 @@ exports[`components/threading/global_threads/thread_item should report unread me
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        id="threadActionMenu"
+        placement="top"
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -186,7 +188,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div
@@ -291,14 +293,15 @@ exports[`components/threading/global_threads/thread_item should report unread me
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        id="threadActionMenu"
+        placement="top"
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -308,7 +311,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div

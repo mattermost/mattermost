@@ -7,7 +7,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 #TeamSidebar {
     z-index: 13;
     display: flex;
-    width: 65px;
+    width: 64px;
     height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
@@ -28,17 +28,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 16;
     left: 0;
     display: flex;
-    width: var(--overrideLhsWidth, 240px);
     min-width: 240px;
     max-width: 240px;
     height: 100%;
     flex-direction: column;
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
+        width: var(--overrideLhsWidth, 264px);
         min-width: 200px;
         max-width: 264px;
+        background: none;
     }
 
     @media screen and (min-width: 1201px) {
@@ -109,8 +109,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarHeader {
-        background-color: var(--sidebar-header-bg);
-
         .header__info {
             color: var(--sidebar-header-text-color);
 
@@ -216,10 +214,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             &--untouched {
                 color: var(--sidebar-unread-text);
                 font-weight: $font-weight--semibold;
-
-                i::before {
-                    font-weight: $font-weight--semibold;
-                }
             }
         }
 
@@ -832,6 +826,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         font-family: 'Open Sans', sans-serif;
         font-size: 12px;
         font-weight: 600;
+        letter-spacing: 0.05em;
         text-align: left;
         text-transform: uppercase;
         transition: box-shadow 0.25s ease-in-out;
@@ -1137,10 +1132,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         & span.SidebarChannelLinkLabel {
+            overflow: hidden;
             max-width: 100%;
             height: 18px;
             line-height: 18px;
             text-align: justify;
+            text-overflow: ellipsis;
+            user-select: none;
             white-space: nowrap;
         }
 
@@ -1282,10 +1280,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel.unread .SidebarChannelLinkLabel,
-    .SidebarChannel.unread .SidebarLink > i,
     .SidebarChannel.unread .SidebarLink:hover .SidebarChannelLinkLabel {
         color: var(--sidebar-unread-text);
         font-weight: 600;
+    }
+
+    .SidebarChannel.unread .SidebarLink > i {
+        color: var(--sidebar-unread-text);
     }
 
     .SidebarChannel .SidebarLink > i {
@@ -1299,13 +1300,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         overflow: hidden;
         flex-grow: 1;
-    }
-
-    .SidebarChannelLinkLabel_wrapper > div.truncated {
-        display: block;
-        overflow: hidden;
-        width: 100%;
-        text-overflow: ellipsis;
+        gap: 8px;
     }
 
     .DirectChannel__profile-picture {

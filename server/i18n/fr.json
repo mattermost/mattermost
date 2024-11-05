@@ -3140,14 +3140,6 @@
     "translation": "Impossible de décoder les résultats de recherche"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Impossible de créer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Impossible de démarrer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch est déjà arrêté"
   },
@@ -4456,10 +4448,6 @@
     "translation": "Veuillez spécifier une adresse e-mail valide."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Votre mot de passe doit contenir au moins {{.Min}} caractères et une lettre minuscule."
   },
@@ -4950,10 +4938,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Taille limite dépassée. Veuillez vérifier votre [taille maximale de page](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "Une erreur s'est produite lors de la suppression des membres d'équipe ou de canal"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5530,10 +5514,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Votre licence Enterprise Edition a expiré et certaines fonctionnalités peuvent être désactivées. Veuillez renouveler votre licence maintenant."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renouveler la licence maintenant"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6296,10 +6276,6 @@
     "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Le nœud d'API cluster est introuvable."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " a joint un fichier."
   },
@@ -6784,10 +6760,6 @@
     "translation": "Impossible de migrer le service SAML."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Erreur lors de l'obtention du lien pour le renouvellement de la licence"
-  },
-  {
     "id": "api.invalid_custom_url_scheme",
     "translation": "L'url du schéma personnalisé renseignée est invalide."
   },
@@ -6960,10 +6932,6 @@
     "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Votre espace de travail est prêt à fonctionner !"
   },
@@ -7114,10 +7082,6 @@
   {
     "id": "api.command_remote.invitation.help",
     "translation": "Invitation à partir d'une connexion sécurisée"
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Impossible de chiffre l'invitation. Mot de passe incorrect ou invitation endomagée : {{.Error}}"
   },
   {
     "id": "api.command_remote.fetch_status.error",
@@ -7300,10 +7264,6 @@
     "translation": "Système"
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Une erreur s'est produite lors de la création d'un canal partagé de messages personnels."
-  },
-  {
     "id": "app.select_error",
     "translation": "erreur de sélection"
   },
@@ -7356,18 +7316,6 @@
     "translation": "Pendant votre absence, {{.SenderName}} vous a envoyé un nouveau message personnel."
   },
   {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Aucune licence présente"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Ce type de licence ne permet pas de générer des jetons de renouvellement"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Impossible de générer un nouveau jeton de renouvellement."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults dans config.json est défini sur « false ». Veuillez le définir sur « true » pour télécharger les résultats de cette tâche."
   },
@@ -7390,10 +7338,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Une erreur s'est produite lors de la génération du mot de passe."
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Impossible de lire le fichier joint lors de l'importation."
   },
   {
     "id": "app.group.uniqueness_error",
@@ -7688,24 +7632,8 @@
     "translation": "Vous avez besoin d'aide ou vous avez des questions ? Envoyez-nous un courriel à "
   },
   {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pour consulter votre facture et ajouter un moyen de paiement, sélectionnez « Payer maintenant »."
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Action requise : Échec du paiement pour Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "La raison suivante a été fournie :"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Connectez-vous à votre compte client pour renouveler"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
@@ -7714,10 +7642,6 @@
   {
     "id": "api.templates.license_up_for_renewal_subject",
     "translation": "Votre licence doit être renouvelée"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Renouveler maintenant"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -7762,10 +7686,6 @@
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Impossible d'envoyer les e-mails de renouvellement de licence"
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Impossible de générer le lien de renouvellement de la licence"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8052,34 +7972,6 @@
     "translation": "Des questions ?"
   },
   {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Votre facture Mattermost Cloud est disponible"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Le paiement de votre abonnement à Mattermost Cloud est en retard"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Votre facture Mattermost Cloud pour la dernière période de facturation a été générée. Cependant, aucun moyen de paiement n'est enregistré dans votre compte."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Payer maintenant"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Paiement échoué"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Pour garantir un abonnement ininterrompu à Mattermost Cloud, veuillez contacter votre institution financière pour résoudre le problème sous-jacent ou mettez à jour vos moyens de paiement. Une fois les informations de paiement mises à jour, Mattermost tentera de régler le solde impayé."
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Votre institution financière a refusé un paiement de votre {{.CardBrand}} ****{{.LastFour}} associé à votre espace de travail Mattermost Cloud."
-  },
-  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "Impossible de compter les utilisateurs."
   },
@@ -8252,10 +8144,6 @@
     "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{.MaxLength}}"
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Le renouvellement de cette licence sur le portail n'est pas possible"
-  },
-  {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "La version du plugin pré-packagé n'a pas pu être traitée."
   },
@@ -8322,10 +8210,6 @@
   {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Impossible de vérifier si le magasin de l'utilisateur est vide."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Aucun courriel n'a été envoyé avec succès"
   },
   {
     "id": "app.user.send_auto_response.app_error",
@@ -8410,14 +8294,6 @@
   {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} vous a invité à rejoindre {{ .ChannelName }} de l'équipe {{ .TeamDisplayName }}"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Vous avez été mis à niveau !"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Confirmation de mise à niveau de Mattermost"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -8948,10 +8824,6 @@
     "translation": "{{.ConvertedByUsername}} a créé ce canal à partir d'un message de groupe avec {{.GMMembers}}."
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Il manque des champs obligatoires pour l'envoi d'un courrier électronique relatif à une infraction."
-  },
-  {
     "id": "api.command_invite.successOverflow",
     "translation": "{{.FirstUser}} et {{.Others}} ajoutés au canal {{.Channel}}."
   },
@@ -8982,5 +8854,25 @@
   {
     "id": "api.license.request-trial.bad-request.business-email",
     "translation": "Adresse e-mail professionnelle invalide pour l'essai"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Un fil de discussion avec {{.NumMessages}} messages a été déplacé : {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Un message a été déplacé vers un message personnel ou un message de groupe\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Ce fil a été déplacé à partir d’un autre canal"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Un message a été déplace : {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Un fil de discussion avec {{.NumMessages}} messages a été déplace vers un message personnel ou un message de groupe.\n"
   }
 ]

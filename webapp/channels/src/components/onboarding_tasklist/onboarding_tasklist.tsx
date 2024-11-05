@@ -43,7 +43,7 @@ import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
 
 const TaskItems = styled.div`
-    border-radius: 4px;
+    border-radius: var(--radius-m);
     border: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     background-color: var(--center-channel-bg);
     width: 352px;
@@ -91,9 +91,9 @@ const Button = styled.button<{open: boolean}>(({open}) => {
         width: 36px;
         height: 36px;
         padding: 7px;
-        border-radius: 50%;
-        left: 20px;
-        bottom: 20px;
+        border-radius: var(--radius-full);
+        left: 15px;
+        bottom: 15px;
         position: fixed;
         z-index: 101;
         display: flex;
@@ -113,15 +113,15 @@ const Button = styled.button<{open: boolean}>(({open}) => {
             width: 20px;
             height: 16px;
             background: var(--button-bg);
-            position: fixed;
+            position: absolute;
             display: ${open ? 'none' : 'block'};
             border-radius: 12px;
             color: var(--button-color);
             font-weight: bold;
             font-size: 11px;
             line-height: 16px;
-            bottom: 47px;
-            left: 41px;
+            bottom: 22px;
+            left: 22px;
         }
     `;
 });
@@ -130,7 +130,7 @@ const PlayButton = styled.button`
     padding: 10px 0;
     max-width: 175px;
     background: var(--button-bg);
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     color: var(--button-color);
     border: none;
     font-weight: bold;
@@ -161,11 +161,11 @@ const Skeleton = styled.div`
 `;
 
 const OnBoardingTaskList = (): JSX.Element | null => {
-    const myPreferences = useSelector((state: GlobalState) => getMyPreferencesSelector(state));
+    const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
-        if (Object.keys(myPreferences).length === 0) {
+        if (!hasPreferences) {
             dispatch(getMyPreferences());
         }
     }, []);
@@ -182,7 +182,10 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isCurrentUserSystemAdmin = useIsCurrentUserSystemAdmin();
     const isFirstAdmin = useFirstAdminUser();
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
-    const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
+    const [showTaskList, firstTimeOnboarding] = useSelector(
+        getShowTaskListBool,
+        (a, b) => a[0] === b[0] && a[1] === b[1],
+    );
     const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
@@ -284,7 +287,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }));
     }, []);
 
-    if (Object.keys(myPreferences).length === 0 || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
         return null;
     }
 

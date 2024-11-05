@@ -46,7 +46,13 @@ export default function configureStore<S extends GlobalState>({
         autoPause: true,
     });
 
-    const middleware = applyMiddleware(thunk);
+    const middleware = applyMiddleware(
+
+        // @hmhealey I've added this extra argument to Thunks to store information related to the store that can't be
+        // part of Redux state itself. At the moment, this is so that I can attach let DataLoaders dispatch actions.
+        // If you want to make use of this, talk to me first since I want to know more.
+        thunk.withExtraArgument({loaders: {}}),
+    );
 
     const enhancers = composeEnhancers(middleware);
 

@@ -36,7 +36,8 @@ describe('Search', () => {
         cy.postMessage(message);
 
         // # Search for "apple"
-        cy.get('#searchBox').should('be.visible').type(apple).type('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().should('be.visible').first().type(apple).type('{enter}');
 
         // # Get last postId
         cy.getLastPostId().as('lastPostId');
@@ -46,8 +47,10 @@ describe('Search', () => {
             verifySearchResult(1, postId, message, apple);
         });
 
+        cy.uiGetSearchContainer().click();
+
         // * Type banana on search box but don't hit search
-        cy.get('#searchBox').clear({force: true}).type(banana, {force: true});
+        cy.uiGetSearchBox().first().clear({force: true}).type(banana, {force: true});
 
         // * Search result should not change and remain as one result with highlight still on apple
         cy.get('@lastPostId').then((postId) => {

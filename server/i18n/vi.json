@@ -2072,10 +2072,6 @@
     "translation": "Không thể lấy liên kết public cho tệp tin. Tệp tin phải được gắn vào bài đăng và có thể được đọc bởi người dùng hiện tại."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "lỗi xóa nhóm hoặc thành viên kênh"
-  },
-  {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
     "translation": "URL gọi lại không hợp lệ"
   },
@@ -2716,10 +2712,6 @@
   {
     "id": "api.command_msg.dm_fail.app_error",
     "translation": "Đã xảy ra lỗi trong khi tạo tin nhắn trực tiếp."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
@@ -4538,10 +4530,6 @@
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Không thể khởi động bộ xử lý hàng loạt Elaticsearch"
-  },
-  {
     "id": "api.command_collapse.success",
     "translation": "Liên kết hình ảnh hiện tại bị thu gọn theo mặc định"
   },
@@ -4932,10 +4920,6 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Tin nhắn xuất từ ExportFormat được đặt từ 'globalrelay', nhưng GlobalRelaySettings đang thiếu"
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Không thể tạo bộ xử lý hàng loạt Elaticsearch"
   },
   {
     "id": "api.command_me.hint",
@@ -5514,10 +5498,6 @@
     "translation": "SMTP không được định cấu hình trong Bảng điều khiển hệ thống"
   },
   {
-    "id": "api.templates.delinquency_30.bullet.message_history",
-    "translation": "Lịch sử tin nhắn"
-  },
-  {
     "id": "api.templates.invite_body_footer.learn_more",
     "translation": "Tìm hiểu thêm"
   },
@@ -5544,10 +5524,6 @@
   {
     "id": "api.channel.restore_channel.unarchived",
     "translation": "{{.Username}} đã hủy lưu trữ kênh."
-  },
-  {
-    "id": "api.templates.delinquency_30.bullet.files",
-    "translation": "Tệp"
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -5818,10 +5794,6 @@
     "translation": "Matter Extreme là một nền tảng nguồn mở để liên lạc, cộng tác và điều phối công việc một cách an toàn giữa các công cụ và nhóm.\nMattermost chứa ba công cụ chính:\n\n**Kênh** - Luôn kết nối với nhóm của bạn thông qua nhắn tin 1:1 và nhóm.\n**[Playbooks](/playbooks)** - Xây dựng và định cấu hình các quy trình có thể lặp lại để đạt được kết quả cụ thể và có thể dự đoán được.\n**[Boards](/boards)** - Quản lý các dự án và nhiệm vụ theo cấu trúc bảng Kanban để giúp nhóm của bạn đạt được các cột mốc quan trọng.\n\n[Xem tài liệu và hướng dẫn]({{.HelpLink}})"
   },
   {
-    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
-    "translation": "Thiếu các trường bắt buộc để gửi email quá hạn."
-  },
-  {
     "id": "api.command_exportlink.driver.app_error",
     "translation": "Trình điều khiển lưu trữ tệp không hỗ trợ tạo liên kết."
   },
@@ -5872,10 +5844,6 @@
   {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "Lệnh kho tiện ích không hỗ trợ trên thiết bị của bạn."
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Không thể giải mã lời mời. Mật khẩu không chính xác hoặc lời mời bị hỏng: {{.Error}}"
   },
   {
     "id": "api.command_remote.name.help",
@@ -6038,10 +6006,6 @@
     "translation": "Một hoặc nhiều quyền sau đây mà bạn đang cố gắng thêm hoặc xóa không được phép"
   },
   {
-    "id": "api.server.cws.delete_workspace.app_error",
-    "translation": "Máy chủ CWS không xóa được không gian làm việc."
-  },
-  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "Máy chủ CWS không khả dụng."
   },
@@ -6056,10 +6020,6 @@
   {
     "id": "api.server.hosted_signup_unavailable.error",
     "translation": "Cổng thông tin không có sẵn để đăng ký tự lưu trữ."
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "Failed to generate the license renewal link"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -6150,18 +6110,6 @@
     "translation": "Kiểm tra giới hạn hình ảnh không thành công. Độ phân giải quá cao."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": "Xác nhận nâng cấp quan trọng nhất"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Bây giờ bạn đã được nâng cấp!"
-  },
-  {
-    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
-    "translation": "Không gian làm việc {{.WorkspaceName}} của bạn hiện đã được nâng cấp."
-  },
-  {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Thêm ứng dụng vào không gian làm việc của bạn"
   },
@@ -6230,154 +6178,6 @@
     "translation": "Không gian làm việc của bạn đã sẵn sàng hoạt động!"
   },
   {
-    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
-    "translation": "Xem hóa đơn của bạn"
-  },
-  {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.delinquency_14.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_14.subject",
-    "translation": "Đã quá hạn thanh toán cho Mattermost {{.Plan}} của bạn"
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Chúng tôi không thể tính phí vào thẻ tín dụng mà chúng tôi có trong hồ sơ. Điều này đồng nghĩa với việc không gian làm việc của bạn có nguy cơ bị hạ cấp xuống Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_30.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_14.title",
-    "translation": "Không nhận được thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_30.limits_documentation",
-    "translation": "Xem tất cả tài liệu về giới hạn."
-  },
-  {
-    "id": "api.templates.delinquency_30.subject",
-    "translation": "Hãy hành động để duy trì các tính năng {{.Plan}} quan trọng nhất của bạn"
-  },
-  {
-    "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "Nếu không thực hiện hành động nào, không gian làm việc của bạn sẽ bị hạ cấp và dữ liệu sau có thể được lưu trữ:"
-  },
-  {
-    "id": "api.templates.delinquency_30.title",
-    "translation": "Không gian làm việc của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_45.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Chúng tôi không thể thu khoản thanh toán cho các hoá đơn chưa thanh toán kể từ {{.DelinquencyDate}}. Không gian làm việc của bạn có nguy cơ bị hạ cấp."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle3",
-    "translation": "Hãy cập nhật thông tin thẻ tín dụng của bạn ngay bây giờ."
-  },
-  {
-    "id": "api.templates.delinquency_45.title",
-    "translation": "Không gian làm việc của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_60.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_free",
-    "translation": "Hạ cấp xuống đám mây miễn phí"
-  },
-  {
-    "id": "api.templates.delinquency_60.subject",
-    "translation": "Hành động bắt buộc: Không gian làm việc sẽ bị hạ cấp sau 30 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle2",
-    "translation": "Chúng tôi sẽ tự động hạ cấp không gian làm việc của bạn sau 30 ngày nếu chúng tôi không thể xử lý khoản thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Cập nhật thông tin thanh toán của bạn ngay bây giờ hoặc hạ cấp xuống Cloud Free bên dưới."
-  },
-  {
-    "id": "api.templates.delinquency_60.title",
-    "translation": "Không gian làm việc Mattermost của bạn sẽ bị hạ cấp sau 30 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_7.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Chúng tôi không thể xử lý khoản thanh toán gần đây nhất của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_7.title",
-    "translation": "Thanh toán của bạn chưa hoàn tất"
-  },
-  {
-    "id": "api.templates.delinquency_75.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_free",
-    "translation": "Hạ cấp xuống đám mây miễn phí"
-  },
-  {
-    "id": "api.templates.delinquency_75.subject",
-    "translation": "Mattermost {{.Plan}} của bạn sẽ bị hạ cấp sau 15 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Đây là lời nhắc cuối cùng rằng chúng tôi chưa nhận được khoản thanh toán cho không gian làm việc Mattermost Cloud của bạn kể từ {{.DelinquencyDate}}."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Không gian làm việc của bạn sẽ bị hạ cấp xuống Cloud Free. Các tính năng {{.Plan}} của bạn sẽ bị khóa và một số dữ liệu không gian làm việc của bạn có thể được lưu trữ cho đến khi giải quyết toàn bộ số dư chưa thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Cập nhật thông tin thanh toán của bạn ngay bây giờ hoặc hạ cấp xuống Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_75.title",
-    "translation": "Không gian làm việc của bạn sẽ bị hạ cấp sau 15 ngày"
-  },
-  {
-    "id": "api.templates.delinquency_90.button",
-    "translation": "Cập nhật thanh toán"
-  },
-  {
-    "id": "api.templates.delinquency_90.secondary_action_button",
-    "translation": "Xem các gói và chi phí"
-  },
-  {
-    "id": "api.templates.delinquency_90.subject",
-    "translation": "Không gian làm việc trên Matter Extreme Cloud của bạn đã bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ngoài ra, dữ liệu của bạn có thể đã được lưu trữ do các giới hạn của Cloud Free."
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle3",
-    "translation": "Để hủy lưu trữ dữ liệu của bạn và duy trì các tính năng trả phí, hãy cập nhật thông tin thanh toán của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_90.title",
-    "translation": "Không gian làm việc Mattermost của bạn đã bị hạ cấp"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Gửi email cho chúng tôi bất cứ lúc nào tại "
   },
@@ -6402,10 +6202,6 @@
     "translation": "Mattermost là gì?"
   },
   {
-    "id": "api.templates.license_up_for_renewal_renew_now",
-    "translation": "Gia hạn ngay bây giờ"
-  },
-  {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} đã mời bạn tham gia Kênh {{ .ChannelName }} trong Nhóm {{ .TeamDisplayName }}"
   },
@@ -6422,44 +6218,8 @@
     "translation": "Giấy phép của bạn đã đến kỳ gia hạn"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": "Đăng nhập vào Tài khoản khách hàng của bạn để gia hạn"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Đăng ký Mattermost của bạn sắp được gia hạn"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Tổ chức tài chính của bạn đã từ chối khoản thanh toán từ {{.CardBrand}} ****{{.LastFour}} được liên kết với không gian làm việc Mattermost Cloud của bạn."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Họ đưa ra lý do sau:"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Hành động bắt buộc: Thanh toán không thành công cho Matter Extreme {{.Plan}}"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Thanh toán không thành công"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Thanh toán ngay bây giờ"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Để xem lại hóa đơn của bạn và thêm phương thức thanh toán, hãy chọn Thanh toán ngay."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Khoản thanh toán đến hạn cho đăng ký Mattermost Cloud của bạn"
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Hóa đơn trên nền tảng đám mây quan trọng nhất của bạn sắp đến hạn"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -6468,10 +6228,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Bạn có thắc mắc?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Gia hạn giấy phép ngay bây giờ"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -6514,32 +6270,8 @@
     "translation": "Cám ơn vì đã tham gia "
   },
   {
-    "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "Bạn có thời gian để duy trì hoạt động Mattermost {{.Plan}} của mình nhưng bạn sẽ cần giải quyết các vấn đề với phương thức thanh toán của mình."
-  },
-  {
-    "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "Để duy trì gói {{.Plan}} của bạn hoạt động, vui lòng liên hệ với tổ chức tài chính của bạn càng sớm càng tốt. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
-  },
-  {
-    "id": "api.templates.delinquency_45.subject",
-    "translation": "Lưu ý: Mattermost {{.Plan}} của bạn sẽ sớm bị hạ cấp"
-  },
-  {
-    "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "Nếu bạn sử dụng các tính năng của Cloud Professional hoặc Enterprise cho các hoạt động kinh doanh quan trọng thì những tính năng này sẽ không còn khả dụng nữa và bạn sẽ thấy hiệu suất bị suy giảm."
-  },
-  {
-    "id": "api.templates.delinquency_45.subtitle2",
-    "translation": "Không gian làm việc bị hạ cấp có thể ảnh hưởng tiêu cực đến các quy trình công việc quan trọng và các hoạt động kinh doanh quan trọng khác được thực hiện tại không gian làm việc của bạn."
-  },
-  {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.delinquency_60.subtitle1",
-    "translation": "Vui lòng cập nhật sớm thông tin thanh toán của bạn để xử lý các hóa đơn chưa thanh toán của bạn."
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -6548,14 +6280,6 @@
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, đăng ký của bạn sẽ hết hạn sau {{.Days}} ngày. Chúng tôi hy vọng bạn đang trải nghiệm sự cộng tác nhóm linh hoạt và an toàn mà Mattermost mang lại. Hãy sớm gia hạn để đảm bảo nhóm của bạn có thể tiếp tục tận hưởng những lợi ích này."
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Để đảm bảo quyền truy cập không bị gián đoạn vào Matter Extreme {{.Plan}}, vui lòng liên hệ với tổ chức tài chính của bạn để khắc phục sự cố cơ bản hoặc cập nhật thông tin thanh toán của bạn. Sau khi thông tin thanh toán được cập nhật, Mattermost sẽ cố gắng giải quyết mọi số dư chưa thanh toán."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Hóa đơn Matter Extreme Cloud của bạn cho kỳ thanh toán gần đây nhất đã được xử lý. Tuy nhiên, chúng tôi không có chi tiết thanh toán của bạn trong hồ sơ."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -6574,16 +6298,8 @@
     "translation": "Nhấp vào nút bên dưới để đặt lại mật khẩu của bạn. Nếu bạn không yêu cầu điều này, bạn có thể yên tâm bỏ qua email này."
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
-    "translation": "Không gian làm việc {{.WorkspaceName}} của bạn hiện đã được nâng cấp. Bạn sẽ được lập hoá đơn từ {{.Date}}"
-  },
-  {
     "id": "api.templates.welcome_body.subTitle2",
     "translation": "Nhấp vào bên dưới để xác minh địa chỉ email của bạn."
-  },
-  {
-    "id": "api.templates.delinquency_14.subtitle2",
-    "translation": "Vui lòng liên hệ với tổ chức tài chính của bạn để giải quyết mọi vấn đề. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
   },
   {
     "id": "api.cloud.request_error",
@@ -6808,10 +6524,6 @@
   {
     "id": "app.session.update_device_id.app_error",
     "translation": "Không thể cập nhật id thiết bị."
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "Đã gặp lỗi khi tạo kênh chia sẻ trực tiếp."
   },
   {
     "id": "app.status.get.app_error",
@@ -7096,10 +6808,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Không thể gửi phản hồi tự động từ người dùng."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Không có email nào được gửi thành công"
   },
   {
     "id": "app.user.store_is_empty.app_error",
@@ -7662,44 +7370,12 @@
     "translation": "Không thể áp dụng giấy phép dùng thử mới. Trước đây, bạn đã đăng ký giấy phép dùng thử cho phiên bản Matter Extreme này. Nếu bạn muốn kéo dài thời gian dùng thử, vui lòng [liên hệ với nhóm bán hàng của chúng tôi](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Lỗi lấy link gia hạn giấy phép"
-  },
-  {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": "Không thể gia hạn giấy phép này trên cổng thông tin"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Chúng tôi không thể xử lý yêu cầu do những hạn chế đối với các quốc gia bị cấm vận. [Tìm hiểu thêm trong tài liệu của chúng tôi](https://mattermost.com/pl/limitations-for-embargoed-countries) hoặc liên hệ với legal@mattermost.com nếu có câu hỏi xung quanh các hạn chế xuất khẩu."
-  },
-  {
-    "id": "api.license.true_up_review.create_error",
-    "translation": "Không thể tạo bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.failed_to_submit",
-    "translation": "Không thể gửi hồ sơ đánh giá thực tế tới CWS."
-  },
-  {
-    "id": "api.license.true_up_review.get_status_error",
-    "translation": "Không thể lấy được bản ghi trạng thái đúng"
-  },
-  {
-    "id": "api.license.true_up_review.license_required",
-    "translation": "Đánh giá thực tế cần có giấy phép"
-  },
-  {
-    "id": "api.license.true_up_review.not_allowed_for_cloud",
-    "translation": "Đánh giá thực tế không được phép đối với các phiên bản đám mây"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_in_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook đến"
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -7780,14 +7456,6 @@
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
     "translation": "Người dùng không được phép tạo bài đăng ưu tiên hoặc thông báo liên tục."
-  },
-  {
-    "id": "api.license.true_up_review.user_count_fail",
-    "translation": "Không thể lấy tổng số người dùng đang hoạt động"
-  },
-  {
-    "id": "api.license.true_up_review.webhook_out_count_fail",
-    "translation": "Không thể lấy tổng số lượng webhook gửi đi"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -7950,22 +7618,6 @@
     "translation": "Không thể cập nhật thành viên kênh."
   },
   {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Không thể truy xuất các sản phẩm trên đám mây"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": "Không thể lấy tên gói hiện tại"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Không thể truy xuất đăng ký đám mây"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Đăng ký không quá hạn"
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Không thể lấy số lượng tệp cho kênh"
   },
@@ -8108,14 +7760,6 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Lỗi tìm nạp bài đăng có thể truy cập lần cuối"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Không tạo được mã thông báo gia hạn mới."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Không có giấy phép hiện tại"
   },
   {
     "id": "app.member_count",
@@ -8432,10 +8076,6 @@
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
     "translation": "Các chỉ mục bị bỏ qua để thanh lọc không được bắt đầu bằng dấu gạch ngang."
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Loại giấy phép này không hỗ trợ tạo mã thông báo gia hạn"
   },
   {
     "id": "app.role.get_by_name.app_error",
@@ -8926,10 +8566,6 @@
     "translation": "Đánh chỉ mục file thất bại."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Không tìm thấy điểm cuối API cụm."
-  },
-  {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
     "translation": "Giải mã chứng chỉ ứng dụng khách cho Elaticsearch không thành công"
   },
@@ -8988,10 +8624,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Đã hết thời gian chờ phản hồi của cụm"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
-    "translation": "Giải mã CA cho Elaticsearch không thành công"
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
@@ -9304,10 +8936,6 @@
   {
     "id": "app.group.uniqueness_error",
     "translation": "thành viên nhóm đã tồn tại"
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Không thể đọc tệp đính kèm trong quá trình nhập."
   },
   {
     "id": "app.import.generate_password.app_error",

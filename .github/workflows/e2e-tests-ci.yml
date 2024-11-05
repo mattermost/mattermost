@@ -7,11 +7,11 @@ on:
     inputs:
       commit_sha:
         type: string
-        required: false
+        required: true
 
 jobs:
   e2e-smoketest:
     uses: ./.github/workflows/e2e-tests-ci-template.yml
     with:
-      commit_sha: "${{ inputs.commit_sha || github.sha }}"
+      commit_sha: "${{ inputs.commit_sha }}"
       status_check_context: "E2E Tests/smoketests"

@@ -14,22 +14,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 func makeTestAtmosCamoProxy() *ImageProxy {
 	configService := &testutils.StaticConfigService{
 		Cfg: &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL:                             model.NewString("https://mattermost.example.com"),
-				AllowedUntrustedInternalConnections: model.NewString("127.0.0.1"),
+				SiteURL:                             model.NewPointer("https://mattermost.example.com"),
+				AllowedUntrustedInternalConnections: model.NewPointer("127.0.0.1"),
 			},
 			ImageProxySettings: model.ImageProxySettings{
-				Enable:                  model.NewBool(true),
-				ImageProxyType:          model.NewString(model.ImageProxyTypeAtmosCamo),
-				RemoteImageProxyURL:     model.NewString("http://images.example.com"),
-				RemoteImageProxyOptions: model.NewString("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
+				Enable:                  model.NewPointer(true),
+				ImageProxyType:          model.NewPointer(model.ImageProxyTypeAtmosCamo),
+				RemoteImageProxyURL:     model.NewPointer("http://images.example.com"),
+				RemoteImageProxyOptions: model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
 			},
 		},
 	}
@@ -66,14 +66,13 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	defer mock.Close()
 
 	proxy := makeTestAtmosCamoProxy()
-	parsedURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
+	parsedURL, err := url.Parse("https://mattermost.example.com")
 	require.NoError(t, err)
 
 	remoteURL, err := url.Parse(mock.URL)
 	require.NoError(t, err)
 
 	backend := &AtmosCamoBackend{
-		proxy:     proxy,
 		siteURL:   parsedURL,
 		remoteURL: remoteURL,
 		client:    proxy.HTTPService.MakeClient(false),
@@ -177,9 +176,9 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			require.NoError(t, err)
 
 			backend := &AtmosCamoBackend{
-				proxy:     makeTestAtmosCamoProxy(),
-				siteURL:   parsedURL,
-				remoteURL: remoteURL,
+				siteURL:       parsedURL,
+				remoteURL:     remoteURL,
+				remoteOptions: *makeTestAtmosCamoProxy().ConfigService.Config().ImageProxySettings.RemoteImageProxyOptions,
 			}
 
 			assert.Equal(t, test.Expected, backend.getAtmosCamoImageURL(test.Input))

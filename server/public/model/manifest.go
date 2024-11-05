@@ -89,6 +89,33 @@ type PluginSetting struct {
 	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
 	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
 	Hosting string `json:"hosting"`
+
+	// If true, the setting is sanitized before showing it in the System Console or returning it via the API.
+	// This is useful for settings that contain sensitive information.
+	Secret bool `json:"secret"`
+}
+
+type PluginSettingsSection struct {
+	// A unique identifier for this section.
+	Key string `json:"key" yaml:"key"`
+
+	// Optional text to display as section title.
+	Title string `json:"title" yaml:"title"`
+
+	// Optional text to display as section subtitle.
+	Subtitle string `json:"subtitle" yaml:"subtitle"`
+
+	// A list of setting definitions to display inside the section.
+	Settings []*PluginSetting `json:"settings" yaml:"settings"`
+
+	// Optional text to display above the settings. Supports Markdown formatting.
+	Header string `json:"header" yaml:"header"`
+
+	// Optional text to display below the settings. Supports Markdown formatting.
+	Footer string `json:"footer" yaml:"footer"`
+
+	// If true, the section will load the custom component registered using `registry.registerAdminConsoleCustomSection`
+	Custom bool `json:"custom" yaml:"custom"`
 }
 
 type PluginSettingsSchema struct {
@@ -100,6 +127,9 @@ type PluginSettingsSchema struct {
 
 	// A list of setting definitions.
 	Settings []*PluginSetting `json:"settings" yaml:"settings"`
+
+	// A list of settings section definitions.
+	Sections []*PluginSettingsSection `json:"sections" yaml:"sections"`
 }
 
 // The plugin manifest defines the metadata required to load and present your plugin. The manifest
@@ -323,6 +353,27 @@ func (m *Manifest) IsValid() error {
 }
 
 func (s *PluginSettingsSchema) isValid() error {
+	for _, setting := range s.Settings {
+		err := setting.isValid()
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, section := range s.Sections {
+		if err := section.IsValid(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSettingsSection) IsValid() error {
+	if s.Key == "" {
+		return errors.New("invalid empty Key")
+	}
+
 	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {

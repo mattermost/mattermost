@@ -6,10 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     fileIndex: number;
@@ -20,18 +17,16 @@ interface Props {
 
 const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const leftArrow = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='previewArrowLeft'
-            placement='bottom'
-            overlay={
-                <Tooltip id='close-icon-tooltip'>
-                    <FormattedMessage
-                        id='generic.close'
-                        defaultMessage='Close'
-                    />
-                </Tooltip>
+            id='close-icon-tooltip'
+            title={
+                <FormattedMessage
+                    id='generic.close'
+                    defaultMessage='Close'
+                />
             }
+            placement='bottom'
         >
             <button
                 id='previewArrowLeft'
@@ -40,22 +35,20 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
             >
                 <i className='icon icon-chevron-left'/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     const rightArrow = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
             key='publicLink'
-            placement='bottom'
-            overlay={
-                <Tooltip id='close-icon-tooltip'>
-                    <FormattedMessage
-                        id='generic.next'
-                        defaultMessage='Next'
-                    />
-                </Tooltip>
+            id='close-icon-tooltip'
+            title={
+                <FormattedMessage
+                    id='generic.next'
+                    defaultMessage='Next'
+                />
             }
+            placement='bottom'
         >
             <button
                 id='previewArrowRight'
@@ -64,7 +57,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
             >
                 <i className='icon icon-chevron-right'/>
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
     return (
         <div className='file_preview_modal_main_nav'>

@@ -4,13 +4,9 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
-	"os"
 	"runtime"
-	"runtime/pprof"
-	"strings"
-	"time"
+	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -19,48 +15,99 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/config"
 )
 
-const (
-	cpuProfileDuration = 5 * time.Second
-)
-
-func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings []string
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{}
-
+func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	// A array of the functions that we can iterate through since they all have the same return value
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
-		"support package":  a.generateSupportPacketYaml,
-		"plugins":          a.createPluginsFile,
-		"config":           a.createSanitizedConfigFile,
-		"mattermost log":   a.getMattermostLog,
-		"notification log": a.getNotificationsLog,
-		"cpu profile":      a.createCPUProfile,
-		"heap profile":     a.createHeapProfile,
-		"goroutines":       a.createGoroutineProfile,
+		"support packet": a.generateSupportPacketYaml,
+		"plugins":        a.createPluginsFile,
+		"config":         a.createSanitizedConfigFile,
+		"cpu profile":    a.Srv().Platform().CreateCPUProfile,
+		"heap profile":   a.Srv().Platform().CreateHeapProfile,
+		"goroutines":     a.Srv().Platform().CreateGoroutineProfile,
+		"metadata":       a.createSupportPacketMetadata,
 	}
 
-	for name, fn := range functions {
-		fileData, err := fn(c)
-		if err != nil {
-			c.Logger().Error("Failed to generate file for support package", mlog.Err(err), mlog.String("file", name))
-			warnings = append(warnings, err.Error())
-		} else if fileData != nil {
-			fileDatas = append(fileDatas, *fileData)
+	if options.IncludeLogs {
+		functions["mattermost log"] = a.Srv().Platform().GetLogFile
+		functions["notification log"] = a.Srv().Platform().GetNotificationLogFile
+	}
+
+	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+	var warnings *multierror.Error
+	// Creating an array of files that we are going to be adding to our zip file
+	var fileDatas []model.FileData
+	var wg sync.WaitGroup
+	var mut sync.Mutex // Protects warnings and fileDatas
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for name, fn := range functions {
+			fileData, err := fn(c)
+			mut.Lock()
+			if err != nil {
+				c.Logger().Error("Failed to generate file for Support Packet", mlog.String("file", name), mlog.Err(err))
+				warnings = multierror.Append(warnings, err)
+			}
+
+			if fileData != nil {
+				fileDatas = append(fileDatas, *fileData)
+			}
+			mut.Unlock()
+		}
+	}()
+
+	// Run the cluster generation in a separate goroutine as CPU profile generation and file upload can take a long time
+	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			files, err := cluster.GenerateSupportPacket(c, options)
+			mut.Lock()
+			if err != nil {
+				c.Logger().Error("Failed to generate Support Packet from cluster nodes", mlog.Err(err))
+				warnings = multierror.Append(warnings, err)
+			}
+
+			for _, node := range files {
+				fileDatas = append(fileDatas, node...)
+			}
+			mut.Unlock()
+		}()
+	}
+
+	wg.Wait()
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := pluginContext(c)
+		for _, id := range options.PluginPackets {
+			hooks, err := pluginsEnvironment.HooksForPlugin(id)
+			if err != nil {
+				c.Logger().Error("Failed to call hooks for plugin", mlog.Err(err), mlog.String("plugin", id))
+				warnings = multierror.Append(warnings, err)
+				continue
+			}
+			pluginData, err := hooks.GenerateSupportData(pluginContext)
+			if err != nil {
+				c.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.Err(err), mlog.String("plugin", id))
+				warnings = multierror.Append(warnings, err)
+				continue
+			}
+			for _, data := range pluginData {
+				fileDatas = append(fileDatas, *data)
+			}
 		}
 	}
 
 	// Adding a warning.txt file to the fileDatas if any warning
-	if len(warnings) > 0 {
-		finalWarning := strings.Join(warnings, "\n")
+	if warnings != nil {
 		fileDatas = append(fileDatas, model.FileData{
-			Filename: "warning.txt",
-			Body:     []byte(finalWarning),
+			Filename: model.SupportPacketErrorFile,
+			Body:     []byte(warnings.Error()),
 		})
 	}
 
@@ -68,7 +115,7 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 }
 
 func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
-	var rErr error
+	var rErr *multierror.Error
 
 	/* DB */
 
@@ -81,8 +128,8 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* Cluster */
 
 	var clusterID string
-	if a.Cluster() != nil {
-		clusterID = a.Cluster().GetClusterId()
+	if cluster := a.Cluster(); cluster != nil {
+		clusterID = cluster.GetClusterId()
 	}
 
 	/* File store */
@@ -97,17 +144,27 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* LDAP */
 
 	var vendorName, vendorVersion string
-	if ldapInterface := a.Ldap(); ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion(c)
+	if ldap := a.Ldap(); ldap != nil {
+		vendorName, vendorVersion, err = ldap.GetVendorNameAndVendorVersion(c)
+		if err != nil {
+			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
+		}
+
+		if vendorName == "" {
+			vendorName = "unknown"
+		}
+		if vendorVersion == "" {
+			vendorVersion = "unknown"
+		}
 	}
 
 	/* Elastic Search */
 
 	var elasticServerVersion string
 	var elasticServerPlugins []string
-	if a.Srv().Platform().SearchEngine.ElasticsearchEngine != nil {
-		elasticServerVersion = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetPlugins()
+	if se := a.Srv().Platform().SearchEngine.ElasticsearchEngine; se != nil {
+		elasticServerVersion = se.GetFullVersion()
+		elasticServerPlugins = se.GetPlugins()
 	}
 
 	/* License */
@@ -141,22 +198,23 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		monthlyActiveUsers   int
 		inactiveUserCount    int
 	)
-	analytics, appErr := a.GetAnalytics(c, "standard", "")
+	analytics, appErr := a.GetAnalyticsForSupportPacket(c)
 	if appErr != nil {
 		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
-	}
-	if len(analytics) < 11 {
-		rErr = multierror.Append(errors.New("not enought analytics information found"))
 	} else {
-		totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
-		totalPosts = int(analytics[2].Value)
-		totalTeams = int(analytics[4].Value)
-		websocketConnections = int(analytics[5].Value)
-		masterDbConnections = int(analytics[6].Value)
-		replicaDbConnections = int(analytics[7].Value)
-		dailyActiveUsers = int(analytics[8].Value)
-		monthlyActiveUsers = int(analytics[9].Value)
-		inactiveUserCount = int(analytics[10].Value)
+		if len(analytics) < 11 {
+			rErr = multierror.Append(errors.New("not enough analytics information found"))
+		} else {
+			totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
+			totalPosts = int(analytics[2].Value)
+			totalTeams = int(analytics[4].Value)
+			websocketConnections = int(analytics[5].Value)
+			masterDbConnections = int(analytics[6].Value)
+			replicaDbConnections = int(analytics[7].Value)
+			dailyActiveUsers = int(analytics[8].Value)
+			monthlyActiveUsers = int(analytics[9].Value)
+			inactiveUserCount = int(analytics[10].Value)
+		}
 	}
 
 	/* Jobs  */
@@ -190,7 +248,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
 
-	// Creating the struct for support packet yaml file
+	// Creating the struct for Support Packet yaml file
 	supportPacket := model.SupportPacket{
 		/* Build information */
 		ServerOS:           runtime.GOOS,
@@ -245,72 +303,17 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		MigrationJobs:              migrationJobs,
 	}
 
-	// Marshal to a Yaml File
+	// Marshal to a YAML File
 	supportPacketYaml, err := yaml.Marshal(&supportPacket)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal support package into yaml"))
+		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
 
 	fileData := &model.FileData{
 		Filename: "support_packet.yaml",
 		Body:     supportPacketYaml,
 	}
-	return fileData, rErr
-}
-
-func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
-	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := a.GetPlugins()
-	if appErr != nil {
-		return nil, errors.Wrap(appErr, "failed to get plugin list for support package")
-	}
-
-	pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
-	}
-
-	fileData := &model.FileData{
-		Filename: "plugins.json",
-		Body:     pluginsPrettyJSON,
-	}
-	return fileData, nil
-}
-
-func (a *App) getNotificationsLog(_ request.CTX) (*model.FileData, error) {
-	if !*a.Config().NotificationLogSettings.EnableFile {
-		return nil, errors.New("Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
-	}
-
-	notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
-	notificationsLogFileData, err := os.ReadFile(notificationsLog)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)
-	}
-
-	fileData := &model.FileData{
-		Filename: "notifications.log",
-		Body:     notificationsLogFileData,
-	}
-	return fileData, nil
-}
-
-func (a *App) getMattermostLog(_ request.CTX) (*model.FileData, error) {
-	if !*a.Config().LogSettings.EnableFile {
-		return nil, errors.New("Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
-	}
-
-	mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
-	mattermostLogFileData, err := os.ReadFile(mattermostLog)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
-	}
-
-	fileData := &model.FileData{
-		Filename: "mattermost.log",
-		Body:     mattermostLogFileData,
-	}
-	return fileData, nil
+	return fileData, rErr.ErrorOrNil()
 }
 
 func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
@@ -327,51 +330,39 @@ func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) 
 	return fileData, nil
 }
 
-func (a *App) createCPUProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := pprof.StartCPUProfile(&b)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start CPU profile")
+func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
+	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
+	pluginsResponse, appErr := a.GetPlugins()
+	if appErr != nil {
+		return nil, errors.Wrap(appErr, "failed to get plugin list for Support Packet")
 	}
 
-	time.Sleep(cpuProfileDuration)
-
-	pprof.StopCPUProfile()
+	pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
+	}
 
 	fileData := &model.FileData{
-		Filename: "cpu.prof",
-		Body:     b.Bytes(),
+		Filename: "plugins.json",
+		Body:     pluginsPrettyJSON,
 	}
 	return fileData, nil
 }
 
-func (a *App) createHeapProfile(request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := pprof.Lookup("heap").WriteTo(&b, 0)
+func (a *App) createSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
+	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.TelemetryId(), a.License(), nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup heap profile")
+		return nil, errors.Wrap(err, "failed to generate Packet metadata")
+	}
+
+	b, err := yaml.Marshal(metadata)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal Packet metadata into yaml")
 	}
 
 	fileData := &model.FileData{
-		Filename: "heap.prof",
-		Body:     b.Bytes(),
-	}
-	return fileData, nil
-}
-
-func (a *App) createGoroutineProfile(_ request.CTX) (*model.FileData, error) {
-	var b bytes.Buffer
-
-	err := pprof.Lookup("goroutine").WriteTo(&b, 2)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
-	}
-
-	fileData := &model.FileData{
-		Filename: "goroutines",
-		Body:     b.Bytes(),
+		Filename: model.PacketMetadataFileName,
+		Body:     b,
 	}
 	return fileData, nil
 }

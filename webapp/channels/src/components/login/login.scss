@@ -6,6 +6,7 @@
 .login-body {
     display: flex;
     flex-direction: column;
+    padding-bottom: 32px;
     margin: auto;
 
     .login-body-action {
@@ -43,7 +44,7 @@
             align-self: flex-start;
 
             .login-body-message-title {
-                padding-right: 48px;
+                padding-right: 24px;
                 color: var(--title-color-indigo-500);
                 font-family: Metropolis;
                 font-size: 80px;
@@ -229,7 +230,7 @@
         }
 
         .login-body-message .login-body-message-title {
-            padding-right: 110px;
+            padding-right: 80px;
             margin-top: 48px;
         }
     }
@@ -254,7 +255,7 @@
                 padding: 24px;
 
                 .login-body-message-title {
-                    padding-right: 180px;
+                    padding-right: 80px;
                     font-size: 64px;
                     line-height: 76px;
                 }
@@ -305,8 +306,13 @@
                     .login-body-card-content {
                         .login-body-card-title {
                             display: block;
+                            margin-bottom: 24px;
                             font-size: 32px;
                             line-height: 40px;
+
+                            &:has(+ .login-body-custom-branding-markdown){
+                                margin-bottom: 12px;
+                            }
                         }
 
                         .login-body-custom-branding-markdown,
@@ -339,7 +345,6 @@
                 padding: 24px;
 
                 .login-body-message-title {
-                    max-width: 271px;
                     padding-right: 0;
                     font-size: 45px;
                     line-height: 56px;

@@ -271,8 +271,9 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	info.CreatorId = us.UserId
+	info.ChannelId = us.ChannelId
 	info.Path = us.Path
-	info.RemoteId = model.NewString(us.RemoteId)
+	info.RemoteId = model.NewPointer(us.RemoteId)
 	if us.ReqFileId != "" {
 		info.Id = us.ReqFileId
 	}

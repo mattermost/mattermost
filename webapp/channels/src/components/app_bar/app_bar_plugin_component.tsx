@@ -3,17 +3,16 @@
 
 import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useSelector} from 'react-redux';
 
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
 import {getActiveRhsComponent} from 'selectors/rhs';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {suitePluginIds} from 'utils/constants';
+import {suitePluginIds} from 'utils/constants';
 
 import type {PluginComponent, AppBarComponent} from 'types/store/plugins';
 
@@ -56,11 +55,6 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
 
     const buttonId = `app-bar-icon-${component.pluginId}`;
     const tooltipText = component.tooltipText || component.dropdownText || component.pluginId;
-    const tooltip = (
-        <Tooltip id={'pluginTooltip-' + buttonId}>
-            <span>{tooltipText}</span>
-        </Tooltip>
-    );
 
     const iconUrl = component.iconUrl;
     let content: React.ReactNode = (
@@ -101,11 +95,10 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
     const boardsEnabled = component.pluginId === suitePluginIds.focalboard;
 
     return (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id={'pluginTooltip-' + buttonId}
+            title={tooltipText}
             placement='left'
-            overlay={tooltip}
         >
             <div
                 id={buttonId}
@@ -117,7 +110,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
                 {content}
                 {boardsEnabled && <NewChannelWithBoardTourTip/>}
             </div>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

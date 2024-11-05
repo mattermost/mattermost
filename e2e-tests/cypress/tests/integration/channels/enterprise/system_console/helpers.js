@@ -40,7 +40,7 @@ export function makeUserASystemRole(testUsers, role) {
     cy.visit('/admin_console/user_management/system_roles');
 
     cy.get('.admin-console__header').within(() => {
-        cy.findByText('System Roles', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
+        cy.findByText('Delegated Granular Administration', {timeout: TIMEOUTS.ONE_MIN}).should('exist').and('be.visible');
     });
 
     // # Click on edit for the role

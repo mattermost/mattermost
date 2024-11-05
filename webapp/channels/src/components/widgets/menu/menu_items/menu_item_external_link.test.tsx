@@ -16,7 +16,7 @@ describe('components/MenuItemExternalLink', () => {
         );
 
         expect(wrapper).toMatchInlineSnapshot(`
-            <ExternalLink
+            <ForwardRef
               href="http://test.com"
               location="menu_item_external_link"
             >
@@ -25,7 +25,7 @@ describe('components/MenuItemExternalLink', () => {
               >
                 Whatever
               </span>
-            </ExternalLink>
+            </ForwardRef>
         `);
     });
 });

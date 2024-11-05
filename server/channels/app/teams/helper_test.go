@@ -122,7 +122,7 @@ func (th *TestHelper) CreateUser(u *model.User) *model.User {
 }
 
 func (th *TestHelper) DeleteUser(u *model.User) {
-	err := th.dbStore.User().PermanentDelete(u.Id)
+	err := th.dbStore.User().PermanentDelete(th.Context, u.Id)
 	if err != nil {
 		panic(err)
 	}

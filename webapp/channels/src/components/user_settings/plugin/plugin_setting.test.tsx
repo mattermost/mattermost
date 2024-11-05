@@ -28,6 +28,7 @@ const OPTION_1_TEXT = 'Option 1';
 const OPTION_2_TEXT = 'Option 2';
 const OPTION_3_TEXT = 'Option 3';
 const SAVE_TEXT = 'Save';
+const CUSTOM_INPUT_TEXT = 'Custom input';
 
 function getBaseProps(): Props {
     return {
@@ -56,6 +57,17 @@ function getBaseProps(): Props {
         },
         updateSection: jest.fn(),
     };
+}
+
+function CustomSetting() {
+    return (<div>{CUSTOM_INPUT_TEXT}</div>);
+}
+
+function CustomSettingThrows() {
+    const throwError = () => {
+        throw new Error('component error');
+    };
+    return (<div>{throwError()}</div>);
 }
 
 describe('plugin setting', () => {
@@ -173,5 +185,40 @@ describe('plugin setting', () => {
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(mockSavePreferences).not.toHaveBeenCalled();
+    });
+
+    it('custom setting component', () => {
+        const props = getBaseProps();
+        props.section.settings = [{
+            name: 'custom_input',
+            type: 'custom',
+            component: CustomSetting,
+        }];
+        renderWithContext(<PluginSetting {...props}/>);
+        expect(screen.queryByText(CUSTOM_INPUT_TEXT)).not.toBeInTheDocument();
+        props.activeSection = props.section.title;
+        renderWithContext(<PluginSetting {...props}/>);
+        expect(screen.queryByText(CUSTOM_INPUT_TEXT)).toBeInTheDocument();
+    });
+
+    it('custom setting component throws', () => {
+        const consoleError = console.error;
+        console.error = jest.fn();
+
+        const props = getBaseProps();
+        props.section.settings = [{
+            name: 'custom_input',
+            type: 'custom',
+            component: CustomSettingThrows,
+        }];
+        props.activeSection = props.section.title;
+
+        renderWithContext(<PluginSetting {...props}/>);
+        expect(screen.queryByText(CUSTOM_INPUT_TEXT)).not.toBeInTheDocument();
+        expect(screen.queryByText('An error occurred in the pluginId plugin.')).toBeInTheDocument();
+        expect(screen.queryByText('Refresh?')).toBeInTheDocument();
+        expect(console.error).toHaveBeenCalled();
+
+        console.error = consoleError;
     });
 });

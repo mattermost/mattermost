@@ -19,7 +19,6 @@ export default keyMirror({
 
     GET_POSTS_SUCCESS: null,
     GET_POSTS_FAILURE: null,
-    GET_POSTS_SINCE_SUCCESS: null,
 
     GET_POST_THREAD_WITH_RETRY_ATTEMPT: null,
     GET_POSTS_WITH_RETRY_ATTEMPT: null,

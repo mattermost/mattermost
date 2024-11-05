@@ -3,8 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -16,8 +15,6 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions';
-
-import {getRoleForTrackFlow} from 'utils/utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
@@ -32,6 +29,17 @@ import './invitation_modal.scss';
 // true means backdrop clicks do close
 // false means no backdrop
 type Backdrop = 'static' | boolean
+
+const messages = defineMessages({
+    notValidChannel: {
+        id: 'invitation-modal.confirm.not-valid-channel',
+        defaultMessage: 'Does not match a valid channel name.',
+    },
+    notValidUserOrEmail: {
+        id: 'invitation-modal.confirm.not-valid-user-or-email',
+        defaultMessage: 'Does not match a valid user or email.',
+    },
+});
 
 export type Props = {
     actions: {
@@ -59,8 +67,8 @@ export type Props = {
             message: string,
         ) => Promise<ActionResult<InviteResults>>;
     };
-    currentTeam: Team;
-    currentChannel: Channel;
+    currentTeam?: Team;
+    currentChannel?: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;
@@ -68,11 +76,11 @@ export type Props = {
     isCloud: boolean;
     canAddUsers: boolean;
     canInviteGuests: boolean;
-    intl: IntlShape;
     onExited: () => void;
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
+    roleForTrackFlow: {started_by_role: string};
 }
 
 export const View = {
@@ -90,7 +98,7 @@ type State = {
     show: boolean;
 };
 
-export class InvitationModal extends React.PureComponent<Props, State> {
+export default class InvitationModal extends React.PureComponent<Props, State> {
     defaultState: State = deepFreeze({
         view: View.INVITE,
         termWithoutResults: null,
@@ -159,12 +167,14 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     invite = async () => {
-        const roleForTrackFlow = getRoleForTrackFlow();
+        if (!this.props.currentTeam) {
+            return;
+        }
         const inviteAs = this.state.invite.inviteType;
         if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...roleForTrackFlow});
+            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...this.props.roleForTrackFlow});
         }
-        trackEvent('invite_users', 'click_invite', roleForTrackFlow);
+        trackEvent('invite_users', 'click_invite', this.props.roleForTrackFlow);
 
         const users: UserProfile[] = [];
         const emails: string[] = [];
@@ -205,20 +215,14 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         if (this.state.invite.usersEmailsSearch !== '') {
             invites.notSent.push({
                 text: this.state.invite.usersEmailsSearch,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-user-or-email',
-                    defaultMessage: 'Does not match a valid user or email.',
-                }),
+                reason: messages.notValidUserOrEmail,
             });
         }
 
         if (inviteAs === InviteType.GUEST && this.state.invite.inviteChannels.search !== '') {
             invites.notSent.push({
                 text: this.state.invite.inviteChannels.search,
-                reason: this.props.intl.formatMessage({
-                    id: 'invitation-modal.confirm.not-valid-channel',
-                    defaultMessage: 'Does not match a valid channel name.',
-                }),
+                reason: messages.notValidChannel,
             });
         }
 
@@ -246,7 +250,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
+    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
     channelsLoader = async (value: string) => {
         if (!value) {
@@ -357,6 +361,10 @@ export class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     render() {
+        if (!this.props.currentTeam) {
+            return null;
+        }
+
         let view = (
             <InviteView
                 setInviteAs={this.setInviteAs}
@@ -426,5 +434,3 @@ export class InvitationModal extends React.PureComponent<Props, State> {
         );
     }
 }
-
-export default injectIntl(InvitationModal);

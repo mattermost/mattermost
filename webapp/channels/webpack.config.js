@@ -97,7 +97,7 @@ var config = {
                         loader: 'sass-loader',
                         options: {
                             sassOptions: {
-                                includePaths: ['src', 'src/sass'],
+                                includePaths: ['src/sass'],
                             },
                         },
                     },
@@ -133,7 +133,7 @@ var config = {
             'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
 
-            // This alias restricts single version of styled components acros all packages
+            // This alias restricts single version of styled components across all packages
             'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
@@ -141,6 +141,7 @@ var config = {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
             buffer: require.resolve('buffer/'),
+            process: require.resolve('process/browser.js'),
         },
     },
     performance: {
@@ -149,7 +150,7 @@ var config = {
     target: 'web',
     plugins: [
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -159,6 +160,7 @@ var config = {
             filename: 'root.html',
             inject: 'head',
             template: 'src/root.html',
+            scriptLoading: 'blocking',
             meta: {
                 csp: {
                     'http-equiv': 'Content-Security-Policy',
@@ -194,6 +196,7 @@ var config = {
                 {from: 'src/images/payment_processing.png', to: 'images'},
                 {from: 'src/images/purchase_alert.png', to: 'images'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
+                {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
             ],
         }),
 

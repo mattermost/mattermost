@@ -63,7 +63,7 @@ const preventActionOnPreview = (e: React.MouseEvent) => {
 const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const {formatMessage} = useIntl();
 
-    const originalChannel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
+    const originalChannel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,11 +103,11 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const previewMetaData: PostPreviewMetadata = useMemo(() => ({
         post,
         post_id: post.id,
-        team_name: currentTeam.name,
-        channel_display_name: originalChannel.display_name,
-        channel_type: originalChannel.type,
-        channel_id: originalChannel.id,
-    }), [post, currentTeam.name, originalChannel.display_name, originalChannel.type, originalChannel.id]);
+        team_name: currentTeam?.name || '',
+        channel_display_name: originalChannel?.display_name || '',
+        channel_type: originalChannel?.type || 'O',
+        channel_id: originalChannel?.id || '',
+    }), [post, currentTeam?.name, originalChannel?.display_name, originalChannel?.type, originalChannel?.id]);
 
     const notificationText = formatMessage({
         id: 'move_thread_modal.notification.dm_or_gm',
@@ -180,7 +180,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         defaultMessage: 'Originally posted in ~{channelName}',
     },
     {
-        channelName: originalChannel.display_name,
+        channelName: originalChannel?.display_name || '',
     });
 
     return (

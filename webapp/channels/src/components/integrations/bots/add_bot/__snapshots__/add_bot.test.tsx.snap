@@ -79,7 +79,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             <img
               alt="bot image"
               className="bot-img"
-              src={null}
+              src=""
               style={
                 Object {
                   "transform": "",
@@ -89,7 +89,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             />
           </div>
           <div
-            className="btn btn-sm btn-primary btn-file"
+            className="btn btn-primary btn-file"
           >
             <MemoizedFormattedMessage
               defaultMessage="Upload Image"
@@ -97,6 +97,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             />
             <input
               accept=".jpeg,.jpg,.png,.bmp"
+              className="btn-file__input"
               onChange={[Function]}
               type="file"
             />
@@ -319,8 +320,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",

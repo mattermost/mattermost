@@ -10,7 +10,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
     <img
       alt="OpenId Convert Image"
       className="OpenIdConvert_image"
-      src={null}
+      src=""
     />
   </div>
   <div
@@ -35,7 +35,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
           id="admin.openIdConvert.text"
         />
       </button>
-      <ExternalLink
+      <ForwardRef
         className="btn-secondary"
         data-testid="openIdLearnMore"
         href="https://www.mattermost.com/default-openid-docs"
@@ -45,15 +45,12 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
           defaultMessage="Learn more"
           id="admin.openIdConvert.help"
         />
-      </ExternalLink>
+      </ForwardRef>
       <div
         className="error-message"
         data-testid="errorMessage"
       >
-        <FormError
-          error={null}
-          errors={Array []}
-        />
+        <Memo(FormError) />
       </div>
     </div>
   </div>

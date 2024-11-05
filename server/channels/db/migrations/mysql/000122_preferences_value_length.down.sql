@@ -1,0 +1,1 @@
+-- Only applicable to Postgres

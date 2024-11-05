@@ -2,74 +2,71 @@
 // See LICENSE.txt for license information.
 
 import type {KatexOptions} from 'katex';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import CodeBlock from 'components/code_block/code_block';
 
 type Katex = typeof import('katex');
 
 type Props = {
     content: string;
-    enableLatex: boolean;
+    enableLatex?: boolean;
 };
 
-type State = {
-    katex?: Katex;
-}
+const LatexBlock = ({
+    content,
+    enableLatex,
+}: Props) => {
+    const [katex, setKatex] = useState<Katex | undefined>();
 
-export default class LatexBlock extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            katex: undefined,
-        };
-    }
-
-    componentDidMount(): void {
+    useEffect(() => {
         import('katex').then((katex) => {
-            this.setState({katex: katex.default});
+            setKatex(katex.default);
         });
+    }, []);
+
+    if (!enableLatex || katex === undefined) {
+        return (
+            <CodeBlock
+                code={content}
+                language='latex'
+            />
+        );
     }
 
-    render(): React.ReactNode {
-        if (!this.props.enableLatex || this.state.katex === undefined) {
-            return (
-                <div
-                    className='post-body--code tex'
-                >
-                    {this.props.content}
-                </div>
-            );
-        }
+    try {
+        const katexOptions: KatexOptions = {
+            throwOnError: false,
+            displayMode: true,
+            maxSize: 200,
+            maxExpand: 100,
+            fleqn: true,
+        };
 
-        try {
-            const katexOptions: KatexOptions = {
-                throwOnError: false,
-                displayMode: true,
-                maxSize: 200,
-                maxExpand: 100,
-                fleqn: true,
-            };
+        const html = katex.renderToString(content, katexOptions);
 
-            const html = this.state.katex.renderToString(this.props.content, katexOptions);
-
-            return (
-                <div
-                    className='post-body--code tex'
-                    dangerouslySetInnerHTML={{__html: html}}
+        return (
+            <div
+                className='post-body--code tex'
+                dangerouslySetInnerHTML={{__html: html}}
+                data-testid='latex-enabled'
+            />
+        );
+    } catch (e) {
+        // This is never run because throwOnError is false
+        return (
+            <div
+                className='post-body--code tex'
+                data-testid='latex-error'
+            >
+                <FormattedMessage
+                    id='katex.error'
+                    defaultMessage={'Couldn\'t compile your Latex code. Please review the syntax and try again.'}
                 />
-            );
-        } catch (e) {
-            return (
-                <div
-                    className='post-body--code tex'
-                >
-                    <FormattedMessage
-                        id='katex.error'
-                        defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
-                    />
-                </div>
-            );
-        }
+            </div>
+        );
     }
-}
+};
+
+export default React.memo(LatexBlock);

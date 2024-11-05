@@ -62,7 +62,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         target={[Function]}
         topOffset={-5}
       />
-      <Connect(Component)
+      <Memo(ChannelPermissionGate)
         channelId=""
         permissions={
           Array [
@@ -94,7 +94,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
             </span>
           </button>
         </WithTooltip>
-      </Connect(Component)>
+      </Memo(ChannelPermissionGate)>
     </span>
   </div>
 </div>

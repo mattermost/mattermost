@@ -168,11 +168,15 @@ const getMyPermissionsByChannel = createSelector(
     },
 );
 
-export function haveITeamPermission(state: GlobalState, teamId: string, permission: string) {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        getMyPermissionsByTeam(state)[teamId]?.has(permission)
-    );
+export function haveITeamPermission(state: GlobalState, teamId: string | undefined, permission: string) {
+    if (getMySystemPermissions(state).has(permission)) {
+        return true;
+    }
+    if (!teamId) {
+        return false;
+    }
+
+    return getMyPermissionsByTeam(state)[teamId]?.has(permission);
 }
 
 export const haveIGroupPermission: (state: GlobalState, groupID: string, permission: string) => boolean = createSelector(
@@ -204,12 +208,20 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
-export function haveIChannelPermission(state: GlobalState, teamId: string, channelId: string, permission: string): boolean {
-    return (
-        getMySystemPermissions(state).has(permission) ||
-        getMyPermissionsByTeam(state)[teamId]?.has(permission) ||
-        getMyPermissionsByChannel(state)[channelId]?.has(permission)
-    );
+export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
+    if (getMySystemPermissions(state).has(permission)) {
+        return true;
+    }
+
+    if (teamId && getMyPermissionsByTeam(state)[teamId]?.has(permission)) {
+        return true;
+    }
+
+    if (channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission)) {
+        return true;
+    }
+
+    return false;
 }
 
 export function haveICurrentTeamPermission(state: GlobalState, permission: string): boolean {

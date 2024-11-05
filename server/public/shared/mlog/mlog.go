@@ -248,7 +248,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factori
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
-// Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
+// `Logger.Configure` can be used instead which accepts JSON formatted configuration.
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.
 func (l *Logger) ConfigureTargets(cfg LoggerConfiguration, factories *Factories) error {

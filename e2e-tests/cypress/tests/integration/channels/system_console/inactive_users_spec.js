@@ -23,8 +23,10 @@ describe('System Console', () => {
         // # Go to users management page
         cy.visit('/admin_console/user_management/users');
 
-        // # Select inactive users
-        cy.get('#selectUserStatus').select('Inactive');
+        // # Select Deactivated users
+        cy.get('div.systemUsersFilterContainer button').click();
+        cy.get('#DropdownInput_filterStatus').click();
+        cy.get('#react-select-5-option-2').click();
 
         cy.apiGetAnalytics().then(({analytics}) => {
             const inactiveUsers = analytics.filter((d) => {

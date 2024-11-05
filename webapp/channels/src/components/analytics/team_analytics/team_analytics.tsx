@@ -21,7 +21,6 @@ import {messages as activatedUsersCardsMessages} from 'components/analytics/acti
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
-import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -316,7 +315,6 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
-                        <TrueUpReview/>
                         {banner}
                         <div className='grid-statistics'>
                             <ActivatedUserCard

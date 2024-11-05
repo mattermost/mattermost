@@ -93,158 +93,6 @@ describe('Utils.getDisplayNameByUser', () => {
     });
 });
 
-describe('Utils.isValidPassword', () => {
-    test('Minimum length enforced', () => {
-        for (const data of [
-            {
-                password: 'tooshort',
-                config: {
-                    minimumLength: 10,
-                    requireLowercase: false,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'longenoughpassword',
-                config: {
-                    minimumLength: 10,
-                    requireLowercase: false,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require lowercase enforced', () => {
-        for (const data of [
-            {
-                password: 'UPPERCASE',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'SOMELowercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: false,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require uppercase enforced', () => {
-        for (const data of [
-            {
-                password: 'lowercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: false,
-                    requireUppercase: true,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'SOMEUppercase',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: false,
-                    requireUppercase: true,
-                    requireNumber: false,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require number enforced', () => {
-        for (const data of [
-            {
-                password: 'NoNumbers',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: false,
-                },
-                valid: false,
-            },
-            {
-                password: 'S0m3Numb3rs',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: false,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-
-    test('Require symbol enforced', () => {
-        for (const data of [
-            {
-                password: 'N0Symb0ls',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: true,
-                },
-                valid: false,
-            },
-            {
-                password: 'S0m3Symb0!s',
-                config: {
-                    minimumLength: 5,
-                    requireLowercase: true,
-                    requireUppercase: true,
-                    requireNumber: true,
-                    requireSymbol: true,
-                },
-                valid: true,
-            },
-        ]) {
-            const {valid} = Utils.isValidPassword(data.password, data.config);
-            expect(data.valid).toEqual(valid);
-        }
-    });
-});
-
 describe('Utils.isValidUsername', () => {
     const tests = [
         {
@@ -328,15 +176,18 @@ describe('Utils.localizeMessage', () => {
         });
 
         test('with translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Bonjour tout le monde!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Bonjour tout le monde!');
         });
 
         test('with missing string in translations', () => {
-            expect(Utils.localizeMessage('test.hello_world2', 'Hello, World 2!')).toEqual('Hello, World 2!');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World 2!'})).toEqual('Hello, World 2!');
         });
 
         test('with missing string in translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world2')).toEqual('test.hello_world2');
+            const messageId = 'test.hello_world2';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world2');
         });
     });
 
@@ -353,11 +204,13 @@ describe('Utils.localizeMessage', () => {
         });
 
         test('without translations', () => {
-            expect(Utils.localizeMessage('test.hello_world', 'Hello, World!')).toEqual('Hello, World!');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId, defaultMessage: 'Hello, World!'})).toEqual('Hello, World!');
         });
 
         test('without translations and no default', () => {
-            expect(Utils.localizeMessage('test.hello_world')).toEqual('test.hello_world');
+            const messageId = 'test.hello_world';
+            expect(Utils.localizeMessage({id: messageId})).toEqual('test.hello_world');
         });
     });
 });

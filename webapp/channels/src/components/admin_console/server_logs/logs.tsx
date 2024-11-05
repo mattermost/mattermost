@@ -12,6 +12,9 @@ import type {
     LogServerNames,
 } from '@mattermost/types/admin';
 
+import {Client4} from 'mattermost-redux/client';
+
+import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
@@ -144,16 +147,28 @@ export default class Logs extends React.PureComponent<Props, State> {
                         <FormattedMessage {...messages.bannerDesc}/>
                     </div>
                 </div>
-                <button
-                    type='submit'
-                    className='btn btn-primary'
-                    onClick={this.reloadPlain}
-                >
-                    <FormattedMessage
-                        id='admin.logs.ReloadLogs'
-                        defaultMessage='Reload Logs'
-                    />
-                </button>
+                <div className='banner-buttons'>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.reloadPlain}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.ReloadLogs'
+                            defaultMessage='Reload Logs'
+                        />
+                    </button>
+                    <ExternalLink
+                        location='download_logs'
+                        className='btn btn-primary'
+                        href={Client4.getUrl() + '/api/v4/logs/download'}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download Logs'
+                        />
+                    </ExternalLink>
+                </div>
                 <PlainLogList
                     logs={this.props.plainLogs}
                     nextPage={this.nextPage}
@@ -170,16 +185,28 @@ export default class Logs extends React.PureComponent<Props, State> {
                             <FormattedMessage {...messages.bannerDesc}/>
                         </div>
                     </div>
-                    <button
-                        type='submit'
-                        className='btn btn-primary'
-                        onClick={this.reload}
-                    >
-                        <FormattedMessage
-                            id='admin.logs.ReloadLogs'
-                            defaultMessage='Reload Logs'
-                        />
-                    </button>
+                    <div className='banner-buttons'>
+                        <button
+                            type='submit'
+                            className='btn btn-primary'
+                            onClick={this.reload}
+                        >
+                            <FormattedMessage
+                                id='admin.logs.ReloadLogs'
+                                defaultMessage='Reload Logs'
+                            />
+                        </button>
+                        <ExternalLink
+                            location='download_logs'
+                            className='btn btn-primary'
+                            href={Client4.getUrl() + '/api/v4/logs/download'}
+                        >
+                            <FormattedMessage
+                                id='admin.logs.DownloadLogs'
+                                defaultMessage='Download Logs'
+                            />
+                        </ExternalLink>
+                    </div>
                 </div>
                 <LogList
                     loading={this.state.loadingLogs}

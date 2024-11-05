@@ -1,4 +1,7 @@
 .hint-toast {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
     padding: 4px 4px 4px 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
@@ -8,12 +11,11 @@
     color: var(--center-channel-color);
     font-size: 14px;
     font-weight: bold;
+    gap: 16px;
 
     .hint-toast__message {
-        display: inline-block;
         line-height: 20px;
         text-align: center;
-        vertical-align: middle;
 
         .shortcut-key {
             font-weight: 600;
@@ -21,9 +23,7 @@
     }
 
     .hint-toast__dismiss {
-        display: inline-block;
         padding: 4px;
-        margin-left: 16px;
 
         &:hover {
             background-color: var(--center-channel-bg);

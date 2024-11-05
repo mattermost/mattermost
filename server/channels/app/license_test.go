@@ -73,24 +73,6 @@ func TestGetSanitizedClientLicense(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestGenerateRenewalToken(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	t.Run("renewal token generated correctly", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-	})
-
-	t.Run("return error if there is no active license", func(t *testing.T) {
-		th.App.Srv().SetLicense(nil)
-		_, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.NotNil(t, appErr)
-	})
-}
-
 func setLicense(th *TestHelper, customer *model.Customer) {
 	l1 := &model.License{}
 	l1.Features = &model.Features{}

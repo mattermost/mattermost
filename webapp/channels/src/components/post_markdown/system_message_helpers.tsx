@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -17,7 +17,6 @@ import CombinedSystemMessage from 'components/post_view/combined_system_message'
 import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
-import {t} from 'utils/i18n';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
@@ -389,10 +388,10 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
-export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
+export function renderSystemMessage(post: Post, currentTeamName: string, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
-        return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
+        return renderReminderACKMessage(post, currentTeamName, Boolean(isMilitaryTime), timezone);
     }
     if (post.props && post.props.add_channel_member) {
         if (channel && (channel.type === General.PRIVATE_CHANNEL || channel.type === General.OPEN_CHANNEL) &&
@@ -439,9 +438,9 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
     return null;
 }
 
-function renderReminderACKMessage(post: Post, currentTeam: Team, isMilitaryTime: boolean, timezone?: string): ReactNode {
+function renderReminderACKMessage(post: Post, currentTeamName: string, isMilitaryTime: boolean, timezone?: string): ReactNode {
     const username = renderUsername(post.props.username);
-    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeam.name}`;
+    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeamName}`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
     const localTime = new Date(post.props.target_time * 1000);
@@ -491,20 +490,39 @@ export function renderReminderSystemBotMessage(post: Post, currentTeam: Team): R
     );
 }
 
-t('app.post.move_thread_command.direct_or_group.multiple_messages');
-t('app.post.move_thread_command.direct_or_group.one_message');
-t('app.post.move_thread_command.channel.multiple_messages');
-t('app.post.move_thread_command.channel.one_message');
-t('app.post.move_thread.from_another_channel');
+// These messages are used by app.MoveThread on the server
+defineMessages({
+    channelMultipleMessages: {
+        id: 'app.post.move_thread_command.channel.multiple_messages',
+        defaultMessage: 'A thread with {numMessages, number} messages has been moved: {link}\n',
+    },
+    channelOneMessage: {
+        id: 'app.post.move_thread_command.channel.one_message',
+        defaultMessage: 'A message has been moved: {link}\n',
+    },
+    dmMultipleMessages: {
+        id: 'app.post.move_thread_command.direct_or_group.multiple_messages',
+        defaultMessage: 'A thread with {numMessages, number} messages has been moved to a Direct/Group Message\n',
+    },
+    dmOneMessage: {
+        id: 'app.post.move_thread_command.direct_or_group.one_message',
+        defaultMessage: 'A message has been moved to a Direct/Group Message\n',
+    },
+    fromAnotherChannel: {
+        id: 'app.post.move_thread.from_another_channel',
+        defaultMessage: 'This thread was moved from another channel',
+    },
+});
+
 export function renderWranglerSystemMessage(post: Post): ReactNode {
     let values = {} as any;
     const id = post.props.TranslationID;
     if (post.props && post.props.MovedThreadPermalink) {
         values = {
-            Link: post.props.MovedThreadPermalink,
+            link: post.props.MovedThreadPermalink,
         };
         if (post.props.NumMessages > 1) {
-            values.NumMessages = post.props.NumMessages;
+            values.number = post.props.NumMessages;
         }
     }
     return (

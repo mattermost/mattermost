@@ -51,7 +51,7 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
         }
       />
     </ModalTitle>
-    <Connect(TeamPermissionGate)
+    <Memo(TeamPermissionGate)
       permissions={
         Array [
           "add_user_to_team",
@@ -71,7 +71,7 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
           id="team_member_modal.invitePeople"
         />
       </button>
-    </Connect(TeamPermissionGate)>
+    </Memo(TeamPermissionGate)>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"

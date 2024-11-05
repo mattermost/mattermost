@@ -31,10 +31,10 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 	id := model.NewId()
 	group, appErr := s.th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -68,7 +68,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 		err := channelGroupEnableCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
 		s.Require().NoError(err)
 
-		channel.GroupConstrained = model.NewBool(false)
+		channel.GroupConstrained = model.NewPointer(false)
 		defer func() {
 			_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 			s.Require().Nil(err)
@@ -102,10 +102,10 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 	id := model.NewId()
 	group, appErr := s.th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -124,7 +124,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 		s.Require().Nil(err)
 	}()
 
-	channel.GroupConstrained = model.NewBool(true)
+	channel.GroupConstrained = model.NewPointer(true)
 	defer func() {
 		_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 		s.Require().Nil(err)
@@ -145,7 +145,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 		err := channelGroupDisableCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
 		s.Require().NoError(err)
 
-		channel.GroupConstrained = model.NewBool(true)
+		channel.GroupConstrained = model.NewPointer(true)
 		defer func() {
 			_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 			s.Require().Nil(err)
@@ -194,7 +194,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 		Name:             channelName,
 		DisplayName:      "dn_" + channelName,
 		Type:             model.ChannelTypeOpen,
-		GroupConstrained: model.NewBool(true),
+		GroupConstrained: model.NewPointer(true),
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
@@ -257,10 +257,10 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 	id := model.NewId()
 	group, appErr := s.th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -308,7 +308,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 	team, _, cleanUpFn := createTestGroupTeam(s)
 	defer cleanUpFn()
 
-	team.GroupConstrained = model.NewBool(true)
+	team.GroupConstrained = model.NewPointer(true)
 	_, err := s.th.App.UpdateTeam(team)
 	s.Require().Nil(err)
 
@@ -327,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 		err := teamGroupDisableCmdF(c, &cobra.Command{}, []string{team.Name})
 		s.Require().NoError(err)
 
-		team.GroupConstrained = model.NewBool(true)
+		team.GroupConstrained = model.NewPointer(true)
 		defer func() {
 			_, err := s.th.App.UpdateTeam(team)
 			s.Require().Nil(err)
@@ -363,7 +363,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 		err := teamGroupEnableCmdF(c, &cobra.Command{}, []string{team.Name})
 		s.Require().NoError(err)
 
-		team.GroupConstrained = model.NewBool(false)
+		team.GroupConstrained = model.NewPointer(false)
 		defer func() {
 			_, err := s.th.App.UpdateTeam(team)
 			s.Require().Nil(err)
@@ -473,17 +473,17 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 		Name:             teamName,
 		DisplayName:      "dn_" + teamName,
 		Type:             model.TeamOpen,
-		GroupConstrained: model.NewBool(true),
+		GroupConstrained: model.NewPointer(true),
 	})
 	s.Require().Nil(appErr)
 
 	id := model.NewId()
 	group, appErr := s.th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 
@@ -515,10 +515,10 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 	id := model.NewId()
 	group, appErr := s.th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
+		Name:        model.NewPointer("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewPointer(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	s.th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))

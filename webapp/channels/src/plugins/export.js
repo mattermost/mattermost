@@ -6,15 +6,16 @@ import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
 import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
-import PurchaseModal from 'components/purchase_modal';
 import StartTrialFormModal from 'components/start_trial_form_modal';
 import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
+import UserSettingsModal from 'components/user_settings/modal';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -27,7 +28,6 @@ import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
-import CreatePost from './exported_create_post';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
 
@@ -66,6 +66,11 @@ window.WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
+    openUserSettings: (dialogProps) => openModal({
+        modalId: ModalIdentifiers.USER_SETTINGS,
+        dialogType: UserSettingsModal,
+        dialogProps,
+    }),
 };
 Object.defineProperty(window.WebappUtils, 'browserHistory', {
     get: () => getHistory(),
@@ -82,7 +87,6 @@ window.openPricingModal = () => openPricingModal;
 // guarantee better compatibility.
 window.Components = {
     Textbox,
-    PurchaseModal,
     Timestamp,
     ChannelInviteModal,
     ChannelMembersModal,
@@ -91,8 +95,8 @@ window.Components = {
     BotBadge: BotTag,
     StartTrialFormModal,
     ThreadViewer,
-    CreatePost,
     PostMessagePreview,
+    AdvancedTextEditor,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

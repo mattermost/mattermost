@@ -238,7 +238,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
 
-	s.Run("Download support packet with default filename", func() {
+	s.Run("Download Support Packet with default filename", func() {
 		printer.Clean()
 
 		s.T().Cleanup(cleanupSupportPacket(s.T()))
@@ -274,7 +274,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.True(found)
 	})
 
-	s.Run("Download support packet with custom filename", func() {
+	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
 		data := []byte("some bytes")

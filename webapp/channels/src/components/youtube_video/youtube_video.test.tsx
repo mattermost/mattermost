@@ -31,6 +31,7 @@ describe('YoutubeVideo', () => {
                 url: 'linkForThumbnail',
             }],
         },
+        youtubeReferrerPolicy: false,
     };
 
     const initialState: DeepPartial<GlobalState> = {
@@ -61,6 +62,17 @@ describe('YoutubeVideo', () => {
 
     test('should match snapshot for playing state', () => {
         const wrapper = shallow(<YoutubeVideo {...baseProps}/>);
+        wrapper.setState({playing: true});
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', () => {
+        const wrapper = shallow(
+            <YoutubeVideo
+                {...baseProps}
+                youtubeReferrerPolicy={true}
+            />,
+        );
         wrapper.setState({playing: true});
         expect(wrapper).toMatchSnapshot();
     });

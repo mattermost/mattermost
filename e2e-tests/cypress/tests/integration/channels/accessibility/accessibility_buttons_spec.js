@@ -18,6 +18,13 @@ describe('Verify Accessibility Support in different Buttons', () => {
 
             // # Post a message
             cy.postMessage('hello');
+            cy.getLastPostId().then((postId) => {
+                // # On a message in center channel, click then pin the post to the channel
+                cy.uiClickPostDropdownMenu(postId, 'Pin to Channel');
+
+                // # Click pin icon next to search box
+                cy.uiGetChannelPinButton().click();
+            });
         });
     });
 
@@ -70,7 +77,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             tab();
 
         // # Press tab until the focus is on the Pinned messages button
-        cy.focused().tab().tab();
+        cy.focused().tab().tab().tab();
 
         // * Verify accessibility support in Pinned messages button
         cy.uiGetChannelPinButton().

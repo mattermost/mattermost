@@ -1,9 +1,5 @@
 @charset "utf-8";
 
-.app__body .popover.channel-header__popover {
-    box-shadow: none;
-}
-
 .header-popover-text-measurer {
     position: absolute;
     width: auto;
@@ -23,65 +19,21 @@
     .app__body & {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-
-        .user-profile-popover {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.2);
-            background: transparent !important;
-            box-shadow: none !important;
-
-            .popover-title {
-                position: relative;
-                border-color: var(--center-channel-bg);
-                background: none;
-
-                &::before {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    content: '';
-                }
-
-                span {
-                    position: relative;
-                    z-index: 1;
-                }
-            }
-
-            .popover-content {
-                border-radius: 0 0 3px 3px;
-                border-top: none;
-                background: v(center-channel-bg);
-                box-shadow: rgba(var(--center-channel-color-rgb), 0.08) 0 17px 50px 0, rgba(var(--center-channel-color-rgb), 0.08) 0 12px 15px 0;
-
-                .shared-user-icon {
-                    width: 16px;
-                    height: 16px;
-                    margin-left: 8px;
-                    color: rgba(61, 60, 64, 0.75);
-                    font-size: 16px;
-                    line-height: 20px;
-
-                    &::before {
-                        margin: 0;
-                    }
-                }
-            }
-        }
     }
 
     &.channel-header__popover {
         z-index: 999;
-        margin-left: 8px;
+        min-width: 200px;
+        margin-left: 3px;
+        box-shadow: var(--elevation-4);
         font-size: 12px;
 
         &.chanel-header__popover--lhs_offset {
-            margin-left: 73px;
+            margin-left: 68px;
         }
 
         .popover-content {
-            padding: 2px 3px;
+            padding: 5px 8px 8px 8px;
 
             .markdown__list {
                 margin: 0;
@@ -95,10 +47,25 @@
                     margin-bottom: 0;
                 }
             }
+
+            .file-preview__button {
+                display: inline-block;
+
+                .markdown-inline-img {
+                    margin: 0 2px !important;
+                }
+            }
+
+            .emoticon {
+                min-width: 18px;
+                height: 18px;
+                min-height: 18px;
+                vertical-align: text-top;
+            }
         }
 
         &.bottom {
-            margin-top: -10px;
+            margin-top: -25px;
         }
     }
 
@@ -241,66 +208,6 @@
 .code-popover {
     .popover-content {
         padding: 5px;
-    }
-}
-
-.user-popover-image {
-    position: relative;
-    display: block;
-    width: 128px;
-    margin: 0 auto 8px;
-
-    #userAvatar {
-        width: 120px;
-        min-width: 120px;
-        height: 120px;
-    }
-
-    .user-popover-status {
-        position: absolute;
-        top: auto;
-        right: 8px;
-        bottom: 0;
-        display: flex;
-        width: 24px;
-        height: 24px;
-        padding: 2px;
-        border-radius: 50px;
-        background: rgba(var(--center-channel-bg-rgb), 1);
-
-        svg {
-            width: 100%;
-            min-height: 100%;
-        }
-    }
-}
-
-.user-profile-popover .Avatar {
-    display: block;
-    margin: 5px auto;
-}
-
-.user-popover__email {
-    display: block;
-    overflow: hidden;
-    max-width: 300px;
-    text-overflow: ellipsis;
-}
-
-.user-popover__close {
-    display: flex;
-    padding: 6px;
-    border: none;
-    margin-left: auto;
-    background: none;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-weight: 400;
-    line-height: 18px;
-
-    &:hover {
-        border-radius: 4px;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 }
 

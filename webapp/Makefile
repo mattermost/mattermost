@@ -8,12 +8,12 @@ CI ?= false
 # please see optipng-bin Linux arm64 support issue (https://github.com/imagemin/optipng-bin/issues/118) for details:
 ifeq ($(shell uname)/$(shell uname -m),Linux/aarch64)
   LINUX_ARM64 = true
-  CPPFLAGS += " -DPNG_ARM_NEON_OPT=0"
+  CPPFLAGS += -DPNG_ARM_NEON_OPT=0
 endif
 # Exact same issue but for Linux/PPC64
 ifeq ($(findstring Linux/ppc64,$(shell uname)/$(shell uname -m)),Linux/ppc64)
   LINUX_PPC64 = true
-  CPPFLAGS += " -DPNG_POWERPC_VSX_OPT=0"
+  CPPFLAGS += -DPNG_POWERPC_VSX_OPT=0
 endif
 
 .PHONY: run

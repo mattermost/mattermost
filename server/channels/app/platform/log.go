@@ -6,14 +6,16 @@ package platform
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -119,7 +121,7 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 
 	if *ps.Config().LogSettings.EnableFile {
@@ -173,10 +175,10 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 					var entry *model.LogEntry
 					err = json.Unmarshal(line, &entry)
 					if err != nil {
-						mlog.Debug("Failed to parse line, skipping")
+						rctx.Logger().Debug("Failed to parse line, skipping")
 					} else {
 						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
-						filtered = isLogFilteredByDate(logFilter, entry) || filtered
+						filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 					}
 
 					if filtered {
@@ -206,6 +208,40 @@ func (ps *PlatformService) GetLogsSkipSend(page, perPage int, logFilter *model.L
 	return lines, nil
 }
 
+func (ps *PlatformService) GetLogFile(_ request.CTX) (*model.FileData, error) {
+	if !*ps.Config().LogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve mattermost logs because LogSettings.EnableFile is set to false")
+	}
+
+	mattermostLog := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+	mattermostLogFileData, err := os.ReadFile(mattermostLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
+	}
+
+	return &model.FileData{
+		Filename: config.LogFilename,
+		Body:     mattermostLogFileData,
+	}, nil
+}
+
+func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileData, error) {
+	if !*ps.Config().NotificationLogSettings.EnableFile {
+		return nil, errors.New("Unable to retrieve notifications logs because NotificationLogSettings.EnableFile is set to false")
+	}
+
+	notificationsLog := config.GetNotificationsLogFileLocation(*ps.Config().NotificationLogSettings.FileLocation)
+	notificationsLogFileData, err := os.ReadFile(notificationsLog)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", notificationsLog)
+	}
+
+	return &model.FileData{
+		Filename: config.LogNotificationFilename,
+		Body:     notificationsLogFileData,
+	}, nil
+}
+
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	logLevels := logFilter.LogLevels
 	if len(logLevels) == 0 {
@@ -221,7 +257,7 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 	return true
 }
 
-func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
 		return false
 	}
@@ -237,7 +273,7 @@ func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool
 
 	timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
 	if err != nil {
-		mlog.Debug("Cannot parse timestamp, skipping")
+		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false
 	}
 

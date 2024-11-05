@@ -122,7 +122,7 @@ type ChannelForExport struct {
 
 type DirectChannelForExport struct {
 	Channel
-	Members *[]string
+	Members []*ChannelMemberForExport
 }
 
 type ChannelModeration struct {
@@ -180,6 +180,7 @@ type ChannelSearchOpts struct {
 	ExcludePolicyConstrained bool
 	IncludePolicyID          bool
 	IncludeSearchById        bool
+	ExcludeRemote            bool
 	Public                   bool
 	Private                  bool
 	Page                     *int
@@ -207,7 +208,7 @@ func WithID(ID string) ChannelOption {
 func (o *Channel) DeepCopy() *Channel {
 	cCopy := *o
 	if cCopy.SchemeId != nil {
-		cCopy.SchemeId = NewString(*o.SchemeId)
+		cCopy.SchemeId = NewPointer(*o.SchemeId)
 	}
 	return &cCopy
 }
@@ -334,26 +335,43 @@ func (o *Channel) IsShared() bool {
 }
 
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
-	if o.Type != ChannelTypeDirect {
+	user1, user2 := o.GetBothUsersForDM()
+
+	if user2 == "" {
 		return ""
+	}
+
+	if user1 == userId {
+		return user2
+	}
+
+	return user1
+}
+
+func (o *Channel) GetBothUsersForDM() (string, string) {
+	if o.Type != ChannelTypeDirect {
+		return "", ""
 	}
 
 	userIds := strings.Split(o.Name, "__")
 	if len(userIds) != 2 {
-		return ""
+		return "", ""
 	}
 
-	var otherUserId string
-
-	if userIds[0] != userIds[1] {
-		if userIds[0] == userId {
-			otherUserId = userIds[1]
-		} else {
-			otherUserId = userIds[0]
-		}
+	if userIds[0] == userIds[1] {
+		return userIds[0], ""
 	}
 
-	return otherUserId
+	return userIds[0], userIds[1]
+}
+
+func (o *Channel) Sanitize() Channel {
+	return Channel{
+		Id:          o.Id,
+		TeamId:      o.TeamId,
+		Type:        o.Type,
+		DisplayName: o.DisplayName,
+	}
 }
 
 func (t ChannelType) MarshalJSON() ([]byte, error) {

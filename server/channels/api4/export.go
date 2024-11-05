@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitExport() {
-	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods("GET")
-	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods("GET")
-	api.BaseRoutes.Export.Handle("/presign-url", api.APISessionRequired(generatePresignURLExport)).Methods("POST")
+	api.BaseRoutes.Exports.Handle("", api.APISessionRequired(listExports)).Methods(http.MethodGet)
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(deleteExport)).Methods(http.MethodDelete)
+	api.BaseRoutes.Export.Handle("", api.APISessionRequired(downloadExport)).Methods(http.MethodGet)
+	api.BaseRoutes.Export.Handle("/presign-url", api.APISessionRequired(generatePresignURLExport)).Methods(http.MethodPost)
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,9 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(data)
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -109,6 +112,8 @@ func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Write(data)
 	auditRec.Success()
+	if _, err := w.Write(data); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -40,10 +40,38 @@ describe('components/global/product_switcher', () => {
                 },
             },
         };
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = shallow(<reactRedux.Provider store={store}><ProductMenu/></reactRedux.Provider>);
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should match snapshot without license', () => {
+        const state = {
+            views: {
+                productMenu: {
+                    switcherOpen: false,
+                },
+            },
+        };
+        useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'false'});
+        const store = mockStore(state);
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        const wrapper = shallow(<ProductMenu/>, {
+            wrappingComponent: reactRedux.Provider,
+            wrappingComponentProps: {store},
+        });
 
         expect(wrapper).toMatchSnapshot();
     });
@@ -63,6 +91,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -87,6 +117,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -115,6 +147,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},
@@ -141,6 +175,8 @@ describe('components/global/product_switcher', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
         useSelectorMock.mockReturnValue(true);
+        useSelectorMock.mockReturnValueOnce(true);
+        useSelectorMock.mockReturnValueOnce({IsLicensed: 'true'});
         const wrapper = shallow(<ProductMenu/>, {
             wrappingComponent: reactRedux.Provider,
             wrappingComponentProps: {store},

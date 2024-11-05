@@ -13,17 +13,19 @@ exports[`components/external_link should match snapshot 1`] = `
     }
   }
 >
-  <ExternalLink
+  <ForwardRef
     href="https://mattermost.com"
+    location="test"
   >
     <a
-      href="https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=&uid=currentUserId&sid="
+      href="https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid="
+      location="test"
       onClick={[Function]}
       rel="noopener noreferrer"
       target="_blank"
     >
       Click Me
     </a>
-  </ExternalLink>
+  </ForwardRef>
 </Provider>
 `;

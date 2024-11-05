@@ -270,6 +270,7 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	ids := []string{}
 	for index, b := range bookmarks {
 		b.SortOrder = int64(index)
+		b.UpdateAt = now
 		caseStmt = caseStmt.When(sq.Eq{"Id": b.Id}, strconv.FormatInt(int64(index), 10))
 		ids = append(ids, b.Id)
 	}
@@ -317,7 +318,6 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 			From("ChannelBookmarks").
 			Where(sq.And{
 				sq.Eq{"Id": bookmarkId},
-				sq.Eq{"DeleteAt": 0},
 			})
 
 		fileQuery, fileArgs, fileErr := s.getQueryBuilder().

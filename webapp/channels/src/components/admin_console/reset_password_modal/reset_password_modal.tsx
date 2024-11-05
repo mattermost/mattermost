@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import * as Utils from 'utils/utils';
+import {isValidPassword} from 'utils/password';
 
 interface PasswordConfig {
     minimumLength: number;
@@ -83,7 +83,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
 
         const password = (this.passwordRef.current as HTMLInputElement).value;
 
-        const {valid, error} = Utils.isValidPassword(password, this.props.passwordConfig);
+        const {valid, error} = isValidPassword(password, this.props.passwordConfig);
         if (!valid && error) {
             this.setState({serverErrorNewPass: error});
             return;

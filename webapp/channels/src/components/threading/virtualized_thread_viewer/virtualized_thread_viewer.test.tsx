@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
@@ -12,13 +11,9 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import VirtualizedThreadViewer from './virtualized_thread_viewer';
-
-// Needed for apply markdown to properly work down the line
-global.ResizeObserver = require('resize-observer-polyfill');
 
 type Props = ComponentProps<typeof VirtualizedThreadViewer>;
 function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
@@ -32,7 +27,6 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     const directTeammate: UserProfile = TestHelper.getUserMock();
     const props: Props = {
         selected: post,
-        channel,
         currentUserId: 'user_id',
         directTeammate,
         lastPost: post,
@@ -42,7 +36,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         isMobileView: false,
         isThreadView: false,
         newMessagesSeparatorActions: [],
-        fromSuppressed: false,
+        measureRhsOpened: jest.fn(),
     };
 
     const state: DeepPartial<GlobalState> = {
@@ -150,31 +144,3 @@ describe('components/threading/VirtualizedThreadViewer', () => {
     });
 });
 
-describe('fromSuppressed works as expected', () => {
-    // This setup is so AutoSizer renders its contents
-    const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-    const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
-
-    beforeAll(() => {
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {configurable: true, value: 50});
-        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
-    });
-
-    afterAll(() => {
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight!);
-        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth!);
-    });
-
-    it('autofocus if fromSuppressed is not set', () => {
-        const [props, state] = getBasePropsAndState();
-        renderWithContext(<VirtualizedThreadViewer {...props}/>, state);
-        expect(screen.getByRole('textbox')).toHaveFocus();
-    });
-
-    it('do not autofocus if fromSuppressed is set', () => {
-        const [props, state] = getBasePropsAndState();
-        props.fromSuppressed = true;
-        renderWithContext(<VirtualizedThreadViewer {...props}/>, state);
-        expect(screen.getByRole('textbox')).not.toHaveFocus();
-    });
-});

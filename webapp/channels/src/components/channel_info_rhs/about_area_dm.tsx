@@ -99,7 +99,6 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                         userId={dmUser.user.id}
                         channelId={channel.id}
                         size='xl'
-                        popoverPlacement='left'
                     />
                 </UserAvatar>
                 <UserInfo>

@@ -11,7 +11,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -157,7 +157,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -303,7 +303,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -449,7 +449,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -563,7 +563,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -692,7 +692,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -838,7 +838,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -984,7 +984,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -1130,7 +1130,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,
@@ -1276,7 +1276,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   }
   menuButton={
     Object {
-      "aria-label": "Channel options",
+      "aria-label": "Channel options for {channelName}",
       "children": <DotsVerticalIcon
         size={16}
       />,

@@ -30,14 +30,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -48,7 +48,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -66,7 +66,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -90,7 +90,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -108,7 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -132,7 +132,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -150,7 +150,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -168,7 +168,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -186,7 +186,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -204,7 +204,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -295,7 +295,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -313,12 +313,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -382,14 +383,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -400,7 +401,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -418,7 +419,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -442,7 +443,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -460,7 +461,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -484,7 +485,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -502,7 +503,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -520,7 +521,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -538,7 +539,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -629,7 +630,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -647,7 +648,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -665,12 +666,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -734,14 +736,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -752,7 +754,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -843,7 +845,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -867,7 +869,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -885,7 +887,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -909,7 +911,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -927,7 +929,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -945,7 +947,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -963,7 +965,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -981,7 +983,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -999,7 +1001,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1017,12 +1019,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1086,14 +1089,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1104,7 +1107,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1122,7 +1125,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1146,7 +1149,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1164,7 +1167,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1188,7 +1191,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1206,7 +1209,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -1237,7 +1240,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="On"
+                        defaultMessage="Expanded"
                         id="user.settings.display.collapseOn"
                       />
                     </label>
@@ -1255,7 +1258,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         type="radio"
                       />
                       <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Off"
+                        defaultMessage="Collapsed"
                         id="user.settings.display.collapseOff"
                       />
                     </label>
@@ -1297,7 +1300,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1315,7 +1318,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1333,7 +1336,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1351,7 +1354,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1369,12 +1372,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1438,14 +1442,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1456,7 +1460,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1474,7 +1478,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1498,7 +1502,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1516,7 +1520,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1540,7 +1544,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1558,7 +1562,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1576,7 +1580,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1594,7 +1598,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1612,7 +1616,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1630,7 +1634,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1648,12 +1652,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1717,14 +1722,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1735,7 +1740,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1753,7 +1758,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1777,7 +1782,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1795,7 +1800,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -1819,7 +1824,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1837,7 +1842,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1855,7 +1860,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1873,7 +1878,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1891,7 +1896,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -1909,12 +1914,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -1978,14 +1984,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -1996,7 +2002,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2014,7 +2020,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2038,7 +2044,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2056,7 +2062,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2080,7 +2086,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2171,7 +2177,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2189,7 +2195,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2207,7 +2213,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2225,7 +2231,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2243,7 +2249,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2261,12 +2267,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2330,14 +2337,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2348,7 +2355,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2366,7 +2373,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2390,7 +2397,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2408,7 +2415,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -2432,7 +2439,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2450,7 +2457,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2468,7 +2475,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2577,7 +2584,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2595,7 +2602,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2613,7 +2620,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -2631,12 +2638,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2700,14 +2708,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2718,7 +2726,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2736,7 +2744,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -2760,7 +2768,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2778,7 +2786,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -2802,7 +2810,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2820,7 +2828,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2838,7 +2846,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2856,7 +2864,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2874,7 +2882,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2892,7 +2900,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -2910,12 +2918,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -2979,14 +2988,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -2997,7 +3006,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3015,7 +3024,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3039,7 +3048,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3057,7 +3066,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3081,7 +3090,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3099,7 +3108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3117,7 +3126,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3135,7 +3144,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3153,7 +3162,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3171,7 +3180,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3189,12 +3198,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3258,14 +3268,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3276,7 +3286,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3294,7 +3304,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3318,7 +3328,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3336,7 +3346,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3360,7 +3370,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3378,7 +3388,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3396,7 +3406,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3414,7 +3424,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3432,7 +3442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3450,7 +3460,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3468,12 +3478,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3550,14 +3561,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3568,7 +3579,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3586,7 +3597,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3610,7 +3621,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3628,7 +3639,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3652,7 +3663,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3670,7 +3681,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3688,7 +3699,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3706,7 +3717,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3724,7 +3735,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3742,7 +3753,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3760,12 +3771,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -3829,14 +3841,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -3847,7 +3859,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3865,7 +3877,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3889,7 +3901,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3907,7 +3919,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe={
@@ -3931,7 +3943,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3949,7 +3961,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3967,7 +3979,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -3985,7 +3997,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4003,7 +4015,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4021,7 +4033,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         max={null}
@@ -4039,12 +4051,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={
@@ -4108,14 +4121,14 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       className="divider-dark first"
     />
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Collapsed Reply Threads"
+            defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
         }
@@ -4126,7 +4139,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4144,7 +4157,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe={
@@ -4168,7 +4181,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4186,7 +4199,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4204,7 +4217,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4222,7 +4235,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4240,7 +4253,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4258,7 +4271,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4276,7 +4289,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         max={null}
@@ -4294,12 +4307,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <SettingItem
+      <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
+            adminMode={false}
             locale="en"
             updateSection={[Function]}
             user={

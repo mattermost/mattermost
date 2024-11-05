@@ -183,4 +183,37 @@ describe('Edit Message', () => {
             cy.get('#edit_textbox').should('have.text', message);
         });
     });
+
+    it('MM-T121_2 @mention in edit post should show warning, Editing this message with an @mention will not notify the recipient.', () => {
+        // # Post a message
+        cy.postMessage('Hello World!');
+
+        // # Hit the up arrow to open the "editor"
+        cy.uiGetPostTextBox().type('{uparrow}');
+
+        // # In the modal type @
+        cy.get('#edit_textbox').type(' @user');
+
+        // # Press the enter key
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
+
+        // * Check if the textbox contains expected text
+        cy.get('.post-body__info').should('be.visible');
+        cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
+
+        // # Press the escape key
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
+
+        // # Open the RHS
+        cy.getLastPostId().then((postId) => {
+            cy.clickPostCommentIcon(postId);
+        });
+
+        // # Hit the up arrow to open the "editor"
+        cy.uiGetPostTextBox().type('{uparrow}');
+
+        // * Check if the textbox contains expected text
+        cy.get('.post-body__info').should('be.visible');
+        cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
+    });
 });

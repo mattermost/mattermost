@@ -5,20 +5,15 @@ package utils
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-// this functions loads translations from filesystem if they are not
-// loaded already and assigns english while loading server config
+// TranslationsPreInit loads translations from filesystem if they are not
+// loaded already and assigns english while loading server config.
 func TranslationsPreInit() error {
 	translationsDir := "i18n"
-	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
-		translationsDir = filepath.Join(mattermostPath, "i18n")
-	}
 
 	i18nDirectory, found := fileutils.FindDirRelBinary(translationsDir)
 	if !found {

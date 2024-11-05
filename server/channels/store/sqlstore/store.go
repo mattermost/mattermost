@@ -109,9 +109,9 @@ type SqlStoreStores struct {
 	postPriority               store.PostPriorityStore
 	postAcknowledgement        store.PostAcknowledgementStore
 	postPersistentNotification store.PostPersistentNotificationStore
-	trueUpReview               store.TrueUpReviewStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	scheduledPost              store.ScheduledPostStore
 }
 
 type SqlStore struct {
@@ -235,9 +235,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
-	store.stores.trueUpReview = newSqlTrueUpReviewStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.scheduledPost = newScheduledPostStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1033,10 +1033,6 @@ func (ss *SqlStore) PostPersistentNotification() store.PostPersistentNotificatio
 	return ss.stores.postPersistentNotification
 }
 
-func (ss *SqlStore) TrueUpReview() store.TrueUpReviewStore {
-	return ss.stores.trueUpReview
-}
-
 func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 	return ss.stores.desktopTokens
 }
@@ -1299,4 +1295,52 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	}
 
 	return migrations, nil
+}
+
+func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, error) {
+	var columnSizeBytes int32
+	ss.getQueryPlaceholder()
+
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(character_maximum_length, 0)
+			FROM
+				information_schema.columns
+			WHERE
+				lower(table_name) = lower($1)
+			AND	lower(column_name) = lower($2)
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
+			return 0, err
+		}
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
+			FROM
+				INFORMATION_SCHEMA.COLUMNS
+			WHERE
+				table_schema = DATABASE()
+			AND	lower(table_name) = lower(?)
+			AND	lower(column_name) = lower(?)
+			LIMIT 0, 1
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for MySQL", mlog.Err(err))
+			return 0, err
+		}
+	} else {
+		mlog.Warn("No implementation found to determine the maximum supported column size")
+	}
+
+	// Assume a worst-case representation of four bytes per rune.
+	maxColumnSize := int(columnSizeBytes) / 4
+
+	mlog.Info("Column has size restrictions", mlog.String("table_name", tableName), mlog.String("column_name", columnName), mlog.Int("max_characters", maxColumnSize), mlog.Int("max_bytes", columnSizeBytes))
+
+	return maxColumnSize, nil
+}
+
+func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
+	return ss.stores.scheduledPost
 }

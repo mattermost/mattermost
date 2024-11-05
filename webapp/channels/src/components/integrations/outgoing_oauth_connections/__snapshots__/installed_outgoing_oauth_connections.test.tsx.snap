@@ -68,7 +68,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
             />
           }
           emptyTextSearch={
-            <FormattedMarkdownMessage
+            <Memo(MemoizedFormattedMessage)
               defaultMessage="No Outgoing OAuth Connections match {searchTerm}"
               id="installed_outgoing_oauth_connections.emptySearch"
             />
@@ -85,7 +85,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
               id="installed_outgoing_oauth_connections.help"
               values={
                 Object {
-                  "outgoingOauthConnections": <ExternalLink
+                  "outgoingOauthConnections": <ForwardRef
                     href="https://mattermost.com/pl/setup-oauth-2.0"
                     location="installed_outgoing_oauth_connections"
                   >
@@ -93,7 +93,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                       defaultMessage="Outgoing OAuth Connections"
                       id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -161,12 +161,6 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   id="searchInput"
                   onChange={[Function]}
                   placeholder="Search Outgoing OAuth Connections"
-                  style={
-                    Object {
-                      "flexGrow": 0,
-                      "flexShrink": 0,
-                    }
-                  }
                   type="search"
                   value=""
                 />
@@ -180,7 +174,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                 id="installed_outgoing_oauth_connections.help"
                 values={
                   Object {
-                    "outgoingOauthConnections": <ExternalLink
+                    "outgoingOauthConnections": <ForwardRef
                       href="https://mattermost.com/pl/setup-oauth-2.0"
                       location="installed_outgoing_oauth_connections"
                     >
@@ -188,13 +182,13 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                         defaultMessage="Outgoing OAuth Connections"
                         id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                       />
-                    </ExternalLink>,
+                    </ForwardRef>,
                   }
                 }
               >
                 <span>
                   Create 
-                  <ExternalLink
+                  <ForwardRef
                     href="https://mattermost.com/pl/setup-oauth-2.0"
                     key=".$.1"
                     location="installed_outgoing_oauth_connections"
@@ -215,7 +209,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                         </span>
                       </FormattedMessage>
                     </a>
-                  </ExternalLink>
+                  </ForwardRef>
                    to securely integrate bots and third-party apps with Mattermost.
                 </span>
               </FormattedMessage>
@@ -223,7 +217,9 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
             <div
               className="backstage-list"
             >
-              <LoadingScreen>
+              <LoadingScreen
+                key="loading"
+              >
                 <div
                   className="loading-screen"
                   style={
@@ -250,6 +246,55 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   </div>
                 </div>
               </LoadingScreen>
+            </div>
+            <div
+              className="backstage-footer"
+            >
+              <div
+                className="backstage-footer__cell"
+              >
+                <FormattedMessage
+                  defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+                  id="backstage_list.paginatorCount"
+                  values={
+                    Object {
+                      "endCount": 0,
+                      "startCount": 0,
+                      "total": 0,
+                    }
+                  }
+                >
+                  <span>
+                    0 - 0 of 0
+                  </span>
+                </FormattedMessage>
+                <button
+                  aria-label="Previous"
+                  className="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                  onClick={[Function]}
+                  type="button"
+                >
+                  <Memo(PreviousIcon)>
+                    <i
+                      className="icon icon-chevron-left"
+                      title="Previous Icon"
+                    />
+                  </Memo(PreviousIcon)>
+                </button>
+                <button
+                  aria-label="Next"
+                  className="btn btn-quaternary btn-icon btn-sm next disabled"
+                  onClick={[Function]}
+                  type="button"
+                >
+                  <Memo(NextIcon)>
+                    <i
+                      className="icon icon-chevron-right"
+                      title="Next Icon"
+                    />
+                  </Memo(NextIcon)>
+                </button>
+              </div>
             </div>
           </div>
         </BackstageList>

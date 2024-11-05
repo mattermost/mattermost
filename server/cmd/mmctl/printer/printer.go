@@ -33,7 +33,7 @@ type Printer struct { //nolint
 	pager         bool
 	Quiet         bool
 	Lines         []interface{}
-	ErrorLines    []interface{}
+	ErrorLines    []string
 
 	cmd        *cobra.Command
 	serverAddr string
@@ -193,7 +193,7 @@ func Flush() error {
 
 	defer func() {
 		printer.Lines = []interface{}{}
-		printer.ErrorLines = []interface{}{}
+		printer.ErrorLines = []string{}
 	}()
 
 	if cmd == nil || cmd.Name() != "list" || printer.cmd.Parent().Name() == "auth" {
@@ -232,7 +232,7 @@ func Flush() error {
 // Clean resets the printer's accumulated lines
 func Clean() {
 	printer.Lines = []interface{}{}
-	printer.ErrorLines = []interface{}{}
+	printer.ErrorLines = []string{}
 }
 
 // GetLines returns the printer's accumulated lines
@@ -241,7 +241,7 @@ func GetLines() []interface{} {
 }
 
 // GetErrorLines returns the printer's accumulated error lines
-func GetErrorLines() []interface{} {
+func GetErrorLines() []string {
 	return printer.ErrorLines
 }
 

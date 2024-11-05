@@ -57,7 +57,6 @@ type CardProps = {
     planAddonsInfo?: PlanAddonsInfo;
     planTrialDisclaimer?: JSX.Element;
     isCloud: boolean;
-    cloudFreeDeprecated: boolean;
 }
 
 type StyledProps = {
@@ -117,28 +116,20 @@ export function BlankCard() {
 function Card(props: CardProps) {
     const {formatMessage} = useIntl();
     const bottomClassName = classNames('bottom', {
-        bottom__round: props.cloudFreeDeprecated && props.isCloud,
+        bottom__round: props.isCloud,
     });
 
     const contactSalesCTAClassName = classNames('contact_sales_cta', {
-        contact_sales_cta__reduced: props.cloudFreeDeprecated && props.isCloud,
+        contact_sales_cta__reduced: props.isCloud,
     });
 
-    const planBriefingContentClassName = classNames('plan_briefing_content', {
-        plan_briefing_content__reduced: props.cloudFreeDeprecated,
-    });
+    const planBriefingContentClassName = classNames('plan_briefing_content', 'plan_briefing_content__reduced');
 
-    const planPriceRateSectionClassName = classNames('plan_price_rate_section', {
-        plan_price_rate_section__expanded: props.cloudFreeDeprecated,
-    });
+    const planPriceRateSectionClassName = classNames('plan_price_rate_section', 'plan_price_rate_section__expanded');
 
-    const planLimitsCtaClassName = classNames('plan_limits_cta', {
-        plan_limits_cta__expanded: props.cloudFreeDeprecated,
-    });
+    const planLimitsCtaClassName = classNames('plan_limits_cta', 'plan_limits_cta__expanded');
 
-    const buildingImgClassName = classNames('building_img', {
-        building_img__expanded: props.cloudFreeDeprecated,
-    });
+    const buildingImgClassName = classNames('building_img', 'building_img__expanded');
 
     return (
         <div
@@ -146,7 +137,7 @@ function Card(props: CardProps) {
             className='PlanCard'
         >
             {props.planLabel}
-            {(!props.cloudFreeDeprecated || !props.isCloud) && (
+            {!props.isCloud && (
                 <StyledDiv
                     className='top'
                     bgColor={props.topColor}
@@ -159,7 +150,7 @@ function Card(props: CardProps) {
                         <h3>{props.plan}</h3>
                         <p>{props.planSummary}</p>
                         {props.price ? <h1>{props.price}</h1> : <div className={buildingImgClassName}><BuildingSvg/></div>}
-                        {props.cloudFreeDeprecated ? (<span className='plan_rate'>{props.rate}</span>) : (<span>{props.rate}</span>)}
+                        <span className='plan_rate'>{props.rate}</span>
                     </div>
 
                     <div className={planLimitsCtaClassName}>
@@ -188,7 +179,6 @@ function Card(props: CardProps) {
                     </div>
 
                     <div className='plan_briefing'>
-                        {!props.cloudFreeDeprecated && <hr/>}
                         {props.planTrialDisclaimer}
                         <div className={planBriefingContentClassName}>
                             <span className='title'>{props.briefing.title}</span>

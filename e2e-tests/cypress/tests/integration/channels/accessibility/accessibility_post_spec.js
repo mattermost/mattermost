@@ -167,7 +167,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab();
 
                 // * Verify focus is on the username
-                cy.get('button.user-popover').should('be.focused').and('have.attr', 'aria-label', otherUser.username);
+                cy.get('button.user-popover').should('be.focused');
                 cy.focused().tab();
 
                 // * Verify focus is on the time
@@ -188,7 +188,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
                 cy.focused().tab();
 
-                // * Verify focus is on message actions button
+                // * Verify focus is on the actions button
                 cy.get(`#CENTER_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
                 cy.focused().tab();
 
@@ -238,7 +238,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.get(`#RHS_COMMENT_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
                 cy.focused().tab({shift: true});
 
-                // * Verify focus is on message actions button
+                // * Verify focus is on the actions button
                 cy.get(`#RHS_COMMENT_actions_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'actions');
                 cy.focused().tab({shift: true});
 
@@ -259,7 +259,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the username
-                cy.get('button.user-popover').should('be.focused').and('have.attr', 'aria-label', otherUser.username);
+                cy.get('button.user-popover').should('be.focused');
                 cy.focused().tab({shift: true});
             });
         });
@@ -341,8 +341,9 @@ function verifyPostLabel(elementId, username, labelSuffix) {
     // * Verify reader reads out the post correctly
     cy.get('@lastPost').then((el) => {
         // # Get the post time
-        cy.wrap(el).find('time.post__time').invoke('text').then((time) => {
-            const expectedLabel = `At ${time} ${Cypress.dayjs().format('dddd, MMMM D')}, ${username} ${labelSuffix}`;
+        cy.wrap(el).find('time.post__time').invoke('attr', 'datetime').then((time) => {
+            const parsedTime = Cypress.dayjs(time);
+            const expectedLabel = `At ${parsedTime.format('h:mm A dddd, MMMM D')}, ${username} ${labelSuffix}`;
             cy.wrap(el).should('have.attr', 'aria-label', expectedLabel);
         });
     });

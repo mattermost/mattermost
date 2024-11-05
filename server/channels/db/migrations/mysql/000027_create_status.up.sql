@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS Status (
     UserId varchar(26) NOT NULL,
     Status varchar(32) DEFAULT NULL,
-    Manual tinyint(1) DEFAULT NULL,
+    `Manual` tinyint(1) DEFAULT NULL,
     LastActivityAt bigint(20) DEFAULT NULL,
     PRIMARY KEY (UserId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

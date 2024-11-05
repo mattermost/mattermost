@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessages} from 'react-intl';
+
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -458,3 +460,26 @@ export default class AtMentionProvider extends Provider {
         };
     }
 }
+
+defineMessages({
+    groupDivider: {
+        id: 'suggestion.search.group',
+        defaultMessage: 'Group Mentions',
+    },
+    memberDivider: {
+        id: 'suggestion.mention.members',
+        defaultMessage: 'Channel Members',
+    },
+    moreMembersDivider: {
+        id: 'suggestion.mention.moremembers',
+        defaultMessage: 'Other Members',
+    },
+    nonmemberDivider: {
+        id: 'suggestion.mention.nonmembers',
+        defaultMessage: 'Not in Channel',
+    },
+    specialDivider: {
+        id: 'suggestion.mention.special',
+        defaultMessage: 'Special Mentions',
+    },
+});

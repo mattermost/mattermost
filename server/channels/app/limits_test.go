@@ -10,123 +10,141 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetUserLimits(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
+func TestGetServerLimits(t *testing.T) {
 	t.Run("base case", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
 
 		// InitBasic creates 3 users by default
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
-		require.Equal(t, int64(10000), userLimits.MaxUsersLimit)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(5000), serverLimits.MaxUsersLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
 		newUser := th.CreateUser()
 
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
 		_ = th.App.PermanentDeleteUser(th.Context, newUser)
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on permanently deleting", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
 		newGuestUser := th.CreateGuest()
 
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
 		_ = th.App.PermanentDeleteUser(th.Context, newGuestUser)
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on soft deleting", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
 		newUser := th.CreateUser()
 
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
 		_, appErr = th.App.UpdateActive(th.Context, newUser, false)
 		require.Nil(t, appErr)
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on soft deleting", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
 		newGuestUser := th.CreateGuest()
 
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+		require.Equal(t, int64(4), serverLimits.ActiveUserCount)
 
 		// now we'll delete the user
 		_, appErr = th.App.UpdateActive(th.Context, newGuestUser, false)
 		require.Nil(t, appErr)
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 	})
 
 	t.Run("user count should not change on creating or deleting bots", func(t *testing.T) {
-		userLimits, appErr := th.App.GetUserLimits()
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new bot
 		newBot := th.CreateBot()
 
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we'll delete the bot
 		_ = th.App.PermanentDeleteBot(th.Context, newBot.UserId)
-		userLimits, appErr = th.App.GetUserLimits()
+		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
-		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 	})
 
 	t.Run("limits should be empty when there is a license", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
-		userLimits, appErr := th.App.GetUserLimits()
+		serverLimits, appErr := th.App.GetServerLimits()
 		require.Nil(t, appErr)
 
-		require.Equal(t, int64(0), userLimits.ActiveUserCount)
-		require.Equal(t, int64(0), userLimits.MaxUsersLimit)
+		require.Equal(t, int64(0), serverLimits.ActiveUserCount)
+		require.Equal(t, int64(0), serverLimits.MaxUsersLimit)
 	})
 }

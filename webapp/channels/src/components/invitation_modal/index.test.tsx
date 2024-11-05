@@ -178,6 +178,6 @@ describe('mapStateToProps', () => {
 
         const props = mapStateToProps(testState, {channelToInvite: testChannel});
 
-        expect(props.currentTeam.id).toBe(testChannel.team_id);
+        expect(props.currentTeam?.id).toBe(testChannel.team_id);
     });
 });

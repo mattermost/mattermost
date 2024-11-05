@@ -43,7 +43,7 @@ const CloudTrialBanner = ({trialEndDate}: Props): JSX.Element | null => {
 
         // the banner when dismissed, will be dismissed for 10 days
         const bannerIsStillDismissed = diffDays < 0;
-        shouldShowBanner = storedDismissedEndDate && bannerIsStillDismissed;
+        shouldShowBanner = Boolean(storedDismissedEndDate) && bannerIsStillDismissed;
     }
 
     const [showBanner, setShowBanner] = useState<boolean>(shouldShowBanner);

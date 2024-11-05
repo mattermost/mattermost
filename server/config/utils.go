@@ -104,14 +104,11 @@ func fixConfig(cfg *model.Config) {
 		}
 	}
 
-	FixInvalidLocales(cfg)
+	fixInvalidLocales(cfg)
 }
 
-// FixInvalidLocales checks and corrects the given config for invalid locale-related settings.
-//
-// Ideally, this function would be completely internal, but it's currently exposed to allow the cli
-// to test the config change before allowing the save.
-func FixInvalidLocales(cfg *model.Config) bool {
+// fixInvalidLocales checks and corrects the given config for invalid locale-related settings.
+func fixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
 	locales := i18n.GetSupportedLocales()

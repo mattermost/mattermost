@@ -5,7 +5,8 @@ import classNames from 'classnames';
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
 
@@ -33,10 +34,8 @@ import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {A11yCustomEventTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
-import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -54,8 +53,7 @@ const EMOJI_PICKER_WIDTH_OFFSET = 308;
 
 type DefaultUserCustomStatus = {
     emoji: string;
-    message: string;
-    messageDefault: string;
+    message: MessageDescriptor;
     duration: CustomStatusDuration;
 };
 
@@ -73,32 +71,42 @@ const {
 const defaultCustomStatusSuggestions: DefaultUserCustomStatus[] = [
     {
         emoji: 'calendar',
-        message: t('custom_status.suggestions.in_a_meeting'),
-        messageDefault: 'In a meeting',
+        message: defineMessage({
+            id: 'custom_status.suggestions.in_a_meeting',
+            defaultMessage: 'In a meeting',
+        }),
         duration: ONE_HOUR,
     },
     {
         emoji: 'hamburger',
-        message: t('custom_status.suggestions.out_for_lunch'),
-        messageDefault: 'Out for lunch',
+        message: defineMessage({
+            id: 'custom_status.suggestions.out_for_lunch',
+            defaultMessage: 'Out for lunch',
+        }),
         duration: THIRTY_MINUTES,
     },
     {
         emoji: 'sneezing_face',
-        message: t('custom_status.suggestions.out_sick'),
-        messageDefault: 'Out sick',
+        message: defineMessage({
+            id: 'custom_status.suggestions.out_sick',
+            defaultMessage: 'Out sick',
+        }),
         duration: TODAY,
     },
     {
         emoji: 'house',
-        message: t('custom_status.suggestions.working_from_home'),
-        messageDefault: 'Working from home',
+        message: defineMessage({
+            id: 'custom_status.suggestions.working_from_home',
+            defaultMessage: 'Working from home',
+        }),
         duration: TODAY,
     },
     {
         emoji: 'palm_tree',
-        message: t('custom_status.suggestions.on_a_vacation'),
-        messageDefault: 'On a vacation',
+        message: defineMessage({
+            id: 'custom_status.suggestions.on_a_vacation',
+            defaultMessage: 'On a vacation',
+        }),
         duration: THIS_WEEK,
     },
 ];
@@ -130,13 +138,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         initialCustomExpiryTime = moment(currentCustomStatus.expires_at);
     }
     const [customExpiryTime, setCustomExpiryTime] = useState<Moment>(initialCustomExpiryTime);
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+    const [isInteracting, setIsInteracting] = useState<boolean>(false);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
-        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
+        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isInteracting) {
             props.onExited();
         }
-    }, [isDatePickerOpen, props.onExited]);
+    }, [isInteracting, props.onExited]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -172,9 +180,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         if (inCustomEmojiPath) {
             dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
         }
-    }, [inCustomEmojiPath]);
+    }, [dispatch, inCustomEmojiPath]);
 
     const handleSetStatus = () => {
+        if (isInteracting) {
+            return;
+        }
+
         const expiresAt = calculateExpiryTime();
         const customStatus: UserCustomStatus = {
             emoji: emoji || 'speech_balloon',
@@ -185,7 +197,14 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             customStatus.expires_at = expiresAt;
         }
         dispatch(setCustomStatus(customStatus));
+        dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
     };
+
+    const handleEnterKeyPressed = useCallback(() => {
+        if (!isInteracting) {
+            handleSetStatus();
+        }
+    }, [isInteracting, handleSetStatus]);
 
     const calculateExpiryTime = (): string => {
         switch (duration) {
@@ -198,7 +217,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         case FOUR_HOURS:
             return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
         case TODAY:
-            return moment().endOf('day').toISOString();
+            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
         case THIS_WEEK:
             return moment().endOf('week').toISOString();
         case DATE_AND_TIME:
@@ -320,7 +339,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         const customStatusSuggestions = defaultCustomStatusSuggestions.
             map((status) => ({
                 emoji: status.emoji,
-                text: formatMessage({id: status.message, defaultMessage: status.messageDefault}),
+                text: formatMessage(status.message),
                 duration: status.duration,
             })).
             filter((status: UserCustomStatus) => !recentCustomStatusTexts.includes(status.text)).
@@ -396,12 +415,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             id='custom_status_modal'
             className={'StatusModal'}
             handleConfirm={handleSetStatus}
-            handleEnterKeyPress={handleSetStatus}
+            handleEnterKeyPress={handleEnterKeyPressed}
             handleCancel={handleClearStatus}
             confirmButtonClassName='btn btn-primary'
-            ariaLabel={localizeMessage('custom_status.set_status', 'Set a status')}
+            ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}
+            autoCloseOnConfirmButton={false}
         >
             <div className='StatusModal__body'>
                 <div className='StatusModal__input'>
@@ -461,7 +481,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         time={customExpiryTime}
                         handleChange={setCustomExpiryTime}
                         timezone={timezone}
-                        setIsDatePickerOpen={setIsDatePickerOpen}
+                        setIsInteracting={setIsInteracting}
                     />
                 )}
             </div>

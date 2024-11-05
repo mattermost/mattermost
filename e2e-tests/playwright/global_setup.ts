@@ -107,11 +107,11 @@ async function printClientInfo(client: Client) {
     const {LogSettings, ServiceSettings} = await client.getConfig();
     // eslint-disable-next-line no-console
     console.log(`Notable Server Config:
-  - ServiceSettings.EnableSecurityFixAlert  = ${ServiceSettings.EnableSecurityFixAlert}
-  - LogSettings.EnableDiagnostics           = ${LogSettings.EnableDiagnostics}`);
+  - ServiceSettings.EnableSecurityFixAlert  = ${ServiceSettings?.EnableSecurityFixAlert}
+  - LogSettings.EnableDiagnostics           = ${LogSettings?.EnableDiagnostics}`);
 }
 
-async function ensurePluginsLoaded(client: Client) {
+export async function ensurePluginsLoaded(client: Client) {
     const pluginStatus = await client.getPluginStatuses();
     const plugins = await client.getPlugins();
 

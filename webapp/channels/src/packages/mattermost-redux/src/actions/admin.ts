@@ -26,7 +26,7 @@ import type {
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
-import {getUsersLimits} from 'mattermost-redux/actions/limits';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -386,7 +386,7 @@ export function removeLicense(): ActionFuncAsync<boolean> {
             return {error: error as ServerError};
         }
 
-        await dispatch(getUsersLimits());
+        await dispatch(getServerLimits());
 
         return {data: true};
     };

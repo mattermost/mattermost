@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -24,11 +25,11 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 500)
+	busy.Set(5 * time.Second)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
-	// should automatically expire after 500ms.
+	// should automatically expire after 5s.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
@@ -134,14 +135,21 @@ func (c *ClusterMock) StartInterNodeCommunication() {}
 func (c *ClusterMock) StopInterNodeCommunication()  {}
 func (c *ClusterMock) RegisterClusterMessageHandler(event model.ClusterEvent, crm einterfaces.ClusterMessageHandler) {
 }
-func (c *ClusterMock) GetClusterId() string                                      { return "cluster_mock" }
-func (c *ClusterMock) IsLeader() bool                                            { return false }
-func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                      { return nil }
-func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                     { return nil }
-func (c *ClusterMock) NotifyMsg(buf []byte)                                      {}
-func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError) { return nil, nil }
-func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError)     { return nil, nil }
-func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+func (c *ClusterMock) GetClusterId() string                  { return "cluster_mock" }
+func (c *ClusterMock) IsLeader() bool                        { return false }
+func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo  { return nil }
+func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo { return nil }
+func (c *ClusterMock) NotifyMsg(buf []byte)                  {}
+func (c *ClusterMock) GetClusterStats(rctx request.CTX) ([]*model.ClusterStats, *model.AppError) {
+	return nil, nil
+}
+func (c *ClusterMock) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
+	return nil, nil
+}
+func (c *ClusterMock) QueryLogs(rctx request.CTX, page, perPage int) (map[string][]string, *model.AppError) {
+	return nil, nil
+}
+func (c *ClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
 }
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
@@ -149,3 +157,6 @@ func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *mod
 	return nil
 }
 func (c *ClusterMock) HealthScore() int { return 0 }
+func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
+	return 0, nil
+}

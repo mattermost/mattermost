@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {markChannelAsViewedOnServer, updateApproximateViewTime} from 'mattermost-redux/actions/channels';
+import {updateApproximateViewTime} from 'mattermost-redux/actions/channels';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -48,11 +48,14 @@ const getChannelURLAction = (channelId: string, teamId: string, url: string): Th
     const state = getState();
 
     if (url && isPermalinkURL(url)) {
-        return getHistory().push(url);
+        getHistory().push(url);
+        return;
     }
 
     const channel = getChannel(state, channelId);
-    return getHistory().push(getChannelURL(state, channel, teamId));
+    if (channel) {
+        getHistory().push(getChannelURL(state, channel, teamId));
+    }
 };
 
 function mapDispatchToProps(dispatch: Dispatch) {
@@ -60,7 +63,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             autoUpdateTimezone,
             getChannelURLAction,
-            markChannelAsViewedOnServer,
             updateApproximateViewTime,
         }, dispatch),
     };

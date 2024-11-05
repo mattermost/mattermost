@@ -39,6 +39,7 @@ export interface Props extends PropsFromRedux {
     onEmojiClick: (emoji: Emoji) => void;
     handleFilterChange: (filter: string) => void;
     handleEmojiPickerClose: () => void;
+    onAddCustomEmojiClick?: () => void;
 }
 
 const EmojiPicker = ({
@@ -46,6 +47,7 @@ const EmojiPicker = ({
     onEmojiClick,
     handleFilterChange,
     handleEmojiPickerClose,
+    onAddCustomEmojiClick,
     customEmojisEnabled = false,
     customEmojiPage = 0,
     emojiMap,
@@ -202,6 +204,11 @@ const EmojiPicker = ({
             emojiId: '',
             emoji: undefined,
         });
+    }, []);
+
+    const onAddCustomEmojiClickInner = useCallback(() => {
+        handleEmojiPickerClose();
+        onAddCustomEmojiClick?.();
     }, []);
 
     const [cursorCategory, cursorCategoryIndex, cursorEmojiIndex] = getCursorProperties(cursor.rowIndex, cursor.emojiId, categoryOrEmojisRows as EmojiRow[]);
@@ -429,13 +436,11 @@ const EmojiPicker = ({
                 />
             )}
             <div className='emoji-picker__footer'>
-                {areSearchResultsEmpty ? (<div/>) :
-                    (<EmojiPickerPreview emoji={cursor.emoji}/>)
-                }
+                {areSearchResultsEmpty ? <div/> : <EmojiPickerPreview emoji={cursor.emoji}/>}
                 <EmojiPickerCustomEmojiButton
                     currentTeamName={currentTeamName}
                     customEmojisEnabled={customEmojisEnabled}
-                    handleEmojiPickerClose={handleEmojiPickerClose}
+                    onClick={onAddCustomEmojiClickInner}
                 />
             </div>
         </div>

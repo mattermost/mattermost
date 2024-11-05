@@ -114,14 +114,29 @@ export type IndexedPluginAnalyticsRow = {
     [key: string]: PluginAnalyticsRow;
 }
 
+export enum AnalyticsVisualizationType {
+    Count = 'count',
+    LineChart = 'line_chart',
+    DoughnutChart = 'doughnut_chart',
+}
+
 export type PluginAnalyticsRow = {
     id: string;
     name: React.ReactNode;
-    icon: string;
-    value: number;
+    icon?: string;
+    value: any;
+    visualizationType?: AnalyticsVisualizationType;
 };
 
 export type SchemaMigration = {
     version: number;
     name: string;
 };
+
+export type SupportPacketContent = {
+    id: string;
+    translation_id?: string;
+    label: string;
+    selected: boolean;
+    mandatory: boolean;
+}

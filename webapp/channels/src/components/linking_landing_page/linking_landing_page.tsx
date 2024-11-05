@@ -6,8 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import BrowserStore from 'stores/browser_store';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+import ExternalLink from 'components/external_link';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
@@ -99,12 +98,13 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         return landingPreference && landingPreference === LandingPreferenceTypes.MATTERMOSTAPP;
     };
 
-    handleChecked = () => {
+    handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({rememberChecked: e.target.checked});
+
         // If it was checked, and now we're unchecking it, clear the preference
-        if (this.state.rememberChecked) {
+        if (!e.target.checked) {
             BrowserStore.clearLandingPreference(this.props.siteUrl);
         }
-        this.setState({rememberChecked: !this.state.rememberChecked});
     };
 
     setPreference = (pref: string, clearIfNotChecked?: boolean) => {
@@ -201,16 +201,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         this.setState({brandImageError: true});
     };
 
-    renderCheckboxIcon = () => {
-        if (this.state.rememberChecked) {
-            return (
-                <CheckboxCheckedIcon/>
-            );
-        }
-
-        return null;
-    };
-
     renderGraphic = () => {
         const isMobile = UserAgent.isMobile();
 
@@ -251,11 +241,18 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         if (this.state.redirectPage) {
             return (
                 <div className='get-app__download-link'>
-                    <FormattedMarkdownMessage
-                        id='get_app.openLinkInBrowser'
-                        defaultMessage='Or, [open this link in your browser.](!{link})'
+                    <FormattedMessage
+                        id='getApp.downloadLinkInBrowser'
+                        defaultMessage='Or, <a>open this link in your browser</a>.'
                         values={{
-                            link: this.state.location,
+                            a: (chunks: string) => (
+                                <ExternalLink
+                                    href={this.state.location}
+                                    location='landingPage'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
                         }}
                     />
                 </div>
@@ -392,18 +389,18 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         />
                     </a>
                 </div>
-                <div className='get-app__preference'>
-                    <button
-                        className={`get-app__checkbox ${this.state.rememberChecked ? 'checked' : ''}`}
-                        onClick={this.handleChecked}
-                    >
-                        {this.renderCheckboxIcon()}
-                    </button>
+                <label className='get-app__preference'>
+                    <input
+                        type='checkbox'
+                        checked={this.state.rememberChecked}
+                        className='get-app__checkbox'
+                        onChange={this.handleChecked}
+                    />
                     <FormattedMessage
                         id='get_app.rememberMyPreference'
                         defaultMessage='Remember my preference'
                     />
-                </div>
+                </label>
                 {this.renderDownloadLinkSection()}
             </div>
         );

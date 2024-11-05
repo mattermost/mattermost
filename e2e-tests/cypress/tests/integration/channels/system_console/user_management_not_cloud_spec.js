@@ -155,21 +155,18 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
 
         // # Search for the user.
-        cy.get('#searchUsers').clear().type(user.email, {delay: TIMEOUTS.ONE_HUNDRED_MILLIS}).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#input_searchTerm').clear().type(user.email, {delay: TIMEOUTS.ONE_HUNDRED_MILLIS}).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('contain', user.email);
 
-        cy.findByTestId('userListRow').within(() => {
-            if (activate) {
-                cy.findByText('Inactive').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#actionMenuButton-systemUsersTable-0').click().wait(TIMEOUTS.HALF_SEC);
 
-                // # Click on the "Activate" button.
-                cy.findByLabelText('User Actions Menu').findByText('Activate').click();
-            } else {
-                cy.findByText('Member').click().wait(TIMEOUTS.HALF_SEC);
-
-                // # Click on the "Deactivate" button.
-                cy.findByLabelText('User Actions Menu').findByText('Deactivate').click();
-            }
-        });
+        if (activate) {
+            // # Click on the "Activate" button.
+            cy.get('#actionMenuItem-systemUsersTable-0-active').click().wait(TIMEOUTS.HALF_SEC);
+        } else {
+            // # Click on the "Deactivate" button.
+            cy.get('#actionMenuItem-systemUsersTable-0-deactivate').click().wait(TIMEOUTS.HALF_SEC);
+        }
 
         if (!activate) {
             // # Verify the modal opened and then confirm.

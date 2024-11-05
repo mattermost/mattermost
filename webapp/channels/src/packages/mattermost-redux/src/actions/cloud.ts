@@ -36,15 +36,6 @@ export function getCloudCustomer() {
     });
 }
 
-export function getLicenseSelfServeStatus() {
-    return bindClientFunc({
-        clientFunc: Client4.getLicenseSelfServeStatus,
-        onRequest: CloudTypes.LICENSE_SELF_SERVE_STATS_REQUEST,
-        onSuccess: [CloudTypes.RECEIVED_LICENSE_SELF_SERVE_STATS],
-        onFailure: CloudTypes.LICENSE_SELF_SERVE_STATS_FAILED,
-    });
-}
-
 export function getInvoices() {
     return bindClientFunc({
         clientFunc: Client4.getInvoices,

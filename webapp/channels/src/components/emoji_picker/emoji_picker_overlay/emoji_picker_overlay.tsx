@@ -3,7 +3,7 @@
 
 import memoize from 'memoize-one';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -16,13 +16,14 @@ import EmojiPickerTabs from '../emoji_picker_tabs';
 import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
-    container?: () => ReactNode;
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
+    onAddCustomEmojiClick?: () => void;
     onHide: () => void;
     onExited?: () => void;
     show: boolean;
+    placement?: ComponentProps<typeof Overlay>['placement'];
     topOffset?: number;
     rightOffset?: number;
     leftOffset?: number;
@@ -89,9 +90,8 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
         return (
             <Overlay
                 show={show}
-                placement={placement}
+                placement={this.props.placement ?? placement}
                 rootClose={!isMobileView}
-                container={this.props.container}
                 onHide={this.props.onHide}
                 target={target}
                 animation={false}
@@ -105,6 +105,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
                     rightOffset={calculatedRightOffset}
                     topOffset={this.props.topOffset}
                     leftOffset={this.props.leftOffset}
+                    onAddCustomEmojiClick={this.props.onAddCustomEmojiClick}
                 />
             </Overlay>
         );

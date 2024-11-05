@@ -1,9 +1,3 @@
-.profile__icon {
-    &:hover {
-        fill: rgba(255, 0, 0, 0.75);
-    }
-}
-
 .logout__icon {
     &:hover {
         fill: rgba(255, 0, 0, 0.75);
@@ -160,11 +154,6 @@ button.custom_status__row {
     padding: 4px 8px;
     border-radius: 4px;
 
-    .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        font-family: "compass-icons";
-    }
-
     &:hover {
         background: var(--sidebar-text-08);
         cursor: pointer;
@@ -204,6 +193,7 @@ button.custom_status__row {
 
     .custom_status__container {
         align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 14px;
     }
 

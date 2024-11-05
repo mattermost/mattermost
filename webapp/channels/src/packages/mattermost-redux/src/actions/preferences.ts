@@ -5,7 +5,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences as getMyPreferencesSelector, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
@@ -48,18 +48,12 @@ export function getMyPreferences() {
     });
 }
 
-export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = getCurrentUserId(state);
-        const preference: PreferenceType = {
-            user_id: currentUserId,
-            category: Preferences.CATEGORY_ACTIONS_MENU,
-            name: Preferences.NAME_ACTIONS_MENU_TUTORIAL_STATE,
-            value: JSON.stringify(initializationState),
-        };
-        await dispatch(savePreferences(currentUserId, [preference]));
-    };
+// used for fetching some other user's preferences other than current user
+export function getUserPreferences(userID: string) {
+    return bindClientFunc({
+        clientFunc: () => Client4.getUserPreferences(userID),
+        onSuccess: PreferenceTypes.RECEIVED_USER_ALL_PREFERENCES,
+    });
 }
 
 export function setCustomStatusInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
@@ -77,11 +71,15 @@ export function setCustomStatusInitialisationState(initializationState: Record<s
 }
 
 export function savePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         (async function savePreferencesWrapper() {
+            const state = getState();
+            const currentUserId = getCurrentUserId(state);
+            const actionType = userId === currentUserId ? PreferenceTypes.RECEIVED_PREFERENCES : PreferenceTypes.RECEIVED_USER_PREFERENCES;
+
             try {
                 dispatch({
-                    type: PreferenceTypes.RECEIVED_PREFERENCES,
+                    type: actionType,
                     data: preferences,
                 });
 
@@ -118,7 +116,7 @@ export function deleteTeamSpecificThemes(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 
-        const themePreferences: PreferenceType[] = makeGetCategory()(state, Preferences.CATEGORY_THEME);
+        const themePreferences: PreferenceType[] = getThemePreferences(state);
         const currentUserId = getCurrentUserId(state);
 
         const toDelete = themePreferences.filter((pref) => pref.name !== '');

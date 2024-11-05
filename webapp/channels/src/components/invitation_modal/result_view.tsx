@@ -3,11 +3,9 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-
-import {t} from 'utils/i18n';
 
 import {InviteType} from './invite_as';
 import ResultTable from './result_table';
@@ -40,7 +38,23 @@ type Props = {
 } & ResultState;
 
 export default function ResultView(props: Props) {
-    const {formatMessage} = useIntl();
+    let inviteType;
+    if (props.inviteType === InviteType.MEMBER) {
+        inviteType = (
+            <FormattedMessage
+                id='invite_modal.invited_members'
+                defaultMessage='Members'
+            />
+        );
+    } else {
+        inviteType = (
+            <FormattedMessage
+                id='invite_modal.invited_guests'
+                defaultMessage='Guests'
+            />
+        );
+    }
+
     return (
         <>
             <Modal.Header className={props.headerClass}>
@@ -52,10 +66,7 @@ export default function ResultView(props: Props) {
                         id='invite_modal.invited'
                         defaultMessage='{inviteType} invited to {team_name}'
                         values={{
-                            inviteType: formatMessage({
-                                id: props.inviteType === InviteType.MEMBER ? t('invite_modal.invited_members') : t('invite_modal.invited_guests'),
-                                defaultMessage: props.inviteType === InviteType.MEMBER ? 'Members' : 'Guests',
-                            }),
+                            inviteType,
                             team_name: props.currentTeamName,
                         }}
                     />

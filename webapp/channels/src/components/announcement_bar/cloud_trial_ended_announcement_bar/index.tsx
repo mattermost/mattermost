@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -25,20 +25,18 @@ import {
     CloudBanners,
     CloudProducts,
 } from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
 
+const getCloudTrialEndBannerPreferences = makeGetCategory('getCloudTrialEndBannerPreferences', Preferences.CLOUD_TRIAL_END_BANNER);
+
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();
     const subscription = useGetSubscription();
-    const getCategory = makeGetCategory();
     const dispatch = useDispatch();
-    const preferences = useSelector((state: GlobalState) =>
-        getCategory(state, Preferences.CLOUD_TRIAL_END_BANNER),
-    );
+    const preferences = useSelector(getCloudTrialEndBannerPreferences);
     const currentUser = useSelector((state: GlobalState) =>
         getCurrentUser(state),
     );
@@ -104,20 +102,13 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         );
     };
 
-    const message = {
-        id: t('free.banner.downgraded'),
-        defaultMessage:
-            'Your workspace now has restrictions and some data has been archived',
-    };
-
     return (
         <AnnouncementBar
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={true}
             onButtonClick={() => openPricingModal({trackingLocation: 'cloud_trial_ended_announcement_bar'})}
-            modalButtonText={t('more.details')}
-            modalButtonDefaultText={'More details'}
-            message={<FormattedMessage {...message}/>}
+            modalButtonText={messages.moreDetails}
+            message={<FormattedMessage {...messages.downgraded}/>}
             showLinkAsButton={true}
             isTallBanner={true}
             icon={<i className='icon icon-alert-outline'/>}
@@ -125,5 +116,16 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
         />
     );
 };
+
+const messages = defineMessages({
+    downgraded: {
+        id: 'free.banner.downgraded',
+        defaultMessage: 'Your workspace now has restrictions and some data has been archived',
+    },
+    moreDetails: {
+        id: 'more.details',
+        defaultMessage: 'More details',
+    },
+});
 
 export default CloudTrialEndAnnouncementBar;

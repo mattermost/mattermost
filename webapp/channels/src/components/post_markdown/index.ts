@@ -61,7 +61,7 @@ function makeMapStateToProps() {
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const channel = getChannel(state, ownProps.channelId);
-        const currentTeam = getCurrentTeam(state) || {};
+        const currentTeam = getCurrentTeam(state);
 
         const license = getLicense(state);
         const subscriptionProduct = getSubscriptionProduct(state);

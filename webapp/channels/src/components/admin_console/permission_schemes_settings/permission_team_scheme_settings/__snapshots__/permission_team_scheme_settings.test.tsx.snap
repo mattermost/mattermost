@@ -58,12 +58,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="<linkTeamOverride>Team Override Schemes</linkTeamOverride> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
+              defaultMessage="<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
               id="admin.permissions.teamScheme.introBanner"
               values={
                 Object {
+                  "linkOverrideTeam": [Function],
                   "linkSystemScheme": [Function],
-                  "linkTeamOverride": [Function],
                 }
               }
             />
@@ -99,11 +99,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeNameLabel"
               />
             </label>
-            <input
+            <LocalizedPlaceholderInput
               className="form-control"
               disabled={false}
               id="scheme-name"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Name",
+                  "id": "admin.permissions.teamScheme.schemeNamePlaceholder",
+                }
+              }
               type="text"
               value="Test scheme"
             />
@@ -120,11 +126,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeDescriptionLabel"
               />
             </label>
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               disabled={false}
               id="scheme-description"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Description",
+                  "id": "admin.permissions.teamScheme.schemeDescriptionPlaceholder",
+                }
+              }
               rows={5}
               value="Test scheme description"
             />
@@ -320,21 +332,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
+          defaultMessage="Saving Config..."
+          id="admin.saving"
         />
       }
     />
@@ -350,9 +354,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -433,12 +436,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="<linkTeamOverride>Team Override Schemes</linkTeamOverride> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
+              defaultMessage="<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
               id="admin.permissions.teamScheme.introBanner"
               values={
                 Object {
+                  "linkOverrideTeam": [Function],
                   "linkSystemScheme": [Function],
-                  "linkTeamOverride": [Function],
                 }
               }
             />
@@ -474,11 +477,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeNameLabel"
               />
             </label>
-            <input
+            <LocalizedPlaceholderInput
               className="form-control"
               disabled={false}
               id="scheme-name"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Name",
+                  "id": "admin.permissions.teamScheme.schemeNamePlaceholder",
+                }
+              }
               type="text"
               value="Test scheme"
             />
@@ -495,11 +504,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeDescriptionLabel"
               />
             </label>
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               disabled={false}
               id="scheme-description"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Description",
+                  "id": "admin.permissions.teamScheme.schemeDescriptionPlaceholder",
+                }
+              }
               rows={5}
               value="Test scheme description"
             />
@@ -725,21 +740,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
+          defaultMessage="Saving Config..."
+          id="admin.saving"
         />
       }
     />
@@ -755,9 +762,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -838,12 +844,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="<linkTeamOverride>Team Override Schemes</linkTeamOverride> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
+              defaultMessage="<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
               id="admin.permissions.teamScheme.introBanner"
               values={
                 Object {
+                  "linkOverrideTeam": [Function],
                   "linkSystemScheme": [Function],
-                  "linkTeamOverride": [Function],
                 }
               }
             />
@@ -879,11 +885,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeNameLabel"
               />
             </label>
-            <input
+            <LocalizedPlaceholderInput
               className="form-control"
               disabled={false}
               id="scheme-name"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Name",
+                  "id": "admin.permissions.teamScheme.schemeNamePlaceholder",
+                }
+              }
               type="text"
               value="Test scheme"
             />
@@ -900,11 +912,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeDescriptionLabel"
               />
             </label>
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               disabled={false}
               id="scheme-description"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Description",
+                  "id": "admin.permissions.teamScheme.schemeDescriptionPlaceholder",
+                }
+              }
               rows={5}
               value="Test scheme description"
             />
@@ -1132,21 +1150,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
+          defaultMessage="Saving Config..."
+          id="admin.saving"
         />
       }
     />
@@ -1162,9 +1172,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>
@@ -1311,12 +1320,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         >
           <span>
             <MemoizedFormattedMessage
-              defaultMessage="<linkTeamOverride>Team Override Schemes</linkTeamOverride> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
+              defaultMessage="<linkOverrideTeam>Team Override Schemes</linkOverrideTeam> set the permissions for Team Admins, Channel Admins and other members in specific teams. Use a Team Override Scheme when specific teams need permission exceptions to the <linkSystemScheme>System Scheme</linkSystemScheme>."
               id="admin.permissions.teamScheme.introBanner"
               values={
                 Object {
+                  "linkOverrideTeam": [Function],
                   "linkSystemScheme": [Function],
-                  "linkTeamOverride": [Function],
                 }
               }
             />
@@ -1352,11 +1361,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeNameLabel"
               />
             </label>
-            <input
+            <LocalizedPlaceholderInput
               className="form-control"
               disabled={false}
               id="scheme-name"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Name",
+                  "id": "admin.permissions.teamScheme.schemeNamePlaceholder",
+                }
+              }
               type="text"
               value=""
             />
@@ -1373,11 +1388,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
                 id="admin.permissions.teamScheme.schemeDescriptionLabel"
               />
             </label>
-            <textarea
+            <LocalizedPlaceholderTextarea
               className="form-control"
               disabled={false}
               id="scheme-description"
               onChange={[Function]}
+              placeholder={
+                Object {
+                  "defaultMessage": "Scheme Description",
+                  "id": "admin.permissions.teamScheme.schemeDescriptionPlaceholder",
+                }
+              }
               rows={5}
               value=""
             />
@@ -1605,21 +1626,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     className="admin-console-save"
   >
     <SaveButton
-      btnClass=""
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="save_button.save"
-        />
-      }
       disabled={true}
-      extraClasses=""
       onClick={[Function]}
       saving={false}
       savingMessage={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saving"
-          id="save_button.saving"
+          defaultMessage="Saving Config..."
+          id="admin.saving"
         />
       }
     />
@@ -1635,9 +1648,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     <div
       className="error-message"
     >
-      <FormError
+      <Memo(FormError)
         error={null}
-        errors={Array []}
       />
     </div>
   </div>

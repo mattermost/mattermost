@@ -117,9 +117,9 @@ describe('MM-T4064 Status expiry visibility', () => {
     it('MM-T4064_7 should show custom status expiry time in the user popover', () => {
         // # Click on the post header of the last post by the current user and open profile popover
         cy.get('.post.current--user .post__header .user-popover').first().click();
-        cy.get('#user-profile-popover').should('exist');
+        cy.get('div.user-profile-popover').should('exist');
 
         // * Check if the profile popover contains custom status expiry time in the Status heading
-        cy.get('#user-profile-popover #user-popover-status .user-popover__subtitle time').should('have.text', expiresAt.format(expiryTimeFormat));
+        cy.get('div.user-profile-popover #user-popover-status .user-popover__subtitle time').should('have.text', expiresAt.format(expiryTimeFormat));
     });
 });

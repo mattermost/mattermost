@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, waitForElementToBeRemoved} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
+import {withIntl} from 'tests/helpers/intl-test-helper';
 import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
@@ -55,14 +57,20 @@ describe('components/submenu_modal', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match state when onHide is called', () => {
-        const wrapper = shallow<SubMenuModal>(
+    test('should hide on modal body click', async () => {
+        const view = render(withIntl(
             <SubMenuModal {...baseProps}/>,
-        );
+        ));
 
-        wrapper.setState({show: true});
-        wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        screen.getByText('Text A');
+        screen.getByText('Text B');
+        screen.getByText('Text C');
+
+        fireEvent.click(view.getByTestId('SubMenuModalBody'));
+
+        await waitForElementToBeRemoved(() => screen.getByText('Text A'));
+        expect(screen.queryAllByText('Text B').length).toBe(0);
+        expect(screen.queryAllByText('Text C').length).toBe(0);
     });
 
     test('should have called click function when button is clicked', async () => {

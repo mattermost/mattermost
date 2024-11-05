@@ -45,7 +45,7 @@ describe('Profile > Profile Settings > Position', () => {
         cy.get('.profile-icon > img').as('profileIconForPopover').click();
 
         // # Verify that the popover is visible and contains position
-        cy.contains('#user-profile-popover', position).should('be.visible');
+        cy.contains('div.user-profile-popover', position).should('be.visible');
     });
 
     it('MM-T2064 Position / 128 characters', () => {

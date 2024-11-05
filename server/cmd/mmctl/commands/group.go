@@ -184,7 +184,7 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("Channel '" + args[0] + "' has no groups associated. It cannot be group-constrained")
 	}
 
-	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(true)}
+	channelPatch := model.ChannelPatch{GroupConstrained: model.NewPointer(true)}
 	if _, _, err = c.PatchChannel(context.TODO(), channel.Id, &channelPatch); err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(false)}
+	channelPatch := model.ChannelPatch{GroupConstrained: model.NewPointer(false)}
 	if _, _, err := c.PatchChannel(context.TODO(), channel.Id, &channelPatch); err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("Team '" + args[0] + "' has no groups associated. It cannot be group-constrained")
 	}
 
-	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
+	teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(true)}
 	if _, _, err = c.PatchTeam(context.TODO(), team.Id, &teamPatch); err != nil {
 		return err
 	}
@@ -282,7 +282,7 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
+	teamPatch := model.TeamPatch{GroupConstrained: model.NewPointer(false)}
 	if _, _, err := c.PatchTeam(context.TODO(), team.Id, &teamPatch); err != nil {
 		return err
 	}

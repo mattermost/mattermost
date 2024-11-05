@@ -26,7 +26,7 @@ describe('Keyboard Shortcuts', () => {
         cy.postMessage(message);
 
         // # Open the edit the channel header modal
-        cy.findByRole('button', {name: 'Set a Header dialog'}).click();
+        cy.get('[aria-label="Set header dialog"]').click();
 
         // * Verify modal is open
         cy.findByRole('dialog', {name: 'Edit Header for Off-Topic'}).within(() => {

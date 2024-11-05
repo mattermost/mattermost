@@ -38,12 +38,13 @@ describe('unread_with_bottom_start_toast', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-a', 'ChannelA').then(({channel}) => {
             cy.apiAddUserToChannel(channel.id, otherUser.id).then(() => {
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+                cy.get('#loadingSpinner').should('not.exist'); // The channel should fully load once, before it can mark messages as "new"
                 cy.uiClickSidebarItem('off-topic');
                 cy.postMessage('hi');
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
                 cy.postMessage('hello');
@@ -73,12 +74,13 @@ describe('unread_with_bottom_start_toast', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-b', 'ChannelB').then(({channel}) => {
             cy.apiAddUserToChannel(channel.id, otherUser.id).then(() => {
                 cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+                cy.get('#loadingSpinner').should('not.exist'); // The channel should fully load once, before it can mark messages as "new"
                 cy.uiClickSidebarItem('off-topic');
                 cy.postMessage('hi');
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
 
                 cy.postMessage('hello');
@@ -111,8 +113,12 @@ describe('unread_with_bottom_start_toast', () => {
 
                 // # Add enough messages
                 for (let index = 0; index < 30; index++) {
-                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id});
+                    cy.postMessageAs({sender: otherUser, message: `test message ${index}`, channelId: channel.id}).wait(50);
                 }
+
+                // # Switch channel and back
+                cy.uiClickSidebarItem('off-topic');
+                cy.uiClickSidebarItem(channel.name);
 
                 cy.wait(TIMEOUTS.ONE_SEC);
 
@@ -123,6 +129,7 @@ describe('unread_with_bottom_start_toast', () => {
                     // # Mark post as unread
                     cy.uiClickPostDropdownMenu(postId, 'Mark as Unread');
                 });
+                cy.get('div.toast').should('be.visible').contains('30 new messages'); // The toast message should appear right away
 
                 // # Visit off-topic channel and switch back to test channel
                 cy.uiClickSidebarItem('off-topic');

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
@@ -12,7 +11,7 @@ export type Props = {
     onClick: () => void;
     icon: JSX.Element;
     id: string;
-    defaultMessage: string;
+    buttonText: string;
     checked: boolean;
     tooltip?: string;
     size?: 'regular' | 'small';
@@ -38,10 +37,7 @@ const MultiSelectCard = (props: Props) => {
         >
             {props.icon}
             <span className='MultiSelectCard__label'>
-                <FormattedMessage
-                    id={props.id}
-                    defaultMessage={props.defaultMessage}
-                />
+                {props.buttonText}
             </span>
             {props.checked && <i className='MultiSelectCard__checkmark icon icon-check-circle'/>}
         </button>

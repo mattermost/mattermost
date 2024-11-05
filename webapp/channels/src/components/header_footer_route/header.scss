@@ -24,16 +24,37 @@
             @include link;
 
             display: flex;
-            color: var(--center-channel-color);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-family: 'Metropolis';
             font-size: 20px;
-            font-weight: 600;
+            font-weight: 500;
             line-height: 28px;
             text-decoration: none;
+
+            &:hover, &:active, &:visited, &:link {
+                text-decoration: none;
+            }
 
             svg {
                 width: 170px;
                 fill: var(--center-channel-color);
+            }
+
+            .freeBadge {
+                position: relative;
+                top: 1px;
+                display: flex;
+                align-self: center;
+                padding: 2px 6px;
+                border-radius: var(--radius-s);
+                margin-left: 12px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+                font-family: 'Open Sans', sans-serif;
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.025em;
+                line-height: 16px;
             }
         }
     }
@@ -41,13 +62,25 @@
     .header-back-button {
         position: absolute;
         top: unset;
-        bottom: 0;
+        bottom: -8px;
         width: auto;
         padding: 0 0 0 40px;
         background: none;
 
         a {
             @include link;
+        }
+    }
+
+    &.has-custom-site-name {
+        .header-logo-link ~ .header-logo-link {
+            margin-top: 12px;
+        }
+    }
+
+    &.has-free-banner.has-custom-site-name {
+        .header-back-button {
+            bottom: -20px;
         }
     }
 }

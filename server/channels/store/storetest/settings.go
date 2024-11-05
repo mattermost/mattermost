@@ -172,8 +172,8 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxLifetimeMilliseconds:       new(int),
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
-		Trace:                             model.NewBool(false),
-		AtRestEncryptKey:                  model.NewString(model.NewRandomString(32)),
+		Trace:                             model.NewPointer(false),
+		AtRestEncryptKey:                  model.NewPointer(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
 	}
@@ -261,7 +261,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	log("Created temporary " + driver + " database " + dbName)
-	settings.ReplicaMonitorIntervalSeconds = model.NewInt(5)
+	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
 
 	return settings
 }

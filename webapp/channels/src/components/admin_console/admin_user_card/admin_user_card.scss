@@ -17,7 +17,7 @@
     height: 92px;
     flex-direction: row;
     align-items: flex-start;
-    padding: 30px 20px 12px 30px;
+    padding: 0 20px 0 30px;
     background-color: #295eb9;
 }
 
@@ -31,18 +31,23 @@
 }
 
 .AdminUserCard__footer {
+    display: flex;
+    flex-direction: row;
     padding: 20px;
     border-top: solid 1px rgba(0, 0, 0, 0.2);
     background-color: #fff;
 }
 
 .AdminUserCard__user-info {
+    overflow: hidden;
+    min-width: 0;
     align-self: flex-end;
     padding: 0;
     margin-left: 20px;
     color: #fff;
     font-size: 20px;
     font-weight: normal;
+    text-overflow: ellipsis;
 }
 
 .AdminUserCard__user-nickname {

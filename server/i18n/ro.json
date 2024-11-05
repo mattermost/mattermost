@@ -3136,14 +3136,6 @@
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Nu s-a putut crea procesorul în bloc Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Nu a putut porni procesorul în bloc Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch este deja oprit."
   },
@@ -4452,10 +4444,6 @@
     "translation": "Te rog introdu o adresa de email valida."
   },
   {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} caractere."
-  },
-  {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
     "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mică."
   },
@@ -4946,10 +4934,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Limita de dimensiune a fost depășită. Încercați să verificați [mărimea paginii maximă] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "eroare la ștergerea membrilor echipei sau a canalelor"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5530,10 +5514,6 @@
   {
     "id": "api.templates.remove_expired_license.body.title",
     "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Reînnoiți licența acum"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -6476,10 +6456,6 @@
     "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Clustering API final nu a fost găsit."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " un fişier ataşat."
   },
@@ -6972,10 +6948,6 @@
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor,, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -7240,26 +7212,6 @@
     "translation": "Lungime conținut nevalidă."
   },
   {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Plata nu a reușit"
-  },
-  {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Acțiune necesară: plata nu a reușit pentru Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "Pentru a vă asigura un abonament neîntrerupt la Mattermost Cloud, vă rugăm să contactați instituția dvs. financiară pentru a remedia problema de bază sau să vă actualizați informațiile de plată. După actualizarea informațiilor de plată, Mattermost va încerca să deconteze orice sold restant."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "Au furnizat următorul motiv:"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Instituția dvs. financiară a refuzat o plată din {{.CardBrand}} **** {{.LastFour}} asociată cu spațiul dvs. de lucru Mattermost Cloud."
-  },
-  {
     "id": "app.user.missing_account.const",
     "translation": "Imposibil de găsit utilizatorul."
   },
@@ -7274,10 +7226,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Încărcarea nu a reușit."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": "Factura dvs. Mattermost Cloud este datorată"
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
@@ -7332,28 +7280,12 @@
     "translation": "Nu s-au putut obține informațiile despre fișier pentru o postare."
   },
   {
-    "id": "api.templates.payment_failed_no_card.subject",
-    "translation": "Plata se datorează pentru abonamentul dvs. Mattermost Cloud"
-  },
-  {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
     "translation": "Actualizarea utilizatorului nu a reușit."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Valoare nevalidă pentru RetentionDays. Valoarea este prea mică."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": "Pentru a vă examina factura și a adăuga o metodă de plată, selectați Plătiți acum."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": "Factura dvs. Mattermost Cloud pentru cea mai recentă perioadă de facturare a fost procesată. Cu toate acestea, nu avem înregistrate detaliile dvs. de plată."
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
-    "translation": "Plătește acum"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
@@ -7422,22 +7354,6 @@
   {
     "id": "ent.actiance.export.write_file.appError",
     "translation": "Imposibil de scris fișierul de export."
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
-    "translation": "Fără licență prezentă"
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
-    "translation": "Acest tip de licență nu acceptă generarea de jetoane de reînnoire"
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
-    "translation": "Nu s-a putut genera un nou jeton de reînnoire."
-  },
-  {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": "Eroare la obținerea linkului de reînnoire a licenței"
   },
   {
     "id": "api.file.write_file.app_error",
@@ -7624,10 +7540,6 @@
     "translation": "Firul utilizatorului nu există sau nu este urmat"
   },
   {
-    "id": "app.import.attachment.read_file_data.error",
-    "translation": "Nu s-a citit atașamentul fișierului în timpul importului."
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": "Nu s-a putut adăuga fișierul la arhiva zip în timpul exportului."
   },
@@ -7686,10 +7598,6 @@
   {
     "id": "bleveengine.purge_file_index.error",
     "translation": "Eliminarea indexurilor fișierelor nu a reușit."
-  },
-  {
-    "id": "app.user.send_emails.app_error",
-    "translation": "Nu s-au trimis e-mailuri"
   },
   {
     "id": "app.post.get_files_batch_for_indexing.get.app_error",
@@ -7844,10 +7752,6 @@
     "translation": "Invitație din clusterul de la distanță"
   },
   {
-    "id": "api.command_remote.incorrect_password.error",
-    "translation": "Nu s-a putut decripta invitația. Parolă incorectă sau invitație coruptă: {{.Error}}"
-  },
-  {
     "id": "api.command_remote.hint",
     "translation": "[acțiune]"
   },
@@ -7902,10 +7806,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "A apărut o eroare la crearea unui canal partajat direct."
   },
   {
     "id": "app.import.generate_password.app_error",

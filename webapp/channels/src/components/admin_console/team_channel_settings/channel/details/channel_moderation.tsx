@@ -240,7 +240,7 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
 const channelModerationHeaderMessages = defineMessages({
     titleMessage: {
         id: 'admin.channel_settings.channel_moderation.title',
-        defaultMessage: 'Channel Moderation',
+        defaultMessage: 'Advanced Access Control',
     },
     subtitleMessageForMembersAndGuests: {
         id: 'admin.channel_settings.channel_moderation.subtitle',

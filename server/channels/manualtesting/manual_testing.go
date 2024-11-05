@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -34,14 +33,9 @@ type TestEnvironment struct {
 	Request       *http.Request
 }
 
-// Init adds manualtest endpoint to the API.
-func Init(api4 *api4.API) {
-	api4.BaseRoutes.Root.Handle("/manualtest", api4.APIHandler(manualTest)).Methods("GET")
-}
-
-func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
+func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	// Let the world know
-	mlog.Info("Setting up for manual test...")
+	c.Logger.Info("Setting up for manual test...")
 
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
@@ -58,7 +52,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		hash := hasher.Sum32()
 		rand.Seed(int64(hash))
 	} else {
-		mlog.Debug("No uid in URL")
+		c.Logger.Debug("No uid in URL")
 	}
 
 	// Create a client for tests to use
@@ -70,7 +64,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	var teamID string
 	var userID string
 	if ok1 && ok2 {
-		mlog.Info("Creating user and team")
+		c.Logger.Info("Creating user and team")
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],

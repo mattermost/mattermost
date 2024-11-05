@@ -28,9 +28,9 @@ import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
+import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -225,9 +225,10 @@ function ThreadItem({
                     hasUnreads={Boolean(newReplies)}
                     unreadTimestamp={unreadTimestamp}
                 >
-                    <SimpleTooltip
+                    <WithTooltip
                         id='threadActionMenu'
-                        content={(
+                        placement='top'
+                        title={(
                             <FormattedMessage
                                 id='threading.threadItem.menu'
                                 defaultMessage='Actions'
@@ -240,7 +241,7 @@ function ThreadItem({
                         >
                             <DotsVerticalIcon size={18}/>
                         </Button>
-                    </SimpleTooltip>
+                    </WithTooltip>
                 </ThreadMenu>
             </div>
             <div

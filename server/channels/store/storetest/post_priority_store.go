@@ -25,31 +25,31 @@ func testPostPriorityStoreGetForPost(t *testing.T, rctx request.CTX, ss store.St
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
 		p1.UserId = model.NewId()
-		p1.Message = NewTestId()
+		p1.Message = NewTestID()
 		p1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString("important"),
-				RequestedAck:            model.NewBool(true),
-				PersistentNotifications: model.NewBool(false),
+				Priority:                model.NewPointer("important"),
+				RequestedAck:            model.NewPointer(true),
+				PersistentNotifications: model.NewPointer(false),
 			},
 		}
 
 		p2 := model.Post{}
 		p2.ChannelId = model.NewId()
 		p2.UserId = model.NewId()
-		p2.Message = NewTestId()
+		p2.Message = NewTestID()
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPriorityUrgent),
-				RequestedAck:            model.NewBool(false),
-				PersistentNotifications: model.NewBool(true),
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(true),
 			},
 		}
 
 		p3 := model.Post{}
 		p3.ChannelId = model.NewId()
 		p3.UserId = model.NewId()
-		p3.Message = NewTestId()
+		p3.Message = NewTestID()
 
 		_, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)

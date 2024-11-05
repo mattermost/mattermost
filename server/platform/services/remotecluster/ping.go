@@ -34,6 +34,23 @@ func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	}
 }
 
+// pingAllNow emits a ping to all remotes immediately without waiting for next ping loop.
+func (rcs *Service) pingAllNow(filter model.RemoteClusterQueryFilter) {
+	// get all remotes, including any previously offline.
+	remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
+	if err != nil {
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping all remote clusters failed (could not get list of remotes)", mlog.Err(err))
+		return
+	}
+
+	for _, rc := range remotes {
+		// filter out unconfirmed invites so we don't ping them without permission
+		if rc.IsConfirmed() {
+			rcs.PingNow(rc)
+		}
+	}
+}
+
 // pingLoop periodically sends a ping to all remote clusters.
 func (rcs *Service) pingLoop(done <-chan struct{}) {
 	pingChan := make(chan *model.RemoteCluster, MaxConcurrentSends*2)
@@ -53,24 +70,8 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		pingFreq := rcs.GetPingFreq()
 		start := time.Now()
 
-		// get all remotes, including any previously offline.
-		remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(model.RemoteClusterQueryFilter{})
-		if err != nil {
-			rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
-			select {
-			case <-time.After(pingFreq):
-				continue
-			case <-done:
-				return
-			}
-		}
-
-		for _, rc := range remotes {
-			// filter out unconfirmed invites so we don't ping them without permission
-			if rc.IsConfirmed() {
-				pingChan <- rc
-			}
-		}
+		// ping all remotes, including any previously offline.
+		rcs.pingAllNow(model.RemoteClusterQueryFilter{})
 
 		// try to maintain frequency
 		elapsed := time.Since(start)

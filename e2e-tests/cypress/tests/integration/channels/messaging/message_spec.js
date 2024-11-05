@@ -143,8 +143,6 @@ describe('Message', () => {
     });
 
     it('MM-T3307 Focus remains in the RHS text box', () => {
-        cy.apiSaveShowMarkdownPreviewPreference();
-
         cy.postMessage(MESSAGES.MEDIUM);
 
         // # Open reply thread (RHS)

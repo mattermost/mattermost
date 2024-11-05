@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/MigrationsTable should match snapshot when there are no migrations 1`] = `
+<div
+  className="MigrationsTable migrations-table__panel"
+>
+  <div
+    className="help-text"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="All applied migrations."
+      id="admin.database.migrations_table.help_text"
+    />
+  </div>
+  <div
+    className="migrations-table__table"
+  >
+    <table
+      className="table"
+      data-testid="migrationsTable"
+    >
+      <thead>
+        <tr>
+          <th>
+            <MemoizedFormattedMessage
+              defaultMessage="Version"
+              id="admin.database.migrations_table.version"
+            />
+          </th>
+          <th>
+            <MemoizedFormattedMessage
+              defaultMessage="Name"
+              id="admin.database.migrations_table.name"
+            />
+          </th>
+        </tr>
+      </thead>
+      <tbody />
+    </table>
+  </div>
+</div>
+`;

@@ -53,7 +53,7 @@ describe('SupportSettings', () => {
             // * Verify links changed
             [
                 {text: 'Report a problem', link: problemLink},
-                {text: 'Help resources', link: helpLink},
+                {text: 'Ask the community', link: askCommunityLink},
             ].forEach((guide) => {
                 cy.findByText(guide.text).
                     parent().
@@ -168,7 +168,6 @@ describe('SupportSettings', () => {
         cy.uiOpenHelpMenu().within(() => {
             // * Verify 4 options shown
             cy.findByText('Ask the community');
-            cy.findByText('Help resources');
             cy.findByText('Report a problem');
             cy.findByText('Keyboard shortcuts');
 
@@ -193,15 +192,9 @@ describe('SupportSettings', () => {
 
         // # Open help menu
         cy.uiOpenHelpMenu().within(() => {
-            // * Verify 3 options shown
-            cy.findByText('Help resources');
+            // * Verify 2 options shown
             cy.findByText('Report a problem');
             cy.findByText('Keyboard shortcuts');
-
-            // * Verify help link has changed
-            cy.findByText('Help resources').
-                parent().
-                should('have.attr', 'href', helpLink);
 
             // * Verify report a problem link has changed
             cy.findByText('Report a problem').

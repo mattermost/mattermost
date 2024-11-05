@@ -112,8 +112,12 @@ func TestFindFile(t *testing.T) {
 				if testCase.Cwd != nil {
 					prevDir, err := os.Getwd()
 					require.NoError(t, err)
-					defer os.Chdir(prevDir)
-					os.Chdir(*testCase.Cwd)
+					t.Cleanup(func() {
+						err = os.Chdir(prevDir)
+						assert.NoError(t, err)
+					})
+					err = os.Chdir(*testCase.Cwd)
+					assert.NoError(t, err)
 				}
 
 				assert.Equal(t, testCase.Expected, FindFile(testCase.FileName))
