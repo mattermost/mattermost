@@ -19,9 +19,8 @@ import (
 )
 
 const (
-	broadcastQueueSize          = 4096
-	inactiveConnReaperInterval  = 5 * time.Minute
-	numRetriesForChannelMembers = 2
+	broadcastQueueSize         = 4096
+	inactiveConnReaperInterval = 5 * time.Minute
 )
 
 type SuiteIFace interface {
