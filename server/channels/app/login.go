@@ -193,8 +193,8 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 
 	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := getPlatformName(ua)
-	os := getOSName(ua)
+	plat := getPlatformName(ua, r.UserAgent())
+	os := getOSName(ua, r.UserAgent())
 	bname := getBrowserName(ua, r.UserAgent())
 	bversion := getBrowserVersion(ua, r.UserAgent())
 

@@ -68,9 +68,9 @@ func TestGetPlatformName(t *testing.T) {
 		"Linux",
 		"Macintosh",
 		"Macintosh",
-		"Unknown", // TODO should be Linux
 		"Linux",
-		"Unknown", // TODO should be iPhone
+		"Linux",
+		"iPhone",
 		"iPhone",
 		"iPad",
 		"Macintosh", // By default, the iPad pretends to be a desktop Mac when opening web pages
@@ -81,7 +81,7 @@ func TestGetPlatformName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetPlatformName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			actual := getPlatformName(ua)
+			actual := getPlatformName(ua, userAgent.UserAgent)
 			assert.Equal(t, expected[i], actual)
 		})
 	}
@@ -109,9 +109,9 @@ func TestGetOSName(t *testing.T) {
 		"Android",
 		"Mac OS",
 		"Mac OS",
-		"", // TODO should be Android
 		"Android",
-		"", // TODO should be iOS
+		"Android",
+		"iOS",
 		"iOS",
 		"iOS",
 		"Mac OS", // By default, the iPad pretends to be a desktop Mac when opening web pages
@@ -122,7 +122,7 @@ func TestGetOSName(t *testing.T) {
 		t.Run(fmt.Sprintf("GetOSName_%v", i), func(t *testing.T) {
 			ua := uasurfer.Parse(userAgent.UserAgent)
 
-			actual := getOSName(ua)
+			actual := getOSName(ua, userAgent.UserAgent)
 			assert.Equal(t, expected[i], actual)
 		})
 	}
