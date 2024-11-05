@@ -16,6 +16,8 @@ import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {sendDesktopNotification} from './notification_actions';
+
 jest.mock('mattermost-redux/actions/posts', () => ({
     removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
@@ -34,7 +36,7 @@ jest.mock('actions/emoji_actions', () => ({
 }));
 
 jest.mock('actions/notification_actions', () => ({
-    sendDesktopNotification: jest.fn().mockReturnValue({type: 'MOCK_SEND_DESKTOP_NOTIFICATION'}),
+    sendDesktopNotification: jest.fn().mockReturnValue(() => ({data: {}})),
 }));
 
 jest.mock('actions/storage', () => {
@@ -57,6 +59,8 @@ jest.mock('utils/post_utils', () => ({
 
 const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
 const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
+
+const mockedSendDesktopNotification = jest.mocked(sendDesktopNotification);
 
 const POST_CREATED_TIME = Date.now();
 
@@ -192,6 +196,7 @@ describe('Actions.Posts', () => {
             },
             rhs: {
                 searchTerms: '',
+                searchType: '',
                 filesSearchExtFilter: [],
             },
         },
@@ -212,10 +217,8 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('handleNewPostOtherChannel', async () => {
@@ -262,21 +265,19 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('unsetEditingPost', async () => {
         // should allow to edit and should fire an action
         const testStore = mockStore({...initialState});
-        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test', 'title'));
+        const {data: dataSet} = await testStore.dispatch((Actions.setEditingPost as any)('latest_post_id', 'test'));
         expect(dataSet).toEqual(true);
 
         // matches the action to set editingPost
         expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
         );
 
         // clear actions
@@ -298,11 +299,11 @@ describe('Actions.Posts', () => {
     test('setEditingPost', async () => {
         // should allow to edit and should fire an action
         let testStore = mockStore({...initialState});
-        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
         expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
         );
 
         const general = {
@@ -318,10 +319,10 @@ describe('Actions.Posts', () => {
 
         testStore = mockStore(withLicenseState);
 
-        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withLicenseData).toEqual(true);
         expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', title: 'title', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
         );
 
         // should not allow edit for pending post
@@ -331,7 +332,7 @@ describe('Actions.Posts', () => {
 
         testStore = mockStore(withPendingPostState);
 
-        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test', 'title'));
+        const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withPendingPostData).toEqual(false);
         expect(testStore.getActions()).toEqual([]);
     });
@@ -344,6 +345,7 @@ describe('Actions.Posts', () => {
             {terms: 'hello', type: 'UPDATE_RHS_SEARCH_TERMS'},
             {state: 'search', type: 'UPDATE_RHS_STATE'},
             {terms: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS'},
+            {searchType: '', type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE'},
             {isGettingMore: false, type: 'SEARCH_POSTS_REQUEST'},
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
         ]);

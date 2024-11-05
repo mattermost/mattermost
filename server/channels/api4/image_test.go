@@ -75,7 +75,8 @@ func TestGetImage(t *testing.T) {
 
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/png")
-			w.Write([]byte("success"))
+			_, err := w.Write([]byte("success"))
+			require.NoError(t, err)
 		})
 
 		imageServer := httptest.NewServer(handler)
