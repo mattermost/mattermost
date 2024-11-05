@@ -52,6 +52,20 @@ function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teamma
     return formattedTime;
 }
 
+function shouldShowRecentlyUsedCustomTime(
+    recentlyUsedCustomDateVal: RecentlyUsedCustomDate,
+    userCurrentTimezone: string,
+    tomorrow9amTime: number,
+    nextMonday: number,
+) {
+    return recentlyUsedCustomDateVal &&
+    typeof recentlyUsedCustomDateVal.update_at === 'number' &&
+    typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
+    recentlyUsedCustomDateVal.timestamp !== tomorrow9amTime &&
+    recentlyUsedCustomDateVal.timestamp !== nextMonday &&
+    isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
+}
+
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
@@ -75,6 +89,27 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
             },
         );
     }, [currentUserId]);
+
+    function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+        // eslint-disable-next-line no-mixed-operators
+        const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
+        return dateTime.plus({days: deltaDays});
+    }
+
+    const now = DateTime.now().setZone(userCurrentTimezone);
+    const tomorrow9amTime = DateTime.now().
+        setZone(userCurrentTimezone).
+        plus({days: 1}).
+        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
+        toMillis();
+
+    const nextMonday = getNextWeekday(now, 1).set({
+        hour: 9,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+    }).toMillis();
+
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
 
     const recentlyUsedCustomDateVal: RecentlyUsedCustomDate = useMemo(() => {
@@ -91,10 +126,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     let recentCustomTime = null;
     const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
     if (
-        recentlyUsedCustomDateVal &&
-        typeof recentlyUsedCustomDateVal.update_at === 'number' &&
-        typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
-        isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone)
+        shouldShowRecentlyUsedCustomTime(recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
     ) {
         const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
         const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
@@ -127,13 +159,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
             />,
         ];
     }
-
-    const now = DateTime.now().setZone(userCurrentTimezone);
-    const tomorrow9amTime = DateTime.now().
-        setZone(userCurrentTimezone).
-        plus({days: 1}).
-        set({hour: 9, minute: 0, second: 0, millisecond: 0}).
-        toMillis();
 
     const timeComponent = (
         <Timestamp
@@ -182,21 +207,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
             {...extraProps}
         />
     );
-
-    function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-        // eslint-disable-next-line no-mixed-operators
-        const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
-        return dateTime.plus({days: deltaDays});
-    }
-
-    const nextMondayDateTime = getNextWeekday(now, 1).set({
-        hour: 9,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-    });
-
-    const nextMonday = nextMondayDateTime.toMillis();
 
     const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
