@@ -84,7 +84,9 @@ var Int64 = logr.Int64
 var Int32 = logr.Int32
 
 // Int constructs a field containing a key and Int value.
-var Int = logr.Int
+var Int = func(key string, val int) Field {
+	return logr.Int(key, val)
+}
 
 // Uint64 constructs a field containing a key and Uint64 value.
 var Uint64 = logr.Uint64
@@ -93,7 +95,9 @@ var Uint64 = logr.Uint64
 var Uint32 = logr.Uint32
 
 // Uint constructs a field containing a key and Uint value.
-var Uint = logr.Uint
+var Uint = func(key string, val uint) Field {
+	return logr.Uint(key, val)
+}
 
 // Float64 constructs a field containing a key and Float64 value.
 var Float64 = logr.Float64
@@ -102,7 +106,10 @@ var Float64 = logr.Float64
 var Float32 = logr.Float32
 
 // String constructs a field containing a key and String value.
-var String = logr.String
+
+var String = func(key string, val string) Field {
+	return logr.String(key, val)
+}
 
 // Stringer constructs a field containing a key and a fmt.Stringer value.
 // The fmt.Stringer's `String` method is called lazily.
@@ -127,7 +134,9 @@ var NamedErr = func(key string, err error) logr.Field {
 }
 
 // Bool constructs a field containing a key and bool value.
-var Bool = logr.Bool
+var Bool = func(key string, val bool) Field {
+	return logr.Bool(key, val)
+}
 
 // Time constructs a field containing a key and time.Time value.
 var Time = logr.Time
@@ -140,10 +149,14 @@ var Duration = logr.Duration
 var Millis = logr.Millis
 
 // Array constructs a field containing a key and array value.
-var Array = logr.Array
+var Array = func(key string, val []interface{}) Field {
+	return logr.Array(key, val)
+}
 
 // Map constructs a field containing a key and map value.
-var Map = logr.Map
+var Map = func(key string, val map[string]interface{}) Field {
+	return logr.Map(key, val)
+}
 
 // Logger provides a thin wrapper around a Logr instance. This is a struct instead of an interface
 // so that there are no allocations on the heap each interface method invocation. Normally not
@@ -176,12 +189,14 @@ func NewLogger(options ...Option) (*Logger, error) {
 
 // Configure provides a new configuration for this logger.
 // Zero or more sources of config can be provided:
-//   cfgFile    - path to file containing JSON
-//   cfgEscaped - JSON string probably from ENV var
+//
+//	cfgFile    - path to file containing JSON
+//	cfgEscaped - JSON string probably from ENV var
 //
 // For each case JSON containing log targets is provided. Target name collisions are resolved
 // using the following precedence:
-//     cfgFile > cfgEscaped
+//
+//	cfgFile > cfgEscaped
 //
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.
