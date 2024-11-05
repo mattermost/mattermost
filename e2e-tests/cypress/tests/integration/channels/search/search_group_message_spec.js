@@ -51,25 +51,24 @@ describe('Search', () => {
             // # Post a message
             cy.postMessage(message);
 
+            cy.uiGetSearchContainer().should('be.visible').click();
+
             //# Type "in:" text in search input
-            cy.get('#searchBox').type('in:');
+            cy.uiGetSearchBox().type('in:');
 
             const sortedUsernames = groupMembers.
                 map((member) => member.username).
                 sort((a, b) => a.localeCompare(b, 'en', {numeric: true}));
 
             //# Search group members in the menu
-            cy.get('#search-autocomplete__popover').should('be.visible').within(() => {
-                cy.findAllByTestId('listItem').contains(sortedUsernames.join(',')).click();
-            });
+            cy.uiGetSearchBox().find('.suggestion-list__main').contains(sortedUsernames.join(',')).click();
 
             //# Press enter to select
-            cy.get('#searchBox').type('{enter}');
+            cy.uiGetSearchBox().type('{enter}');
 
             //# Search for the message
-            cy.get('#searchbarContainer').should('be.visible').within(() => {
-                cy.get('#searchBox').clear().type(`${message}{enter}`);
-            });
+            cy.uiGetSearchContainer().should('be.visible').click();
+            cy.uiGetSearchBox().first().clear().type(`${message}{enter}`);
 
             // * Should return exactly one result from the group channel and matches the message
             cy.findAllByTestId('search-item-container').should('be.visible').and('have.length', 1).within(() => {
@@ -89,25 +88,20 @@ describe('Search', () => {
             cy.get('.post-image__thumbnail').should('be.visible');
             cy.uiGetPostTextBox().clear().type('{enter}');
 
+            cy.uiGetSearchContainer().should('be.visible').click();
+
             //# Type "in:" text in search input
-            cy.get('#searchBox').type('in:');
+            cy.uiGetSearchBox().type('in:');
 
             const sortedUsernames = groupMembers.
                 map((member) => member.username).
                 sort((a, b) => a.localeCompare(b, 'en', {numeric: true}));
 
             //# Search group members in the menu
-            cy.get('#search-autocomplete__popover').should('be.visible').within(() => {
-                cy.findAllByTestId('listItem').contains(sortedUsernames.join(',')).click();
-            });
-
-            //# Press enter to select
-            cy.get('#searchBox').type('{enter}');
+            cy.uiGetSearchBox().find('.suggestion-list__main').contains(sortedUsernames.join(',')).click();
 
             //# Search for the message
-            cy.get('#searchbarContainer').should('be.visible').within(() => {
-                cy.get('#searchBox').type(' word-file{enter}');
-            });
+            cy.uiGetSearchBox().type('word-file{enter}');
 
             // # Click the files tab
             cy.get('.files-tab').should('be.visible').click();

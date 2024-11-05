@@ -34,7 +34,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
                 textProp = (
                     <>
                         <span className='icon'>{icon}</span>
-                        {text}
+                        <div className='text'>{text}</div>
                     </>
                 );
             }
