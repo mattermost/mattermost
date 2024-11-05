@@ -11,9 +11,9 @@ import ExternalLink from 'components/external_link';
 
 import {Constants, DocLinks} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import DropdownSetting from './dropdown_setting';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -57,7 +57,7 @@ export const searchableStrings = [
     messages.pushServerTitle,
 ];
 
-class PushSettings extends AdminSettings<Props, State> {
+class PushSettings extends OLDAdminSettings<Props, State> {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
     };

@@ -53,7 +53,7 @@ interface GetUserParam {
     username: string;
 }
 interface GetUserResult {
-    user: Cypress.UserProfile;
+    user: Cypress.UserProfile & {mfasecret: string};
 }
 function dbGetUser(params: GetUserParam): ChainableT<GetUserResult> {
     return cy.task('dbGetUser', {dbConfig, params}).then(({user, errorMessage, error}) => {

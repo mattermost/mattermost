@@ -3,6 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -17,12 +18,13 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder: string;
+    placeholder: MessageDescriptor;
 }
 
 const OAuthConnectionAudienceInput = (props: Props) => {
@@ -78,7 +80,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
     const connections = Object.values(oauthConnections);
 
     const input = (
-        <input
+        <LocalizedPlaceholderInput
             autoComplete='off'
             id='url'
             maxLength={1024}
