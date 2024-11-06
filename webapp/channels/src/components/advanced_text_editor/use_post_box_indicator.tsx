@@ -16,7 +16,7 @@ import type {GlobalState} from 'types/store';
 
 const DEFAULT_TIMEZONE = {
     useAutomaticTimezone: true,
-    automaticTimezone: '',
+    automaticTimezone: 'UTC',
     manualTimezone: '',
 };
 
@@ -25,19 +25,20 @@ const MINUTE = 1000 * 60;
 function useTimePostBoxIndicator(channelId: string) {
     const getDisplayName = useMemo(makeGetDisplayName, []);
 
-    // Get the teammate ID from DM associated withchannel ID
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
 
-    // check if the teammate is in DND status
-    const showDndWarning = useSelector((state: GlobalState) =>
+    const isDM = useSelector(
+        (state: GlobalState) => Boolean(getDirectChannel(state, channelId)?.teammate_id),
+    );
+
+    // Check if the teammate is in DND status
+    const isTeammateDND = useSelector((state: GlobalState) =>
         (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false),
     );
 
-    // Determine if the current channel is a DM and the teammate is NOT in DND
-    const isDM = useSelector(
-        (state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id),
-    );
+    // Determine if the DND warning should be shown
+    const showDndWarning = isTeammateDND && isDM;
 
     const [timestamp, setTimestamp] = useState(0);
     const [showIt, setShowIt] = useState(false);
@@ -45,8 +46,12 @@ function useTimePostBoxIndicator(channelId: string) {
     // get teammate timezone information
     const teammateTimezone = useSelector(
         (state: GlobalState) => {
-            const teammate = teammateId ? getUser(state, teammateId) : undefined;
-            return teammate ? getTimezoneForUserProfile(teammate) : DEFAULT_TIMEZONE;
+            if (!teammateId) {
+                return DEFAULT_TIMEZONE;
+            }
+
+            const teammate = getUser(state, teammateId);
+            return getTimezoneForUserProfile(teammate);
         },
         (a, b) =>
             a.automaticTimezone === b.automaticTimezone &&
