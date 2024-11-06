@@ -93,7 +93,14 @@ const initialState = {
         users: {
             currentUserId: 'current_user_id',
             profiles: {
-                current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'user_roles'}),
+                current_user_id: TestHelper.getUserMock({
+                    id: 'current_user_id',
+                    roles: 'user_roles',
+                    timezone: {
+                        useAutomaticTimezone: 'true',
+                        automaticTimezone: 'America/New_York',
+                        manualTimezone: '',
+                    }}),
             },
             statuses: {
                 current_user_id: 'online',
