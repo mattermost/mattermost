@@ -3,10 +3,10 @@
 
 /* eslint-disable no-console */
 
-const chalk = require('chalk');
-const concurrently = require('concurrently');
+import chalk from 'chalk';
+import concurrently from 'concurrently';
 
-const {getExitCode, getPlatformCommands} = require('./utils.js');
+import {getExitCode, getPlatformCommands} from './utils.mjs';
 
 async function buildAll() {
     console.log(chalk.inverse.bold('Building subpackages...') + '\n');

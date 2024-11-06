@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const {Writable} = require('stream');
+import {Writable} from 'node:stream';
 
-const blessed = require('blessed');
-const stripAnsi = require('strip-ansi');
+import blessed from 'blessed';
+import stripAnsi from 'strip-ansi';
 
 class Runner {
     commands;
@@ -228,11 +228,10 @@ class Runner {
     }
 }
 
-function makeRunner(commands) {
+export function makeRunner(commands) {
     const runner = new Runner(commands);
 
     runner.renderUi();
 
     return runner;
 }
-exports.makeRunner = makeRunner;
