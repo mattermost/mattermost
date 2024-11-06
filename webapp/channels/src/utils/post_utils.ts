@@ -757,19 +757,32 @@ export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, post
     );
 }
 
-export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
+/**
+ * Given the text of an at-mention without the @, returns an array containing that text and every substring of it that
+ * can be made by removing trailing punctiuation.
+ *
+ * For example, getPotentialMentionsForName('username') returns ['username'] and
+ * getPotentialMentionsForName('username..') return ['username..', 'username.', 'username'].
+ */
+export function getPotentialMentionsForName(mentionName: string): string[] {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
-    while (mentionNameToLowerCase.length > 0) {
-        if (usersByUsername.hasOwnProperty(mentionNameToLowerCase)) {
-            return usersByUsername[mentionNameToLowerCase];
-        }
+    const potentialMentions = [mentionNameToLowerCase];
 
-        // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
-        if ((/[._-]$/).test(mentionNameToLowerCase)) {
-            mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
-        } else {
-            break;
+    // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
+    while (mentionNameToLowerCase.length > 0 && (/[._-]$/).test(mentionNameToLowerCase)) {
+        mentionNameToLowerCase = mentionNameToLowerCase.substring(0, mentionNameToLowerCase.length - 1);
+
+        potentialMentions.push(mentionNameToLowerCase);
+    }
+
+    return potentialMentions;
+}
+
+export function getMentionDetails<T extends UserProfile | Group>(entitiesByName: Record<string, T>, mentionName: string): T | undefined {
+    for (const potentialMention of getPotentialMentionsForName(mentionName)) {
+        if (Object.hasOwn(entitiesByName, potentialMention)) {
+            return entitiesByName[potentialMention];
         }
     }
 
@@ -783,11 +796,11 @@ export function getUserOrGroupFromMentionName(
     groupsDisabled?: boolean,
     getMention = getMentionDetails,
 ): [UserProfile?, Group?] {
-    const user = getMention(users, mentionName) as UserProfile | undefined;
+    const user = getMention(users, mentionName);
 
     // prioritizes user if user exists with the same name as a group.
     if (!user && !groupsDisabled) {
-        const group = getMention(groups, mentionName) as Group | undefined;
+        const group = getMention(groups, mentionName);
         if (group && !group.allow_reference) {
             return [undefined, undefined]; // remove group mention if not allowed to reference
         }
