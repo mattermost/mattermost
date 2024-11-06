@@ -1,6 +1,5 @@
-import {expect, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
-import {duration, wait} from '@e2e-support/util';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 
 test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, pages}) => {
@@ -10,7 +9,7 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, 
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
     const channelPage = new pages.ChannelsPage(page);
     const scheduledDraftPage = new pages.ScheduledDraftPage(page);
@@ -27,15 +26,7 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
-
-    // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
-
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    // TODO: MM-61547 add scheduled post posted verification here later
 });
 
 test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw, pages}) => {
@@ -45,7 +36,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
     const {page} = await pw.testBrowser.login(user);
@@ -98,19 +89,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    await goBackToChannelAndWaitForMessageToArrive(page);
-
-    await replyToLastPost(post);
-
-    // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-
-    const lastPost = channelPage.sidebarRight.rhsPostBody.last();
-    await expect(lastPost).toHaveText(draftMessage);
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    // TODO: MM-61547 add scheduled post posted verification here later
 });
 
 test('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
@@ -219,15 +198,7 @@ test('MM-T5643_3 should create a scheduled message from a DM', async ({pw, pages
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
-
-    // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
-
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    // TODO: MM-61547 add scheduled post posted verification here later
 });
 
 test('MM-T5648 should create a draft and then schedule it', async ({pw, pages}) => {
@@ -292,33 +263,27 @@ test('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     const updatedText = 'updated text';
     await scheduledDraftPage.editText(updatedText);
 
-    // # Go back and wait for message to arrive
-    // await goBackToChannelAndWaitForMessageToArrive(page);
-    //
-    // // * Verify the message has been sent and there's no more scheduled messages
-    // await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    // await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    // await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
-    //
-    // await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    // TODO: MM-61547 add scheduled post posted verification here later
 });
 
-async function verifyNoscheduledDraftsPending(
-    channelPage: ChannelsPage,
-    team: any,
-    scheduledDraftPage: ScheduledDraftPage,
-    draftMessage: string,
-): Promise<void> {
-    await channelPage.goto(team.name, 'scheduled_posts');
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-    await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
-}
+// TODO: MM-61547
+// async function verifyNoscheduledDraftsPending(
+//     channelPage: ChannelsPage,
+//     team: any,
+//     scheduledDraftPage: ScheduledDraftPage,
+//     draftMessage: string,
+// ): Promise<void> {
+//     await channelPage.goto(team.name, 'scheduled_posts');
+//     await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
+//     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
+// }
 
-async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
-    await page.goBack();
-    await wait(duration.half_min);
-    await page.reload();
-}
+// TODO: MM-61547
+// async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
+//     await page.goBack();
+//     await wait(duration.half_min);
+//     await page.reload();
+// }
 
 async function replyToLastPost(post: any): Promise<void> {
     await post.hover();

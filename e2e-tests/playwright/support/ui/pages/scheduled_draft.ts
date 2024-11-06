@@ -30,7 +30,6 @@ export default class ScheduledDraftPage {
             /(Today|Tomorrow|(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}) at \d{1,2}:\d{2} [AP]M/;
         this.scheduledDraftBody = page.locator('div.post__body');
         this.badgeCountOnScheduledTab = page.locator('a#draft_tabs-tab-1 div.drafts_tab_title span.MuiBadge-badge');
-        // this.scheduledDraftPageInfo = page.locator('span:has-text("Send on")');
         this.scheduledDraftPageInfo = page.locator('.PanelHeader__info');
         this.scheduledDraftPanel = (messageContent: string) =>
             page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
