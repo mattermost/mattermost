@@ -7898,5 +7898,61 @@
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
     "translation": "Безпечне з'єднання вже додано."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "функція запланованих постів вимкнена"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "для функції запланованих повідомлень необхідна ліцензія"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Невірний email_token"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Взаємодія з клієнтським порталом Mattermost була відключена системним адміністратором."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "Сервер CWS недоступний."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Послуга доступна лише у версії Mattermost Enterprise"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Один або кілька з наступних дозволів, які ви намагаєтесь додати або видалити, не дозволені"
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Не вдалося надіслати електронні листи щодо поновлення ліцензії"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "Серверу CWS не вдалося підписатися на розсилку новин."
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Портал недоступний для самостійної реєстрації."
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Не вдалося скасувати запрошення віддаленого доступу до каналу"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Не вдалося отримати віддалені спільні канали"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Не вдалося визначити, чи являється канал спільним із віддаленим"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Не вдалося запросити віддалений доступ до каналу"
   }
 ]
