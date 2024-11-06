@@ -20,7 +20,7 @@ import {trackFeatureEvent} from 'actions/telemetry_actions';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import type {Props as MenuItemProps} from 'components/menu/menu_item';
-import Timestamp from 'components/timestamp';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 
 import {scheduledPosts} from 'utils/constants';
 
@@ -28,6 +28,11 @@ type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
 }
+
+const DATE_RANGES = [
+    RelativeRanges.TODAY_TITLE_CASE,
+    RelativeRanges.TOMORROW_TITLE_CASE,
+];
 
 interface RecentlyUsedCustomDate {
     update_at?: number;
@@ -68,6 +73,12 @@ function shouldShowRecentlyUsedCustomTime(
     isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
 }
 
+function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+    // eslint-disable-next-line no-mixed-operators
+    const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
+    return dateTime.plus({days: deltaDays});
+}
+
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
@@ -91,12 +102,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
             },
         );
     }, [currentUserId]);
-
-    function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-        // eslint-disable-next-line no-mixed-operators
-        const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
-        return dateTime.plus({days: deltaDays});
-    }
 
     const now = DateTime.now().setZone(userCurrentTimezone);
     const tomorrow9amTime = DateTime.now().
@@ -132,13 +137,18 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     ) {
         const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
         const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
+        const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
+
+        const scheduledDate = DateTime.fromMillis(recentlyUsedCustomDateVal.timestamp!).setZone(userCurrentTimezone);
+        const isInCurrentWeek = scheduledDate.weekNumber === now.weekNumber && scheduledDate.weekYear === now.weekYear;
+        const useDateOption = isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
 
         const timestamp = (
             <Timestamp
+                ranges={DATE_RANGES}
                 value={recentlyUsedCustomDateVal.timestamp}
                 timeZone={userCurrentTimezone}
-                useRelative={false}
-                useDate={USE_DATE_WEEKDAY_LONG}
+                useDate={useDateOption}
                 useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
             />
         );
