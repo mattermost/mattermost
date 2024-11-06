@@ -699,7 +699,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 		Message:   "root post",
 		UserId:    th.BasicUser.Id,
 	}
-	_, err = th.App.CreatePost(th.Context, post, channel1, false, true)
+	_, err = th.App.CreatePost(th.Context, post, channel1, model.CreatePostFlags{})
 	require.Nil(t, err, "Failed to create post.")
 
 	_, err = th.App.AddUserToChannel(th.Context, user, channel2, false)
@@ -726,7 +726,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	}
 	err = th.App.RemoveUserFromChannel(th.Context, user4.Id, user4.Id, channel4)
 	require.Nil(t, err, "Failed to create post.")
-	_, err = th.App.CreatePost(th.Context, post2, channel5, false, true)
+	_, err = th.App.CreatePost(th.Context, post2, channel5, model.CreatePostFlags{})
 	require.Nil(t, err, "Failed to create post.")
 	_, err = th.App.AddUserToChannel(th.Context, user, channel6, false)
 	require.Nil(t, err, "Failed to add user to channel.")
