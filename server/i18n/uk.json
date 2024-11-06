@@ -8130,5 +8130,57 @@
   {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} запросив вас приєднатися до каналу {{ .ChannelName }} у команді {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.questions_footer.info",
+    "translation": "Потрібна допомога чи маєте запитання? Напишіть нам за електронною адресою "
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_title",
+    "translation": "Завантажити десктопний та мобільний додатки"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, термін дії вашої підписки закінчується через {{.Days}} днів. Ми сподіваємося, що ви насолоджуєтесь гнучкою та безпечною командною співпрацею, яку забезпечує Mattermost. Поновіть свою підписку якнайшвидше, щоб ваша команда могла продовжувати користуватися цими перевагами."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Ваша підписка на Mattermost підлягає поновленню"
+  },
+  {
+    "id": "api.templates.questions_footer.title",
+    "translation": "Питання?"
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "Якщо це не ви, можете сміливо ігнорувати цей електронний лист."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Завантажити з серверу"
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "Якщо це не ви, можете сміливо ігнорувати цей електронний лист."
+  },
+  {
+    "id": "api.templates.reset_body.info",
+    "translation": "Термін дії посилання для скидання пароля закінчується через 24 години."
+  },
+  {
+    "id": "api.templates.reset_body.subTitle",
+    "translation": "Натисніть кнопку нижче, щоб скинути пароль. Якщо ви не запитували цього, можете безпечно проігнорувати цей електронний лист."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Натисніть нижче, щоб підтвердити свою електронну адресу."
+  },
+  {
+    "id": "api.templates.verify_body.subTitle1",
+    "translation": "Дякуємо, що приєдналися "
   }
 ]
