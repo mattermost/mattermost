@@ -117,7 +117,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 			return warningCount, fmt.Errorf("unable to export a post: %w", err)
 		}
 
-		if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
+		if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
 			props := map[string]any{}
 			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
 				if _, ok := props[model.PostPropsDeleteBy]; ok {
@@ -363,7 +363,7 @@ func postToRow(post *model.MessageExport, createTime *int64, message string) []s
 		teamDisplayName = *post.TeamDisplayName
 	}
 	postType := "message"
-	if post.PostType != nil && *post.PostType != "" {
+	if model.SafeDereference(post.PostType) != "" {
 		postType = *post.PostType
 	}
 	postRootId := ""

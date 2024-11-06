@@ -30,6 +30,13 @@ const (
 	ActianceWarningFilename = "warning.txt"
 )
 
+type exportUserType string
+
+const (
+	user exportUserType = "user"
+	bot  exportUserType = "bot"
+)
+
 // The root-level element of an actiance export
 type RootNode struct {
 	XMLName  xml.Name        `xml:"FileDump"`
@@ -75,12 +82,32 @@ type LeaveExport struct {
 
 // The Message element indicates the message sent by a user
 type PostExport struct {
-	XMLName      xml.Name `xml:"Message"`
-	UserEmail    string   `xml:"LoginName"`    // the email of the person that sent the post
-	UserType     string   `xml:"UserType"`     // the type of the person that sent the post
-	PostTime     int64    `xml:"DateTimeUTC"`  // utc timestamp (seconds), time at which the user sent the post. Example: 1366611728
-	Message      string   `xml:"Content"`      // the text body of the post
-	PreviewsPost string   `xml:"PreviewsPost"` // the post id of the post that is previewed by the permalink preview feature
+	XMLName   xml.Name       `xml:"Message"`
+	MessageId string         `xml:"MessageId"`   // the message id in the db
+	UserEmail string         `xml:"LoginName"`   // the email of the person that sent the post
+	UserType  exportUserType `xml:"UserType"`    // the type of the person that sent the post: "user" or "bot"
+	CreateAt  int64          `xml:"DateTimeUTC"` // utc timestamp (unix milliseconds), the post's createAt
+
+	// Allows us to differentiate between:
+	// - "EditedOriginalMsg": the newly created message (new Id), which holds the pre-edited message contents. The
+	//    "EditedNewMsgId" field will point to the message (original Id) which has the post-edited message content.
+	// - "EditedNewMsg": the post-edited message content. This is confusing, so be careful: in the db, this EditedNewMsg
+	//    is actually the original messageId because we wanted an edited message to have the same messageId as the
+	//    pre-edited message. But for the purposes of exporting and to keep the mental model clear for end-users, we are
+	//    calling this the EditedNewMsg and EditedNewMsgId, because this will hold the NEW post-edited message contents,
+	//    and that's what's important to the end-user viewing the export.
+	//  - "UpdatedNoMsgChange": the message content hasn't changed, but the post was updated for some reason (reaction,
+	//	  replied-to, a reply was edited, a reply was deleted (as of 10.2), perhaps other reasons)
+	//  - "Deleted": the message was deleted.
+	//  - "FileDeleted": this message is recording that a file was deleted.
+	UpdatedType shared.PostUpdatedType `xml:"UpdatedType,omitempty"`
+	UpdateAt    int64                  `xml:"UpdatedDateTimeUTC,omitempty"` // if this is an updated post, this is the updated time (same as deleted time for deleted posts).
+
+	// when a message is edited, the EditedOriginalMsg points to the message Id that now has the newly edited message.
+	EditedNewMsgId string `xml:"EditedNewMsgId,omitempty"`
+
+	Message      string `xml:"Content"`                // the text body of the post
+	PreviewsPost string `xml:"PreviewsPost,omitempty"` // the post id of the post that is previewed by the permalink preview feature
 }
 
 // The FileTransferStarted element indicates the beginning of a file transfer in a conversation
@@ -106,6 +133,7 @@ type Params struct {
 	ChannelMetadata        map[string]*shared.MetadataChannel
 	Posts                  []*model.MessageExport
 	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
+	JobStartTime           int64
 	BatchPath              string
 	BatchStartTime         int64
 	BatchEndTime           int64
@@ -131,29 +159,26 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	channelsInThisBatch := make(map[string]bool)
 	results := shared.RunExportResults{}
 
-	for _, post := range p.Posts {
+	for i, post := range p.Posts {
 		if post == nil {
 			results.IgnoredPosts++
 			rctx.Logger().Warn("ignored a nil post reference in the list")
 			continue
 		}
 
-		isDeleted := false
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
-		elementsByChannel[channelId] = append(elementsByChannel[channelId], postToExportEntry(post, post.PostCreateAt, *post.PostMessage))
-
-		if post.PostDeleteAt != nil && *post.PostDeleteAt > 0 && post.PostProps != nil {
-			props := make(map[string]any)
-			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
-				if _, ok := props[model.PostPropsDeleteBy]; ok {
-					isDeleted = true
-					elementsByChannel[channelId] = append(elementsByChannel[channelId], postToExportEntry(post,
-						post.PostDeleteAt, "delete "+*post.PostMessage))
-				}
-			}
+		// Was the post deleted (not an edited post), and originally posted during the current job window?
+		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
+		// before now because of the way we export posts (by updateAt).
+		if isDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
+			results.CreatedPosts++
+			elementsByChannel[channelId] = append(elementsByChannel[channelId], createdPostToExportEntry(post))
 		}
+		var postExport PostExport
+		postExport, results = getPostExport(p.Posts, i, results)
+		elementsByChannel[channelId] = append(elementsByChannel[channelId], postExport)
 
 		startUploads, stopUploads, uploadedFiles, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
 		if err != nil {
@@ -177,14 +202,6 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 			UserId:   *post.UserId,
 			IsBot:    post.IsBot,
 			Username: *post.Username,
-		}
-
-		if isDeleted {
-			results.DeletedPosts++
-		} else if *post.PostUpdateAt > *post.PostCreateAt {
-			results.UpdatedPosts++
-		} else {
-			results.CreatedPosts++
 		}
 	}
 
@@ -225,6 +242,63 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	return results, err
 }
 
+func getPostExport(posts []*model.MessageExport, i int, results shared.RunExportResults) (PostExport, shared.RunExportResults) {
+	// We have three "kinds" of posts:
+	// (using "1" and "2" for simplicity)
+	// - created:                         Id = new,  CreateAt = 1,    UpdateAt = 1, DeleteAt = 0
+	// - deleted:                         Id = orig, CreateAt = orig, UpdateAt = 2, DeleteAt = 2, props: deleteBy
+	// - edited: old post gets "created": Id = new,  CreateAt = 1,    UpdateAt = 2, DeleteAt = 2, originalId: orig
+	//           existing post modified:  Id = orig, CreateAt = 1,    UpdateAt = 2, DeleteAt = 0
+	//
+	// We also have other ways for a post to be updated:
+	//  - a root post in a thread is replied to, when a reply is edited, or (as of 10.2) when a reply is deleted
+
+	post := posts[i]
+	if isEditedOriginalMsg(post) {
+		// Post has been edited. This is the original message.
+		results.EditedOrigMsgPosts++
+		return editedOriginalMsgToExportEntry(post), results
+	} else if isDeletedMsg(post) {
+		// Post is deleted
+		results.DeletedPosts++
+		return deletedPostToExportEntry(post, "delete "+*post.PostMessage), results
+	} else if *post.PostUpdateAt > *post.PostCreateAt {
+		// Post has been updated. But what kind?
+		if model.SafeDereference(post.PostEditAt) > 0 {
+			// This is an edited post.
+			results.EditedNewMsgPosts++
+			return editedNewMsgToExportEntry(post), results
+		}
+		// This is just an updated post (e.g. reaction)
+		results.UpdatedPosts++
+		return updatedPostToExportEntry(post), results
+	}
+	// Post is newly created:
+	// *post.PostCreateAt == *post.PostUpdateAt && (post.PostDeleteAt == nil || *post.PostDeleteAt == 0)
+	// but also fallback to this in case there is missing data, which is better than not exporting anything.
+	results.CreatedPosts++
+	return createdPostToExportEntry(post), results
+}
+
+func isEditedOriginalMsg(post *model.MessageExport) bool {
+	return model.SafeDereference(post.PostDeleteAt) > 0 && model.SafeDereference(post.PostOriginalId) != ""
+}
+
+func isDeletedMsg(post *model.MessageExport) bool {
+	if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
+		props := map[string]any{}
+		err := json.Unmarshal([]byte(*post.PostProps), &props)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := props[model.PostPropsDeleteBy]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
 	for _, cmh := range cmhs {
 		if (cmh.JoinTime >= startTime && cmh.JoinTime <= endTime) ||
@@ -235,13 +309,100 @@ func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int6
 	return false
 }
 
-func postToExportEntry(post *model.MessageExport, createTime *int64, message string) *PostExport {
-	userType := "user"
+func createdPostToExportEntry(post *model.MessageExport) PostExport {
+	userType := user
 	if post.IsBot {
-		userType = "bot"
+		userType = bot
 	}
-	return &PostExport{
-		PostTime:     *createTime,
+	return PostExport{
+		MessageId:    *post.PostId,
+		CreateAt:     *post.PostCreateAt,
+		Message:      *post.PostMessage,
+		UserType:     userType,
+		UserEmail:    *post.UserEmail,
+		PreviewsPost: post.PreviewID(),
+	}
+}
+
+func deletedPostToExportEntry(post *model.MessageExport, newMsg string) PostExport {
+	userType := user
+	if post.IsBot {
+		userType = bot
+	}
+	return PostExport{
+		MessageId:    *post.PostId,
+		CreateAt:     *post.PostCreateAt,
+		UpdateAt:     *post.PostDeleteAt,
+		UpdatedType:  shared.Deleted,
+		Message:      newMsg,
+		UserType:     userType,
+		UserEmail:    *post.UserEmail,
+		PreviewsPost: post.PreviewID(),
+	}
+}
+
+func editedOriginalMsgToExportEntry(post *model.MessageExport) PostExport {
+	userType := user
+	if post.IsBot {
+		userType = bot
+	}
+	return PostExport{
+		MessageId:      *post.PostId,
+		CreateAt:       *post.PostCreateAt,
+		UpdateAt:       *post.PostUpdateAt,
+		UpdatedType:    shared.EditedOriginalMsg,
+		Message:        *post.PostMessage,
+		UserType:       userType,
+		UserEmail:      *post.UserEmail,
+		PreviewsPost:   post.PreviewID(),
+		EditedNewMsgId: *post.PostOriginalId,
+	}
+}
+
+func editedNewMsgToExportEntry(post *model.MessageExport) PostExport {
+	userType := user
+	if post.IsBot {
+		userType = bot
+	}
+	return PostExport{
+		MessageId:    *post.PostId,
+		CreateAt:     *post.PostCreateAt,
+		UpdateAt:     *post.PostUpdateAt,
+		UpdatedType:  shared.EditedNewMsg,
+		Message:      *post.PostMessage,
+		UserType:     userType,
+		UserEmail:    *post.UserEmail,
+		PreviewsPost: post.PreviewID(),
+	}
+}
+
+func updatedPostToExportEntry(post *model.MessageExport) PostExport {
+	userType := user
+	if post.IsBot {
+		userType = bot
+	}
+	return PostExport{
+		MessageId:    *post.PostId,
+		CreateAt:     *post.PostCreateAt,
+		UpdateAt:     *post.PostUpdateAt,
+		UpdatedType:  shared.UpdatedNoMsgChange,
+		Message:      *post.PostMessage,
+		UserType:     userType,
+		UserEmail:    *post.UserEmail,
+		PreviewsPost: post.PreviewID(),
+	}
+}
+
+func deleteFileToExportEntry(post *model.MessageExport, message string) PostExport {
+	userType := user
+	if post.IsBot {
+		userType = bot
+	}
+	return PostExport{
+		MessageId:    *post.PostId,
+		CreateAt:     *post.PostCreateAt,
+		UpdateAt:     *post.PostDeleteAt,
+		UpdatedType:  shared.FileDeleted,
 		Message:      message,
 		UserType:     userType,
 		UserEmail:    *post.UserEmail,
@@ -267,15 +428,16 @@ func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExport
 	var uploadedFiles []*model.FileInfo
 	for _, fileInfo := range fileInfos {
 		// insert a record of the file upload into the export file
-		// path to exported file is relative to the xml file, so it's just the name of the exported file
-		startUploads = append(startUploads, &FileUploadStartExport{
+		// path to exported file is relative to the fileAttachmentFilestore root,
+		// which could be different from the exportFilestore root
+		startUploads = append(startUploads, FileUploadStartExport{
 			UserEmail:       *post.UserEmail,
 			Filename:        fileInfo.Name,
 			FilePath:        fileInfo.Path,
 			UploadStartTime: *post.PostCreateAt,
 		})
 
-		stopUploads = append(stopUploads, &FileUploadStopExport{
+		stopUploads = append(stopUploads, FileUploadStopExport{
 			UserEmail:      *post.UserEmail,
 			Filename:       fileInfo.Name,
 			FilePath:       fileInfo.Path,
@@ -284,7 +446,7 @@ func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExport
 		})
 
 		if fileInfo.DeleteAt > 0 && post.PostDeleteAt != nil {
-			deleteFileMessages = append(deleteFileMessages, postToExportEntry(post, post.PostDeleteAt, "delete "+fileInfo.Path))
+			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, "delete "+fileInfo.Path))
 		}
 
 		uploadedFiles = append(uploadedFiles, fileInfo)
@@ -369,8 +531,7 @@ func buildChannelExport(startTime int64, endTime int64, channel *shared.Metadata
 	return &channelExport
 }
 
-func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (shared.WriteExportResult, error) {
-	res := shared.WriteExportResult{}
+func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.FileInfo, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (res shared.WriteExportResult, err error) {
 	start := time.Now()
 	// marshal the export object to xml
 	xmlData := &bytes.Buffer{}
@@ -378,10 +539,10 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 	enc := xml.NewEncoder(xmlData)
 	enc.Indent("", "  ")
-	if err := enc.Encode(export); err != nil {
+	if err = enc.Encode(export); err != nil {
 		return res, fmt.Errorf("unable to convert export to XML: %w", err)
 	}
-	if err := enc.Flush(); err != nil {
+	if err = enc.Flush(); err != nil {
 		return res, fmt.Errorf("unable to flush the XML encoder: %w", err)
 	}
 

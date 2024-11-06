@@ -24,6 +24,7 @@ type MessageExport struct {
 	PostCreateAt   *int64
 	PostUpdateAt   *int64
 	PostDeleteAt   *int64
+	PostEditAt     *int64
 	PostMessage    *string
 	PostType       *string
 	PostRootId     *string
