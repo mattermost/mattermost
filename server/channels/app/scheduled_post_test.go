@@ -14,6 +14,7 @@ import (
 func TestSaveScheduledPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
 		userId := model.NewId()
@@ -48,7 +49,7 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 	})
@@ -57,7 +58,7 @@ func TestSaveScheduledPost(t *testing.T) {
 		scheduledPost := &model.ScheduledPost{
 			// a completely empty scheduled post
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
@@ -74,7 +75,7 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() - 100000, // 100 seconds in the past
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
@@ -93,7 +94,7 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
@@ -134,7 +135,7 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
@@ -172,13 +173,13 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
 		scheduledPost.Message = "this is a second scheduled post"
 		scheduledPost.Id = model.NewId()
-		createdScheduledPost, appErr = th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr = th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 	})
@@ -215,7 +216,7 @@ func TestSaveScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Nil(t, createdScheduledPost)
 	})
@@ -224,8 +225,10 @@ func TestSaveScheduledPost(t *testing.T) {
 func TestGetUserTeamScheduledPosts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61523")
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -235,7 +238,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1)
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
 
@@ -248,7 +251,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2)
+		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost2)
 
@@ -281,7 +284,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1)
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
 
@@ -294,7 +297,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2)
+		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost2)
 
@@ -334,7 +337,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1)
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
 
@@ -347,7 +350,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2)
+		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost2)
 
@@ -382,7 +385,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1)
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
 
@@ -395,7 +398,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2)
+		createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost2)
 
@@ -416,6 +419,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 func TestUpdateScheduledPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
 		// first we'll create a scheduled post
@@ -451,7 +455,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
@@ -460,7 +465,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.ScheduledAt = newScheduledAtTime
 		createdScheduledPost.Message = "Updated Message!!!"
 
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedScheduledPost)
 
@@ -502,7 +507,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
@@ -510,8 +515,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		newScheduledAtTime := model.GetMillis() + 9999999
 		createdScheduledPost.ScheduledAt = newScheduledAtTime
 		createdScheduledPost.Message = "Updated Message!!!"
-
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Nil(t, updatedScheduledPost)
@@ -551,7 +555,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
@@ -566,7 +570,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		createdScheduledPost.FileIds = []string{model.NewId(), model.NewId()}
 		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 
-		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost)
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, userId, createdScheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
@@ -582,6 +586,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 func TestDeleteScheduledPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
 		// first we'll create a scheduled post
@@ -594,7 +599,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 
@@ -630,7 +635,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
-		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost)
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
 

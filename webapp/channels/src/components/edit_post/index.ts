@@ -37,13 +37,12 @@ type Props = {
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const config = getConfig(state);
+    const currentUserId = getCurrentUserId(state);
 
     let editingPost;
     let channelId: string;
     let draft;
-    let isAuthor: boolean;
-
-    const currentUserId = getCurrentUserId(state);
+    let isAuthor;
 
     if (props.scheduledPost) {
         editingPost = {post: null};

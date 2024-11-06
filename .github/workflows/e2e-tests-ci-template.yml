@@ -453,7 +453,11 @@ jobs:
           fi
           export TOTAL_SPECS=$(( PASSED + FAILED ))
           export PASS_RATE=$(jq -r '100 * (env.PASSED | tonumber) / (env.TOTAL_SPECS | tonumber)' <<<'{}' | xargs -l printf '%.2f')
-          export COMMIT_STATUS_MESSAGE="Completed with pass rate: ${PASS_RATE}% (plus ${FAILED_EXPECTED} unrelated failures)"
+          if [ "$FAILED" = "0" ]; then
+            export COMMIT_STATUS_MESSAGE="All test cases passed"
+          else
+            export COMMIT_STATUS_MESSAGE="${FAILED} test cases failed. Please check the workflow logs"
+          fi
           echo "passed=${PASSED:?}" >> $GITHUB_OUTPUT
           echo "failed=${FAILED:?}" >> $GITHUB_OUTPUT
           echo "failed_expected=${FAILED_EXPECTED:?}" >> $GITHUB_OUTPUT
