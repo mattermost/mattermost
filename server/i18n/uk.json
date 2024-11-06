@@ -949,7 +949,7 @@
   },
   {
     "id": "api.context.invalid_url_param.app_error",
-    "translation": "Недійсний або відсутній параметр {{.Name}} в URL-адресі запиту"
+    "translation": "Неправильний або відсутній параметр {{.Name}} в URL-адресі запиту."
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -957,7 +957,7 @@
   },
   {
     "id": "api.context.permissions.app_error",
-    "translation": "У вас немає відповідних дозволів"
+    "translation": "Ви не маєте відповідних дозволів."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -965,7 +965,7 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "Сеанс - це не OAuth, але токен був наданий у рядку запиту"
+    "translation": "Сесія не є OAuth, але в рядку запиту було вказано токен."
   },
   {
     "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
@@ -981,7 +981,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Поштові об'єднання відключені системним адміністратором"
+    "translation": "Масову розсилку електронної пошти відключено системним адміністратором."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1057,19 +1057,19 @@
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": "Загальнодоступний зв'язок не вважається дійсним"
+    "translation": "Публічне посилання недійсне."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Файл не має зображення попереднього перегляду"
+    "translation": "Файл не має зображення для попереднього перегляду."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Файл не має ескізів"
+    "translation": "Файл не має мініатюрного зображення."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Публічні посилання вимкнено"
+    "translation": "Публічні посилання відключені."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
@@ -1093,7 +1093,7 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "Розміри файлу {{.Filename}} ({{.Width}} на {{.Height}} пікселів) перевищують допустимі значення."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1157,7 +1157,7 @@
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": "Не вдалося відкрити файл ліцензії"
+    "translation": "Не вдалося відкрити файл ліцензії."
   },
   {
     "id": "api.license.add_license.save.app_error",
@@ -1177,7 +1177,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Не вдалося серіалізувати."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1193,19 +1193,19 @@
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request: Поганий client_id"
+    "translation": "invalid_request: Поганий client_id."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: відсутній client_secret"
+    "translation": "invalid_request: Відсутній client_secret"
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: поганий grant_type"
+    "translation": "invalid_request: Поганий grant_type."
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
-    "translation": "invalid_client: недійсні клієнтські облікові дані"
+    "translation": "invalid_client: Недійсні облікові дані клієнта."
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
@@ -1213,43 +1213,43 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: невірний або закінчився термін дії коду авторизації"
+    "translation": "invalid_grant: Недійсний або прострочений код авторизації."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "server_error: Виявлено помилку внутрішнього сервера під час доступу до бази даних"
+    "translation": "server_error: Виникла внутрішня помилка сервера під час доступу до бази даних."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Виявлено помилку внутрішнього сервера при збереженні токена доступу до бази даних"
+    "translation": "server_error: Виникла внутрішня помилка сервера під час збереження токену доступу до бази даних."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Виявлено помилку внутрішньої сервера під час збереження сеансу в базі даних"
+    "translation": "server_error: Виникла внутрішня помилка сервера під час збереження сесії до бази даних."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Виявлено помилку внутрішньої сервера під час витягування користувача з бази даних"
+    "translation": "server_error: Виникла внутрішня помилка сервера під час витягування користувача з бази даних."
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: відсутній код"
+    "translation": "invalid_request: Відсутній код."
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-    "translation": "invalid_request: відсутній refresh_token"
+    "translation": "invalid_request: Відсутній refresh_token."
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Поставляється redirect_uri не відповідає коду авторизації redirect_uri"
+    "translation": "invalid_request: Наданий redirect_uri не відповідає коду авторизації redirect_uri."
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
-    "translation": "invalid_grant: Невірний токен оновлення"
+    "translation": "invalid_grant: Недійсний токен оновлення."
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "Недійсний токен державної форми"
+    "translation": "Недійсний токен стану."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1261,11 +1261,11 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Помилка видалення маркера доступу з БД"
+    "translation": "Помилка видалення токену доступу з БД."
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Помилка отримання токена доступу з БД перед видаленням"
+    "translation": "Помилка отримання токену доступу з БД перед видаленням."
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1273,7 +1273,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-    "translation": "Термін дії посилання на реєстрацію закінчився"
+    "translation": "Термін дії посилання на реєстрацію закінчився."
   },
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
@@ -1309,15 +1309,15 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Недійсний параметр ChannelId для параметра RootId"
+    "translation": "Невірний ChannelId для параметра RootId."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Недійсний параметр RootId"
+    "translation": "Неправильний параметр RootId."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": "Помилка створення публікації"
+    "translation": "Помилка при створенні допису."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -1345,11 +1345,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Недійсний ідентифікатор дії"
+    "translation": "Недійсний ідентифікатор дії."
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Помилка інтеграції дій"
+    "translation": "Помилка інтеграції дій."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1409,7 +1409,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Вже видалено id = {{.PostId}}"
+    "translation": "Вже видалено id={{.PostId}}."
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
@@ -1417,19 +1417,19 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Не вдається оновити системне повідомлення"
+    "translation": "Не вдалося оновити системне повідомлення."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
-    "translation": "Не вдається отримати повідомлення"
+    "translation": "Не вдалося отримати допис."
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": "Неможливо видалити настройки користувача"
+    "translation": "Неможливо видалити налаштування користувача."
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": "Неможливо отримати настройки користувача"
+    "translation": "Не вдалося отримати налаштування користувача."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -1465,7 +1465,7 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "Ваша ліцензія не підтримує схеми видалення дозволів."
+    "translation": "Ваша ліцензія не підтримує видалення схеми дозволів"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
@@ -1581,7 +1581,7 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "Користувача не знайдено"
+    "translation": "Користувача не знайдено."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1597,7 +1597,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Неправильне ім'я драйвера в налаштуваннях файлів. Повинно бути 'local' або 'amazons3'"
+    "translation": "Неправильне ім'я драйвера для параметрів файлу.   Має бути 'local' або 'amazons3'."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1609,7 +1609,7 @@
   },
   {
     "id": "api.team.import_team.integer.app_error",
-    "translation": "Розмір файлу не ціле число"
+    "translation": "Розмір файлу не ціле число."
   },
   {
     "id": "api.team.import_team.no_file.app_error",
@@ -1689,15 +1689,15 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Не вдалося розібрати піктограму команди"
+    "translation": "Не вдалося розшифрувати піктограму команди."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Не вдається кодувати піктограму команди"
+    "translation": "Не вдалося закодувати піктограму команди."
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "Виникла помилка отримання команди"
+    "translation": "Виникла помилка при отриманні команди."
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -1705,7 +1705,7 @@
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
-    "translation": "Не вдається відкрити файл зображення"
+    "translation": "Не вдалося відкрити файл зображення."
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
@@ -1721,7 +1721,7 @@
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Не вдалося зберегти піктограму команди"
+    "translation": "Не вдалося зберегти піктограму команди."
   },
   {
     "id": "api.team.team_icon.update.app_error",
@@ -1949,7 +1949,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA не доступний для цього типу облікового запису"
+    "translation": "Багатофакторна аутентифікація (БФА) недоступна для цього типу облікового запису."
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -1957,7 +1957,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
-    "translation": "Погана відповідь із запиту токенів"
+    "translation": "Некоректна відповідь на запит токена."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
@@ -1969,19 +1969,19 @@
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
-    "translation": "Відсутній токен доступу"
+    "translation": "Відсутній токен доступу."
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "Received invalid response from OAuth service provider"
+    "translation": "Отримано невірну відповідь від постачальника послуг OAuth."
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
-    "translation": "Помилка запиту токена до {{.Service}}"
+    "translation": "Запит токена до {{.Service}} не вдався."
   },
   {
     "id": "api.user.authorize_oauth_user.token_failed.app_error",
-    "translation": "Помилка запиту токену"
+    "translation": "Запит токена не вдалося виконати."
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
@@ -1997,15 +1997,15 @@
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
-    "translation": "Вхід не вдався через недійсний пароль"
+    "translation": "Не вдалося увійти через невірний пароль."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Бланк електронної пошти"
+    "translation": "Порожня адреса електронної пошти."
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{.Service}}"
+    "translation": "Не вдалося розібрати дані авторизації з об'єкта користувача {{.Service}}."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -2677,7 +2677,7 @@
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "Невірне ім'я користувача. "
+    "translation": "Недійсне ім'я ролі."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
@@ -2689,7 +2689,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "Невірне ім'я користувача. "
+    "translation": "Недійсна назва схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
@@ -2709,23 +2709,23 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_length.error",
-    "translation": "Ім'я дисплея каналу не в межах дозволених обмежень довжини. "
+    "translation": "Назва команди display_name не відповідає дозволеним обмеженням за довжиною."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Відсутнє необхідне властивість каналу: display_name "
+    "translation": "Відсутня необхідна властивість команди: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Назва каналу містить недійсні символи. "
+    "translation": "Назва команди містить недопустимі символи."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": "Назва каналу занадто довга. "
+    "translation": "Назва команди занадто довга."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: ім'я "
+    "translation": "Відсутня необхідна властивість команди: name."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
@@ -2741,7 +2741,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: тип. "
+    "translation": "Відсутня необхідна властивість команди: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -5617,7 +5617,7 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
+    "translation": "Не вдалося успішно надіслати електронне повідомлення про вимкнення ліцензії."
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
