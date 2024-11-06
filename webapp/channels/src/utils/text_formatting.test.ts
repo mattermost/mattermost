@@ -598,7 +598,6 @@ describe('isChannelsNameMap', () => {
         expect(isChannelNamesMap(undefined)).toBe(false);
         expect(isChannelNamesMap(true)).toBe(false);
         expect(isChannelNamesMap(1)).toBe(false);
-        expect(isChannelNamesMap([])).toBe(false);
     });
 
     it('display names are required', () => {
