@@ -167,7 +167,6 @@ issues:
         channels/app/upload_test.go|\
         channels/app/user.go|\
         channels/app/user_test.go|\
-        channels/app/user_viewmembers_test.go|\
         channels/app/users/helper_test.go|\
         channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
