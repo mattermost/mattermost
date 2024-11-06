@@ -6,9 +6,12 @@ package message_export
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
+	"path"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
@@ -63,12 +66,14 @@ func TestInitJobDataNoJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
+	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
@@ -116,12 +121,14 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
+	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
@@ -144,6 +151,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
+		Data:     map[string]string{JobDataExportDir: "this-is-the-export-dir"},
 	}
 
 	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
@@ -170,12 +178,14 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 		logger: logger,
 	}
 
-	// actually execute the code under test
-	worker.initJobData(logger, job)
+	now := time.Now()
+	worker.initJobData(logger, job, now)
 
 	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
 	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
 	assert.Equal(t, previousJob.Data[JobDataBatchStartTimestamp], job.Data[JobDataBatchStartTimestamp])
+	expectedDir := "this-is-the-export-dir"
+	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
 }
 
 func TestDoJobNoPostsToExport(t *testing.T) {

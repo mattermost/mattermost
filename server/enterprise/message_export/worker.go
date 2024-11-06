@@ -6,6 +6,7 @@ package message_export
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -182,7 +183,7 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	defer cancelCancelWatcher()
 
 	// if job data is missing, we'll do our best to recover
-	w.initJobData(logger, job)
+	w.initJobData(logger, job, time.Now())
 	data, err := extractJobData(logger, job.Data)
 	if err != nil {
 		// Error in conversion. Not much we can do about that. But it shouldn't happen, unless someone edited the db.
@@ -283,7 +284,7 @@ func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger
 }
 
 // initializes job data if it's missing, allows us to recover from failed or improperly configured jobs
-func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job) {
+func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job, now time.Time) {
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
@@ -311,11 +312,6 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 		logger.Info("Worker: Defaulting to configured channel history batch size", mlog.String("channel_history_batch_size", channelHistoryBatchSize))
 		job.Data[jobDataChannelHistoryBatchSize] = channelHistoryBatchSize
 	}
-	if _, exists := job.Data[JobDataExportDir]; !exists {
-		exportDir := path.Join(model.ComplianceExportPath, time.Now().Format(model.ComplianceExportDirectoryFormat))
-		logger.Info("Worker: JobDataExportDir does not exist, using current datetime", mlog.String("job_data_export_dir", exportDir))
-		job.Data[JobDataExportDir] = exportDir
-	}
 	if _, exists := job.Data[JobDataBatchNumber]; !exists {
 		logger.Info("Worker: JobDataBatchNumber does not exist, starting at 0")
 		job.Data[JobDataBatchNumber] = "0"
@@ -329,7 +325,7 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	// jobs do not get rescheduled properly yet, and when they are run again it means that new day's worth of messages
 	// need to be exported.
 	if _, exists := job.Data[JobDataEndTimestamp]; !exists {
-		job.Data[JobDataEndTimestamp] = strconv.FormatInt(model.GetMillis(), 10)
+		job.Data[JobDataEndTimestamp] = strconv.FormatInt(model.GetMillisForTime(now), 10)
 	}
 
 	if _, exists := job.Data[JobDataBatchStartTimestamp]; !exists {
@@ -340,6 +336,7 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 			job.Data[JobDataBatchStartTimestamp] = exportFromTimestamp
 			job.Data[JobDataBatchStartId] = ""
 			job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
+			job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, exportFromTimestamp, job.Data[JobDataEndTimestamp])
 			return
 		}
 
@@ -367,6 +364,8 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	} else {
 		logger.Info("Worker: JobDataBatchStartTimestamp start time was already set", mlog.String("batch_start_timestamp", job.Data[JobDataBatchStartTimestamp]))
 	}
+
+	job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[JobDataBatchStartTimestamp], job.Data[JobDataEndTimestamp])
 }
 
 func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.JobData, err error) {
@@ -440,6 +439,19 @@ func setJobDataEndOfBatch(job *model.Job, data shared.JobData) {
 	job.Data[JobDataBatchStartId] = data.Cursor.LastPostId
 	job.Data[JobDataMessagesExported] = strconv.Itoa(data.TotalPostsExported)
 	job.Data[JobDataBatchNumber] = strconv.Itoa(data.BatchNumber)
+}
+
+// getJobExportDir will use the existing JobDataExportDir if available. If it's not available, this is the first run
+// for the job, so we use the startTime and endTime passed in.
+func getJobExportDir(logger mlog.LoggerIFace, data model.StringMap, startTime string, endTime string) string {
+	exportDir, exists := data[JobDataExportDir]
+	if !exists {
+		// If we don't have a jobDataExportDir, this is the first run for the job, so we use the batch startTime
+		exportDir = path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%s-%s", time.Now().Format(model.ComplianceExportDirectoryFormat), startTime, endTime))
+		logger.Info("Worker: JobDataExportDir does not exist, using current datetime", mlog.String("job_data_export_dir", exportDir))
+	}
+
+	return exportDir
 }
 
 func getJobProgress(totalExportedPosts, totalPostsExpected int) int {
