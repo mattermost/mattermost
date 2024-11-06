@@ -3985,6 +3985,10 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
+	if !(*s.ExportAmazonS3StorageClass == "" || *s.ExportAmazonS3StorageClass == StorageClassStandard || *s.ExportAmazonS3StorageClass == StorageClassReducedRedundancy || *s.ExportAmazonS3StorageClass == StorageClassStandardIA || *s.ExportAmazonS3StorageClass == StorageClassOnezoneIA || *s.ExportAmazonS3StorageClass == StorageClassIntelligentTiering || *s.ExportAmazonS3StorageClass == StorageClassGlacier || *s.ExportAmazonS3StorageClass == StorageClassDeepArchive || *s.ExportAmazonS3StorageClass == StorageClassOutposts || *s.ExportAmazonS3StorageClass == StorageClassGlacierIR || *s.ExportAmazonS3StorageClass == StorageClassSnow || *s.ExportAmazonS3StorageClass == StorageClassExpressOnezone) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
