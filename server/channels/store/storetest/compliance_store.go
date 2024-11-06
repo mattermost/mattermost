@@ -1188,7 +1188,7 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -1238,7 +1238,7 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 			UserId:    user1.Id,
 			CreateAt:  startTime + int64(i),
 			UpdateAt:  startTime + int64(i),
-			Message:   NewTestId(),
+			Message:   model.NewId(),
 		}
 		post, err = ss.Post().Save(rctx, post)
 		require.NoError(t, err)
