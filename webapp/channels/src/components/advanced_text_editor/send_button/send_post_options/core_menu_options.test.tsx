@@ -4,10 +4,7 @@
 import {DateTime} from 'luxon';
 import React from 'react';
 
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
 import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
-import {scheduledPosts} from 'utils/constants';
 
 import CoreMenuOptions from './core_menu_options';
 
@@ -41,8 +38,6 @@ const initialState = {
     },
 };
 
-const recentUsedCustomDateString = 'Recently used custom time';
-
 describe('CoreMenuOptions Component', () => {
     const teammateDisplayName = 'John Doe';
     const userCurrentTimezone = 'America/New_York';
@@ -68,22 +63,6 @@ describe('CoreMenuOptions Component', () => {
         jest.useRealTimers();
     });
 
-    function createStateWithRecentlyUsedCustomDate(value: string) {
-        return {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                preferences: {
-                    ...initialState.entities.preferences,
-                    myPreferences: {
-                        ...initialState.entities.preferences.myPreferences,
-                        [getPreferenceKey(scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME)]: {value},
-                    },
-                },
-            },
-        };
-    }
-
     function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
         renderWithContext(
             <CoreMenuOptions
@@ -99,140 +78,6 @@ describe('CoreMenuOptions Component', () => {
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
     }
-
-    it('should render recently used custom time option when valid', () => {
-        const recentTimestamp = DateTime.now().plus({days: 7}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: DateTime.now().toMillis(),
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.getByText(recentUsedCustomDateString)).toBeInTheDocument();
-    });
-
-    it('should not render recently used custom time when preference value is invalid JSON', () => {
-        const invalidJson = '{ invalid JSON }';
-
-        const state = createStateWithRecentlyUsedCustomDate(invalidJson);
-
-        renderComponent(state);
-
-        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
-    });
-
-    it('should call handleOnSelect with the correct timestamp when "Recently used custom time" is clicked', () => {
-        const recentTimestamp = DateTime.now().plus({days: 5}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: DateTime.now().toMillis(),
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        const handleOnSelectMock = jest.fn();
-
-        renderComponent(state, handleOnSelectMock);
-
-        const recentCustomOption = screen.getByText(recentUsedCustomDateString);
-        fireEvent.click(recentCustomOption);
-
-        expect(handleOnSelectMock).toHaveBeenCalledWith(expect.anything(), recentTimestamp);
-    });
-
-    it('should not render recently used custom time when update_at is older than 30 days', () => {
-        const outdatedUpdateAt = DateTime.now().minus({days: 35}).toMillis();
-        const recentTimestamp = DateTime.now().plus({days: 5}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: outdatedUpdateAt,
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
-    });
-
-    it('should not render recently used custom time when timestamp is in the past', () => {
-        const now = DateTime.now().setZone(userCurrentTimezone);
-        const nowMillis = now.toMillis();
-
-        jest.useFakeTimers();
-        jest.setSystemTime(now.toJSDate());
-
-        const pastTimestamp = now.minus({days: 1}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: nowMillis,
-            timestamp: pastTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
-    });
-
-    it('should not render recently used custom time when timestamp equals tomorrow9amTime', () => {
-        setMockDate(3);
-
-        const now = DateTime.now().setZone(userCurrentTimezone);
-        const nowMillis = now.toMillis();
-
-        const tomorrow9amTime = now.plus({days: 1}).
-            set({hour: 9, minute: 0, second: 0, millisecond: 0}).
-            toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: nowMillis,
-            timestamp: tomorrow9amTime,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
-    });
-
-    it('should not render recently used custom time when timestamp equals nextMonday', () => {
-        setMockDate(3);
-
-        const now = DateTime.now().setZone(userCurrentTimezone);
-        const nowMillis = now.toMillis();
-
-        function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-            const deltaDays = ((targetWeekday - dateTime.weekday) + 7) % 7 || 7;
-            return dateTime.plus({days: deltaDays});
-        }
-
-        const nextMonday = getNextWeekday(now, 1).set({
-            hour: 9,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-        }).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: nowMillis,
-            timestamp: nextMonday,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
-    });
 
     it('should render tomorrow option on Sunday', () => {
         setMockDate(7); // Sunday
@@ -300,73 +145,5 @@ describe('CoreMenuOptions Component', () => {
             toMillis();
 
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
-    });
-
-    it('should render "Today at HH:MM AM/PM" when recently used custom date is TODAY', () => {
-        const now = DateTime.fromISO('2024-11-01T10:00:00', {zone: userCurrentTimezone});
-        jest.useFakeTimers();
-        jest.setSystemTime(now.toJSDate());
-
-        const recentTimestamp = now.plus({minutes: 5}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: now.toMillis(),
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.getByText(recentUsedCustomDateString)).toBeInTheDocument();
-        expect(screen.getByText(/Today at/)).toBeInTheDocument();
-    });
-
-    it('should render "Weekday at HH:MM AM/PM" if recent used custom date is in the SAME week', () => {
-        const now = DateTime.fromISO('2024-11-01T10:00:00', {zone: userCurrentTimezone});
-        jest.useFakeTimers();
-        jest.setSystemTime(now.toJSDate());
-
-        const recentTimestamp = now.plus({days: 2}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: now.toMillis(),
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.getByText(recentUsedCustomDateString)).toBeInTheDocument();
-
-        const scheduledDate = DateTime.fromMillis(recentTimestamp).setZone(userCurrentTimezone);
-        const weekdayName = scheduledDate.toFormat('EEEE');
-
-        expect(screen.getByText(new RegExp(`${weekdayName} at`))).toBeInTheDocument();
-    });
-
-    it('should render "Month Day at HH:MM AM/PM" if recent used custom date is NOT in the same week', () => {
-        const now = DateTime.fromISO('2024-11-01T10:00:00', {zone: userCurrentTimezone});
-        jest.useFakeTimers();
-        jest.setSystemTime(now.toJSDate());
-
-        const recentTimestamp = now.plus({days: 14}).toMillis();
-
-        const recentlyUsedCustomDateVal = {
-            update_at: now.toMillis(),
-            timestamp: recentTimestamp,
-        };
-
-        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
-
-        renderComponent(state);
-
-        expect(screen.getByText(recentUsedCustomDateString)).toBeInTheDocument();
-
-        const scheduledDate = DateTime.fromMillis(recentTimestamp).setZone(userCurrentTimezone);
-        const monthDay = scheduledDate.toFormat('MMMM d');
-
-        expect(screen.getByText(new RegExp(`${monthDay} at`))).toBeInTheDocument();
     });
 });

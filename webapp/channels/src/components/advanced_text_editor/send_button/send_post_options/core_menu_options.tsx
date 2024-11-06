@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Zone} from 'luxon';
 import {DateTime} from 'luxon';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import {
     TrackPropertyUser, TrackPropertyUserAgent,
     TrackScheduledPostsFeature,
 } from 'mattermost-redux/constants/telemetry';
-import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {trackFeatureEvent} from 'actions/telemetry_actions';
@@ -21,34 +17,13 @@ import {trackFeatureEvent} from 'actions/telemetry_actions';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import type {Props as MenuItemProps} from 'components/menu/menu_item';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Timestamp from 'components/timestamp';
 
-import {scheduledPosts} from 'utils/constants';
+import RecentUsedCustomDate from './recent_used_custom_date';
 
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
-}
-
-const DATE_RANGES = [
-    RelativeRanges.TODAY_TITLE_CASE,
-    RelativeRanges.TOMORROW_TITLE_CASE,
-];
-
-interface RecentlyUsedCustomDate {
-    update_at?: number;
-    timestamp?: number;
-}
-
-function isTimestampWithinLast30Days(timestamp: number, timeZone = 'UTC') {
-    if (!timestamp || isNaN(timestamp)) {
-        return false;
-    }
-    const usedDate = DateTime.fromMillis(timestamp).setZone(timeZone);
-    const now = DateTime.now().setZone(timeZone);
-    const thirtyDaysAgo = now.minus({days: 30});
-
-    return usedDate >= thirtyDaysAgo && usedDate <= now;
 }
 
 function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
@@ -58,39 +33,10 @@ function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teamma
     return formattedTime;
 }
 
-function shouldShowRecentlyUsedCustomTime(
-    nowMillis: number,
-    recentlyUsedCustomDateVal: RecentlyUsedCustomDate,
-    userCurrentTimezone: string,
-    tomorrow9amTime: number,
-    nextMonday: number,
-) {
-    return recentlyUsedCustomDateVal &&
-    typeof recentlyUsedCustomDateVal.update_at === 'number' &&
-    typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
-    recentlyUsedCustomDateVal.timestamp > nowMillis &&
-    recentlyUsedCustomDateVal.timestamp !== tomorrow9amTime &&
-    recentlyUsedCustomDateVal.timestamp !== nextMonday &&
-    isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
-}
-
 function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
     // eslint-disable-next-line no-mixed-operators
     const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
     return dateTime.plus({days: deltaDays});
-}
-
-const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
-const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
-const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
-
-function getDateOption(now: DateTime, timestamp: number | undefined, userCurrentTimezone: string | Zone | undefined) {
-    if (!now || !timestamp || !userCurrentTimezone) {
-        return USE_DATE_WEEKDAY_LONG;
-    }
-    const scheduledDate = DateTime.fromMillis(timestamp).setZone(userCurrentTimezone);
-    const isInCurrentWeek = scheduledDate.weekNumber === now.weekNumber && scheduledDate.weekYear === now.weekYear;
-    return isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
 }
 
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
@@ -130,55 +76,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         second: 0,
         millisecond: 0,
     }).toMillis();
-
-    const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
-
-    const recentlyUsedCustomDateVal: RecentlyUsedCustomDate = useMemo(() => {
-        if (recentlyUsedCustomDate) {
-            try {
-                return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-            } catch (e) {
-                return {};
-            }
-        }
-        return {};
-    }, [recentlyUsedCustomDate]);
-
-    let recentCustomTime = null;
-    const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
-    if (
-        shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
-    ) {
-        const dateOption = getDateOption(now, recentlyUsedCustomDateVal.timestamp, userCurrentTimezone);
-
-        const timestamp = (
-            <Timestamp
-                ranges={DATE_RANGES}
-                value={recentlyUsedCustomDateVal.timestamp}
-                timeZone={userCurrentTimezone}
-                useDate={dateOption}
-                useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
-            />
-        );
-
-        const trailingElement = (
-            <FormattedMessage
-                id='create_post_button.option.schedule_message.options.recently_used_custom_time'
-                defaultMessage='Recently used custom time'
-            />
-        );
-
-        recentCustomTime = [
-            <Menu.Separator key='recent_custom_separator'/>,
-            <Menu.Item
-                key='recently_used_custom_time'
-                onClick={handleRecentlyUsedCustomTime}
-                labels={timestamp}
-                className='core-menu-options'
-                trailingElements={trailingElement}
-            />,
-        ];
-    }
 
     const timeComponent = (
         <Timestamp
@@ -291,7 +188,12 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     return (
         <>
             {options}
-            {recentCustomTime}
+            <RecentUsedCustomDate
+                handleOnSelect={handleOnSelect}
+                userCurrentTimezone={userCurrentTimezone}
+                tomorrow9amTime={tomorrow9amTime}
+                nextMonday={nextMonday}
+            />
         </>
     );
 }
