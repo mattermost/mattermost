@@ -74,9 +74,6 @@ export type Props = {
     hasLabels?: boolean;
 };
 
-const VISIBLE = {visibility: 'visible'};
-const HIDDEN = {visibility: 'hidden'};
-
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
     private readonly wrapper: React.RefObject<HTMLDivElement>;
@@ -259,10 +256,6 @@ export default class Textbox extends React.PureComponent<Props> {
         this.getInputBox()?.blur();
     };
 
-    getStyle = () => {
-        return this.props.preview ? HIDDEN : VISIBLE;
-    };
-
     render() {
         let textboxClassName = 'form-control custom-textarea textbox-edit-area';
         if (this.props.emojiEnabled) {
@@ -275,25 +268,35 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
+        if (this.props.preview) {
+            return (
+                <div
+                    ref={this.wrapper}
+                    className={classNames('textarea-wrapper', 'textarea-wrapper-preview')}
+                >
+                    <div
+                        tabIndex={this.props.tabIndex || 0}
+                        ref={this.preview}
+                        className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
+                        onKeyPress={this.props.onKeyPress}
+                        onKeyDown={this.handleKeyDown}
+                        onBlur={this.handleBlur}
+                    >
+                        <PostMarkdown
+                            message={this.props.value}
+                            channelId={this.props.channelId}
+                            imageProps={{hideUtilities: true}}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <div
                 ref={this.wrapper}
-                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+                className={classNames('textarea-wrapper')}
             >
-                <div
-                    tabIndex={this.props.tabIndex || 0}
-                    ref={this.preview}
-                    className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
-                    onKeyPress={this.props.onKeyPress}
-                    onKeyDown={this.handleKeyDown}
-                    onBlur={this.handleBlur}
-                >
-                    <PostMarkdown
-                        message={this.props.value}
-                        channelId={this.props.channelId}
-                        imageProps={{hideUtilities: true}}
-                    />
-                </div>
                 <SuggestionBox
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
@@ -313,7 +316,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     onHeightChange={this.props.onHeightChange}
                     onWidthChange={this.props.onWidthChange}
                     onPaste={this.props.onPaste}
-                    style={this.getStyle()}
                     inputComponent={this.props.inputComponent}
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
