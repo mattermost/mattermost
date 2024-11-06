@@ -267,6 +267,19 @@ const (
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
 	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+
+	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
+	StorageClassStandard           = "STANDARD"
+	StorageClassReducedRedundancy  = "REDUCED_REDUNDANCY"
+	StorageClassStandardIA         = "STANDARD_IA"
+	StorageClassOnezoneIA          = "ONEZONE_IA"
+	StorageClassIntelligentTiering = "INTELLIGENT_TIERING"
+	StorageClassGlacier            = "GLACIER"
+	StorageClassDeepArchive        = "DEEP_ARCHIVE"
+	StorageClassOutposts           = "OUTPOSTS"
+	StorageClassGlacierIR          = "GLACIER_IR"
+	StorageClassSnow               = "SNOW"
+	StorageClassExpressOnezone     = "EXPRESS_ONEZONE"
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -3966,6 +3979,10 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.AmazonS3RequestTimeoutMilliseconds <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
+	}
+
+	if !(*s.AmazonS3StorageClass == "" || *s.AmazonS3StorageClass == StorageClassStandard || *s.AmazonS3StorageClass == StorageClassReducedRedundancy || *s.AmazonS3StorageClass == StorageClassStandardIA || *s.AmazonS3StorageClass == StorageClassOnezoneIA || *s.AmazonS3StorageClass == StorageClassIntelligentTiering || *s.AmazonS3StorageClass == StorageClassGlacier || *s.AmazonS3StorageClass == StorageClassDeepArchive || *s.AmazonS3StorageClass == StorageClassOutposts || *s.AmazonS3StorageClass == StorageClassGlacierIR || *s.AmazonS3StorageClass == StorageClassSnow || *s.AmazonS3StorageClass == StorageClassExpressOnezone) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
 	return nil
