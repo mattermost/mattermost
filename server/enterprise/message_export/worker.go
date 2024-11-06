@@ -224,13 +224,6 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 	}
 	job.Data[JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
 
-	data, err = shared.GetInitialExportPeriodData(rctx, jobParams.Store, data, reportProgress)
-	if err != nil {
-		w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
-		return
-	}
-	job.Data[JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
-
 	for {
 		select {
 		case <-cancelWatcherChan:
