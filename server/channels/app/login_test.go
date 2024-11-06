@@ -61,7 +61,7 @@ func TestCWSLogin(t *testing.T) {
 		_, err := th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.NoError(t, err)
 		appErr = th.App.DeleteToken(token)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
