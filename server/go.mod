@@ -8,7 +8,7 @@ require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
-	github.com/aws/aws-sdk-go v1.55.0
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.4.1
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -51,6 +51,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.0.74
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
+	github.com/opensearch-project/opensearch-go/v4 v4.3.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
