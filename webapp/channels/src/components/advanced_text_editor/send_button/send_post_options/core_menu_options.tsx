@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Zone} from 'luxon';
 import {DateTime} from 'luxon';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -79,6 +80,19 @@ function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
     return dateTime.plus({days: deltaDays});
 }
 
+const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
+const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
+const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
+
+function getDateOption(now: DateTime, timestamp: number | undefined, userCurrentTimezone: string | Zone | undefined) {
+    if (!now || !timestamp || !userCurrentTimezone) {
+        return USE_DATE_WEEKDAY_LONG;
+    }
+    const scheduledDate = DateTime.fromMillis(timestamp).setZone(userCurrentTimezone);
+    const isInCurrentWeek = scheduledDate.weekNumber === now.weekNumber && scheduledDate.weekYear === now.weekYear;
+    return isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
+}
+
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
@@ -135,20 +149,14 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     if (
         shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
     ) {
-        const USE_DATE_WEEKDAY_LONG = {weekday: 'long'} as const;
-        const USE_TIME_HOUR_MINUTE_NUMERIC = {hour: 'numeric', minute: 'numeric'} as const;
-        const USE_DATE_MONTH_DAY = {month: 'long', day: 'numeric'} as const;
-
-        const scheduledDate = DateTime.fromMillis(recentlyUsedCustomDateVal.timestamp!).setZone(userCurrentTimezone);
-        const isInCurrentWeek = scheduledDate.weekNumber === now.weekNumber && scheduledDate.weekYear === now.weekYear;
-        const useDateOption = isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
+        const dateOption = getDateOption(now, recentlyUsedCustomDateVal.timestamp, userCurrentTimezone);
 
         const timestamp = (
             <Timestamp
                 ranges={DATE_RANGES}
                 value={recentlyUsedCustomDateVal.timestamp}
                 timeZone={userCurrentTimezone}
-                useDate={useDateOption}
+                useDate={dateOption}
                 useTime={USE_TIME_HOUR_MINUTE_NUMERIC}
             />
         );

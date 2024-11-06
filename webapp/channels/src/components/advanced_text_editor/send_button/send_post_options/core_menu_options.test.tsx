@@ -28,8 +28,6 @@ jest.mock('components/menu', () => ({
     Separator: jest.fn(() => <div className='menu-separator'/>),
 }));
 
-// jest.mock('components/timestamp', () => jest.fn(({value}) => <span>{value}</span>));
-
 const useTimePostBoxIndicator = require('components/advanced_text_editor/use_post_box_indicator').default;
 
 const initialState = {
