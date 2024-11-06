@@ -1780,7 +1780,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes))
 	}
 
-	if s.AmazonS3StorageClass == nil || *s.AmazonS3StorageClass == "" {
+	if s.AmazonS3StorageClass == nil {
 		s.AmazonS3StorageClass = NewPointer("")
 	}
 
@@ -1850,7 +1850,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
 	}
 
-	if s.ExportAmazonS3StorageClass == nil || *s.ExportAmazonS3StorageClass == "" {
+	if s.ExportAmazonS3StorageClass == nil {
 		s.ExportAmazonS3StorageClass = NewPointer("")
 	}
 }
