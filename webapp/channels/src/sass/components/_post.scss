@@ -40,6 +40,7 @@
         z-index: 2;
         top: 0;
         left: 0;
+        white-space: normal;
 
         &:focus {
             border-color: rgba(v(center-channel-color-rgb), 0.4);
