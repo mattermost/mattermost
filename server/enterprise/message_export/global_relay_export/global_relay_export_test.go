@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
