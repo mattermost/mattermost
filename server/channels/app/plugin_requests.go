@@ -162,7 +162,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 				bodyBytes, _ := io.ReadAll(r.Body)
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 				if err := r.ParseForm(); err != nil {
-					mlog.Warn("Failed to parse form data", mlog.Err(err))
+					mlog.Warn("Failed to parse form data for plugin request", mlog.Err(err))
 				}
 				sentToken = r.FormValue("csrf")
 				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
