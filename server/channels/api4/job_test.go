@@ -428,9 +428,9 @@ func TestUpdateJobStatus(t *testing.T) {
 	for _, job := range jobs {
 		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer func(jobId string) {
-			_, delErr := th.App.Srv().Store().Job().Delete(jobId)
-			require.NoError(t, delErr, "Failed to delete job %s", jobId)
+		defer func(jobID string) {
+			_, delErr := th.App.Srv().Store().Job().Delete(jobID)
+			require.NoError(t, delErr, "Failed to delete job %s", jobID)
 		}(job.Id)
 	}
 
