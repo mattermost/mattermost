@@ -530,9 +530,12 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
-		a.SetExtraSessionProps(session, map[string]string{
+		appErr := a.SetExtraSessionProps(session, map[string]string{
 			model.SessionPropLastRemovedDeviceId: session.DeviceId,
 		})
+		if appErr != nil {
+			return fmt.Errorf("Failed to set extra session properties: %w", appErr)
+		}
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:
