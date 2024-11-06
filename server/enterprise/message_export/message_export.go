@@ -154,6 +154,7 @@ type ExportParams struct {
 	ChannelMetadata        map[string]*shared.MetadataChannel
 	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
 	PostsToExport          []*model.MessageExport
+	JobStartTime           int64
 	BatchPath              string
 	BatchStartTime         int64
 	BatchEndTime           int64
@@ -165,6 +166,7 @@ func DataToExportParams(data shared.JobData) ExportParams {
 		ChannelMetadata:        data.ChannelMetadata,
 		ChannelMemberHistories: data.ChannelMemberHistories,
 		PostsToExport:          data.PostsToExport,
+		JobStartTime:           data.JobStartTime,
 		BatchPath:              data.BatchPath,
 		BatchStartTime:         data.BatchStartTime,
 		BatchEndTime:           data.BatchEndTime,
@@ -186,6 +188,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 			ChannelMetadata:        p.ChannelMetadata,
 			Posts:                  p.PostsToExport,
 			ChannelMemberHistories: p.ChannelMemberHistories,
+			JobStartTime:           p.JobStartTime,
 			BatchPath:              p.BatchPath,
 			BatchStartTime:         p.BatchStartTime,
 			BatchEndTime:           p.BatchEndTime,

@@ -23,6 +23,16 @@ const (
 	EstimatedPostCount = 10_000_000
 )
 
+type PostUpdatedType string
+
+const (
+	EditedOriginalMsg  PostUpdatedType = "EditedOriginalMsg"
+	EditedNewMsg       PostUpdatedType = "EditedNewMsg"
+	UpdatedNoMsgChange PostUpdatedType = "UpdatedNoMsgChange"
+	Deleted            PostUpdatedType = "Deleted"
+	FileDeleted        PostUpdatedType = "FileDeleted"
+)
+
 // JobData keeps the current state of the job.
 type JobData struct {
 	// If used by a worker, this section is saved in the job.Data field.
@@ -31,6 +41,7 @@ type JobData struct {
 	BatchStartTime          int64
 	BatchStartId            string
 	ExportPeriodStartTime   int64
+	JobStartTime            int64
 	JobEndTime              int64
 	JobStartId              string
 	BatchSize               int
@@ -73,12 +84,14 @@ type WriteExportResult struct {
 }
 
 type RunExportResults struct {
-	CreatedPosts      int
-	UpdatedPosts      int
-	DeletedPosts      int
-	IgnoredPosts      int
-	NumChannels       int
-	ProcessingPostsMs int64
+	CreatedPosts       int
+	EditedOrigMsgPosts int
+	EditedNewMsgPosts  int
+	UpdatedPosts       int
+	DeletedPosts       int
+	IgnoredPosts       int
+	NumChannels        int
+	ProcessingPostsMs  int64
 	WriteExportResult
 }
 
@@ -185,7 +198,7 @@ func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data
 		data.TotalPostsExpected = int(count)
 	}
 
-	rctx.Logger().Debug("Expecting to export total posts", mlog.Int("total_posts", data.TotalPostsExpected))
+	rctx.Logger().Info("Expecting to export total posts", mlog.Int("total_posts", data.TotalPostsExpected))
 
 	// For Actiance: Every time we claim the job, we need to gather the membership data that every batch will use.
 	// If we're here, then either this is the start of the job, or the job was stopped (e.g., the worker stopped)

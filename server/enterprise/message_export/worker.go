@@ -27,6 +27,9 @@ const (
 	// keyset pagination sorted by (posts.updateat, posts.id).
 	JobDataBatchStartTimestamp = "batch_start_timestamp"
 
+	// JobDataStartTimestamp is the start of the job (doesn't change across batches)
+	JobDataStartTimestamp = "job_start_timestamp"
+
 	// JobDataBatchStartId is the posts.id value from the previous batch.
 	JobDataBatchStartId = "batch_start_id"
 
@@ -334,6 +337,7 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
 			job.Data[JobDataBatchStartTimestamp] = exportFromTimestamp
+			job.Data[JobDataStartTimestamp] = exportFromTimestamp
 			job.Data[JobDataBatchStartId] = ""
 			job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
 			job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, exportFromTimestamp, job.Data[JobDataEndTimestamp])
@@ -351,6 +355,7 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
 			job.Data[JobDataBatchStartTimestamp] = exportFromTimestamp
+			job.Data[JobDataStartTimestamp] = exportFromTimestamp
 		} else {
 			job.Data[JobDataBatchStartTimestamp] = previousJob.Data[JobDataBatchStartTimestamp]
 		}
@@ -362,10 +367,18 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 		}
 		job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
 	} else {
-		logger.Info("Worker: JobDataBatchStartTimestamp start time was already set", mlog.String("batch_start_timestamp", job.Data[JobDataBatchStartTimestamp]))
+		logger.Info("Worker: JobDataBatchStartTimestamp start time was already set",
+			mlog.String("batch_start_timestamp", job.Data[JobDataBatchStartTimestamp]))
 	}
 
-	job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[JobDataBatchStartTimestamp], job.Data[JobDataEndTimestamp])
+	if _, exists := job.Data[JobDataStartTimestamp]; !exists {
+		// Just in case, if we don't have this (JobDataBatchStartTimestamp was already set, but this wasn't) set it:
+		job.Data[JobDataStartTimestamp] = job.Data[JobDataBatchStartTimestamp]
+		logger.Info("Worker: JobDataStartTimestamp start time was not set, using batch startTimestamp",
+			mlog.String("job_start_timestamp", job.Data[JobDataStartTimestamp]))
+	}
+
+	job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[JobDataStartTimestamp], job.Data[JobDataEndTimestamp])
 }
 
 func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.JobData, err error) {
@@ -373,7 +386,7 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 
 	data.BatchStartTime, err = strconv.ParseInt(strmap[JobDataBatchStartTimestamp], 10, 64)
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataBatchStartTimestamp conversion error: %w", err)
 	}
 	data.BatchStartId = strmap[JobDataBatchStartId]
 
@@ -385,34 +398,41 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 	// previous batches).
 	data.ExportPeriodStartTime = data.BatchStartTime
 
+	// JobStartTime is the start of this job. It is different from ExportPeriodStartTime because JobStartTime won't change
+	// if the job processes some batches, is stopped, and picked up again.
+	data.JobStartTime, err = strconv.ParseInt(strmap[JobDataStartTimestamp], 10, 64)
+	if err != nil {
+		return data, fmt.Errorf("JobDataStartTimestamp conversion error: %w", err)
+	}
+
 	data.JobEndTime, err = strconv.ParseInt(strmap[JobDataEndTimestamp], 10, 64)
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataEndTimestamp conversion error: %w", err)
 	}
 
 	data.JobStartId = strmap[JobDataStartId]
 
 	data.BatchSize, err = strconv.Atoi(strmap[jobDataBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataBatchSize conversion error: %w", err)
 	}
 	data.ChannelBatchSize, err = strconv.Atoi(strmap[jobDataChannelBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataChannelBatchSize conversion error: %w", err)
 	}
 	data.ChannelHistoryBatchSize, err = strconv.Atoi(strmap[jobDataChannelHistoryBatchSize])
 	if err != nil {
-		return
+		return data, fmt.Errorf("jobDataChannelHistoryBatchSize conversion error: %w", err)
 	}
 
 	data.BatchNumber, err = strconv.Atoi(strmap[JobDataBatchNumber])
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataBatchNumber conversion error: %w", err)
 	}
 
 	data.TotalPostsExported, err = strconv.Atoi(strmap[JobDataMessagesExported])
 	if err != nil {
-		return
+		return data, fmt.Errorf("JobDataMessagesExported conversion error: %w", err)
 	}
 
 	data.ExportDir = strmap[JobDataExportDir]
@@ -420,6 +440,7 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 	logger.Info("Worker: initial job variables set",
 		mlog.String("export_type", data.ExportType),
 		mlog.String("export_dir", data.ExportDir),
+		mlog.Int("job_start_time", data.JobStartTime),
 		mlog.Int("batch_start_time", data.BatchStartTime),
 		mlog.Int("export_period_start_time", data.ExportPeriodStartTime),
 		mlog.Int("job_end_time", data.JobEndTime),
