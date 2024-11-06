@@ -615,6 +615,29 @@
   "admin.complianceExport.warningCount": "{count} warning(s) encountered, see warning.txt for details",
   "admin.complianceExport.warningCount.globalrelay": "{count} warning(s) encountered, see log for details",
   "admin.complianceMonitoring.userActivityLogsTitle": "User Activity Logs",
+
+  "admin.cacheSettings.title": "Cache Settings",
+  "admin.cacheSettings.cacheType.redis": "Redis",
+  "admin.cacheSettings.cacheType.lru": "LRU",
+
+  "admin.cacheSettings.cacheTypeTitle": "Cache Type",
+  "admin.cacheSettings.cacheTypeDesc": "The type of the cache backend. E.g.: \"redis\" or \"lru\"",
+
+  "admin.cacheSettings.redisAddress": "Redis Address",
+  "admin.cacheSettings.redisAddressDesc": "The hostname:port of the Redis server. E.g.: \"localhost:6379\"",
+  "admin.cacheSettings.redisAddressPlaceholder": "localhost:6379",
+
+  "admin.cacheSettings.redisPassword": "Redis Password",
+  "admin.cacheSettings.redisPasswordDesc": "The password of the Redis server.",
+  "admin.sidebar.cacheSettings": "Cache Settings",
+
+  "admin.cacheSettings.redisDB": "Redis DB",
+  "admin.cacheSettings.redisDBDesc": "The database of the Redis server. E.g.: \"0\"",
+  "admin.cacheSettings.redisDBPlaceholder": "0",
+
+  "admin.cacheSettings.redisClientCache": "Disable Client Cache",
+  "admin.cacheSettings.redisClientCacheDesc": "When true, client side caching is disabled.",
+
   "admin.connectionSecurityNone": "None",
   "admin.connectionSecurityNoneDescription": "Mattermost will connect over an insecure connection.",
   "admin.connectionSecurityStart": "STARTTLS",
