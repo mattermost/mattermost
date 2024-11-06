@@ -66,7 +66,9 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	if _, _, err := configStore.Set(config); err != nil {
+		panic(err)
+	}
 
 	buffer := &bytes.Buffer{}
 
