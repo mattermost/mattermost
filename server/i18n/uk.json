@@ -7954,5 +7954,181 @@
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
     "translation": "Не вдалося запросити віддалений доступ до каналу"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "мобільні та десктопні додатки"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Не вдалося перевірити межі зображення. Роздільна здатність занадто висока."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Недійсне оновлення учасника команди: гість не може стати учасником команди або адміністратором команди, спочатку підвищте його до користувача."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Налаштуйте свій робочий простір"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subject",
+    "translation": "Вітаємо!"
+  },
+  {
+    "id": "api.templates.email_footer_v2",
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "{{ .SiteName }} {{ .SenderName }} запросив вас приєднатися до каналу {{ .ChannelName }} у команді {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} запросив вас приєднатися до каналів {{ .ChannelsLen }} у команді {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Пишіть нам у будь-який час за електронною адресою "
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Переглянути зміни"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Неправильне тіло запиту."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Запросити людей до свого робочого простору"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info2",
+    "translation": "Обов'язково збережіть посилання або зробіть закладку для подальшого використання."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.info",
+    "translation": "Дякуємо за створення "
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.start_questions",
+    "translation": "Маєте питання щодо початку роботи? Напишіть нам за адресою"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info2",
+    "translation": "для найкращого досвіду роботи на Windows, Linux, Mac, iOS та Android."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Ваш робочий простір готовий до роботи!"
+  },
+  {
+    "id": "api.templates.invite_body.subTitle",
+    "translation": "Почніть співпрацювати зі своєю командою на Mattermost"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Нагадування"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Вас запросили як гостя для співпраці з командою"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} змінив(ла) налаштування фільтрації IP-адрес для вашої робочої області за URL-адресою: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Зверніться до служби підтримки"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Увійдіть до клієнтського порталу, щоб скинути IP-фільтрацію"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Надішліть листа на електронну адресу {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Ваша ліцензія підлягає продовженню"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Виникли проблеми з доступом до робочого простору?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Зв'яжіться з відділом продажів"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "на маркетплейсі додатків."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Оптимізуйте свою роботу за допомогою таких інструментів, як GitHub, Jira та Zoom. Ознайомтеся з усіма інтеграціями, які ми пропонуємо на нашому"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Додати додатки до вашого робочого простору"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.button",
+    "translation": "Відкрити Mattermost"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Увійдіть у свій робочий простір на нашому"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Зробіть наступні кроки, щоб сформувати свою команду та отримати максимум користі від робочого простору."
+  },
+  {
+    "id": "api.templates.invite_body_footer.info",
+    "translation": "Mattermost - це гнучка платформа для обміну повідомленнями з відкритим кодом, яка забезпечує безпечну командну роботу."
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Дізнайтеся більше"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Зміни в IP-фільтрах робочого простору"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Зміни у фільтрації IP-адрес для вашого робочого простору"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Що таке Mattermost?"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Поділіться цим посиланням, щоб запросити учасників приєднатися до {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Користувач не знайдений."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.download_mm_info",
+    "translation": "Завантажити додаток Mattermost"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Неправильне оновлення учасника команди: гостя не можна призначити для однієї команди, системний адміністратор повинен підвищувати або знижувати користувачів до/з статусу гостя."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "{{ .SiteName }} {{ .SenderName }} запросив вас приєднатися до каналів {{ .ChannelsLen }} у команді {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} запросив вас приєднатися до каналу {{ .ChannelName }} у команді {{ .TeamDisplayName }}"
   }
 ]
