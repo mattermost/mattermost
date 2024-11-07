@@ -34,8 +34,9 @@ function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teamma
 }
 
 function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-    // eslint-disable-next-line no-mixed-operators
-    const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
+    const daysDifference = targetWeekday - dateTime.weekday;
+    const adjustedDays = (daysDifference + 7) % 7;
+    const deltaDays = adjustedDays === 0 ? 7 : adjustedDays;
     return dateTime.plus({days: deltaDays});
 }
 

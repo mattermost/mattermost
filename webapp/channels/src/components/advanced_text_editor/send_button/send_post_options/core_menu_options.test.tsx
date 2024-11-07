@@ -4,14 +4,11 @@
 import {DateTime} from 'luxon';
 import React from 'react';
 
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
+
 import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
 
 import CoreMenuOptions from './core_menu_options';
-
-jest.mock('components/advanced_text_editor/use_post_box_indicator', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
 
 jest.mock('components/menu', () => ({
     __esModule: true,
@@ -25,7 +22,27 @@ jest.mock('components/menu', () => ({
     Separator: jest.fn(() => <div className='menu-separator'/>),
 }));
 
-const useTimePostBoxIndicator = require('components/advanced_text_editor/use_post_box_indicator').default;
+jest.mock('components/advanced_text_editor/use_post_box_indicator');
+const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);
+
+const teammateDisplayName = 'John Doe';
+const userCurrentTimezone = 'America/New_York';
+const teammateTimezone = {
+    useAutomaticTimezone: true,
+    automaticTimezone: 'Europe/London',
+    manualTimezone: '',
+};
+const defaultUseTimePostBoxIndicatorReturnValue = {
+    userCurrentTimezone: 'America/New_York',
+    teammateTimezone,
+    teammateDisplayName,
+    isDM: false,
+    showRemoteUserHour: false,
+    currentUserTimesStamp: 0,
+    isScheduledPostEnabled: false,
+    showDndWarning: false,
+    teammateId: '',
+};
 
 const initialState = {
     entities: {
@@ -39,22 +56,13 @@ const initialState = {
 };
 
 describe('CoreMenuOptions Component', () => {
-    const teammateDisplayName = 'John Doe';
-    const userCurrentTimezone = 'America/New_York';
-    const teammateTimezone = {
-        useAutomaticTimezone: true,
-        automaticTimezone: 'Europe/London',
-        manualTimezone: '',
-    };
     const handleOnSelect = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
         handleOnSelect.mockReset();
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: false,
         });
     });
@@ -109,10 +117,8 @@ describe('CoreMenuOptions Component', () => {
     it('should include trailing element when isDM true', () => {
         setMockDate(2); // Tuesday
 
-        useTimePostBoxIndicator.mockReturnValue({
-            userCurrentTimezone,
-            teammateTimezone,
-            teammateDisplayName,
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: true,
         });
 
