@@ -8222,5 +8222,25 @@
   {
     "id": "api.templates.welcome_body.subTitle2",
     "translation": "Натисніть нижче, щоб підтвердити свою електронну адресу."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Не вдалося записати журнали в буфер"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Не вдалося виконати парсинг повідомлень про продукт"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Не вдалося очистити старі сповіщення про продукт"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Не вдалося отримати сповіщення про продукт"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Неправильний фільтр журналу"
   }
 ]
