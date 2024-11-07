@@ -8675,10 +8675,6 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
-    "id": "model.config.is_valid.storage_class.app_error",
-    "translation": "Invalid storage class {{.Value}}."
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },
@@ -9133,6 +9129,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Invalid storage class {{.Value}}."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
