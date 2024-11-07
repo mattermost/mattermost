@@ -30,6 +30,7 @@ describe('PostComponent', () => {
         isCollapsedThreadsEnabled: true,
         isFlagged: false,
         isMobileView: false,
+        isTabletView: false,
         isPostAcknowledgementsEnabled: false,
         isPostPriorityEnabled: false,
         location: Locations.CENTER,
