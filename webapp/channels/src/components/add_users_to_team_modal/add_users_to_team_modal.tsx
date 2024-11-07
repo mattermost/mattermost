@@ -259,7 +259,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loading}
-                        placeholderText={defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
+                        placeholderText={defineMessage({id: 'AddUsersToTeamModal.placeholder', defaultMessage: 'Search and add members'})}
                     />
                 </Modal.Body>
             </Modal>

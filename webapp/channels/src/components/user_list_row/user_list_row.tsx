@@ -81,7 +81,7 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
         emailProp = (
             <FormattedMessage
                 id='admin.user_item.email_title'
-                defaultMessage='<strong>Email:</strong> {email}'
+                defaultMessage='<b>Email:</b> {email}'
                 values={{
                     email: user.email,
                     strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,

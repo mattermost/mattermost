@@ -420,7 +420,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     clearable={true}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
-                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
                 />
             </div>
         );
@@ -512,7 +512,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 }}
                 menu={{
                     id: 'browseChannelsDropdown',
-                    'aria-label': this.props.intl.formatMessage({id: 'more_channels.title', defaultMessage: 'Browse channels'}),
+                    'aria-label': this.props.intl.formatMessage({id: 'SearchableChannelList.title', defaultMessage: 'Browse channels'}),
                 }}
             >
                 {channelDropdownItems.map((item) => item)}

@@ -268,7 +268,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loading}
-                        placeholderText={defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search and add members'})}
+                        placeholderText={defineMessage({id: 'AddUsersToRoleModal.placeholder', defaultMessage: 'Search and add members'})}
                     />
                 </Modal.Body>
             </Modal>

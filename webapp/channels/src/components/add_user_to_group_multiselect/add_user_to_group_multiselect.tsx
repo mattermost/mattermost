@@ -236,7 +236,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.props.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
+                placeholderText={defineMessage({id: 'AddUserToGroupMultiSelect.placeholder', defaultMessage: 'Search for people'})}
                 valueWithImage={true}
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}

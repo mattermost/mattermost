@@ -517,7 +517,7 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.state.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={this.props.isGroupsEnabled ? defineMessage({id: 'multiselect.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
+                placeholderText={this.props.isGroupsEnabled ? defineMessage({id: 'ChannelInviteModal.placeholder.peopleOrGroups', defaultMessage: 'Search for people or groups'}) : defineMessage({id: 'ChannelInviteModal.placeholder.people', defaultMessage: 'Search for people'})}
                 valueWithImage={true}
                 backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
                 backButtonClick={closeMembersInviteModal}

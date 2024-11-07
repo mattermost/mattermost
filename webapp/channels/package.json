@@ -201,6 +201,6 @@
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs",
-    "extract": "formatjs extract \"**/*.{js,jsx,ts,tsx}\" --ignore=\"**/*.d.ts\""
+    "extract": "formatjs extract \"src/**/*.{js,jsx,ts,tsx}\" --ignore=\"src/**/*.d.ts\" --out-file=src/i18n/en.json"
   }
 }

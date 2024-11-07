@@ -364,7 +364,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         const title = (
             <FormattedMessage
-                id='more_channels.title'
+                id='BrowseChannels.title'
                 defaultMessage='Browse Channels'
             />
         );
