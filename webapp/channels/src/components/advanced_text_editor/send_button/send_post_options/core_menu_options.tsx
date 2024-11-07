@@ -19,9 +19,24 @@ import * as Menu from 'components/menu';
 import type {Props as MenuItemProps} from 'components/menu/menu_item';
 import Timestamp from 'components/timestamp';
 
+import RecentUsedCustomDate from './recent_used_custom_date';
+
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
+}
+
+function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
+    const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
+    const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
+    const formattedTime = teammateScheduledTime.toFormat('h:mm a');
+    return formattedTime;
+}
+
+function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
+    // eslint-disable-next-line no-mixed-operators
+    const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
+    return dateTime.plus({days: deltaDays});
 }
 
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
@@ -55,6 +70,13 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         set({hour: 9, minute: 0, second: 0, millisecond: 0}).
         toMillis();
 
+    const nextMonday = getNextWeekday(now, 1).set({
+        hour: 9,
+        minute: 0,
+        second: 0,
+        millisecond: 0,
+    }).toMillis();
+
     const timeComponent = (
         <Timestamp
             value={tomorrow9amTime.valueOf()}
@@ -65,16 +87,9 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const extraProps: Partial<MenuItemProps> = {};
 
     if (isDM) {
-        function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
-            const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
-            const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
-            const formattedTime = teammateScheduledTime.toFormat('h:mm a');
-            return formattedTime;
-        }
-
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
-
-        const dmTeammateTimezone = (
+        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
+        const teammateTimeDisplay = (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.teammate_user_hour'
                 defaultMessage="{time} {user}'s time"
@@ -84,12 +99,12 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                             {teammateDisplayName}
                         </span>
                     ),
-                    time: getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString),
+                    time: scheduledTimeInTeammateTimezone,
                 }}
             />
         );
 
-        extraProps.trailingElements = dmTeammateTimezone;
+        extraProps.trailingElements = teammateTimeDisplay;
     }
 
     const tomorrowClickHandler = useCallback((e) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
@@ -109,21 +124,6 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
             {...extraProps}
         />
     );
-
-    function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
-        // eslint-disable-next-line no-mixed-operators
-        const deltaDays = (targetWeekday - dateTime.weekday + 7) % 7 || 7;
-        return dateTime.plus({days: deltaDays});
-    }
-
-    const nextMondayDateTime = getNextWeekday(now, 1).set({
-        hour: 9,
-        minute: 0,
-        second: 0,
-        millisecond: 0,
-    });
-
-    const nextMonday = nextMondayDateTime.toMillis();
 
     const nextMondayClickHandler = useCallback((e) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
 
@@ -186,9 +186,15 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     }
 
     return (
-        <div className='options'>
+        <>
             {options}
-        </div>
+            <RecentUsedCustomDate
+                handleOnSelect={handleOnSelect}
+                userCurrentTimezone={userCurrentTimezone}
+                tomorrow9amTime={tomorrow9amTime}
+                nextMonday={nextMonday}
+            />
+        </>
     );
 }
 
