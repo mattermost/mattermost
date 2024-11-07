@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Tooltip} from 'react-bootstrap';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import useCopyText from 'components/common/hooks/useCopyText';
+import OverlayTrigger from 'components/overlay_trigger';
 
 import Constants from 'utils/constants';
 
@@ -125,7 +126,14 @@ export default function TopButtons({
         <ChannelInfoRhsTopButtons>
             <OverlayTrigger
                 placement='top'
-                overlay={<Tooltip data-testid='favorite-tooltip'>Add this channel to favorites</Tooltip>}
+                overlay={
+                    <Tooltip data-testid='favorite-tooltip'>
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.favorite.tooltip'
+                            defaultMessage='Add this channel to favorites'
+                        />
+                    </Tooltip>
+                }
             >
                 <Button
                     onClick={actions.toggleFavorite}
@@ -139,7 +147,14 @@ export default function TopButtons({
             </OverlayTrigger>
             <OverlayTrigger
                 placement='top'
-                overlay={<Tooltip data-testid='mute-tooltip'>Mute notifications for this channel</Tooltip>}
+                overlay={
+                    <Tooltip data-testid='mute-tooltip'>
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.mute.tooltip'
+                            defaultMessage='Mute notifications for this channel'
+                        />
+                    </Tooltip>
+                }
             >
                 <Button
                     onClick={actions.toggleMute}
@@ -154,37 +169,51 @@ export default function TopButtons({
             {canAddPeople && (
                 <OverlayTrigger
                     placement='top'
-                    overlay={<Tooltip data-testid='add-people-tooltip'>Add team members to this channel</Tooltip>}
+                    overlay={
+                        <Tooltip data-testid='add-people-tooltip'>
+                            <FormattedMessage
+                                id='channel_info_rhs.top_buttons.add_people.tooltip'
+                                defaultMessage='Add team members to this channel'
+                            />
+                        </Tooltip>
+                    }
                 >
                     <Button
                         onClick={actions.addPeople}
                         className={isInvitingPeople ? 'active' : ''}
                     >
-                    <div>
-                        <i className='icon icon-account-plus-outline'/>
-                    </div>
-                    <span>
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.add_people'
-                            defaultMessage='Add People'
-                        />
-                    </span>
+                        <div>
+                            <i className='icon icon-account-plus-outline'/>
+                        </div>
+                        <span>
+                            <FormattedMessage
+                                id='channel_info_rhs.top_buttons.add_people'
+                                defaultMessage='Add People'
+                            />
+                        </span>
                     </Button>
                 </OverlayTrigger>
             )}
             {canCopyLink && (
                 <OverlayTrigger
                     placement='top'
-                    overlay={<Tooltip data-testid='copy-link-tooltip'>Copy link to this channel</Tooltip>}
+                    overlay={
+                        <Tooltip data-testid='copy-link-tooltip'>
+                            <FormattedMessage
+                                id='channel_info_rhs.top_buttons.copy_link.tooltip'
+                                defaultMessage='Copy link to this channel'
+                            />
+                        </Tooltip>
+                    }
                 >
                     <CopyButton
                         onClick={copyLink.onClick}
                         className={copyLink.copiedRecently ? 'success' : ''}
                     >
-                    <div>
-                        <i className={'icon ' + copyIcon}/>
-                    </div>
-                    <span>{copyText}</span>
+                        <div>
+                            <i className={'icon ' + copyIcon}/>
+                        </div>
+                        <span>{copyText}</span>
                     </CopyButton>
                 </OverlayTrigger>
             )}
