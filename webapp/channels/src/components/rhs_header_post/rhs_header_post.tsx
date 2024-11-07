@@ -19,7 +19,7 @@ import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
-interface Props extends WrappedComponentProps {
+type Props = WrappedComponentProps & {
     isExpanded: boolean;
     isMobileView: boolean;
     rootPostId: string;
@@ -40,7 +40,7 @@ interface Props extends WrappedComponentProps {
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-}
+};
 
 class RhsHeaderPost extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent) => {
