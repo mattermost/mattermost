@@ -550,7 +550,7 @@
   "admin.compliance.enableDailyTitle": "Разреши дневния отчет:",
   "admin.compliance.enableDesc": "Когато е true, Mattermost позволява отчитане на съответствието от раздела <strong>Съответствие и одит</strong>. Вижте <link>документация</link>, за да научите повече.",
   "admin.compliance.enableTitle": "Разреши докладите за съответствие:",
-  "admin.compliance.newComplianceExportBanner": "Тази функция се заменя с новата [Експорт на съответствие] ({siteURL}/admin_console/compliance/export) и ще бъде премахната в бъдеща версия. Препоръчваме да преминете към новата система.",
+  "admin.compliance.newComplianceExportBanner": "Тази функция се заменя с новата <link>Съвместим експорт</link> и ще бъде премахната в бъдеща версия. Препоръчваме да преминете към новата система.",
   "admin.complianceExport.createJob.help": "Инициира незабавно, задание за експорт на съответствие.",
   "admin.complianceExport.createJob.title": "Изпълнете задание за експорт на съответствие сега",
   "admin.complianceExport.exportFormat.actiance": "Actiance XML",
