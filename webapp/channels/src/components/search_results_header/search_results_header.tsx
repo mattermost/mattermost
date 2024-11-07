@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import store from 'stores/redux_store';
-
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
@@ -19,15 +17,6 @@ export interface Props extends PropsFromRedux {
 
 function SearchResultsHeader(props: Props) {
     const {formatMessage} = useIntl();
-
-    // Add console logging to check RHS state with 1 second delay
-    setTimeout(() => {
-        console.log('RHS State:', {
-            isOpen: props.isExpanded,
-            pluginsPlaybooksRHS: store.getState()['plugins-playbooks'],
-            rhsState: store.getState().views.rhs,
-        });
-    }, 1000);
 
     const showExpand = props.previousRhsState !== RHSStates.CHANNEL_INFO;
 
