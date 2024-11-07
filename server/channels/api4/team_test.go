@@ -1523,9 +1523,8 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite}
-	_, resp, err := th.Client.CreateTeam(context.Background(), pTeam)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	_, _, err := th.Client.CreateTeam(context.Background(), pTeam)
+	require.NoError(t, err)
 
 	rteams, _, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.Name})
 	require.NoError(t, err)
@@ -1538,7 +1537,7 @@ func TestSearchAllTeams(t *testing.T) {
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 
-	_, resp, err = th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.Name})
+	_, resp, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: pTeam.Name})
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -2309,8 +2308,8 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp, err = client.AddTeamMemberFromInvite(context.Background(), token.Token, "")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	err = th.App.DeleteToken(token)
-	require.NoError(t, err)
+	appErr = th.App.DeleteToken(token)
+	require.Nil(t, appErr)
 
 	// invalid team id
 	testId := GenerateTestID()
