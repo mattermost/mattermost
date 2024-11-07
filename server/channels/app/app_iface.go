@@ -1007,6 +1007,7 @@ type AppIface interface {
 	ProcessScheduledPosts(rctx request.CTX)
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
+	PublishScheduledPostEvent(rctx request.CTX, eventType model.WebsocketEventType, scheduledPost *model.ScheduledPost, connectionId string)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes(c request.CTX) *model.AppError
 	PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError
