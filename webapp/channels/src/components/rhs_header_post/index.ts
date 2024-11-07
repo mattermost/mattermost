@@ -23,7 +23,7 @@ import {
     goBack,
 } from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
-import {getIsMobileView} from 'selectors/views/browser';
+import {getIsTabletView} from 'selectors/views/browser';
 
 import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
@@ -62,7 +62,7 @@ function makeMapStateToProps() {
 
         return {
             isExpanded: getIsRhsExpanded(state),
-            isMobileView: getIsMobileView(state),
+            isTabletView: getIsTabletView(state),
             relativeTeamUrl: getCurrentRelativeTeamUrl(state),
             currentTeamId: getCurrentTeamId(state),
             currentUserId,
