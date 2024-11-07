@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -1489,24 +1490,37 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (model.ChannelList, error) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
-	query := `
-		SELECT * FROM Channels
-		WHERE (TeamId = ? OR TeamId = '')
-		AND DeleteAt != 0
-		AND Type != ?
-		UNION
-			SELECT * FROM Channels
-			WHERE (TeamId = ? OR TeamId = '')
-			AND DeleteAt != 0
-			AND Type = ?
-			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
-		ORDER BY DisplayName LIMIT ? OFFSET ?
-	`
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		}).
+		Where(sq.NotEq{"DeleteAt": 0}).
+		OrderBy("DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-	if err := s.GetReplicaX().Select(&channels, query, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset); err != nil {
+	if !skipTeamMembershipCheck {
+		builder = builder.Where(sq.Or{
+			sq.NotEq{"Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"Type": model.ChannelTypePrivate},
+				sq.Expr("Id IN (?)", sq.Select("ChannelId").From("ChannelMembers").Where(sq.Eq{"UserId": userId})),
+			},
+		})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetDeleted_ToSql")
+	}
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}
@@ -3356,7 +3370,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	}
 
 	likeFields := "c.Name, c.DisplayName, c.Purpose"
-	if opts.IncludeSearchById {
+	if opts.IncludeSearchByID {
 		likeFields = likeFields + ", c.Id"
 	}
 
@@ -3409,6 +3423,16 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			sq.Eq{"c.Type": model.ChannelTypeOpen},
 			sq.Eq{"c.Type": model.ChannelTypePrivate},
 		})
+	}
+
+	if opts.ExcludeRemote {
+		// local channels either have a SharedChannels record with
+		// home set to true, or don't have a SharedChannels record at all
+		query = query.LeftJoin("SharedChannels ON c.Id = SharedChannels.ChannelId").
+			Where(sq.Or{
+				sq.Eq{"SharedChannels.Home": true},
+				sq.Eq{"SharedChannels.ChannelId": nil},
+			})
 	}
 
 	return query
@@ -4311,4 +4335,41 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+func (s SqlChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
+	query := s.getQueryBuilder().Select("schemeid").From("channels").Where(sq.Eq{"id": channelID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+	// we look for schemeID to look for a custom scheme, if there is none chances are it is a writeable
+	// there might be in effect a custom scheme for the user that doesn't allow to create posts, but that wouldn't
+	// be a readonly channel but a readonly user
+	var schemaId string
+	err = s.GetReplicaX().Get(&schemaId, squery, args...)
+	if err != nil {
+		return false, nil
+	}
+	if schemaId == "" {
+		return false, nil
+	}
+	return s.IsChannelReadOnlyScheme(schemaId)
+}
+
+func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) {
+	query := s.getQueryBuilder().Select("roles.permissions").From("roles").InnerJoin("schemes ON roles.name = schemes.defaultchanneluserrole").Where(sq.Eq{"schemes.id": schemeID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	var permissions string
+	err = s.GetReplicaX().Get(&permissions, squery, args...)
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	permissionList := strings.Split(permissions, " ")
+	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }
