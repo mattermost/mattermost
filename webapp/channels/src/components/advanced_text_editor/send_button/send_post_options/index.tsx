@@ -103,7 +103,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            <CoreMenuOptions handleOnSelect={handleOnSelect}/>
+            <CoreMenuOptions
+                handleOnSelect={handleOnSelect}
+                channelId={channelId}
+            />
 
             <Menu.Separator/>
 
