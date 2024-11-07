@@ -161,7 +161,11 @@ export function MenuItem(props: Props) {
     }
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    // we count after converting to array as it removes falsy values from labels.props.children
+    const hasSecondaryLabel = labels &&
+        labels.props &&
+        labels.props.children &&
+        Children.count(Children.toArray(labels.props.children)) === 2;
 
     return (
         <MenuItemStyled

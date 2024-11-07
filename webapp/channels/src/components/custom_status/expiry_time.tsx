@@ -61,6 +61,8 @@ const ExpiryTime = ({time, timezone, className, showPrefix, withinBrackets}: Pro
         </>
     );
 
+    console.log('timestampProps', timestampProps);
+
     return (
         <span className={className}>
             {withinBrackets && '('}

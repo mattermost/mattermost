@@ -1,6 +1,38 @@
-.logout__icon {
-    &:hover {
-        fill: rgba(255, 0, 0, 0.75);
+@import 'utils/_mixins';
+
+#userAccountMenu {
+    .userAccountMenu__nameMenuItem {
+        align-items: center;
+
+        .leading-element {
+            width: unset;
+            height: unset;
+            margin-inline-end: 12px;
+        }
+
+        .label-elements {
+            gap: 0;
+        }
+
+        h2.userAccountMenu__nameMenuItem__primaryLabel {
+            font-size: 16px;
+            line-height: 22px;
+            font-weight: 600;
+            margin: 0;
+            max-width: 150px;
+            @include textEllipsis;
+        }
+
+        .userAccountMenu__nameMenuItem__secondaryLabel {
+            font-size: 14px;
+            line-height: 18px;
+            max-width: 150px;
+            @include textEllipsis;
+        }
+    }
+
+    .setCustomStatusMenuEmojiIcon > svg {
+        fill: rgba(var(--center-channel-color-rgb), 0.75);
     }
 }
 

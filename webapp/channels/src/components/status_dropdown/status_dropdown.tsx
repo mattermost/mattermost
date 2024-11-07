@@ -11,7 +11,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
 import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-import {AccountOutlineIcon, CancelIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, CancelIcon, CheckIcon, ExitToAppIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {PulsatingDot} from '@mattermost/components';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -24,6 +24,7 @@ import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
+import * as MenuNew from 'components/menu';
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
 import ResetStatusModal from 'components/reset_status_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -41,6 +42,10 @@ import type {ModalData} from 'types/actions';
 import type {Menu as MenuType} from 'types/store/plugins';
 
 import './status_dropdown.scss';
+import DoNotDisturbSubmenu from './do_not_disturb_submenu';
+import UserAccountNameMenuItem from './user_account_name_menuitem';
+import UserAccountOutOfOfficeMenuItem from './user_account_out_of_office_menuitem';
+import UserAccountSetCustomStatusMenuItem from './user_account_set_custom_status_menuitem';
 
 type Props = {
     intl: IntlShape;
@@ -529,6 +534,156 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
 
         const dndExtraText = this.renderDndExtraText(dndEndTime, timezone);
 
+        if (true) {
+            return (
+                <MenuNew.Container
+                    menuButton={{
+                        id: 'status-dropdown-button',
+                        dateTestId: 'status-dropdown-button',
+                        class: 'status-wrapper style--none',
+                        'aria-label': menuAriaLabeltext,
+                        children: (<>
+                            <CustomStatusEmoji
+                                showTooltip={true}
+                                tooltipDirection={'bottom'}
+                                emojiStyle={{marginRight: '6px'}}
+                                onClick={this.handleCustomStatusEmojiClick as () => void}
+                            />
+                            {
+                                this.props.profilePicture && (
+                                    <Avatar
+                                        size={'sm'}
+                                        url={this.props.profilePicture}
+                                        tabIndex={undefined}
+                                    />
+                                )
+                            }
+                            <div
+                                className='status'
+                            >
+                                <StatusIcon
+                                    size={'sm'}
+                                    status={(this.props.status || 'offline') as TUserStatus}
+                                />
+                            </div>
+                        </>),
+                    }}
+                    menu={{
+                        id: 'userAccountMenu',
+
+                        // 'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
+                        // onKeyDown: this.handleMenuKeydown,
+                        width: '264px',
+
+                    // onToggle: this.handleMenuToggle,
+                    }}
+
+                // menuButtonTooltip={{
+                //     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
+                //     text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
+                //     class: 'hidden-xs',
+                // }}
+                >
+                    <UserAccountNameMenuItem
+                        currentUser={currentUser}
+                        profilePicture={this.props.profilePicture}
+                    />
+                    <UserAccountOutOfOfficeMenuItem
+                        userId={this.props.userId}
+                        status={this.props.status}
+                        autoResetPref={this.props.autoResetPref}
+                    />
+                    <UserAccountSetCustomStatusMenuItem
+                        userId={this.props.userId}
+                        timezone={this.props.timezone}
+                    />
+                    <MenuNew.Item
+                        leadingElement={
+                            <StatusIcon
+                                status='online'
+                            />
+                        }
+                        labels={
+                            <FormattedMessage
+                                id='userAccountPopover.menuItem.online'
+                                defaultMessage='Online'
+                            />
+                        }
+                    />
+                    <MenuNew.Item
+                        leadingElement={
+                            <StatusIcon
+                                status='away'
+                            />
+                        }
+                        labels={
+                            <FormattedMessage
+                                id='userAccountPopover.menuItem.away'
+                                defaultMessage='Away'
+                            />
+                        }
+                    />
+                    <DoNotDisturbSubmenu/>
+                    <MenuNew.Item
+                        leadingElement={
+                            <StatusIcon
+                                status={'offline'}
+                            />
+                        }
+                        labels={
+                            <FormattedMessage
+                                id='userAccountPopover.menuItem.offline'
+                                defaultMessage='Offline'
+                            />
+                        }
+                    />
+                    <MenuNew.Separator/>
+                    <MenuNew.Item
+                        id='userAccountPopover.menuItem.profile'
+                        leadingElement={
+                            <AccountOutlineIcon
+                                size={18}
+                            />
+                        }
+                        labels={
+                            <>
+                                <FormattedMessage
+                                    id='userAccountPopover.menuItem.profile'
+                                    defaultMessage='Profile'
+                                />
+                                {/* {true && (
+                                    <div
+                                        onClick={this.handleCompleteYourProfileTask}
+                                        className={'account-settings-complete'}
+                                    >
+                                        <CompleteYourProfileTour/>
+                                    </div>
+                                )} */}
+                            </>
+                        }
+                    />
+                    <MenuNew.Separator/>
+                    <MenuNew.Item
+                        id='userAccountPopover.menuItem.logOut'
+                        isDestructive={true}
+                        leadingElement={
+                            <ExitToAppIcon
+                                size={18}
+                            />
+                        }
+                        labels={
+                            <FormattedMessage
+                                id='userAccountPopover.menuItem.logOut'
+                                defaultMessage='Log out'
+                            />
+                        }
+                        onClick={this.handleEmitUserLoggedOutEvent}
+                    />
+                </MenuNew.Container>
+            );
+        }
+
+        // eslint-disable-next-line no-unreachable
         return (
             <MenuWrapper
                 onToggle={this.onToggle}
@@ -549,7 +704,15 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         emojiStyle={{marginRight: '6px'}}
                         onClick={this.handleCustomStatusEmojiClick as () => void}
                     />
-                    {this.renderProfilePicture('sm')}
+                    {
+                        this.props.profilePicture && (
+                            <Avatar
+                                size={'sm'}
+                                url={this.props.profilePicture}
+                                tabIndex={undefined}
+                            />
+                        )
+                    }
                     <div
                         className='status'
                     >
