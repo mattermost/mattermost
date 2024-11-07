@@ -53,7 +53,7 @@ describe('Verify Accessibility keyboard usability across different regions in th
 
         // # Search for a term
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').typeWithForce('hello').typeWithForce('{enter}');
+        cy.uiGetSearchBox().typeWithForce('hello').typeWithForce('{enter}');
 
         // # Change the focus to search results
         cy.get('#searchContainer').within(() => {
