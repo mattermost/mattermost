@@ -897,7 +897,8 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetDeletedChannels(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.AppContext.Session().UserId)
+	skipTeamMembershipCheck := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	channels, err := c.App.GetDeletedChannels(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.AppContext.Session().UserId, skipTeamMembershipCheck)
 	if err != nil {
 		c.Err = err
 		return
