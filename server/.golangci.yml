@@ -220,7 +220,6 @@ issues:
         channels/app/slashcommands/command_loadtest.go|\
         channels/app/slashcommands/command_remove_test.go|\
         channels/app/slashcommands/command_test.go|\
-        channels/app/slashcommands/helper_test.go|\
         channels/app/status.go|\
         channels/app/status_test.go|\
         channels/app/support_packet_test.go|\
