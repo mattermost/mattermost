@@ -45,7 +45,10 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) 
 	}
 
 	t := time.Now()
-	a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png")
+
+	if err := a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png"); err != nil {
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.move_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	if _, err := a.WriteFile(buf, BrandFilePath+BrandFileName); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
