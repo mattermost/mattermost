@@ -8,9 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -927,4 +929,103 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 
 	_, err := a.HandleCommandResponse(c, cmd, args, response, false)
 	return err
+}
+
+func (a *App) HandleWebhookSchemaTranslation(c request.CTX, hook *model.IncomingWebhook, r *http.Request) (*model.IncomingWebhookRequest, error) {
+	// Read the request body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read request body: %w", err)
+	}
+
+	// Unmarshal the request body into a map for easy key-based access
+	var requestJSON map[string]interface{}
+	err = json.Unmarshal(body, &requestJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal request body: %w", err)
+	}
+
+	// Marshal the WebhookSchemaTranslation to JSON
+	schemaJSON, err := json.Marshal(hook.WebhookSchemaTranslation)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal WebhookSchemaTranslation: %w", err)
+	}
+
+	// Replace placeholders in the schema with values from the request body
+	translatedJSON, err := replacePlaceholders(schemaJSON, requestJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to replace placeholders: %w", err)
+	}
+
+	// Unmarshal the translated JSON back into an IncomingWebhookRequest
+	var translatedRequest model.IncomingWebhookRequest
+	err = json.Unmarshal(translatedJSON, &translatedRequest)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal translated JSON: %w", err)
+	}
+
+	if translatedRequest.Priority.Priority == nil {
+		translatedRequest.Priority = nil
+	}
+
+	return &translatedRequest, nil
+}
+
+// replacePlaceholders replaces placeholders like $json.message with values from the request JSON
+func replacePlaceholders(schemaJSON []byte, requestJSON map[string]interface{}) ([]byte, error) {
+	schemaString := string(schemaJSON)
+
+	// Find all placeholders
+	for {
+		start := strings.Index(schemaString, "$json.")
+		if start == -1 {
+			break // No more placeholders
+		}
+
+		// Find the end of the placeholder
+		end := start + 6 // 6 is the length of "$json."
+		for end < len(schemaString) && (schemaString[end] != '"' && schemaString[end] != ' ' && schemaString[end] != '\t' && schemaString[end] != '\n' && schemaString[end] != '\r' && schemaString[end] != '}' && schemaString[end] != ']') {
+			end++
+		}
+
+		// Extract the placeholder and JSON key path
+		placeholder := schemaString[start:end]
+		keyPath := strings.TrimPrefix(placeholder, "$json.")
+
+		// Get the value from the request JSON
+		value, err := getJSONValue(requestJSON, keyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get value for key path '%s': %w", keyPath, err)
+		}
+
+		// Replace the placeholder with the value
+		schemaString = strings.Replace(schemaString, placeholder, fmt.Sprintf("%v", value), 1)
+	}
+
+	return []byte(schemaString), nil
+}
+
+// getJSONValue retrieves a value from a JSON object based on a key path
+// (e.g., "message", "nested.field", "array.0")
+func getJSONValue(jsonMap map[string]interface{}, keyPath string) (interface{}, error) {
+	keys := strings.Split(keyPath, ".")
+	var current interface{} = jsonMap
+	for _, key := range keys {
+		if index, err := strconv.Atoi(key); err == nil { // Check if it's an array index
+			if array, ok := current.([]interface{}); ok {
+				if index >= 0 && index < len(array) {
+					current = array[index]
+				} else {
+					return nil, fmt.Errorf("array index out of bounds: %s", keyPath)
+				}
+			} else {
+				return nil, fmt.Errorf("invalid key path: %s", keyPath)
+			}
+		} else if m, ok := current.(map[string]interface{}); ok { // Otherwise, treat it as a map key
+			current = m[key]
+		} else {
+			return nil, fmt.Errorf("invalid key path: %s", keyPath)
+		}
+	}
+	return current, nil
 }

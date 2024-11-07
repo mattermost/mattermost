@@ -2759,9 +2759,25 @@ export default class Client4 {
     updateIncomingWebhook = (hook: IncomingWebhook) => {
         this.trackEvent('api', 'api_integrations_updated', {team_id: hook.team_id});
 
+        const customReplacer = (key: string, value: any) => {
+            // Omit empty string, null, undefined, empty array, and empty object
+            if (value === '' || value === null || value === undefined) {
+                return undefined;
+            }
+            if (Array.isArray(value) && value.length === 0) {
+                return undefined;
+            }
+            if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) {
+                return undefined;
+            }
+            return value;
+        };
+
+        console.log('hook', hook);
+        console.log(JSON.stringify(hook, customReplacer));
         return this.doFetch<IncomingWebhook>(
             `${this.getIncomingHookRoute(hook.id)}`,
-            {method: 'put', body: JSON.stringify(hook)},
+            {method: 'put', body: JSON.stringify(hook, customReplacer)},
         );
     };
 

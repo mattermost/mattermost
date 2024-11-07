@@ -5,6 +5,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -32,6 +33,15 @@ var RegisteredWebhooks = make(map[string]RegisteredWebhookListener)
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
+	var err *model.AppError
+
+	webhook, err := c.App.GetIncomingWebhook(id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.Logger.Error(fmt.Sprintf("webhook schema %+v", webhook.WebhookSchemaTranslation))
 
 	if registeredWebhook, ok := RegisteredWebhooks[id]; ok {
 		c.Logger.Error("Incoming webhook received, with intercept registered", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()))
@@ -41,69 +51,80 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var err *model.AppError
 	var mediaType string
-	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	contentType := r.Header.Get("Content-Type")
-	// Content-Type header is optional so could be empty
-	if contentType != "" {
-		var mimeErr error
-		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
-		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
-			c.Err = model.NewAppError("incomingWebhook",
-				"api.webhook.incoming.error",
-				nil,
-				"webhook_id="+id+", error: "+mimeErr.Error(),
-				http.StatusBadRequest,
-			)
-			return
-		}
-	}
+	var incomingWebhookPayload *model.IncomingWebhookRequest
+	var errr error
+	if webhook.WebhookSchemaTranslation != nil {
 
-	defer func() {
-		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if c.Err != nil {
-				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
-				payload, err := json.Marshal(incomingWebhookPayload)
-				if err != nil {
-					fields = append(fields, mlog.NamedErr("encoding_err", err))
-				} else {
-					fields = append(fields, mlog.String("payload", payload))
-				}
-
-				mlog.Debug("Incoming webhook received", fields...)
-			}
-		}
-	}()
-
-	if mediaType == "application/x-www-form-urlencoded" {
-		payload := strings.NewReader(r.FormValue("payload"))
-
-		incomingWebhookPayload, err = decodePayload(payload)
-		if err != nil {
-			c.Err = err
-			return
-		}
-	} else if mediaType == "multipart/form-data" {
-		r.ParseMultipartForm(0)
-
-		decoder := schema.NewDecoder()
-		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
-
-		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook",
-				"api.webhook.incoming.error",
-				nil,
-				"webhook_id="+id+", error: "+err.Error(),
-				http.StatusBadRequest,
-			)
-			return
+		incomingWebhookPayload, errr = c.App.HandleWebhookSchemaTranslation(c.AppContext, webhook, r)
+		if errr != nil {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, "webhook_id="+id+", error: "+errr.Error(), http.StatusBadRequest)
 		}
 	} else {
-		incomingWebhookPayload, err = decodePayload(r.Body)
-		if err != nil {
-			c.Err = err
-			return
+
+		incomingWebhookPayload = &model.IncomingWebhookRequest{}
+
+		contentType := r.Header.Get("Content-Type")
+		// Content-Type header is optional so could be empty
+		if contentType != "" {
+			var mimeErr error
+			mediaType, _, mimeErr = mime.ParseMediaType(contentType)
+			if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+				c.Err = model.NewAppError("incomingWebhook",
+					"api.webhook.incoming.error",
+					nil,
+					"webhook_id="+id+", error: "+mimeErr.Error(),
+					http.StatusBadRequest,
+				)
+				return
+			}
+		}
+
+		defer func() {
+			if *c.App.Config().LogSettings.EnableWebhookDebugging {
+				if c.Err != nil {
+					fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
+					payload, err := json.Marshal(incomingWebhookPayload)
+					if err != nil {
+						fields = append(fields, mlog.NamedErr("encoding_err", err))
+					} else {
+						fields = append(fields, mlog.String("payload", payload))
+					}
+
+					mlog.Debug("Incoming webhook received", fields...)
+				}
+			}
+		}()
+
+		if mediaType == "application/x-www-form-urlencoded" {
+			payload := strings.NewReader(r.FormValue("payload"))
+
+			incomingWebhookPayload, err = decodePayload(payload)
+			if err != nil {
+				c.Err = err
+				return
+			}
+		} else if mediaType == "multipart/form-data" {
+			r.ParseMultipartForm(0)
+
+			decoder := schema.NewDecoder()
+			err := decoder.Decode(incomingWebhookPayload, r.PostForm)
+
+			if err != nil {
+				c.Err = model.NewAppError("incomingWebhook",
+					"api.webhook.incoming.error",
+					nil,
+					"webhook_id="+id+", error: "+err.Error(),
+					http.StatusBadRequest,
+				)
+				return
+			}
+		} else {
+			incomingWebhookPayload, err = decodePayload(r.Body)
+			if err != nil {
+				c.Err = err
+				return
+			}
 		}
 	}
 

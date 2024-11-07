@@ -910,6 +910,7 @@ type AppIface interface {
 	HandleImages(rctx request.CTX, previewPathList []string, thumbnailPathList []string, fileData [][]byte)
 	HandleIncomingWebhook(c request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError
 	HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
+	HandleWebhookSchemaTranslation(c request.CTX, hook *model.IncomingWebhook, r *http.Request) (*model.IncomingWebhookRequest, error)
 	HasPermissionTo(askingUserId string, permission *model.Permission) bool
 	HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool
 	HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool

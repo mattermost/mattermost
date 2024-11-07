@@ -17,7 +17,57 @@ export type IncomingWebhook = {
     username: string;
     icon_url: string;
     channel_locked: boolean;
+    webhook_schema_translation?: IncomingWebhookRequest;
 };
+
+export type IncomingWebhookRequest = {
+    text: string;
+    username: string;
+    icon_url: string;
+    channel: string;
+    props: object;
+    attachments: SlackAttachment[];
+    type: string;
+    icon_emoji: string;
+    priority?: PostPriority;
+}
+
+export type SlackAttachment = {
+    id: number;
+    fallback: string;
+    color: string;
+    pretext: string;
+    author_name: string;
+    author_link: string;
+    author_icon:
+    string;
+    title: string;
+    title_link: string;
+    text: string;
+    fields: SlackAttachmentField[];
+    image_url: string;
+    thumb_url: string;
+    footer: string;
+    footer_icon: string;
+    ts:
+    string | number; // Timestamp can be a string or number
+    // actions?: PostAction[]; 
+}
+
+export type SlackAttachmentField = {
+    title: string;
+    value: any;
+    short: boolean;
+}
+
+export type PostPriority = {
+    priority?: string;
+    requested_ack?: boolean;
+    persistent_notifications?: boolean;
+    postId?: string;
+    channelId?: string;
+}
+
 
 export type IncomingWebhooksWithCount = {
     incoming_webhooks: IncomingWebhook[];

@@ -1,7 +1,13 @@
 
 
 .WebhookSchemaEditor {
+    margin-top: 20px;
+    .incoming-webhook-listener {
+        font-size: 20px;
+
+    }
     .schemas-container {
+        margin-top: 20px;
         display: flex;
         justify-content: space-between;
     }
@@ -26,7 +32,7 @@
 
     .to-schema {
         &.select-mode {
-            .variable-value {
+            .jer-value-string, .jer-value-bool, .jer-value-number, .jer-value-object, .jer-value-array {
                 background-color: var(--denim-button-bg);
                 border-radius: 4px;
                 animation: pulse 2s infinite;

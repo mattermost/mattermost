@@ -7,7 +7,7 @@ import { FormattedMessage } from 'react-intl';
 import type { MessageDescriptor } from 'react-intl';
 import { Link } from 'react-router-dom';
 
-import type { IncomingWebhook } from '@mattermost/types/integrations';
+import type { IncomingWebhook, IncomingWebhookRequest } from '@mattermost/types/integrations';
 import type { Team } from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -15,6 +15,7 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import WebhookSchemaEditor from './webhook_schema_editor';
+import { Button } from 'react-bootstrap';
 
 interface State {
     displayName: string;
@@ -26,6 +27,8 @@ interface State {
     saving: boolean;
     serverError: string;
     clientError: JSX.Element | null;
+    webhook_schema_translation?: IncomingWebhookRequest;
+    showSchemaEditor: boolean;
 }
 
 interface Props {
@@ -86,10 +89,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
-        this.state = this.getStateFromHook(this.props.initialHook);
+        this.state = this.getStateFromHook(this.props.initialHook, !!this.props.useSchemaEditor);
     }
 
-    getStateFromHook = (hook?: IncomingWebhook) => {
+    getStateFromHook = (hook?: IncomingWebhook, showSchemaEditor: boolean) => {
         return {
             displayName: hook?.display_name || '',
             description: hook?.description || '',
@@ -100,6 +103,8 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             saving: false,
             serverError: '',
             clientError: null,
+            webhook_schema_translation: hook?.webhook_schema_translation,
+            showSchemaEditor: showSchemaEditor,
         };
     };
 
@@ -130,6 +135,9 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             return;
         }
 
+
+        console.log(this.state);
+
         const hook = {
             channel_id: this.state.channelId,
             channel_locked: this.state.channelLocked,
@@ -143,9 +151,9 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             delete_at: this.props.initialHook?.delete_at || 0,
             team_id: this.props.initialHook?.team_id || '',
             user_id: this.props.initialHook?.user_id || '',
+            webhook_schema_translation: this.state.webhook_schema_translation,
         };
 
-        console.log(openSchemaEditor);
         this.props.action(hook, openSchemaEditor).then(() => this.setState({ saving: false }));
     };
 
@@ -184,6 +192,12 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             iconURL: e.target.value,
         });
     };
+
+    updateWebhookSchemaTranslation = (webhook_schema_translation: IncomingWebhookRequest) => {
+        this.setState({
+            webhook_schema_translation: webhook_schema_translation,
+        });
+    }
 
 
     render() {
@@ -345,7 +359,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     </div>
                                 </div>
                             </div>
-                            
+
                         }
                         {this.props.enablePostIconOverride &&
                             <div className='form-group'>
@@ -376,8 +390,19 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 </div>
                             </div>
                         }
-                        {this.props.useSchemaEditor && 
+
+                        {(typeof this.props.initialHook !== 'undefined' && !this.state.showSchemaEditor) &&
+                            <Button
+                                className="btn btn-primary"
+                                onClick={() => this.setState({ showSchemaEditor: true })}
+                            >
+                                Show Schema Editor
+                            </Button>
+
+                        }
+                        {this.state.showSchemaEditor &&
                             <WebhookSchemaEditor
+                                onSchemaUpdate={this.updateWebhookSchemaTranslation}
                                 initialHook={this.props.initialHook!}
                             />
                         }
@@ -395,16 +420,18 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     defaultMessage='Cancel'
                                 />
                             </Link>
-                            <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
-                                spinning={this.state.saving}
-                                spinningText={this.props.loading}
-                                onClick={(e) => this.handleSubmit(e, true)}
-                                id='saveWebhook'
-                            >
-                                Save And Open Schema Editor
-                            </SpinnerButton>
+                            {typeof this.props.initialHook === 'undefined' &&
+                                <SpinnerButton
+                                    className='btn btn-primary'
+                                    type='submit'
+                                    spinning={this.state.saving}
+                                    spinningText={this.props.loading}
+                                    onClick={(e) => this.handleSubmit(e, true)}
+                                    id='saveWebhook'
+                                >
+                                    Save And Open Schema Editor
+                                </SpinnerButton>
+                            }
                             <SpinnerButton
                                 className='btn btn-primary'
                                 type='submit'

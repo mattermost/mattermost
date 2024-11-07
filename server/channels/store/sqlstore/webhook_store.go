@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -55,10 +56,34 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 	hook.UpdateAt = model.GetMillis()
 
-	_, err := s.GetMasterX().NamedExec(`UPDATE IncomingWebhooks SET
+	webhookSchemaTranslationJSON, err := json.Marshal(hook.WebhookSchemaTranslation)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal WebhookSchemaTranslation")
+	}
+
+	_, err = s.GetMasterX().NamedExec(`UPDATE IncomingWebhooks SET
 			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
 			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked
 			WHERE Id=:Id`, hook)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)
+	}
+
+	if s.IsBinaryParamEnabled() {
+		webhookSchemaTranslationJSON = AppendBinaryFlag(webhookSchemaTranslationJSON)
+	}
+
+	query, ergs, err := s.getQueryBuilder().
+		Update("IncomingWebhooks").
+		Set("WebhookSchemaTranslation", webhookSchemaTranslationJSON).
+		Where(sq.Eq{"Id": hook.Id}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "incoming_webhook_tosql")
+	}
+
+	_, err = s.GetMasterX().Exec(query, ergs...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)
 	}

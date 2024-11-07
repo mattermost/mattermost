@@ -5,10 +5,13 @@ package model
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"io"
 	"net/http"
 	"regexp"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -16,18 +19,19 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id            string `json:"id"`
-	CreateAt      int64  `json:"create_at"`
-	UpdateAt      int64  `json:"update_at"`
-	DeleteAt      int64  `json:"delete_at"`
-	UserId        string `json:"user_id"`
-	ChannelId     string `json:"channel_id"`
-	TeamId        string `json:"team_id"`
-	DisplayName   string `json:"display_name"`
-	Description   string `json:"description"`
-	Username      string `json:"username"`
-	IconURL       string `json:"icon_url"`
-	ChannelLocked bool   `json:"channel_locked"`
+	Id                       string                  `json:"id"`
+	CreateAt                 int64                   `json:"create_at"`
+	UpdateAt                 int64                   `json:"update_at"`
+	DeleteAt                 int64                   `json:"delete_at"`
+	UserId                   string                  `json:"user_id"`
+	ChannelId                string                  `json:"channel_id"`
+	TeamId                   string                  `json:"team_id"`
+	DisplayName              string                  `json:"display_name"`
+	Description              string                  `json:"description"`
+	Username                 string                  `json:"username"`
+	IconURL                  string                  `json:"icon_url"`
+	ChannelLocked            bool                    `json:"channel_locked"`
+	WebhookSchemaTranslation *IncomingWebhookRequest `json:"webhook_schema_translation"`
 }
 
 func (o *IncomingWebhook) Auditable() map[string]interface{} {
@@ -57,6 +61,18 @@ type IncomingWebhookRequest struct {
 	Type        string             `json:"type"`
 	IconEmoji   string             `json:"icon_emoji"`
 	Priority    *PostPriority      `json:"priority"`
+}
+
+func (w *IncomingWebhookRequest) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("type assertion failed")
+	}
+	return json.Unmarshal(source, &w)
+}
+
+func (w IncomingWebhookRequest) Value() (driver.Value, error) {
+	return json.Marshal(w)
 }
 
 type IncomingWebhooksWithCount struct {
