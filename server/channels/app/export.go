@@ -874,7 +874,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 		if exportFiles {
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
-					c.Logger().Error("Error creating directory", mlog.String("path", pathToDir), mlog.Err(err))
+					return err
 			}
 		}
 
@@ -902,16 +902,16 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
+func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string, rctx request.CTX) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
 	}
 	defer func() {
-		if err = fromPath.Close(); err != nil {
-			a.Log().Error("Error closing file", mlog.Err(err))
-		}
-	}()
+        if err = fromPath.Close(); err != nil {
+            rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
+        }
+    }()
 
 	emojiDir := pathToDir + "/" + emojiId
 
@@ -930,10 +930,10 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 		return errors.New("Error creating the image file " + err.Error())
 	}
 	defer func() {
-		if err = toPath.Close(); err != nil {
-			a.Log().Error("Error closing file", mlog.Err(err))
-		}
-	}()
+        if err = toPath.Close(); err != nil {
+            rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
+        }
+    }()
 	_, err = io.Copy(toPath, fromPath)
 	if err != nil {
 		return errors.New("Error copying emojis " + err.Error())
@@ -1142,7 +1142,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 	return attachments, nil
 }
 
-func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.AppError {
+func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer, rctx request.CTX ) *model.AppError {
 	var wr io.Writer
 	var err error
 	rd, appErr := a.FileReader(filePath)
@@ -1151,7 +1151,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 	}
 	defer func() {
 		if err = rd.Close(); err != nil {
-			a.Log().Error("Error closing file", mlog.Err(err))
+			rctx.Logger().Error("Error closing file", mlog.Err(closeErr))
 		}
 	}()
 
@@ -1178,7 +1178,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 		}
 		defer func() {
 			if err = wr.(*os.File).Close(); err != nil {
-				a.Log().Error("Error closing file", mlog.Err(err))
+				rctx.Logger().Error("Error closing file", mlog.Err(err))
 			}
 		}()
 	}
