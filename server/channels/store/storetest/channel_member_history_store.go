@@ -4,10 +4,9 @@
 package storetest
 
 import (
+	"math"
 	"testing"
 	"time"
-
-	"math"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -91,7 +90,7 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	ch1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel1, err := ss.Channel().Save(rctx, ch1, -1)
@@ -101,7 +100,7 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	ch2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        NewTestId(),
+		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel2, err := ss.Channel().Save(rctx, ch2, -1)
