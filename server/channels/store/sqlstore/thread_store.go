@@ -134,15 +134,15 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		})
 
 	if teamId != "" {
-		if !opts.ExcludeDirect {
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
 			query = query.Where(
 				sq.Or{
 					sq.Eq{"Threads.ThreadTeamId": teamId},
 					sq.Eq{"Threads.ThreadTeamId": ""},
 				},
 			)
-		} else {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
 		}
 	}
 
@@ -201,15 +201,15 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		})
 
 	if teamId != "" {
-		if !opts.ExcludeDirect {
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
 			query = query.Where(
 				sq.Or{
 					sq.Eq{"Threads.ThreadTeamId": teamId},
 					sq.Eq{"Threads.ThreadTeamId": ""},
 				},
 			)
-		} else {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
 		}
 	}
 
@@ -245,15 +245,15 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	}
 
 	if teamId != "" {
-		if !opts.ExcludeDirect {
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
 			query = query.Where(
 				sq.Or{
 					sq.Eq{"Threads.ThreadTeamId": teamId},
 					sq.Eq{"Threads.ThreadTeamId": ""},
 				},
 			)
-		} else {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
 		}
 	}
 
@@ -314,15 +314,15 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	// If a team is specified, constrain to channels in that team and if not excluded also return DMs/GMs without
 	// a team at all.
 	if teamId != "" {
-		if !opts.ExcludeDirect {
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
 			query = query.Where(
 				sq.Or{
 					sq.Eq{"Threads.ThreadTeamId": teamId},
 					sq.Eq{"Threads.ThreadTeamId": ""},
 				},
 			)
-		} else {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
 		}
 	}
 
