@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -3981,11 +3982,11 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
-	if !(*s.AmazonS3StorageClass == "" || *s.AmazonS3StorageClass == StorageClassStandard || *s.AmazonS3StorageClass == StorageClassReducedRedundancy || *s.AmazonS3StorageClass == StorageClassStandardIA || *s.AmazonS3StorageClass == StorageClassOnezoneIA || *s.AmazonS3StorageClass == StorageClassIntelligentTiering || *s.AmazonS3StorageClass == StorageClassGlacier || *s.AmazonS3StorageClass == StorageClassDeepArchive || *s.AmazonS3StorageClass == StorageClassOutposts || *s.AmazonS3StorageClass == StorageClassGlacierIR || *s.AmazonS3StorageClass == StorageClassSnow || *s.AmazonS3StorageClass == StorageClassExpressOnezone) {
+	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
-	if !(*s.ExportAmazonS3StorageClass == "" || *s.ExportAmazonS3StorageClass == StorageClassStandard || *s.ExportAmazonS3StorageClass == StorageClassReducedRedundancy || *s.ExportAmazonS3StorageClass == StorageClassStandardIA || *s.ExportAmazonS3StorageClass == StorageClassOnezoneIA || *s.ExportAmazonS3StorageClass == StorageClassIntelligentTiering || *s.ExportAmazonS3StorageClass == StorageClassGlacier || *s.ExportAmazonS3StorageClass == StorageClassDeepArchive || *s.ExportAmazonS3StorageClass == StorageClassOutposts || *s.ExportAmazonS3StorageClass == StorageClassGlacierIR || *s.ExportAmazonS3StorageClass == StorageClassSnow || *s.ExportAmazonS3StorageClass == StorageClassExpressOnezone) {
+	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
