@@ -439,7 +439,7 @@
   "admin.cacheSettings.redisAddressDesc": "The hostname:port of the Redis server. E.g.: \"localhost:6379\"",
   "admin.cacheSettings.redisAddressPlaceholder": "localhost:6379",
   "admin.cacheSettings.redisClientCache": "Disable Client Cache",
-  "admin.cacheSettings.redisClientCacheDesc": "When true, client side caching is disabled.",
+  "admin.cacheSettings.redisClientCacheDesc": "When true, client-side caching is disabled.",
   "admin.cacheSettings.redisDB": "Redis DB",
   "admin.cacheSettings.redisDBDesc": "The database of the Redis server. E.g.: \"0\"",
   "admin.cacheSettings.redisDBPlaceholder": "0",
