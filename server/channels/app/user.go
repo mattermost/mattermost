@@ -53,7 +53,9 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 	}
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		a.DeleteToken(token)
+		if appErr := a.DeleteToken(token); appErr != nil {
+			c.Logger().Warn("Error while deleting token", mlog.Err(appErr))
+		}
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -106,7 +108,9 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		return nil, err
 	}
 
-	a.AddDirectChannels(c, team.Id, ruser)
+	if appErr := a.AddDirectChannels(c, team.Id, ruser); appErr != nil {
+		c.Logger().Warn("Error while adding direct channels", mlog.Err(appErr))
+	}
 
 	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
@@ -159,7 +163,9 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 		return nil, err
 	}
 
-	a.AddDirectChannels(c, team.Id, ruser)
+	if appErr := a.AddDirectChannels(c, team.Id, ruser); appErr != nil {
+		c.Logger().Warn("Error while adding direct channels", mlog.Err(appErr))
+	}
 
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		c.Logger().Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
@@ -960,11 +966,15 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	// bots the user owns. Only notify once, when the user is the owner, not the
 	// owners bots
 	if !user.IsBot {
-		a.notifySysadminsBotOwnerDeactivated(c, userID)
+		if appErr := a.notifySysadminsBotOwnerDeactivated(c, userID); appErr != nil {
+			c.Logger().Warn("Error while notifying system admin of bot owner deactivation", mlog.Err(appErr))
+		}
 	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
-		a.disableUserBots(c, userID)
+		if appErr := a.disableUserBots(c, userID); appErr != nil {
+			c.Logger().Warn("Error while disabling user bots", mlog.Err(appErr))
+		}
 	}
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
@@ -1040,7 +1050,9 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(c, user.Id)
+	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
+		c.Logger().Warn("Error while invalidating user channel members caches", mlog.Err(appErr))
+	}
 	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
@@ -1892,7 +1904,9 @@ func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for _, user := range users {
-		a.PermanentDeleteUser(c, user)
+		if appErr := a.PermanentDeleteUser(c, user); appErr != nil {
+			c.Logger().Warn("Error while deleting user", mlog.Err(appErr))
+		}
 	}
 
 	return nil
@@ -2418,7 +2432,9 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedTeamMemberEvent(member)
+		if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
+			c.Logger().Warn("Error while sending updated team member event", mlog.Err(appErr))
+		}
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2462,7 +2478,9 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedTeamMemberEvent(member)
+		if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
+			c.Logger().Warn("Error while sending updated team member event", mlog.Err(appErr))
+		}
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
