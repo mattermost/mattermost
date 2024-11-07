@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import cn from 'classnames';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
 
-import Timestamp from 'components/timestamp';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
+import {isToday} from 'utils/datetime';
 
 const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     day: 'numeric',
@@ -21,7 +22,16 @@ const TIMESTAMP_PROPS: Partial<ComponentProps<typeof Timestamp>> = {
     units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'],
 };
 
+export const SCHEDULED_POST_TIME_RANGES = [
+    RelativeRanges.TODAY_TITLE_CASE,
+    RelativeRanges.YESTERDAY_TITLE_CASE,
+    RelativeRanges.TOMORROW_TITLE_CASE,
+];
+
+export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute}) => ({hour, minute});
+
 type Props = {
+    kind: 'draft' | 'scheduledPost';
     actions: React.ReactNode;
     hover: boolean;
     timestamp: number;
@@ -31,6 +41,7 @@ type Props = {
 };
 
 function PanelHeader({
+    kind,
     actions,
     hover,
     timestamp,
@@ -38,6 +49,8 @@ function PanelHeader({
     title,
     error,
 }: Props) {
+    const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
+
     return (
         <header className='PanelHeader'>
             <div className='PanelHeader__left'>{title}</div>
@@ -63,14 +76,37 @@ function PanelHeader({
                         </div>
                     )}
                     <div className='PanelHeader__timestamp'>
-                        {Boolean(timestamp) && (
-                            <Timestamp
-                                value={new Date(timestamp)}
-                                {...TIMESTAMP_PROPS}
-                            />
-                        )}
+                        {
+                            Boolean(timestamp) && kind === 'draft' && (
+                                <Timestamp
+                                    value={new Date(timestamp)}
+                                    {...TIMESTAMP_PROPS}
+                                />
+                            )
+                        }
+
+                        {
+                            Boolean(timestamp) && kind === 'scheduledPost' && (
+                                <FormattedMessage
+                                    id='scheduled_post.panel.header.time'
+                                    defaultMessage='Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}'
+                                    values={{
+                                        scheduledDateTime: (
+                                            <Timestamp
+                                                value={timestamp}
+                                                ranges={SCHEDULED_POST_TIME_RANGES}
+                                                useSemanticOutput={false}
+                                                useTime={scheduledPostTimeFormat}
+                                            />
+                                        ),
+                                        isTodayOrTomorrow: isToday(timestampDateObject),
+                                    }}
+                                />
+                            )
+                        }
                     </div>
-                    {!error && (
+
+                    {kind === 'draft' && !error && (
                         <Tag
                             variant={'danger'}
                             uppercase={true}
