@@ -127,7 +127,10 @@ export default function TopButtons({
             <OverlayTrigger
                 placement='top'
                 overlay={
-                    <Tooltip data-testid='favorite-tooltip'>
+                    <Tooltip
+                        id='favorite-tooltip'
+                        data-testid='favorite-tooltip'
+                    >
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.favorite.tooltip'
                             defaultMessage='Add this channel to favorites'
@@ -148,7 +151,10 @@ export default function TopButtons({
             <OverlayTrigger
                 placement='top'
                 overlay={
-                    <Tooltip data-testid='mute-tooltip'>
+                    <Tooltip
+                        id='mute-tooltip'
+                        data-testid='mute-tooltip'
+                    >
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.mute.tooltip'
                             defaultMessage='Mute notifications for this channel'
@@ -170,7 +176,10 @@ export default function TopButtons({
                 <OverlayTrigger
                     placement='top'
                     overlay={
-                        <Tooltip data-testid='add-people-tooltip'>
+                        <Tooltip
+                            id='add-people-tooltip'
+                            data-testid='add-people-tooltip'
+                        >
                             <FormattedMessage
                                 id='channel_info_rhs.top_buttons.add_people.tooltip'
                                 defaultMessage='Add team members to this channel'
@@ -198,7 +207,10 @@ export default function TopButtons({
                 <OverlayTrigger
                     placement='top'
                     overlay={
-                        <Tooltip data-testid='copy-link-tooltip'>
+                        <Tooltip
+                            id='copy-link-tooltip'
+                            data-testid='copy-link-tooltip'
+                        >
                             <FormattedMessage
                                 id='channel_info_rhs.top_buttons.copy_link.tooltip'
                                 defaultMessage='Copy link to this channel'
