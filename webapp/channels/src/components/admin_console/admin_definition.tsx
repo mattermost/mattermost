@@ -311,7 +311,7 @@ const adminDefinitionMessages = defineMessages({
     redis_db_placeholder: {id: 'admin.cacheSettings.redisDBPlaceholder', defaultMessage: '0'},
 
     redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
-    redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client side caching is disabled.'},
+    redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 const AdminDefinition: AdminDefinitionType = {
     about: {
