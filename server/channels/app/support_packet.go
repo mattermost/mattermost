@@ -90,7 +90,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		// Check if the plugin is in the list of plugins to include in the Support Packet.
 		if _, ok := manifest.Props["support_packet"]; ok {
 			if !slices.Contains(options.PluginPackets, manifest.Id) {
-				return false
+				return true
 			}
 		}
 
