@@ -8242,5 +8242,81 @@
   {
     "id": "api.system.logs.invalidFilter",
     "translation": "Неправильний фільтр журналу"
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Недійсне значення Content-Length."
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Не вдалося завантажити файл. Канал завантаження не є спільним з віддаленим користувачем."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost не вдалося оновити до корпоративної версії. Системний користувач Mattermost {{.MattermostUsername}} не має прав запису до необхідного двійкового файлу. Системний адміністратор може оновити дозволи файлу, виконавши наступну команду на сервері, де встановлено Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nПісля зміни дозволів файлу спробуйте знову оновити Mattermost. Після завершення оновлення та перезапуску системи не забудьте відновити початкові дозволи для двійкового файлу:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost не вдалося оновити до корпоративної версії. Системний користувач Mattermost {{.MattermostUsername}} не має прав запису до необхідного двійкового файлу. Системний адміністратор може оновити дозволи файлу, виконавши наступну команду на сервері, де встановлено Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nПісля зміни дозволів файлу спробуйте знову оновити Mattermost. Після завершення оновлення та перезапуску системи не забудьте відновити початкові дозволи для двійкового файлу:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost не вдалося оновити до корпоративної версії. Системний користувач Mattermost {{.MattermostUsername}} не має прав запису до необхідного двійкового файлу. Системний адміністратор може оновити дозволи файлу, виконавши наступну команду на сервері, де встановлено Mattermost:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nПісля зміни дозволів файлу спробуйте знову оновити Mattermost. Після завершення оновлення та перезапуску системи не забудьте відновити початкові дозволи для двійкового файлу:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Невідоме джерело імпорту."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Гостьові облікові записи вимкнено"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Недійсне або відсутнє тіло запиту."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Ваша ліцензія не підтримує гостьові облікові записи"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Не вдалося оновити переглянуті сповіщення"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Помилка під час надсилання листа"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP не налаштовано в системній консолі"
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Не вдалося розібрати тіло запиту."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost не вдалось оновитися до корпоративної версії."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost не вдалося оновити до корпоративної версії. Ця функція працюватиме лише на системах Linux з архітектурою x86-64."
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Не вдалося завантажити файл. Файл занадто великий."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Помилка завантаження."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost не вдалося оновити до корпоративної версії. Цифровий підпис завантаженого бінарного файлу не вдалося перевірити."
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Не вдалося перевірити умови сповіщення про продукт"
   }
 ]
