@@ -18,6 +18,7 @@ func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMemb
 	member, err := s.TeamStore.SaveMember(rctx, teamMember, maxUsersPerTeam)
 	if err == nil {
 		s.rootStore.indexUserFromID(rctx, member.UserId)
+		s.rootStore.indexChannelsForTeam(rctx, member)
 	}
 	return member, err
 }

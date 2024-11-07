@@ -111,6 +111,28 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	}
 }
 
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamMember *model.TeamMember) {
+	channels, err := s.Channel().GetPublicChannelsForTeam(teamMember.TeamId, 0, 100)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while indexing public channels", mlog.String("team_member_id", teamMember.UserId), mlog.Err(err))
+		return
+	}
+
+	for _, engine := range s.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				for _, channel := range channels {
+					if err := engineCopy.IndexChannel(rctx, channel, []string{teamMember.UserId}, []string{teamMember.UserId}); err != nil {
+						rctx.Logger().Warn("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+						return
+					}
+					rctx.Logger().Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
+				}
+			})
+		}
+	}
+}
+
 // Runs an indexing function synchronously or asynchronously depending on the engine
 func runIndexFn(rctx request.CTX, engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
 	if engine.IsIndexingSync() {
