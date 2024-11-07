@@ -909,7 +909,7 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 	}
 	defer func() {
 		if err = fromPath.Close(); err != nil {
-            rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
+			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
         }
     }()
 
@@ -931,7 +931,7 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 	}
 	defer func() {
 		if err = toPath.Close(); err != nil {
-            rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
+			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
         }
     }()
 	_, err = io.Copy(toPath, fromPath)
