@@ -112,7 +112,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
 
             {
                 !scheduledPost.error_code && (
-                    <React.Fragment>
+                    <>
                         <Action
                             icon='icon-pencil-outline'
                             id='edit'
@@ -137,7 +137,7 @@ function ScheduledPostActions({scheduledPost, onReschedule, onDelete, channelDis
                             tooltipText={sendNowTooltipText}
                             onClick={handleSend}
                         />
-                    </React.Fragment>
+                    </>
                 )
             }
 
