@@ -32,6 +32,13 @@ const config = {
                 fileName: false,
             },
         ],
+        [
+            "formatjs",
+            {
+                "idInterpolationPattern": "[sha512:contenthash:base64:6]",
+                "ast": true
+            }
+        ]
     ],
     sourceType: 'unambiguous',
 };

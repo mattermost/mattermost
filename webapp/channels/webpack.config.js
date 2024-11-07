@@ -133,6 +133,9 @@ var config = {
 
             // This alias restricts single version of styled components across all packages
             'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
+
+            // Since we precompile messages, use the smaller bundler as per https://formatjs.github.io/docs/guides/advanced-usage/#react-intl-without-parser-40-smaller
+            '@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser',
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {
