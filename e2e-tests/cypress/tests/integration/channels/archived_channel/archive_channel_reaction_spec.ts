@@ -65,7 +65,7 @@ describe('Archived channels', () => {
             // # Search for "Test archive reaction"
             cy.get('body').type('{esc}');
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').should('be.visible').type(messageText).type('{enter}');
+            cy.uiGetSearchBox().should('be.visible').first().type(messageText).type('{enter}');
 
             // # Click on post dot menu so we can check for reaction icon
             cy.clickPostDotMenu(postId, 'SEARCH');

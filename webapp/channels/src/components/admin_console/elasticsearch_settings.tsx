@@ -14,10 +14,10 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -98,7 +98,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.enableSearchingDescription,
 ];
 
-export default class ElasticsearchSettings extends AdminSettings<Props, State> {
+export default class ElasticsearchSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.Backend = this.state.backend;

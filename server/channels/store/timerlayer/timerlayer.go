@@ -50,6 +50,7 @@ type TimerLayer struct {
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
+	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
@@ -188,6 +189,10 @@ func (s *TimerLayer) RetentionPolicy() store.RetentionPolicyStore {
 
 func (s *TimerLayer) Role() store.RoleStore {
 	return s.RoleStore
+}
+
+func (s *TimerLayer) ScheduledPost() store.ScheduledPostStore {
+	return s.ScheduledPostStore
 }
 
 func (s *TimerLayer) Scheme() store.SchemeStore {
@@ -401,6 +406,11 @@ type TimerLayerRoleStore struct {
 	Root *TimerLayer
 }
 
+type TimerLayerScheduledPostStore struct {
+	store.ScheduledPostStore
+	Root *TimerLayer
+}
+
 type TimerLayerSchemeStore struct {
 	store.SchemeStore
 	Root *TimerLayer
@@ -547,6 +557,38 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+	start := time.Now()
+
+	result, err := s.BotStore.GetAllAfter(limit, afterId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.GetAllAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerBotStore) GetByUsername(username string) (*model.Bot, error) {
+	start := time.Now()
+
+	result, err := s.BotStore.GetByUsername(username)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.GetByUsername", success, elapsed)
 	}
 	return result, err
 }
@@ -1285,10 +1327,10 @@ func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx conte
 	return result, resultVar1, resultVar2, err
 }
 
-func (s *TimerLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *TimerLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7721,6 +7763,134 @@ func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return result, err
 }
 
+func (s *TimerLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.CreateScheduledPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.Get(scheduledPostId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerScheduledPostStore) GetMaxMessageSize() int {
+	start := time.Now()
+
+	result := s.ScheduledPostStore.GetMaxMessageSize()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetMaxMessageSize", success, elapsed)
+	}
+	return result
+}
+
+func (s *TimerLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetPendingScheduledPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.GetScheduledPostsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.PermanentlyDeleteScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateOldScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdatedScheduledPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	start := time.Now()
 
@@ -12281,6 +12451,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.RemoteClusterStore = &TimerLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &TimerLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
+	newStore.ScheduledPostStore = &TimerLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}

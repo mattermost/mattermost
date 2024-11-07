@@ -54,6 +54,7 @@ type RetryLayer struct {
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
+	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
@@ -192,6 +193,10 @@ func (s *RetryLayer) RetentionPolicy() store.RetentionPolicyStore {
 
 func (s *RetryLayer) Role() store.RoleStore {
 	return s.RoleStore
+}
+
+func (s *RetryLayer) ScheduledPost() store.ScheduledPostStore {
+	return s.ScheduledPostStore
 }
 
 func (s *RetryLayer) Scheme() store.SchemeStore {
@@ -405,6 +410,11 @@ type RetryLayerRoleStore struct {
 	Root *RetryLayer
 }
 
+type RetryLayerScheduledPostStore struct {
+	store.ScheduledPostStore
+	Root *RetryLayer
+}
+
 type RetryLayerSchemeStore struct {
 	store.SchemeStore
 	Root *RetryLayer
@@ -580,6 +590,48 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	tries := 0
 	for {
 		result, err := s.BotStore.GetAll(options)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotStore.GetAllAfter(limit, afterId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerBotStore) GetByUsername(username string) (*model.Bot, error) {
+
+	tries := 0
+	for {
+		result, err := s.BotStore.GetByUsername(username)
 		if err == nil {
 			return result, nil
 		}
@@ -1532,11 +1584,11 @@ func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx conte
 
 }
 
-func (s *RetryLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+		result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 		if err == nil {
 			return result, nil
 		}
@@ -9770,6 +9822,159 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 
 }
 
+func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.Get(scheduledPostId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) GetMaxMessageSize() int {
+
+	return s.ScheduledPostStore.GetMaxMessageSize()
+
+}
+
+func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 
 	tries := 0
@@ -15563,6 +15768,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
+	newStore.ScheduledPostStore = &RetryLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &RetryLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}

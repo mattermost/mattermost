@@ -39,13 +39,13 @@ import type {GlobalState} from 'types/store';
 import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
-interface OwnProps {
+type OwnProps = {
     post?: Post | UserActivityPost;
     previousPostId?: string;
     postId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
-}
+};
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {
     if (post.root_id) {

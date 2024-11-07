@@ -50,6 +50,7 @@ type OpenTracingLayer struct {
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
+	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
@@ -188,6 +189,10 @@ func (s *OpenTracingLayer) RetentionPolicy() store.RetentionPolicyStore {
 
 func (s *OpenTracingLayer) Role() store.RoleStore {
 	return s.RoleStore
+}
+
+func (s *OpenTracingLayer) ScheduledPost() store.ScheduledPostStore {
+	return s.ScheduledPostStore
 }
 
 func (s *OpenTracingLayer) Scheme() store.SchemeStore {
@@ -401,6 +406,11 @@ type OpenTracingLayerRoleStore struct {
 	Root *OpenTracingLayer
 }
 
+type OpenTracingLayerScheduledPostStore struct {
+	store.ScheduledPostStore
+	Root *OpenTracingLayer
+}
+
 type OpenTracingLayerSchemeStore struct {
 	store.SchemeStore
 	Root *OpenTracingLayer
@@ -553,6 +563,42 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 
 	defer span.Finish()
 	result, err := s.BotStore.GetAll(options)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.GetAllAfter")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.BotStore.GetAllAfter(limit, afterId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerBotStore) GetByUsername(username string) (*model.Bot, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.GetByUsername")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.BotStore.GetByUsername(username)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1379,7 +1425,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx
 	return result, resultVar1, resultVar2, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -1388,7 +1434,7 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, lim
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8566,6 +8612,145 @@ func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, error) 
 	return result, err
 }
 
+func (s *OpenTracingLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.CreateScheduledPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ScheduledPostStore.Get(scheduledPostId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) GetMaxMessageSize() int {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.GetMaxMessageSize")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result := s.ScheduledPostStore.GetMaxMessageSize()
+	return result
+}
+
+func (s *OpenTracingLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.GetPendingScheduledPosts")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.GetScheduledPostsForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.PermanentlyDeleteScheduledPosts")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.PermanentlyDeleteScheduledPosts(scheduledPostIDs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.UpdateOldScheduledPosts")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.UpdatedScheduledPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.CountByScope")
@@ -13636,6 +13821,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.RemoteClusterStore = &OpenTracingLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &OpenTracingLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &OpenTracingLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
+	newStore.ScheduledPostStore = &OpenTracingLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &OpenTracingLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &OpenTracingLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &OpenTracingLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}

@@ -91,6 +91,7 @@ type Store interface {
 	PostPersistentNotification() PostPersistentNotificationStore
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
+	ScheduledPost() ScheduledPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -202,7 +203,7 @@ type ChannelStore interface {
 	GetByNameIncludeDeleted(teamID string, name string, allowFromCache bool) (*model.Channel, error)
 	GetByNamesIncludeDeleted(teamID string, names []string, allowFromCache bool) ([]*model.Channel, error)
 	GetDeletedByName(teamID string, name string) (*model.Channel, error)
-	GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error)
+	GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error)
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
 	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
@@ -497,7 +498,9 @@ type UserStore interface {
 
 type BotStore interface {
 	Get(userID string, includeDeleted bool) (*model.Bot, error)
+	GetByUsername(username string) (*model.Bot, error)
 	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	GetAllAfter(limit int, afterId string) ([]*model.Bot, error)
 	Save(bot *model.Bot) (*model.Bot, error)
 	Update(bot *model.Bot) (*model.Bot, error)
 	PermanentDelete(userID string) error
@@ -1051,6 +1054,17 @@ type ChannelBookmarkStore interface {
 	UpdateSortOrder(bookmarkID, channelID string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 	Delete(bookmarkID string, deleteFile bool) error
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
+}
+
+type ScheduledPostStore interface {
+	GetMaxMessageSize() int
+	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
+	GetScheduledPostsForUser(userId, teamId string) ([]*model.ScheduledPost, error)
+	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
+	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
+	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
+	Get(scheduledPostId string) (*model.ScheduledPost, error)
+	UpdateOldScheduledPosts(beforeTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
