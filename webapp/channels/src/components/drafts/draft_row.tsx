@@ -181,7 +181,8 @@ function DraftRow({
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
         if (isScheduledPostBeingSent.current && response.created && !response.error) {
-            dispatch(deleteScheduledPost((item as ScheduledPost).id, connectionId));
+            const scheduledPost = item as ScheduledPost;
+            dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
             isScheduledPostBeingSent.current = false;
         }
     }, [connectionId, dispatch, handleOnDelete, item]);
@@ -262,8 +263,8 @@ function DraftRow({
     const handleSchedulePostOnDelete = useCallback(async () => {
         handleCancelEdit();
 
-        const scheduledPostId = (item as ScheduledPost).id;
-        const result = await dispatch(deleteScheduledPost(scheduledPostId, connectionId));
+        const scheduledPost = item as ScheduledPost;
+        const result = await dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
         return {
             error: result.error?.message,
         };
