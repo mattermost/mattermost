@@ -94,6 +94,7 @@ const (
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
+	WebsocketWebhookEventListenerDataReceived         WebsocketEventType = "webhook_event_listener_data_received"
 )
 
 type WebSocketMessage interface {

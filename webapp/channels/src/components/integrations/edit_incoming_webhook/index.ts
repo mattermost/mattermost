@@ -22,6 +22,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
     const hookId = (new URLSearchParams(ownProps.location.search)).get('id') || '';
+    const isWithSchemaEditor = (new URLSearchParams(ownProps.location.search)).get('with_schema_editor') === 'true';
 
     return {
         hookId,
@@ -29,6 +30,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enableIncomingWebhooks,
         enablePostUsernameOverride,
         enablePostIconOverride,
+        useSchemaEditor: isWithSchemaEditor,
     };
 }
 

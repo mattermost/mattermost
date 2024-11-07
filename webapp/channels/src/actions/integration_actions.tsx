@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import {Client4} from 'mattermost-redux/client';
 
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -168,5 +169,17 @@ export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAu
 
         dispatch(getProfilesByIds(list));
         return {data: null};
+    };
+}
+
+export function listenForIncomingWebhookPayload(incomingHookId: string): ActionFuncAsync {
+    return async () => {
+        try {
+            await Client4.listenForIncomingWebhook(incomingHookId);
+        } catch (error) {
+            return {error};
+        }
+
+        return {data: true};
     };
 }

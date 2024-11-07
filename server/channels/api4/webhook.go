@@ -5,11 +5,13 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func (api *API) InitWebhook() {
@@ -18,6 +20,7 @@ func (api *API) InitWebhook() {
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(getIncomingHook)).Methods(http.MethodGet)
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(updateIncomingHook)).Methods(http.MethodPut)
 	api.BaseRoutes.IncomingHook.Handle("", api.APISessionRequired(deleteIncomingHook)).Methods(http.MethodDelete)
+	api.BaseRoutes.IncomingHook.Handle("/listen", api.APISessionRequired(listenForIncomingHook)).Methods(http.MethodGet)
 
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(createOutgoingHook)).Methods(http.MethodPost)
 	api.BaseRoutes.OutgoingHooks.Handle("", api.APISessionRequired(getOutgoingHooks)).Methods(http.MethodGet)
@@ -241,6 +244,53 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func listenForIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireHookId()
+	if c.Err != nil {
+		return
+	}
+
+	hookId := c.Params.HookId
+
+	hook, err := c.App.GetIncomingWebhook(hookId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if hook == nil {
+		c.SetInvalidParam("hook_id")
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+
+	writeWebhookResponseHandler := func(c *Context, w http.ResponseWriter, r *http.Request) {
+		message := model.NewWebSocketEvent(model.WebsocketWebhookEventListenerDataReceived, "", "", userId, nil, "")
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			c.Err = model.NewAppError("listenForIncomingHook", "api.webhook.incoming.error", nil, "webhook_id="+hookId, http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
+
+		message.Add("data", string(body))
+		c.App.Publish(message)
+
+		delete(web.RegisteredWebhooks, hookId)
+	}
+
+	webhookListener := web.RegisteredWebhookListener{
+		WebhookID: hookId,
+		Handler:   writeWebhookResponseHandler,
+	}
+
+	web.RegisteredWebhooks[hookId] = webhookListener
+
+	ReturnStatusOK(w)
+
 }
 
 func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {

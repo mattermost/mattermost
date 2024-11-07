@@ -125,7 +125,6 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-
 import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
@@ -626,6 +625,8 @@ export function handleEvent(msg) {
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
+    case SocketEvents.WEBHOOK_EVENT_LISTENER_DATA_RECEIVED:
+        dispatch(handleWebhookEventListenerDataReceived(msg));
     default:
     }
 
@@ -1874,4 +1875,14 @@ function handleChannelBookmarkSorted(msg) {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
         data: {channelId: msg.broadcast.channel_id, bookmarks},
     };
+}
+
+
+function handleWebhookEventListenerDataReceived(msg) {
+    const payload = JSON.parse(msg.data.data);
+
+    return {
+        type: 'RECEIVED_WEBHOOK_EVENT_LISTENER_DATA',
+        data: payload,
+    }
 }

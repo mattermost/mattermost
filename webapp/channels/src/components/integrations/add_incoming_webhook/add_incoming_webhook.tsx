@@ -62,12 +62,18 @@ const AddIncomingWebhook = ({
 }: Props) => {
     const [serverError, setServerError] = useState('');
 
-    const addIncomingHook = useCallback(async (hook: IncomingWebhook) => {
+    const addIncomingHook = useCallback(async (hook: IncomingWebhook, openSchemaEditor?: boolean) => {
         setServerError('');
 
+        console.log(openSchemaEditor);
         const {data, error} = await actions.createIncomingHook(hook);
         if (data) {
-            getHistory().push(`/${team.name}/integrations/confirm?type=incoming_webhooks&id=${data.id}`);
+            console.log(`/${team.name}/integrations/incoming_webhooks/edit?id=${data.id}&with_schema_editor=true`)
+            if (openSchemaEditor) {
+                getHistory().push(`/${team.name}/integrations/incoming_webhooks/edit?id=${data.id}&with_schema_editor=true`);
+            } else {
+                getHistory().push(`/${team.name}/integrations/confirm?type=incoming_webhooks&id=${data.id}`);
+            }
             return;
         }
         if (error) {

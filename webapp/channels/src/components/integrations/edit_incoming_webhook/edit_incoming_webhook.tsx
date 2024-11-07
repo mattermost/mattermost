@@ -61,6 +61,12 @@ type Props = {
      */
     enablePostIconOverride: boolean;
 
+    /**
+     * Whether or not to edit via the schema editor
+     */
+
+    useSchemaEditor?: boolean;
+
     actions: {
 
         /**
@@ -142,6 +148,7 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}
                 initialHook={this.props.hook}
+                useSchemaEditor={this.props.useSchemaEditor}
             />
         );
     }

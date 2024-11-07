@@ -19,7 +19,11 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "react-intl": "6.6.2"
+    "@minoru/react-dnd-treeview": "3.4.4",
+    "json-edit-react": "1.17.1",
+    "react-dnd": "16.0.1",
+    "react-intl": "6.6.2",
+    "react-json-view": "1.21.3"
   },
   "devDependencies": {
     "@babel/core": "7.22.0",

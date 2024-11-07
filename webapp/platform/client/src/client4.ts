@@ -2710,6 +2710,10 @@ export default class Client4 {
 
     // Integration Routes
 
+    listenForIncomingWebhook = (hookId: string) => {
+        return this.doFetch(`${this.getIncomingHookRoute(hookId)}/listen`, {method: 'get'});
+    };
+
     createIncomingWebhook = (hook: IncomingWebhook) => {
         this.trackEvent('api', 'api_integrations_created', {team_id: hook.team_id});
 

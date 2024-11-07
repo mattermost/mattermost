@@ -296,6 +296,15 @@ function appsBotIDs(state: string[] = [], action: AnyAction) {
     }
 }
 
+function incomingWebhookPayload(state = {}, action: AnyAction) {
+    switch(action.type) {
+    case 'RECEIVED_WEBHOOK_EVENT_LISTENER_DATA': 
+        return action.data;
+    default:
+        return state;
+    }
+}
+
 function dialogTriggerId(state = '', action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID:
@@ -348,4 +357,6 @@ export default combineReducers({
 
     // data for an interactive dialog to display
     dialog,
+
+    incomingWebhookPayload,
 });

@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
-import {Link} from 'react-router-dom';
+import React, { PureComponent } from 'react';
+import type { ChangeEventHandler, FormEvent, MouseEvent } from 'react';
+import { FormattedMessage } from 'react-intl';
+import type { MessageDescriptor } from 'react-intl';
+import { Link } from 'react-router-dom';
 
-import type {IncomingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
+import type { IncomingWebhook } from '@mattermost/types/integrations';
+import type { Team } from '@mattermost/types/teams';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
+import WebhookSchemaEditor from './webhook_schema_editor';
 
 interface State {
     displayName: string;
@@ -59,6 +60,12 @@ interface Props {
     */
     initialHook?: IncomingWebhook;
 
+
+    /**
+     * Whether to use the schema editor when editing the webhook.
+     */
+    useSchemaEditor?: boolean;
+
     /**
     * Whether to allow configuration of the default post username.
     */
@@ -72,7 +79,7 @@ interface Props {
     /**
     * The async function to run when the action button is pressed
     */
-    action: (hook: IncomingWebhook) => Promise<void>;
+    action: (hook: IncomingWebhook, openSchemaEditor?: boolean) => Promise<void>;
 }
 
 export default class AbstractIncomingWebhook extends PureComponent<Props, State> {
@@ -96,7 +103,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         };
     };
 
-    handleSubmit = (e: MouseEvent<HTMLElement> | FormEvent<HTMLFormElement>) => {
+    handleSubmit = (e: MouseEvent<HTMLElement> | FormEvent<HTMLFormElement>, openSchemaEditor?: boolean) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -138,7 +145,8 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             user_id: this.props.initialHook?.user_id || '',
         };
 
-        this.props.action(hook).then(() => this.setState({saving: false}));
+        console.log(openSchemaEditor);
+        this.props.action(hook, openSchemaEditor).then(() => this.setState({ saving: false }));
     };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -177,9 +185,12 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         });
     };
 
+
     render() {
         const headerToRender = this.props.header;
         const footerToRender = this.props.footer;
+
+        console.log(this.props.useSchemaEditor);
 
         return (
             <div className='backstage-content'>
@@ -305,7 +316,8 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 </div>
                             </div>
                         </div>
-                        { this.props.enablePostUsernameOverride &&
+
+                        {this.props.enablePostUsernameOverride &&
                             <div className='form-group'>
                                 <label
                                     className='control-label col-sm-4'
@@ -333,8 +345,9 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     </div>
                                 </div>
                             </div>
+                            
                         }
-                        { this.props.enablePostIconOverride &&
+                        {this.props.enablePostIconOverride &&
                             <div className='form-group'>
                                 <label
                                     className='control-label col-sm-4'
@@ -363,6 +376,11 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 </div>
                             </div>
                         }
+                        {this.props.useSchemaEditor && 
+                            <WebhookSchemaEditor
+                                initialHook={this.props.initialHook!}
+                            />
+                        }
                         <div className='backstage-form__footer'>
                             <FormError
                                 type='backstage'
@@ -377,6 +395,16 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     defaultMessage='Cancel'
                                 />
                             </Link>
+                            <SpinnerButton
+                                className='btn btn-primary'
+                                type='submit'
+                                spinning={this.state.saving}
+                                spinningText={this.props.loading}
+                                onClick={(e) => this.handleSubmit(e, true)}
+                                id='saveWebhook'
+                            >
+                                Save And Open Schema Editor
+                            </SpinnerButton>
                             <SpinnerButton
                                 className='btn btn-primary'
                                 type='submit'

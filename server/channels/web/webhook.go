@@ -22,9 +22,22 @@ func (w *Web) InitWebhooks() {
 	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods(http.MethodPost)
 }
 
+type RegisteredWebhookListener struct {
+	WebhookID string
+	Handler   func(c *Context, w http.ResponseWriter, r *http.Request)
+}
+
+var RegisteredWebhooks = make(map[string]RegisteredWebhookListener)
+
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
+
+	if registeredWebhook, ok := RegisteredWebhooks[id]; ok {
+		c.Logger.Error("Incoming webhook received, with intercept registered", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()))
+		registeredWebhook.Handler(c, w, r)
+		return
+	}
 
 	r.ParseForm()
 
