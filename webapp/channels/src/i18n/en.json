@@ -3455,6 +3455,8 @@
   "create_post_button.option.schedule_message.options.header": "Schedule message",
   "create_post_button.option.schedule_message.options.monday": "Monday at {9amTime}",
   "create_post_button.option.schedule_message.options.next_monday": "Next Monday at {9amTime}",
+  "create_post_button.option.schedule_message.options.recently_used_custom_time": "Recently used custom time",
+  "create_post_button.option.schedule_message.options.teammate_user_hour": "{time} {user}’s time",
   "create_post_button.option.schedule_message.options.tomorrow": "Tomorrow at {9amTime}",
   "create_post_button.option.send_now": "Send Now",
   "create_post.dm_or_gm_remote": "Direct Messages and Group Messages with remote users are not supported.",
