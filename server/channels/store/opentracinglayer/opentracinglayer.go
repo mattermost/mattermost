@@ -8697,6 +8697,24 @@ func (s *OpenTracingLayerScheduledPostStore) GetScheduledPostsForUser(userId str
 	return result, err
 }
 
+func (s *OpenTracingLayerScheduledPostStore) PermanentDeleteByUser(userId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.PermanentDeleteByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.PermanentDeleteByUser(userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.PermanentlyDeleteScheduledPosts")

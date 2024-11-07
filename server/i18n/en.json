@@ -6523,6 +6523,10 @@
     "translation": "Error occurred saving the scheduled post."
   },
   {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
+  },
+  {
     "id": "app.scheme.delete.app_error",
     "translation": "Unable to delete this scheme."
   },
