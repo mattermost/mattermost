@@ -89,7 +89,9 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		// If the plugin defined the support_packet prop it means there is a UI element to include it in the support packet.
 		// Check if the plugin is in the list of plugins to include in the Support Packet.
 		if _, ok := manifest.Props["support_packet"]; ok {
-			return slices.Contains(options.PluginPackets, manifest.Id)
+			if !slices.Contains(options.PluginPackets, manifest.Id) {
+				return false
+			}
 		}
 
 		// Otherwise, just call the hook as the plugin decided to always include it in the Support Packet.
