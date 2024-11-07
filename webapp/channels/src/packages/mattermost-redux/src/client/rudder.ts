@@ -7,7 +7,7 @@ import * as rudderAnalytics from 'rudder-sdk-js';
 
 import type {TelemetryHandler} from '@mattermost/client';
 
-import {TrackMiscCategory, eventCategory, eventSKUs} from 'mattermost-redux/constants/telemetry';
+import {TrackMiscCategory, eventCategory, eventSKUs, TrackPropertyUser} from 'mattermost-redux/constants/telemetry';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 export {rudderAnalytics};
@@ -18,7 +18,7 @@ export class RudderTelemetryHandler implements TelemetryHandler {
             category,
             type: event,
             user_actual_role: getActualRoles(userRoles),
-            user_actual_id: userId,
+            [TrackPropertyUser]: userId,
         }, props);
         const options = {
             context: {
@@ -41,7 +41,7 @@ export class RudderTelemetryHandler implements TelemetryHandler {
         const properties = Object.assign({
             category: getEventCategory(event),
             type: event,
-            user_actual_id: userId,
+            [TrackPropertyUser]: userId,
             user_actual_role: getActualRoles(userRoles),
         }, props);
 
@@ -68,7 +68,7 @@ export class RudderTelemetryHandler implements TelemetryHandler {
                 title: '',
                 url: '',
                 user_actual_role: getActualRoles(userRoles),
-                user_actual_id: userId,
+                [TrackPropertyUser]: userId,
             },
             {
                 context: {

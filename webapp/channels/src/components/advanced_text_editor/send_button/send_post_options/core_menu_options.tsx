@@ -2,11 +2,18 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {
+    TrackPropertyUser, TrackPropertyUserAgent,
+    TrackScheduledPostsFeature,
+} from 'mattermost-redux/constants/telemetry';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {trackFeatureEvent} from 'actions/telemetry_actions';
 
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
@@ -17,6 +24,21 @@ type Props = {
 
 function CoreMenuOptions({handleOnSelect}: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
+    const currentUserId = useSelector(getCurrentUserId);
+
+    useEffect(() => {
+        // tracking opening of scheduled posts option menu.
+        // Since MUI menu has no `onOpen` event, we are tracking it here.
+        // useEffect ensures that it is tracked only once.
+        trackFeatureEvent(
+            TrackScheduledPostsFeature,
+            'scheduled_posts_menu_opened',
+            {
+                [TrackPropertyUser]: currentUserId,
+                [TrackPropertyUserAgent]: 'webapp',
+            },
+        );
+    }, [currentUserId]);
 
     const today = moment().tz(userTimezone);
     const tomorrow9amTime = moment().
