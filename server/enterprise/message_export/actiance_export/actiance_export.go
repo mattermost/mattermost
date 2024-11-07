@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
 
 	"github.com/mattermost/mattermost/server/public/model"

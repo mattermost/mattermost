@@ -12,8 +12,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/enterprise/internal/file"
-
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -24,12 +22,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
-
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 const (
