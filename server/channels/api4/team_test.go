@@ -2322,8 +2322,8 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp, err = client.AddTeamMemberFromInvite(context.Background(), token.Token, "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
-	err = th.App.DeleteToken(token)
-	require.NoError(t, err)
+	appErr = th.App.DeleteToken(token)
+	require.Nil(t, appErr)
 	// by invite_id
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	defer th.App.Srv().SetLicense(nil)
