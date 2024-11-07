@@ -1,0 +1,36 @@
+
+
+.WebhookSchemaEditor {
+    .schemas-container {
+        display: flex;
+        justify-content: space-between;
+    }
+    .from-schema, .to-schema {
+        flex: 1;
+        margin: 0 10px;
+        max-width: 50%;
+        // min-width: 50%;
+    }
+
+    @keyframes pulse {
+        0% {
+            background-color: var(--denim-button-bg);
+        }
+        50% {
+            background-color: rgba(var(--denim-button-bg), 20%);
+        }
+        100% {
+            background-color: var(--denim-button-bg);
+        }
+    }
+
+    .to-schema {
+        &.select-mode {
+            .variable-value {
+                background-color: var(--denim-button-bg);
+                border-radius: 4px;
+                animation: pulse 2s infinite;
+            }
+        }
+    }
+}
