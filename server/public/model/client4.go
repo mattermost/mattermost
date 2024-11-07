@@ -9304,3 +9304,14 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 	}
 	return &stats, BuildResponse(r), nil
 }
+
+// DeleteSidebarCategory deletes a sidebar category for a user in a team.
+func (c *Client4) DeleteSidebarCategory(ctx context.Context, userId string, teamId string, categoryId string) (*Response, error) {
+	url := fmt.Sprintf("%s/%s", c.userCategoryRoute(userId, teamId), categoryId)
+	r, err := c.DoAPIDelete(ctx, url)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
