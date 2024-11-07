@@ -422,7 +422,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var appErr *model.AppError
 	var channel *model.Channel
 	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
-	require.NoError(th.TB, appErr)
+	require.Nil(th.TB, appErr)
 	return channel
 }
 
