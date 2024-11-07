@@ -326,10 +326,11 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
-	th.App.DeleteChannel(th.Context, archivedChannel, "")
+	err := th.App.DeleteChannel(th.Context, archivedChannel, "")
+	require.NoError(t, err)
 
-	_, err := th.App.UpdatePost(th.Context, post, true)
-	require.NotNil(t, err)
+	_, appErr := th.App.UpdatePost(th.Context, post, true)
+	require.NotNil(t, appErr)
 	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
 }
 
@@ -569,8 +570,15 @@ func TestPostChannelMentions(t *testing.T) {
 		TeamId:      th.BasicTeam.Id,
 	}, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteChannel(th.Context, channelToMention)
-	defer th.App.PermanentDeleteChannel(th.Context, channelToMention2)
+	defer func() {
+		appErr := th.App.PermanentDeleteChannel(th.Context, channelToMention)
+		require.Nil(t, appErr)
+	}()
+
+	defer func() {
+		appErr := th.App.PermanentDeleteChannel(th.Context, channelToMention2)
+		require.Nil(t, appErr)
+	}()
 
 	_, err = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, err)
@@ -789,11 +797,14 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
-	require.Nil(t, err)
+	info1, appErr := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+	require.Nil(t, appErr)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
-		th.App.RemoveFile(info1.Path)
+		err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
+		require.NoError(t, err)
+
+		err = th.App.RemoveFile(info1.Path)
+		require.NoError(t, err)
 	}()
 
 	post := &model.Post{
@@ -805,19 +816,19 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		FileIds:       []string{info1.Id},
 	}
 
-	post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-	assert.Nil(t, err)
+	post, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	assert.Nil(t, appErr)
 
 	// Delete the post.
-	_, err = th.App.DeletePost(th.Context, post.Id, userID)
-	assert.Nil(t, err)
+	_, appErr = th.App.DeletePost(th.Context, post.Id, userID)
+	assert.Nil(t, appErr)
 
 	// Wait for the cleanup routine to finish.
 	time.Sleep(time.Millisecond * 100)
 
 	// Check that the file can no longer be reached.
-	_, err = th.App.GetFileInfo(th.Context, info1.Id)
-	assert.NotNil(t, err)
+	_, appErr = th.App.GetFileInfo(th.Context, info1.Id)
+	assert.NotNil(t, appErr)
 }
 
 func TestDeletePostInArchivedChannel(t *testing.T) {
@@ -826,7 +837,8 @@ func TestDeletePostInArchivedChannel(t *testing.T) {
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
-	th.App.DeleteChannel(th.Context, archivedChannel, "")
+	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
+	assert.NotNil(t, appErr)
 
 	_, err := th.App.DeletePost(th.Context, post.Id, "")
 	require.NotNil(t, err)
@@ -1172,7 +1184,8 @@ func TestCreatePost(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
-				th.App.UpdatePost(th.Context, post, false)
+				_, appErr := th.App.UpdatePost(th.Context, post, false)
+				require.Nil(t, appErr)
 			}()
 		}
 
@@ -1449,7 +1462,8 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
-	th.App.DeleteChannel(th.Context, archivedChannel, "")
+	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
+	require.Nil(t, appErr)
 
 	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)})
 	require.NotNil(t, err)
@@ -2819,7 +2833,8 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
 	// another user follows the thread
-	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
+	appErr = th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
+	require.Nil(t, appErr)
 
 	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
@@ -2894,11 +2909,11 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	m, e := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e)
 
-	th.App.ViewChannel(th.Context, &model.ChannelView{
+	_, appErr = th.App.ViewChannel(th.Context, &model.ChannelView{
 		ChannelId:     channel.Id,
 		PrevChannelId: "",
 	}, user2.Id, "", true)
-
+	require.Nil(t, appErr)
 	m1, e1 := th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 	require.NoError(t, e1)
 	require.Equal(t, m[0].LastViewed, m1[0].LastViewed) // opening the channel shouldn't update threads
@@ -2918,7 +2933,10 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	t.Run("should only return root posts, enriched", func(t *testing.T) {
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
-		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
+		defer func() {
+			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
+			require.Nil(t, appErr)
+		}()
 
 		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2937,7 +2955,9 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		thread, nErr := th.App.Srv().Store().Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
-		th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
+		_, appErr := th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
+		require.Nil(t, appErr)
+
 		l, err := th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
@@ -2957,7 +2977,10 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.AddUserToChannel(user2, channel)
-		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
+		defer func() {
+			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
+			require.Nil(t, appErr)
+		}()
 
 		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2971,16 +2994,18 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
+			err := th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
+			require.NoError(t, err)
 		}()
 
 		require.NotPanics(t, func() {
-			th.App.CreatePost(th.Context, &model.Post{
+			_, appErr := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
 				RootId:    postRoot.Id,
 				Message:   fmt.Sprintf("@%s", user2.Username),
 			}, channel, model.CreatePostFlags{SetOnline: true})
+			require.Nil(t, appErr)
 		})
 
 		wg.Wait()
@@ -3001,8 +3026,14 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		channel := th.CreateChannel(th.Context, th.BasicTeam)
 		th.LinkUserToTeam(user3, th.BasicTeam)
 		th.AddUserToChannel(user3, channel)
-		defer th.App.DeleteChannel(th.Context, channel, user1.Id)
-		defer th.App.PermanentDeleteUser(th.Context, user3)
+		defer func() {
+			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
+			require.Nil(t, appErr)
+		}()
+		defer func() {
+			appErr := th.App.PermanentDeleteUser(th.Context, user3)
+			require.Nil(t, appErr)
+		}()
 
 		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -3036,7 +3067,8 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.Empty(t, l.Posts[postRoot.Id].Participants[0].AuthData)
 
-		th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
+		_, appErr := th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
+		require.Nil(t, appErr)
 
 		// extended fetch posts around
 		l, err = th.App.GetPostsForChannelAroundLastUnread(th.Context, channel.Id, user1.Id, 10, 10, true, true, true)
@@ -3077,7 +3109,10 @@ func TestReplyToPostWithLag(t *testing.T) {
 	t.Run("replication lag time great than reply time", func(t *testing.T) {
 		err := mainHelper.SetReplicationLagForTesting(5)
 		require.NoError(t, err)
-		defer mainHelper.SetReplicationLagForTesting(0)
+		defer func() {
+			err := mainHelper.SetReplicationLagForTesting(0)
+			require.NoError(t, err)
+		}()
 		mainHelper.ToggleReplicasOn()
 		defer mainHelper.ToggleReplicasOff()
 
