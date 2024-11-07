@@ -902,13 +902,13 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string, rctx request.CTX) error {
+func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath string, pathToDir string) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
 	}
 	defer func() {
-        if err = fromPath.Close(); err != nil {
+		if err = fromPath.Close(); err != nil {
             rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
         }
     }()
@@ -930,7 +930,7 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 		return errors.New("Error creating the image file " + err.Error())
 	}
 	defer func() {
-        if err = toPath.Close(); err != nil {
+		if err = toPath.Close(); err != nil {
             rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
         }
     }()
@@ -1142,7 +1142,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 	return attachments, nil
 }
 
-func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer, rctx request.CTX ) *model.AppError {
+func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.Writer) *model.AppError {
 	var wr io.Writer
 	var err error
 	rd, appErr := a.FileReader(filePath)
