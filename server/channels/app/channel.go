@@ -2698,6 +2698,17 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 				},
 			)
 		}
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channelID)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_viewed",
+				map[string]any{
+					telemetry.TrackPropertyUser:    userID,
+					telemetry.TrackPropertyChannel: channelID,
+				},
+			)
+		}
 	}
 
 	return nil

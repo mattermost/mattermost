@@ -84,11 +84,9 @@ issues:
         channels/api4/team_test.go|\
         channels/api4/user_test.go|\
         channels/api4/websocket_test.go|\
-        channels/app/app_test.go|\
         channels/app/auto_responder_test.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
-        channels/app/busy_test.go|\
         channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
         channels/app/channel_test.go|\
@@ -109,7 +107,6 @@ issues:
         channels/app/job_test.go|\
         channels/app/login_test.go|\
         channels/app/migrations.go|\
-        channels/app/onboarding_test.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/busy_test.go|\
@@ -135,12 +132,7 @@ issues:
         channels/app/plugin_api_tests/manual.test_http_hijack_plugin/main.go|\
         channels/app/plugin_api_tests/manual.test_serve_metrics_plugin/main.go|\
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
-        channels/app/plugin_deadlock_test.go|\
-        channels/app/plugin_health_check_test.go|\
-        channels/app/plugin_hooks_test.go|\
         channels/app/plugin_install.go|\
-        channels/app/plugin_reattach.go|\
-        channels/app/plugin_requests.go|\
         channels/app/plugin_signature.go|\
         channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
@@ -151,7 +143,6 @@ issues:
         channels/app/post_persistent_notification_test.go|\
         channels/app/post_test.go|\
         channels/app/product_notices_test.go|\
-        channels/app/role_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
         channels/app/server_test.go|\

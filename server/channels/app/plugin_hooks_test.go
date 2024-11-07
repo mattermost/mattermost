@@ -47,7 +47,8 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		require.NoError(t, err)
 		_, _, activationErr := env.Activate(pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
@@ -508,14 +509,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
+		_, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
+		if assert.NotNil(t, appErr) {
+			assert.Equal(t, "File rejected by plugin. rejected", appErr.Message)
 		}
 	})
 
@@ -558,14 +559,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
+		_, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
+		if assert.NotNil(t, appErr) {
+			assert.Equal(t, "File rejected by plugin. rejected", appErr.Message)
 		}
 	})
 
@@ -602,25 +603,26 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
+		response, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		assert.Nil(t, err)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, response)
 
 		fileID := response.Id
-		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
-		assert.Nil(t, err)
+		fileInfo, appErr := th.App.GetFileInfo(th.Context, fileID)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
 
-		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
+		fileReader, appErr := th.App.FileReader(fileInfo.Path)
+		assert.Nil(t, appErr)
 		var resultBuf bytes.Buffer
-		io.Copy(&resultBuf, fileReader)
+		_, err := io.Copy(&resultBuf, fileReader)
+		require.NoError(t, err)
 		assert.Equal(t, "inputfile", resultBuf.String())
 	})
 
@@ -674,24 +676,25 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
+		response, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
-		assert.Nil(t, err)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, response)
 		fileID := response.Id
 
-		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
-		assert.Nil(t, err)
+		fileInfo, appErr := th.App.GetFileInfo(th.Context, fileID)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
 
-		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
+		fileReader, appErr := th.App.FileReader(fileInfo.Path)
+		assert.Nil(t, appErr)
 		var resultBuf bytes.Buffer
-		io.Copy(&resultBuf, fileReader)
+		_, err := io.Copy(&resultBuf, fileReader)
+		require.NoError(t, err)
 		assert.Equal(t, "changedtext", resultBuf.String())
 	})
 }
@@ -1161,7 +1164,8 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		require.NoError(t, err)
 
 		// Setup mocks before activating
 		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()

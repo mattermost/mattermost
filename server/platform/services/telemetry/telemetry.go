@@ -103,9 +103,11 @@ const (
 type TrackFeature string
 
 const (
-	TrackGuestFeature    TrackFeature = "guest_accounts"
-	TrackGroupsFeature   TrackFeature = "custom_groups"
-	TrackReadOnlyFeature TrackFeature = "read_only_channels"
+	TrackGuestFeature          TrackFeature = "guest_accounts"
+	TrackGroupsFeature         TrackFeature = "custom_groups"
+	TrackReadOnlyFeature       TrackFeature = "read_only_channels"
+	TrackSharedChannelsFeature TrackFeature = "shared_channels"
+	TrackScheduledPosts        TrackFeature = "scheduled_posts"
 )
 
 const (
@@ -113,6 +115,7 @@ const (
 	TrackPropertyGroup      = "group_id"
 	TrackPropertyChannel    = "channel_id"
 	TrackPropertyPostAuthor = "post_owner_id"
+	TrackPropertyUserAgent  = "user_agent"
 )
 
 type ServerIface interface {
@@ -147,9 +150,10 @@ type EventFeature struct {
 }
 
 var featureSKUS = map[TrackFeature][]TrackSKU{
-	TrackGuestFeature:    {TrackProfessionalSKU, TrackEnterpriseSKU},
-	TrackGroupsFeature:   {TrackProfessionalSKU, TrackEnterpriseSKU},
-	TrackReadOnlyFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackGuestFeature:          {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackGroupsFeature:         {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackReadOnlyFeature:       {TrackProfessionalSKU, TrackEnterpriseSKU},
+	TrackSharedChannelsFeature: {TrackProfessionalSKU, TrackEnterpriseSKU},
 }
 
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger, verbose bool) (*TelemetryService, error) {
