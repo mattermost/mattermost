@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import store from 'stores/redux_store';
+
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
@@ -17,6 +19,15 @@ export interface Props extends PropsFromRedux {
 
 function SearchResultsHeader(props: Props) {
     const {formatMessage} = useIntl();
+
+    // Add console logging to check RHS state with 1 second delay
+    setTimeout(() => {
+        console.log('RHS State:', {
+            isOpen: props.isExpanded,
+            pluginsPlaybooksRHS: store.getState()['plugins-playbooks'],
+            rhsState: store.getState().views.rhs,
+        });
+    }, 1000);
 
     const showExpand = props.previousRhsState !== RHSStates.CHANNEL_INFO;
 
@@ -60,29 +71,6 @@ function SearchResultsHeader(props: Props) {
                         <i className='icon icon-arrow-back-ios'/>
                     </button>
                 )}
-                <WithTooltip
-                    placement='top'
-                    id='closeSidebarTooltip'
-                    title={
-                        <FormattedMessage
-                            id='rhs_header.closeSidebarTooltip'
-                            defaultMessage='Close'
-                        />
-                    }
-                >
-                    <button
-                        id='searchResultsCloseButton'
-                        type='button'
-                        className='sidebar--right__close-back btn btn-icon btn-sm'
-                        aria-label='Close'
-                        onClick={props.actions.closeRightHandSide}
-                    >
-                        <i
-                            className='icon icon-arrow-back-ios'
-                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                        />
-                    </button>
-                </WithTooltip>
                 {props.children}
             </span>
             <div className='pull-right'>
