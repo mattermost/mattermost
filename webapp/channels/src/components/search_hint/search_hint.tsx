@@ -12,6 +12,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import ExternalLink from 'components/external_link';
 
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 interface SearchTerm {
     searchTerm: string;
@@ -147,7 +148,7 @@ const SearchHint = (props: Props): JSX.Element => {
                             <span className='search-hint__suggestion-list__label'>{option.additionalDisplay ? option.additionalDisplay : option.searchTerm}</span>
                         </div>
                         <div className='search-hint__suggestion-list__value'>
-                            <FormattedMessage
+                            <FormattedMessageWithoutExtraction
                                 id={option.message.id}
                                 defaultMessage={option.message.defaultMessage}
                             />

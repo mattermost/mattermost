@@ -18,6 +18,7 @@ import SpinnerButton from 'components/spinner_button';
 
 import {DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 interface State {
     callbackUrls: string;
@@ -278,7 +279,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                             defaultMessage='Outgoing Webhooks'
                         />
                     </Link>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={headerToRender.id}
                         defaultMessage={headerToRender.defaultMessage}
                     />
@@ -598,7 +599,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 onClick={this.handleSubmit}
                                 id='saveWebhook'
                             >
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id={footerToRender.id}
                                     defaultMessage={footerToRender.defaultMessage}
                                 />

@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import type {Role} from '@mattermost/types/roles';
 
 import {PermissionsScope} from 'utils/constants';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
@@ -284,7 +285,7 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
         let description: React.JSX.Element | string = '';
         if (groupRolesStrings[id]) {
             description = (
-                <FormattedMessage
+                <FormattedMessageWithoutExtraction
                     id={groupRolesStrings[id].description.id}
                     defaultMessage={groupRolesStrings[id].description.defaultMessage}
                     values={additionalValuesProp}

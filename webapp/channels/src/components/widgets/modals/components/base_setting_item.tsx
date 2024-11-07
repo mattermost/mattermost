@@ -9,6 +9,8 @@ import {useIntl} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {formatMessageWithoutExtraction} from 'utils/intl';
+
 import './base_setting_item.scss';
 
 type ExtendedMessageDescriptor = MessageDescriptor & {
@@ -30,7 +32,7 @@ type Props = BaseSettingItemProps & {
 }
 
 function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false, isContentInline = false, dataTestId}: Props): JSX.Element {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
 
     const titleComponent = title && (
         <h4
@@ -56,7 +58,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
             className='mm-modal-generic-section-item__error'
         >
             <AlertCircleOutlineIcon/>
-            {formatMessage({id: error.id, defaultMessage: error.defaultMessage}, error.values)}
+            {formatMessageWithoutExtraction(intl, {id: error.id, defaultMessage: error.defaultMessage}, error.values)}
         </div>
     );
 

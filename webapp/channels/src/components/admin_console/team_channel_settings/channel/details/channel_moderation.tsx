@@ -15,6 +15,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 import type {ChannelModerationRoles} from './types';
 
 const PERIOD_TO_SLASH_REGEX = /\./g;
@@ -278,7 +280,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
                 <label
                     data-testid={channelModerationPermissionMessages?.title?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                 >
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={channelModerationPermissionMessages?.title?.id}
                         defaultMessage={channelModerationPermissionMessages?.title?.defaultMessage}
                     />
@@ -286,7 +288,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
                 <div
                     data-testid={channelModerationPermissionMessages?.description?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                 >
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={descriptionId}
                         defaultMessage={descriptionDefaultMessage}
                     />
@@ -363,7 +365,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                         data-testid={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                         key={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.id}
                     >
-                        <FormattedMessage
+                        <FormattedMessageWithoutExtraction
                             id={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.id}
                             defaultMessage={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.defaultMessage}
                         />
@@ -377,7 +379,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                         data-testid={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                         key={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.id}
                     >
-                        <FormattedMessage
+                        <FormattedMessageWithoutExtraction
                             id={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.id}
                             defaultMessage={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.defaultMessage}
                         />
@@ -390,7 +392,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                         data-testid={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                         key={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.id}
                     >
-                        <FormattedMessage
+                        <FormattedMessageWithoutExtraction
                             id={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.id}
                             defaultMessage={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.defaultMessage}
                         />
@@ -458,7 +460,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                     data-testid={disabledKeyId?.replace(PERIOD_TO_SLASH_REGEX, '-')}
                     key={disabledKeyId}
                 >
-                    <FormattedMarkdownMessage
+                    <FormattedMarkdownMessageWithoutExtraction
                         id={disabledKeyId}
                         defaultMessage={disabledKeyMessage as string}
                         values={{

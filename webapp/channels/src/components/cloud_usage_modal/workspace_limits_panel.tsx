@@ -8,13 +8,14 @@ import type {CloudUsage, Limits} from '@mattermost/types/cloud';
 
 import type {Message} from 'utils/i18n';
 import {asGBString, inK} from 'utils/limits';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import LimitLine from './limit_line';
 
 export function messageToElement(x: Message | React.ReactNode): React.ReactNode {
     if (Object.prototype.hasOwnProperty.call(x, 'defaultMessage')) {
         return (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={(x as Message).id}
                 defaultMessage={(x as Message).defaultMessage}
                 values={(x as Message).values}

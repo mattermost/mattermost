@@ -18,6 +18,7 @@ import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_c
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 import {getSiteURL} from 'utils/url';
 
 export function renderUsername(value: string): ReactNode {
@@ -526,7 +527,7 @@ export function renderWranglerSystemMessage(post: Post): ReactNode {
         }
     }
     return (
-        <FormattedMessage
+        <FormattedMessageWithoutExtraction
             id={id}
             defaultMessage={post.message}
             values={values}

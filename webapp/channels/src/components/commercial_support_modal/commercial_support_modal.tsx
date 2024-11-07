@@ -16,6 +16,8 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 import './commercial_support_modal.scss';
 
 type Props = {
@@ -198,7 +200,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     disabled={item.mandatory}
                                     onChange={() => this.updateCheckStatus(index)}
                                 />
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id='mettormost.plugin.metrics.support.packet'
                                     defaultMessage={item.label}
                                 >
@@ -210,7 +212,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                             {text}
                                         </label>)
                                     }
-                                </FormattedMessage>
+                                </FormattedMessageWithoutExtraction>
                             </div>
                         ))}
                         <div className='CommercialSupportModal__download'>

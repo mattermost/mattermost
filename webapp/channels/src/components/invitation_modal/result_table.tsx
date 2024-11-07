@@ -15,6 +15,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {imageURLForUser, getLongDisplayName} from 'utils/utils';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import './result_table.scss';
 
@@ -154,7 +155,7 @@ export default function ResultTable(props: Props) {
                             reason = messageWithLink(invitation.reason, invitation.path);
                         } else {
                             reason = (
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id={invitation.reason.id}
                                     defaultMessage={invitation.reason.defaultMessage}
                                     values={invitation.reason.values}

@@ -12,6 +12,7 @@ import RenderEmoji from 'components/emoji/render_emoji';
 import WithTooltip from 'components/with_tooltip';
 
 import {durationValues} from 'utils/constants';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import CustomStatusText from './custom_status_text';
 
@@ -87,7 +88,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             duration !== CustomStatusDuration.CUSTOM_DATE_TIME &&
             duration !== CustomStatusDuration.DATE_AND_TIME && (
                 <span className='statusSuggestion__duration'>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={durationValues[duration].id}
                         defaultMessage={durationValues[duration].defaultMessage}
                     />

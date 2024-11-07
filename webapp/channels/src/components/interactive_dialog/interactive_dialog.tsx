@@ -14,6 +14,8 @@ import {
 
 import SpinnerButton from 'components/spinner_button';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
@@ -73,7 +75,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 );
                 if (error) {
                     errors[elem.name] = (
-                        <FormattedMessage
+                        <FormattedMessageWithoutExtraction
                             id={error.id}
                             defaultMessage={error.defaultMessage}
                             values={error.values}

@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
+import {defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
+
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import BooleanSetting from './boolean_setting';
 import OLDAdminSettings from './old_admin_settings';
@@ -98,7 +100,7 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
 
     renderTitle() {
         return (
-            <FormattedMessage {...messages.title}/>
+            <FormattedMessageWithoutExtraction {...messages.title}/>
         );
     }
 
@@ -108,22 +110,22 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
         let sessionLengthSSOHelpText;
         let sessionTimeoutSetting;
         if (this.state.extendSessionLengthWithActivity) {
-            sessionLengthWebHelpText = (<FormattedMessage {...messages.webSessionHoursDesc_extendLength}/>);
-            sessionLengthMobileHelpText = (<FormattedMessage {...messages.mobileSessionHoursDesc_extendLength}/>);
-            sessionLengthSSOHelpText = (<FormattedMessage {...messages.ssoSessionHoursDesc_extendLength}/>);
+            sessionLengthWebHelpText = (<FormattedMessageWithoutExtraction {...messages.webSessionHoursDesc_extendLength}/>);
+            sessionLengthMobileHelpText = (<FormattedMessageWithoutExtraction {...messages.mobileSessionHoursDesc_extendLength}/>);
+            sessionLengthSSOHelpText = (<FormattedMessageWithoutExtraction {...messages.ssoSessionHoursDesc_extendLength}/>);
         } else {
-            sessionLengthWebHelpText = (<FormattedMessage {...messages.webSessionHoursDesc}/>);
-            sessionLengthMobileHelpText = (<FormattedMessage {...messages.mobileSessionHoursDesc}/>);
-            sessionLengthSSOHelpText = (<FormattedMessage {...messages.ssoSessionHoursDesc}/>);
+            sessionLengthWebHelpText = (<FormattedMessageWithoutExtraction {...messages.webSessionHoursDesc}/>);
+            sessionLengthMobileHelpText = (<FormattedMessageWithoutExtraction {...messages.mobileSessionHoursDesc}/>);
+            sessionLengthSSOHelpText = (<FormattedMessageWithoutExtraction {...messages.ssoSessionHoursDesc}/>);
         }
         if (this.props.license.Compliance && !this.state.extendSessionLengthWithActivity) {
             sessionTimeoutSetting = (
                 <TextSetting
                     id='sessionIdleTimeoutInMinutes'
                     type='number'
-                    label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.sessionIdleTimeout}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
-                    helpText={<FormattedMessage {...messages.sessionIdleTimeoutDesc}/>}
+                    helpText={<FormattedMessageWithoutExtraction {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionIdleTimeoutInMinutes')}
@@ -136,8 +138,8 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
             <SettingsGroup>
                 <BooleanSetting
                     id='extendSessionLengthWithActivity'
-                    label={<FormattedMessage {...messages.extendSessionLengthActivity_label}/>}
-                    helpText={<FormattedMessage {...messages.extendSessionLengthActivity_helpText}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.extendSessionLengthActivity_label}/>}
+                    helpText={<FormattedMessageWithoutExtraction {...messages.extendSessionLengthActivity_helpText}/>}
                     value={this.state.extendSessionLengthWithActivity}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.ExtendSessionLengthWithActivity')}
@@ -145,8 +147,8 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
                 />
                 <BooleanSetting
                     id='terminateSessionsOnPasswordChange'
-                    label={<FormattedMessage {...messages.terminateSessionsOnPasswordChange_label}/>}
-                    helpText={<FormattedMessage {...messages.terminateSessionsOnPasswordChange_helpText}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.terminateSessionsOnPasswordChange_label}/>}
+                    helpText={<FormattedMessageWithoutExtraction {...messages.terminateSessionsOnPasswordChange_helpText}/>}
                     value={this.state.terminateSessionsOnPasswordChange}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.TerminateSessionsOnPasswordChange')}
@@ -154,7 +156,7 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
                 />
                 <TextSetting
                     id='sessionLengthWebInHours'
-                    label={<FormattedMessage {...messages.webSessionHours}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.webSessionHours}/>}
                     placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthWebHelpText}
                     value={this.state.sessionLengthWebInHours}
@@ -165,7 +167,7 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
                 />
                 <TextSetting
                     id='sessionLengthMobileInHours'
-                    label={<FormattedMessage {...messages.mobileSessionHours}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.mobileSessionHours}/>}
                     placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthMobileHelpText}
                     value={this.state.sessionLengthMobileInHours}
@@ -176,7 +178,7 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
                 />
                 <TextSetting
                     id='sessionLengthSSOInHours'
-                    label={<FormattedMessage {...messages.ssoSessionHours}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.ssoSessionHours}/>}
                     placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthSSOHelpText}
                     value={this.state.sessionLengthSSOInHours}
@@ -187,9 +189,9 @@ export default class SessionLengthSettings extends OLDAdminSettings<Props, State
                 />
                 <TextSetting
                     id='sessionCacheInMinutes'
-                    label={<FormattedMessage {...messages.sessionCache}/>}
+                    label={<FormattedMessageWithoutExtraction {...messages.sessionCache}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionMinutesEx', defaultMessage: 'E.g.: "10"'})}
-                    helpText={<FormattedMessage {...messages.sessionCacheDesc}/>}
+                    helpText={<FormattedMessageWithoutExtraction {...messages.sessionCacheDesc}/>}
                     value={this.state.sessionCacheInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionCacheInMinutes')}

@@ -17,6 +17,7 @@ import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import OAuthConnectionAudienceInput from './outgoing_oauth_connections/oauth_connection_audience_input';
 
@@ -111,7 +112,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         }
 
         return (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={this.props.header.id}
                 defaultMessage={this.props.header.defaultMessage}
             />
@@ -124,7 +125,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
         }
 
         return (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={this.props.footer.id}
                 defaultMessage={this.props.footer.defaultMessage}
             />

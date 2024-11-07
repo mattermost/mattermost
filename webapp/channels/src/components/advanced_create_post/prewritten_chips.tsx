@@ -14,6 +14,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import Chip from 'components/common/chip/chip';
 
 import Constants from 'utils/constants';
+import {formatMessageWithoutExtraction} from 'utils/intl';
 
 import type {GlobalState} from 'types/store';
 
@@ -42,10 +43,10 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
     const chips = useMemo(() => {
         const customChip = {
             event: 'prefilled_message_selected_custom',
-            message: defineMessage({
+            message: {
                 id: '',
                 defaultMessage: '',
-            }),
+            },
             display: defineMessage({
                 id: 'create_post.prewritten.custom',
                 defaultMessage: 'Custom message...',
@@ -162,7 +163,7 @@ const PrewrittenChips = ({channelId, currentUserId, prefillMessage}: Props) => {
         <ChipContainer>
             {chips.map(({event, message, display, leadingIcon}) => {
                 const values = {username: channelTeammateUsername};
-                const messageToPrefill = message.id ? formatMessage(
+                const messageToPrefill = message.id ? formatMessageWithoutExtraction(
                     message,
                     values,
                 ) : '';

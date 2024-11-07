@@ -17,6 +17,8 @@ import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 type Props = {
 
     /**
@@ -312,7 +314,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                             defaultMessage='Installed OAuth2 Apps'
                         />
                     </Link>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={headerToRender.id}
                         defaultMessage={headerToRender.defaultMessage}
                     />
@@ -479,7 +481,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 onClick={this.handleSubmit}
                                 id='saveOauthApp'
                             >
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id={footerToRender.id}
                                     defaultMessage={footerToRender.defaultMessage}
                                 />

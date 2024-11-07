@@ -15,6 +15,8 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 interface State {
     displayName: string;
     description: string;
@@ -190,7 +192,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                             defaultMessage='Incoming Webhooks'
                         />
                     </Link>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={headerToRender.id}
                         defaultMessage={headerToRender.defaultMessage}
                     />
@@ -385,7 +387,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 onClick={(e) => this.handleSubmit(e)}
                                 id='saveWebhook'
                             >
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id={footerToRender.id}
                                     defaultMessage={footerToRender.defaultMessage}
                                 />

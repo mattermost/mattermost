@@ -188,10 +188,18 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     loading={this.state.joiningChannel === channel.id}
                     text={messages.joiningButton}
                 >
-                    <FormattedMessage
-                        id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
-                        defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
-                    />
+                    {this.isMemberOfChannel(channel.id) &&
+                        <FormattedMessage
+                            id={'more_channels.view'}
+                            defaultMessage={'View'}
+                        />
+                    }
+                    {!this.isMemberOfChannel(channel.id) &&
+                        <FormattedMessage
+                            id={'joinChannel.JoinButton'}
+                            defaultMessage={'Join'}
+                        />
+                    }
                 </LoadingWrapper>
             </button>
         );

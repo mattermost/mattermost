@@ -3860,14 +3860,26 @@ const AdminDefinition: AdminDefinitionType = {
 
                                         return (
                                             <span>
-                                                <FormattedMessage
-                                                    id={linkedLdapGroupsCount ? 'admin.ldap.jobExtraInfo' : 'admin.ldap.jobExtraInfoTotal'}
-                                                    defaultMessage={linkedLdapGroupsCount ? 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} linked groups.' : 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} groups.'}
-                                                    values={{
-                                                        ldapUsers,
-                                                        ldapGroups: linkedLdapGroupsCount || totalLdapGroupsCount, // Show the old count for jobs records containing the old JSON key.
-                                                    }}
-                                                />
+                                                {linkedLdapGroupsCount &&
+                                                    <FormattedMessage
+                                                        id={'admin.ldap.jobExtraInfo'}
+                                                        defaultMessage={'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} linked groups.'}
+                                                        values={{
+                                                            ldapUsers,
+                                                            ldapGroups: linkedLdapGroupsCount || totalLdapGroupsCount, // Show the old count for jobs records containing the old JSON key.
+                                                        }}
+                                                    />
+                                                }
+                                                {!linkedLdapGroupsCount &&
+                                                    <FormattedMessage
+                                                        id={'admin.ldap.jobExtraInfoTotal'}
+                                                        defaultMessage={'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} groups.'}
+                                                        values={{
+                                                            ldapUsers,
+                                                            ldapGroups: linkedLdapGroupsCount || totalLdapGroupsCount, // Show the old count for jobs records containing the old JSON key.
+                                                        }}
+                                                    />
+                                                }
                                                 <ul>
                                                     {updateCount > 0 &&
                                                     <li>

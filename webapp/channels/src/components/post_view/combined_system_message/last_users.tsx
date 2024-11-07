@@ -10,6 +10,7 @@ import {Posts} from 'mattermost-redux/constants';
 import Markdown from 'components/markdown';
 
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import {formatMessageWithoutExtraction} from 'utils/intl';
 
 const typeMessage = defineMessages({
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: {
@@ -121,7 +122,7 @@ export class LastUsers extends React.PureComponent<Props, State> {
             {numOthers: lastIndex},
         );
 
-        const actorMessage = formatMessage(
+        const actorMessage = formatMessageWithoutExtraction(i18n,
             {id: typeMessage[postType].id, defaultMessage: typeMessage[postType].defaultMessage},
             {actor},
         );

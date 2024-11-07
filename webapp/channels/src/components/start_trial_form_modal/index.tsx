@@ -26,6 +26,7 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {formatMessageWithoutExtraction} from 'utils/intl';
 
 import type {GlobalState} from 'types/store';
 
@@ -94,7 +95,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [orgSize, setOrgSize] = useState<OrgSize | undefined>();
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
-    const {formatMessage} = useIntl();
+    const i18n: {formatMessage} = useIntl();
     const cwsAvailability = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
@@ -238,7 +239,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         }
         return {
             value: orgSize,
-            label: formatMessage({id: orgSize, defaultMessage: OrgSize[orgSize as unknown as keyof typeof OrgSize]}),
+            label: formatMessageWithoutExtraction(i18n, {id: orgSize, defaultMessage: OrgSize[orgSize as unknown as keyof typeof OrgSize]}),
         };
     };
 

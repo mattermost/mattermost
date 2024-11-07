@@ -25,6 +25,7 @@ import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
@@ -405,7 +406,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         let submit: (() => Promise<void>) | (() => void) | null = onSubmit || this.handleSubmit;
 
         const firstMessage = (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={firstOption.radionButtonText.label.id}
                 defaultMessage={firstOption.radionButtonText.label.defaultMessage}
             />
@@ -417,7 +418,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             moreColon = ': ';
             firstMessageMore = (
                 <span className='font-weight--normal'>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={firstOption.radionButtonText.more.id}
                         defaultMessage={firstOption.radionButtonText.more.defaultMessage}
                     />
@@ -426,7 +427,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
 
         const secondMessage = (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={secondOption.radionButtonText.label.id}
                 defaultMessage={secondOption.radionButtonText.label.defaultMessage}
             />
@@ -436,7 +437,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (secondOption.radionButtonText.more?.id) {
             secondMessageMore = (
                 <span className='font-weight--normal'>
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={secondOption.radionButtonText.more.id}
                         defaultMessage={secondOption.radionButtonText.more.defaultMessage}
                     />
@@ -447,7 +448,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         let thirdMessage;
         if (thirdOption) {
             thirdMessage = (
-                <FormattedMessage
+                <FormattedMessageWithoutExtraction
                     id={thirdOption.radionButtonText.label.id}
                     defaultMessage={thirdOption.radionButtonText.label.defaultMessage}
                 />
@@ -455,14 +456,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
 
         const messageTitle = (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={title.id}
                 defaultMessage={title.defaultMessage}
             />
         );
 
         const messageDesc = (
-            <FormattedMessage
+            <FormattedMessageWithoutExtraction
                 id={description.id}
                 defaultMessage={description.defaultMessage}
             />
@@ -536,13 +537,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                     this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
                                 }}
                             />
-                            <FormattedMessage
+                            <FormattedMessageWithoutExtraction
                                 id={childOptionToShow.label.id}
                                 defaultMessage={childOptionToShow.label.defaultMessage}
                             />
                             {moreColon}
                             <span className='font-weight--normal'>
-                                <FormattedMessage
+                                <FormattedMessageWithoutExtraction
                                     id={childOptionToShow.more.id}
                                     defaultMessage={childOptionToShow.more.defaultMessage}
                                 />

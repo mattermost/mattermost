@@ -24,6 +24,8 @@ import {Constants} from 'utils/constants';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 import type {PluginComponent} from 'types/store/plugins';
 
+import {formatMessageWithoutExtraction} from 'utils/intl';
+
 type CustomMenuProps = {
     open?: boolean;
     children?: React.ReactNode;
@@ -175,7 +177,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
 
             if (stringOrElement.type === FormattedMessage) {
                 // This is a FormattedMessage, so extract the props to translate the text manually
-                return intl.formatMessage(
+                return formatMessageWithoutExtraction(intl,
                     {
                         id: stringOrElement.props.id,
                         defaultMessage: stringOrElement.props.defaultMessage,

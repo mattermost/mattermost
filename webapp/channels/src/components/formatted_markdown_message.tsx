@@ -7,6 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import {shouldOpenInNewTab, getSiteURL} from 'utils/url';
+import {formatMessageWithoutExtraction} from 'utils/intl';
 
 const TARGET_BLANK_URL_PREFIX = '!';
 
@@ -62,7 +63,7 @@ export default function FormattedMarkdownMessage({
 }: Props) {
     const intl = useIntl();
 
-    const origMsg = intl.formatMessage({id, defaultMessage}, values);
+    const origMsg = formatMessageWithoutExtraction(intl, {id, defaultMessage}, values);
 
     const markedUpMessage = marked(origMsg, {
         breaks: true,

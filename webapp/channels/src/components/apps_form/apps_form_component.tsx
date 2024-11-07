@@ -21,6 +21,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {filterEmptyOptions} from 'utils/apps';
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -153,7 +154,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             );
             if (error) {
                 fieldErrors[element.name] = (
-                    <FormattedMessage
+                    <FormattedMessageWithoutExtraction
                         id={error.id}
                         defaultMessage={error.defaultMessage}
                         values={error.values}

@@ -56,9 +56,9 @@ const InstallLink = (props: {pluginId: string; pluginName: string}) => {
         >
             <FormattedMessage
                 id='marketplace_modal.list.install.plugin'
-                defaultMessage={`Install ${props.pluginName}`}
+                defaultMessage={`Install {pluginName}`}
                 values={{
-                    plugin: props.pluginName,
+                    pluginName: props.pluginName,
                 }}
             />
         </Link>
@@ -70,7 +70,7 @@ const ConfigureLink = (props: {pluginId: string; pluginName: string}) => {
         <>
             <FormattedMessage
                 id='postypes.custom_open_plugin_install_post_rendered.plugins_installed'
-                defaultMessage={`${props.pluginName} is now installed.`}
+                defaultMessage={`{pluginName} is now installed.`}
                 values={{
                     pluginName: props.pluginName,
                 }}
@@ -82,7 +82,7 @@ const ConfigureLink = (props: {pluginId: string; pluginName: string}) => {
             >
                 <FormattedMessage
                     id='marketplace_modal.list.configure.plugin'
-                    defaultMessage={`Configure ${props.pluginName}`}
+                    defaultMessage={`Configure {pluginName}`}
                     values={{
                         plugin: props.pluginName,
                     }}

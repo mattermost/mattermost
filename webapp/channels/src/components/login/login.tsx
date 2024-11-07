@@ -53,6 +53,7 @@ import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
+import {formatMessageWithoutExtraction} from 'utils/intl';
 
 import type {GlobalState} from 'types/store';
 
@@ -546,7 +547,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
             setAlertBanner({
                 mode: 'danger',
-                title: formatMessage(
+                title: formatMessageWithoutExtraction(
                     {id: msgId},
                     {ldapUsername: LdapLoginFieldName || formatMessage({id: 'login.ldapUsernameLower', defaultMessage: 'AD/LDAP username'})},
                 ),

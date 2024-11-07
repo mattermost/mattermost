@@ -20,6 +20,8 @@ import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {FormattedMessageWithoutExtraction} from 'utils/intl';
+
 type Props = {
     team: Team;
     header: MessageDescriptor;
@@ -356,7 +358,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                         defaultMessage='Outgoing OAuth Connections'
                     />
                 </Link>
-                <FormattedMessage
+                <FormattedMessageWithoutExtraction
                     id={headerToRender.id}
                     defaultMessage={headerToRender.defaultMessage}
                 />
@@ -517,7 +519,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             onClick={handleSubmitFromButton}
                             id='saveConnection'
                         >
-                            <FormattedMessage
+                            <FormattedMessageWithoutExtraction
                                 id={footerToRender.id}
                                 defaultMessage={footerToRender.defaultMessage}
                             />
