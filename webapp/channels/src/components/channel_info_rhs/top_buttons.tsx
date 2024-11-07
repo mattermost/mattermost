@@ -4,6 +4,7 @@
 import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 
@@ -122,29 +123,43 @@ export default function TopButtons({
 
     return (
         <ChannelInfoRhsTopButtons>
-            <Button
-                onClick={actions.toggleFavorite}
-                className={isFavorite ? 'active' : ''}
+            <OverlayTrigger
+                placement='top'
+                overlay={<Tooltip data-testid='favorite-tooltip'>Add this channel to favorites</Tooltip>}
             >
-                <div>
-                    <i className={'icon ' + favoriteIcon}/>
-                </div>
-                <span>{favoriteText}</span>
-            </Button>
-            <Button
-                onClick={actions.toggleMute}
-                className={isMuted ? 'active' : ''}
-            >
-                <div>
-                    <i className={'icon ' + mutedIcon}/>
-                </div>
-                <span>{mutedText}</span>
-            </Button>
-            {canAddPeople && (
                 <Button
-                    onClick={actions.addPeople}
-                    className={isInvitingPeople ? 'active' : ''}
+                    onClick={actions.toggleFavorite}
+                    className={isFavorite ? 'active' : ''}
                 >
+                    <div>
+                        <i className={'icon ' + favoriteIcon}/>
+                    </div>
+                    <span>{favoriteText}</span>
+                </Button>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement='top'
+                overlay={<Tooltip data-testid='mute-tooltip'>Mute notifications for this channel</Tooltip>}
+            >
+                <Button
+                    onClick={actions.toggleMute}
+                    className={isMuted ? 'active' : ''}
+                >
+                    <div>
+                        <i className={'icon ' + mutedIcon}/>
+                    </div>
+                    <span>{mutedText}</span>
+                </Button>
+            </OverlayTrigger>
+            {canAddPeople && (
+                <OverlayTrigger
+                    placement='top'
+                    overlay={<Tooltip data-testid='add-people-tooltip'>Add team members to this channel</Tooltip>}
+                >
+                    <Button
+                        onClick={actions.addPeople}
+                        className={isInvitingPeople ? 'active' : ''}
+                    >
                     <div>
                         <i className='icon icon-account-plus-outline'/>
                     </div>
@@ -154,18 +169,24 @@ export default function TopButtons({
                             defaultMessage='Add People'
                         />
                     </span>
-                </Button>
+                    </Button>
+                </OverlayTrigger>
             )}
             {canCopyLink && (
-                <CopyButton
-                    onClick={copyLink.onClick}
-                    className={copyLink.copiedRecently ? 'success' : ''}
+                <OverlayTrigger
+                    placement='top'
+                    overlay={<Tooltip data-testid='copy-link-tooltip'>Copy link to this channel</Tooltip>}
                 >
+                    <CopyButton
+                        onClick={copyLink.onClick}
+                        className={copyLink.copiedRecently ? 'success' : ''}
+                    >
                     <div>
                         <i className={'icon ' + copyIcon}/>
                     </div>
                     <span>{copyText}</span>
-                </CopyButton>
+                    </CopyButton>
+                </OverlayTrigger>
             )}
         </ChannelInfoRhsTopButtons>
     );
