@@ -37,7 +37,7 @@ import PlaceholderScheduledPostsTitle
 import EditPost from 'components/edit_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -280,7 +280,7 @@ function DraftRow({
     }, []);
 
     const handleCopyText = useCallback(() => {
-        Utils.copyToClipboard(item.message);
+        copyToClipboard(item.message);
     }, [item]);
 
     const handleScheduledPostOnSend = useCallback(() => {
