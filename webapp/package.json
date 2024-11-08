@@ -104,9 +104,6 @@
   },
   "workspaces": [
     "channels",
-    "platform/client",
-    "platform/components",
-    "platform/eslint-plugin",
-    "platform/types"
+    "platform/*"
   ]
 }

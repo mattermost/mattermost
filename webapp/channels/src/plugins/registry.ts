@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PluginRegistry as PluginRegistryInterface} from '@hmhealey/plugin-support';
 import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
@@ -112,7 +113,7 @@ const standardizeRoute = (route: string) => {
     return fixedRoute;
 };
 
-export default class PluginRegistry {
+export default class PluginRegistry implements PluginRegistryInterface {
     id: string;
     constructor(id: string) {
         this.id = id;
