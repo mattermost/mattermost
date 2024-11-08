@@ -13,10 +13,10 @@ import ExternalLink from 'components/external_link';
 
 import {JobStatuses, JobTypes} from 'utils/constants';
 
-import AdminSettings from './admin_settings';
-import type {BaseProps, BaseState} from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import JobsTable from './jobs';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseProps, BaseState} from './old_admin_settings';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -60,7 +60,7 @@ export const searchableStrings = [
     messages.enableSearchingDescription,
 ];
 
-export default class BleveSettings extends AdminSettings<Props, State> {
+export default class BleveSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: Props['config']) => {
         if (config && config.BleveSettings) {
             config.BleveSettings.IndexDir = this.state.indexDir;
