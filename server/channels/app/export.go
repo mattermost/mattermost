@@ -905,7 +905,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath string, pathToDir string) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
-		return errors.New("Error reading " + emojiImagePath + "file")
+		return errors.New("Error reading " + emojiImagePath + " file")
 	}
 	defer func() {
 		if err = fromPath.Close(); err != nil {
