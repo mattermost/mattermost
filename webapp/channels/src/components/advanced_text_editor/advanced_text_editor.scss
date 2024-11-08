@@ -55,6 +55,8 @@
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;
         padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
+        white-space: pre-wrap;
+        word-break: break-word;
         box-shadow: none;
 
         &:focus {
