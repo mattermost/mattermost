@@ -96,7 +96,6 @@ issues:
         channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
-        channels/app/imaging/decode.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
         channels/app/imports/import_validators.go|\
