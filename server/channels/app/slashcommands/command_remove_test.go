@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -34,9 +35,12 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	}, false)
 
 	targetUser := th.createUser()
-	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, targetUser.Id, targetUser.Id)
-	th.App.AddUserToChannel(th.Context, targetUser, publicChannel, false)
-	th.App.AddUserToChannel(th.Context, targetUser, privateChannel, false)
+	_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, targetUser.Id, targetUser.Id)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.Context, targetUser, publicChannel, false)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.Context, targetUser, privateChannel, false)
+	require.Nil(t, err)
 
 	// Try a public channel *without* permission.
 	args := &model.CommandArgs{
@@ -109,9 +113,12 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	// Try a public channel with a deactivated user.
 	deactivatedUser := th.createUser()
-	th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
-	th.App.AddUserToChannel(th.Context, deactivatedUser, publicChannel, false)
-	th.App.UpdateActive(th.Context, deactivatedUser, false)
+	_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, deactivatedUser.Id, deactivatedUser.Id)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.Context, deactivatedUser, publicChannel, false)
+	require.Nil(t, err)
+	_, err = th.App.UpdateActive(th.Context, deactivatedUser, false)
+	require.Nil(t, err)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
