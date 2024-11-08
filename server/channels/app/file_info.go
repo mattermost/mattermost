@@ -6,7 +6,6 @@ package app
 import (
 	"image"
 	"io"
-	"log"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -42,7 +41,7 @@ func getInfoForBytes(name string, data io.ReadSeeker, size int) (*model.FileInfo
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
 				if _, err := data.Seek(0, io.SeekStart); err != nil {
-					log.Printf("Failed to seek to the beginning of the data: %v", err)
+					return info, model.NewAppError("getInfoForBytes", "app.file_info.seek.gif.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 				frameCount, err := imgutils.CountGIFFrames(data)
 				if err != nil {
@@ -55,14 +54,6 @@ func getInfoForBytes(name string, data io.ReadSeeker, size int) (*model.FileInfo
 				info.HasPreviewImage = true
 			}
 		}
-	} else {
-		return nil, model.NewAppError(
-			"getInfoForBytes",
-			"app.file_info.decode_image.app_error",
-			nil,
-			err.Error(),
-			http.StatusUnsupportedMediaType,
-		).Wrap(err)
 	}
 
 	return info, err
