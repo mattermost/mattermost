@@ -8606,5 +8606,13 @@
   {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Учасник каналу з таким ідентифікатором вже існує."
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} користувачів робочого простору {{.WorkspaceName}} подали запит на доступ до ознайомлювальної версії Enterprise: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} користувач(ів) з робочого простору {{.WorkspaceName}} подав(ли) запит на доступ до ознайомлювальної версії Enterprise: "
   }
 ]
