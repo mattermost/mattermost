@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 export type Theme = unknown; // TODO
 // export type IconGlyphTypes = unknown; // TODO
 // export type RouteComponentProps = unknown; // TODO
-export type Board = unknown; // TODO
+export type Board = any; // TODO
 
 export type PluginComponentId = string;
 

@@ -308,7 +308,7 @@ export type ChannelToastComponent = PluginComponent & {
 }
 
 export type CreateBoardFromTemplateComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps & {
+    component: React.ComponentType<{
         setCanCreate: (v: boolean) => void;
         setAction: (action: ((currentTeamId: string, channelId: string) => Promise<Board>) | undefined) => void;
         newBoardInfoIcon: React.JSX.Element;

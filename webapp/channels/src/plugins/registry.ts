@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PluginRegistry as PluginRegistryInterface, RegistryTypes} from '@hmhealey/plugin-support';
+import type {PluginRegistry as PluginRegistryInterface} from '@hmhealey/plugin-support';
 import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
@@ -35,34 +35,10 @@ import {generateId} from 'utils/utils';
 import type {
     PluginsState,
     ProductComponent,
-    NeedsTeamComponent,
     PostDropdownMenuAction,
-    ChannelHeaderAction,
-    ChannelHeaderButtonAction,
     RightHandSidebarComponent,
     AppBarAction,
-    FileUploadMethodAction,
-    MainMenuAction,
-    ChannelIntroButtonAction,
-    UserGuideDropdownAction,
-    FilesDropdownAction,
-    CustomRouteComponent,
-    AdminConsolePluginCustomSection,
-    AdminConsolePluginComponent,
-    SearchButtonsComponent,
-    SearchSuggestionsComponent,
-    SearchHintsComponent,
-    CallButtonAction,
-    CreateBoardFromTemplateComponent,
-    PostWillRenderEmbedComponent,
-    FilesWillUploadHook,
-    MessageWillBePostedHook,
-    SlashCommandWillBePostedHook,
-    MessageWillFormatHook,
-    FilePreviewComponent,
-    MessageWillBeUpdatedHook,
     AppBarChannelAction,
-    DesktopNotificationHook,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -126,59 +102,60 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component at the root of the channel view of the app.
     // Accepts a React component. Returns a unique identifier.
-    registerRootComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerRootComponent: PluginRegistryInterface['registerRootComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('Root', this.id, component);
     });
 
     // Register a component in the user attributes section of the profile popover (hovercard), below the default user attributes.
     // Accepts a React component. Returns a unique identifier.
-    registerPopoverUserAttributesComponent = reArg(['component'], ({
+    registerPopoverUserAttributesComponent: PluginRegistryInterface['registerPopoverUserAttributesComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.PopoverUserAttributesComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('PopoverUserAttributes', this.id, component);
     });
 
     // Register a component in the user actions of the profile popover (hovercard), below the default actions.
     // Accepts a React component. Returns a unique identifier.
-    registerPopoverUserActionsComponent = reArg(['component'], ({
+    registerPopoverUserActionsComponent: PluginRegistryInterface['registerPopoverUserActionsComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.PopoverUserActionsComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('PopoverUserActions', this.id, component);
     });
 
     // Register a component fixed to the top of the left-hand channel sidebar.
     // Accepts a React component. Returns a unique identifier.
-    registerLeftSidebarHeaderComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerLeftSidebarHeaderComponent: PluginRegistryInterface['registerLeftSidebarHeaderComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('LeftSidebarHeader', this.id, component);
     });
 
     // Register a component fixed to the bottom of the team sidebar. Does not render if
     // user is only on one team and the team sidebar is not shown.
     // Accepts a React component. Returns a unique identifier.
-    registerBottomTeamSidebarComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerBottomTeamSidebarComponent: PluginRegistryInterface['registerBottomTeamSidebarComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('BottomTeamSidebar', this.id, component);
     });
 
     // Register a component fixed to the bottom of the post message.
     // Accepts a React component. Returns a unique identifier.
-    registerPostMessageAttachmentComponent = reArg(['component'], ({
+    registerPostMessageAttachmentComponent: PluginRegistryInterface['registerPostMessageAttachmentComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.PostMessageAttachmentComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('PostMessageAttachment', this.id, component);
     });
 
     // Register components for search.
     // Accepts React components. Returns a unique identifier.
-    registerSearchComponents = ({
+    registerSearchComponents: PluginRegistryInterface['registerSearchComponents'] = ({
         buttonComponent,
         suggestionsComponent,
         hintsComponent,
         action,
-    }: {
-        buttonComponent: SearchButtonsComponent['component'];
-        suggestionsComponent: SearchSuggestionsComponent['component'];
-        hintsComponent: SearchHintsComponent['component'];
-        action: SearchButtonsComponent['action'];
     }) => {
         const id = generateId();
         dispatchPluginComponentWithData('SearchButtons', {
@@ -197,21 +174,18 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // The component will be passed the following props:
     // - href - The URL for this link
     // - show - A boolean used to signal that the user is currently hovering over this link. Use this value to initialize your component when this boolean is true for the first time, using `componentDidUpdate` or `useEffect`.
-    registerLinkTooltipComponent = reArg(['component'], ({
+    registerLinkTooltipComponent: PluginRegistryInterface['registerLinkTooltipComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.LinkTooltipComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('LinkTooltip', this.id, component);
     });
 
     // Register a component fixed to the bottom of the create new channel modal and also registers a callback function to be called after
     // the channel has been succesfully created
     // Accepts a React component. Returns a unique identifier.
-    registerActionAfterChannelCreation = reArg(['component', 'action'], ({
+    registerActionAfterChannelCreation: PluginRegistryInterface['registerActionAfterChannelCreation'] = reArg(['component', 'action'], ({
         component,
         action,
-    }: {
-        component: any; // TODO
-        action: CreateBoardFromTemplateComponent['action'];
     }) => {
         const id = generateId();
         dispatchPluginComponentWithData('CreateBoardFromTemplate', {
@@ -230,7 +204,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
     // - dropdownText - string or React element shown for the dropdown button description
     // - tooltipText - string or React element shown for tooltip appear on hover
-    registerChannelHeaderButtonAction = reArg([
+    registerChannelHeaderButtonAction: PluginRegistryInterface['registerChannelHeaderButtonAction'] = reArg([
         'icon',
         'action',
         'dropdownText',
@@ -240,11 +214,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         action,
         dropdownText,
         tooltipText,
-    }: {
-        icon: ReactResolvable;
-        action: ChannelHeaderButtonAction['action'];
-        dropdownText: ReactResolvable;
-        tooltipText: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -268,7 +237,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - icon - React element to use as the button's icon
     // - action - a function called when the button is clicked, passed the channel and channel member as arguments
     // - text - a localized string or React element  to use as the button's text
-    registerChannelIntroButtonAction = reArg([
+    registerChannelIntroButtonAction: PluginRegistryInterface['registerChannelIntroButtonAction'] = reArg([
         'icon',
         'action',
         'text',
@@ -276,10 +245,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         icon,
         action,
         text,
-    }: {
-        icon: ReactResolvable;
-        action: ChannelIntroButtonAction['action'];
-        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -304,7 +269,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - action - A function called when the button is clicked, passed the channel and channel member as arguments.
     // Returns an unique identifier
     // Minimum required version: 6.5
-    registerCallButtonAction = reArg([
+    registerCallButtonAction: PluginRegistryInterface['registerCallButtonAction'] = reArg([
         'button',
         'dropdownButton',
         'action',
@@ -312,10 +277,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         button,
         dropdownButton,
         action,
-    }: {
-        button: ReactResolvable;
-        dropdownButton: ReactResolvable;
-        action: CallButtonAction['action'];
     }) => {
         const id = generateId();
 
@@ -339,7 +300,10 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Custom post types can also apply for ephemeral posts.
     // Accepts a string type and a component.
     // Returns a unique identifier.
-    registerPostTypeComponent = reArg(['type', 'component'], ({type, component}) => {
+    registerPostTypeComponent: PluginRegistryInterface['registerPostTypeComponent'] = reArg(['type', 'component'], ({
+        type,
+        component,
+    }) => {
         const id = generateId();
 
         store.dispatch({
@@ -359,7 +323,10 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Custom post types must be prefixed with 'custom_'.
     // Accepts a string type and a component.
     // Returns a unique identifier.
-    registerPostCardTypeComponent = reArg(['type', 'component'], ({type, component}) => {
+    registerPostCardTypeComponent: PluginRegistryInterface['registerPostCardTypeComponent'] = reArg(['type', 'component'], ({
+        type,
+        component,
+    }) => {
         const id = generateId();
 
         store.dispatch({
@@ -385,14 +352,10 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - component - The component that renders the embed view for the link
     // - toggleable - A boolean indicating if the embed view should be collapsable
     // Returns a unique identifier.
-    registerPostWillRenderEmbedComponent = reArg(['match', 'component', 'toggleable'], ({
+    registerPostWillRenderEmbedComponent: PluginRegistryInterface['registerPostWillRenderEmbedComponent'] = reArg(['match', 'component', 'toggleable'], ({
         match,
         component,
         toggleable,
-    }: {
-        match: PostWillRenderEmbedComponent['match'];
-        component: PostWillRenderEmbedComponent['component'];
-        toggleable: PostWillRenderEmbedComponent['toggleable'];
     }) => {
         const id = generateId();
 
@@ -413,7 +376,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - action - A function to trigger when component is clicked on
     // - mobileIcon - A React element to display as the icon in the menu in mobile view
     // Returns a unique identifier.
-    registerMainMenuAction = reArg([
+    registerMainMenuAction: PluginRegistryInterface['registerMainMenuAction'] = reArg([
         'text',
         'action',
         'mobileIcon',
@@ -421,10 +384,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         text,
         action,
         mobileIcon,
-    }: {
-        text: ReactResolvable;
-        action: MainMenuAction['action'];
-        mobileIcon: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -446,7 +405,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - shouldRender - A function that receives the state before the
     // component is about to render, allowing for conditional rendering.
     // Returns a unique identifier.
-    registerChannelHeaderMenuAction = reArg([
+    registerChannelHeaderMenuAction: PluginRegistryInterface['registerChannelHeaderMenuAction'] = reArg([
         'text',
         'action',
         'shouldRender',
@@ -454,10 +413,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         text,
         action,
         shouldRender = defaultShouldRender,
-    }: {
-        text: ChannelHeaderAction['text'];
-        action: ChannelHeaderAction['action'];
-        shouldRender?: ChannelHeaderAction['shouldRender'];
     }) => {
         const id = generateId();
 
@@ -478,7 +433,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - text - A string or React element to display in the menu
     // - action - A function that receives the fileInfo and is called when the menu items is clicked.
     // Returns a unique identifier.
-    registerFileDropdownMenuAction = reArg([
+    registerFileDropdownMenuAction: PluginRegistryInterface['registerFileDropdownMenuAction'] = reArg([
         'match',
         'text',
         'action',
@@ -486,10 +441,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         match,
         text,
         action,
-    }: {
-        match: FilesDropdownAction['match'];
-        text: ReactResolvable;
-        action: FilesDropdownAction['action'];
     }) => {
         const id = generateId();
 
@@ -509,15 +460,12 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - text - A string or React element to display in the menu
     // - action - A function that receives the fileInfo and is called when the menu items is clicked.
     // Returns a unique identifier.
-    registerUserGuideDropdownMenuAction = reArg([
+    registerUserGuideDropdownMenuAction: PluginRegistryInterface['registerUserGuideDropdownMenuAction'] = reArg([
         'text',
         'action',
     ], ({
         text,
         action,
-    }: {
-        text: ReactResolvable;
-        action: UserGuideDropdownAction['action'];
     }) => {
         const id = generateId();
 
@@ -533,31 +481,33 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component to the add to the post message menu shown on hover.
     // Accepts a React component. Returns a unique identifier.
-    registerPostActionComponent = reArg(['component'], ({
+    registerPostActionComponent: PluginRegistryInterface['registerPostActionComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.PostActionComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('PostAction', this.id, component);
     });
 
     // Register a component to the add to the post text editor menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostEditorActionComponent = reArg(['component'], ({
+    registerPostEditorActionComponent: PluginRegistryInterface['registerPostEditorActionComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.PostEditorActionComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
 
     // Register a component to the add to the code block header.
     // Accepts a React component. Returns a unique identifier.
-    registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerCodeBlockActionComponent: PluginRegistryInterface['registerCodeBlockActionComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
     });
 
     // Register a component to the add to the new messages separator.
     // Accepts a React component. Returns a unique identifier.
-    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({
+    registerNewMessagesSeparatorActionComponent: PluginRegistryInterface['registerNewMessagesSeparatorActionComponent'] = reArg(['component'], ({
         component,
-    }: RegistryTypes.NewMessagesSeparatorActionComponentOptions) => {
+    }) => {
         return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
     });
 
@@ -567,7 +517,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - action - A function to trigger when component is clicked on
     // - filter - A function whether to apply the plugin into the post' dropdown menu
     // Returns a unique identifier.
-    registerPostDropdownMenuAction = reArg([
+    registerPostDropdownMenuAction: PluginRegistryInterface['registerPostDropdownMenuAction'] = reArg([
         'text',
         'action',
         'filter',
@@ -575,10 +525,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         text,
         action,
         filter,
-    }: {
-        text: PostDropdownMenuAction['text'];
-        action: PostDropdownMenuAction['action'];
-        filter: PostDropdownMenuAction['filter'];
     }) => {
         const id = generateId();
 
@@ -601,7 +547,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //
     // Returns a unique identifier for the root submenu, and a function to register submenu items.
     // At this time, only one level of nesting is allowed to avoid rendering issue in the RHS.
-    registerPostDropdownSubMenuAction = reArg([
+    registerPostDropdownSubMenuAction: PluginRegistryInterface['registerPostDropdownSubMenuAction'] = reArg([
         'text',
         'action',
         'filter',
@@ -609,10 +555,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         text,
         action,
         filter,
-    }: {
-        text: ReactResolvable;
-        action: PostDropdownMenuAction['action'];
-        filter: PostDropdownMenuAction['filter'];
     }) => {
         const id = generateId();
 
@@ -654,7 +596,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component at the bottom of the post dropdown menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostDropdownMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostDropdownMenuComponent: PluginRegistryInterface['registerPostDropdownMenuComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('PostDropdownMenuItem', this.id, component);
     });
 
@@ -664,7 +608,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - text - A string or JSX element to display in the file upload menu
     // - action - A function to trigger when the menu item is selected.
     // Returns a unique identifier.
-    registerFileUploadMethod = reArg([
+    registerFileUploadMethod: PluginRegistryInterface['registerFileUploadMethod'] = reArg([
         'icon',
         'action',
         'text',
@@ -672,10 +616,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         icon,
         action,
         text,
-    }: {
-        icon: ReactResolvable;
-        action: FileUploadMethodAction['action'];
-        text: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -697,9 +637,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - message - An error message to display, leave blank or null to display no message
     // - files - Modified array of files to upload, set to null to reject all files
     // Returns a unique identifier.
-    registerFilesWillUploadHook = reArg(['hook'], ({hook}: {
-        hook: FilesWillUploadHook['hook'];
-    }) => {
+    registerFilesWillUploadHook: PluginRegistryInterface['registerFilesWillUploadHook'] = reArg(['hook'], ({hook}) => {
         const id = generateId();
 
         dispatchPluginComponentWithData('FilesWillUploadHook', {
@@ -714,7 +652,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Unregister a component, action or hook using the unique identifier returned after registration.
     // Accepts a string id.
     // Returns undefined in all cases.
-    unregisterComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
+    unregisterComponent: PluginRegistryInterface['unregisterComponent'] = reArg(['componentId'], ({componentId}) => {
         store.dispatch({
             type: ActionTypes.REMOVED_PLUGIN_COMPONENT,
             id: componentId,
@@ -779,8 +717,8 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //
     // If the hook function is asynchronous, the message will not be sent to the server
     // until the hook returns.
-    registerMessageWillBePostedHook = reArg(['hook'], ({hook}: {
-        hook: MessageWillBePostedHook['hook'];
+    registerMessageWillBePostedHook: PluginRegistryInterface['registerMessageWillBePostedHook'] = reArg(['hook'], ({
+        hook,
     }) => {
         const id = generateId();
 
@@ -813,8 +751,8 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //
     // If the hook function is asynchronous, the command will not be sent to the server
     // until the hook returns.
-    registerSlashCommandWillBePostedHook = reArg(['hook'], ({hook}: {
-        hook: SlashCommandWillBePostedHook['hook'];
+    registerSlashCommandWillBePostedHook: PluginRegistryInterface['registerSlashCommandWillBePostedHook'] = reArg(['hook'], ({
+        hook,
     }) => {
         const id = generateId();
 
@@ -832,9 +770,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // already modified by other hooks) as arguments. This function must return a string
     // message that will be formatted.
     // Returns a unique identifier.
-    registerMessageWillFormatHook = reArg(['hook'], ({hook}: {
-        hook: MessageWillFormatHook['hook'];
-    }) => {
+    registerMessageWillFormatHook: PluginRegistryInterface['registerMessageWillFormatHook'] = reArg(['hook'], ({hook}) => {
         const id = generateId();
 
         dispatchPluginComponentWithData('MessageWillFormat', {
@@ -853,9 +789,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - component - A react component to display instead of original preview. Receives fileInfo and post as props.
     // Returns a unique identifier.
     // Only one plugin can override a file preview at a time. If two plugins try to override the same file preview, the first plugin will perform the override and the second will not. Plugin precedence is ordered alphabetically by plugin ID.
-    registerFilePreviewComponent = reArg(['override', 'component'], ({override, component}: {
-        override: FilePreviewComponent['override'];
-        component: FilePreviewComponent['component'];
+    registerFilePreviewComponent: PluginRegistryInterface['registerFilePreviewComponent'] = reArg(['override', 'component'], ({
+        override,
+        component,
     }) => {
         const id = generateId();
 
@@ -899,7 +835,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //     showTitle - Optional boolean that if true the display_name of the setting will be rendered
     // on the left column of the settings page and the registered component will be displayed on the
     // available space in the right column.
-    registerAdminConsoleCustomSetting = reArg([
+    registerAdminConsoleCustomSetting: PluginRegistryInterface['registerAdminConsoleCustomSetting'] = reArg([
         'key',
         'component',
         'options',
@@ -907,10 +843,6 @@ export default class PluginRegistry implements PluginRegistryInterface {
         key,
         component,
         options: {showTitle} = {showTitle: false},
-    }: {
-        key: string;
-        component: AdminConsolePluginComponent['component'];
-        options?: {showTitle: boolean};
     }) => {
         store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
     });
@@ -919,15 +851,12 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Accepts the following:
     // - key - A key specified in the settings_schema.sections block of the plugin's manifest.
     // - component - A react component to render in place of the default handling.
-    registerAdminConsoleCustomSection = reArg([
+    registerAdminConsoleCustomSection: PluginRegistryInterface['registerAdminConsoleCustomSection'] = reArg([
         'key',
         'component',
     ], ({
         key,
         component,
-    }: {
-        key: string;
-        component: AdminConsolePluginCustomSection['component'];
     }) => {
         store.dispatch(registerAdminConsoleCustomSection(this.id, key, component));
     });
@@ -941,15 +870,12 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - showRHSPlugin: the action to dispatch that will open the RHS.
     // - hideRHSPlugin: the action to dispatch that will close the RHS
     // - toggleRHSPlugin: the action to dispatch that will toggle the RHS
-    registerRightHandSidebarComponent = reArg([
+    registerRightHandSidebarComponent: PluginRegistryInterface['registerRightHandSidebarComponent'] = reArg([
         'component',
         'title',
     ], ({
         component,
         title,
-    }: {
-        component: RightHandSidebarComponent['component'];
-        title: ReactResolvable;
     }) => {
         const id = generateId();
 
@@ -969,15 +895,12 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // - component - A react component to display.
     // Returns:
     // - id: a unique identifier
-    registerNeedsTeamRoute = reArg([
+    registerNeedsTeamRoute: PluginRegistryInterface['registerNeedsTeamRoute'] = reArg([
         'route',
         'component',
     ], ({
         route,
         component,
-    }: {
-        route: string;
-        component: NeedsTeamComponent['component'];
     }) => {
         const id = generateId();
         let fixedRoute = standardizeRoute(route);
@@ -1001,15 +924,12 @@ export default class PluginRegistry implements PluginRegistryInterface {
      * @remarks you must specify a `grid-area` (recommended: `grid-area: center`) for `component` using CSS in order to be placed properly in the root layout
      * @returns a unique identifier
      */
-    registerCustomRoute = reArg([
+    registerCustomRoute: PluginRegistryInterface['registerCustomRoute'] = reArg([
         'route',
         'component',
     ], ({
         route,
         component,
-    }: {
-        route: string;
-        component: CustomRouteComponent['component'];
     }) => {
         const id = generateId();
         let fixedRoute = standardizeRoute(route);
@@ -1089,8 +1009,8 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //
     // If the hook function is asynchronous, the message will not be sent to the server
     // until the hook returns.
-    registerMessageWillBeUpdatedHook = reArg(['hook'], ({hook}: {
-        hook: MessageWillBeUpdatedHook['hook'];
+    registerMessageWillBeUpdatedHook: PluginRegistryInterface['registerMessageWillBeUpdatedHook'] = reArg(['hook'], ({
+        hook,
     }) => {
         const id = generateId();
 
@@ -1235,8 +1155,8 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // completed. The resulting args will be used as the arguments for the `notifyMe` function.
     //
     // Returns a unique identifier.
-    registerDesktopNotificationHook = reArg(['hook'], ({hook}: {
-        hook: DesktopNotificationHook['hook'];
+    registerDesktopNotificationHook: PluginRegistryInterface['registerDesktopNotificationHook'] = reArg(['hook'], ({
+        hook,
     }) => {
         const id = generateId();
 
