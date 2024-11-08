@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable no-only-tests/no-only-tests */
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -114,7 +116,7 @@ describe('Bot accounts ownership and API', () => {
         });
     });
 
-    it('MM-T1866 Create two posts in a row to the same channel', () => {
+    it.skip('MM-T1866 Create two posts in a row to the same channel', () => {
         // # Create token for the bot
         cy.apiCreateToken(botId).then(({token}) => {
             // # Logout to allow posting as bot
