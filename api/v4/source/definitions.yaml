@@ -3779,6 +3779,46 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a scheduled post was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a scheduled post was last updated
+          type: integer
+          format: int64
+        user_id:
+          type: string
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+        props:
+          type: object
+        file_ids:
+          type: array
+          items:
+            type: string
+        scheduled_at:
+          description: The time in milliseconds a scheduled post is scheduled to be sent at
+          type: integer
+          format: int64
+        processed_at:
+          description: The time in milliseconds a scheduled post was processed at
+          type: integer
+          format: int64
+        error_code:
+          type: string
+          description: Explains the error behind why a scheduled post could not have been sent
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

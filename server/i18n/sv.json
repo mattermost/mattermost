@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8847,7 +8847,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Du kan inte bekräfta i en arkiverad kanal."
+    "translation": "Du kan inte spara en bekräfta i en arkiverad kanal."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10176,5 +10176,57 @@
   {
     "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
     "translation": "Det går inte att generera en inbjudningskod för ett bekräftat kluster"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Det går inte att ta bort meddelande, ServiceSettings.EnableAPIPostDeletion är inte aktiverat."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Du kan inte ändra användarens status. Användaren hanteras av LDAP"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Hittade inte filer för inlägget."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Misslyckades med att permanent radera filen för inlägget."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Misslyckades med att permanent radera inlägget."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Det går inte att skapa en direktkanal med en fjärranvändare"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Det går inte att skapa en gruppkanal med en fjärranvändare"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Misslyckades med att kopiera licensfilens innehåll till buffert"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Det går inte att skapa ett inlägg i en DM eller GM med fjärranvändare"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ogiltigt externt ID."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ogiltig URL till webbplatsen."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ogiltigt token."
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Kunde inte skapa inbjudan till fjärrkluster"
   }
 ]
