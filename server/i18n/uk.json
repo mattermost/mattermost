@@ -1005,47 +1005,47 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Неможливо створити смайли. Розмір зображення має бути меншим за 1 МБ."
+    "translation": "Неможливо створити емодзі. Розмір зображення повинен бути не більше 512 Кб."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Додаткові смайли були відключені системним адміністратором."
+    "translation": "Користувацькі емодзі були вимкнені системним адміністратором."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Неможливо декодувати файл зображення для смайликів."
+    "translation": "Не вдається декодувати файл зображення для емодзі."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Неможливо прочитати файл зображень для смайликів."
+    "translation": "Не вдається прочитати файл зображення для емодзі."
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": "Файл зберігання не належним чином налаштовано. Будь ласка, налаштуйте для зберігання файлів S3 або локального сервера."
+    "translation": "Сховище файлів налаштовано неправильно. Будь ласка, налаштуйте зберігання файлів на S3 або локальному сервері."
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Неможливо створити смайли. Файл має бути PNG, JPEG або GIF."
+    "translation": "Неможливо створити емодзі. Файл повинен бути у форматі PNG, JPEG або GIF."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Неможливо створити смайли. Виникла помилка під час спроби декодування зображення."
+    "translation": "Не вдалося створити емодзі. Виникла помилка при спробі декодування зображення."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Неможливо створити смайли. Виникла помилка при спробі кодувати зображення."
+    "translation": "Не вдалося створити емодзі. Виникла помилка при спробі кодування зображення."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Неможливо створити смайли. Виникла помилка під час спроби декодування зображення GIF."
+    "translation": "Не вдалося створити емодзі. Виникла помилка при спробі декодування GIF-зображення."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Неможливо створити смайли. Виникла помилка при спробі кодувати зображення GIF."
+    "translation": "Не вдалося створити емодзі. Виникла помилка при спробі кодування GIF-зображення."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Неможливо створити смайли. Зображення має бути менше {{.MaxWidth}} до {{.MaxHeight}}."
+    "translation": "Не вдалося створити емодзі. Зображення має бути меншим, ніж {{.MaxWidth}} на {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -1053,7 +1053,7 @@
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "Вкладення файлів на цьому сервері вимкнено."
+    "translation": "На цьому сервері відключено прикріплення файлів."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1077,7 +1077,7 @@
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "Не вибрано файл драйвера."
+    "translation": "Не вибраний файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
@@ -1089,23 +1089,23 @@
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Не вдалося завантажити файл над максимальними розмірами: {{.Filename}}"
+    "translation": "Не вдалося завантажити файл, розмір якого перевищує максимальні розміри: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "Розміри файлу {{.Filename}} ({{.Width}} на {{.Height}} пікселів) перевищують допустимі значення."
+    "translation": "Розмір файлу {{.Filename}} ({{.Width}} на {{.Height}} пікселів) перевищує допустимі."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Не вдалося завантажити файл(и). Кілька суперечливих channel_ids."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Не вдалося завантажити файл(и). Помилка читання значення для {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Не вдалося завантажити файл(и). Помилка читання або розбору даних запиту."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1113,7 +1113,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Не вдалося завантажити файл {{.Filename}}. {{.Length}} байт перевищує максимально допустимий ліміт {{.Limit}} байт."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1125,11 +1125,11 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "помилка вводу/виводу"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "групу LDAP не знайдено"
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -1141,15 +1141,15 @@
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": "Ліцензія закінчилася або ще не розпочалась."
+    "translation": "Ліцензія або закінчилася, або ще не розпочалася."
   },
   {
     "id": "api.license.add_license.invalid.app_error",
-    "translation": "Недійсний файл ліцензії."
+    "translation": "Невірний файл ліцензії."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
-    "translation": "Не вдається підрахувати загальну кількість унікальних користувачів."
+    "translation": "Неможливо підрахувати загальну кількість унікальних користувачів."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
@@ -1165,11 +1165,11 @@
   },
   {
     "id": "api.license.add_license.save_active.app_error",
-    "translation": "Активний ідентифікатор ліцензії не зберігався належним чином."
+    "translation": "Активний ідентифікатор ліцензії не було збережено належним чином."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Ця ліцензія підтримує лише користувачів {{.Users}}, коли ваша система має {{.Count}} унікальних користувачів. Унікальні користувачі розраховуються виразно за адресою електронної пошти. Ви можете побачити загальний підрахунок користувачів у розділі Звіти про сайти -> Перегляд статистики."
+    "translation": "Ця ліцензія підтримує лише {{.Users}} користувачів, якщо у вашій системі є {{.Count}} унікальних користувачів. Унікальні користувачі підраховуються окремо за адресою електронної пошти. Ви можете побачити загальну кількість користувачів у Звітах сайту -> Переглянути статистику."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1185,11 +1185,11 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "Адміністратор системи вимкнув постачальника послуг OAuth2."
+    "translation": "Системний адміністратор вимкнув постачальника послуг OAuth2."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "Адміністратор системи вимкнув постачальника послуг OAuth2."
+    "translation": "Системний адміністратор вимкнув постачальника послуг OAuth2."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1209,7 +1209,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Адміністратор системи вимкнув постачальника послуг OAuth2."
+    "translation": "Системний адміністратор вимкнув постачальника послуг OAuth2."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1253,7 +1253,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "Адміністратор системи вимкнув постачальника послуг OAuth2."
+    "translation": "Системний адміністратор вимкнув постачальника послуг OAuth2."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1269,7 +1269,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
-    "translation": "Реєстрація користувача відключена."
+    "translation": "Реєстрація користувачів вимкнена."
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
@@ -1285,19 +1285,19 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "Файловий масив порожній у записі з множиною / формою"
+    "translation": "Масив файлів порожній у багаточастинному запиті/запиті на форму."
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Не вдалося відкрити файл у запиті багатостороннього / форми"
+    "translation": "Не вдалось відкрити файл у багаточастинному запиті/запиті на форму."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Відсутній файл у форматі запиту у багатосторонній формі"
+    "translation": "Відсутній файл у багаточастинному запиті/запиті на форму."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} і {{.LastUsername}} були згадані, але вони не отримали повідомлень оскільки не перебувають у цьому каналі."
+    "translation": "@{{.Usernames}} та @{{.LastUsername}} не були сповіщені про цю згадку, оскільки їх немає в каналі."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
@@ -1305,7 +1305,7 @@
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Неможливо розмістити публікацію на видаленому каналі."
+    "translation": "Неможливо написати допис у видаленому каналі."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -1321,27 +1321,27 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Не вдалося отримати оригінальний допис після дедуплікації клієнта, який повторив той самий запит."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Відхилено повідомлення, оскільки інший клієнт робить такий самий запит."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Неможливо видалити допис у видаленому каналі."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all вимкнено, оскільки в каналі більше ніж {{.Users}} користувачів."
+    "translation": "@all було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel вимкнено, оскільки в каналі більше ніж {{.Users}} користувачів."
+    "translation": "@channel було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@ вимкнено, оскільки в каналі більше ніж {{.Users}} користувачів."
+    "translation": "@here було вимкнено, оскільки канал має більше ніж {{.Users}} користувачів."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1369,7 +1369,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Неможливо оновити допис у видаленому каналі."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1401,11 +1401,11 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Неможливо оновити допис у видаленому каналі."
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Не вдалося знайти існуючу публікацію або коментар для оновлення."
+    "translation": "Не вдалося знайти існуючий допис або коментар для оновлення."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1413,7 +1413,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Редагування публікацій дозволене лише для {{.timeLimit}} секунд. Будь ласка, запитайте системного адміністратора про деталі."
+    "translation": "Редагування допису дозволено лише протягом {{.timeLimit}} секунд. Будь ласка, зверніться до вашого системного адміністратора за деталями."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1433,19 +1433,19 @@
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": "Неможливо встановити настройки користувача."
+    "translation": "Неможливо встановити налаштування користувача."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "Ви не можете видалити реакцію на архівному каналі."
+    "translation": "Ви не можете видалити реакцію в заархівованому каналі."
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "Ви не можете реагувати на архівований канал."
+    "translation": "Ви не можете реагувати в заархівованому каналі."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": "Реакція недійсна."
+    "translation": "Реакція не є дійсною."
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
@@ -1453,7 +1453,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Ця дія заборонена системним адміністраторам з обмеженими правами."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1469,11 +1469,11 @@
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": "Неможливо отримати канали для схеми, оскільки схема, що постачається, не є схемою каналів."
+    "translation": "Не вдалося отримати канали для схеми, оскільки надана схема не є схемою каналів."
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": "Неможливо отримати команди для схеми, оскільки схема, що постачається, не є схемою команди."
+    "translation": "Неможливо отримати команди для схеми, оскільки надана схема не є командною."
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
@@ -1481,11 +1481,11 @@
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "Необхідно увімкнути Forward80To443 під час використання LetsEncrypt"
+    "translation": "Необхідно ввімкнути Forward80To443 при використанні LetsEncrypt"
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Неможливо переадресовувати порт 80 на порт 443 при прослуховуванні на порту %s: відключити Forward80To443, якщо використовується проксі-сервер"
+    "translation": "Не вдається переадресувати порт 80 на порт 443 під час прослуховування на порту %s: вимкніть Forward80To443, якщо використовується проксі-сервер"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1493,59 +1493,59 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Неможливо ініціалізувати обмеження швидкості."
+    "translation": "Не вдалося ініціалізувати обмеження швидкості."
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": "Помилка запуску сервера, помилка:% v"
+    "translation": "Помилка запуску сервера, err:%v"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Користувач Integration / Slack Bot з електронною адресою {{.Email}} та пароль {{.Password}} імпортовано.\\R\n"
+    "translation": "Користувач Integration/Slack Bot з електронною поштою {{.Email}} та паролем {{.Password}} був імпортований.\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Неможливо імпортувати користувача Integration/Slack Bot {{.Username}}.\\R\n"
+    "translation": "Не вдалося імпортувати користувача Integration/Slack Bot {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nКанали додані:\r\n"
+    "translation": "\nКанали додані:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Неможливо додати користувача Slack {{.Username}} для каналу.\\R\n"
+    "translation": "Не вдалося додати користувача Slack {{.Username}} до каналу.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Неможливо імпортувати канал Slack {{.DisplayName}}. \\R\n"
+    "translation": "Не вдалося імпортувати канал Slack {{.DisplayName}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Канал Slack {{.DisplayName}} вже існує як активний канал Mattermore. Обидва канали об'єднані.\\R\n"
+    "translation": "Канал Slack {{.DisplayName}} вже існує як активний канал Mattermost. Обидва канали об'єднано.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nКористувачі створили:\r\n"
+    "translation": "\nСтворено користувачів:\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack користувач з електронною адресою {{.Email}} та пароль {{.Password}} імпортовано.\r\n"
+    "translation": "Імпортовано користувача Slack з електронною адресою {{.Email}} та паролем {{.Password}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack користувач об'єднано з існуючим користувачем Mattermost з відповідною електронною адресою {{.Email}} та ім'ям користувача {{.Username}}.\r\n"
+    "translation": "Користувача Slack об'єднано з існуючим користувачем Mattermost з однаковими електронними адресами {{.Email}} та іменем користувача {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack користувач об'єднався з існуючим користувачем Mattermost з відповідною електронною адресою {{.Email}} та ім'ям користувача {{.Username}}, але не зміг додати користувача до своєї команди.\r\n"
+    "translation": "Користувач Slack об'єднаний з існуючим користувачем Mattermost з відповідною електронною поштою {{.Email}} та ім'ям користувача {{.Username}}, але не вдалося додати користувача до їхньої команди.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Користувач {{.Username}} не має адреси електронної пошти в експорті Slack. Використовується {{.Email}} як заповнювач. Після входу в систему користувач повинен оновити свою електронну адресу.\r\n"
+    "translation": "Користувач {{.Username}} не має електронної пошти в експорті з Slack. Використано {{.Email}} як заповнювач. Користувач повинен оновити свою електронну пошту після входу в систему.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Не вдається імпортувати користувача Slack: {{.Username}}.\r\n"
+    "translation": "Не вдалося імпортувати користувача Slack: {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1553,27 +1553,27 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Деякі повідомлення, можливо, не були імпортовані, оскільки вони не були підтримані цим імпортером.\r\n"
+    "translation": "- Деякі повідомлення могли не бути імпортовані, оскільки вони не підтримуються цим імпортером.\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Повідомлення ботів Slack на даний момент не підтримуються.\r\n"
+    "translation": "- Повідомлення Slack-ботів наразі не підтримуються.\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Додаткові помилки можуть бути знайдені в журналах сервера.\r\n"
+    "translation": "- Додаткові помилки можна знайти в логах сервера.\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nНотатки:\r\n"
+    "translation": "\nПримітки:\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Не вдається відкрити файл: {{.Filename}}.\r\n"
+    "translation": "Не вдалося відкрити файл: {{.Filename}}.\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Неможливо отримати команду для імпортування.\r\n"
+    "translation": "Не вдається отримати команду для імпорту.\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -5577,43 +5577,43 @@
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service."
+    "translation": "Виникла помилка при відправленні повідомлення в сервіс push-сповіщень."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message."
+    "translation": "Сталася помилка при створенні push-повідомлення."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": "An error occurred fetching the ID-loaded push notification."
+    "translation": "Виникла помилка при отриманні push-сповіщення з ідентифікатором."
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
-    "translation": "You've received a new message."
+    "translation": "Ви отримали нове повідомлення."
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "Push-сповіщення на цьому сервері вимкнено."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Username}} не отримали сповіщення про цю згадку, оскільки вони не перебувають у каналі. Вони не можуть бути додані до каналу, оскільки не є членами пов'язаних груп. Щоб додати їх до цього каналу, вони повинні бути додані до пов'язаних груп."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} та @{{.LastUsername}} не отримали сповіщення про цю згадку, оскільки їх немає в каналі. Вони не можуть бути додані до каналу, оскільки не є членами пов'язаних груп. Щоб додати їх до цього каналу, вони повинні бути додані до пов'язаних груп."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} has no members on this team"
+    "translation": "@{{.GroupName}} не має учасників у цій команді"
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Unable to verify plugin signature."
+    "translation": "Не вдалося перевірити підпис плагіна."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "An error occurred while downloading the plugin."
+    "translation": "Під час завантаження плагіна сталася помилка."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -5621,19 +5621,19 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "назва групи вже існує як ім'я користувача"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "назва групи вже існує як зарезервоване ім'я"
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "group name already exists"
+    "translation": "назва групи вже існує"
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "Неможливо розібрати запитувану URL-адресу зображення."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -6677,7 +6677,7 @@
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
-    "translation": "Не вдалося проаналізувати тіло запиту."
+    "translation": "Не вдалося розібрати тіло запиту."
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -6685,7 +6685,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": "Кількість запитаних користувачів невірна."
+    "translation": "Кількість запитуваних користувачів не є правильною."
   },
   {
     "id": "api.context.get_user.app_error",
