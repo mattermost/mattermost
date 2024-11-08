@@ -368,6 +368,19 @@ func GetJoinsAndLeavesForChannel(startTime int64, endTime int64, channelMembersH
 	return joins, leaves
 }
 
+func GetPostAttachments(db MessageExportStore, post *model.MessageExport) ([]*model.FileInfo, error) {
+	// if the post included any files, we need to add special elements to the export.
+	if len(post.PostFileIds) == 0 {
+		return []*model.FileInfo{}, nil
+	}
+
+	attachments, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file info for a post: %w", err)
+	}
+	return attachments, nil
+}
+
 func ChannelTypeDisplayName(channelType model.ChannelType) string {
 	return map[model.ChannelType]string{
 		model.ChannelTypeOpen:    "public",
