@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {RegistryTypes} from '@hmhealey/plugin-support';
 import type React from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -9,20 +10,13 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {PluginAnalyticsRow} from '@mattermost/types/admin';
 import type {Board} from '@mattermost/types/boards';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {FileInfo} from '@mattermost/types/files';
-import type {CommandArgs} from '@mattermost/types/integrations';
 import type {ClientPluginManifest} from '@mattermost/types/plugins';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {ProductScope} from '@mattermost/types/products';
-import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
-import type {NewPostMessageProps} from 'actions/new_post';
-
 import type {PluginConfiguration} from 'types/plugins/user_settings';
-import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -144,11 +138,7 @@ export type AppBarAction = PluginComponent & {
     action: () => {data: boolean};
 });
 
-export type FilesDropdownAction = PluginComponent & {
-    text: PluggableText;
-    match: (fileInfo: FileInfo) => boolean;
-    action: (fileInfo: FileInfo) => void;
-};
+export type FilesDropdownAction = PluginComponent & RegistryTypes.FileDropdownActionOptions;
 
 export type PostDropdownMenuAction = PluginComponent & {
     parentMenuId?: string;
@@ -158,47 +148,19 @@ export type PostDropdownMenuAction = PluginComponent & {
     filter: (postId: string) => boolean;
 };
 
-export type ChannelHeaderAction = PluginComponent & {
-    text: PluggableText;
-    action: (channelId: string) => void;
-    shouldRender: (state: GlobalState) => boolean;
-};
+export type ChannelHeaderAction = PluginComponent & RegistryTypes.ChannelHeaderMenuActionOptions;
 
-export type ChannelHeaderButtonAction = PluginComponent & {
-    icon: React.ReactNode;
-    dropdownText: PluggableText;
-    tooltipText: PluggableText;
-    action: (channel: Channel, member?: ChannelMembership) => void;
-};
+export type ChannelHeaderButtonAction = PluginComponent & RegistryTypes.ChannelHeaderButtonActionOptions;
 
-export type FileUploadMethodAction = PluginComponent & {
-    text: PluggableText;
-    action: (checkPluginHooksAndUploadFiles: ((files: FileList | File[]) => void)) => void;
-    icon: React.ReactNode;
-};
+export type FileUploadMethodAction = PluginComponent & RegistryTypes.FileUploadMethodOptions;
 
-export type MainMenuAction = PluginComponent & {
-    text: PluggableText;
-    action: () => void;
-    mobileIcon: React.ReactNode;
-};
+export type MainMenuAction = PluginComponent & RegistryTypes.MainMenuActionOptions;
 
-export type ChannelIntroButtonAction = PluginComponent & {
-    text: PluggableText;
-    action: (channel: Channel, member: ChannelMembership) => void;
-    icon: React.ReactNode;
-};
+export type ChannelIntroButtonAction = PluginComponent & RegistryTypes.ChannelIntroButtonActionOptions;
 
-export type UserGuideDropdownAction = PluginComponent & {
-    text: PluggableText;
-    action: (fileInfo: FileInfo) => void;
-};
+export type UserGuideDropdownAction = PluginComponent & RegistryTypes.UserGuideDropdownMenuActionOptions;
 
-export type CallButtonAction = PluginComponent & {
-    button: React.ReactNode;
-    dropdownButton: React.ReactNode;
-    action: (channel?: Channel | null, member?: ChannelMembership) => void;
-};
+export type CallButtonAction = PluginComponent & RegistryTypes.CallButtonActionOptions;
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {
     button?: CallButtonAction['button'];
@@ -209,25 +171,10 @@ export type MobileChannelHeaderButtonAction = PluginComponent & {
     tooltipText?: ChannelHeaderButtonAction['tooltipText'];
 };
 
-export type DesktopNotificationArgs = {
-    title: string;
-    body: string;
-    silent: boolean;
-    soundName: string;
-    url: string;
-    notify: boolean;
-};
+export type DesktopNotificationArgs = RegistryTypes.DesktopNotificationArgs;
+export type DesktopNotificationHook = PluginComponent & RegistryTypes.DesktopNotificationHookOptions;
 
-export type DesktopNotificationHook = PluginComponent & {
-    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
-        error?: string;
-        args?: DesktopNotificationArgs;
-    }>;
-}
-
-export type FilesWillUploadHook = PluginComponent & {
-    hook: (files: File[], uploadFiles: (files: File[]) => void) => { message?: string; files?: File[] };
-}
+export type FilesWillUploadHook = PluginComponent & RegistryTypes.FilesWillUploadHookOptions;
 
 type ProductBaseProps = {theme: Theme};
 export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
@@ -296,101 +243,45 @@ export type ProductComponent = PluginComponent & {
     wrapped: boolean;
 };
 
-export type NeedsTeamComponent = PluginComponent & {
-    route: string;
-    component: React.ComponentType<unknown>; // TODO
-}
+export type NeedsTeamComponent = PluginComponent & RegistryTypes.NeedsTeamRouteOptions;
 
-export type FilePreviewComponent = PluginComponent & {
-    override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{
-        fileInfo: FileInfo;
-        post?: Post;
-        onModalDismissed: () => void;
-    }>;
-}
+export type FilePreviewComponent = PluginComponent & RegistryTypes.FilePreviewComponentOptions;
 
-export type PostWillRenderEmbedComponent = PluginComponent & {
-    component: React.ComponentType<{
-        embed: PostEmbed;
-        webSocketClient?: WebSocketClient;
-    }>;
-    match: (arg: PostEmbed) => boolean;
-    toggleable: boolean;
-}
+export type PostWillRenderEmbedComponent = PluginComponent & RegistryTypes.PostWillRenderEmbedComponentOptions;
 
 export type PostDropdownMenuItemComponent = PluginComponent & {
     text: PluggableText;
     component: React.ComponentType<BasePluggableProps & {postId: string}>;
 };
 
-export type RightHandSidebarComponent = PluginComponent & {
-    title: PluggableText;
-    component: React.ComponentType<unknown>; // TODO
-};
+export type RightHandSidebarComponent = PluginComponent & RegistryTypes.RightHandSidebarComponentOptions;
 
 export type SearchHintsComponent = PluginComponent & {
-    component: React.ComponentType<{
-        onChangeSearch: (value: string, matchedPretext: string) => void;
-        searchTerms: string;
-    }>;
+    component: RegistryTypes.SearchComponentsOptions['hintsComponent'];
 };
 
 export type SearchSuggestionsComponent = PluginComponent & {
-    component: React.ComponentType<{
-        searchTerms: string;
-        onChangeSearch: (value: string, matchedPretext: string) => void;
-        onRunSearch: (searchTerms: string) => void;
-    }>;
+    component: RegistryTypes.SearchComponentsOptions['suggestionsComponent'];
 };
 
 export type SearchButtonsComponent = PluginComponent & {
-    component: React.ComponentType; // Review the props
-    action: (terms: string) => void;
+    component: RegistryTypes.SearchComponentsOptions['buttonComponent'];
+    action: RegistryTypes.SearchComponentsOptions['action'];
 };
 
-export type PostActionComponent = PluginComponent & {
-    component: React.ComponentType<{
-        post: Post;
-    }>;
-};
+export type PostActionComponent = PluginComponent & RegistryTypes.PostActionComponentOptions;
 
-export type NewMessagesSeparatorActionComponent = PluginComponent & {
-    component: React.ComponentType<{
-        lastViewedAt: number;
-        channelId?: string;
-        threadId?: string;
-    }>;
-};
+export type NewMessagesSeparatorActionComponent = PluginComponent & RegistryTypes.NewMessagesSeparatorActionComponentOptions;
 
-export type PopoverUserAttributesComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps & {
-        user: UserProfile;
-        hide?: () => void;
-        status: string | null;
-        fromWebhook?: boolean;
-    }>;
-};
+export type PopoverUserAttributesComponent = PluginComponent & RegistryTypes.PopoverUserAttributesComponentOptions;
 
-export type PopoverUserActionsComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps & {
-        user: UserProfile;
-        hide?: () => void;
-        status: string | null;
-    }>;
-};
+export type PopoverUserActionsComponent = PluginComponent & RegistryTypes.PopoverUserActionsComponentOptions;
 
-export type LeftSidebarHeaderComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps>;
-};
+export type LeftSidebarHeaderComponent = PluginComponent & RegistryTypes.LeftSidebarHeaderComponentOptions;
 
-export type RootComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps>;
-};
+export type RootComponent = PluginComponent & RegistryTypes.RootComponentOptions;
 
-export type BottomTeamSidebarComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps>;
-};
+export type BottomTeamSidebarComponent = PluginComponent & RegistryTypes.BottomTeamSidebarComponentOptions;
 
 export type SidebarChannelLinkLabelComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps & {
@@ -398,32 +289,15 @@ export type SidebarChannelLinkLabelComponent = PluginComponent & {
     }>;
 };
 
-export type PostMessageAttachmentComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps & {
-        postId: string;
-        onHeightChange: (height: number) => void;
-    }>;
-};
+export type PostMessageAttachmentComponent = PluginComponent & RegistryTypes.PostMessageAttachmentComponentOptions;
 
-export type LinkTooltipComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps & {
-        href: string;
-        show: boolean;
-    }>;
-};
+export type LinkTooltipComponent = PluginComponent & RegistryTypes.LinkTooltipComponentOptions;
 
-export type PostEditorActionComponent = PluginComponent & {
-    component: React.ComponentType;
-};
+export type PostEditorActionComponent = PluginComponent & RegistryTypes.PostEditorActionComponentOptions;
 
-export type CodeBlockActionComponent = PluginComponent & {
-    component: React.ComponentType;
-};
+export type CodeBlockActionComponent = PluginComponent & RegistryTypes.CodeBlockActionComponentOptions;
 
-export type CustomRouteComponent = PluginComponent & {
-    component: React.ComponentType;
-    route: string;
-};
+export type CustomRouteComponent = PluginComponent & RegistryTypes.CustomRouteOptions;
 
 export type GlobalComponent = PluginComponent & {
     component: React.ComponentType;
@@ -442,45 +316,20 @@ export type CreateBoardFromTemplateComponent = PluginComponent & {
     action: () => void;
 };
 
-export type MessageWillFormatHook = PluginComponent & {
-    hook: (post: Post, message: string) => string;
-};
+export type MessageWillFormatHook = PluginComponent & RegistryTypes.MessageWillFormatHookOptions;
 
-export type MessageWillBePostedHook = PluginComponent & {
-    hook: (post: Post) => Promise<{error: {message: string}} | {post: Post}>;
-};
+export type MessageWillBePostedHook = PluginComponent & RegistryTypes.MessageWillBePostedHookOptions;
 
-export type SlashCommandWillBePostedHook = PluginComponent & {
-    hook: (message: string, args: CommandArgs) => Promise<{error: {message: string}} | {message: string; args: CommandArgs} | Record<string, never>>;
-};
+export type SlashCommandWillBePostedHook = PluginComponent & RegistryTypes.SlashCommandWillBePostedHookOptions;
 
-export type MessageWillBeUpdatedHook = PluginComponent & {
-    hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
-};
+export type MessageWillBeUpdatedHook = PluginComponent & RegistryTypes.MessageWillBeUpdatedHookOptions;
 
-export type PostPluginComponent = {
-    id: string;
-    pluginId: string;
-    type: string;
-    component: React.ComponentType<{
-        post: Post;
-        compactDisplay?: boolean;
-        isRHS?: boolean;
-        theme?: Theme;
-    }>;
-};
+export type PostPluginComponent = PluginComponent & RegistryTypes.PostTypeComponentOptions;
 
 export type AdminConsolePluginComponent = {
     pluginId: string;
-    key: string;
-    component: React.Component;
-    options: {
-        showTitle: boolean;
-    };
-};
+} & RegistryTypes.AdminConsoleCustomSettingOptions;
 
 export type AdminConsolePluginCustomSection = {
     pluginId: string;
-    key: string;
-    component: React.Component;
-};
+} & RegistryTypes.AdminConsoleCustomSectionOptions;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PluginRegistry as PluginRegistryInterface} from '@hmhealey/plugin-support';
+import type {PluginRegistry as PluginRegistryInterface, RegistryTypes} from '@hmhealey/plugin-support';
 import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
@@ -132,13 +132,17 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component in the user attributes section of the profile popover (hovercard), below the default user attributes.
     // Accepts a React component. Returns a unique identifier.
-    registerPopoverUserAttributesComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPopoverUserAttributesComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.PopoverUserAttributesComponentOptions) => {
         return dispatchPluginComponentAction('PopoverUserAttributes', this.id, component);
     });
 
     // Register a component in the user actions of the profile popover (hovercard), below the default actions.
     // Accepts a React component. Returns a unique identifier.
-    registerPopoverUserActionsComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPopoverUserActionsComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.PopoverUserActionsComponentOptions) => {
         return dispatchPluginComponentAction('PopoverUserActions', this.id, component);
     });
 
@@ -157,7 +161,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component fixed to the bottom of the post message.
     // Accepts a React component. Returns a unique identifier.
-    registerPostMessageAttachmentComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostMessageAttachmentComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.PostMessageAttachmentComponentOptions) => {
         return dispatchPluginComponentAction('PostMessageAttachment', this.id, component);
     });
 
@@ -191,7 +197,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // The component will be passed the following props:
     // - href - The URL for this link
     // - show - A boolean used to signal that the user is currently hovering over this link. Use this value to initialize your component when this boolean is true for the first time, using `componentDidUpdate` or `useEffect`.
-    registerLinkTooltipComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerLinkTooltipComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.LinkTooltipComponentOptions) => {
         return dispatchPluginComponentAction('LinkTooltip', this.id, component);
     });
 
@@ -525,13 +533,17 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component to the add to the post message menu shown on hover.
     // Accepts a React component. Returns a unique identifier.
-    registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostActionComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.PostActionComponentOptions) => {
         return dispatchPluginComponentAction('PostAction', this.id, component);
     });
 
     // Register a component to the add to the post text editor menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostEditorActionComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.PostEditorActionComponentOptions) => {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
 
@@ -543,7 +555,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component to the add to the new messages separator.
     // Accepts a React component. Returns a unique identifier.
-    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerNewMessagesSeparatorActionComponent = reArg(['component'], ({
+        component,
+    }: RegistryTypes.NewMessagesSeparatorActionComponentOptions) => {
         return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
     });
 
@@ -640,10 +654,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component at the bottom of the post dropdown menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostDropdownMenuItemComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostDropdownMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('PostDropdownMenuItem', this.id, component);
     });
-    registerPostDropdownMenuComponent = this.registerPostDropdownMenuItemComponent;
 
     // Register a file upload method by providing some text, an icon, and an action function.
     // Accepts the following:

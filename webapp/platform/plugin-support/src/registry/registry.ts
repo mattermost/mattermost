@@ -174,7 +174,7 @@ export interface PluginRegistry {
 
     // Register a component at the bottom of the post dropdown menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostDropdownMenuItemComponent(options: RegistryTypes.PostDropdownMenuItemOptions): PluginComponentId;
+    registerPostDropdownMenuComponent(options: RegistryTypes.PostDropdownMenuComponentOptions): PluginComponentId;
 
     // Register a file upload method by providing some text, an icon, and an action function.
     // Accepts the following:

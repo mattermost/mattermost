@@ -7,6 +7,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 export type Theme = unknown; // TODO
 // export type IconGlyphTypes = unknown; // TODO
@@ -25,11 +26,33 @@ export type PluggableText = string | React.ReactNode;
 // type ProductBaseProps = Record<string, never>; // TODO I'm being stricter with this because I want to clean this up
 
 export type RootComponentOptions = DefaultComponentOptions;
-export type PopoverUserAttributesComponentOptions = DefaultComponentOptions;
-export type PopoverUserActionsComponentOptions = DefaultComponentOptions;
+
+export type PopoverUserAttributesComponentOptions = {
+    component: React.ComponentType<{
+        user: UserProfile;
+        hide?: () => void;
+        status: string | null;
+        fromWebhook?: boolean;
+    }>;
+};
+
+export type PopoverUserActionsComponentOptions = {
+    component: React.ComponentType<{
+        user: UserProfile;
+        hide?: () => void;
+        status: string | null;
+    }>;
+};
+
 export type LeftSidebarHeaderComponentOptions = DefaultComponentOptions;
 export type BottomTeamSidebarComponentOptions = DefaultComponentOptions;
-export type PostMessageAttachmentComponentOptions = DefaultComponentOptions;
+
+export type PostMessageAttachmentComponentOptions = {
+    component: React.ComponentType<{
+        postId: string;
+        onHeightChange: (height: number) => void;
+    }>;
+};
 
 export type SearchComponentsOptions = {
     buttonComponent: React.ComponentType<unknown>; // TODO
@@ -45,7 +68,12 @@ export type SearchComponentsOptions = {
     action: (terms: string) => void;
 };
 
-export type LinkTooltipComponentOptions = DefaultComponentOptions;
+export type LinkTooltipComponentOptions = {
+    component: React.ComponentType<{
+        href: string;
+        show: boolean;
+    }>;
+};
 
 export type ActionAfterChannelCreationOptions = {
     component: React.ComponentType<BasePluggableProps & {
@@ -118,12 +146,23 @@ export type UserGuideDropdownMenuActionOptions = {
     action: (fileInfo: FileInfo) => void;
 };
 
-export type PostActionComponentOptions = DefaultComponentOptions;
+export type PostActionComponentOptions = {
+    component: React.ComponentType<{
+        post: Post;
+    }>;
+};
 export type PostEditorActionComponentOptions = DefaultComponentOptions;
 export type CodeBlockActionComponentOptions = DefaultComponentOptions;
-export type NewMessagesSeparatorActionComponentOptions = DefaultComponentOptions;
+export type NewMessagesSeparatorActionComponentOptions = {
+    component: React.ComponentType<{
+        channelId?: string;
+        lastViewedAt: number;
+        threadId?: string;
+    }>;
+};
 
 export type PostDropdownMenuActionOptions = {
+    id: string;
     parentMenuId?: string;
     subMenu?: PostDropdownMenuActionOptions[];
     text: PluggableText;
@@ -138,7 +177,7 @@ export type RegisterPostDropdownSubMenuActionCallback = (
     innerFilter: PostDropdownMenuActionOptions['filter'],
 ) => RegisterPostDropdownSubMenuActionCallback;
 
-export type PostDropdownMenuItemOptions = DefaultComponentOptions;
+export type PostDropdownMenuComponentOptions = DefaultComponentOptions;
 
 export type FileUploadMethodOptions = {
     text: PluggableText;
