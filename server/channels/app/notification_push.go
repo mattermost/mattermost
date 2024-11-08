@@ -599,6 +599,10 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
+		return true
+	}
+
 	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - notify props",

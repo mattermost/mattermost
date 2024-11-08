@@ -75,6 +75,7 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
+	PostPropsForceNotification        = "force_notification"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -339,8 +340,9 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 }
 
 type CreatePostFlags struct {
-	TriggerWebhooks bool
-	SetOnline       bool
+	TriggerWebhooks   bool
+	SetOnline         bool
+	ForceNotification bool
 }
 
 type GetPostsSinceOptions struct {
@@ -500,6 +502,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
+		PostPropsForceNotification,
 	}
 
 	for _, member := range membersToSanitize {
