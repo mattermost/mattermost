@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, RadioboxBlankIcon} from '@mattermost/compass-icons/components';
@@ -25,6 +25,8 @@ interface Props {
 
 export default function UserAccountOfflineMenuItem(props: Props) {
     const dispatch = useDispatch();
+
+    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -49,6 +51,7 @@ export default function UserAccountOfflineMenuItem(props: Props) {
                 <CheckIcon
                     size={16}
                     className='userAccountMenu_menuItemTrailingCheckIcon'
+                    aria-hidden='true'
                 />
             );
         }
@@ -56,12 +59,27 @@ export default function UserAccountOfflineMenuItem(props: Props) {
         return null;
     }, [props.isStatusOffline]);
 
+    const ariaLabel = useMemo(() => {
+        if (props.isStatusOffline) {
+            return formatMessage({
+                id: 'userAccountMenu.offlineMenuItem.ariaLabelChecked',
+                defaultMessage: 'Current status is offline',
+            });
+        }
+
+        return formatMessage({
+            id: 'userAccountMenu.offlineMenuItem.ariaLabelUnchecked',
+            defaultMessage: 'Click to set status as offline',
+        });
+    }, [props.isStatusOffline, formatMessage]);
+
     return (
         <Menu.Item
             leadingElement={
                 <RadioboxBlankIcon
                     size='18'
                     className='userAccountMenu_offlineMenuItem_icon'
+                    aria-hidden='true'
                 />
             }
             labels={
@@ -71,6 +89,7 @@ export default function UserAccountOfflineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
+            aria-label={ariaLabel}
             onClick={handleClick}
         />
     );

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CancelIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -17,25 +17,23 @@ import ResetStatusModal from 'components/reset_status_modal';
 
 import {UserStatuses, ModalIdentifiers} from 'utils/constants';
 
-interface Props {
+export interface Props {
     userId: UserProfile['id'];
-    status?: UserProfile['status'];
-    autoResetPref?: string;
+    shouldConfirmBeforeStatusChange: boolean;
+    isStatusOutOfOffice: boolean;
 }
 
 export default function UserAccountOutOfOfficeMenuItem(props: Props) {
     const dispatch = useDispatch();
 
-    if (!props.status) {
-        return null;
-    }
+    const {formatMessage} = useIntl();
 
-    if (props.status !== UserStatuses.OUT_OF_OFFICE) {
+    if (!props.isStatusOutOfOffice) {
         return null;
     }
 
     function handleClick() {
-        if (props.autoResetPref === '') {
+        if (props.shouldConfirmBeforeStatusChange) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.RESET_STATUS,
                 dialogType: ResetStatusModal,
@@ -54,15 +52,20 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
     return (
         <>
             <Menu.Item
-                leadingElement={<CancelIcon size={18}/>}
+                leadingElement={
+                    <CancelIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                }
                 labels={
                     <>
                         <FormattedMessage
-                            id='userAccountPopover.menuItem.ooo.primaryLabel'
+                            id='userAccountMenu.oooMenuItem.primaryLabel'
                             defaultMessage='Out of office'
                         />
                         <FormattedMessage
-                            id='userAccountPopover.menuItem.ooo.secondaryLabel'
+                            id='userAccountMenu.oooMenuItem.secondaryLabel'
                             defaultMessage='Automatic replies are enabled'
                         />
                     </>
@@ -70,10 +73,14 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
                 trailingElements={
                     <CheckIcon
                         size={16}
-                        color={'var(--button-bg)'}
+                        className='userAccountMenu_menuItemTrailingCheckIcon'
+                        aria-hidden='true'
                     />
-
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.oooMenuItem.ariaLabel',
+                    defaultMessage: 'Current status is out of office, click to set status as online',
+                })}
                 onClick={handleClick}
             />
             <Menu.Separator/>

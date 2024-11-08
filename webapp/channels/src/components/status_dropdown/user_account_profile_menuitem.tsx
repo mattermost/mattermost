@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
@@ -28,6 +28,8 @@ interface Props {
 export default function UserAccountProfileMenuItem(props: Props) {
     const dispatch = useDispatch();
 
+    const {formatMessage} = useIntl();
+
     const onboardingTaskStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.COMPLETE_YOUR_PROFILE, 0));
     const isCompleteYourProfileTaskPending = onboardingTaskStep === TaskNameMapToSteps[OnboardingTasksName.COMPLETE_YOUR_PROFILE].STARTED;
 
@@ -51,34 +53,30 @@ export default function UserAccountProfileMenuItem(props: Props) {
         }]));
     }
 
-    const trailingElement = useMemo(() => {
-        if (isCompleteYourProfileTaskPending) {
-            return (
-                <div onClick={handleTourClick}>
-                    <CompleteYourProfileTour/>
-                </div>
-            );
-        }
-
-        return null;
-    }, [isCompleteYourProfileTaskPending]);
-
     return (
         <>
             <Menu.Item
-                id='userAccountPopover.menuItem.profile'
                 leadingElement={
                     <AccountOutlineIcon
                         size={18}
+                        aria-hidden='true'
                     />
                 }
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.menuItem.profile'
+                        id='userAccountMenu.profileMenuItem.label'
                         defaultMessage='Profile'
                     />
                 }
-                trailingElements={trailingElement}
+                trailingElements={isCompleteYourProfileTaskPending && (
+                    <div onClick={handleTourClick}>
+                        <CompleteYourProfileTour/>
+                    </div>
+                )}
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.profileMenuItem.ariaLabel',
+                    defaultMessage: 'Click to open user settings',
+                })}
                 onClick={handleClick}
             />
             <Menu.Separator/>

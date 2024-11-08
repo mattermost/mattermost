@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ClockIcon} from '@mattermost/compass-icons/components';
@@ -25,6 +25,8 @@ interface Props {
 
 export default function UserAccountAwayMenuItem(props: Props) {
     const dispatch = useDispatch();
+
+    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -49,6 +51,7 @@ export default function UserAccountAwayMenuItem(props: Props) {
                 <CheckIcon
                     size={16}
                     className='userAccountMenu_menuItemTrailingCheckIcon'
+                    aria-hidden='true'
                 />
             );
         }
@@ -56,21 +59,37 @@ export default function UserAccountAwayMenuItem(props: Props) {
         return null;
     }, [props.isStatusAway]);
 
+    const ariaLabel = useMemo(() => {
+        if (props.isStatusAway) {
+            return formatMessage({
+                id: 'userAccountMenu.awayMenuItem.ariaLabelChecked',
+                defaultMessage: 'Current status is away',
+            });
+        }
+
+        return formatMessage({
+            id: 'userAccountMenu.awayMenuItem.ariaLabelUnchecked',
+            defaultMessage: 'Click to set status as away',
+        });
+    }, [props.isStatusAway, formatMessage]);
+
     return (
         <Menu.Item
             leadingElement={
                 <ClockIcon
                     size='18'
                     className='userAccountMenu_awayMenuItem_icon'
+                    aria-hidden='true'
                 />
             }
             labels={
                 <FormattedMessage
-                    id='userAccountPopover.awayMenuItem.label'
+                    id='userAccountMenu.awayMenuItem.label'
                     defaultMessage='Away'
                 />
             }
             trailingElements={trailingElement}
+            aria-label={ariaLabel}
             onClick={handleClick}
         />
     );

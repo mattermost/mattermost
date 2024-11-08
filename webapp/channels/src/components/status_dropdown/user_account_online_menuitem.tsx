@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -25,6 +25,8 @@ interface Props {
 
 export default function UserAccountOnlineMenuItem(props: Props) {
     const dispatch = useDispatch();
+
+    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -49,6 +51,7 @@ export default function UserAccountOnlineMenuItem(props: Props) {
                 <CheckIcon
                     size={16}
                     className='userAccountMenu_menuItemCheckIcon'
+                    aria-hidden='true'
                 />
             );
         }
@@ -56,21 +59,37 @@ export default function UserAccountOnlineMenuItem(props: Props) {
         return null;
     }, [props.isStatusOnline]);
 
+    const ariaLabel = useMemo(() => {
+        if (props.isStatusOnline) {
+            return formatMessage({
+                id: 'userAccountMenu.onlineMenuItem.ariaLabelChecked',
+                defaultMessage: 'Current status is online',
+            });
+        }
+
+        return formatMessage({
+            id: 'userAccountMenu.onlineMenuItem.ariaLabelUnchecked',
+            defaultMessage: 'Click to set status as online',
+        });
+    }, [props.isStatusOnline, formatMessage]);
+
     return (
         <Menu.Item
             leadingElement={
                 <CheckCircleIcon
                     size='18'
                     className='userAccountMenu_onlineMenuItem_icon'
+                    aria-hidden='true'
                 />
             }
             labels={
                 <FormattedMessage
-                    id='userAccountPopover.menuItem.online'
+                    id='userAccountMenu.onlineMenuItem.label'
                     defaultMessage='Online'
                 />
             }
             trailingElements={trailingElement}
+            aria-label={ariaLabel}
             onClick={handleClick}
         />
     );

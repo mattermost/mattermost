@@ -1,7 +1,7 @@
 @import 'utils/_mixins';
 
 #userAccountMenu {
-    .userAccountMenu__nameMenuItem {
+    .userAccountMenu_nameMenuItem {
         align-items: center;
 
         .leading-element {
@@ -14,7 +14,7 @@
             gap: 0;
         }
 
-        h2.userAccountMenu__nameMenuItem__primaryLabel {
+        h2.userAccountMenu_nameMenuItem_primaryLabel {
             font-size: 16px;
             line-height: 22px;
             font-weight: 600;
@@ -23,7 +23,7 @@
             @include textEllipsis;
         }
 
-        .userAccountMenu__nameMenuItem__secondaryLabel {
+        .userAccountMenu_nameMenuItem_secondaryLabel {
             font-size: 14px;
             line-height: 18px;
             max-width: 150px;
@@ -247,27 +247,6 @@ button.custom_status__row {
         align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         line-height: 14px;
-    }
-
-    .username-wrapper {
-        padding: 0 12px;
-
-        > p {
-            overflow: hidden;
-            max-width: 150px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-
-            &.contrast {
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-            }
-
-            &.bold {
-                font-family: 'Metropolis', sans-serif;
-                font-size: 16px;
-                font-weight: 600;
-            }
-        }
     }
 
     .MenuHeader {
