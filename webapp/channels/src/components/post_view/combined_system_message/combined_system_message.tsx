@@ -5,10 +5,10 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
-import type {MessageData} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {MessageData} from 'mattermost-redux/utils/post_list';
 
 import Markdown from 'components/markdown';
 

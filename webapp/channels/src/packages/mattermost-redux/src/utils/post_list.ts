@@ -445,7 +445,7 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []): UserAct
     return extractUserActivityData(userActivities);
 }
 
-type MessageData = {
+export type MessageData = {
     actorId?: string;
     postType: string;
     userIds: string[];
