@@ -298,7 +298,7 @@ export type ProductComponent = PluginComponent & {
 
 export type NeedsTeamComponent = PluginComponent & {
     route: string;
-    component: React.ComponentType<BasePluggableProps>;
+    component: React.ComponentType<unknown>; // TODO
 }
 
 export type FilePreviewComponent = PluginComponent & {
@@ -326,7 +326,7 @@ export type PostDropdownMenuItemComponent = PluginComponent & {
 
 export type RightHandSidebarComponent = PluginComponent & {
     title: PluggableText;
-    component: React.ComponentType<BasePluggableProps>;
+    component: React.ComponentType<unknown>; // TODO
 };
 
 export type SearchHintsComponent = PluginComponent & {

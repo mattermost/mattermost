@@ -67,7 +67,7 @@ import type {
 
 const defaultShouldRender = () => true;
 
-type DPluginComponentProp = {component: React.ComponentType<unknown>};
+type DPluginComponentProp = {component: React.ComponentType<unknown>}; // TODO
 function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
     store.dispatch({
         type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
@@ -202,7 +202,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
         component,
         action,
     }: {
-        component: CreateBoardFromTemplateComponent['component'];
+        component: any; // TODO
         action: CreateBoardFromTemplateComponent['action'];
     }) => {
         const id = generateId();
@@ -640,9 +640,10 @@ export default class PluginRegistry implements PluginRegistryInterface {
 
     // Register a component at the bottom of the post dropdown menu.
     // Accepts a React component. Returns a unique identifier.
-    registerPostDropdownMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerPostDropdownMenuItemComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('PostDropdownMenuItem', this.id, component);
     });
+    registerPostDropdownMenuComponent = this.registerPostDropdownMenuItemComponent;
 
     // Register a file upload method by providing some text, an icon, and an action function.
     // Accepts the following:
