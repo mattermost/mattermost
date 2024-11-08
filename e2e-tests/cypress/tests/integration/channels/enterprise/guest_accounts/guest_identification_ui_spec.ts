@@ -213,7 +213,7 @@ describe('Verify Guest User Identification in different screens', () => {
     it('Verify Guest Badge not displayed in Search Autocomplete', () => {
         // # Search for the Guest User
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').type('from:');
+        cy.uiGetSearchBox().type('from:');
 
         // * Verify Guest Badge is not displayed at Search auto-complete
         cy.contains('.suggestion-list__item', guestUser.username).scrollIntoView().should('be.visible').within(($el) => {
