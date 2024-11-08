@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -228,7 +229,6 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61523")
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -241,6 +241,10 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
+
+		// this wait is to ensure scheduled post 2 and 1 have some time gap between the two
+		// to ensure a deterministic ordering
+		time.Sleep(1 * time.Second)
 
 		scheduledPost2 := &model.ScheduledPost{
 			Draft: model.Draft{
