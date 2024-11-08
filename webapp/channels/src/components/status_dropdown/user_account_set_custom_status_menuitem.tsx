@@ -41,7 +41,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         return (
             <>
                 <Menu.Item
-                    leadingElement={<EmojiIcon className='setCustomStatusMenuEmojiIcon'/>}
+                    leadingElement={<EmojiIcon className='userAccountMenu_setCustomStatusMenuItem_icon'/>}
                     labels={
                         <FormattedMessage
                             id='userAccountPopover.menuItem.setCustomStatus.noStatusSet'

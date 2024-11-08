@@ -31,8 +31,28 @@
         }
     }
 
-    .setCustomStatusMenuEmojiIcon > svg {
+    .userAccountMenu_setCustomStatusMenuItem_icon > svg {
         fill: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    .userAccountMenu_menuItemTrailingCheckIcon {
+        color: var(--button-bg);
+    }
+
+    .userAccountMenu_onlineMenuItem_icon {
+        color: var(--online-indicator);
+    }
+
+    .userAccountMenu_awayMenuItem_icon {
+        color: var(--away-indicator);
+    }
+
+    .userAccountMenu_dndMenuItem_icon {
+        color: var(--dnd-indicator);
+    }
+
+    .userAccountMenu_offlineMenuItem_icon {
+        color: rgba(141, 147, 165, 0.56);
     }
 }
 

@@ -41,11 +41,17 @@ import {getBrowserTimezone, getCurrentDateTimeForTimezone, getCurrentMomentForTi
 import type {ModalData} from 'types/actions';
 import type {Menu as MenuType} from 'types/store/plugins';
 
-import './status_dropdown.scss';
-import DoNotDisturbSubmenu from './do_not_disturb_submenu';
+import UserAccountAwayMenuItem from './user_account_away_menuitem';
+import UserAccountDndMenuItem from './user_account_dnd_menuitem';
+import UserAccountLogoutMenuItem from './user_account_logout_menuitem';
 import UserAccountNameMenuItem from './user_account_name_menuitem';
+import UserAccountOfflineMenuItem from './user_account_offline_menuitem';
+import UserAccountOnlineMenuItem from './user_account_online_menuitem';
 import UserAccountOutOfOfficeMenuItem from './user_account_out_of_office_menuitem';
+import UserAccountProfileMenuItem from './user_account_profile_menuitem';
 import UserAccountSetCustomStatusMenuItem from './user_account_set_custom_status_menuitem';
+
+import './status_dropdown.scss';
 
 type Props = {
     intl: IntlShape;
@@ -58,7 +64,7 @@ type Props = {
         setStatus: (status: UserStatus) => void;
         unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-        setStatusDropdown: (open: boolean) => void;
+        // setStatusDropdown: (open: boolean) => void;
     };
     customStatus?: UserCustomStatus;
     currentUser: UserProfile;
@@ -248,7 +254,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
     };
 
     onToggle = (open: boolean): void => {
-        this.props.actions.setStatusDropdown(open);
+        // this.props.actions.setStatusDropdown(open);
     };
 
     handleCompleteYourProfileTask = (): void => {
@@ -435,6 +441,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
         const {status, customStatus, isCustomStatusExpired, currentUser, timezone, dndEndTime} = this.props;
         const isStatusSet = customStatus && !isCustomStatusExpired && (customStatus.text?.length > 0 || customStatus.emoji?.length > 0);
+        const shouldConfirmBeforeStatusChange = this.props.autoResetPref === '' && this.props.status === UserStatuses.OUT_OF_OFFICE;
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
         const setDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setDnd;
@@ -570,19 +577,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     }}
                     menu={{
                         id: 'userAccountMenu',
-
-                        // 'aria-label': formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'}),
-                        // onKeyDown: this.handleMenuKeydown,
                         width: '264px',
-
-                    // onToggle: this.handleMenuToggle,
                     }}
-
-                // menuButtonTooltip={{
-                //     id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
-                //     text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
-                //     class: 'hidden-xs',
-                // }}
                 >
                     <UserAccountNameMenuItem
                         currentUser={currentUser}
@@ -597,88 +593,30 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         userId={this.props.userId}
                         timezone={this.props.timezone}
                     />
-                    <MenuNew.Item
-                        leadingElement={
-                            <StatusIcon
-                                status='online'
-                            />
-                        }
-                        labels={
-                            <FormattedMessage
-                                id='userAccountPopover.menuItem.online'
-                                defaultMessage='Online'
-                            />
-                        }
+                    <UserAccountOnlineMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusOnline={this.props.status === UserStatuses.ONLINE}
                     />
-                    <MenuNew.Item
-                        leadingElement={
-                            <StatusIcon
-                                status='away'
-                            />
-                        }
-                        labels={
-                            <FormattedMessage
-                                id='userAccountPopover.menuItem.away'
-                                defaultMessage='Away'
-                            />
-                        }
+                    <UserAccountAwayMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusAway={this.props.status === UserStatuses.AWAY}
                     />
-                    <DoNotDisturbSubmenu/>
-                    <MenuNew.Item
-                        leadingElement={
-                            <StatusIcon
-                                status={'offline'}
-                            />
-                        }
-                        labels={
-                            <FormattedMessage
-                                id='userAccountPopover.menuItem.offline'
-                                defaultMessage='Offline'
-                            />
-                        }
+                    <UserAccountDndMenuItem
+                        timezone={this.props.timezone}
+                        isStatusDnd={this.props.status === UserStatuses.DND}
+                    />
+                    <UserAccountOfflineMenuItem
+                        userId={this.props.userId}
+                        shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                        isStatusOffline={this.props.status === UserStatuses.OFFLINE}
                     />
                     <MenuNew.Separator/>
-                    <MenuNew.Item
-                        id='userAccountPopover.menuItem.profile'
-                        leadingElement={
-                            <AccountOutlineIcon
-                                size={18}
-                            />
-                        }
-                        labels={
-                            <>
-                                <FormattedMessage
-                                    id='userAccountPopover.menuItem.profile'
-                                    defaultMessage='Profile'
-                                />
-                                {/* {true && (
-                                    <div
-                                        onClick={this.handleCompleteYourProfileTask}
-                                        className={'account-settings-complete'}
-                                    >
-                                        <CompleteYourProfileTour/>
-                                    </div>
-                                )} */}
-                            </>
-                        }
+                    <UserAccountProfileMenuItem
+                        userId={this.props.userId}
                     />
-                    <MenuNew.Separator/>
-                    <MenuNew.Item
-                        id='userAccountPopover.menuItem.logOut'
-                        isDestructive={true}
-                        leadingElement={
-                            <ExitToAppIcon
-                                size={18}
-                            />
-                        }
-                        labels={
-                            <FormattedMessage
-                                id='userAccountPopover.menuItem.logOut'
-                                defaultMessage='Log out'
-                            />
-                        }
-                        onClick={this.handleEmitUserLoggedOutEvent}
-                    />
+                    <UserAccountLogoutMenuItem/>
                 </MenuNew.Container>
             );
         }

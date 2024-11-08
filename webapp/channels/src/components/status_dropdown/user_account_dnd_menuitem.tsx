@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-// eslint-disable-next-line no-restricted-imports
-import StatusIcon from '@mattermost/compass-components/components/status-icon';
-import {ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, MinusCircleIcon} from '@mattermost/compass-icons/components';
 
+import {setStatus} from 'mattermost-redux/actions/users';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import * as Menu from 'components/menu';
 
@@ -19,96 +17,115 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {GlobalState} from 'types/store';
 
-function DoNotDisturbSubmenu() {
-    const timezone = useSelector(getCurrentTimezone);
+interface Props {
+    timezone?: string;
+    isStatusDnd: boolean;
+}
+
+export default function UserAccountDndMenuItem(props: Props) {
+    const dispatch = useDispatch();
 
     const isMilitaryTime = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false));
 
-    const tomorrow9AMDateObject = getCurrentMomentForTimezone(timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
+    const tomorrow9AMDateObject = getCurrentMomentForTimezone(props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
+
+    const trailingElement = useMemo(() => {
+        if (props.isStatusDnd) {
+            return (
+                <>
+                    <CheckIcon
+                        size={16}
+                        className='userAccountMenu_menuItemTrailingCheckIcon'
+                    />
+                    <ChevronRightIcon size={16}/>
+                </>
+            );
+        }
+
+        return (
+            <ChevronRightIcon size={16}/>
+        );
+    }, [props.isStatusDnd]);
 
     return (
         <Menu.SubMenu
-            id='userAccountPopover.menuItem.dnd'
+            id='userAccountMenu.dndMenuItem'
             leadingElement={
-                <StatusIcon
-                    status='dnd'
+                <MinusCircleIcon
+                    size='18'
+                    className='userAccountMenu_dndMenuItem_icon'
                 />
             }
             labels={
                 <>
                     <FormattedMessage
-                        id='userAccountPopover.menuItem.dnd'
+                        id='userAccountMenu.dndMenuItem.primaryLabel'
                         defaultMessage='Do not disturb'
                     />
                     <FormattedMessage
-                        id='userAccountPopover.menuItem.dnd.secondaryLabel.disablesAllNotifications'
+                        id='userAccountMenu.dndMenuItem.secondaryLabel'
                         defaultMessage='Disables all notifications'
                     />
                 </>
             }
-            trailingElements={<ChevronRightIcon size={16}/>}
-            menuId='userAccountPopover.dndSubMenu'
+            trailingElements={trailingElement}
+            menuId='userAccountMenu.dndSubMenu'
         >
-            <h5 className={'dot-menu__post-reminder-menu-header'}>
+            <h5>
                 <FormattedMessage
-                    id='userAccountPopover.doNotDisturbSubMenu.menuItem.clearAfter'
+                    id='userAccountMenu.dndSubMenu.title'
                     defaultMessage='Clear after:'
                 />
             </h5>
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.doNotClear'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.doNotClear'
+                        id='userAccountMenu.dndSubMenuItem.doNotClear'
                         defaultMessage="Don't clear"
                     />
                 }
             />
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.30Minutes'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.30Minutes'
+                        id='userAccountMenu.dndSubMenuItem.30Minutes'
                         defaultMessage='30 mins'
                     />
                 }
             />
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.1Hour'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.1Hour'
+                        id='userAccountMenu.dndSubMenuItem.1Hour'
                         defaultMessage='1 hour'
                     />
                 }
             />
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.2Hours'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.2Hours'
+                        id='userAccountMenu.dndSubMenuItem.2Hours'
                         defaultMessage='2 hours'
                     />
                 }
             />
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.tomorrow'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.tomorrow'
+                        id='userAccountMenu.dndSubMenuItem.tomorrow'
                         defaultMessage='Tomorrow'
                     />
                 }
                 trailingElements={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.tomorrowsDateTime'
+                        id='userAccountMenu.dndSubMenuItem.tomorrowsDateTime'
                         defaultMessage='{shortDay}, {shortTime}'
                         values={{
                             shortDay: (
                                 <FormattedDate
                                     value={tomorrow9AMDateObject}
                                     weekday='short'
-                                    timeZone={timezone}
+                                    timeZone={props.timezone}
                                 />
                             ),
                             shortTime: (
@@ -116,7 +133,7 @@ function DoNotDisturbSubmenu() {
                                     value={tomorrow9AMDateObject}
                                     timeStyle='short'
                                     hour12={!isMilitaryTime}
-                                    timeZone={timezone}
+                                    timeZone={props.timezone}
                                 />
                             ),
                         }}
@@ -124,10 +141,9 @@ function DoNotDisturbSubmenu() {
                 }
             />
             <Menu.Item
-                id='userAccountPopover.doNotDisturbSubMenu.menuItem.custom'
                 labels={
                     <FormattedMessage
-                        id='userAccountPopover.doNotDisturbSubMenu.menuItem.custom'
+                        id='userAccountMenu.dndSubMenuItem.custom'
                         defaultMessage='Choose date and time'
                     />
                 }
@@ -135,5 +151,3 @@ function DoNotDisturbSubmenu() {
         </Menu.SubMenu>
     );
 }
-
-export default DoNotDisturbSubmenu;
