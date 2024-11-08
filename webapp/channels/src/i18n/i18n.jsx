@@ -154,7 +154,7 @@ const languages = {
     },
     'zh-TW': {
         value: 'zh-TW',
-        name: '中文 (繁體)',
+        name: '中文 (繁體) (Beta)',
         order: 20,
         url: zhTW,
     },

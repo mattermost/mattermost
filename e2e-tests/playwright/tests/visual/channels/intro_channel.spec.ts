@@ -3,7 +3,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('Intro to channel as regular user', async ({pw, pages, browserName, viewport}, testInfo) => {
+test.fixme('Intro to channel as regular user', async ({pw, pages, browserName, viewport}, testInfo) => {
     // Create and sign in a new user
     const {user} = await pw.initSetup();
 

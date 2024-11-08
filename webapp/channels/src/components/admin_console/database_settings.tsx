@@ -13,10 +13,10 @@ import ExternalLink from 'components/external_link';
 
 import {DocLinks} from 'utils/constants';
 
-import type {BaseState} from './admin_settings';
-import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import MigrationsTable from './database';
+import type {BaseState} from './old_admin_settings';
+import OLDAdminSettings from './old_admin_settings';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -98,7 +98,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.traceDescription,
 ];
 
-export default class DatabaseSettings extends AdminSettings<Props, State> {
+export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
