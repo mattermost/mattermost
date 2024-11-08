@@ -5131,6 +5131,10 @@
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
+    "id": "app.file_info.get.app_error",
+    "translation": "Unable to get the file info."
+  },
+  {
     "id": "app.file_info.get.gif.app_error",
     "translation": "Could not decode gif."
   },
