@@ -674,7 +674,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 	defer func() {
 		appErr := th.App.PermanentDeleteTeam(th.Context, team)
-		require.Nil(t, appErr)
+		require.NotNil(t, appErr)
 	}()
 
 	command, err := th.App.CreateCommand(&model.Command{
@@ -688,18 +688,15 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	defer func() {
 		appErr := th.App.DeleteCommand(command.Id)
 		require.Nil(t, appErr)
+
+		command, appErr = th.App.GetCommand(command.Id)
+		require.Nil(t, command, "command was deleted")
+		require.NotNil(t, appErr, "should return an error")
 	}()
 
 	command, err = th.App.GetCommand(command.Id)
 	require.NotNil(t, command, "command should not be nil")
 	require.Nil(t, err, "unable to get new command")
-
-	err = th.App.PermanentDeleteTeam(th.Context, team)
-	require.Nil(t, err)
-
-	command, err = th.App.GetCommand(command.Id)
-	require.Nil(t, command, "command wasn't deleted")
-	require.NotNil(t, err, "should not return an error")
 
 	// Test deleting a team with no channels.
 	team = th.CreateTeam()
@@ -715,9 +712,6 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		err2 := th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, err2)
 	}
-
-	err = th.App.PermanentDeleteTeam(th.Context, team)
-	require.Nil(t, err)
 }
 
 func TestSanitizeTeam(t *testing.T) {
