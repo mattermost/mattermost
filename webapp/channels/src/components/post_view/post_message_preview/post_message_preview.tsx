@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PriorityLabel from 'components/post_priority/post_priority_label';
@@ -55,8 +56,8 @@ const PostMessagePreview = (props: Props) => {
     const getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
         const {enablePostIconOverride, hasImageProxy, previewPost} = props;
         const postProps = previewPost?.props;
-        const postIconOverrideURL = typeof postProps?.override_icon_url === 'string' ? postProps.override_icon_url : '';
-        const useUserIcon = typeof postProps?.use_user_icon === 'string' ? postProps.use_user_icon : '';
+        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
+        const useUserIcon = ensureString(postProps?.use_user_icon);
 
         if (!fromAutoResponder && fromWebhook && !useUserIcon && enablePostIconOverride) {
             if (postIconOverrideURL && postIconOverrideURL !== '') {
@@ -152,7 +153,7 @@ const PostMessagePreview = (props: Props) => {
         </div>
     ) : null;
 
-    const overwriteName = typeof previewPost.props?.override_username === 'string' ? previewPost.props?.override_username : '';
+    const overwriteName = ensureString(previewPost.props?.override_username);
 
     return (
         <PostAttachmentContainer

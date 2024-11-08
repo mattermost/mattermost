@@ -6,6 +6,8 @@ import React from 'react';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
 import ProfilePicture from 'components/profile_picture';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
@@ -53,8 +55,8 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
     getPostIconURL = (defaultURL: string, fromAutoResponder: boolean, fromWebhook: boolean): string => {
         const {enablePostIconOverride, hasImageProxy, post} = this.props;
         const postProps = post.props;
-        const postIconOverrideURL = typeof postProps?.override_icon_url === 'string' ? postProps.override_icon_url : '';
-        const useUserIcon = typeof postProps?.use_user_icon === 'string' ? postProps.use_user_icon : '';
+        const postIconOverrideURL = ensureString(postProps?.override_icon_url);
+        const useUserIcon = ensureString(postProps?.use_user_icon);
 
         if (this.props.compactDisplay) {
             return '';
@@ -91,9 +93,9 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         const profileSrc = this.getProfilePictureURL();
         const src = this.getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
 
-        const overrideIconEmoji = post.props ? post.props.override_icon_emoji : '';
-        const overwriteName = typeof post.props?.override_username === 'string' ? post.props.override_username : '';
-        const isEmoji = typeof overrideIconEmoji == 'string' && overrideIconEmoji !== '';
+        const overrideIconEmoji = ensureString(post.props.override_icon_emoji);
+        const overwriteName = ensureString(post.props?.override_username);
+        const isEmoji = overrideIconEmoji !== '';
         const status = this.getStatus(fromAutoResponder, fromWebhook, user);
 
         return (

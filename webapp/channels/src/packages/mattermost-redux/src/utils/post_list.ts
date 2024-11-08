@@ -3,8 +3,9 @@
 
 import moment from 'moment-timezone';
 
-import type {ActivityEntry, MessageData, Post, UserActivityProp} from '@mattermost/types/posts';
+import type {ActivityEntry, Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import {isStringArray, isArrayOf} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -13,7 +14,7 @@ import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
@@ -402,10 +403,10 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []): UserAct
         // When combining removed posts, the actorId does not need to be the same for each post.
         // All removed posts will be combined regardless of their respective actorIds.
         const isRemovedPost = post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL;
-        const addedUserId = typeof post.props?.addedUserId === 'string' ? post.props.addedUserId : '';
-        const removedUserId = typeof post.props?.removedUserId === 'string' ? post.props.removedUserId : '';
-        const addedUsername = typeof post.props?.addedUsername === 'string' ? post.props.addedUsername : '';
-        const removedUsername = typeof post.props?.removedUsername === 'string' ? post.props.removedUsername : '';
+        const addedUserId = ensureString(post.props?.addedUserId);
+        const removedUserId = ensureString(post.props?.removedUserId);
+        const addedUsername = ensureString(post.props?.addedUsername);
+        const removedUsername = ensureString(post.props?.removedUsername);
         const userId = isUsersRelatedPost(postType) ? addedUserId || removedUserId : '';
         const username = isUsersRelatedPost(postType) ? addedUsername || removedUsername : '';
         const prevPost = userActivities[userActivities.length - 1];
@@ -442,4 +443,56 @@ export function combineUserActivitySystemPost(systemPosts: Post[] = []): UserAct
     });
 
     return extractUserActivityData(userActivities);
+}
+
+type MessageData = {
+    actorId?: string;
+    postType: string;
+    userIds: string[];
+}
+
+function isMessageData(v: unknown): v is MessageData {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if ('actorId' in v && typeof v.actorId !== 'string') {
+        return false;
+    }
+
+    if (!('postType' in v) || typeof v.postType !== 'string') {
+        return false;
+    }
+
+    if (!('userIds' in v) || !isStringArray(v.userIds)) {
+        return false;
+    }
+
+    return true;
+}
+
+type UserActivityProp = {
+    allUserIds: string[];
+    allUsernames: string[];
+    messageData: MessageData[];
+}
+
+export function isUserActivityProp(v: unknown): v is UserActivityProp {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if (!('allUserIds' in v) || !isStringArray(v.allUserIds)) {
+        return false;
+    }
+
+    if (!('allUsernames' in v) || !isStringArray(v.allUsernames)) {
+        return false;
+    }
+
+    if (!('messageData' in v) || !isArrayOf(v.messageData, isMessageData)) {
+        return false;
+    }
+
+    return true;
 }

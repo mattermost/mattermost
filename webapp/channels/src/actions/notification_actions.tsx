@@ -18,7 +18,7 @@ import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search'
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
+import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
@@ -198,8 +198,8 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
     const config = getConfig(state);
     const userFromPost = getUser(state, post.user_id);
 
-    const overrideUsername = post.props.override_username;
-    if (typeof overrideUsername === 'string' && overrideUsername && config.EnablePostUsernameOverride === 'true') {
+    const overrideUsername = ensureString(post.props.override_username);
+    if (overrideUsername && config.EnablePostUsernameOverride === 'true') {
         return overrideUsername;
     }
     if (userFromPost) {

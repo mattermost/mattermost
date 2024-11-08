@@ -7,6 +7,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
 import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -75,10 +77,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
         );
 
         if (isFromWebhook(post)) {
-            const propOverrideName = post.props.override_username;
-            const overwriteName = typeof propOverrideName === 'string' && propOverrideName && enablePostUsernameOverride ? propOverrideName : undefined;
-            const propOverrideIcon = post.props.override_icon_url;
-            const overwriteIcon = typeof propOverrideIcon === 'string' && propOverrideIcon ? propOverrideIcon : undefined;
+            const propOverrideName = ensureString(post.props.override_username);
+            const overwriteName = propOverrideName && enablePostUsernameOverride ? propOverrideName : undefined;
+            const propOverrideIcon = ensureString(post.props.override_icon_url);
+            const overwriteIcon = propOverrideIcon || undefined;
             userProfile = (
                 <UserProfile
                     userId={post.user_id}

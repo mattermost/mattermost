@@ -241,3 +241,11 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
     // The stored post is older than the one we've received
     return true;
 }
+
+export function ensureString(v: unknown) {
+    return typeof v === 'string' ? v : '';
+}
+
+export function ensureNumber(v: unknown) {
+    return typeof v === 'number' ? v : 0;
+}

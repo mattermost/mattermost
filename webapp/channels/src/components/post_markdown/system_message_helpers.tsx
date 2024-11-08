@@ -6,12 +6,13 @@ import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
-import {isUserActivityProp, type Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import {isStringArray} from '@mattermost/types/utilities';
 
 import {General, Posts} from 'mattermost-redux/constants';
-import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityProp} from 'mattermost-redux/utils/post_list';
+import {ensureNumber, ensureString, isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 import CombinedSystemMessage from 'components/post_view/combined_system_message';
@@ -22,7 +23,7 @@ import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatti
 import {getSiteURL} from 'utils/url';
 
 export function renderUsername(value: unknown): ReactNode {
-    const verifiedValue = typeof value === 'string' ? value : '';
+    const verifiedValue = ensureString(value);
     const username = (verifiedValue[0] === '@') ? verifiedValue : `@${verifiedValue}`;
 
     const options = {
@@ -33,7 +34,7 @@ export function renderUsername(value: unknown): ReactNode {
 }
 
 function renderFormattedText(value: unknown, options?: Partial<TextFormattingOptions>, post?: Post): ReactNode {
-    const verifiedValue = typeof value === 'string' ? value : '';
+    const verifiedValue = ensureString(value);
     return (
         <Markdown
             message={verifiedValue}
@@ -477,7 +478,7 @@ function renderReminderACKMessage(post: Post, currentTeamName: string, isMilitar
     const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeamName}`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
-    const targetTime = typeof post.props.target_time === 'number' ? post.props.target_time : 0;
+    const targetTime = ensureNumber(post.props.target_time);
     const localTime = new Date(targetTime * 1000);
 
     const reminderTime = (
@@ -551,12 +552,13 @@ defineMessages({
 
 export function renderWranglerSystemMessage(post: Post): ReactNode {
     let values: React.ComponentProps<typeof FormattedMessage>['values'] = {};
-    const id = typeof post.props.TranslationID === 'string' ? post.props.TranslationID : '';
-    if (typeof post.props?.MovedThreadPermalink === 'string' && post.props?.MovedThreadPermalink) {
+    const id = ensureString(post.props?.TranslationID);
+    const movedThreadPermalink = ensureString(post.props?.MovedThreadPermalink);
+    if (movedThreadPermalink) {
         values = {
-            link: post.props.MovedThreadPermalink,
+            link: movedThreadPermalink,
         };
-        const numMessages = typeof post.props.NumMessages === 'number' ? post.props.NumMessages : 0;
+        const numMessages = ensureNumber(post.props.NumMessages);
         if (numMessages > 1) {
             values.number = post.props.NumMessages;
         }
@@ -569,4 +571,3 @@ export function renderWranglerSystemMessage(post: Post): ReactNode {
         />
     );
 }
-
