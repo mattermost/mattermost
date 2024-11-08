@@ -111,25 +111,29 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	}
 }
 
-func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamMember *model.TeamMember) {
-	channels, err := s.Channel().GetPublicChannelsForTeam(teamMember.TeamId, 0, 100)
-	if err != nil {
-		rctx.Logger().Warn("Encountered error while indexing public channels", mlog.String("team_member_id", teamMember.UserId), mlog.Err(err))
-		return
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+	var (
+		page     int
+		perPage  = 100
+		channels []*model.Channel
+	)
+
+	for {
+		cs, err := s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
+		if err != nil {
+			rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+			return
+		}
+
+		channels = append(channels, cs...)
+
+		if len(channels) < perPage {
+			break
+		}
 	}
 
-	for _, engine := range s.searchEngine.GetActiveEngines() {
-		if engine.IsIndexingEnabled() {
-			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
-				for _, channel := range channels {
-					if err := engineCopy.IndexChannel(rctx, channel, []string{teamMember.UserId}, []string{teamMember.UserId}); err != nil {
-						rctx.Logger().Warn("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
-						return
-					}
-					rctx.Logger().Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
-				}
-			})
-		}
+	for _, channel := range channels {
+		s.channel.indexChannel(rctx, channel)
 	}
 }
 
