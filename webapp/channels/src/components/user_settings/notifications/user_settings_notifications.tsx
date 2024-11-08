@@ -31,6 +31,7 @@ import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notificat
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+import SendTestNotificationNotice from './send_test_notification_notice';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -1099,7 +1100,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    <div className='divider-dark'/>
+                    <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>
 

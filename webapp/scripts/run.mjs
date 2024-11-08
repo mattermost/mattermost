@@ -3,11 +3,11 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const chalk = require('chalk');
-const concurrently = require('concurrently');
+import chalk from 'chalk';
+import concurrently from 'concurrently';
 
-const {makeRunner} = require('./runner.js');
-const {getExitCode, getPlatformCommands} = require('./utils.js');
+import {makeRunner} from './runner.mjs';
+import {getExitCode, getPlatformCommands} from './utils.mjs';
 
 async function watchAll(useRunner) {
     if (!useRunner) {
