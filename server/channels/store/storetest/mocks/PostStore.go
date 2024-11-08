@@ -131,6 +131,24 @@ func (_m *PostStore) Delete(rctx request.CTX, postID string, timestamp int64, de
 	return r0
 }
 
+// DeleteSearchBookmark provides a mock function with given fields: bookmarkId
+func (_m *PostStore) DeleteSearchBookmark(bookmarkId string) error {
+	ret := _m.Called(bookmarkId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteSearchBookmark")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(bookmarkId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: ctx, id, opts, userID, sanitizeOptions
 func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(ctx, id, opts, userID, sanitizeOptions)
@@ -976,6 +994,36 @@ func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*
 	return r0, r1
 }
 
+// GetUserSearchBookmarks provides a mock function with given fields: userId
+func (_m *PostStore) GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error) {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserSearchBookmarks")
+	}
+
+	var r0 []*model.SearchBookmark
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.SearchBookmark, error)); ok {
+		return rf(userId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.SearchBookmark); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SearchBookmark)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HasAutoResponsePostByUserSince provides a mock function with given fields: options, userID
 func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
 	ret := _m.Called(options, userID)
@@ -1258,6 +1306,24 @@ func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, erro
 	}
 
 	return r0, r1, r2
+}
+
+// SaveSearchBookmark provides a mock function with given fields: bookmark
+func (_m *PostStore) SaveSearchBookmark(bookmark *model.SearchBookmark) error {
+	ret := _m.Called(bookmark)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveSearchBookmark")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.SearchBookmark) error); ok {
+		r0 = rf(bookmark)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Search provides a mock function with given fields: teamID, userID, params

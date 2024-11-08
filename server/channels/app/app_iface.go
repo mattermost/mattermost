@@ -586,6 +586,7 @@ type AppIface interface {
 	DeleteRetentionPolicy(policyID string) *model.AppError
 	DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
+	DeleteSearchBookmark(c request.CTX, bookmarkId string) *model.AppError
 	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
@@ -872,6 +873,7 @@ type AppIface interface {
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUserCountForReport(filter *model.UserReportOptions) (*int64, *model.AppError)
 	GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *model.AppError)
+	GetUserSearchBookmarks(c request.CTX, userId string) ([]*model.SearchBookmark, *model.AppError)
 	GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError)
 	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
 	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
@@ -1073,6 +1075,7 @@ type AppIface interface {
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
 	SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError)
+	SaveSearchBookmark(c request.CTX, bookmark *model.SearchBookmark) (*model.SearchBookmark, *model.AppError)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme

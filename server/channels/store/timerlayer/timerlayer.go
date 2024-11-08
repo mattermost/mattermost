@@ -5796,6 +5796,22 @@ func (s *TimerLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 	return err
 }
 
+func (s *TimerLayerPostStore) DeleteSearchBookmark(bookmarkId string) error {
+	start := time.Now()
+
+	err := s.PostStore.DeleteSearchBookmark(bookmarkId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteSearchBookmark", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -6260,6 +6276,22 @@ func (s *TimerLayerPostStore) GetSingle(rctx request.CTX, id string, inclDeleted
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetUserSearchBookmarks(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetUserSearchBookmarks", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
 	start := time.Now()
 
@@ -6433,6 +6465,22 @@ func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultiple", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerPostStore) SaveSearchBookmark(bookmark *model.SearchBookmark) error {
+	start := time.Now()
+
+	err := s.PostStore.SaveSearchBookmark(bookmark)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveSearchBookmark", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error) {

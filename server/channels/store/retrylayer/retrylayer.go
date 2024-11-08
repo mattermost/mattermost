@@ -7284,6 +7284,27 @@ func (s *RetryLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 
 }
 
+func (s *RetryLayerPostStore) DeleteSearchBookmark(bookmarkId string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.DeleteSearchBookmark(bookmarkId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
@@ -7863,6 +7884,27 @@ func (s *RetryLayerPostStore) GetSingle(rctx request.CTX, id string, inclDeleted
 
 }
 
+func (s *RetryLayerPostStore) GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetUserSearchBookmarks(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
 
 	tries := 0
@@ -8073,6 +8115,27 @@ func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) SaveSearchBookmark(bookmark *model.SearchBookmark) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.SaveSearchBookmark(bookmark)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

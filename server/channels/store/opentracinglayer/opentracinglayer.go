@@ -6405,6 +6405,24 @@ func (s *OpenTracingLayerPostStore) Delete(rctx request.CTX, postID string, time
 	return err
 }
 
+func (s *OpenTracingLayerPostStore) DeleteSearchBookmark(bookmarkId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.DeleteSearchBookmark")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.DeleteSearchBookmark(bookmarkId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Get")
@@ -6925,6 +6943,24 @@ func (s *OpenTracingLayerPostStore) GetSingle(rctx request.CTX, id string, inclD
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetUserSearchBookmarks")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetUserSearchBookmarks(userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.HasAutoResponsePostByUserSince")
@@ -7116,6 +7152,24 @@ func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.
 	}
 
 	return result, resultVar1, err
+}
+
+func (s *OpenTracingLayerPostStore) SaveSearchBookmark(bookmark *model.SearchBookmark) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SaveSearchBookmark")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostStore.SaveSearchBookmark(bookmark)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerPostStore) Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error) {

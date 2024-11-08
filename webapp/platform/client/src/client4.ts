@@ -346,8 +346,12 @@ export default class Client4 {
         return `${this.getBaseRoute()}/posts`;
     }
 
+    getSearchBookmarksRoute(teamId: string) {
+        return `${this.getTeamRoute(teamId)}/searchBookmark`;
+    }
+
     getSearchBookmarkRoute(teamId: string, bookmarkId: string) {
-        return `${this.getTeamRoute(teamId)}/searchBookmark/${bookmarkId}`;
+        return `${this.getSearchBookmarksRoute(teamId)}/${bookmarkId}`;
     }
 
     getPostRoute(postId: string) {
@@ -2177,10 +2181,31 @@ export default class Client4 {
 
     // Post Routes
 
-    getSearchBookmark = (teamId: string, bookmarkId: string) => {
+    getSearchBookmark = (teamId: string, bookmarkId: string, params?: {}) => {
         return this.doFetch<any>(
             `${this.getSearchBookmarkRoute(teamId, bookmarkId)}`,
-            { method: 'post', body: JSON.stringify({ is_or_search: false }) },
+            { method: 'post', body: JSON.stringify(params || { is_or_search: false }) },
+        );
+    };
+
+    deleteSearchBookmark = (teamId: string, bookmarkId: string) => {
+        return this.doFetch<any>(
+            `${this.getSearchBookmarkRoute(teamId, bookmarkId)}`,
+            { method: 'delete' },
+        );
+    };
+
+    saveSearchBookmark = (teamId: string, bookmark: any) => {
+        return this.doFetch<any>(
+            `${this.getSearchBookmarksRoute(teamId)}`,
+            { method: 'post', body: JSON.stringify(bookmark) },
+        );
+    };
+
+    getUserSearchBookmarks = (teamId: string) => {
+        return this.doFetch<any>(
+            `${this.getSearchBookmarksRoute(teamId)}`,
+            { method: 'get' },
         );
     };
 

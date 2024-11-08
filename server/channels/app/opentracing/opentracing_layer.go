@@ -3771,6 +3771,28 @@ func (a *OpenTracingAppLayer) DeleteScheme(schemeId string) (*model.Scheme, *mod
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) DeleteSearchBookmark(c request.CTX, bookmarkId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSearchBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DeleteSearchBookmark(c, bookmarkId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DeleteSharedChannelRemote(id string) (bool, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSharedChannelRemote")
@@ -11012,6 +11034,28 @@ func (a *OpenTracingAppLayer) GetUserForLogin(c request.CTX, id string, loginId 
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetUserSearchBookmarks(c request.CTX, userId string) ([]*model.SearchBookmark, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserSearchBookmarks")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetUserSearchBookmarks(c, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserStatusesByIds")
@@ -15622,6 +15666,28 @@ func (a *OpenTracingAppLayer) SaveScheduledPost(rctx request.CTX, scheduledPost 
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.SaveScheduledPost(rctx, scheduledPost, connectionId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SaveSearchBookmark(c request.CTX, bookmark *model.SearchBookmark) (*model.SearchBookmark, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveSearchBookmark")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SaveSearchBookmark(c, bookmark)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

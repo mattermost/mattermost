@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { Badge } from '@mui/base';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { type match, useHistory, useRouteMatch } from 'react-router-dom';
+import Scrollbars from 'react-custom-scrollbars';
 
 import type { FileSearchResultItem as FileSearchResultItemType } from '@mattermost/types/files';
 import type { Post } from '@mattermost/types/posts';
@@ -20,6 +20,8 @@ import FileSearchResultItem from 'components/file_search_results';
 
 import './search_page.scss';
 
+const GET_MORE_BUFFER = 30;
+
 type SearchBookmark = {
     title: string;
     terms: string;
@@ -28,7 +30,37 @@ type SearchBookmark = {
     fileResults: Post[];
 }
 
+const renderView = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--view'
+    />
+);
+
+const renderThumbHorizontal = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--horizontal scrollbar--thumb--RHS'
+    />
+);
+
+const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--vertical scrollbar--thumb--RHS'
+    />
+);
+
+const renderTrackVertical = (props: Record<string, unknown>): JSX.Element => (
+    <div
+        {...props}
+        className='scrollbar--vertical--RHS'
+    />
+);
+
 function SearchPage() {
+    const scrollbars = useRef<Scrollbars | null>(null);
+    const [currentPage, setCurrentPage] = useState(0)
     const dispatch = useDispatch();
     const [searchBookmark, setSearchBookmark] = useState<SearchBookmark | null>(null);
 
@@ -37,11 +69,22 @@ function SearchPage() {
     const currentTeam = useSelector(getCurrentTeam);
 
     useEffect(() => {
-        Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId).then(async (data) => {
-            await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: 0, per_page: 20 }));
+        setCurrentPage(0)
+        Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }).then(async (data) => {
+            await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }));
             setSearchBookmark(data);
         });
     }, [dispatch, currentTeam?.id, match.params.searchId]);
+
+    const loadMoreFiles = () => []
+    const loadMorePosts = () => {
+        Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }).then(async (data) => {
+            await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }));
+            setCurrentPage(currentPage + 1)
+            data.results = Object.assign({}, data.results, (searchBookmark?.results || {}))
+            setSearchBookmark(data);
+        });
+    }
 
     if (searchBookmark == null) {
         return null
@@ -49,7 +92,7 @@ function SearchPage() {
 
     var searchResults = Object.values(searchBookmark?.results) || [];
     searchResults.sort((a, b) => {
-        return a.create_at - b.create_at;
+        return b.create_at - a.create_at;
     })
 
     const contentItems = searchResults.map((item: Post | FileSearchResultItemType, index: number) => {
@@ -81,6 +124,19 @@ function SearchPage() {
         );
     });
 
+    const handleScroll = (): void => {
+        const scrollHeight = scrollbars.current?.getScrollHeight() || 0;
+        const scrollTop = scrollbars.current?.getScrollTop() || 0;
+        const clientHeight = scrollbars.current?.getClientHeight() || 0;
+        if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
+            if (searchBookmark.search_type === DataSearchTypes.FILES_SEARCH_TYPE) {
+                loadMoreFiles();
+            } else {
+                loadMorePosts();
+            }
+        }
+    };
+
     return (
         <div
             id='app-content'
@@ -92,9 +148,21 @@ function SearchPage() {
                 heading={searchBookmark?.title}
                 subtitle={searchBookmark?.terms}
             />
-            <div className='SearchPage__results'>
-                {contentItems}
-            </div>
+            <Scrollbars
+                ref={scrollbars}
+                autoHide={true}
+                autoHideTimeout={500}
+                autoHideDuration={500}
+                renderTrackVertical={renderTrackVertical}
+                renderThumbHorizontal={renderThumbHorizontal}
+                renderThumbVertical={renderThumbVertical}
+                renderView={renderView}
+                onScroll={handleScroll}
+            >
+                <div className='SearchPage__results'>
+                    {contentItems}
+                </div>
+            </Scrollbars>
         </div>
     );
 }
