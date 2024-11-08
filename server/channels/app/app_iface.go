@@ -249,10 +249,6 @@ type AppIface interface {
 	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
 	HasRemote(channelID string, remoteID string) (bool, error)
-	// HubRegister registers a connection to a hub.
-	HubRegister(webConn *platform.WebConn)
-	// HubUnregister unregisters a connection from a hub.
-	HubUnregister(webConn *platform.WebConn)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
 	// plugin was already enabled.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
