@@ -70,7 +70,6 @@ issues:
         channels/api4/config_local.go|\
         channels/api4/config_test.go|\
         channels/api4/data_retention.go|\
-        channels/api4/job_test.go|\
         channels/api4/post_test.go|\
         channels/api4/preference_test.go|\
         channels/api4/reaction_test.go|\
@@ -133,7 +132,6 @@ issues:
         channels/app/plugin_api_tests/manual.test_serve_metrics_plugin/main.go|\
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
         channels/app/plugin_install.go|\
-        channels/app/plugin_requests.go|\
         channels/app/plugin_signature.go|\
         channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
@@ -161,7 +159,6 @@ issues:
         channels/app/syncables.go|\
         channels/app/team.go|\
         channels/app/team_test.go|\
-        channels/app/teams/helper_test.go|\
         channels/app/upload.go|\
         channels/app/upload_test.go|\
         channels/app/user.go|\
