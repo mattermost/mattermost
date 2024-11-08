@@ -1381,7 +1381,6 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	if err != nil {
 		return err
 	}
-
 	defer os.Remove(zipFileName)
 
 	// Create a new zip archive.
