@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {logError} from 'mattermost-redux/actions/errors';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
@@ -117,6 +118,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const user = getCurrentUser(state);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
+        const forceNotification = Boolean(post.props?.force_notification);
 
         const skipNotificationReason = shouldSkipNotification(
             state,
@@ -125,6 +127,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             user,
             channel,
             member,
+            forceNotification,
             isCrtReply,
         );
         if (skipNotificationReason) {
@@ -156,7 +159,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 
         const argsAfterHooks = hookResult.data!;
 
-        if (!argsAfterHooks.notify) {
+        if (!argsAfterHooks.notify && !forceNotification) {
             return {data: {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)}};
         }
 
@@ -254,6 +257,7 @@ function shouldSkipNotification(
     user: UserProfile,
     channel: Pick<Channel, 'type' | 'id'>,
     member: ChannelMembership | undefined,
+    skipChecks: boolean,
     isCrtReply: boolean,
 ) {
     const currentUserId = getCurrentUserId(state);
@@ -267,6 +271,10 @@ function shouldSkipNotification(
 
     if (!member) {
         return {status: 'error', reason: 'no_member'};
+    }
+
+    if (skipChecks) {
+        return undefined;
     }
 
     if (isChannelMuted(member)) {
@@ -428,3 +436,12 @@ export function notifyMe(title: string, body: string, channelId: string, teamId:
         }
     };
 }
+
+export const sendTestNotification = async () => {
+    try {
+        const result = await Client4.sendTestNotificaiton();
+        return result;
+    } catch (error) {
+        return error;
+    }
+};
