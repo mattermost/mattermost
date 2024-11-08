@@ -60,6 +60,7 @@ type Props = {
     showChannelsTutorialStep: boolean;
 
     hasUrgent: boolean;
+    isTabletView: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
@@ -134,6 +135,12 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     handleChannelClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
         mark(Mark.ChannelLinkClicked);
         this.handleSelectChannel(event);
+
+        if (this.props.isTabletView) {
+            setTimeout(() => {
+                this.props.actions.closeRightHandSide();
+            }, 50);
+        }
 
         if (this.props.rhsOpen && this.props.rhsState === RHSStates.EDIT_HISTORY) {
             this.props.actions.closeRightHandSide();
