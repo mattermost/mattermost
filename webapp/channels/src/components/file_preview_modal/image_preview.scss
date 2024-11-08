@@ -1,11 +1,110 @@
 .image_preview {
+    height: 100%;
+    width: 100%;
     &__image {
-        max-height: calc(100vh - 168px);
+        max-height: calc(100vh - 216px);
         border-radius: 8px;
         cursor: default;
 
         @media screen and (max-width: 768px) {
             border-radius: 0;
         }
+    }
+    &__content {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: 48px;
+        @media screen and (max-width: 768px) {
+            height: calc(100% - 154px);
+            padding: 0;
+            background: rgb(0, 0, 0);
+        }
+    }
+    &__transform-wrapper {
+        height: 100%;
+        width: 100%;
+
+    }
+}
+
+.image_preview_wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.image_preview_zoom_actions {
+    &__actions {
+        display: flex;
+        justify-content: center;
+        color: white;
+        margin-bottom: 8px;
+        padding: 4px;
+        background: rgba(61, 60, 64, 0.75);
+    }
+    &__action-item {
+        display: flex;
+        overflow: hidden;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border: unset;
+        margin-left: 8px;
+        background: transparent;
+        border-radius: 4px;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &.active {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &:first-child {
+            margin-left: unset;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+    &__select-item {
+        display: flex;
+        overflow: hidden;
+        width: 140px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border: unset;
+        margin-left: 8px;
+        background: transparent;
+        border-radius: 4px;
+        font-size: 14px;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &.active {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &:first-child {
+            margin-left: unset;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+    &__select-item-option {
+        color: black;
     }
 }

@@ -1,5 +1,30 @@
 @charset "utf-8";
 
+@media screen and (max-width: 768px) {
+    .app__body {
+        .modal {
+            .modal-image {
+                .modal-image__wrapper {
+                    img {
+                        max-height: calc(100vh - 154px);
+                    }
+
+                    > div {
+                        min-width: 250px;
+                        font-size: 12px;
+                    }
+                }
+
+                .modal-button-bar {
+                    bottom: 20px;
+                    padding: 5px 10px 5px 5px;
+                    line-height: 30px;
+                }
+            }
+        }
+    }
+}
+
 @media screen and (max-width: 960px) {
     .system-users__filter-row {
         flex-direction: column;
@@ -17,29 +42,6 @@
             span {
                 flex: 0 0 auto;
                 padding-left: 0;
-            }
-        }
-    }
-
-    .app__body {
-        .modal {
-            .modal-image {
-                .modal-image__wrapper {
-                    img {
-                        max-height: calc(100vh - 108px);
-                    }
-
-                    > div {
-                        min-width: 250px;
-                        font-size: 12px;
-                    }
-                }
-
-                .modal-button-bar {
-                    bottom: 20px;
-                    padding: 5px 10px 5px 5px;
-                    line-height: 30px;
-                }
             }
         }
     }
