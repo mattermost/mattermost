@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {WebSocketClient} from '@mattermost/client';
+import type {Reducer} from 'redux';
+
+import type {MessageListener, ReconnectListener, WebSocketClient} from '@mattermost/client';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
@@ -191,9 +193,28 @@ export type FilesWillUploadHookOptions = {
 
 export type UnregisterComponentOptions = {
     componentId: PluginComponentId;
-}
+};
 
-// TODO there's a bunch of stuff in here
+export type UnregisterPostTypeComponentOptions = {
+    componentId: PluginComponentId;
+};
+
+export type ReducerOptions = {
+    reducer: Reducer;
+};
+
+export type WebSocketEventHandlerOptions = {
+    event: string;
+    handler: MessageListener;
+};
+
+export type UnregisterWebSocketEventHandlerOptions = {
+    event: string;
+};
+
+export type ReconnectHandlerOptions = {
+    handler: ReconnectListener;
+};
 
 export type MessageWillBePostedHookOptions = {
     hook: (post: Post) => Promise<{error: {message: string}} | {post: Post}>;
@@ -216,9 +237,13 @@ export type FilePreviewComponentOptions = {
     }>;
 };
 
-// TODO registerTranslations
-// TODO registerAdminConsolePlugin
-// TODO unregisterAdminConsolePlugin
+export type RegisterTranslationsOptions = {
+    getTranslationsForLocale: (locale: string) => Record<string, string>;
+}
+
+export type RegisterAdminConsolePluginOptions = {
+    func: (...args: unknown[]) => unknown;
+}
 
 export type AdminConsoleCustomSettingOptions = {
     key: string;

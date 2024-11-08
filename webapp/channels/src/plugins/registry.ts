@@ -4,7 +4,6 @@
 import type {PluginRegistry as PluginRegistryInterface} from '@hmhealey/plugin-support';
 import React from 'react';
 import {isValidElementType} from 'react-is';
-import type {Reducer} from 'redux';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -18,8 +17,6 @@ import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
 import {
     registerPluginTranslationsSource,
 } from 'actions/views/root';
-import type {
-    TranslationPluginFunction} from 'actions/views/root';
 import {
     registerPluginWebSocketEvent,
     unregisterPluginWebSocketEvent,
@@ -662,7 +659,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Unregister a component that provided a custom body for posts with a specific type.
     // Accepts a string id.
     // Returns undefined in all cases.
-    unregisterPostTypeComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
+    unregisterPostTypeComponent: PluginRegistryInterface['unregisterPostTypeComponent'] = reArg(['componentId'], ({
+        componentId,
+    }) => {
         store.dispatch({
             type: ActionTypes.REMOVED_PLUGIN_POST_COMPONENT,
             id: componentId,
@@ -672,7 +671,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Register a reducer against the Redux store. It will be accessible in redux state
     // under "state['plugins-<yourpluginid>']"
     // Accepts a reducer. Returns undefined.
-    registerReducer = reArg(['reducer'], ({reducer}: {reducer: Reducer}) => {
+    registerReducer: PluginRegistryInterface['registerReducer'] = reArg(['reducer'], ({reducer}) => {
         reducerRegistry.register('plugins-' + this.id, reducer);
     });
 
@@ -682,21 +681,28 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Plugin events will have "custom_<pluginid>_" prepended
     // - handler - a function to handle the event, receives the event message as an argument
     // Returns undefined.
-    registerWebSocketEventHandler = reArg(['event', 'handler'], ({event, handler}) => {
+    registerWebSocketEventHandler: PluginRegistryInterface['registerWebSocketEventHandler'] = reArg(['event', 'handler'], ({
+        event,
+        handler,
+    }) => {
         registerPluginWebSocketEvent(this.id, event, handler);
     });
 
     // Unregister a handler for a custom WebSocket event.
     // Accepts a string event type.
     // Returns undefined.
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}) => {
+    unregisterWebSocketEventHandler: PluginRegistryInterface['unregisterWebSocketEventHandler'] = reArg(['event'], ({
+        event,
+    }) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 
     // Register a handler that will be called when the app reconnects to the
     // internet after previously disconnecting.
     // Accepts a function to handle the event. Returns undefined.
-    registerReconnectHandler = reArg(['handler'], ({handler}) => {
+    registerReconnectHandler: PluginRegistryInterface['registerReconnectHandler'] = reArg(['handler'], ({
+        handler,
+    }) => {
         registerPluginReconnectHandler(this.id, handler);
     });
 
@@ -805,7 +811,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
         return id;
     });
 
-    registerTranslations = reArg(['getTranslationsForLocale'], ({getTranslationsForLocale}: {getTranslationsForLocale: TranslationPluginFunction}) => {
+    registerTranslations: PluginRegistryInterface['registerTranslations'] = reArg(['getTranslationsForLocale'], ({
+        getTranslationsForLocale,
+    }) => {
         store.dispatch(registerPluginTranslationsSource(this.id, getTranslationsForLocale));
     });
 
@@ -817,7 +825,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
     //          version of it, which is used for build the admin console.
     // Each plugin can register at most one admin console plugin function, with newer registrations
     // replacing older ones.
-    registerAdminConsolePlugin = reArg(['func'], ({func}) => {
+    registerAdminConsolePlugin: PluginRegistryInterface['registerAdminConsolePlugin'] = reArg(['func'], ({func}) => {
         store.dispatch(registerAdminConsolePlugin(this.id, func));
     });
 

@@ -198,52 +198,37 @@ export interface PluginRegistry {
     // Returns undefined in all cases.
     unregisterComponent(options: RegistryTypes.UnregisterComponentOptions): void;
 
-    // // Unregister a component that provided a custom body for posts with a specific type.
-    // // Accepts a string id.
-    // // Returns undefined in all cases.
-    // unregisterPostTypeComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
-    //     store.dispatch({
-    //         type: ActionTypes.REMOVED_PLUGIN_POST_COMPONENT,
-    //         id: componentId,
-    //     });
-    // });
+    // Unregister a component that provided a custom body for posts with a specific type.
+    // Accepts a string id.
+    // Returns undefined in all cases.
+    unregisterPostTypeComponent(options: RegistryTypes.UnregisterPostTypeComponentOptions): void;
 
-    // // Register a reducer against the Redux store. It will be accessible in redux state
-    // // under "state['plugins-<yourpluginid>']"
-    // // Accepts a reducer. Returns undefined.
-    // registerReducer = reArg(['reducer'], ({reducer}: {reducer: Reducer}) => {
-    //     reducerRegistry.register('plugins-' + this.id, reducer);
-    // });
+    // Register a reducer against the Redux store. It will be accessible in redux state
+    // under "state['plugins-<yourpluginid>']"
+    // Accepts a reducer. Returns undefined.
+    registerReducer(options: RegistryTypes.ReducerOptions): void;
 
-    // // Register a handler for WebSocket events.
-    // // Accepts the following:
-    // // - event - the event type, can be a regular server event or an event from plugins.
-    // // Plugin events will have "custom_<pluginid>_" prepended
-    // // - handler - a function to handle the event, receives the event message as an argument
-    // // Returns undefined.
-    // registerWebSocketEventHandler = reArg(['event', 'handler'], ({event, handler}) => {
-    //     registerPluginWebSocketEvent(this.id, event, handler);
-    // });
+    // Register a handler for WebSocket events.
+    // Accepts the following:
+    // - event - the event type, can be a regular server event or an event from plugins.
+    // Plugin events will have "custom_<pluginid>_" prepended
+    // - handler - a function to handle the event, receives the event message as an argument
+    // Returns undefined.
+    registerWebSocketEventHandler(options: RegistryTypes.WebSocketEventHandlerOptions): void;
 
-    // // Unregister a handler for a custom WebSocket event.
-    // // Accepts a string event type.
-    // // Returns undefined.
-    // unregisterWebSocketEventHandler = reArg(['event'], ({event}) => {
-    //     unregisterPluginWebSocketEvent(this.id, event);
-    // });
+    // Unregister a handler for a custom WebSocket event.
+    // Accepts a string event type.
+    // Returns undefined.
+    unregisterWebSocketEventHandler(options: RegistryTypes.UnregisterWebSocketEventHandlerOptions): void;
 
-    // // Register a handler that will be called when the app reconnects to the
-    // // internet after previously disconnecting.
-    // // Accepts a function to handle the event. Returns undefined.
-    // registerReconnectHandler = reArg(['handler'], ({handler}) => {
-    //     registerPluginReconnectHandler(this.id, handler);
-    // });
+    // Register a handler that will be called when the app reconnects to the
+    // internet after previously disconnecting.
+    // Accepts a function to handle the event. Returns undefined.
+    registerReconnectHandler(options: RegistryTypes.ReconnectHandlerOptions): void;
 
-    // // Unregister a previously registered reconnect handler.
-    // // Returns undefined.
-    // unregisterReconnectHandler() {
-    //     unregisterPluginReconnectHandler(this.id);
-    // }
+    // Unregister a previously registered reconnect handler.
+    // Returns undefined.
+    unregisterReconnectHandler(): void;
 
     // Register a hook that will be called when a message is posted by the user before it
     // is sent to the server. Accepts a function that receives the post as an argument.
@@ -296,27 +281,21 @@ export interface PluginRegistry {
     // Only one plugin can override a file preview at a time. If two plugins try to override the same file preview, the first plugin will perform the override and the second will not. Plugin precedence is ordered alphabetically by plugin ID.
     registerFilePreviewComponent(options: RegistryTypes.FilePreviewComponentOptions): PluginComponentId;
 
-    // registerTranslations = reArg(['getTranslationsForLocale'], ({getTranslationsForLocale}: {getTranslationsForLocale: TranslationPluginFunction}) => {
-    //     store.dispatch(registerPluginTranslationsSource(this.id, getTranslationsForLocale));
-    // });
+    registerTranslations(options: RegistryTypes.RegisterTranslationsOptions): void;
 
-    // // Register a admin console definitions override function
-    // // Note that this is a low-level interface primarily meant for internal use, and is not subject
-    // // to semver guarantees. It may change in the future.
-    // // Accepts the following:
-    // // - func - A function that recieve the admin console config definitions and return a new
-    // //          version of it, which is used for build the admin console.
-    // // Each plugin can register at most one admin console plugin function, with newer registrations
-    // // replacing older ones.
-    // registerAdminConsolePlugin = reArg(['func'], ({func}) => {
-    //     store.dispatch(registerAdminConsolePlugin(this.id, func));
-    // });
+    // Register a admin console definitions override function
+    // Note that this is a low-level interface primarily meant for internal use, and is not subject
+    // to semver guarantees. It may change in the future.
+    // Accepts the following:
+    // - func - A function that recieve the admin console config definitions and return a new
+    //          version of it, which is used for build the admin console.
+    // Each plugin can register at most one admin console plugin function, with newer registrations
+    // replacing older ones.
+    registerAdminConsolePlugin(options: RegistryTypes.RegisterAdminConsolePluginOptions): void;
 
-    // // Unregister a previously registered admin console definition override function.
-    // // Returns undefined.
-    // unregisterAdminConsolePlugin() {
-    //     store.dispatch(unregisterAdminConsolePlugin(this.id));
-    // }
+    // Unregister a previously registered admin console definition override function.
+    // Returns undefined.
+    unregisterAdminConsolePlugin(): void;
 
     // Register a custom React component to manage the plugin configuration for the given setting key.
     // Accepts the following:
