@@ -34,12 +34,8 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
 >
   <Memo(DraftRow)
     displayName="test"
-    draft={
-      Object {
-        "type": "channel",
-      }
-    }
     isRemote={false}
+    item={Object {}}
     status={Object {}}
     user={Object {}}
   />
@@ -82,10 +78,11 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
     displayName="test"
     draft={
       Object {
-        "type": "thread",
+        "rootId": "some_id",
       }
     }
     isRemote={false}
+    item={Object {}}
     status={Object {}}
     user={Object {}}
   />

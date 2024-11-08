@@ -43,11 +43,11 @@ export const isChannelLoading = (params: RouteViewParams, channel?: Channel, tea
     return true;
 };
 
-interface RouteViewParams {
+type RouteViewParams = {
     team?: string;
     identifier?: string;
     postid?: string;
-}
+};
 
 type Props = {channelId: string} & RouteComponentProps<RouteViewParams>
 
