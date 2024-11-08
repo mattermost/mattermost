@@ -1406,10 +1406,10 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 
 // This is a implementation of Go's example of writing files to zip (with slight modification)
 // https://golang.org/src/archive/zip/example_test.go
-func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
+func populateZipfile(rctx request.CTX, w *zip.Writer, fileDatas []model.FileData) error {
 	defer func() {
 		if err := w.Close(); err != nil {
-			log.Println(err)
+			rctx.Logger().Error("Failed to close zip writer", mlog.Err(err))
 		}
 	}()
 
