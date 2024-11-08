@@ -16,7 +16,7 @@ exports[`components/link_tooltip/link_tooltip should match snapshot 1`] = `
       }
     }
   >
-    <Connect(Pluggable)
+    <Pluggable
       href="www.test.com"
       pluggableName="LinkTooltip"
       show={false}
@@ -50,7 +50,7 @@ exports[`components/link_tooltip/link_tooltip should match snapshot with uncommo
       }
     }
   >
-    <Connect(Pluggable)
+    <Pluggable
       href="https://www.google.com"
       pluggableName="LinkTooltip"
       show={false}

@@ -23,7 +23,7 @@ import NewMessageSeparator from 'components/post_view/new_message_separator/new_
 import {PostListRowListIds, Locations} from 'utils/constants';
 import {isIdNotPost} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 export type PostListRowProps = {
     listId: string;
@@ -59,7 +59,7 @@ export type PostListRowProps = {
     firstInaccessiblePostTime?: number;
     channelId: string;
 
-    newMessagesSeparatorActions: PluginComponent[];
+    newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
 
     actions: {
 

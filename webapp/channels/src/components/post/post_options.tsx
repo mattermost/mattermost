@@ -22,7 +22,7 @@ import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -52,7 +52,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -190,7 +190,7 @@ const PostOptions = (props: Props): JSX.Element => {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
-                    const Component = item.component as any;
+                    const Component = item.component;
                     return (
                         <Component
                             post={props.post}
