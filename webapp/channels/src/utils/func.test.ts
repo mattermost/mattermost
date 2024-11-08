@@ -18,7 +18,7 @@ describe('utils/func', () => {
         const normalizedArgs = {a, b, c, component, node, children};
 
         test('should support traditional ordered-arguments', () => {
-            const result = method(a, b, c, component, node, children);
+            const result = (method as any)(a, b, c, component, node, children);
             expect(result).toMatchObject(normalizedArgs);
         });
 
