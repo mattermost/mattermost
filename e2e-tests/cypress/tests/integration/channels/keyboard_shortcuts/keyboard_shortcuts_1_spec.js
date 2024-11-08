@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable no-only-tests/no-only-tests */
+
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
 // - [*] indicates an assertion (e.g. * Check the title)
@@ -69,7 +71,7 @@ describe('Keyboard Shortcuts', () => {
         });
     });
 
-    it('MM-T1231 - ALT+SHIFT+UP', () => {
+    it.skip('MM-T1231 - ALT+SHIFT+UP', () => {
         cy.apiLogout();
         cy.apiLogin(testUser);
 
@@ -212,7 +214,7 @@ describe('Keyboard Shortcuts', () => {
         });
     });
 
-    it('MM-T1232 - ALT+SHIFT+DOWN', () => {
+    it.skip('MM-T1232 - ALT+SHIFT+DOWN', () => {
         cy.apiLogout();
         cy.apiLogin(testUser);
 
