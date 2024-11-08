@@ -51,8 +51,10 @@ func TestMoveCommand(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer func() {
-		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
-		th.App.PermanentDeleteTeam(th.Context, targetTeam)
+		err = th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		require.Nil(t, err)
+		err = th.App.PermanentDeleteTeam(th.Context, targetTeam)
+		require.Nil(t, err)
 	}()
 
 	// Move a command and check the team is updated.
@@ -360,7 +362,8 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a valid text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -375,7 +378,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -388,7 +392,8 @@ func TestDoCommandRequest(t *testing.T) {
 
 	t.Run("with a large text response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -403,7 +408,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -416,7 +422,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
 
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -429,7 +436,8 @@ func TestDoCommandRequest(t *testing.T) {
 		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -447,7 +455,8 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 
-			io.Copy(w, strings.NewReader("Hello, World!"))
+			_, err := io.Copy(w, strings.NewReader("Hello, World!"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -474,7 +483,8 @@ func TestDoCommandRequest(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			_, err := io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+			require.NoError(t, err)
 		}))
 		defer serverCommand.Close()
 
