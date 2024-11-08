@@ -157,36 +157,6 @@ type Metadata struct {
 	EndTime          int64
 }
 
-func (metadata *Metadata) Update(post *model.MessageExport, attachments int) {
-	channelMetadata, ok := metadata.Channels[*post.ChannelId]
-	if !ok {
-		channelMetadata = &MetadataChannel{
-			TeamId:             post.TeamId,
-			TeamName:           post.TeamName,
-			TeamDisplayName:    post.TeamDisplayName,
-			ChannelId:          *post.ChannelId,
-			ChannelName:        *post.ChannelName,
-			ChannelDisplayName: *post.ChannelDisplayName,
-			ChannelType:        *post.ChannelType,
-			RoomId:             fmt.Sprintf("%v - %v", ChannelTypeDisplayName(*post.ChannelType), *post.ChannelId),
-			StartTime:          *post.PostCreateAt,
-			MessagesCount:      0,
-			AttachmentsCount:   0,
-		}
-	}
-
-	channelMetadata.EndTime = *post.PostCreateAt
-	channelMetadata.AttachmentsCount += attachments
-	metadata.AttachmentsCount += attachments
-	channelMetadata.MessagesCount += 1
-	metadata.MessagesCount += 1
-	if metadata.StartTime == 0 {
-		metadata.StartTime = *post.PostCreateAt
-	}
-	metadata.EndTime = *post.PostCreateAt
-	metadata.Channels[*post.ChannelId] = channelMetadata
-}
-
 func (metadata *Metadata) UpdateCounts(channelId string, numMessages int, numAttachments int) error {
 	_, ok := metadata.Channels[channelId]
 	if !ok {
