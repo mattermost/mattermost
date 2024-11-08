@@ -11,13 +11,11 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
 import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-import {AccountOutlineIcon, CancelIcon, CheckIcon, ExitToAppIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, CancelIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {PulsatingDot} from '@mattermost/components';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
 import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-
-import * as GlobalActions from 'actions/global_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
@@ -64,7 +62,7 @@ type Props = {
         setStatus: (status: UserStatus) => void;
         unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-        // setStatusDropdown: (open: boolean) => void;
+        setStatusDropdown: (open: boolean) => void;
     };
     customStatus?: UserCustomStatus;
     currentUser: UserProfile;
@@ -170,16 +168,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         this.setStatus(UserStatuses.ONLINE);
     };
 
-    setOffline = (event: Event): void => {
-        event.preventDefault();
-        this.setStatus(UserStatuses.OFFLINE);
-    };
-
-    setAway = (event: Event): void => {
-        event.preventDefault();
-        this.setStatus(UserStatuses.AWAY);
-    };
-
     setDnd = (index: number): void => {
         const currentDate = getCurrentMomentForTimezone(this.props.timezone);
         let endTime = currentDate;
@@ -249,12 +237,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         this.props.actions.unsetCustomStatus();
     };
 
-    handleEmitUserLoggedOutEvent = (): void => {
-        GlobalActions.emitUserLoggedOutEvent();
-    };
-
     onToggle = (open: boolean): void => {
-        // this.props.actions.setStatusDropdown(open);
+        this.props.actions.setStatusDropdown(open);
     };
 
     handleCompleteYourProfileTask = (): void => {
@@ -445,8 +429,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
         const setDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setDnd;
-        const setAway = needsConfirm ? () => this.showStatusChangeConfirmation('away') : this.setAway;
-        const setOffline = needsConfirm ? () => this.showStatusChangeConfirmation('offline') : this.setOffline;
         const setCustomTimedDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setCustomTimedDnd;
 
         const selectedIndicator = (
@@ -541,7 +523,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
 
         const dndExtraText = this.renderDndExtraText(dndEndTime, timezone);
 
-        if (true) {
+        if (false) {
             return (
                 <MenuNew.Container
                     menuButton={{
@@ -700,32 +682,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     </Menu.Group>
                     {customStatusComponent}
                     <Menu.Group>
-                        <Menu.ItemAction
-                            onClick={setOnline}
-                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.online.name)}
-                            text={this.props.intl.formatMessage(statusDropdownMessages.online.name)}
-                            icon={(
-                                <StatusIcon
-                                    status={'online'}
-                                    className={'status-icon'}
-                                />
-                            )}
-                            rightDecorator={status === 'online' && selectedIndicator}
-                            id={'status-menu-online'}
-                        />
-                        <Menu.ItemAction
-                            onClick={setAway}
-                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.away.name)}
-                            text={this.props.intl.formatMessage(statusDropdownMessages.away.name)}
-                            icon={(
-                                <StatusIcon
-                                    status={'away'}
-                                    className={'status-icon'}
-                                />
-                            )}
-                            rightDecorator={status === 'away' && selectedIndicator}
-                            id={'status-menu-away'}
-                        />
                         <Menu.ItemSubMenu
                             subMenu={dndSubMenuItems}
                             ariaLabel={`${this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}. ${dndExtraText}`}
@@ -742,19 +698,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             openUp={this.state.openUp}
                             id={'status-menu-dnd'}
                             action={() => setDnd(0)}
-                        />
-                        <Menu.ItemAction
-                            onClick={setOffline}
-                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.offline.name)}
-                            text={this.props.intl.formatMessage(statusDropdownMessages.offline.name)}
-                            icon={(
-                                <StatusIcon
-                                    status={'offline'}
-                                    className={'status-icon'}
-                                />
-                            )}
-                            rightDecorator={status === 'offline' && selectedIndicator}
-                            id={'status-menu-offline'}
                         />
                     </Menu.Group>
                     <Menu.Group>
@@ -781,21 +724,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 </div>
                             )}
                         </Menu.ItemToggleModalRedux>
-                    </Menu.Group>
-                    <Menu.Group>
-                        <span className={'logout__icon'}>
-                            <Menu.ItemAction
-                                id='logout'
-                                onClick={this.handleEmitUserLoggedOutEvent}
-                                text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                                icon={
-                                    <ExitToAppIcon
-                                        size={16}
-                                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                                    />
-                                }
-                            />
-                        </span>
                     </Menu.Group>
                 </Menu>
             </MenuWrapper>

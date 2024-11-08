@@ -14,7 +14,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getDndEndTimeForUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
-// import {setStatusDropdown} from 'actions/views/status_dropdown';
+import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {makeGetCustomStatus, isCustomStatusEnabled, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
 import {isStatusDropdownOpen} from 'selectors/views/status_dropdown';
 
@@ -64,7 +64,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             openModal,
             setStatus,
             unsetCustomStatus,
-            // setStatusDropdown,
+            setStatusDropdown,
             savePreferences,
         }, dispatch),
     };
