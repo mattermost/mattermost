@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/pkg/errors"
@@ -374,5 +375,44 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 			"scheduled_posts_failed",
 			map[string]any{"count": len(failedScheduledPosts)},
 		)
+		a.notifyUserAboutFailedScheduledMessages(rctx, failedScheduledPosts)
 	}
+}
+
+func (a *App) notifyUserAboutFailedScheduledMessages(rctx request.CTX, failedMessages []*model.ScheduledPost) {
+	a.Srv().Go(func() {
+		systemBot, err := a.GetSystemBot(rctx)
+		if err != nil {
+			rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
+			return
+		}
+
+		channel, err := a.GetOrCreateDirectChannel(rctx, failedMessages[0].UserId, systemBot.UserId)
+		if err != nil {
+			rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
+			return
+		}
+
+		user, err := a.GetUser(failedMessages[0].UserId)
+		if err != nil {
+			rctx.Logger().Error("Failed to get the user", mlog.Err(err))
+			return
+		}
+
+		T := i18n.GetUserTranslations(user.Locale)
+		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
+			"Count": len(failedMessages),
+		})
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   messageContent,
+			Type:      model.PostTypeDefault,
+			UserId:    systemBot.UserId,
+		}
+
+		if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+			rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
+		}
+	})
 }
