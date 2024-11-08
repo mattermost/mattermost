@@ -58,6 +58,7 @@ import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
+    ignorePostError?: boolean;
 }
 
 export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
