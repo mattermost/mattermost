@@ -227,6 +227,9 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
+	// send the WS event to delete the just posted scheduledPost from list
+	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, "")
+
 	return scheduledPost, nil
 }
 
@@ -361,6 +364,8 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 				mlog.Err(err),
 			)
 		}
+		// send WS event for updating the scheduled post with the error code
+		a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, failedScheduledPost, "")
 	}
 
 	if len(failedScheduledPosts) > 0 {
