@@ -1,10 +1,14 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
 	"context"
+	"testing"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestCreateScheduledPost(t *testing.T) {
@@ -46,7 +50,9 @@ func TestCreateScheduledPost(t *testing.T) {
 			},
 		}
 
-		th.App.SetPhase2PermissionsMigrationStatus(true)
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
 		_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel, channelModerationPatches)
 		require.Nil(t, appErr)
 

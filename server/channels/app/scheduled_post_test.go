@@ -641,7 +641,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// now user will leave the channel
-		th.RemoveUserFromChannel(th.BasicUser, channel)
+		appErr = th.RemoveUserFromChannel(th.BasicUser, channel)
+		require.Nil(t, appErr)
 
 		createdScheduledPost.Message = "Updated message"
 
