@@ -127,7 +127,6 @@ issues:
         channels/app/platform/web_hub.go|\
         channels/app/platform/web_hub_test.go|\
         channels/app/plugin_api_test.go|\
-        channels/app/plugin_api_tests/manual.test_http_hijack_plugin/main.go|\
         channels/app/plugin_api_tests/manual.test_serve_metrics_plugin/main.go|\
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
         channels/app/plugin_install.go|\
