@@ -2,30 +2,37 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy} from 'react';
-import {Route, Switch, Redirect} from 'react-router-dom';
+import React, { lazy } from 'react';
+import { Route, Switch, Redirect } from 'react-router-dom';
 
-import {makeAsyncComponent} from 'components/async_load';
+import { makeAsyncComponent } from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import LoadingScreen from 'components/loading_screen';
 
-import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
-import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import { SCHEDULED_POST_URL_SUFFIX } from 'utils/constants';
+import { IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN } from 'utils/path';
 
-import type {OwnProps, PropsFromRedux} from './index';
+import type { OwnProps, PropsFromRedux } from './index';
 
 const ChannelHeaderMobile = makeAsyncComponent('ChannelHeaderMobile', lazy(() => import('components/channel_header_mobile')));
 const GlobalThreads = makeAsyncComponent('GlobalThreads', lazy(() => import('components/threading/global_threads')),
     (
         <div className='app__content'>
-            <LoadingScreen/>
+            <LoadingScreen />
         </div>
     ),
 );
 const Drafts = makeAsyncComponent('Drafts', lazy(() => import('components/drafts')),
     (
         <div className='app__content'>
-            <LoadingScreen/>
+            <LoadingScreen />
+        </div>
+    ),
+);
+const SearchPage = makeAsyncComponent('SearchPage', lazy(() => import('components/search_page')),
+    (
+        <div className='app__content'>
+            <LoadingScreen />
         </div>
     ),
 );
@@ -55,16 +62,16 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                 returnTo: prevState.lastReturnTo,
             };
         }
-        return {lastReturnTo: nextProps.location.pathname};
+        return { lastReturnTo: nextProps.location.pathname };
     }
 
     async componentDidMount() {
-        const {actions} = this.props;
+        const { actions } = this.props;
         await actions.getProfiles();
     }
 
     render() {
-        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView} = this.props;
+        const { lastChannelPath, isCollapsedThreadsEnabled, isMobileView } = this.props;
         const url = this.props.match.url;
 
         return (
@@ -80,7 +87,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                     <>
                         <div className='row header'>
                             <div id='navbar_wrapper'>
-                                <ChannelHeaderMobile/>
+                                <ChannelHeaderMobile />
                             </div>
                         </div>
                     </>
@@ -103,7 +110,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                         <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
                         >
-                            <PlaybookRunner/>
+                            <PlaybookRunner />
                         </Route>
                         {isCollapsedThreadsEnabled ? (
                             <Route
@@ -116,11 +123,15 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             component={Drafts}
                         />
                         <Route
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/searches/:searchId(${ID_PATH_PATTERN})?`}
+                            component={SearchPage}
+                        />
+                        <Route
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/${SCHEDULED_POST_URL_SUFFIX}`}
                             component={Drafts}
                         />
 
-                        <Redirect to={lastChannelPath}/>
+                        <Redirect to={lastChannelPath} />
                     </Switch>
                 </div>
             </div>

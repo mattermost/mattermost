@@ -1316,7 +1316,6 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "getPostsSinceCollapsedThreads_ToSql")
 	}
@@ -1454,8 +1453,10 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 			},
 		})
 	} else {
-		query = query.Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
-			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}}})
+		query = query.Where(sq.Or{
+			sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
+			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}},
+		})
 	}
 
 	if options.ChannelId != "" {
@@ -2239,8 +2240,7 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
 	var args []any
-	query :=
-		`SELECT DISTINCT
+	query := `SELECT DISTINCT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 		        COUNT(DISTINCT Posts.UserId) AS Value
 		FROM Posts`
@@ -2258,8 +2258,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		LIMIT 30`
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query =
-			`SELECT
+		query = `SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
 			FROM Posts`
 
@@ -2294,8 +2293,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	var args []any
-	query :=
-		`SELECT
+	query := `SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 		        COUNT(Posts.Id) AS Value
 		    FROM Posts`
@@ -2318,8 +2316,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		LIMIT 30`
 
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query =
-			`SELECT
+		query = `SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
 			FROM Posts`
 
@@ -2987,14 +2984,12 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 				sq.Eq{"Posts.DeleteAt": 0},
 			}).
 			ToSql()
-
 		if err != nil {
 			return errors.Wrap(err, "failed to create SQL query to count user's posts")
 		}
 
 		var count int64
 		err = transaction.Get(&count, queryString, args...)
-
 		if err != nil {
 			return errors.Wrap(err, "failed to count user's posts in thread")
 		}
@@ -3035,13 +3030,11 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 				sq.Gt{"ReplyCount": 0},
 			}).
 			ToSql()
-
 		if err != nil {
 			return errors.Wrap(err, "failed to create SQL query to update thread")
 		}
 
 		_, err = transaction.Exec(updateQueryString, updateArgs...)
-
 		if err != nil {
 			return errors.Wrap(err, "failed to update Threads")
 		}
@@ -3297,4 +3290,78 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	}
 
 	return meta, nil
+}
+
+func (s *SqlPostStore) DeleteSearchBookmark(bookmarkId string) error {
+	query := s.getQueryBuilder().Delete("SearchBookmarks").Where(sq.Eq{"Id": bookmarkId})
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SqlPostStore) SaveSearchBookmark(bookmark *model.SearchBookmark) error {
+	query := s.getQueryBuilder().Insert("SearchBookmarks").
+		Columns("Id", "Title", "UserId", "TeamId", "Terms", "SearchType").
+		Values(bookmark.Id, bookmark.Title, bookmark.UserId, bookmark.TeamId, bookmark.Terms, bookmark.SearchType)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SqlPostStore) GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error) {
+	query := s.getQueryBuilder().
+		Select("id, title, userid, teamid, terms, searchType").
+		From("SearchBookmarks").
+		Where(sq.Eq{"UserId": userId})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	bookmarks := []*model.SearchBookmark{}
+
+	rows, err := s.GetReplicaX().Queryx(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		bookmark := &model.SearchBookmark{}
+		if err := rows.Scan(&bookmark.Id, &bookmark.Title, &bookmark.UserId, &bookmark.TeamId, &bookmark.Terms, &bookmark.SearchType); err != nil {
+			return nil, err
+		}
+		bookmarks = append(bookmarks, bookmark)
+	}
+	return bookmarks, nil
+}
+
+func (s *SqlPostStore) GetSearchBookmark(bookmarkId string) (*model.SearchBookmark, error) {
+	query := s.getQueryBuilder().
+		Select("id, title, userid, teamid, terms, searchType").
+		From("SearchBookmarks").
+		Where(sq.Eq{"Id": bookmarkId})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	bookmark := &model.SearchBookmark{}
+
+	row := s.GetReplicaX().QueryRowx(sql, args...)
+	if err := row.Scan(&bookmark.Id, &bookmark.Title, &bookmark.UserId, &bookmark.TeamId, &bookmark.Terms, &bookmark.SearchType); err != nil {
+		return nil, err
+	}
+	return bookmark, nil
 }

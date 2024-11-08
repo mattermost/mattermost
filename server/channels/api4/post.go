@@ -33,6 +33,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/searchBookmark/{bookmark_id:[A-Za-z0-9]+}", api.APISessionRequiredDisableWhenBusy(searchBookmark)).Methods(http.MethodPost)
 	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods(http.MethodPut)
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods(http.MethodPut)
@@ -516,7 +517,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelMap[channel.Id] = channel
 	}
 
-	var posts = []*model.Post{}
+	posts := []*model.Post{}
 	for _, post := range postsList {
 		channel, ok := channelMap[post.ChannelId]
 		if !ok {
@@ -743,6 +744,80 @@ func searchPostsInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	searchPosts(c, w, r, c.Params.TeamId)
+}
+
+func searchBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireSearchBookmarkId()
+
+	var params model.SearchParameter
+	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	}
+
+	bookmark, err := c.App.GetSearchBookmark(c.AppContext, c.Params.SearchBookmarkId)
+	if err != nil {
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
+
+	startTime := time.Now()
+
+	results, err := c.App.SearchPostsForUser(c.AppContext, bookmark.Terms, c.AppContext.Session().UserId, bookmark.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+
+	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+	metrics := c.App.Metrics()
+	if metrics != nil {
+		metrics.IncrementPostsSearchCounter()
+		metrics.ObservePostsSearchDuration(elapsedTime)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, results.PostList)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	results = model.MakePostSearchResults(clientPostList, results.Matches)
+
+	bookmark.Results = results.Posts
+	bookmark.Matches = results.Matches
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := bookmark.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchPostsInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {

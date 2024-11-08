@@ -283,6 +283,7 @@ func NewInvalidParamDetailedError(parameter string, details string) *model.AppEr
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, details, http.StatusBadRequest)
 	return err
 }
+
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
@@ -347,6 +348,17 @@ func (c *Context) RequireTeamId() *Context {
 
 	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidURLParam("team_id")
+	}
+	return c
+}
+
+func (c *Context) RequireSearchBookmarkId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.SearchBookmarkId) {
+		c.SetInvalidURLParam("bookmark_id")
 	}
 	return c
 }

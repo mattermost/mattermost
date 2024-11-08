@@ -1,0 +1,127 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/drafts/draft_actions/delete_draft_modal should have called onConfirm 1`] = `
+<GenericModal
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={true}
+  autoFocusConfirmButton={true}
+  bodyPadding={true}
+  compassDesign={true}
+  confirmButtonText="Yes, delete"
+  enforceFocus={true}
+  handleCancel={[Function]}
+  handleConfirm={
+    [MockFunction] {
+      "calls": Array [
+        Array [],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
+  id="genericModal"
+  isDeleteModal={true}
+  keyboardEscape={true}
+  modalHeaderText="Delete draft"
+  onExited={[MockFunction]}
+  show={true}
+>
+  <MemoizedFormattedMessage
+    defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"
+    id="drafts.confirm.delete.text"
+    values={
+      Object {
+        "displayName": "display_name",
+        "strong": [Function],
+      }
+    }
+  />
+</GenericModal>
+`;
+
+exports[`components/drafts/draft_actions/delete_draft_modal should have called onExited 1`] = `
+<GenericModal
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={true}
+  autoFocusConfirmButton={true}
+  bodyPadding={true}
+  compassDesign={true}
+  confirmButtonText="Yes, delete"
+  enforceFocus={true}
+  handleCancel={[Function]}
+  handleConfirm={[MockFunction]}
+  id="genericModal"
+  isDeleteModal={true}
+  keyboardEscape={true}
+  modalHeaderText="Delete draft"
+  onExited={
+    [MockFunction] {
+      "calls": Array [
+        Array [],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
+  show={true}
+>
+  <MemoizedFormattedMessage
+    defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"
+    id="drafts.confirm.delete.text"
+    values={
+      Object {
+        "displayName": "display_name",
+        "strong": [Function],
+      }
+    }
+  />
+</GenericModal>
+`;
+
+exports[`components/drafts/draft_actions/delete_draft_modal should match snapshot 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <DeleteDraftModal
+    displayName="display_name"
+    onConfirm={[MockFunction]}
+    onExited={[MockFunction]}
+  />
+</ContextProvider>
+`;

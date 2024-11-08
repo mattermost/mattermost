@@ -1,0 +1,52 @@
+.DraftAction {
+    &__button {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+        fill: rgba(var(--center-channel-color-rgb), 0.4);
+
+        &:hover,
+        &:active,
+        &--active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        span {
+            display: flex;
+        }
+    }
+
+    .DraftAction__button--delete {
+        &:hover,
+        &:active,
+        &--active {
+            background: rgba(var(--dnd-indicator-rgb), 0.08);
+        }
+    }
+
+    .icon {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
+
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+            fill: rgba(var(--center-channel-color-rgb), 0.8);
+        }
+    }
+
+    .icon-trash-can-outline,
+    .icon-trash-can-outline:hover {
+        color: var(--dnd-indicator);
+        fill: var(--dnd-indicator);
+    }
+}
+
+.DraftAction + .DraftAction {
+    padding-left: 5px;
+}

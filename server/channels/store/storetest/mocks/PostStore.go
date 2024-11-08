@@ -916,6 +916,36 @@ func (_m *PostStore) GetRepliesForExport(parentID string) ([]*model.ReplyForExpo
 	return r0, r1
 }
 
+// GetSearchBookmark provides a mock function with given fields: bookmarkId
+func (_m *PostStore) GetSearchBookmark(bookmarkId string) (*model.SearchBookmark, error) {
+	ret := _m.Called(bookmarkId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSearchBookmark")
+	}
+
+	var r0 *model.SearchBookmark
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.SearchBookmark, error)); ok {
+		return rf(bookmarkId)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.SearchBookmark); ok {
+		r0 = rf(bookmarkId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SearchBookmark)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(bookmarkId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSingle provides a mock function with given fields: rctx, id, inclDeleted
 func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
 	ret := _m.Called(rctx, id, inclDeleted)

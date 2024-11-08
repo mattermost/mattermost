@@ -408,6 +408,10 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+	GetSearchBookmark(bookmarkId string) (*model.SearchBookmark, error)
+	GetUserSearchBookmarks(userId string) ([]*model.SearchBookmark, error)
+	SaveSearchBookmark(bookmark *model.SearchBookmark) error
+	DeleteSearchBookmark(bookmarkId string) error
 }
 
 type UserStore interface {

@@ -1,0 +1,24 @@
+.DraftPanelBody {
+    display: flex;
+    padding: 16px;
+
+    &__right {
+        flex: 1;
+    }
+
+    &.post:hover {
+        background-color: var(--center-channel-bg);
+    }
+
+    .file-preview__container {
+        height: auto;
+        flex-wrap: wrap;
+        padding-top: 3px;
+        margin: 0 -5px;
+
+        .file-preview.post-image__column {
+            margin: 1px 5px 5px;
+            cursor: pointer;
+        }
+    }
+}

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
+<div
+  className="DraftAction"
+>
+  <WithTooltip
+    id="drafts_action_tooltip_"
+    placement="top"
+    title=""
+  >
+    <button
+      className="DraftAction__button"
+      id="draft__"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon"
+      />
+    </button>
+  </WithTooltip>
+</div>
+`;

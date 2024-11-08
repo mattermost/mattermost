@@ -81,6 +81,22 @@ const (
 	PostPropsPersistentNotifications = "persistent_notifications"
 )
 
+type SearchBookmark struct {
+	Id          string            `json:"id"`
+	Title       string            `json:"title"`
+	UserId      string            `json:"user_id"`
+	Terms       string            `json:"terms"`
+	TeamId      string            `json:"team_id"`
+	SearchType  string            `json:"search_type"`
+	Results     map[string]*Post  `json:"results"`
+	Matches     PostSearchMatches `json:"matches"`
+	FileResults int64             `json:"file_results"`
+}
+
+func (o *SearchBookmark) EncodeJSON(w io.Writer) error {
+	return json.NewEncoder(w).Encode(o)
+}
+
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`

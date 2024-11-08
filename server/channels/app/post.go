@@ -1347,6 +1347,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
+
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var lastViewedAt int64
 	var err *model.AppError
@@ -2118,7 +2119,6 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2720,5 +2720,38 @@ func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteBy
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
+	return nil
+}
+
+func (a *App) GetSearchBookmark(c request.CTX, bookmarkID string) (*model.SearchBookmark, *model.AppError) {
+	bookmark, err := a.Srv().Store().Post().GetSearchBookmark(bookmarkID)
+	if err != nil {
+		return nil, model.NewAppError("GetSearchBookmark", "app.search_bookmark.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return bookmark, nil
+}
+
+func (a *App) GetUserSearchBookmarks(c request.CTX, userId string) ([]*model.SearchBookmark, *model.AppError) {
+	bookmarks, err := a.Srv().Store().Post().GetUserSearchBookmarks(userId)
+	if err != nil {
+		return nil, model.NewAppError("GetUserSearchBookmarks", "app.search_bookmark.get_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return bookmarks, nil
+}
+
+func (a *App) SaveSearchBookmark(c request.CTX, bookmark *model.SearchBookmark) (*model.SearchBookmark, *model.AppError) {
+	bookmark.Id = model.NewId()
+	err := a.Srv().Store().Post().SaveSearchBookmark(bookmark)
+	if err != nil {
+		return nil, model.NewAppError("SaveSearchBookmark", "app.search_bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return bookmark, nil
+}
+
+func (a *App) DeleteSearchBookmark(c request.CTX, bookmarkId string) *model.AppError {
+	err := a.Srv().Store().Post().DeleteSearchBookmark(bookmarkId)
+	if err != nil {
+		return model.NewAppError("DeleteSearchBookmark", "app.search_bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	return nil
 }

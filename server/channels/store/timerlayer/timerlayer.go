@@ -6228,6 +6228,22 @@ func (s *TimerLayerPostStore) GetRepliesForExport(parentID string) ([]*model.Rep
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetSearchBookmark(bookmarkId string) (*model.SearchBookmark, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetSearchBookmark(bookmarkId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSearchBookmark", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
 	start := time.Now()
 

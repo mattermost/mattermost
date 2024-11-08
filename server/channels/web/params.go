@@ -104,8 +104,9 @@ type Params struct {
 	ExcludePlugins            bool
 	ExcludeHome               bool
 	ExcludeRemote             bool
+	SearchBookmarkId          string
 
-	//Bookmarks
+	// Bookmarks
 	ChannelBookmarkId string
 	BookmarksSince    int64
 
@@ -121,6 +122,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	params.UserId = props["user_id"]
 	params.TeamId = props["team_id"]
+	params.SearchBookmarkId = props["bookmark_id"]
 	params.CategoryId = props["category_id"]
 	params.InviteId = props["invite_id"]
 	params.TokenId = props["token_id"]
