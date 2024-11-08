@@ -1952,7 +1952,7 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 					call.Return(tc.attachments, nil)
 				})
 			}
-			uploadStarts, uploadStops, files, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, shared.NewMessageExportStore(mockStore))
+			files, uploadStarts, uploadStops, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, shared.NewMessageExportStore(mockStore))
 			if tc.expectError {
 				assert.Error(t, err)
 			} else {
@@ -2160,7 +2160,7 @@ func Test_channelHasActivity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, channelHasActivity(tt.cmhs, tt.startTime, tt.endTime), "channelHasActivity(%v, %v, %v)", tt.cmhs, tt.startTime, tt.endTime)
+			assert.Equalf(t, tt.want, shared.ChannelHasActivity(tt.cmhs, tt.startTime, tt.endTime), "channelHasActivity(%v, %v, %v)", tt.cmhs, tt.startTime, tt.endTime)
 		})
 	}
 }

@@ -187,8 +187,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 	switch p.ExportType {
 	case model.ComplianceExportTypeCsv:
 		rctx.Logger().Debug("Exporting CSV")
-		results.NumWarnings, err = csv_export.CsvExport(rctx, exportParams)
-		return results, err
+		return csv_export.CsvExport(rctx, exportParams)
 
 	case model.ComplianceExportTypeActiance:
 		rctx.Logger().Debug("Exporting Actiance")

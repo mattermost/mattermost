@@ -31,21 +31,23 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err error) {
+func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
+	results := shared.RunExportResults{}
+
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
 	buf := make([]byte, 1024*1024*2)
 	temp, err := os.CreateTemp("", "compliance-export-batch-*.zip")
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to create temporary CSV export file: %w", err)
+		return results, fmt.Errorf("unable to create temporary CSV export file: %w", err)
 	}
 	defer file.DeleteTemp(rctx.Logger(), temp)
 
 	zipFile := zip.NewWriter(temp)
 	csvFile, err := zipFile.Create("posts.csv")
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to create the zip export file: %w", err)
+		return results, fmt.Errorf("unable to create the zip export file: %w", err)
 	}
 	csvWriter := csv.NewWriter(csvFile)
 	err = csvWriter.Write([]string{
@@ -70,51 +72,81 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err e
 	})
 
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to add header to the CSV export: %w", err)
+		return results, fmt.Errorf("unable to add header to the CSV export: %w", err)
 	}
 
+	// postAuthorsByChannel is a map so that we don't store duplicate authors
+	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 	metadata := shared.Metadata{
-		Channels:         map[string]*shared.MetadataChannel{},
+		Channels:         p.ChannelMetadata,
 		MessagesCount:    0,
 		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
+		StartTime:        p.BatchStartTime,
+		EndTime:          p.BatchEndTime,
 	}
 
-	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
-
+	channelsInThisBatch := make(map[string]bool)
 	for _, post := range p.Posts {
+		if post == nil {
+			results.IgnoredPosts++
+			rctx.Logger().Warn("ignored a nil post reference in the list")
+			continue
+		}
+
+		channelId := *post.ChannelId
+		channelsInThisBatch[channelId] = true
+
 		var attachments []*model.FileInfo
 		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
-			return warningCount, err
+			return results, err
 		}
 
-		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
-			postAuthorsByChannel[*post.ChannelId] = make(map[string]shared.ChannelMember)
+		if err = metadata.UpdateCounts(channelId, 1, len(attachments)); err != nil {
+			return results, err
 		}
 
-		postAuthorsByChannel[*post.ChannelId][*post.UserId] = shared.ChannelMember{
+		if _, ok := postAuthorsByChannel[channelId]; !ok {
+			postAuthorsByChannel[channelId] = make(map[string]shared.ChannelMember)
+		}
+		postAuthorsByChannel[channelId][*post.UserId] = shared.ChannelMember{
 			UserId:   *post.UserId,
+			Email:    *post.UserEmail,
 			Username: *post.Username,
 			IsBot:    post.IsBot,
-			Email:    *post.UserEmail,
 		}
+	}
 
-		metadata.Update(post, len(attachments))
+	// If the channel is not in channelsInThisBatch (i.e. if it didn't have a post), we need to check if it had
+	// user activity between this batch's startTime-endTime. If so, add it to the channelsInThisBatch.
+	for id := range p.ChannelMetadata {
+		if !channelsInThisBatch[id] {
+			if shared.ChannelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
+				channelsInThisBatch[id] = true
+			}
+		}
 	}
 
 	var joinLeavePosts []*model.MessageExport
-	joinLeavePosts, err = getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, p.Db)
-	if err != nil {
-		return warningCount, err
+	for id := range channelsInThisBatch {
+		joinLeaves, err2 := getJoinLeavePosts(
+			p.BatchStartTime,
+			p.BatchEndTime,
+			metadata.Channels[id],
+			p.ChannelMemberHistories[id],
+			postAuthorsByChannel[id],
+		)
+		if err2 != nil {
+			return results, err2
+		}
+		joinLeavePosts = append(joinLeavePosts, joinLeaves...)
 	}
 
 	postsGenerator := mergePosts(joinLeavePosts, p.Posts)
 
 	for post := postsGenerator(); post != nil; post = postsGenerator() {
 		if err = csvWriter.Write(postToRow(post, post.PostCreateAt, *post.PostMessage)); err != nil {
-			return warningCount, fmt.Errorf("unable to export a post: %w", err)
+			return results, fmt.Errorf("unable to export a post: %w", err)
 		}
 
 		if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
@@ -122,7 +154,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err e
 			if json.Unmarshal([]byte(*post.PostProps), &props) == nil {
 				if _, ok := props[model.PostPropsDeleteBy]; ok {
 					if err = csvWriter.Write(postToRow(post, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
-						return warningCount, fmt.Errorf("unable to export a post: %w", err)
+						return results, fmt.Errorf("unable to export a post: %w", err)
 					}
 				}
 			}
@@ -131,12 +163,12 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err e
 		var attachments []*model.FileInfo
 		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
-			return warningCount, err
+			return results, err
 		}
 
 		for _, attachment := range attachments {
 			if err = csvWriter.Write(attachmentToRow(post, attachment)); err != nil {
-				return warningCount, fmt.Errorf("unable to add attachment to the CSV export: %w", err)
+				return results, fmt.Errorf("unable to add attachment to the CSV export: %w", err)
 			}
 		}
 	}
@@ -148,7 +180,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err e
 		var attachments []*model.FileInfo
 		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
-			return warningCount, err
+			return results, err
 		}
 
 		for _, attachment := range attachments {
@@ -176,50 +208,50 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err e
 
 				return nil
 			}(); err != nil {
-				return warningCount, fmt.Errorf("unable to copy the attachment into the zip file: %w", err)
+				return results, fmt.Errorf("unable to copy the attachment into the zip file: %w", err)
 			}
 		}
 	}
 
-	warningCount = len(missingFiles)
-	if warningCount > 0 {
+	results.NumWarnings = len(missingFiles)
+	if results.NumWarnings > 0 {
 		metadataFile, _ := zipFile.Create(CSVWarningFilename)
 		for _, value := range missingFiles {
 			_, err = metadataFile.Write([]byte(value + "\n"))
 			if err != nil {
-				return warningCount, fmt.Errorf("unable to create the warning file: %w", err)
+				return results, fmt.Errorf("unable to create the warning file: %w", err)
 			}
 		}
 	}
 
 	metadataFile, err := zipFile.Create("metadata.json")
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to create the zip file: %w", err)
+		return results, fmt.Errorf("unable to create the zip file: %w", err)
 	}
 	data, err := json.MarshalIndent(metadata, "", "  ")
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to convert metadata to json: %w", err)
+		return results, fmt.Errorf("unable to convert metadata to json: %w", err)
 	}
 	_, err = metadataFile.Write(data)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to add metadata file to the zip file: %w", err)
+		return results, fmt.Errorf("unable to add metadata file to the zip file: %w", err)
 	}
 	err = zipFile.Close()
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to close the zip file: %w", err)
+		return results, fmt.Errorf("unable to close the zip file: %w", err)
 	}
 
 	_, err = temp.Seek(0, 0)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to seek to start of export file: %w", err)
+		return results, fmt.Errorf("unable to seek to start of export file: %w", err)
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
 	_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, temp, p.BatchPath)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to write the csv file: %w", err)
+		return results, fmt.Errorf("unable to write the csv file: %w", err)
 	}
-	return warningCount, nil
+	return results, nil
 }
 
 func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func() *model.MessageExport {
@@ -250,84 +282,78 @@ func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func(
 	}
 }
 
-func getJoinLeavePosts(channels map[string]*shared.MetadataChannel,
-	postAuthorsByChannel map[string]map[string]shared.ChannelMember, db shared.MessageExportStore) ([]*model.MessageExport, error) {
-	joinLeavePosts := []*model.MessageExport{}
-	for _, channel := range channels {
-		channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channel.StartTime, channel.EndTime, []string{channel.ChannelId})
-		if err != nil {
-			return nil, fmt.Errorf("failed to get users in channel during specified time period: %w", err)
+func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataChannel,
+	channelMembersHistory []*model.ChannelMemberHistoryResult, postAuthors map[string]shared.ChannelMember) ([]*model.MessageExport, error) {
+	var joinLeavePosts []*model.MessageExport
+
+	joins, leaves := shared.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
+
+	for _, join := range joins {
+		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
+		enterPostType := EnterPostType
+		createAt := model.NewPointer(join.Datetime)
+		channelCopy := channel
+		if join.Datetime <= channel.StartTime {
+			enterPostType = PreviouslyJoinedPostType
+			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
+			createAt = model.NewPointer(channel.StartTime)
 		}
+		joinLeavePosts = append(
+			joinLeavePosts,
+			&model.MessageExport{
+				TeamId:          channel.TeamId,
+				TeamName:        channel.TeamName,
+				TeamDisplayName: channel.TeamDisplayName,
 
-		joins, leaves := shared.GetJoinsAndLeavesForChannel(channel.StartTime, channel.EndTime, channelMembersHistory, postAuthorsByChannel[channel.ChannelId])
+				ChannelId:          &channelCopy.ChannelId,
+				ChannelName:        &channelCopy.ChannelName,
+				ChannelDisplayName: &channelCopy.ChannelDisplayName,
+				ChannelType:        &channelCopy.ChannelType,
 
-		for _, join := range joins {
-			enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
-			enterPostType := EnterPostType
-			createAt := model.NewPointer(join.Datetime)
-			channelCopy := channel
-			if join.Datetime <= channel.StartTime {
-				enterPostType = PreviouslyJoinedPostType
-				enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
-				createAt = model.NewPointer(channel.StartTime)
-			}
-			joinLeavePosts = append(
-				joinLeavePosts,
-				&model.MessageExport{
-					TeamId:          channel.TeamId,
-					TeamName:        channel.TeamName,
-					TeamDisplayName: channel.TeamDisplayName,
+				UserId:    model.NewPointer(join.UserId),
+				UserEmail: model.NewPointer(join.Email),
+				Username:  model.NewPointer(join.Username),
+				IsBot:     join.IsBot,
 
-					ChannelId:          &channelCopy.ChannelId,
-					ChannelName:        &channelCopy.ChannelName,
-					ChannelDisplayName: &channelCopy.ChannelDisplayName,
-					ChannelType:        &channelCopy.ChannelType,
+				PostId:         model.NewPointer(""),
+				PostCreateAt:   createAt,
+				PostMessage:    &enterMessage,
+				PostType:       &enterPostType,
+				PostOriginalId: model.NewPointer(""),
+				PostFileIds:    []string{},
+			},
+		)
+	}
+	for _, leave := range leaves {
+		leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
+		leavePostType := LeavePostType
+		channelCopy := channel
 
-					UserId:    model.NewPointer(join.UserId),
-					UserEmail: model.NewPointer(join.Email),
-					Username:  model.NewPointer(join.Username),
-					IsBot:     join.IsBot,
+		joinLeavePosts = append(
+			joinLeavePosts,
+			&model.MessageExport{
+				TeamId:          channel.TeamId,
+				TeamName:        channel.TeamName,
+				TeamDisplayName: channel.TeamDisplayName,
 
-					PostId:         model.NewPointer(""),
-					PostCreateAt:   createAt,
-					PostMessage:    &enterMessage,
-					PostType:       &enterPostType,
-					PostOriginalId: model.NewPointer(""),
-					PostFileIds:    []string{},
-				},
-			)
-		}
-		for _, leave := range leaves {
-			leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
-			leavePostType := LeavePostType
-			channelCopy := channel
+				ChannelId:          &channelCopy.ChannelId,
+				ChannelName:        &channelCopy.ChannelName,
+				ChannelDisplayName: &channelCopy.ChannelDisplayName,
+				ChannelType:        &channelCopy.ChannelType,
 
-			joinLeavePosts = append(
-				joinLeavePosts,
-				&model.MessageExport{
-					TeamId:          channel.TeamId,
-					TeamName:        channel.TeamName,
-					TeamDisplayName: channel.TeamDisplayName,
+				UserId:    model.NewPointer(leave.UserId),
+				UserEmail: model.NewPointer(leave.Email),
+				Username:  model.NewPointer(leave.Username),
+				IsBot:     leave.IsBot,
 
-					ChannelId:          &channelCopy.ChannelId,
-					ChannelName:        &channelCopy.ChannelName,
-					ChannelDisplayName: &channelCopy.ChannelDisplayName,
-					ChannelType:        &channelCopy.ChannelType,
-
-					UserId:    model.NewPointer(leave.UserId),
-					UserEmail: model.NewPointer(leave.Email),
-					Username:  model.NewPointer(leave.Username),
-					IsBot:     leave.IsBot,
-
-					PostId:         model.NewPointer(""),
-					PostCreateAt:   model.NewPointer(leave.Datetime),
-					PostMessage:    &leaveMessage,
-					PostType:       &leavePostType,
-					PostOriginalId: model.NewPointer(""),
-					PostFileIds:    []string{},
-				},
-			)
-		}
+				PostId:         model.NewPointer(""),
+				PostCreateAt:   model.NewPointer(leave.Datetime),
+				PostMessage:    &leaveMessage,
+				PostType:       &leavePostType,
+				PostOriginalId: model.NewPointer(""),
+				PostFileIds:    []string{},
+			},
+		)
 	}
 
 	sort.Slice(joinLeavePosts, func(i, j int) bool {

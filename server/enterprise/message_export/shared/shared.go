@@ -215,22 +215,20 @@ func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data
 
 	rctx.Logger().Info("Expecting to export total posts", mlog.Int("total_posts", data.TotalPostsExpected))
 
-	// For Actiance: Every time we claim the job, we need to gather the membership data that every batch will use.
+	// Every time we claim the job, we need to gather the membership data that every batch will use.
 	// If we're here, then either this is the start of the job, or the job was stopped (e.g., the worker stopped)
 	// and we've claimed it again. Either way, we need to recalculate channel and member history data.
-	if data.ExportType == model.ComplianceExportTypeActiance {
-		data.ChannelMetadata, data.ChannelMemberHistories, err = CalculateChannelExports(rctx,
-			ChannelExportsParams{
-				Store:                   store,
-				ExportPeriodStartTime:   data.ExportPeriodStartTime,
-				ExportPeriodEndTime:     data.JobEndTime,
-				ChannelBatchSize:        data.ChannelBatchSize,
-				ChannelHistoryBatchSize: data.ChannelHistoryBatchSize,
-				ReportProgressMessage:   reportProgress,
-			})
-		if err != nil {
-			return data, err
-		}
+	data.ChannelMetadata, data.ChannelMemberHistories, err = CalculateChannelExports(rctx,
+		ChannelExportsParams{
+			Store:                   store,
+			ExportPeriodStartTime:   data.ExportPeriodStartTime,
+			ExportPeriodEndTime:     data.JobEndTime,
+			ChannelBatchSize:        data.ChannelBatchSize,
+			ChannelHistoryBatchSize: data.ChannelHistoryBatchSize,
+			ReportProgressMessage:   reportProgress,
+		})
+	if err != nil {
+		return data, err
 	}
 
 	data.Cursor = model.MessageExportCursor{
@@ -329,6 +327,18 @@ func CalculateChannelExports(rctx request.CTX, opt ChannelExportsParams) (map[st
 	rctx.Logger().Info("GetUsersInChannelDuring batch times", mlog.Array("batch_times", batchTimes))
 
 	return channelMetadata, historiesByChannelId, nil
+}
+
+// ChannelHasActivity returns true if the channel (represented by the []*model.ChannelMemberHistoryResult slice)
+// had user activity between startTime and endTime
+func ChannelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
+	for _, cmh := range cmhs {
+		if (cmh.JoinTime >= startTime && cmh.JoinTime <= endTime) ||
+			(cmh.LeaveTime != nil && *cmh.LeaveTime >= startTime && *cmh.LeaveTime <= endTime) {
+			return true
+		}
+	}
+	return false
 }
 
 func GetJoinsAndLeavesForChannel(startTime int64, endTime int64, channelMembersHistory []*model.ChannelMemberHistoryResult,
