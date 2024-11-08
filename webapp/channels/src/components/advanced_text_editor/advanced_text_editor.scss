@@ -10,6 +10,7 @@
     border-radius: 4px;
     margin: 0 24px 24px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
+
     .btn {
         margin: 10px
     }
@@ -55,8 +56,6 @@
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;
         padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
-        white-space: pre-wrap;
-        word-break: break-word;
         box-shadow: none;
 
         &:focus {
@@ -65,6 +64,12 @@
 
         &.textbox-preview-area {
             height: auto;
+            white-space: normal;
+            padding-right: 20px;
+
+            blockquote:before {
+                top: 9px;
+            }
         }
     }
 
@@ -136,7 +141,7 @@
             visibility: hidden;
         }
 
-        & + input {
+        &+input {
             position: absolute;
             top: 0;
             right: 0;
