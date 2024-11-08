@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
