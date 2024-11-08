@@ -76,6 +76,22 @@ type BackendParams struct {
 	HtmlTemplates         *templates.Container
 }
 
+type ExportParams struct {
+	ExportType             string
+	ChannelMetadata        map[string]*MetadataChannel
+	Posts                  []*model.MessageExport
+	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
+	JobStartTime           int64
+	BatchPath              string
+	BatchStartTime         int64
+	BatchEndTime           int64
+	Config                 *model.Config
+	Db                     MessageExportStore
+	FileAttachmentBackend  filestore.FileBackend
+	ExportBackend          filestore.FileBackend
+	Templates              *templates.Container
+}
+
 type WriteExportResult struct {
 	TransferringFilesMs int64
 	ProcessingXmlMs     int64
@@ -189,7 +205,6 @@ func (metadata *Metadata) UpdateCounts(channelId string, numMessages int, numAtt
 func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data JobData, reportProgress func(string)) (JobData, error) {
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the job anyway. The only issue is that the progress % reporting will be inaccurate.
-	// Note: we're not using JobEndTime here because totalPosts is an estimate.
 	count, err := store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: data.JobStartId, SinceUpdateAt: data.ExportPeriodStartTime, UntilUpdateAt: data.JobEndTime})
 	if err != nil {
 		rctx.Logger().Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
@@ -203,7 +218,6 @@ func GetInitialExportPeriodData(rctx request.CTX, store MessageExportStore, data
 	// For Actiance: Every time we claim the job, we need to gather the membership data that every batch will use.
 	// If we're here, then either this is the start of the job, or the job was stopped (e.g., the worker stopped)
 	// and we've claimed it again. Either way, we need to recalculate channel and member history data.
-	// TODO: MM-60693 refactor so that all export types use the fixed code path
 	if data.ExportType == model.ComplianceExportTypeActiance {
 		data.ChannelMetadata, data.ChannelMemberHistories, err = CalculateChannelExports(rctx,
 			ChannelExportsParams{

@@ -944,7 +944,20 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			}
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-			warningCount, err := CsvExport(rctx, tt.posts, shared.NewMessageExportStore(mockStore), exportBackend, attachmentBackend, exportFileName)
+			warningCount, err := CsvExport(rctx, shared.ExportParams{
+				ExportType:             "",
+				ChannelMetadata:        nil,
+				Posts:                  tt.posts,
+				ChannelMemberHistories: nil,
+				JobStartTime:           0,
+				BatchPath:              exportFileName,
+				BatchStartTime:         0,
+				BatchEndTime:           0,
+				Config:                 nil,
+				Db:                     shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
+			})
 			assert.NoError(t, err)
 			assert.Equal(t, 0, warningCount)
 
@@ -1083,7 +1096,20 @@ func TestWriteExportWarnings(t *testing.T) {
 	}
 
 	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-	warningCount, err := CsvExport(rctx, posts, shared.NewMessageExportStore(mockStore), fileBackend, fileBackend, exportFileName)
+	warningCount, err := CsvExport(rctx, shared.ExportParams{
+		ExportType:             "",
+		ChannelMetadata:        nil,
+		Posts:                  posts,
+		ChannelMemberHistories: nil,
+		JobStartTime:           0,
+		BatchPath:              exportFileName,
+		BatchStartTime:         0,
+		BatchEndTime:           0,
+		Config:                 nil,
+		Db:                     shared.NewMessageExportStore(mockStore),
+		FileAttachmentBackend:  fileBackend,
+		ExportBackend:          fileBackend,
+	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, warningCount)
 

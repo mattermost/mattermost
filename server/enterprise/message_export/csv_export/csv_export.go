@@ -31,7 +31,7 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
-func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, exportBackend filestore.FileBackend, fileAttachmentBackend filestore.FileBackend, batchPath string) (warningCount int, err error) {
+func CsvExport(rctx request.CTX, p shared.ExportParams) (warningCount int, err error) {
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
@@ -83,9 +83,9 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 
 	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 
-	for _, post := range posts {
+	for _, post := range p.Posts {
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(db, post)
+		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
 			return warningCount, err
 		}
@@ -105,12 +105,12 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 	}
 
 	var joinLeavePosts []*model.MessageExport
-	joinLeavePosts, err = getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, db)
+	joinLeavePosts, err = getJoinLeavePosts(metadata.Channels, postAuthorsByChannel, p.Db)
 	if err != nil {
 		return warningCount, err
 	}
 
-	postsGenerator := mergePosts(joinLeavePosts, posts)
+	postsGenerator := mergePosts(joinLeavePosts, p.Posts)
 
 	for post := postsGenerator(); post != nil; post = postsGenerator() {
 		if err = csvWriter.Write(postToRow(post, post.PostCreateAt, *post.PostMessage)); err != nil {
@@ -129,7 +129,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 		}
 
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(db, post)
+		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
 			return warningCount, err
 		}
@@ -144,16 +144,16 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 	csvWriter.Flush()
 
 	var missingFiles []string
-	for _, post := range posts {
+	for _, post := range p.Posts {
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(db, post)
+		attachments, err = getPostAttachments(p.Db, post)
 		if err != nil {
 			return warningCount, err
 		}
 
 		for _, attachment := range attachments {
 			var r io.ReadCloser
-			r, nErr := fileAttachmentBackend.Reader(attachment.Path)
+			r, nErr := p.FileAttachmentBackend.Reader(attachment.Path)
 			if nErr != nil {
 				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - Post: "+*post.PostId+" - "+attachment.Path)
 				rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
@@ -215,7 +215,7 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db shared.Message
 	}
 
 	// Try to write the file without a timeout due to the potential size of the file.
-	_, err = filestore.TryWriteFileContext(rctx.Context(), exportBackend, temp, batchPath)
+	_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, temp, p.BatchPath)
 	if err != nil {
 		return warningCount, fmt.Errorf("unable to write the csv file: %w", err)
 	}

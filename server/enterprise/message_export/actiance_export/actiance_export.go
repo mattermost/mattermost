@@ -129,20 +129,7 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
-type Params struct {
-	ChannelMetadata        map[string]*shared.MetadataChannel
-	Posts                  []*model.MessageExport
-	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
-	JobStartTime           int64
-	BatchPath              string
-	BatchStartTime         int64
-	BatchEndTime           int64
-	Db                     shared.MessageExportStore
-	FileAttachmentBackend  filestore.FileBackend
-	ExportBackend          filestore.FileBackend
-}
-
-func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error) {
+func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	start := time.Now()
 
 	// postAuthorsByChannel is a map so that we don't store duplicate authors

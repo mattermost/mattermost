@@ -874,7 +874,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			res, err := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts,
 				ChannelMemberHistories: channelMemberHistories,
@@ -1323,7 +1323,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 				exportFileName := path.Join("export", "jobName",
 					fmt.Sprintf("jobName-batch00%d.zip", batch+1))
 
-				res, err := ActianceExport(rctx, Params{
+				res, err := ActianceExport(rctx, shared.ExportParams{
 					ChannelMetadata:        channelMetadata,
 					Posts:                  tt.posts[batch],
 					ChannelMemberHistories: channelMemberHistories,
@@ -1753,7 +1753,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			res, err := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step1"],
 				ChannelMemberHistories: channelMemberHistories,
@@ -1780,7 +1780,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 
 			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
 
-			res, err = ActianceExport(rctx, Params{
+			res, err = ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step2"],
 				ChannelMemberHistories: channelMemberHistories,
