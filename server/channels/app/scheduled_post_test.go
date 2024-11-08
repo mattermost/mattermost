@@ -418,6 +418,43 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[0].Id)
 		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[1].Id)
 	})
+
+	t.Run("should not be able to fetch scheduled posts for team user doesn't belong to", func(t *testing.T) {
+		// create a dummy team
+		team := th.CreateTeam()
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, th.BasicUser, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// create a channel in this team
+		channel := th.CreateChannel(th.Context, team)
+
+		// create scheduled post
+		scheduledPost1 := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost1)
+
+		// verify we are able to fetch this scheduled post
+		retrievedScheduledPosts, appErr := th.App.GetUserTeamScheduledPosts(th.Context, th.BasicUser.Id, team.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(retrievedScheduledPosts))
+
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// now we should not be able to fetch this scheduled post
+		retrievedScheduledPosts, appErr = th.App.GetUserTeamScheduledPosts(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(retrievedScheduledPosts))
+	})
 }
 
 func TestUpdateScheduledPost(t *testing.T) {
