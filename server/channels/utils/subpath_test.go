@@ -214,13 +214,13 @@ func TestGetSubpathFromConfig(t *testing.T) {
 	}{
 		{
 			"empty SiteURL",
-			sToP(""),
+			model.NewPointer(""),
 			false,
 			"/",
 		},
 		{
 			"invalid SiteURL",
-			sToP("cache_object:foo/bar"),
+			model.NewPointer("cache_object:foo/bar"),
 			true,
 			"",
 		},
@@ -232,25 +232,25 @@ func TestGetSubpathFromConfig(t *testing.T) {
 		},
 		{
 			"no trailing slash",
-			sToP("http://localhost:8065"),
+			model.NewPointer("http://localhost:8065"),
 			false,
 			"/",
 		},
 		{
 			"trailing slash",
-			sToP("http://localhost:8065/"),
+			model.NewPointer("http://localhost:8065/"),
 			false,
 			"/",
 		},
 		{
 			"subpath, no trailing slash",
-			sToP("http://localhost:8065/subpath"),
+			model.NewPointer("http://localhost:8065/subpath"),
 			false,
 			"/subpath",
 		},
 		{
 			"trailing slash",
-			sToP("http://localhost:8065/subpath/"),
+			model.NewPointer("http://localhost:8065/subpath/"),
 			false,
 			"/subpath",
 		},
@@ -274,10 +274,6 @@ func TestGetSubpathFromConfig(t *testing.T) {
 			require.Equal(t, testCase.ExpectedSubpath, subpath)
 		})
 	}
-}
-
-func sToP(s string) *string {
-	return &s
 }
 
 const contentSecurityPolicyNotFoundHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv=Content-Security-Policy content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> < <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`

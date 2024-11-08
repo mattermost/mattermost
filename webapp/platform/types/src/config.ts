@@ -213,7 +213,6 @@ export type ClientConfig = {
     UniqueEmojiReactionLimitPerPost: string;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
-    DisplaySettings?: DisplaySettings;
 };
 
 export type License = {
