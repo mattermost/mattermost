@@ -126,7 +126,7 @@ const useSubmit = (
             return;
         }
 
-        if (postError) {
+        if (postError && !createPostOptions?.ignorePostError) {
             setErrorClass('animation--highlight');
             setTimeout(() => {
                 setErrorClass(null);
