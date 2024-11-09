@@ -57,11 +57,27 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                channelsUrl += `/${channelName}`;
+                channelsUrl += `/channels/${channelName}`;
             }
         }
 
         await this.page.goto(channelsUrl);
+    }
+
+    /**
+     * `postMessage` posts a message in the current channel
+     * @param message Message to post
+     */
+    async postMessage(message: string) {
+        await this.centerView.postCreate.postMessage(message);
+    }
+
+    /**
+     * `getLastPost` gets the last post in the current channel
+     * @returns Last post in the current channel
+     */
+    async getLastPost() {
+        return this.centerView.getLastPost();
     }
 }
 

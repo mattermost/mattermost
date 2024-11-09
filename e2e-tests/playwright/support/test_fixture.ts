@@ -2,12 +2,13 @@ import {test as base, Browser, Page} from '@playwright/test';
 import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
-import {TestBrowser} from './browser_context';
+import {TestBrowser as _TestBrowser} from './browser_context';
 import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, ensureLicense, skipIfNoLicense} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
+import {stubNotification, waitForNotification} from './mock_browser_api';
 
 export {expect} from '@playwright/test';
 
@@ -41,7 +42,8 @@ export const test = base.extend<ExtendedFixtures>({
 
 class PlaywrightExtended {
     // ./browser_context
-    readonly testBrowser: TestBrowser;
+    readonly TestBrowser;
+    readonly testBrowser;
 
     // ./flag
     readonly shouldHaveCallsEnabled;
@@ -65,9 +67,14 @@ class PlaywrightExtended {
     // ./visual
     readonly matchSnapshot;
 
+    // ./mock_browser_api
+    readonly stubNotification;
+    readonly waitForNotification;
+
     constructor(browser: Browser) {
         // ./browser_context
-        this.testBrowser = new TestBrowser(browser);
+        this.TestBrowser = _TestBrowser;
+        this.testBrowser = new _TestBrowser(browser);
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
@@ -90,6 +97,10 @@ class PlaywrightExtended {
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
+
+        // ./mock_browser_api
+        this.stubNotification = stubNotification;
+        this.waitForNotification = waitForNotification;
     }
 }
 
