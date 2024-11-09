@@ -83,7 +83,6 @@ issues:
         channels/api4/team_test.go|\
         channels/api4/user_test.go|\
         channels/api4/websocket_test.go|\
-        channels/app/auto_responder_test.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/channel.go|\
@@ -97,7 +96,6 @@ issues:
         channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
-        channels/app/imaging/decode.go|\
         channels/app/import_functions.go|\
         channels/app/import_functions_test.go|\
         channels/app/imports/import_validators.go|\
