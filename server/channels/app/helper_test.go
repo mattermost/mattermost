@@ -309,8 +309,7 @@ func (th *TestHelper) CreateTeam() *model.Team {
 		Type:        model.TeamOpen,
 	}
 
-	var appErr *model.AppError
-	team, appErr = th.App.CreateTeam(th.Context, team)
+	team, appErr := th.App.CreateTeam(th.Context, team)
 	require.Nil(th.TB, appErr)
 	return team
 }
@@ -419,9 +418,8 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 }
 
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
-	var appErr *model.AppError
 	var channel *model.Channel
-	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
 	require.NoError(th.TB, appErr)
 	return channel
 }
