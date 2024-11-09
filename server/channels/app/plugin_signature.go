@@ -90,8 +90,10 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		plugin.Seek(0, 0)
-		signature.Seek(0, 0)
+		//nolint:errcheck // safe operation: setting offset to the start of the reader
+		plugin.Seek(0, io.SeekStart)
+		//nolint:errcheck // safe operation: setting offset to the start of the reader
+		signature.Seek(0, io.SeekStart)
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
 			return nil
 		}
