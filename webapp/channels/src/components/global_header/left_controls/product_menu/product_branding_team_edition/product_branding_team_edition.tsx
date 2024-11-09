@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
-const ProductBrandingTeamEditionContainer = styled.div`
+const ProductBrandingTeamEditionContainer = styled.div.attrs(() => ({role: 'button'}))`
     display: flex;
     align-items: center;
 
