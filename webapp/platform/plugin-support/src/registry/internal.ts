@@ -15,22 +15,28 @@ export interface InternalPluginRegistry {
      */
     registerProduct(options: InternalRegistryTypes.ProductOptions): PluginComponentId;
 
-    // INTERNAL: Subject to change without notice.
-    // Register a component to render in the LHS next to a channel's link label.
-    // All parameters are required.
-    // Returns a unique identifier.
+    /**
+     * INTERNAL: Subject to change without notice.
+     * Register a component to render in the LHS next to a channel's link label.
+     * All parameters are required.
+     * Returns a unique identifier.
+     */
     registerSidebarChannelLinkLabelComponent(options: InternalRegistryTypes.SidebarChannelLinkLabelComponentOptions): PluginComponentId;
 
-    // INTERNAL: Subject to change without notice.
-    // Register a component to render in channel's center view, in place of a channel toast.
-    // All parameters are required.
-    // Returns a unique identifier.
+    /**
+     * INTERNAL: Subject to change without notice.
+     * Register a component to render in channel's center view, in place of a channel toast.
+     * All parameters are required.
+     * Returns a unique identifier.
+     */
     registerChannelToastComponent(options: InternalRegistryTypes.ChannelToastComponentOptions): PluginComponentId;
 
-    // INTERNAL: Subject to change without notice.
-    // Register a global component at the root of the app that survives across product switches.
-    // All parameters are required.
-    // Returns a unique identifier.
+    /**
+     * INTERNAL: Subject to change without notice.
+     * Register a global component at the root of the app that survives across product switches.
+     * All parameters are required.
+     * Returns a unique identifier.
+     */
     registerGlobalComponent(options: InternalRegistryTypes.GlobalComponentOptions): PluginComponentId;
 
     /**
@@ -48,10 +54,12 @@ export interface InternalPluginRegistry {
     registerAppBarComponent(options: InternalRegistryTypes.AppBarComponentOptionsWithAction): {id: PluginComponentId; rhsComponent: any};
     registerAppBarComponent(options: InternalRegistryTypes.AppBarComponentOptionsWithRhs): PluginComponentId;
 
-    // INTERNAL: Subject to change without notice.
-    // Register a handler to retrieve stats that will be displayed on the system console
-    // Accepts the following:
-    // - handler - Func to be called to retrieve the stats from plugin api. It must be type PluginSiteStatsHandler.
-    // Returns undefined
+    /**
+     * INTERNAL: Subject to change without notice.
+     * Register a handler to retrieve stats that will be displayed on the system console
+     * Accepts the following:
+     * - handler - Func to be called to retrieve the stats from plugin api. It must be type PluginSiteStatsHandler.
+     * Returns undefined
+     */
     registerSiteStatisticsHandler(options: InternalRegistryTypes.SiteStatisticsHandlerOptions): void;
 }
