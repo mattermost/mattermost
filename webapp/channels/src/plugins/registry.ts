@@ -1181,10 +1181,8 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // and all values will be stored in the preferences with cateogry pp_${pluginId} and
     // the name of the setting.
     //
-    // The settings definition can be found in /src/types/plugins/user_settings.ts
-    //
     // Malformed settings will be filtered out.
-    registerUserSettings = reArg(['setting'], ({setting}) => {
+    registerUserSettings: PluginRegistryInterface['registerUserSettings'] = reArg(['setting'], ({setting}) => {
         const data = {
             pluginId: this.id,
             setting,

@@ -11,6 +11,8 @@ import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PluginUserSettings} from '../user_settings';
+
 export type Theme = unknown; // TODO
 // export type IconGlyphTypes = unknown; // TODO
 // export type RouteComponentProps = unknown; // TODO
@@ -365,4 +367,6 @@ export type DesktopNotificationArgs = {
     notify: boolean;
 };
 
-// TODO registerUserSettings
+export type UserSettingsOptions = {
+    setting: PluginUserSettings;
+};

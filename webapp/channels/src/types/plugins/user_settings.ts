@@ -1,109 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
+import type * as PluginUserSettings from '@hmhealey/plugin-support/lib/user_settings';
 
-export type PluginConfiguration = {
+export type PluginConfiguration = PluginUserSettings.PluginUserSettings;
 
-    /** Plugin ID  */
-    id: string;
+export type PluginConfigurationAction = PluginUserSettings.PluginUserSettingAction;
 
-    /** Name of the plugin to show in the UI. We recommend to use manifest.name */
-    uiName: string;
+export type PluginConfigurationSection = PluginUserSettings.PluginUserSettingsSection;
 
-    /** URL to the icon to show in the UI. No icon will show the plug outline icon. */
-    icon?: string;
+export type PluginConfigurationCustomSection = PluginUserSettings.PluginUserSettingsCustomSection;
 
-    /** Action that will appear at the beginning of the plugin settings tab */
-    action?: PluginConfigurationAction;
-    sections: Array<PluginConfigurationSection | PluginConfigurationCustomSection>;
-}
+export type BasePluginConfigurationSetting = PluginUserSettings.PluginUserSettingBase;
 
-export type PluginConfigurationAction = {
+export type PluginConfigurationRadioSetting = PluginUserSettings.PluginUserSettingRadio;
 
-    /** Text shown as the title of the action */
-    title: string;
+export type PluginCustomSettingComponent = PluginUserSettings.PluginUserSettingComponent;
 
-    /** Text shown as the body of the action */
-    text: string;
+export type PluginConfigurationCustomSetting = PluginUserSettings.PluginUserSettingCustom;
 
-    /** Text shown at the button */
-    buttonText: string;
+export type PluginConfigurationRadioSettingOption = PluginUserSettings.PluginUserSettingRadioOption;
 
-    /** This function is called when the button on the action is clicked */
-    onClick: () => void;
-}
-
-export type PluginConfigurationSection = {
-    settings: PluginConfigurationSetting[];
-
-    /** The title of the section. All titles must be different. */
-    title: string;
-
-    /** Whether the section is disabled. */
-    disabled?: boolean;
-
-    /**
-     * This function will be called whenever a section is saved.
-     *
-     * The configuration will be automatically saved in the user preferences,
-     * so use this function only in case you want to add some side effect
-     * to the change.
-    */
-    onSubmit?: (changes: {[name: string]: string}) => void;
-}
-
-export type PluginConfigurationCustomSection = {
-
-    /** The title of the section. All titles must be different. */
-    title: string;
-
-    /** A React component used to render the custom section. */
-    component: React.ComponentType;
-}
-
-export type BasePluginConfigurationSetting = {
-
-    /** Name of the setting. This will be the name used to store in the preferences. */
-    name: string;
-
-    /** Optional header for this setting. */
-    title?: string;
-
-    /** Optional help text for this setting */
-    helpText?: string;
-
-    /** The default value to use */
-    default?: string;
-}
-
-export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
-    type: 'radio';
-
-    /** The default value to use */
-    default: string;
-    options: PluginConfigurationRadioSettingOption[];
-}
-
-export type PluginCustomSettingComponent = React.ComponentType<{informChange: (name: string, value: string) => void}>;
-
-export type PluginConfigurationCustomSetting = BasePluginConfigurationSetting & {
-    type: 'custom';
-
-    /** A React component used to render the custom setting. */
-    component: PluginCustomSettingComponent;
-}
-
-export type PluginConfigurationRadioSettingOption = {
-
-    /** The value to store in the preferences */
-    value: string;
-
-    /** The text to show in the UI */
-    text: string;
-
-    /** Optional help text for this option */
-    helpText?: string;
-}
-
-export type PluginConfigurationSetting = PluginConfigurationRadioSetting | PluginConfigurationCustomSetting
+export type PluginConfigurationSetting = PluginUserSettings.PluginUserSetting;
