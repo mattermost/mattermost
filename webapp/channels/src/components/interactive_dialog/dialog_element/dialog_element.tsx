@@ -15,6 +15,7 @@ import AutocompleteSelector from 'components/autocomplete_selector';
 import type {Option, Selected} from 'components/autocomplete_selector';
 import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
 import GenericUserProvider from 'components/suggestion/generic_user_provider';
+import type {MenuAction} from 'components/suggestion/menu_action_provider';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import type Provider from 'components/suggestion/provider';
@@ -37,22 +38,23 @@ export type Props = {
     maxLength?: number;
     dataSource?: string;
     optional?: boolean;
-    options?: Array<{
-        text: string;
-        value: string;
-    }>;
+    options?: MenuAction[];
     value?: string | number | boolean;
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
     actions: {
-        autocompleteActiveChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
+        autocompleteActiveChannels: (
+            term: string,
+            success: (channels: Channel[]) => void,
+            error?: (err: ServerError) => void
+        ) => ActionResult | Promise<ActionResult | ActionResult[]>;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
-}
+};
 
 type State = {
     value: string;
-}
+};
 
 export default class DialogElement extends React.PureComponent<Props, State> {
     private providers: Provider[];
@@ -64,11 +66,19 @@ export default class DialogElement extends React.PureComponent<Props, State> {
         this.providers = [];
         if (props.type === 'select') {
             if (props.dataSource === 'users') {
-                this.providers = [new GenericUserProvider(props.actions.autocompleteUsers)];
+                this.providers = [
+                    new GenericUserProvider(props.actions.autocompleteUsers),
+                ];
             } else if (props.dataSource === 'channels') {
-                this.providers = [new GenericChannelProvider(props.actions.autocompleteActiveChannels)];
+                this.providers = [
+                    new GenericChannelProvider(
+                        props.actions.autocompleteActiveChannels,
+                    ),
+                ];
             } else if (props.options) {
-                this.providers = [new MenuActionProvider(props.options)];
+                this.providers = [
+                    new MenuActionProvider(props.options, true),
+                ];
             }
 
             if (props.value && props.options) {
@@ -145,9 +155,7 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             helpTextContent = (
                 <React.Fragment>
                     {helpText}
-                    <div className='error-text mt-3'>
-                        {errorText}
-                    </div>
+                    <div className='error-text mt-3'>{errorText}</div>
                 </React.Fragment>
             );
         }
@@ -164,14 +172,16 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             if (subtype === 'number' && typeof value === 'number') {
                 assertedValue = value as number;
             } else {
-                assertedValue = value as string || '';
+                assertedValue = (value as string) || '';
             }
 
             return (
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
-                    type={(type === 'textarea' ? 'textarea' : subtype) as InputTypes || 'text'}
+                    type={
+                        ((type === 'textarea' ? 'textarea' : subtype) as InputTypes) || 'text'
+                    }
                     label={displayNameContent}
                     maxLength={textSettingMaxLength}
                     value={assertedValue}

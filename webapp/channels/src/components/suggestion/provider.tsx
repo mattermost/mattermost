@@ -5,7 +5,7 @@ import type {RequireOnlyOne} from '@mattermost/types/utilities';
 
 export type ProviderResult<Item> = {
     matchedPretext: string;
-    terms: string[];
+    terms: Array<string | Item>;
     items: Array<Item | Loading>;
 } & RequireOnlyOne<{
     component: React.ReactNode;
