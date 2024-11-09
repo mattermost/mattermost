@@ -3,7 +3,6 @@
 
 import type {RegistryTypes} from '@hmhealey/plugin-support';
 import type React from 'react';
-import type {RouteComponentProps} from 'react-router-dom';
 
 import type {WebSocketClient} from '@mattermost/client';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
@@ -176,7 +175,6 @@ export type DesktopNotificationHook = PluginComponent & RegistryTypes.DesktopNot
 
 export type FilesWillUploadHook = PluginComponent & RegistryTypes.FilesWillUploadHookOptions;
 
-type ProductBaseProps = {theme: Theme};
 export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
 export type ProductComponent = PluginComponent & {
 
@@ -203,26 +201,26 @@ export type ProductComponent = PluginComponent & {
     /**
      * The component to be displayed below the global header when your route is active.
      */
-    mainComponent: React.ComponentType<ProductBaseProps & {
+    mainComponent: React.ComponentType<{
         webSocketClient: WebSocketClient;
     }>;
 
     /**
      * The public component to be displayed when a public route is active.
      */
-    publicComponent: React.ComponentType<ProductBaseProps & RouteComponentProps>;
+    publicComponent: React.ComponentType;
 
     /**
      * A component to fill the generic area in the center of
      * the global header when your route is active.
      */
-    headerCentreComponent: React.ComponentType<ProductBaseProps>;
+    headerCentreComponent: React.ComponentType;
 
     /**
      * A component to fill the generic area in the right of
      * the global header when your route is active.
      */
-    headerRightComponent: React.ComponentType<ProductBaseProps>;
+    headerRightComponent: React.ComponentType;
 
     /**
      * A flag to display or hide the team sidebar in products.

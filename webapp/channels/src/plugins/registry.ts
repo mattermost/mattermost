@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PluginRegistry as PluginRegistryInterface} from '@hmhealey/plugin-support';
+import type {PluginRegistry as PluginRegistryInterface, InternalPluginRegistry} from '@hmhealey/plugin-support';
 import React from 'react';
 import {isValidElementType} from 'react-is';
+
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -31,16 +33,14 @@ import {generateId} from 'utils/utils';
 
 import type {
     PluginsState,
-    ProductComponent,
     PostDropdownMenuAction,
     RightHandSidebarComponent,
-    AppBarAction,
     AppBarChannelAction,
+    AppBarAction,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
-type DPluginComponentProp = {component: React.ComponentType<unknown>}; // TODO
 function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
     store.dispatch({
         type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
@@ -86,7 +86,7 @@ const standardizeRoute = (route: string) => {
     return fixedRoute;
 };
 
-export default class PluginRegistry implements PluginRegistryInterface {
+export default class PluginRegistry implements PluginRegistryInterface, InternalPluginRegistry {
     id: string;
     constructor(id: string) {
         this.id = id;
@@ -960,7 +960,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
      * @see {@link ProductComponent}
      * @returns {string}
      */
-    registerProduct = reArg([
+    registerProduct: InternalPluginRegistry['registerProduct'] = reArg([
         'baseURL',
         'switcherIcon',
         'switcherText',
@@ -984,13 +984,13 @@ export default class PluginRegistry implements PluginRegistryInterface {
         showAppBar = false,
         wrapped = true,
         publicComponent,
-    }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
+    }) => {
         const id = generateId();
 
         dispatchPluginComponentWithData('Product', {
             id,
             pluginId: this.id,
-            switcherIcon,
+            switcherIcon: switcherIcon as IconGlyphTypes,
             switcherText: resolveReactElement(switcherText),
             baseURL: '/' + standardizeRoute(baseURL),
             switcherLinkURL: '/' + standardizeRoute(switcherLinkURL),
@@ -1035,7 +1035,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Register a component to render in the LHS next to a channel's link label.
     // All parameters are required.
     // Returns a unique identifier.
-    registerSidebarChannelLinkLabelComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerSidebarChannelLinkLabelComponent: InternalPluginRegistry['registerSidebarChannelLinkLabelComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('SidebarChannelLinkLabel', this.id, component);
     });
 
@@ -1043,7 +1045,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Register a component to render in channel's center view, in place of a channel toast.
     // All parameters are required.
     // Returns a unique identifier.
-    registerChannelToastComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerChannelToastComponent: InternalPluginRegistry['registerChannelToastComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('ChannelToast', this.id, component);
     });
 
@@ -1051,7 +1055,9 @@ export default class PluginRegistry implements PluginRegistryInterface {
     // Register a global component at the root of the app that survives across product switches.
     // All parameters are required.
     // Returns a unique identifier.
-    registerGlobalComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+    registerGlobalComponent: InternalPluginRegistry['registerGlobalComponent'] = reArg(['component'], ({
+        component,
+    }) => {
         return dispatchPluginComponentAction('Global', this.id, component);
     });
 
@@ -1067,7 +1073,7 @@ export default class PluginRegistry implements PluginRegistryInterface {
      * @param {ReactResolvable | undefined} rhsTitle the corresponding RHS component's title.
      * @returns {string} unique identifier
      */
-    registerAppBarComponent = reArg([
+    registerAppBarComponent: InternalPluginRegistry['registerAppBarComponent'] = reArg([
         'iconUrl',
         'action',
         'tooltipText',
@@ -1113,14 +1119,16 @@ export default class PluginRegistry implements PluginRegistryInterface {
         });
 
         return registeredRhsComponent ? {id, rhsComponent: registeredRhsComponent} : id;
-    });
+    }) as InternalPluginRegistry['registerAppBarComponent'];
 
     // INTERNAL: Subject to change without notice.
     // Register a handler to retrieve stats that will be displayed on the system console
     // Accepts the following:
     // - handler - Func to be called to retrieve the stats from plugin api. It must be type PluginSiteStatsHandler.
     // Returns undefined
-    registerSiteStatisticsHandler = reArg(['handler'], ({handler}) => {
+    registerSiteStatisticsHandler: InternalPluginRegistry['registerSiteStatisticsHandler'] = reArg(['handler'], ({
+        handler,
+    }) => {
         const data = {
             pluginId: this.id,
             handler,

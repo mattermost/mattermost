@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type * as RegistryTypes from './types';
+import type {PluginComponentId} from './types';
 
-export type PluginComponentId = string;
+import type {RegistryTypes} from '.';
 
 export interface PluginRegistry {
     readonly supports: {
@@ -347,15 +347,6 @@ export interface PluginRegistry {
      */
     registerCustomRoute(options: RegistryTypes.CustomRouteOptions): PluginComponentId;
 
-    // /**
-    //  * INTERNAL: Subject to change without notice.
-    //  * Register a Product, consisting of a global header menu item, mainComponent, and other pluggables.
-    //  * @remarks DANGER: Interferes with historic routes.
-    //  * @see {@link ProductComponent}
-    //  * @returns {string}
-    //  */
-    // registerProduct(options: RegistryTypes.ProductOptions): PluginComponentId;
-
     // Register a hook that will be called when a message is edited by the user before it
     // is sent to the server. Accepts a function that receives the post as an argument.
     //
@@ -368,100 +359,6 @@ export interface PluginRegistry {
     // If the hook function is asynchronous, the message will not be sent to the server
     // until the hook returns.
     registerMessageWillBeUpdatedHook(options: RegistryTypes.MessageWillBeUpdatedHookOptions): PluginComponentId;
-
-    // // INTERNAL: Subject to change without notice.
-    // // Register a component to render in the LHS next to a channel's link label.
-    // // All parameters are required.
-    // // Returns a unique identifier.
-    // registerSidebarChannelLinkLabelComponent(options: RegistryTypes.aaa): PluginComponentId;
-
-    // // INTERNAL: Subject to change without notice.
-    // // Register a component to render in channel's center view, in place of a channel toast.
-    // // All parameters are required.
-    // // Returns a unique identifier.
-    // registerChannelToastComponent(options: RegistryTypes.aaa): PluginComponentId;
-
-    // // INTERNAL: Subject to change without notice.
-    // // Register a global component at the root of the app that survives across product switches.
-    // // All parameters are required.
-    // // Returns a unique identifier.
-    // registerGlobalComponent(options: RegistryTypes.aaa): PluginComponentId;
-
-    // /**
-    //  * INTERNAL: Subject to change without notice.
-    //  * Add an item to the App Bar.
-    //  * @param {string} iconUrl resolvable URL to use as the button's icon.
-    //  * @param {PluginComponent['action'] | undefined} action called when the button is clicked, passed the channel and channel member as arguments.
-    //  * @param {React.ReactNode} tooltipText string or React element shown for tooltip appear on hover.
-    //  * @param {null | string | Array<null | string>} supportedProductIds specifies one or multiple product identifier(s),
-    //  * identifiers can either be the "real" product uuid, or a product's more commonly accessible plugin id, or '*' to match everything.
-    //  * @param {PluginComponent['component'] | undefined} rhsComponent an optional corresponding RHS component. If provided, its toggler is automatically wired to the action.
-    //  * @param {ReactResolvable | undefined} rhsTitle the corresponding RHS component's title.
-    //  * @returns {string} unique identifier
-    //  */
-    // registerAppBarComponent = reArg([
-    //     'iconUrl',
-    //     'action',
-    //     'tooltipText',
-    //     'supportedProductIds',
-    //     'rhsComponent',
-    //     'rhsTitle',
-    // ], ({
-    //     iconUrl,
-    //     action,
-    //     tooltipText,
-    //     supportedProductIds = null,
-    //     rhsComponent,
-    //     rhsTitle,
-    // }: {
-    //     iconUrl: AppBarAction['iconUrl'];
-    //     tooltipText: ReactResolvable;
-    //     supportedProductIds: AppBarAction['supportedProductIds'];
-    // } & ({
-    //     action: AppBarChannelAction;
-    //     rhsComponent?: never;
-    //     rhsTitle?: never;
-    // } | {
-    //     action?: never;
-    //     rhsComponent: RightHandSidebarComponent['component'];
-    //     rhsTitle: ReactResolvable;
-    // })) => {
-    //     const id = generateId();
-
-    //     const registeredRhsComponent = rhsComponent && this.registerRightHandSidebarComponent({title: rhsTitle, component: rhsComponent});
-
-    //     dispatchPluginComponentWithData('AppBar', {
-    //         id,
-    //         pluginId: this.id,
-    //         iconUrl,
-    //         tooltipText: resolveReactElement(tooltipText),
-    //         supportedProductIds,
-    //         ...registeredRhsComponent ? {
-    //             action: () => store.dispatch(registeredRhsComponent.toggleRHSPlugin),
-    //             rhsComponentId: registeredRhsComponent.id,
-    //         } : {
-    //             action: action!,
-    //         },
-    //     });
-
-    //     return registeredRhsComponent ? {id, rhsComponent: registeredRhsComponent} : id;
-    // });
-
-    // // INTERNAL: Subject to change without notice.
-    // // Register a handler to retrieve stats that will be displayed on the system console
-    // // Accepts the following:
-    // // - handler - Func to be called to retrieve the stats from plugin api. It must be type PluginSiteStatsHandler.
-    // // Returns undefined
-    // registerSiteStatisticsHandler = reArg(['handler'], ({handler}) => {
-    //     const data = {
-    //         pluginId: this.id,
-    //         handler,
-    //     };
-    //     store.dispatch({
-    //         type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
-    //         data,
-    //     });
-    // });
 
     // Register a hook to intercept desktop notifications before they occur.
     // Accepts a function to run before the desktop notification is triggered.

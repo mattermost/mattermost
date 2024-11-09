@@ -14,8 +14,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {PluginUserSettings} from '../user_settings';
 
 export type Theme = unknown; // TODO
-// export type IconGlyphTypes = unknown; // TODO
-// export type RouteComponentProps = unknown; // TODO
 export type Board = any; // TODO
 
 export type PluginComponentId = string;
@@ -26,8 +24,6 @@ type DefaultComponentOptions = {
 };
 
 export type PluggableText = string | React.ReactNode;
-
-// type ProductBaseProps = Record<string, never>; // TODO I'm being stricter with this because I want to clean this up
 
 export type RootComponentOptions = DefaultComponentOptions;
 
@@ -275,81 +271,9 @@ export type CustomRouteOptions = {
     route: string;
 };
 
-// TODO registerProduct?
-// export type ProductOptions = {
-
-//     /**
-//      * A compass-icon glyph to display as the icon in the product switcher
-//      */
-//     switcherIcon: IconGlyphTypes;
-
-//     /**
-//      * A string or React element to display in the product switcher
-//      */
-//     switcherText: React.ReactNode | React.ElementType;
-
-//     /**
-//      * The route to be displayed at starting from the siteURL
-//      */
-//     baseURL: string;
-
-//     /**
-//      * A string specifying the URL the switcher item should point to.
-//      */
-//     switcherLinkURL: string;
-
-//     /**
-//      * The component to be displayed below the global header when your route is active.
-//      */
-//     mainComponent: React.ComponentType<ProductBaseProps & {
-//         webSocketClient: WebSocketClient;
-//     }>;
-
-//     /**
-//      * The public component to be displayed when a public route is active.
-//      */
-//     publicComponent: React.ComponentType<ProductBaseProps & RouteComponentProps>;
-
-//     /**
-//      * A component to fill the generic area in the center of
-//      * the global header when your route is active.
-//      */
-//     headerCentreComponent: React.ComponentType<ProductBaseProps>;
-
-//     /**
-//      * A component to fill the generic area in the right of
-//      * the global header when your route is active.
-//      */
-//     headerRightComponent: React.ComponentType<ProductBaseProps>;
-
-//     /**
-//      * A flag to display or hide the team sidebar in products.
-//      */
-//     showTeamSidebar: boolean;
-
-//     /**
-//      * A flag to display or hide the App Sidebar in products.
-//      */
-//     showAppBar: boolean;
-
-//     /**
-//      * When `true`, {@link ProductComponent.mainComponent} will be wrapped in a container with `grid-area: center` applied automatically.
-//      * When `false`, {@link ProductComponent.mainComponent} will not be wrapped and must define its own `grid-area`,
-//      * or return multiple elements with their own `grid-area`s respectively.
-//      * @default true
-//      */
-//     wrapped: boolean;
-// }
-
 export type MessageWillBeUpdatedHookOptions = {
     hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
 };
-
-// TODO registerSidebarChannelLinkLabelComponent?
-// TODO registerChannelToastComponent?
-// TODO registerGlobalComponent?
-// TODO registerAppBarComponent?
-// TODO registerSiteStatisticsHandler?
 
 export type DesktopNotificationHookOptions = {
     hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
