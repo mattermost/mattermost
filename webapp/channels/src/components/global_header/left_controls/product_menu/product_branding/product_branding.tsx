@@ -9,7 +9,7 @@ import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/component
 
 import {useCurrentProduct} from 'utils/products';
 
-const ProductBrandingContainer = styled.div`
+const ProductBrandingContainer = styled.div.attrs(() => ({role: 'button'}))`
     display: flex;
     align-items: center;
 
