@@ -1121,7 +1121,7 @@
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
-    "translation": "Невірне ім'я користувача."
+    "translation": "Недійсне ім'я користувача."
   },
   {
     "id": "api.io_error",
@@ -1197,7 +1197,7 @@
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Відсутній client_secret"
+    "translation": "invalid_request: Відсутній client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
