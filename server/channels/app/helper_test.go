@@ -420,7 +420,7 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var channel *model.Channel
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
-	require.NoError(th.TB, appErr)
+	require.Nil(th.TB, appErr)
 	return channel
 }
 
