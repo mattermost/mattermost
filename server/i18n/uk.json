@@ -2017,19 +2017,19 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Не вдалося створити користувача з об'єкта користувача {{.Service}}"
+    "translation": "Не вдалося створити користувача на основі об'єкта користувача {{.Service}}."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": "Не вдалося створити шрифт зображення за замовчуванням профілю"
+    "translation": "Не вдалося створити шрифт зображення профілю за замовчуванням."
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": "Неможливо кодувати зображення профілю за замовчуванням"
+    "translation": "Не вдалося закодувати стандартне зображення профілю."
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": "Не вдалося додати зображення користувача до початкового за замовчуванням профілю"
+    "translation": "Не вдалося додати ініціали користувача до зображення профілю за замовчуванням."
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
