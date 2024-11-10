@@ -8614,5 +8614,509 @@
   {
     "id": "app.cloud.trial_plan_bot_message_single",
     "translation": "{{.UsersNum}} користувач(ів) з робочого простору {{.WorkspaceName}} подав(ли) запит на доступ до ознайомлювальної версії Enterprise: "
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Неможливо оновити статус завдання. Встановлено невірний статус"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "назва групи не є унікальною"
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Функція чернеток вимкнена."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Не вдалося видалити чернетку."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Не вдалося отримати чернетку."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Не вдалося отримати файли для чернетки."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Не вдається згенерувати попередньо підписану URL-адресу."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Неможливо імпортувати членів команди, оскільки в цій команді більше немає учасників"
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Виникла помилка при отриманні команди."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "весь час"
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} надіслав(ла) вам нове повідомлення"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Обговорення з повідомленнями {{.NumMessages}} переміщені: {{.Link}}\n"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Не вдалося видалити постійні сповіщення за каналом."
+  },
+  {
+    "id": "app.command.listautocompletecommands.internal_error",
+    "translation": "Не вдалося відобразити команди автозаповнення."
+  },
+  {
+    "id": "app.emoji.get.no_result",
+    "translation": "Ми не змогли знайти емодзі."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Не вдалося обробити відповідь."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "користувач з іменем \"{{.Username}}\" вже існує."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} користувачів робочого простору {{.WorkspaceName}} подали запит на оновлення робочого простору: "
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Не вдалося видалити запланований допис з бази даних."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Ви не маєте дозволу на видалення цього ресурсу."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Запланованого допису не існує."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Не вдається отримати існуючий запланований допис з бази даних."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Сталася помилка при отриманні запланованих дописів."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "не знайдено відповідної групи"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Не вдалося знайти власника бота"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Рядок даних імпорту має тип \"бот\", але об'єкт бота дорівнює нулю"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Власник бота відсутній"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Помилка під час виконання завдання."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Це обговорення було перенесено з іншого каналу"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Не вдалося отримати дані про кількість користувачів."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Не вдається архівувати імпортований канал."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Непідтримуваний формат звіту."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Токен не існує або його термін дії закінчився"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Файл експорту не знайдено."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Не вдалося декодувати gif."
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "невірна властивість id для групи."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "синхронізовану групу вже видалено"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Не вдалося надіслати повідомлення зі сповіщенням."
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Повідомлення було переміщено до приватного/групового повідомлення\n"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Не вдалося видалити постійні сповіщення за командою."
+  },
+  {
+    "id": "app.command.regencommandtoken.internal_error",
+    "translation": "Не вдається регенерувати токен команди."
+  },
+  {
+    "id": "app.command.tryexecutecustomcommand.internal_error",
+    "translation": "Не вдалося виконати користувацьку команду."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Не вдалося отримати чернетки користувача."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Не вдається отримати файл, оскільки він перевищив ліміт хмарного плану."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Неможливо імпортувати новий склад команди, оскільки він вже існує"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Невірна служба авторизації: {{.AuthService}}"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Поки вас не було, {{.SenderName}} надіслав(ла) повідомлення до вашої групи."
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " і перейдіть до Налаштування > Сповіщення"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Увійдіть до Mattermost"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Не вдається зберегти дані сповіщення."
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Помилка при розборі підшляху SiteURL"
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Помилка пошуку в дописах"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "попередній місяць"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "за останні 30 днів"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "за останні 6 місяців"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Відсутній ідентифікатор користувача для надсилання звіту"
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Не вдалося скопіювати файл під час експорту."
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Не вдалося створити стандартні членства в команді, оскільки в цій команді не дозволені додаткові учасники"
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Неможливо встановити користувацький статус."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Рядок даних імпорту має тип \"role\", але об'єкт ролі дорівнює нулю."
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Не вдалося повторно приєднати плагін"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Не вдається отримати дані про використання команд"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Досягнуто ліміту реакцій для цього допису."
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Помилка при зчитуванні статусу файлу: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Помилка пошуку файлу: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Повідомлення було переміщено: {{.Link}}\n"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Не вдалося створити групове повідомлення для повідомлення про перетворення каналу"
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Виникла помилка в обмежувачі швидкості."
+  },
+  {
+    "id": "app.emoji.get_by_name.no_result",
+    "translation": "Ми не змогли знайти емодзі."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашого сховища для експорту не підтримує створення попередньо підписаних URL-адрес."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Ця функція обмежена прапором функції."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Не вдалося створити каталог під час експорту."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Не вдалося створити заголовок ZIP-архіву під час експорту."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Не вдалося створити файл під час експорту."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Не вдалося додати файл до zip-архіву під час експорту."
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "учасник групи вже існує"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Не вдається видалити учасника групи з ідентифікатором користувача \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Помилка генерування пароля."
+  },
+  {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults у config.json має значення false. Будь ласка, встановіть значення true, щоб завантажити результати цього завдання."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Помилка при отриманні останнього доступного допису"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Помилка при отриманні останнього доступного файлу"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Не вдалося оновити мітку часу останнього входу"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "помилка при отриманні кількості користувачів"
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} надіслав(ла) вам нове повідомлення"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Поки вас не було, {{.SenderName}} згадав(ла) вас у каналі {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} відповів(ла) в обговоренні"
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Поки вас не було, {{.SenderName}} відповів(ла) в обговоренні, за яким ви стежите."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Хочете змінити налаштування сповіщень?"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Не вдається видалити дані oauth."
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Пропуск встановлення плагіна {{.Id}}, оскільки наявна версія є ідентичною вже встановленої або новішою."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Неможливо отримати допис, оскільки він перевищив ліміт плану хмари."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Не вдається отримати пакет файлів для індексації."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Не вдається видалити обговорення"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Привіт, ось ваше нагадування про це повідомлення від @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Не вдалося отримати пріоритет для повідомлення"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити реакції для користувача."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Не вдалося отримати звіт користувача."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Ваш експорт готовий. Файл CSV містить дані користувача для {{.DateRange}}. Натисніть на посилання нижче, щоб завантажити звіт."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Відсутній діапазон дат"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Експорт пакетних звітів доступний лише для тарифів Pro та Enterprise."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Для цього користувача та діапазону дат вже існує завдання."
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Токен не дійсний або прострочений"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Не вдалося оновити учасника каналу: перевищено ліміт розміру властивостей сповіщень."
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Обмежувач швидкості не налаштований."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Ця дія вимагає використання спеціального сховища для експорту."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Неможливо перевірити, чи існує файл."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} користувач робочого простору {{.WorkspaceName}} подав(ла) запит на оновлення робочого простору: "
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Не вдається знайти користувача для цього токена"
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Не вдалося отримати кількість користувачів"
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Не вдалося створити стандартні членства в команді"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Не вдалося створити стандартні членства в команді, оскільки вони вже існують"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Не вдалося отримати всі завдання за типом і статусом."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Поки вас не було, {{.SenderName}} відповів(ла) в обговоренні у вашій групі."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Не вдалося зберегти інформацію про файл."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Готову версію плагіна не вдалося проаналізувати."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Неможливо імпортувати членство в команді"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "помилка вставки"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} згадав(ла) вас у повідомленні"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Не вдалося видалити наявні категорії бічної панелі для перетвореного групового повідомлення."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Поки вас не було, {{.SenderName}} відповів(ла) в обговоренні, за яким ви стежите у {{.ChannelName}}."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Не вдалося записати заголовки CSV."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Не вдалося зберегти чернетку."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Перевищено ліміт кількості для запрошень електронною поштою. Таймер буде скинуто через {{.ResetAfter}} секунд. Повторіть спробу через {{.RetryAfter}} секунд."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Не вдалося залучити учасників каналу для приватного каналу"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Для приватного каналу немає учасників"
   }
 ]
