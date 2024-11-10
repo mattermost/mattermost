@@ -29,43 +29,83 @@ import (
 
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
-var exportablePreferences = map[imports.ComparablePreference]string{{
-	Category: model.PreferenceCategoryTheme,
-	Name:     "",
-}: "Theme", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "feature_enabled_markdown_preview",
-}: "UseMarkdownPreview", {
-	Category: model.PreferenceCategoryAdvancedSettings,
-	Name:     "formatting",
-}: "UseFormatting", {
-	Category: model.PreferenceCategorySidebarSettings,
-	Name:     "show_unread_section",
-}: "ShowUnreadSection", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameUseMilitaryTime,
-}: "UseMilitaryTime", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameCollapseSetting,
-}: "CollapsePreviews", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     model.PreferenceNameMessageDisplay,
-}: "MessageDisplay", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "channel_display_mode",
-}: "CollapseConsecutive", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "collapse_consecutive_messages",
-}: "ColorizeUsernames", {
-	Category: model.PreferenceCategoryDisplaySettings,
-	Name:     "colorize_usernames",
-}: "ChannelDisplayMode", {
-	Category: model.PreferenceCategoryTutorialSteps,
-	Name:     "",
-}: "TutorialStep", {
-	Category: model.PreferenceCategoryNotifications,
-	Name:     model.PreferenceNameEmailInterval,
-}: "EmailInterval",
+var exportablePreferences = map[imports.ComparablePreference]string{
+	{
+		Category: model.PreferenceCategoryTheme,
+		Name:     "",
+	}: "Theme",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "feature_enabled_markdown_preview",
+	}: "UseMarkdownPreview",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "formatting",
+	}: "UseFormatting",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "send_on_ctrl_enter",
+	}: "SendOnCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "code_block_ctrl_enter",
+	}: "CodeBlockCtrlEnter",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "join_leave",
+	}: "ShowJoinLeave",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "unread_scroll_position",
+	}: "ShowUnreadScrollPosition",
+	{
+		Category: model.PreferenceCategoryAdvancedSettings,
+		Name:     "sync_drafts",
+	}: "SyncDrafts",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceNameShowUnreadSection,
+	}: "ShowUnreadSection",
+	{
+		Category: model.PreferenceCategorySidebarSettings,
+		Name:     model.PreferenceLimitVisibleDmsGms,
+	}: "LimitVisibleDmsGms",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameUseMilitaryTime,
+	}: "UseMilitaryTime",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseSetting,
+	}: "CollapsePreviews",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameMessageDisplay,
+	}: "MessageDisplay",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameChannelDisplayMode,
+	}: "ChannelDisplayMode",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameCollapseConsecutive,
+	}: "CollapseConsecutive",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameColorizeUsernames,
+	}: "ColorizeUsernames",
+	{
+		Category: model.PreferenceCategoryDisplaySettings,
+		Name:     model.PreferenceNameNameFormat,
+	}: "NameFormat",
+	{
+		Category: model.PreferenceCategoryTutorialSteps,
+		Name:     "",
+	}: "TutorialStep",
+	{
+		Category: model.PreferenceCategoryNotifications,
+		Name:     model.PreferenceNameEmailInterval,
+	}: "EmailInterval",
 }
 
 func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job *model.Job, opts model.BulkExportOpts) *model.AppError {
@@ -112,6 +152,13 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	if err != nil {
 		return err
 	}
+
+	ctx.Logger().Info("Bulk export: exporting bots")
+	botPPs, err := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
+	if err != nil {
+		return err
+	}
+	profilePictures = append(profilePictures, botPPs...)
 
 	ctx.Logger().Info("Bulk export: exporting posts")
 	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
@@ -415,6 +462,11 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 		for _, user := range users {
 			afterId = user.Id
 
+			// Skip bots as they are exported separately.
+			if user.IsBot {
+				continue
+			}
+
 			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
@@ -485,6 +537,64 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			if err := a.exportWriteLine(writer, userLine); err != nil {
 				return profilePictures, err
 			}
+		}
+	}
+
+	return profilePictures, nil
+}
+
+func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool) ([]string, *model.AppError) {
+	afterId := ""
+	cnt := 0
+	profilePictures := []string{}
+
+	const pageSize = 1000
+
+	for {
+		bots, err := a.Srv().Store().Bot().GetAllAfter(pageSize, afterId)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		cnt += len(bots)
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "bots_exported", cnt)
+
+		for _, bot := range bots {
+			afterId = bot.UserId
+
+			var ownerUsername string
+			owner, err := a.Srv().Store().User().Get(ctx.Context(), bot.OwnerId)
+			if err != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(err, &nfErr) {
+					ownerUsername = bot.OwnerId
+				} else {
+					return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			} else {
+				ownerUsername = owner.Username
+			}
+
+			botLine := ImportLineFromBot(bot, ownerUsername)
+
+			if includeProfilePictures {
+				pp, err := a.GetProfileImagePath(model.UserFromBot(bot))
+				if err != nil {
+					return profilePictures, err
+				}
+				if pp != "" {
+					botLine.Bot.ProfileImage = &pp
+					profilePictures = append(profilePictures, pp)
+				}
+			}
+
+			if err := a.exportWriteLine(writer, botLine); err != nil {
+				return profilePictures, err
+			}
+		}
+
+		if len(bots) < pageSize {
+			break
 		}
 	}
 

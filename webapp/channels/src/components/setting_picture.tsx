@@ -3,7 +3,7 @@
 
 import React, {Component, createRef} from 'react';
 import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import FormError from 'components/form_error';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -172,7 +172,6 @@ export default class SettingPicture extends Component<Props, State> {
                 <div className={`${imageContext}-img-preview`}>
                     <div className='img-preview__image'>
                         <div
-                            alt={`${imageContext} image preview`}
                             style={imageStyles}
                             className={`${imageContext}-img-preview`}
                         />
@@ -314,7 +313,7 @@ export default class SettingPicture extends Component<Props, State> {
                     >
                         <LoadingWrapper
                             loading={this.props.loadingPicture}
-                            text={localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})}
+                            text={defineMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})}
                         >
                             <FormattedMessage
                                 id='setting_picture.save'
