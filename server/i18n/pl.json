@@ -4725,11 +4725,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 126+"
+    "translation": "Wersja 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 126+"
+    "translation": "Wersja 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8925,7 +8925,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Nie można potwierdzić w zarchiwizowanym kanale."
+    "translation": "Nie możesz zapisać potwierdzenia w zarchiwizowanym kanale."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10198,5 +10198,37 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Nie udało się trwale usunąć postu."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału bezpośredniego z użytkownikiem zdalnym"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Nie można utworzyć kanału grupowego z użytkownikami zdalnymi"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Nie udało się skopiować zawartości pliku licencji do bufora"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Nie można utworzyć zaproszenia do zdalnego klastra"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Nie można utworzyć postu w DM lub GM ze zdalnymi użytkownikami"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Nieprawidłowy zdalny identyfikator."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Niepoprawny token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Nieprawidłowy adres URL strony."
   }
 ]

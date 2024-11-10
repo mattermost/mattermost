@@ -197,8 +197,8 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
 
 export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<Array<UserProfile['username']>> {
     return async (dispatch, getState, {loaders}: any) => {
-        if (!loaders.missingUsernameLoader) {
-            loaders.missingUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
+        if (!loaders.userByUsernameLoader) {
+            loaders.userByUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
                 fetchBatch: (usernames) => dispatch(getProfilesByUsernames(usernames)),
                 maxBatchSize: maxUserIdsPerProfilesRequest,
                 wait: missingProfilesWait,
@@ -210,7 +210,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAs
         const missingUsernames = usernames.filter((username) => !usersByUsername[username]);
 
         if (missingUsernames.length > 0) {
-            await loaders.missingUsernameLoader.queueAndWait(missingUsernames);
+            await loaders.userByUsernameLoader.queueAndWait(missingUsernames);
         }
 
         return {data: missingUsernames};

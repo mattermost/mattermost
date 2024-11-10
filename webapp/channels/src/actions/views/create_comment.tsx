@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
 
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
@@ -24,6 +27,7 @@ import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
+import {createSchedulePostFromDraft} from 'actions/post_actions';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
@@ -37,7 +41,8 @@ export function submitPost(
     rootId: string,
     draft: PostDraft,
     afterSubmit?: (response: SubmitPostReturnType) => void,
-    afterOptimisticSubmit?: () => void,
+    schedulingInfo?: SchedulingInfo,
+    options?: OnSubmitOptions,
 ): ActionFuncAsync<CreatePostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -83,9 +88,31 @@ export function submitPost(
             return {error: hookResult.error};
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
-        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, afterOptimisticSubmit));
+        if (schedulingInfo) {
+            const scheduledPost = scheduledPostFromPost(post, schedulingInfo);
+            scheduledPost.file_ids = draft.fileInfos.map((fileInfo) => fileInfo.id);
+            if (draft.fileInfos?.length > 0) {
+                if (!scheduledPost.metadata) {
+                    scheduledPost.metadata = {} as PostMetadata;
+                }
+
+                scheduledPost.metadata.files = draft.fileInfos;
+            }
+            const response = await dispatch(createSchedulePostFromDraft(scheduledPost));
+            if (afterSubmit) {
+                const result: CreatePostReturnType = {
+                    error: response.error,
+                    created: !response.error,
+                };
+                afterSubmit(result);
+            }
+
+            return response;
+        }
+
+        return dispatch(PostActions.createPost(post, draft.fileInfos, afterSubmit, options));
     };
 }
 
@@ -97,7 +124,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 
         const teamId = getCurrentTeamId(state);
 
-        let args = {
+        let args: CommandArgs = {
             channel_id: channelId,
             team_id: teamId,
             root_id: rootId,
@@ -133,16 +160,17 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
 }
 
 export type SubmitPostReturnType = CreatePostReturnType & SubmitCommandRerturnType & SubmitReactionReturnType;
-
 export type OnSubmitOptions = {
     ignoreSlash?: boolean;
     afterSubmit?: (response: SubmitPostReturnType) => void;
     afterOptimisticSubmit?: () => void;
+    keepDraft?: boolean;
 }
 
 export function onSubmit(
     draft: PostDraft,
     options: OnSubmitOptions,
+    schedulingInfo?: SchedulingInfo,
 ): ActionFuncAsync<SubmitPostReturnType, GlobalState> {
     return async (dispatch, getState) => {
         const {message, channelId, rootId} = draft;
@@ -150,24 +178,26 @@ export function onSubmit(
 
         dispatch(addMessageIntoHistory(message));
 
-        const isReaction = Utils.REACTION_PATTERN.exec(message);
+        if (!schedulingInfo && !options.ignoreSlash) {
+            const isReaction = Utils.REACTION_PATTERN.exec(message);
 
-        const emojis = getCustomEmojisByName(state);
-        const emojiMap = new EmojiMap(emojis);
+            const emojis = getCustomEmojisByName(state);
+            const emojiMap = new EmojiMap(emojis);
 
-        if (isReaction && emojiMap.has(isReaction[2]) && !options.ignoreSlash) {
-            const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
-            if (latestPostId) {
-                return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+            if (isReaction && emojiMap.has(isReaction[2])) {
+                const latestPostId = getLatestInteractablePostId(state, channelId, rootId);
+                if (latestPostId) {
+                    return dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
+                }
+                return {error: new Error('no post to react to')};
             }
-            return {error: new Error('No post to react to')};
+
+            if (message.indexOf('/') === 0 && !options.ignoreSlash) {
+                return dispatch(submitCommand(channelId, rootId, draft));
+            }
         }
 
-        if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            return dispatch(submitCommand(channelId, rootId, draft));
-        }
-
-        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, options.afterOptimisticSubmit));
+        return dispatch(submitPost(channelId, rootId, draft, options.afterSubmit, schedulingInfo, options));
     };
 }
 

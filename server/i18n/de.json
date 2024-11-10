@@ -4764,11 +4764,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8923,7 +8923,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Du kannst in einem archivierten Kanal nicht bestätigen."
+    "translation": "Du kannst eine Bestätigung nicht in einem archivierten Kanal speichern."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10196,5 +10196,37 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Die Nachricht konnte nicht dauerhaft gelöscht werden."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kann keinen direkten Kanal mit einem entfernten Benutzer erstellen"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kann keinen Gruppen-Kanal mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Der Inhalt der Lizenzdatei konnte nicht in den Puffer kopiert werden"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Konnte keine Einladung für Remote-Cluster erstellen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kann den Beitrag nicht in einer direkten- oder Gruppen-Nachricht mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ungültige Remote-ID."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ungültiger Token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ungültige URL der Website."
   }
 ]
