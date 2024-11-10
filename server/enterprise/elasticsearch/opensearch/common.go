@@ -25,7 +25,7 @@ func createClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filest
 
 	client, err := opensearchapi.NewClient(*esCfg)
 	if err != nil {
-		return nil, model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.connect_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.connect_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return client, nil
