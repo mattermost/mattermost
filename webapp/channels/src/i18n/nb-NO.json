@@ -2384,6 +2384,7 @@
   "removed_channel.channelName": "kanalen",
   "removed_channel.from": "Fjernet fra ",
   "removed_channel.okay": "Ok",
+  "removed_channel.remover": "{remover} fjernet deg fra {channel}",
   "rhs_header.backToPinnedTooltip": "Tilbake til festede meldinger",
   "rhs_header.backToResultsTooltip": "Tilbake til søkeresultater",
   "rhs_header.closeSidebarTooltip": "Хааx",
