@@ -53,7 +53,8 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_remove.permission.app_error", actual)
 
 	// Try a public channel *with* permission.
-	th.App.AddUserToChannel(th.Context, th.BasicUser, publicChannel, false)
+	_, err = th.App.AddUserToChannel(th.Context, th.BasicUser, publicChannel, false)
+	require.Nil(t, err)
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
 		ChannelId: publicChannel.Id,
@@ -74,7 +75,8 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_remove.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
-	th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+	_, err = th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+	require.Nil(t, err)
 	args = &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
