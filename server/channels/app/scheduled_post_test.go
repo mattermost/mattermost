@@ -717,7 +717,7 @@ func TestPublishScheduledPostEvent(t *testing.T) {
 		case msg := <-messages:
 			t.Errorf("Expected no message, but got one: %+v", msg)
 		case <-time.After(100 * time.Millisecond):
-			// there was no message sent to the channel, so test is successfull
+			// there was no message sent to the channel, so test is successful
 		}
 	})
 }

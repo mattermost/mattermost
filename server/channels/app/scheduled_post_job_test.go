@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
@@ -219,9 +220,10 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 	t.Run("should handle failed scheduled posts correctly", func(t *testing.T) {
 		rctx := th.Context
 		var err error
+		var appErr *model.AppError
 
-		systemBot, err := th.App.GetSystemBot(rctx)
-		assert.Nil(t, err)
+		systemBot, appErr := th.App.GetSystemBot(rctx)
+		require.Nil(t, appErr)
 		assert.NotNil(t, systemBot)
 
 		failedScheduledPosts := []*model.ScheduledPost{
@@ -249,7 +251,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 
 		// Save the failed scheduled posts in the store
 		for _, sp := range failedScheduledPosts {
-			_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(sp)
+			_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(sp)
 			assert.NoError(t, err)
 		}
 
@@ -259,7 +261,6 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 
 		// call the handleFailedScheduledPosts which will send the system bot message
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
-
 		// validate that the WS events are sent and published
 		for i := 0; i < len(failedScheduledPosts); i++ {
 			select {
@@ -268,7 +269,8 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				assert.Equal(t, th.BasicUser.Id, received.GetBroadcast().UserId)
 
 				// Validate the scheduledPost data in the event is corect
-				scheduledPostJSON, err := json.Marshal(failedScheduledPosts[i])
+				var scheduledPostJSON []byte
+				scheduledPostJSON, err = json.Marshal(failedScheduledPosts[i])
 				assert.NoError(t, err)
 				assert.Equal(t, string(scheduledPostJSON), received.GetData()["scheduledPost"])
 			case <-time.After(1 * time.Second):
@@ -289,8 +291,8 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				break
 			}
 
-			posts, err = th.App.GetPosts(channel.Id, 0, 10)
-			assert.Nil(t, err)
+			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			require.Nil(t, appErr)
 
 			// break in case it find any posts
 			if len(posts.Posts) > 0 {
@@ -300,9 +302,9 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		}
 		assert.NotEmpty(t, posts.Posts, "Expected notification to have been sent within %d seconds", timeout)
 
-		// get the user translations to validate agains the system bot message content
+		// get the user translations to validate against the system bot message content
 		user, err := th.App.GetUser(th.BasicUser.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		T := i18n.GetUserTranslations(user.Locale)
 		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
@@ -317,6 +319,6 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				break
 			}
 		}
-		assert.True(t, found, "Not able to find the sytem bot post in the DM channel")
+		assert.True(t, found, "Not able to find the system bot post in the DM channel")
 	})
 }
