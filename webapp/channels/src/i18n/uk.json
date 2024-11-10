@@ -1533,6 +1533,8 @@
   "app.channel.post_update_channel_purpose_message.removed": "{username} видалив заголовок каналу (було: {old})",
   "app.channel.post_update_channel_purpose_message.updated_from": "{username} змінив заголовок каналу з {old} на {new}",
   "app.channel.post_update_channel_purpose_message.updated_to": "{username} встановив заголовок каналу: {new}",
+  "app.post.move_thread.from_another_channel": "Це обговорення було перенесено з іншого каналу",
+  "app.post.move_thread_command.direct_or_group.one_message": "Повідомлення було переміщено до приватного/групового повідомлення\n",
   "apps.error": "Помилка:{error}",
   "apps.error.command.field_missing": "Обов'язкові поля відсутні:`{fieldName}`.",
   "apps.error.command.same_channel": "Канал повторюється для поля `{fieldName}`: `{option}`.",
