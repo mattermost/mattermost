@@ -179,7 +179,7 @@ func TestSetCustomStatus(t *testing.T) {
 			err := th.App.SetCustomStatus(th.Context, th.BasicUser.Id, testCase.Input)
 			require.Nil(t, err)
 			defer func() {
-				err := th.App.RemoveCustomStatus(th.Context, th.BasicUser.Id)
+				err = th.App.RemoveCustomStatus(th.Context, th.BasicUser.Id)
 				require.Nil(t, err)
 			}()
 
