@@ -13,7 +13,7 @@ import {getRandomId} from '../utils';
 function externalActivateUser(userId: string, active = true) {
     const admin = getAdminAccount();
 
-    cy.externalRequest({user: admin, method: 'PUT', path: `users/${userId}/active`, data: {active}});
+    return cy.externalRequest({user: admin, method: 'PUT', path: `users/${userId}/active`, data: {active}});
 }
 Cypress.Commands.add('externalActivateUser', externalActivateUser);
 

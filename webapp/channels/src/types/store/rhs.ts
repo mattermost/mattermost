@@ -34,6 +34,7 @@ export type RhsViewState = {
     searchType: SearchType;
     pluggableId: string;
     searchResultsTerms: string;
+    searchResultsType: string;
     isSearchingFlaggedPost: boolean;
     isSearchingPinnedPost: boolean;
     isSidebarOpen: boolean;

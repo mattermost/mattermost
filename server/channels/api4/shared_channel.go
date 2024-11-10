@@ -60,7 +60,9 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -90,7 +92,9 @@ func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetJSONEncodingError(err)
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -182,7 +186,7 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
 
 func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -240,5 +244,5 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
-	w.WriteHeader(http.StatusNoContent)
+	ReturnStatusOK(w)
 }
