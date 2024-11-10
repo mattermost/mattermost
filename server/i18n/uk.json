@@ -1017,7 +1017,7 @@
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Не вдається прочитати файл зображення для емодзі."
+    "translation": "Не вдалось прочитати файл зображення для емодзі."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1085,7 +1085,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Не вдалося завантажити файл(и). Маємо {{.NumClientIds}} client_ids для {{.NumFiles}} файла(ів)."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Не вдається ініціалізувати обмеження швидкості пам'яті. Перевірте налаштування конфігурації MemoryStoreSize."
+    "translation": "Не вдалося ініціалізувати сховище пам'яті для обмеження швидкості. Перевірте налаштування MemoryStoreSize у конфігурації."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
@@ -1577,7 +1577,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Неможливо відкрити файл zip-експорту Slack.\r\n"
+    "translation": "Не вдається відкрити zip-файл експорту даних зі Slack.\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -1601,7 +1601,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Неможливо прочитати файл зображення команди."
+    "translation": "Не вдається прочитати файл піктограми команди."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1617,7 +1617,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Невірний запит: поле importFrom відсутнє."
+    "translation": "Неправильний запит: відсутнє поле importFrom."
   },
   {
     "id": "api.team.import_team.open.app_error",
@@ -1629,31 +1629,31 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Невірний запит: поле розмір файлу відсутнє."
+    "translation": "Неправильний запит: відсутнє поле filesize."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Запрошення електронної пошти відключені."
+    "translation": "Email-запрошення вимкнені."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "Наступні адреси електронної пошти не належать до прийнятого домену: {{.Addresses}}. Будь ласка, зв'яжіться зі своїм системним адміністратором для деталей."
+    "translation": "Наступні адреси електронної пошти не належать до списку дозволених доменів: {{.Addresses}}. Будь ласка, зверніться до вашого системного адміністратора за деталями."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
-    "translation": "Ніхто не запрошує."
+    "translation": "Нема кого запросити."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Створення команди відключено. Будь ласка, запитайте системного адміністратора про деталі."
+    "translation": "Створення команд було вимкнено. Будь ласка, зверніться до вашого системного адміністратора за деталями."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Електронна пошта повинна бути з певного домену (наприклад, @ example.com). Будь ласка, запитайте системного адміністратора про деталі."
+    "translation": "Користувач не може бути доданий, оскільки домен, пов'язаний з обліковим записом, не дозволений. Зверніться до системного адміністратора за додатковою інформацією."
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "% v приєднався до команди."
+    "translation": "%v приєднався(лась) до команди."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -1661,7 +1661,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "% v залишив команду."
+    "translation": "%v покинув(ла) команду."
   },
   {
     "id": "api.team.move_channel.post.error",
@@ -5537,11 +5537,11 @@
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Канали запрошення мають бути частиною команди запрошення."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "Помилка анулювання електронних запрошень."
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
@@ -5553,23 +5553,23 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Гостьові акаунти вимкнено."
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
+    "translation": "Гостям обмежена можливість приєднання до команди через запрошувальне посилання. Будь ласка, запросіть гостьове запрошення через електронну пошту для приєднання до команди."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+    "translation": "Цією командою керують групи.   Цей користувач не є членом групи, яка синхронізована з цією командою."
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding team member(s)."
+    "translation": "Помилка додавання члена(ів) команди."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
-    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+    "translation": "Push-сповіщення з завантаженими ідентифікаторами не налаштовані або не підтримуються на цьому сервері."
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
@@ -6673,7 +6673,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+    "translation": "{{.Filename}} у zip-архіві завеликий для обробки для імпорту із Slack\n"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
