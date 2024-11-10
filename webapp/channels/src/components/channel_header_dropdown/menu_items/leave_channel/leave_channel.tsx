@@ -13,7 +13,7 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+type Props = PropsFromRedux & {
 
     /**
      * Object with info about user
@@ -34,7 +34,7 @@ interface Props extends PropsFromRedux {
      * Use for test selector
      */
     id?: string;
-}
+};
 
 const LeaveChannel = ({
     isDefault = true,

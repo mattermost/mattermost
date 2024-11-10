@@ -980,7 +980,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "other": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知"
+      "other": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} {{.Day}} 日的新通知"
     }
   },
   {
@@ -2841,19 +2841,19 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{.SiteName}}] 來自 @{{.SenderDisplayName}} 的新直接傳訊，發於 {{.Year}} 年 {{.Month}} {{.Day}} 日"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] {{ .ChannelName}} 的新群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] {{ .ChannelName}} 的新群組訊息，發於 {{.Year}} 年 {{.Month}} {{.Day}} 日"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{ .SiteName }}] 發於 {{.Year}} {{.Month}} {{.Day}} 的新群組訊息"
+    "translation": "[{{ .SiteName }}] 發於 {{.Year}} 年 {{.Month}} {{.Day}} 日的新群組訊息"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] 來自 {{ .TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "[{{ .SiteName }}] 來自 {{ .TeamName}} 的通知，發於 {{.Year}} 年 {{.Month}} {{.Day}} 日"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -9953,7 +9953,7 @@
   },
   {
     "id": "app.report.date_range.previous_month",
-    "translation": "上ㄧ個月"
+    "translation": "上一個月"
   },
   {
     "id": "app.report.send_report_to_user.missing_user_id",
@@ -10166,5 +10166,57 @@
   {
     "id": "app.channel.bookmark.get_existing.app_err",
     "translation": "無法更新現有書籤。"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "無法刪除訊息，ServiceSettings.EnableAPIPostDeletion 沒有啟用。"
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "您無法編輯使用者狀態。使用者受 LDAP 所管你"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "尋找檔案或訊息失敗。"
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "永久刪除檔案或訊息失敗。"
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "永久刪除訊息失敗。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "無法以遠端使用者建立私人訊息頻道"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "無法以遠端使用者建立群組頻道"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "複製授權失敗。"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "無法以遠端使用者建立私人訊息與群組訊息頻道"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "無效的遠端 ID。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "無效的網站 URL。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "無效的 Token。"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "無法建立遠端叢集邀請"
   }
 ]

@@ -37,9 +37,11 @@ func Test_getIPFilters(t *testing.T) {
 		ipFiltering := &mocks.IPFilteringInterface{}
 		th.App.Srv().IPFiltering = ipFiltering
 
-		th.App.Srv().RemoveLicense()
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
 		require.Error(t, err)
@@ -58,7 +60,8 @@ func Test_getIPFilters(t *testing.T) {
 
 		th.App.Srv().SetLicense(lic)
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
 		require.Error(t, err)
@@ -76,7 +79,8 @@ func Test_getIPFilters(t *testing.T) {
 
 		th.App.Srv().SetLicense(lic)
 
-		th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
 		require.Error(t, err)
@@ -100,7 +104,8 @@ func Test_getIPFilters(t *testing.T) {
 
 		th.App.Srv().SetLicense(lic)
 
-		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
 		require.NoError(t, err)
@@ -126,7 +131,8 @@ func Test_getIPFilters(t *testing.T) {
 
 		th.App.Srv().SetLicense(lic)
 
-		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.GetIPFilters(context.Background())
 		require.Error(t, err)
@@ -155,9 +161,11 @@ func Test_applyIPFilters(t *testing.T) {
 		ipFiltering := &mocks.IPFilteringInterface{}
 		th.App.Srv().IPFiltering = ipFiltering
 
-		th.App.Srv().RemoveLicense()
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
 		require.Error(t, err)
@@ -175,7 +183,8 @@ func Test_applyIPFilters(t *testing.T) {
 		th.App.Srv().IPFiltering = ipFiltering
 		th.App.Srv().SetLicense(lic)
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
 		require.Error(t, err)
@@ -188,7 +197,8 @@ func Test_applyIPFilters(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFiltering := &mocks.IPFilteringInterface{}
 		th.App.Srv().IPFiltering = ipFiltering
@@ -223,7 +233,8 @@ func Test_applyIPFilters(t *testing.T) {
 
 		th.App.Srv().Cloud = cloud
 
-		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+		require.NoError(t, err)
 
 		ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
 		require.NoError(t, err)
@@ -255,9 +266,11 @@ func Test_getMyIP(t *testing.T) {
 		ipFiltering := &mocks.IPFilteringInterface{}
 		th.App.Srv().IPFiltering = ipFiltering
 
-		th.App.Srv().RemoveLicense()
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		myIP, r, err := th.Client.GetMyIP(context.Background())
 		require.Error(t, err)
@@ -271,7 +284,8 @@ func Test_getMyIP(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
 		ipFiltering := &mocks.IPFilteringInterface{}
 		th.App.Srv().IPFiltering = ipFiltering

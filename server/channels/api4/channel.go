@@ -897,7 +897,8 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetDeletedChannels(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.AppContext.Session().UserId)
+	skipTeamMembershipCheck := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	channels, err := c.App.GetDeletedChannels(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.AppContext.Session().UserId, skipTeamMembershipCheck)
 	if err != nil {
 		c.Err = err
 		return
@@ -1299,6 +1300,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		ExcludeGroupConstrained:  props.ExcludeGroupConstrained,
 		ExcludePolicyConstrained: props.ExcludePolicyConstrained,
 		IncludeSearchById:        props.IncludeSearchById,
+		ExcludeRemote:            props.ExcludeRemote,
 		Public:                   props.Public,
 		Private:                  props.Private,
 		IncludeDeleted:           includeDeleted,
@@ -1779,7 +1781,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, userId := range interfaceIds {
-			userIds = append(userIds, userId.(string))
+			uid, isString := userId.(string)
+
+			if !isString || !model.IsValidId(uid) {
+				c.SetInvalidParam("user_id in user_ids")
+				return
+			}
+
+			userIds = append(userIds, uid)
 		}
 	} else {
 		userId, ok2 := props["user_id"].(string)

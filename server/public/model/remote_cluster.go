@@ -13,6 +13,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -368,6 +369,22 @@ type RemoteClusterInvite struct {
 	Token        string `json:"token"`
 }
 
+func (rci *RemoteClusterInvite) IsValid() *AppError {
+	if !IsValidId(rci.RemoteId) {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.remote_id.app_error", nil, "id="+rci.RemoteId, http.StatusBadRequest)
+	}
+
+	if rci.Token == "" {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.token.app_error", nil, "Token empty", http.StatusBadRequest)
+	}
+
+	if _, err := url.ParseRequestURI(rci.SiteURL); err != nil {
+		return NewAppError("RemoteClusterInvite.IsValid", "model.remote_cluster_invite.is_valid.site_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}
+
 func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 	raw, err := json.Marshal(&rci)
 	if err != nil {
@@ -445,10 +462,11 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 }
 
 type RemoteClusterAcceptInvite struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Invite      string `json:"invite"`
-	Password    string `json:"password"`
+	Name          string `json:"name"`
+	DisplayName   string `json:"display_name"`
+	DefaultTeamId string `json:"default_team_id"`
+	Invite        string `json:"invite"`
+	Password      string `json:"password"`
 }
 
 // RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll

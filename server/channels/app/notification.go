@@ -702,8 +702,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
-	if err != nil {
+	appErr := a.publishWebsocketEventForPost(c, post, message)
+	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		a.NotificationsLog().Error("Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -711,28 +711,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			mlog.String("status", model.NotificationStatusError),
 			mlog.String("reason", model.NotificationReasonFetchError),
 			mlog.String("sender_id", sender.Id),
-			mlog.Err(err),
+			mlog.Err(appErr),
 		)
-		return nil, err
-	}
-	if !published {
-		removePermalinkMetadataFromPost(post)
-		postJSON, jsonErr := post.ToJSON()
-		if jsonErr != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
-			a.NotificationsLog().Error("JSON parse error",
-				mlog.String("type", model.NotificationTypeWebsocket),
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonParseError),
-				mlog.String("sender_id", sender.Id),
-				mlog.Err(err),
-			)
-			return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
-		}
-		message.Add("post", postJSON)
-
-		a.Publish(message)
+		return nil, appErr
 	}
 
 	// If this is a reply in a thread, notify participants
@@ -888,16 +869,22 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"post_mentioned_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			} else if reason == DMMention {
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"direct_message_to_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			}
 		}
+		if user.IsRemote() {
+			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
+		}
+	}
+	for groupId := range mentions.GroupMentions {
+		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
 	}
 	return mentionedUsersList, nil
 }
@@ -1594,6 +1581,13 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	potentialGroupMembersMentioned := []string{}
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
+	}
+	if len(potentialGroupMembersMentioned) != 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackGroupsFeature,
+			"invite_group_to_channel__post",
+			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
+		)
 	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned
