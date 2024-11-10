@@ -4,10 +4,12 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -207,5 +209,114 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[1].ErrorCode)
 		assert.Greater(t, scheduledPosts[1].ProcessedAt, int64(0))
+	})
+}
+
+func TestHandleFailedScheduledPosts(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should handle failed scheduled posts correctly", func(t *testing.T) {
+		rctx := th.Context
+		var err error
+
+		systemBot, err := th.App.GetSystemBot(rctx)
+		assert.Nil(t, err)
+		assert.NotNil(t, systemBot)
+
+		failedScheduledPosts := []*model.ScheduledPost{
+			{
+				Id: model.NewId(),
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   "Failed scheduled post 1",
+				},
+				ErrorCode: model.ScheduledPostErrorUnknownError,
+			},
+			{
+				Id: model.NewId(),
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   "Failed scheduled post 2",
+				},
+				ErrorCode: model.ScheduledPostErrorCodeNoChannelPermission,
+			},
+		}
+
+		// Save the failed scheduled posts in the store
+		for _, sp := range failedScheduledPosts {
+			_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(sp)
+			assert.NoError(t, err)
+		}
+
+		// websocket mock
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketScheduledPostUpdated})
+		defer closeWS()
+
+		// call the handleFailedScheduledPosts which will send the system bot message
+		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
+
+		// validate that the WS events are sent and published
+		for i := 0; i < len(failedScheduledPosts); i++ {
+			select {
+			case received := <-messages:
+				assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
+				assert.Equal(t, th.BasicUser.Id, received.GetBroadcast().UserId)
+
+				// Validate the scheduledPost data in the event is corect
+				scheduledPostJSON, err := json.Marshal(failedScheduledPosts[i])
+				assert.NoError(t, err)
+				assert.Equal(t, string(scheduledPostJSON), received.GetData()["scheduledPost"])
+			case <-time.After(1 * time.Second):
+				t.Errorf("Timeout while waiting for a WS event for scheduled post %d, but there was none received", i+1)
+			}
+		}
+
+		// wait for the notification to be sent into the channel (adding 2 secs because it is run in a separate rountine)
+		// idea is to get the channel, try to find posts, if not, wait and try again until timout or posts lengh
+		var posts *model.PostList
+		var timeout = 2 * time.Second
+		begin := time.Now()
+		channel, chErr := th.App.GetOrCreateDirectChannel(rctx, th.BasicUser.Id, systemBot.UserId)
+		assert.Nil(t, chErr)
+
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+
+			posts, err = th.App.GetPosts(channel.Id, 0, 10)
+			assert.Nil(t, err)
+
+			// break in case it find any posts
+			if len(posts.Posts) > 0 {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		assert.NotEmpty(t, posts.Posts, "Expected notification to have been sent within %d seconds", timeout)
+
+		// get the user translations to validate agains the system bot message content
+		user, err := th.App.GetUser(th.BasicUser.Id)
+		assert.Nil(t, err)
+
+		T := i18n.GetUserTranslations(user.Locale)
+		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
+			"Count": len(failedScheduledPosts),
+		})
+
+		// check that the notification post exists
+		found := false
+		for _, post := range posts.Posts {
+			if post.UserId == systemBot.UserId && post.Message == messageContent {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "Not able to find the sytem bot post in the DM channel")
 	})
 }
