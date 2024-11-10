@@ -111,7 +111,7 @@ func TestUpdateBookmark(t *testing.T) {
 
 		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotNil(t, bookmarkResp)
 
 		file2 := &model.FileInfo{
@@ -140,7 +140,7 @@ func TestUpdateBookmark(t *testing.T) {
 
 		bookmark2.FileId = file2.Id
 		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Nil(t, bookmarkResp)
 	}
 
