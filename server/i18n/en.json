@@ -5939,6 +5939,26 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "The post cannot be created"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Cannot get the system bot"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Cannot get the system bot direct message"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Cannot get the user"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "If you received this test notification, it worked!"
+  },
+  {
     "id": "app.notify_admin.save.app_error",
     "translation": "Unable to save notify data."
   },
