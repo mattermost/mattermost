@@ -58,7 +58,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
-	memoryStore.Set(memoryConfig)
+	_, _, err = memoryStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
 
@@ -105,7 +106,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		require.NoError(tb, err)
 		err = th.App.Srv().Jobs.StartSchedulers()
 		require.NoError(tb, err)
-
 	} else {
 		th.App.Srv().SetLicense(getLicense(false, memoryConfig))
 	}
