@@ -9574,5 +9574,293 @@
   {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "Функція списку очищення недоступна для Bleve."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Не вдалося зберегти дані."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Політика недійсна."
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Не вдалося отримати всіх учасників каналу"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Не вдалось отримати пакет файлів для індексації."
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Помилка завантаження файлу ключа LDAP TLS."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Відсутнє вихідне OAuth-з'єднання для заданої аудиторії."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Вихідні OAuth-з'єднання на цьому сервері недоступні."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} і {{.LastItem}}"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Не вдається підключитися до smtp-сервера"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Ваша ліцензія не підтримує вихідні з'єднання oauth."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Неможливо запланувати порожній допис. Запланований допис повинен містити принаймні повідомлення або вкладені файли."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Запланований допис повинен мати ідентифікатор."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Недійсний час запланованого виконання."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Недійсний час обробки."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Ми зіткнулися з помилкою при виконанні запитуваної операції."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Неможливо обробити імпорт: файл не існує."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Не вдалося обробити імпорт: Відсутній файл JSONL."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Неправильний ідентифікатор повідомлення."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Не вдалося зберегти підписку на обговорення для допису."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Вихідне з'єднання oauth для вказаної аудиторії не знайдено."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Виникла помилка оновлення вихідного з'єднання oauth: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Вже існує вихідне OAuth-з'єднання для заданої аудиторії."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Виникла помилка при видаленні вихідного з'єднання oauth."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Неможливо обробити імпорт: відсутній параметр import_file."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Не вдалося видалити пост постійного сповіщення"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Не вдалося створити шаблон Elasticsearch для файлів"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Не вдалося видалити файли повідомлень"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Не вдалося видалити файли користувача"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Не вдалося отримати список всіх членів команди"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Не вдалося проіндексувати файл"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Не вдалося видалити невідомий індекс"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Пошук файлів Elasticsearch на цьому сервері вимкнено"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Не вдалося розшифрувати результати пошуку"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Помилка завантаження файлу сертифіката LDAP TLS."
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Користувачів LDAP не знайдено, перевірте фільтр користувачів і сертифікати."
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Не вдалося отримати інформацію про файл для поста."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Не вдалося отримати інформацію про файл для поста."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Для наданої аудиторії вже існує вихідне oauth-з'єднання: {{ .Audience }}"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Не вдалося видалити індекс Elasticsearch"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "Отримано недійсний підпис у відповіді від постачальника ідентифікації. Зверніться до системного адміністратора."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Не вдалося оновити активний статус багатофакторної автентифікації (БФА) для користувача."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Не вдалося розшифрувати клієнтський сертифікат для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Не вдалося відкрити файл CA для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Не вдалося відкрити файл клієнтського сертифіката для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Не вдалося відкрити файл клієнтського ключа для Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "Не вдалося отримати найстаріший об'єкт (користувача, канал або повідомлення) з бази даних"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Elasticsearch версія {{.Version}} вища за максимально підтримувану версію {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "не можуть мігрувати."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Не вдалося отримати інформацію про файл для поста."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Виникла помилка під час автентифікації вихідного з'єднання oauth: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Виникла помилка при отриманні вихідних з'єднань oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Виникла помилка при отриманні вихідного з'єднання oauth для аудиторії."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Надана аудиторія недійсна: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Для наданої аудиторії вже існує вихідне oauth-з'єднання: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Надана аудиторія є недійсною: {{ .Error }}"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML не вдалося успішно завантажити публічний сертифікат постачальника ідентифікаційних даних, зверніться до системного адміністратора."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "Отримано недійсний час у відповіді від постачальника ідентифікації. Зверніться до системного адміністратора."
+  },
+  {
+    "id": "error",
+    "translation": "Помилка"
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Не вдалося обробити імпорт: не вдалося відкрити файл."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Неправильний ідентифікатор користувача."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Ім'я повинно складатися з 1 або більше малих літер та цифр."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "Усі параметри IncludeDeletedChannels повинні мати однакове значення."
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Не вдається спробувати запустити файл експорту."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Неправильна схема."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Помилка створення пари ключів"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Не вдалося видалити файл"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Вихідне з'єднання oauth не знайдено."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Виникла помилка збереження вихідного з'єднання oauth: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Виникла помилка при отриманні вихідного з'єднання oauth."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Неправильний ідентифікатор каналу."
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Не вдалося оновити активний статус багатофакторної автентифікації (БФА) для користувача."
   }
 ]
