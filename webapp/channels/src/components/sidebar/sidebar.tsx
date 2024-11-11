@@ -210,9 +210,9 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 {moreDirectChannelsModal}
-            </React.Fragment>
+            </>
         );
     };
 
