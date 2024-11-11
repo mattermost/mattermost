@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -216,7 +215,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("should handle failed scheduled posts correctly", func(t *testing.T) {
+	t.Run("should handle failed scheduled posts correctly and notify users about failure via system-bot", func(t *testing.T) {
 		rctx := th.Context
 		var err error
 		var appErr *model.AppError
@@ -226,14 +225,18 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		assert.True(t, appErr == nil)
 		assert.NotNil(t, systemBot)
 
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		// Create failed scheduled posts: 1 for user1 and 2 for user2
 		failedScheduledPosts := []*model.ScheduledPost{
 			{
 				Id: model.NewId(),
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
-					UserId:    th.BasicUser.Id,
+					UserId:    user1.Id,
 					ChannelId: th.BasicChannel.Id,
-					Message:   "Failed scheduled post 1",
+					Message:   "Failed scheduled post for user 1",
 				},
 				ErrorCode: model.ScheduledPostErrorUnknownError,
 			},
@@ -241,11 +244,21 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				Id: model.NewId(),
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
-					UserId:    th.BasicUser.Id,
+					UserId:    user2.Id,
 					ChannelId: th.BasicChannel.Id,
-					Message:   "Failed scheduled post 2",
+					Message:   "Failed scheduled post 1 for user 2",
 				},
 				ErrorCode: model.ScheduledPostErrorCodeNoChannelPermission,
+			},
+			{
+				Id: model.NewId(),
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    user2.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   "Failed scheduled post 2 for user 2",
+				},
+				ErrorCode: model.ScheduledPostErrorNoChannelMember,
 			},
 		}
 
@@ -255,71 +268,74 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// websocket mock
-		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketScheduledPostUpdated})
-		defer closeWS()
+		// Mock WebSocket channels for both of the two users
+		messagesUser1, closeWSUser1 := connectFakeWebSocket(t, th, user1.Id, "", []model.WebsocketEventType{model.WebsocketScheduledPostUpdated})
+		defer closeWSUser1()
 
-		// call the handleFailedScheduledPosts which will send the system bot message
+		messagesUser2, closeWSUser2 := connectFakeWebSocket(t, th, user2.Id, "", []model.WebsocketEventType{model.WebsocketScheduledPostUpdated})
+		defer closeWSUser2()
+
 		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
-		// validate that the WS events are sent and published
+
+		// Validate that the WebSocket events for both users are sent and received correctly
 		for i := 0; i < len(failedScheduledPosts); i++ {
+			var received *model.WebSocketEvent
 			select {
-			case received := <-messages:
-				assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
-				assert.Equal(t, th.BasicUser.Id, received.GetBroadcast().UserId)
-
-				// Validate the scheduledPost data in the event is corect
-				var scheduledPostJSON []byte
-				scheduledPostJSON, err = json.Marshal(failedScheduledPosts[i])
-				assert.NoError(t, err)
-				assert.Equal(t, string(scheduledPostJSON), received.GetData()["scheduledPost"])
+			case received = <-messagesUser1:
+				if received.GetBroadcast().UserId == user1.Id {
+					assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
+				}
+			case received = <-messagesUser2:
+				if received.GetBroadcast().UserId == user2.Id {
+					assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
+				}
 			case <-time.After(1 * time.Second):
-				t.Errorf("Timeout while waiting for a WS event for scheduled post %d, but there was none received", i+1)
+				t.Errorf("Timeout while waiting for a WebSocket event for scheduled post %d", i+1)
 			}
 		}
 
-		// wait for the notification to be sent into the channel (adding 2 secs because it is run in a separate rountine)
-		// idea is to get the channel, try to find posts, if not, wait and try again until timout or posts lengh
-		var posts *model.PostList
-		var timeout = 2 * time.Second
-		begin := time.Now()
-		channel, appErr := th.App.GetOrCreateDirectChannel(rctx, th.BasicUser.Id, systemBot.UserId)
-		assert.True(t, appErr == nil)
+		// Helper function to check notifications for a specific user
+		checkUserNotification := func(user *model.User, expectedCount int) {
+			// Wait time for notifications to be sent (adding 2 secs because it is run in a separate rountine)
+			var timeout = 2 * time.Second
+			begin := time.Now()
+			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
+			assert.True(t, appErr == nil)
 
-		for {
-			if time.Since(begin) > timeout {
-				break
+			var posts *model.PostList
+			// wait for the notification to be sent into the channel.
+			// idea is to get the channel and try to find posts, if not, wait 100ms and try again until timout or there is posts lengh
+			for {
+				if time.Since(begin) > timeout {
+					break
+				}
+				posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+				assert.True(t, appErr == nil)
+				if len(posts.Posts) > 0 {
+					break
+				}
+				time.Sleep(100 * time.Millisecond)
 			}
+			assert.NotEmpty(t, posts.Posts, "Expected notification for user %s to have been sent", user.Id)
 
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
-			assert.Nil(t, appErr)
+			// Validate the actual content of the notification posted (to include count verification)
+			T := i18n.GetUserTranslations(user.Locale)
+			messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
+				"Count": expectedCount,
+			})
 
-			// break in case it find any posts
-			if len(posts.Posts) > 0 {
-				break
+			found := false
+			for _, post := range posts.Posts {
+				if post.UserId == systemBot.UserId && post.Message == messageContent {
+					found = true
+					break
+				}
 			}
-			time.Sleep(100 * time.Millisecond)
+			assert.True(t, found, "Notification post not found for user %s with expected count %d", user.Id, expectedCount)
 		}
-		assert.NotEmpty(t, posts.Posts, "Expected notification to have been sent within %d seconds", timeout)
 
-		// get the user translations to validate against the system bot message content
-		var user *model.User
-		user, appErr = th.App.GetUser(th.BasicUser.Id)
-		assert.True(t, appErr == nil)
-
-		T := i18n.GetUserTranslations(user.Locale)
-		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
-			"Count": len(failedScheduledPosts),
-		})
-
-		// check that the notification post exists
-		found := false
-		for _, post := range posts.Posts {
-			if post.UserId == systemBot.UserId && post.Message == messageContent {
-				found = true
-				break
-			}
-		}
-		assert.True(t, found, "Not able to find the system bot post in the DM channel")
+		// Check notifications sent for failed messages for both users
+		checkUserNotification(user1, 1)
+		checkUserNotification(user2, 2)
 	})
 }

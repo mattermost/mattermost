@@ -380,39 +380,56 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 }
 
 func (a *App) notifyUserAboutFailedScheduledMessages(rctx request.CTX, failedMessages []*model.ScheduledPost) {
-	a.Srv().Go(func() {
-		systemBot, err := a.GetSystemBot(rctx)
-		if err != nil {
-			rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
-			return
-		}
+	failedMessagesByUser := aggregateFailMessagesByUser(failedMessages)
+	systemBot, err := a.GetSystemBot(rctx)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
+		return
+	}
 
-		channel, err := a.GetOrCreateDirectChannel(rctx, failedMessages[0].UserId, systemBot.UserId)
-		if err != nil {
-			rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
-			return
-		}
+	for userId, userFailedMessages := range failedMessagesByUser {
+		a.Srv().Go(func(userId string, userFailedMessages []*model.ScheduledPost) func() {
+			return func() {
+				a.notifyUser(rctx, userId, userFailedMessages, systemBot)
+			}
+		}(userId, userFailedMessages))
+	}
+}
 
-		user, err := a.GetUser(failedMessages[0].UserId)
-		if err != nil {
-			rctx.Logger().Error("Failed to get the user", mlog.Err(err))
-			return
-		}
+func aggregateFailMessagesByUser(failedMessages []*model.ScheduledPost) map[string][]*model.ScheduledPost {
+	aggregated := make(map[string][]*model.ScheduledPost)
+	for _, msg := range failedMessages {
+		aggregated[msg.UserId] = append(aggregated[msg.UserId], msg)
+	}
+	return aggregated
+}
 
-		T := i18n.GetUserTranslations(user.Locale)
-		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
-			"Count": len(failedMessages),
-		})
+func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*model.ScheduledPost, systemBot *model.Bot) {
+	channel, err := a.GetOrCreateDirectChannel(rctx, userId, systemBot.UserId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
+		return
+	}
 
-		post := &model.Post{
-			ChannelId: channel.Id,
-			Message:   messageContent,
-			Type:      model.PostTypeDefault,
-			UserId:    systemBot.UserId,
-		}
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the user", mlog.Err(err))
+		return
+	}
 
-		if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
-			rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
-		}
+	T := i18n.GetUserTranslations(user.Locale)
+	messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
+		"Count": len(userFailedMessages),
 	})
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   messageContent,
+		Type:      model.PostTypeDefault,
+		UserId:    systemBot.UserId,
+	}
+
+	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
+	}
 }
