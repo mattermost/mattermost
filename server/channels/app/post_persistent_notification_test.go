@@ -199,7 +199,7 @@ func TestSendPersistentNotifications(t *testing.T) {
 	defer th.TearDown()
 
 	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	s := "Urgent"
 	tr := true
@@ -218,5 +218,5 @@ func TestSendPersistentNotifications(t *testing.T) {
 	require.Nil(t, appErr)
 
 	err = th.App.SendPersistentNotifications().(*model.AppError)
-	require.NoError(t, err)
+	require.Nil(t, err)
 }
