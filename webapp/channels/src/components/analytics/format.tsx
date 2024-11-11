@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) {
+import type {IntlShape} from 'react-intl';
+
+export function formatChannelDoughtnutData(intl: IntlShape, totalPublic: any, totalPrivate: any) {
     const channelTypeData = {
         labels: [
             intl.formatMessage({id: 'analytics.system.publicChannels', defaultMessage: 'Public Channels'}),
@@ -17,7 +19,7 @@ export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) 
     return channelTypeData;
 }
 
-export function formatPostDoughtnutData(filePosts: any, hashtagPosts: any, totalPosts: any) {
+export function formatPostDoughtnutData(intl: IntlShape, filePosts: any, hashtagPosts: any, totalPosts: any) {
     const postTypeData = {
         labels: [
             intl.formatMessage({id: 'analytics.system.totalFilePosts', defaultMessage: 'Posts with Files'}),

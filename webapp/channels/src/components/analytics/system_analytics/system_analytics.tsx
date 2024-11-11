@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import {AnalyticsVisualizationType} from '@mattermost/types/admin';
@@ -31,7 +32,7 @@ import StatisticCount from '../statistic_count';
 
 const StatTypes = Constants.StatTypes;
 
-type Props = {
+type Props = WrappedComponentProps & {
     isLicensed: boolean;
     stats?: AnalyticsState;
     license: ClientLicense;
@@ -80,7 +81,7 @@ export const searchableStrings = [
     messages.monthlyActiveUsers,
 ];
 
-export default class SystemAnalytics extends React.PureComponent<Props, State> {
+export class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {
         pluginSiteStats: {} as Record<string, PluginAnalyticsRow>,
     };
@@ -288,8 +289,8 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 </>
             );
 
-            const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
-            const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS]);
+            const channelTypeData = formatChannelDoughtnutData(this.props.intl, stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
+            const postTypeData = formatPostDoughtnutData(this.props.intl, stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS]);
 
             let postTypeGraph;
             if (stats[StatTypes.TOTAL_POSTS] !== -1) {
@@ -490,3 +491,5 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SystemAnalytics);

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -13,7 +14,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-interface GroupRowProps {
+interface GroupRowProps extends WrappedComponentProps {
     group: Partial<Group>;
     removeGroup: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;
@@ -64,7 +65,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
     };
 
     displayRoleToBe = () => {
-        const {group, type} = this.props;
+        const {group, type, intl} = this.props;
         if (!group.scheme_admin && type === 'channel') {
             return intl.formatMessage({id: 'admin.team_channel_settings.group_row.channelAdmin', defaultMessage: 'Channel Admin'});
         } else if (!group.scheme_admin && type === 'team') {
@@ -74,7 +75,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
     };
 
     render = () => {
-        const {group} = this.props;
+        const {group, intl} = this.props;
         return (
             <div
                 id='group'
