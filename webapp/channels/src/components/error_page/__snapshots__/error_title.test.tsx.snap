@@ -21,9 +21,10 @@ exports[`components/error_page/ErrorTitle should match snapshot, no type but wit
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, no type nor title 1`] = `
-<Fragment>
-  Error
-</Fragment>
+<MemoizedFormattedMessage
+  defaultMessage="Error"
+  id="error.generic.title"
+/>
 `;
 
 exports[`components/error_page/ErrorTitle should match snapshot, oauth_access_denied type 1`] = `

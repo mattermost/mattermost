@@ -81,7 +81,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.0 server
+// Based on v10.2 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -166,6 +166,8 @@ const defaultServerConfig: AdminConfig = {
         EnableAPITeamDeletion: false,
         EnableAPITriggerAdminNotifications: false,
         EnableAPIUserDeletion: false,
+        EnableAPIPostDeletion: false,
+        EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
@@ -547,12 +549,14 @@ const defaultServerConfig: AdminConfig = {
         AppDownloadLink: 'https://mattermost.com/pl/download-apps',
         AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
         IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
+        MobileExternalBrowser: false,
     },
     CacheSettings: {
         CacheType: 'lru',
         RedisAddress: '',
         RedisPassword: '',
         RedisDB: -1,
+        DisableClientCache: false,
     },
     ClusterSettings: {
         Enable: false,
@@ -730,7 +734,7 @@ const defaultServerConfig: AdminConfig = {
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
-        ChannelBookmarks: false,
+        ChannelBookmarks: true,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
@@ -751,5 +755,11 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromPrivateChannelEnable: false,
         MoveThreadFromDirectMessageChannelEnable: false,
         MoveThreadFromGroupMessageChannelEnable: false,
+    },
+    ConnectedWorkspacesSettings: {
+        EnableSharedChannels: false,
+        EnableRemoteClusterService: false,
+        DisableSharedChannelsStatusSync: false,
+        MaxPostsPerSync: 50,
     },
 };

@@ -1,0 +1,11 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/v8/channels/utils:
+    config:
+      dir: "channels/utils/mocks"
+      filename: "{{.InterfaceName}}.go"
+      mockname: "{{.InterfaceName}}"
+      outpkg: mocks
+      note: "Regenerate this file using `make misc-mocks`."
+    interfaces:
+      LicenseValidatorIface:
