@@ -5779,11 +5779,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 126+"
+    "translation": "版本 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 126+"
+    "translation": "版本 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10164,5 +10164,61 @@
   {
     "id": "app.session.set_extra_session_prop.app_error",
     "translation": "无法更新额外的会话属性。"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "无法为已确认的集群生成邀请码"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "无法删除消息，ServiceSettings.EnableAPIPostDeletion 未启用。"
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "您不能修改用户状态。用户由 LDAP 管理"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "查找消息中的文件失败。"
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "永久删除消息中的文件失败。"
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "永久删除消息失败。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "无法对远程用户创建私信频道"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "无法创建包含远程用户的群组频道"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "复制授权失败"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "无法创建远程集群邀请"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "无法在包含远程用户的私信或群组消息中创建消息"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "远程 id 无效。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "站点 url 无效。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "令牌无效。"
   }
 ]

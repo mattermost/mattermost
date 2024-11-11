@@ -222,6 +222,30 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/notifications/test:
+    post:
+      tags:
+        - system
+      summary: Send a test notification
+      description: >
+        Send a test notification to make sure you have your notification settings
+        configured correctly.
+
+        ##### Permissions
+
+        Must be logged in.
+      operationId: TestNotification
+      responses:
+        "200":
+          description: Notification successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/site_url/test:
     post:
       tags:

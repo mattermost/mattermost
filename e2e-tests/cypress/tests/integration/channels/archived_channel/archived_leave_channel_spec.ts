@@ -97,7 +97,7 @@ describe('Leave an archived channel', () => {
 
                 // # Search for content from an archived channel
                 cy.uiGetSearchContainer().click();
-                cy.uiGetSearchBox().find('input').clear().type(`${messageD}{enter}`);
+                cy.uiGetSearchBox().first().clear().type(`${messageD}{enter}`);
 
                 // # Open the channel from search results
                 cy.get('#searchContainer').should('be.visible');
@@ -109,7 +109,7 @@ describe('Leave an archived channel', () => {
 
                 // # Search for content from a different archived channel
                 cy.uiGetSearchContainer().click();
-                cy.uiGetSearchBox().find('input').clear().type(`${messageC}{enter}`);
+                cy.uiGetSearchBox().first().clear().type(`${messageC}{enter}`);
 
                 // # Open the channel from search result by clicking Jump
                 cy.get('#searchContainer').should('be.visible').findByText('Jump').click().wait(TIMEOUTS.ONE_SEC);
