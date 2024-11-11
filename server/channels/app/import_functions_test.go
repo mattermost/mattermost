@@ -2384,7 +2384,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  model.NewPointer("Message with reaction"),
+					Message:  model.NewPointer("Message with reactions"),
 					CreateAt: &reactionPostTime,
 					Replies: &[]imports.ReplyImportData{{
 						User:     &username,
