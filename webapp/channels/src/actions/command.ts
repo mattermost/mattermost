@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {AppCallResponse} from '@mattermost/types/apps';
 import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
@@ -78,7 +80,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             return {data: {frontendHandled: true}};
         case '/shortcuts':
             if (UserAgent.isMobile()) {
-                const error = {message: localizeMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device'})};
+                const error = {message: localizeMessage(defineMessage({id: 'create_post.shortcutsNotSupported', defaultMessage: 'Keyboard shortcuts are not supported on your device'}))};
                 return {error};
             }
 
@@ -132,12 +134,12 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         case '/marketplace':
             // check if user has permissions to access the read plugins
             if (!haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)) {
-                return {error: {message: localizeMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'})}};
+                return {error: {message: localizeMessage(defineMessage({id: 'marketplace_command.no_permission', defaultMessage: 'You do not have the appropriate permissions to access the marketplace.'}))}};
             }
 
             // check config to see if marketplace is enabled
             if (!isMarketplaceEnabled(state)) {
-                return {error: {message: localizeMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'})}};
+                return {error: {message: localizeMessage(defineMessage({id: 'marketplace_command.disabled', defaultMessage: 'The marketplace is disabled. Please contact your System Administrator for details.'}))}};
             }
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));

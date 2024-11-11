@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
@@ -120,7 +120,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
+                displayNameA = localizeMessage(defineMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'}));
             }
         }
 
@@ -130,7 +130,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelB) {
                 displayNameB = channelB.display_name;
             } else {
-                displayNameB = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
+                displayNameB = localizeMessage(defineMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'}));
             }
         }
         return displayNameA.localeCompare(displayNameB);
@@ -222,10 +222,10 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={localizeMessage({
+                searchPlaceholder={localizeMessage(defineMessage({
                     id: 'installed_outgoing_webhooks.search',
                     defaultMessage: 'Search Outgoing Webhooks',
-                })}
+                }))}
                 loading={this.state.loading}
             >
                 {(filter: string) => {

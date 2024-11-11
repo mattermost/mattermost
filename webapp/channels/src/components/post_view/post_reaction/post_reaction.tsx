@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage, defineMessages} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -98,7 +98,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         <button
                             data-testid='post-reaction-emoji-icon'
                             id={`${location}_reaction_${postId}`}
-                            aria-label={localizeMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'}).toLowerCase()}
+                            aria-label={localizeMessage(defineMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'}).toLowerCase())}
                             className={classNames('post-menu__item', 'post-menu__item--reactions', {
                                 'post-menu__item--active': showEmojiPicker,
                             })}

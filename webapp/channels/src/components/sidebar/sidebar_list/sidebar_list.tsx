@@ -8,7 +8,7 @@ import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 
@@ -547,7 +547,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             />
         );
 
-        const ariaLabel = localizeMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'});
+        const ariaLabel = localizeMessage(defineMessage(defineMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'})));
 
         return (
 

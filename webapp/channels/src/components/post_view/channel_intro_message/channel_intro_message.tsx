@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
+import {defineMessage, FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -706,7 +706,7 @@ function createSetHeaderButton(channel: Channel) {
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-            ariaLabel={Utils.localizeMessage({id: 'intro_messages.setHeader', defaultMessage: 'Set header'})}
+            ariaLabel={Utils.localizeMessage(defineMessage({id: 'intro_messages.setHeader', defaultMessage: 'Set header'}))}
             className={'action-button'}
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
@@ -754,7 +754,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser: User
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
+            ariaLabel={Utils.localizeMessage(defineMessage({id: 'intro_messages.notificationPreferences.ariaLabel', defaultMessage: 'Notification Preferences'}))}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
             dialogProps={{channel, currentUser}}

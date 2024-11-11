@@ -295,7 +295,7 @@ export default class SettingPicture extends Component<Props, State> {
                         className='btn btn-primary btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
-                        aria-label={localizeMessage({id: 'setting_picture.select', defaultMessage: 'Select'})}
+                        aria-label={localizeMessage(defineMessage({id: 'setting_picture.select', defaultMessage: 'Select'}))}
                     >
                         <FormattedMessage
                             id='setting_picture.select'
@@ -309,7 +309,7 @@ export default class SettingPicture extends Component<Props, State> {
                         ref={this.confirmButton}
                         className={confirmButtonClass}
                         onClick={this.handleSave}
-                        aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
+                        aria-label={this.props.loadingPicture ? localizeMessage(defineMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})) : localizeMessage(defineMessage({id: 'setting_picture.save', defaultMessage: 'Save'}))}
                     >
                         <LoadingWrapper
                             loading={this.props.loadingPicture}
@@ -357,7 +357,7 @@ export default class SettingPicture extends Component<Props, State> {
                                 data-testid='cancelSettingPicture'
                                 className='btn btn-tertiary theme ml-2'
                                 onClick={this.handleCancel}
-                                aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}
+                                aria-label={localizeMessage(defineMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'}))}
                             >
                                 <FormattedMessage
                                     id='setting_picture.cancel'

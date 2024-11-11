@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -234,7 +234,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             // @ts-ignore
                             ref={this.setSwitchBoxRef}
                             id='quickSwitchInput'
-                            aria-label={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
+                            aria-label={Utils.localizeMessage(defineMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'}))}
                             className='form-control focused'
                             onChange={this.onChange}
                             value={this.state.text}

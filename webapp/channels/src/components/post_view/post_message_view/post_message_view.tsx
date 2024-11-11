@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -132,7 +132,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
-            const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
+            const visibleMessage = Utils.localizeMessage(defineMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'}));
             message = message.concat(visibleMessage);
         }
 

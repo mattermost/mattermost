@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {MessageAttachment} from '@mattermost/types/message_attachments';
@@ -175,16 +177,16 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 }
 
 const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, msgProps: NewPostMessageProps, isCrtReply: boolean) => {
-    let title = Utils.localizeMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'});
+    let title = Utils.localizeMessage(defineMessage({id: 'channel_loader.posted', defaultMessage: 'Posted'}));
     if (channel.type === Constants.DM_CHANNEL) {
-        title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
+        title = Utils.localizeMessage(defineMessage({id: 'notification.dm', defaultMessage: 'Direct Message'}));
     } else {
         title = channel.display_name;
     }
 
     if (title === '') {
         if (msgProps.channel_type === Constants.DM_CHANNEL) {
-            title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
+            title = Utils.localizeMessage(defineMessage({id: 'notification.dm', defaultMessage: 'Direct Message'}));
         } else {
             title = msgProps.channel_display_name;
         }
@@ -210,7 +212,7 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
     if (msgProps.sender_name) {
         return msgProps.sender_name;
     }
-    return Utils.localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
+    return Utils.localizeMessage(defineMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'}));
 };
 
 const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMessageProps) => {
@@ -235,13 +237,13 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
     let body = `@${username}`;
     if (strippedMarkdownNotifyText.length === 0) {
         if (msgProps.image) {
-            body += Utils.localizeMessage({id: 'channel_loader.uploadedImage', defaultMessage: ' uploaded an image'});
+            body += Utils.localizeMessage(defineMessage({id: 'channel_loader.uploadedImage', defaultMessage: ' uploaded an image'}));
         } else if (msgProps.otherFile) {
-            body += Utils.localizeMessage({id: 'channel_loader.uploadedFile', defaultMessage: ' uploaded a file'});
+            body += Utils.localizeMessage(defineMessage({id: 'channel_loader.uploadedFile', defaultMessage: ' uploaded a file'}));
         } else if (image) {
-            body += Utils.localizeMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'});
+            body += Utils.localizeMessage(defineMessage({id: 'channel_loader.postedImage', defaultMessage: ' posted an image'}));
         } else {
-            body += Utils.localizeMessage({id: 'channel_loader.something', defaultMessage: ' did something new'});
+            body += Utils.localizeMessage(defineMessage({id: 'channel_loader.something', defaultMessage: ' did something new'}));
         }
     } else {
         body += `: ${strippedMarkdownNotifyText}`;

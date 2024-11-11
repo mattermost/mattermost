@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -92,7 +92,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                 <button
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
-                    aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
+                    aria-label={Utils.localizeMessage(defineMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'}))}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
                 >

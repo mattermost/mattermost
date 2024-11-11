@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
@@ -314,7 +314,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         id='createNewChannelButton'
                         className={buttonClassName}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
+                        aria-label={localizeMessage(defineMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'}))}
                     >
                         {icon}
                         <FormattedMessage

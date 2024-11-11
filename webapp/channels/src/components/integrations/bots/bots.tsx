@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
@@ -271,7 +271,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                         />
                     </>
                 }
-                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
+                searchPlaceholder={Utils.localizeMessage(defineMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'}))}
                 loading={this.state.loading}
             >
                 {this.bots}

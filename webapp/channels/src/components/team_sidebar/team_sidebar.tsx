@@ -6,7 +6,7 @@ import React from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {Team} from '@mattermost/types/teams';
@@ -246,7 +246,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             <i
                 className='icon icon-plus'
                 role={'img'}
-                aria-label={Utils.localizeMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
+                aria-label={Utils.localizeMessage(defineMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'}))}
             />
         );
 

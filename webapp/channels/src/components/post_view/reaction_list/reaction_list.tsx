@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage, defineMessages} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -174,7 +174,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                             placement='top'
                         >
                             <button
-                                aria-label={localizeMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'})}
+                                aria-label={localizeMessage(defineMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'}))}
                                 className='Reaction'
                                 onClick={this.toggleEmojiPicker}
                             >
@@ -199,7 +199,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
         return (
             <div
-                aria-label={localizeMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
+                aria-label={localizeMessage(defineMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'}))}
                 className='post-reaction-list'
             >
                 {reactions}

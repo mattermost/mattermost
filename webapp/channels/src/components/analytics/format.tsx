@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import * as Utils from 'utils/utils';
 
 export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) {
     const channelTypeData = {
         labels: [
-            Utils.localizeMessage({id: 'analytics.system.publicChannels', defaultMessage: 'Public Channels'}),
-            Utils.localizeMessage({id: 'analytics.system.privateGroups', defaultMessage: 'Private Channels'}),
+            Utils.localizeMessage(defineMessage({id: 'analytics.system.publicChannels', defaultMessage: 'Public Channels'})),
+            Utils.localizeMessage(defineMessage({id: 'analytics.system.privateGroups', defaultMessage: 'Private Channels'})),
         ],
         datasets: [{
             data: [totalPublic, totalPrivate],
@@ -22,9 +24,9 @@ export function formatChannelDoughtnutData(totalPublic: any, totalPrivate: any) 
 export function formatPostDoughtnutData(filePosts: any, hashtagPosts: any, totalPosts: any) {
     const postTypeData = {
         labels: [
-            Utils.localizeMessage({id: 'analytics.system.totalFilePosts', defaultMessage: 'Posts with Files'}),
-            Utils.localizeMessage({id: 'analytics.system.totalHashtagPosts', defaultMessage: 'Posts with Hashtags'}),
-            Utils.localizeMessage({id: 'analytics.system.textPosts', defaultMessage: 'Posts with Text-only'}),
+            Utils.localizeMessage(defineMessage({id: 'analytics.system.totalFilePosts', defaultMessage: 'Posts with Files'})),
+            Utils.localizeMessage(defineMessage({id: 'analytics.system.totalHashtagPosts', defaultMessage: 'Posts with Hashtags'})),
+            Utils.localizeMessage(defineMessage({id: 'analytics.system.textPosts', defaultMessage: 'Posts with Text-only'})),
         ],
         datasets: [{
             data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],

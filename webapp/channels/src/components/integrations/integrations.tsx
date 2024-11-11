@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -39,7 +39,7 @@ export default class Integrations extends React.PureComponent <Props> {
 
     updateTitle = () => {
         const currentSiteName = this.props.siteName || '';
-        document.title = Utils.localizeMessage({id: 'admin.sidebar.integrations', defaultMessage: 'Integrations'}) + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
+        document.title = Utils.localizeMessage(defineMessage({id: 'admin.sidebar.integrations', defaultMessage: 'Integrations'})) + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
     };
 
     render() {

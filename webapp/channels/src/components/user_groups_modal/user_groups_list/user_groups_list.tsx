@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
@@ -171,7 +171,7 @@ const UserGroupsList = (props: Props) => {
                                 openLeft={true}
                                 openUp={groupListOpenUp(index)}
                                 className={'group-actions-menu'}
-                                ariaLabel={Utils.localizeMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
+                                ariaLabel={Utils.localizeMessage(defineMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'}))}
                             >
                                 <Menu.Group>
                                     <Menu.ItemAction
@@ -179,7 +179,7 @@ const UserGroupsList = (props: Props) => {
                                             goToViewGroupModal(group);
                                         }}
                                         icon={<i className='icon-account-multiple-outline'/>}
-                                        text={Utils.localizeMessage({id: 'user_groups_modal.viewGroup', defaultMessage: 'View Group'})}
+                                        text={Utils.localizeMessage(defineMessage({id: 'user_groups_modal.viewGroup', defaultMessage: 'View Group'}))}
                                         disabled={false}
                                     />
                                 </Menu.Group>
@@ -190,7 +190,7 @@ const UserGroupsList = (props: Props) => {
                                             archiveGroup(group.id);
                                         }}
                                         icon={<i className='icon-archive-outline'/>}
-                                        text={Utils.localizeMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
+                                        text={Utils.localizeMessage(defineMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'}))}
                                         disabled={false}
                                         isDangerous={true}
                                     />
@@ -200,7 +200,7 @@ const UserGroupsList = (props: Props) => {
                                             restoreGroup(group.id);
                                         }}
                                         icon={<i className='icon-restore'/>}
-                                        text={Utils.localizeMessage({id: 'user_groups_modal.restoreGroup', defaultMessage: 'Restore Group'})}
+                                        text={Utils.localizeMessage(defineMessage({id: 'user_groups_modal.restoreGroup', defaultMessage: 'Restore Group'}))}
                                         disabled={false}
                                     />
                                 </Menu.Group>

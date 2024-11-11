@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -147,7 +147,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     {this.props.fileInfo.post_id && (
                         <WithTooltip
                             id='file-name__tooltip'
-                            title={localizeMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                            title={localizeMessage(defineMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}))}
                             placement={'top'}
                         >
                             <MenuWrapper
@@ -166,13 +166,13 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                 >
                                     <Menu.ItemAction
                                         onClick={this.jumpToConv}
-                                        ariaLabel={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
-                                        text={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
+                                        ariaLabel={localizeMessage(defineMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'}))}
+                                        text={localizeMessage(defineMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'}))}
                                     />
                                     <Menu.ItemAction
                                         onClick={this.copyLink}
-                                        ariaLabel={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
-                                        text={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
+                                        ariaLabel={localizeMessage(defineMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'}))}
+                                        text={localizeMessage(defineMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'}))}
                                     />
                                     {this.renderPluginItems()}
                                 </Menu>
@@ -181,7 +181,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     )}
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
+                        title={localizeMessage(defineMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'}))}
                         placement={'top'}
                     >
                         <a

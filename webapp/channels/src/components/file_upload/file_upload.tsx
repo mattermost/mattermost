@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
@@ -326,7 +326,7 @@ export class FileUpload extends PureComponent<Props, State> {
 
     handleDrop = (e: DragEvent<HTMLInputElement>) => {
         if (!this.props.canUploadFiles) {
-            this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
+            this.props.onUploadError(localizeMessage(defineMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'})));
             return;
         }
 
@@ -356,7 +356,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         if (files.length === 0) {
-            this.props.onUploadError(localizeMessage({id: 'file_upload.drag_folder', defaultMessage: 'This attachment cannot be uploaded.'}));
+            this.props.onUploadError(localizeMessage(defineMessage({id: 'file_upload.drag_folder', defaultMessage: 'This attachment cannot be uploaded.'})));
             return;
         }
 
@@ -491,7 +491,7 @@ export class FileUpload extends PureComponent<Props, State> {
             e.preventDefault();
 
             if (!this.props.canUploadFiles) {
-                this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
+                this.props.onUploadError(localizeMessage(defineMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'})));
                 return;
             }
             const postTextbox = this.props.postType === 'post' && document.activeElement?.id === 'post_textbox';

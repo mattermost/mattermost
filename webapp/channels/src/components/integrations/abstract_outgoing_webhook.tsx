@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -462,12 +462,12 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     <option
                                         value='0'
                                     >
-                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'})}
+                                        {localizeMessage(defineMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'}))}
                                     </option>
                                     <option
                                         value='1'
                                     >
-                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'})}
+                                        {localizeMessage(defineMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'}))}
                                     </option>
                                 </select>
                                 <div className='form__help'>

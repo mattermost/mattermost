@@ -4087,6 +4087,7 @@
   "intro_messages.noCreator": "Public channel created on {date}.",
   "intro_messages.noCreatorPrivate": "Private channel created on {date}.",
   "intro_messages.notificationPreferences": "Notifications",
+  "intro_messages.notificationPreferences.ariaLabel": "Notification Preferences",
   "intro_messages.offTopic": "This is the start of {display_name}, a channel for non-work-related conversations.",
   "intro_messages.onlyInvited": "This is the start of {display_name}. Only invited members can see this private channel.",
   "intro_messages.purpose": " This channel's purpose is: {purpose}",

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
@@ -196,9 +197,9 @@ export default class Reaction extends React.PureComponent<Props, State> {
         const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
 
         const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'})} ${emojiNameWithSpaces}`;
+        let ariaLabelEmoji = `${Utils.localizeMessage(defineMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'}))} ${emojiNameWithSpaces}`;
         if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
+            ariaLabelEmoji = `${Utils.localizeMessage(defineMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'}))} ${emojiNameWithSpaces}`;
         }
 
         const emojiIcon = (

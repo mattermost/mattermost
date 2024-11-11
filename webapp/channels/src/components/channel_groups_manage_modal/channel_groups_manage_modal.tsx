@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -126,21 +126,21 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                         </button>
                         <Menu
                             openLeft={true}
-                            ariaLabel={Utils.localizeMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'})}
+                            ariaLabel={Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'}))}
                         >
                             <Menu.ItemAction
                                 show={!item.scheme_admin}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, true)}
-                                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_admins', defaultMessage: 'Make Channel Admins'})}
+                                text={Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.make_channel_admins', defaultMessage: 'Make Channel Admins'}))}
                             />
                             <Menu.ItemAction
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, false)}
-                                text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_members', defaultMessage: 'Make Channel Members'})}
+                                text={Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.make_channel_members', defaultMessage: 'Make Channel Members'}))}
                             />
                             <Menu.ItemAction
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
-                                text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
+                                text={Utils.localizeMessage(defineMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'}))}
                             />
                         </Menu>
                     </MenuWrapper>

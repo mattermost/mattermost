@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {defineMessage, FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -267,7 +267,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
+            const addHelpLabel = localizeMessage(defineMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'}));
 
             categoryMenu = (
                 <>
@@ -310,7 +310,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM) {
             const message = categoryNames[category.type as keyof typeof categoryNames];
-            displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
+            displayName = localizeMessage(defineMessage({id: message.id, defaultMessage: message.defaultMessage}));
         }
 
         return (

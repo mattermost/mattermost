@@ -5,6 +5,7 @@ import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
+import {defineMessage} from 'react-intl';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import type {Post} from '@mattermost/types/posts';
@@ -424,7 +425,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 )}
                 <div
                     role='application'
-                    aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
+                    aria-label={Utils.localizeMessage(defineMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'}))}
                     className='post-right__content a11y__region'
                     style={{height: '100%'}}
                     data-a11y-sort-order='3'

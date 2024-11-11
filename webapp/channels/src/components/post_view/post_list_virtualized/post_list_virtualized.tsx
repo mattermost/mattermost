@@ -6,6 +6,7 @@
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
+import {defineMessage} from 'react-intl';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
@@ -680,7 +681,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 data-a11y-focus-child={true}
                 data-a11y-order-reversed={true}
                 data-a11y-loop-navigation={false}
-                aria-label={Utils.localizeMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})}
+                aria-label={Utils.localizeMessage(defineMessage(defineMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})))}
             >
                 {this.props.isMobileView && (
                     <>

@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
+import {defineMessage} from 'react-intl';
 
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
@@ -191,7 +192,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.selected', defaultMessage: 'selected'}) : s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.notSelected', defaultMessage: 'not selected'});
+                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage(defineMessage({id: 'sidebar.menu.item.selected', defaultMessage: 'selected'})) : s.text + ' ' + Utils.localizeMessage(defineMessage({id: 'sidebar.menu.item.notSelected', defaultMessage: 'not selected'}));
                         }
                         return (
                             <span
@@ -248,7 +249,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                             <span
                                 id={'channelHeaderDropdownIconRight_' + id}
                                 className={classNames([`fa fa-angle-right SubMenu__icon-right${hasSubmenu ? '' : '-empty'}`, {mobile: isMobile}])}
-                                aria-label={Utils.localizeMessage({id: 'post_info.submenu.icon', defaultMessage: 'submenu icon'}).toLowerCase()}
+                                aria-label={Utils.localizeMessage(defineMessage({id: 'post_info.submenu.icon', defaultMessage: 'submenu icon'}).toLowerCase())}
                             />
                         }
                     </div>

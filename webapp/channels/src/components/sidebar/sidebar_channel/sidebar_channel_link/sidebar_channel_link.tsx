@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {defineMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -119,13 +120,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         if (unreadMentions === 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
+            ariaLabel += ` ${unreadMentions} ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'}))}`;
         } else if (unreadMentions > 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
+            ariaLabel += ` ${unreadMentions} ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'}))}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
-            ariaLabel += ` ${localizeMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
+            ariaLabel += ` ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'}))}`;
         }
 
         return ariaLabel.toLowerCase();

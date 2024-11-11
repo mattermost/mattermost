@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
@@ -44,7 +45,7 @@ export const makeGetNamesOfUsers = () => createSelector(
         }, [] as string[]);
 
         if (currentUserReacted) {
-            users.unshift(Utils.localizeMessage({id: 'reaction.you', defaultMessage: 'You'}));
+            users.unshift(Utils.localizeMessage(defineMessage({id: 'reaction.you', defaultMessage: 'You'})));
         }
 
         return users;

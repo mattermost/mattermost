@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessage, defineMessages} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -220,7 +220,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
+            deactivated = (' - ' + Utils.localizeMessage(defineMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'})));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {
@@ -228,7 +228,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
+                name += (' ' + Utils.localizeMessage(defineMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'})));
             }
             description = deactivated;
         }
@@ -545,7 +545,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
+            displayName += (' ' + Utils.localizeMessage(defineMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'})));
         }
 
         return {

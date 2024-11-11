@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
@@ -91,7 +91,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
+                displayNameA = Utils.localizeMessage(defineMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'}));
             }
         }
 
@@ -177,7 +177,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'})}
+                searchPlaceholder={Utils.localizeMessage(defineMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search Incoming Webhooks'}))}
                 loading={this.state.loading}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}

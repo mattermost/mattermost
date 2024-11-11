@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -52,12 +52,12 @@ export default class InstalledCommands extends React.PureComponent<Props> {
     private commandCompare(a: Command, b: Command) {
         let nameA = a.display_name;
         if (!nameA) {
-            nameA = Utils.localizeMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'});
+            nameA = Utils.localizeMessage(defineMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'}));
         }
 
         let nameB = b.display_name;
         if (!nameB) {
-            nameB = Utils.localizeMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'});
+            nameB = Utils.localizeMessage(defineMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'}));
         }
 
         return nameA.localeCompare(nameB);
@@ -144,7 +144,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage({id: 'installed_commands.search', defaultMessage: 'Search Slash Commands'})}
+                searchPlaceholder={Utils.localizeMessage(defineMessage({id: 'installed_commands.search', defaultMessage: 'Search Slash Commands'}))}
                 loading={this.props.loading}
             >
                 {(filter: string) => {

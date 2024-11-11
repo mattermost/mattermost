@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -85,12 +86,12 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
+                        title={localizeMessage(defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}))}
                         placement='top'
                     >
                         <ExternalLink
                             href={getFileDownloadUrl(fileInfo.id)}
-                            aria-label={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}).toLowerCase()}
+                            aria-label={localizeMessage(defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}).toLowerCase())}
                             download={fileName}
                             location='filename_overlay'
                         >

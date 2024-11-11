@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
+
 import type {Channel} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 
@@ -96,11 +98,11 @@ export const getSelectedPost = createSelector(
             id: selectedPostId,
             exists: false,
             type: PostTypes.FAKE_PARENT_DELETED as PostType,
-            message: localizeMessage({
+            message: localizeMessage(defineMessage({
                 id: 'rhs_thread.rootPostDeletedMessage.body',
                 defaultMessage:
                     'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.',
-            }),
+            })),
             channel_id: selectedPostChannelId,
             user_id: currentUserId,
             reply_count: 0,
