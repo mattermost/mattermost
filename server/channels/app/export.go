@@ -903,7 +903,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 					// this is the case of a group channel when other user is permanently deleted
 					// we skip this channel and inform by logging it.
 					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
-					ctx.Logger().Info("Skipping unintegrated group channel", mlog.String("channel_id", channel.Id))
+					ctx.Logger().Warn("Skipping group channels with partially deleted members", mlog.String("channel_id", channel.Id))
 					continue
 				}
 			case model.ChannelTypeDirect:
