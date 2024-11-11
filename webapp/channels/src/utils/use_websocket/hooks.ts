@@ -1,17 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {UseWebSocketOptions} from '@hmhealey/plugin-support';
 import {useContext, useEffect} from 'react';
 
-import type {WebSocketClient, WebSocketMessage} from '@mattermost/client';
+import type {WebSocketClient} from '@mattermost/client';
 
 import {WebSocketContext} from './context';
 
-export type UseWebSocketOptions = {
-    handler: (msg: WebSocketMessage) => void;
-}
-
-export function useWebSocket({handler}: UseWebSocketOptions) {
+export function useWebSocket({handler}: UseWebSocketOptions): void {
     const wsClient = useWebSocketClient();
 
     useEffect(() => {

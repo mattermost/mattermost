@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MessageHtmlToComponentOptions, TextFormattingOptions, WindowPostUtils, WindowProductApi} from '@hmhealey/plugin-support';
+
 import {notifyMe} from 'actions/notification_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
@@ -43,36 +45,44 @@ window.PropTypes = require('prop-types');
 window.Luxon = require('luxon');
 window.StyledComponents = require('styled-components');
 
+// Previously, this function took an extra isRHS argument as the second parameter. For backwards compatibility,
+// support calling this as either messageHtmlToComponent(html, options) or messageHtmlToComponent(html, isRhs, options)
+interface PostUtils extends WindowPostUtils {
+    messageHtmlToComponent(html: string, options?: MessageHtmlToComponentOptions): JSX.Element;
+    messageHtmlToComponent(html: string, isRhs?: boolean, options?: MessageHtmlToComponentOptions): JSX.Element;
+}
+
 // Functions exposed on window for plugins to use.
 window.PostUtils = {
-    formatText,
-    messageHtmlToComponent: (html, ...otherArgs) => {
-        // Previously, this function took an extra isRHS argument as the second parameter. For backwards compatibility,
-        // support calling this as either messageHtmlToComponent(html, options) or messageHtmlToComponent(html, isRhs, options)
-
-        let options;
+    formatText(text, options?: TextFormattingOptions) {
+        return formatText(text, options);
+    },
+    messageHtmlToComponent(html, ...otherArgs) {
+        let options: MessageHtmlToComponentOptions | undefined;
         if (otherArgs.length === 2) {
-            options = otherArgs[1];
+            if (typeof otherArgs[1] === 'object') {
+                options = otherArgs[1] as MessageHtmlToComponentOptions;
+            }
         } else if (otherArgs.length === 1 && typeof otherArgs[0] === 'object') {
-            options = otherArgs[0];
+            options = otherArgs[0] as MessageHtmlToComponentOptions;
         }
 
         return messageHtmlToComponent(html, options);
     },
-};
-window.openInteractiveDialog = openInteractiveDialog;
-window.useNotifyAdmin = useNotifyAdmin;
-window.WebappUtils = {
+} satisfies PostUtils;
+(window as any).openInteractiveDialog = openInteractiveDialog;
+(window as any).useNotifyAdmin = useNotifyAdmin;
+(window as any).WebappUtils = {
     modals: {openModal, ModalIdentifiers},
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
-    openUserSettings: (dialogProps) => openModal({
+    openUserSettings: (dialogProps: any) => openModal({
         modalId: ModalIdentifiers.USER_SETTINGS,
         dialogType: UserSettingsModal,
         dialogProps,
     }),
 };
-Object.defineProperty(window.WebappUtils, 'browserHistory', {
+Object.defineProperty((window as any).WebappUtils, 'browserHistory', {
     get: () => getHistory(),
 });
 
@@ -80,12 +90,12 @@ Object.defineProperty(window.WebappUtils, 'browserHistory', {
 // is initialized when `UpgradeCloudButton` is loaded.
 // So if we export `openPricingModal` directly, it will be locked
 // to the initial value of undefined.
-window.openPricingModal = () => openPricingModal;
+(window as any).openPricingModal = () => openPricingModal;
 
 // Components exposed on window FOR INTERNAL PLUGIN USE ONLY. These components may have breaking changes in the future
 // outside of major releases. They will be replaced by common components once that project is more mature and able to
 // guarantee better compatibility.
-window.Components = {
+(window as any).Components = {
     Textbox,
     Timestamp,
     ChannelInviteModal,
@@ -109,7 +119,7 @@ window.ProductApi = {
     selectRhsPost: selectPostById,
     getRhsSelectedPostId: getSelectedPostId,
     getIsRhsOpen,
-};
+} as WindowProductApi;
 
 // Desktop App module containing the app info and a series of helpers to work with legacy code
-window.DesktopApp = DesktopApp;
+(window as any).DesktopApp = DesktopApp;

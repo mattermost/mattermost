@@ -3,3 +3,4 @@
 
 export * from './registry/index';
 export * as UserSettings from './user_settings';
+export type * from './window.ts';

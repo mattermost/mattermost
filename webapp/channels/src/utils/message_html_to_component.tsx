@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MessageHtmlToComponentOptions} from '@hmhealey/plugin-support';
 import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import React from 'react';
 
@@ -15,7 +16,7 @@ import MarkdownImage from 'components/markdown_image';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
-export type Options = Partial<{
+export type Options = MessageHtmlToComponentOptions & Partial<{
     postId: string;
     editedAt: number;
     hasPluginTooltips: boolean;
@@ -35,13 +36,6 @@ export type Options = Partial<{
     images: boolean;
     atPlanMentions: boolean;
     channelId: string;
-
-    /**
-     * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
-     * something that looks like an at-mention. This defaults to false because the web app currently loads at-mentioned
-     * users automatically for all posts.
-     */
-    fetchMissingUsers: boolean;
 }>
 
 type ProcessingInstruction = {

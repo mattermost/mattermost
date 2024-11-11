@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import EmojiMap from 'utils/emoji_map';
+import {TestHelper} from 'utils/test_helper';
 import * as TextFormatting from 'utils/text_formatting';
 
 const emojiMap = new EmojiMap(new Map());
@@ -139,9 +140,9 @@ describe('TextFormatting.Hashtags with default setting', () => {
 
         options = {
             channelNamesMap: {
-                test: {display_name: 'Test Channel'},
+                test: TestHelper.getChannelMock({display_name: 'Test Channel'}),
             },
-            team: {id: 'abcd', name: 'abcd', display_name: 'Alphabet'},
+            team: TestHelper.getTeamMock({id: 'abcd', name: 'abcd', display_name: 'Alphabet'}),
         };
         expect(TextFormatting.formatText('#~test', options, emojiMap).trim()).toBe(
             '<p>#<a class="mention-link" href="/abcd/channels/test" data-channel-mention="test">~Test Channel</a></p>',

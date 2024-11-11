@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {TextFormattingOptions as TextFormattingOptionsBase} from '@hmhealey/plugin-support';
 import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
@@ -53,14 +54,14 @@ export type Team = {
     display_name: string;
 };
 
-export interface TextFormattingOptionsBase {
+export interface TextFormattingOptions extends TextFormattingOptionsBase {
 
     /**
      * If specified, this word is highlighted in the resulting html.
      *
      * Defaults to nothing.
      */
-    searchTerm: string;
+    searchTerm?: string;
 
     /**
      * If specified, an array of words that will be highlighted.
@@ -69,95 +70,63 @@ export interface TextFormattingOptionsBase {
      *
      * Defaults to nothing.
      */
-    searchMatches: string[];
+    searchMatches?: string[];
 
-    searchPatterns: SearchPattern[];
+    searchPatterns?: SearchPattern[];
 
     /**
      * Specifies whether or not to highlight mentions of the current user.
      *
      * Defaults to `true`.
      */
-    mentionHighlight: boolean;
+    mentionHighlight?: boolean;
 
     /**
      * Specifies whether or not to display group mentions as blue links.
      *
      * Defaults to `false`.
      */
-    disableGroupHighlight: boolean;
+    disableGroupHighlight?: boolean;
 
     /**
      * A list of mention keys for the current user to highlight.
      */
-    mentionKeys: MentionKey[];
+    mentionKeys?: MentionKey[];
 
     /**
      * A list of highlight keys for the current user to highlight without notification.
      */
-    highlightKeys: HighlightWithoutNotificationKey[];
+    highlightKeys?: HighlightWithoutNotificationKey[];
 
     /**
      * Specifies whether or not to remove newlines.
      *
      * Defaults to `false`.
      */
-    singleline: boolean;
+    singleline?: boolean;
 
     /**
-     * Enables emoticon parsing with a data-emoticon attribute.
+     * Whether or not to render (eg. :taco: or 🌮) and emoticons (eg. :D) as emoji images.
+     *
+     * This requires the use of `messageHtmlToComponent`.
      *
      * Defaults to `true`.
      */
-    emoticons: boolean;
-
-    /**
-     * Enables markdown parsing.
-     *
-     * Defaults to `true`.
-     */
-    markdown: boolean;
-
-    /**
-     * The origin of this Mattermost instance.
-     *
-     * If provided, links to channels and posts will be replaced with internal
-     * links that can be handled by a special click handler.
-     */
-    siteURL: string;
-
-    /**
-     * Whether or not to render at mentions into spans with a data-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atMentions: boolean;
-
-    /**
-     * An object mapping channel display names to channels.
-     *
-     * If provided, ~channel mentions will be replaced with links to the relevant channel.
-     */
-    channelNamesMap: ChannelNamesMap;
-
-    /**
-     * The current team.
-     */
-    team: Team;
+    emoticons?: boolean;
 
     /**
      * If specified, images are proxied.
      *
      * Defaults to `false`.
      */
-    proxyImages: boolean;
+    proxyImages?: boolean;
 
     /**
      * An array of url schemes that will be allowed for autolinking.
      *
      * Defaults to autolinking with any url scheme.
      */
-    autolinkedUrlSchemes: string[];
+    autolinkedUrlSchemes?: string[];
 
     /**
      * An array of paths on the server that are managed by another server. Any path provided will be treated as an
@@ -165,51 +134,42 @@ export interface TextFormattingOptionsBase {
      *
      * Defaults to an empty array.
      */
-    managedResourcePaths: string[];
+    managedResourcePaths?: string[];
 
     /**
      * A custom renderer object to use in the formatWithRenderer function.
      *
      * Defaults to empty.
      */
-    renderer: Renderer;
+    renderer?: Renderer;
 
     /**
      * Minimum number of characters in a hashtag.
      *
      * Defaults to `3`.
      */
-    minimumHashtagLength: number;
+    minimumHashtagLength?: number;
 
     /**
      * the timestamp on which the post was last edited
      */
-    editedAt: number;
-    postId: string;
+    editedAt?: number;
+    postId?: string;
 
     /**
      * Whether or not to render sum of members mentions e.g. "5 members..." into spans with a data-sum-of-members-mention attribute.
      *
      * Defaults to `false`.
      */
-    atSumOfMembersMentions: boolean;
+    atSumOfMembersMentions?: boolean;
 
     /**
      * Whether or not to render plan mentions e.g. "Professional plan, Enterprise plan, Starter plan" into spans with a data-plan-mention attribute.
      *
      * Defaults to `false`.
      */
-    atPlanMentions: boolean;
-
-    /**
-     * If true, the renderer will assume links are not safe.
-     *
-     * Defaults to `false`.
-     */
-    unsafeLinks: boolean;
+    atPlanMentions?: boolean;
 }
-
-export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
 
 export class Tokens extends Map<string, {value: string; originalText: string; hashtag?: string}> {
     set(key: string, value: {value: string; originalText: string; hashtag?: string}) {
@@ -259,7 +219,7 @@ export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9
 export function formatText(
     text: string,
     inputOptions: TextFormattingOptions = DEFAULT_OPTIONS,
-    emojiMap: EmojiMap,
+    emojiMap?: EmojiMap,
 ): string {
     if (!text) {
         return '';
@@ -345,7 +305,7 @@ export function formatText(
 }
 
 // Performs most of the actual formatting work for formatText. Not intended to be called normally.
-export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap): string {
+export function doFormatText(text: string, options: TextFormattingOptions, emojiMap: EmojiMap | undefined): string {
     let output = text;
 
     const tokens = new Tokens();
@@ -1063,7 +1023,7 @@ function replaceNewlines(text: string) {
     return text.replace(/\n/g, ' ');
 }
 
-export function handleUnicodeEmoji(text: string, emojiMap: EmojiMap, searchPattern: RegExp): string {
+export function handleUnicodeEmoji(text: string, emojiMap: EmojiMap | undefined, searchPattern: RegExp): string {
     let output = text;
 
     // replace all occurances of unicode emoji with additional markup
