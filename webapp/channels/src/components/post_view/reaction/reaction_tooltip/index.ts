@@ -45,7 +45,7 @@ export const makeGetNamesOfUsers = () => createSelector(
         }, [] as string[]);
 
         if (currentUserReacted) {
-            users.unshift(Utils.localizeMessage(defineMessage({id: 'reaction.you', defaultMessage: 'You'})));
+            users.unshift(intl.formatMessage({id: 'reaction.you', defaultMessage: 'You'}));
         }
 
         return users;

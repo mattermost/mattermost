@@ -67,11 +67,11 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
     displayRoleToBe = () => {
         const {group, type} = this.props;
         if (!group.scheme_admin && type === 'channel') {
-            return localizeMessage(defineMessage({id: 'admin.team_channel_settings.group_row.channelAdmin', defaultMessage: 'Channel Admin'}));
+            return intl.formatMessage({id: 'admin.team_channel_settings.group_row.channelAdmin', defaultMessage: 'Channel Admin'});
         } else if (!group.scheme_admin && type === 'team') {
-            return localizeMessage(defineMessage({id: 'admin.team_channel_settings.group_row.teamAdmin', defaultMessage: 'Team Admin'}));
+            return intl.formatMessage({id: 'admin.team_channel_settings.group_row.teamAdmin', defaultMessage: 'Team Admin'});
         }
-        return localizeMessage(defineMessage({id: 'admin.team_channel_settings.group_row.member', defaultMessage: 'Member'}));
+        return intl.formatMessage({id: 'admin.team_channel_settings.group_row.member', defaultMessage: 'Member'});
     };
 
     render = () => {
@@ -119,7 +119,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
                                 id='role-to-be-menu'
                                 openLeft={true}
                                 openUp={false}
-                                ariaLabel={localizeMessage(defineMessage({id: 'admin.team_channel_settings.group_row.memberRole', defaultMessage: 'Member Role'}))}
+                                ariaLabel={intl.formatMessage({id: 'admin.team_channel_settings.group_row.memberRole', defaultMessage: 'Member Role'})}
                             >
                                 <Menu.ItemAction
                                     id='role-to-be'

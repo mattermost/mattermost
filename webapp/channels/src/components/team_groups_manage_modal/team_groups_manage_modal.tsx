@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {SyncableType} from '@mattermost/types/groups';
@@ -21,7 +21,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import groupsAvatar from 'images/groups-avatar.png';
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -109,6 +108,8 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
     };
 
     renderRow = (item: Group, listModal: ListModal) => {
+        const {intl} = this.props;
+
         let title;
         if (item.scheme_admin) {
             title = (
@@ -168,22 +169,22 @@ class TeamGroupsManageModal extends React.PureComponent<Props, State> {
                         </button>
                         <Menu
                             openLeft={true}
-                            ariaLabel={Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'}))}
+                            ariaLabel={intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                         >
                             <Menu.ItemAction
                                 show={!item.scheme_admin}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, true)}
-                                text={Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.makeTeamAdmins', defaultMessage: 'Make Team Admins'}))}
+                                text={intl.formatMessage({id: 'team_members_dropdown.makeTeamAdmins', defaultMessage: 'Make Team Admins'})}
                             />
                             <Menu.ItemAction
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setTeamMemberStatus(item, listModal, false)}
-                                text={Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.makeTeamMembers', defaultMessage: 'Make Team Members'}))}
+                                text={intl.formatMessage({id: 'team_members_dropdown.makeTeamMembers', defaultMessage: 'Make Team Members'})}
                             />
                             <Menu.ItemAction
                                 id='remove-group'
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
-                                text={Utils.localizeMessage(defineMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'}))}
+                                text={intl.formatMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
                             />
                         </Menu>
                     </MenuWrapper>

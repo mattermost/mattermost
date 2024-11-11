@@ -267,7 +267,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            const addHelpLabel = localizeMessage(defineMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'}));
+            const addHelpLabel = intl.formatMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
 
             categoryMenu = (
                 <>
@@ -310,7 +310,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM) {
             const message = categoryNames[category.type as keyof typeof categoryNames];
-            displayName = localizeMessage(defineMessage({id: message.id, defaultMessage: message.defaultMessage}));
+            displayName = intl.formatMessage({id: message.id, defaultMessage: message.defaultMessage});
         }
 
         return (

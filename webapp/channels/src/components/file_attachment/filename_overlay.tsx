@@ -86,7 +86,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage(defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}))}
+                        title={intl.formatMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                         placement='top'
                     >
                         <ExternalLink

@@ -120,13 +120,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         if (unreadMentions === 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'}))}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
         } else if (unreadMentions > 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'}))}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
-            ariaLabel += ` ${localizeMessage(defineMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'}))}`;
+            ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
         }
 
         return ariaLabel.toLowerCase();

@@ -569,10 +569,10 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                     onChange={this.updateMethod}
                                 >
                                     <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage(defineMessage({id: 'add_command.method.post', defaultMessage: 'POST'}))}
+                                        {intl.formatMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
                                     </option>
                                     <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage(defineMessage({id: 'add_command.method.get', defaultMessage: 'GET'}))}
+                                        {intl.formatMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>

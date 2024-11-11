@@ -174,7 +174,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                             placement='top'
                         >
                             <button
-                                aria-label={localizeMessage(defineMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'}))}
+                                aria-label={intl.formatMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'})}
                                 className='Reaction'
                                 onClick={this.toggleEmojiPicker}
                             >
@@ -199,7 +199,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
         return (
             <div
-                aria-label={localizeMessage(defineMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'}))}
+                aria-label={intl.formatMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
                 className='post-reaction-list'
             >
                 {reactions}

@@ -52,12 +52,12 @@ export default class InstalledCommands extends React.PureComponent<Props> {
     private commandCompare(a: Command, b: Command) {
         let nameA = a.display_name;
         if (!nameA) {
-            nameA = Utils.localizeMessage(defineMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'}));
+            nameA = intl.formatMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'});
         }
 
         let nameB = b.display_name;
         if (!nameB) {
-            nameB = Utils.localizeMessage(defineMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'}));
+            nameB = intl.formatMessage({id: 'installed_commands.unnamed_command', defaultMessage: 'Unnamed Slash Command'});
         }
 
         return nameA.localeCompare(nameB);
@@ -144,7 +144,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         }}
                     />
                 }
-                searchPlaceholder={Utils.localizeMessage(defineMessage({id: 'installed_commands.search', defaultMessage: 'Search Slash Commands'}))}
+                searchPlaceholder={intl.formatMessage({id: 'installed_commands.search', defaultMessage: 'Search Slash Commands'})}
                 loading={this.props.loading}
             >
                 {(filter: string) => {

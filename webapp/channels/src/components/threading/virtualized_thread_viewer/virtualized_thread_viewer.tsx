@@ -425,7 +425,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                 )}
                 <div
                     role='application'
-                    aria-label={Utils.localizeMessage(defineMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'}))}
+                    aria-label={intl.formatMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complimentary region'})}
                     className='post-right__content a11y__region'
                     style={{height: '100%'}}
                     data-a11y-sort-order='3'

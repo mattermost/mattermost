@@ -6,7 +6,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
@@ -19,13 +20,13 @@ import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
-import {localizeMessage, copyToClipboard, getFileType} from 'utils/utils';
+import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
 
-export type Props = {
+export type Props = WrappedComponentProps & {
 
     /*
     * The source URL of the image
@@ -199,6 +200,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             src,
             fileURL,
             enablePublicLink,
+            intl,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -210,8 +212,9 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'onClick');
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
+        Reflect.deleteProperty(props, 'intl');
 
-        let ariaLabelImage = localizeMessage(defineMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'}));
+        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -269,7 +272,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className={classNames('style--none', 'size-aware-image__copy_link', {
                         'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
                     })}
-                    aria-label={localizeMessage(defineMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'}))}
+                    aria-label={intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
@@ -306,7 +309,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className='style--none size-aware-image__download'
                     download={true}
                     role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={localizeMessage(defineMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'}))}
+                    aria-label={intl.formatMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
                 >
                     <DownloadOutlineIcon
                         className={'style--none'}
@@ -396,7 +399,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
         } = this.props;
 
-        let ariaLabelImage = localizeMessage(defineMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'}));
+        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }

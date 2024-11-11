@@ -120,7 +120,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
-                displayNameA = localizeMessage(defineMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'}));
+                displayNameA = intl.formatMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
 
@@ -130,7 +130,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
             if (channelB) {
                 displayNameB = channelB.display_name;
             } else {
-                displayNameB = localizeMessage(defineMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'}));
+                displayNameB = intl.formatMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             }
         }
         return displayNameA.localeCompare(displayNameB);

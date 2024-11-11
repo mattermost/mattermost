@@ -314,7 +314,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         id='createNewChannelButton'
                         className={buttonClassName}
                         onClick={this.handleNewChannel}
-                        aria-label={localizeMessage(defineMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'}))}
+                        aria-label={intl.formatMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
                     >
                         {icon}
                         <FormattedMessage

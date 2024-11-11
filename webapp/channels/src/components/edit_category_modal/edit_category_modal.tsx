@@ -140,7 +140,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
         return (
             <GenericModal
                 id='editCategoryModal'
-                ariaLabel={localizeMessage(defineMessage({id: 'rename_category_modal.renameCategory', defaultMessage: 'Rename Category'}))}
+                ariaLabel={intl.formatMessage({id: 'rename_category_modal.renameCategory', defaultMessage: 'Rename Category'})}
                 modalHeaderText={modalHeaderText}
                 confirmButtonText={editButtonText}
                 compassDesign={true}
@@ -156,7 +156,7 @@ export default class EditCategoryModal extends React.PureComponent<Props, State>
                     className='form-control filter-textbox'
                     type='text'
                     value={this.state.categoryName}
-                    placeholder={localizeMessage(defineMessage({id: 'edit_category_modal.placeholder', defaultMessage: 'Name your category'}))}
+                    placeholder={intl.formatMessage({id: 'edit_category_modal.placeholder', defaultMessage: 'Name your category'})}
                     clearable={true}
                     onClear={this.handleClear}
                     onChange={this.handleChange}

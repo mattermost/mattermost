@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -13,15 +14,13 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
-import * as Utils from 'utils/utils';
-
 export type BaseMembership = {
     user_id: string;
     scheme_user: boolean;
     scheme_admin: boolean;
 }
 
-type Props = {
+type Props = WrappedComponentProps & {
     user: UserProfile;
     membership?: BaseMembership | TeamMembership | ChannelMembership;
     scope: 'team' | 'channel';
@@ -33,16 +32,18 @@ export type Role = 'system_admin' | 'team_admin' | 'team_user' | 'channel_admin'
 
 export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     private getDropDownOptions = () => {
+        const {intl} = this.props;
+
         if (this.props.scope === 'team') {
             return {
-                makeAdmin: Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})),
-                makeMember: Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'})),
+                makeAdmin: intl.formatMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'}),
+                makeMember: intl.formatMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'}),
             };
         }
 
         return {
-            makeAdmin: Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'})),
-            makeMember: Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'})),
+            makeAdmin: intl.formatMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'}),
+            makeMember: intl.formatMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'}),
         };
     };
 
@@ -77,20 +78,22 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     };
 
     private getLocalizedRole = (role: Role) => {
+        const {intl} = this.props;
+
         switch (role) {
         case 'system_admin':
-            return Utils.localizeMessage(defineMessage({id: 'admin.user_grid.system_admin', defaultMessage: 'System Admin'}));
+            return intl.formatMessage({id: 'admin.user_grid.system_admin', defaultMessage: 'System Admin'});
         case 'team_admin':
-            return Utils.localizeMessage(defineMessage({id: 'admin.user_grid.team_admin', defaultMessage: 'Team Admin'}));
+            return intl.formatMessage({id: 'admin.user_grid.team_admin', defaultMessage: 'Team Admin'});
         case 'channel_admin':
-            return Utils.localizeMessage(defineMessage({id: 'admin.user_grid.channel_admin', defaultMessage: 'Channel Admin'}));
+            return intl.formatMessage({id: 'admin.user_grid.channel_admin', defaultMessage: 'Channel Admin'});
         case 'shared_member':
-            return Utils.localizeMessage(defineMessage({id: 'admin.user_grid.shared_member', defaultMessage: 'Shared Member'}));
+            return intl.formatMessage({id: 'admin.user_grid.shared_member', defaultMessage: 'Shared Member'});
         case 'team_user':
         case 'channel_user':
-            return Utils.localizeMessage(defineMessage({id: 'admin.group_teams_and_channels_row.member', defaultMessage: 'Member'}));
+            return intl.formatMessage({id: 'admin.group_teams_and_channels_row.member', defaultMessage: 'Member'});
         default:
-            return Utils.localizeMessage(defineMessage({id: 'admin.user_grid.guest', defaultMessage: 'Guest'}));
+            return intl.formatMessage({id: 'admin.user_grid.guest', defaultMessage: 'Guest'});
         }
     };
 
@@ -111,11 +114,11 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
     };
 
     private getAriaLabel = () => {
-        const {scope} = this.props;
+        const {scope, intl} = this.props;
         if (scope === 'team') {
-            return Utils.localizeMessage(defineMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'}));
+            return intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'});
         }
-        return Utils.localizeMessage(defineMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'}));
+        return intl.formatMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'});
     };
 
     public render = (): React.ReactNode => {

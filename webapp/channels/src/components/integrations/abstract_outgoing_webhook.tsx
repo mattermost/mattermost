@@ -462,12 +462,12 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     <option
                                         value='0'
                                     >
-                                        {localizeMessage(defineMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'}))}
+                                        {intl.formatMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'})}
                                     </option>
                                     <option
                                         value='1'
                                     >
-                                        {localizeMessage(defineMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'}))}
+                                        {intl.formatMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'})}
                                     </option>
                                 </select>
                                 <div className='form__help'>

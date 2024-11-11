@@ -220,7 +220,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
 
         let deactivated = '';
         if (teammate.delete_at) {
-            deactivated = (' - ' + Utils.localizeMessage(defineMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'})));
+            deactivated = (' - ' + intl.formatMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'}));
         }
 
         if (channel.display_name && !(teammate && teammate.is_bot)) {

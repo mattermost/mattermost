@@ -6,7 +6,7 @@
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React from 'react';
-import {defineMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
@@ -50,7 +50,7 @@ const virtListStyles = {
 
 const OFFSET_TO_SHOW_TOAST = -50;
 
-type Props = {
+type Props = WrappedComponentProps & {
 
     /*
      * Array of Ids in the channel including date separators, new message indicator, more messages loader,
@@ -671,7 +671,7 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {channelId} = this.props;
+        const {channelId, intl} = this.props;
         const {dynamicListStyle} = this.state;
 
         return (
@@ -681,7 +681,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                 data-a11y-focus-child={true}
                 data-a11y-order-reversed={true}
                 data-a11y-loop-navigation={false}
-                aria-label={Utils.localizeMessage(defineMessage(defineMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})))}
+                aria-label={intl.formatMessage({id: 'accessibility.sections.centerContent', defaultMessage: 'message list main region'})}
             >
                 {this.props.isMobileView && (
                     <>

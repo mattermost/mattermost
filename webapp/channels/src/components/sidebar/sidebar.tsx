@@ -228,7 +228,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
             return (<div/>);
         }
 
-        const ariaLabel = localizeMessage(defineMessage({id: 'accessibility.sections.lhsNavigator', defaultMessage: 'channel navigator region'}));
+        const ariaLabel = intl.formatMessage({id: 'accessibility.sections.lhsNavigator', defaultMessage: 'channel navigator region'});
 
         return (
             <ResizableLhs

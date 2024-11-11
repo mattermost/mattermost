@@ -197,9 +197,9 @@ export default class Reaction extends React.PureComponent<Props, State> {
         const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
 
         const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage(defineMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'}))} ${emojiNameWithSpaces}`;
+        let ariaLabelEmoji = `${intl.formatMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'})} ${emojiNameWithSpaces}`;
         if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage(defineMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'}))} ${emojiNameWithSpaces}`;
+            ariaLabelEmoji = `${intl.formatMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
         }
 
         const emojiIcon = (
