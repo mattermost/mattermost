@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
@@ -221,9 +220,10 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		rctx := th.Context
 		var err error
 		var appErr *model.AppError
+		var systemBot *model.Bot
 
-		systemBot, appErr := th.App.GetSystemBot(rctx)
-		require.Nil(t, appErr)
+		systemBot, appErr = th.App.GetSystemBot(rctx)
+		assert.True(t, appErr == nil)
 		assert.NotNil(t, systemBot)
 
 		failedScheduledPosts := []*model.ScheduledPost{
@@ -283,8 +283,8 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		var posts *model.PostList
 		var timeout = 2 * time.Second
 		begin := time.Now()
-		channel, chErr := th.App.GetOrCreateDirectChannel(rctx, th.BasicUser.Id, systemBot.UserId)
-		assert.Nil(t, chErr)
+		channel, appErr := th.App.GetOrCreateDirectChannel(rctx, th.BasicUser.Id, systemBot.UserId)
+		assert.True(t, appErr == nil)
 
 		for {
 			if time.Since(begin) > timeout {
@@ -292,7 +292,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 			}
 
 			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
-			require.Nil(t, appErr)
+			assert.Nil(t, appErr)
 
 			// break in case it find any posts
 			if len(posts.Posts) > 0 {
@@ -303,8 +303,9 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		assert.NotEmpty(t, posts.Posts, "Expected notification to have been sent within %d seconds", timeout)
 
 		// get the user translations to validate against the system bot message content
-		user, err := th.App.GetUser(th.BasicUser.Id)
-		require.Nil(t, err)
+		var user *model.User
+		user, appErr = th.App.GetUser(th.BasicUser.Id)
+		assert.True(t, appErr == nil)
 
 		T := i18n.GetUserTranslations(user.Locale)
 		messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
