@@ -81,6 +81,9 @@ function DraftsLink() {
         initialScheduledPostsLoaded.current = true;
     }, [dispatch, isScheduledPostEnabled, teamId]);
 
+    const showScheduledPostCount = isScheduledPostEnabled && teamScheduledPostCount > 0;
+    const draftsIcon = showScheduledPostCount ? pencilIcon : null;
+
     if (!itemsExist && !urlMatches) {
         return null;
     }
@@ -113,12 +116,12 @@ function DraftsLink() {
                         draftCount > 0 &&
                         <ChannelMentionBadge
                             unreadMentions={draftCount}
-                            icon={pencilIcon}
+                            icon={draftsIcon}
                         />
                     }
 
                     {
-                        isScheduledPostEnabled && teamScheduledPostCount > 0 &&
+                        showScheduledPostCount &&
                         <ChannelMentionBadge
                             unreadMentions={teamScheduledPostCount}
                             icon={scheduleIcon}
