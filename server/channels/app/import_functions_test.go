@@ -2339,10 +2339,14 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 					Team:     &teamName,
 					Channel:  &channelName,
 					User:     &username,
-					Message:  model.NewPointer("Message with reaction"),
+					Message:  model.NewPointer("Message with reactions"),
 					CreateAt: &reactionPostTime,
 					Reactions: &[]imports.ReactionImportData{{
 						User:      &user2.Username,
+						EmojiName: model.NewPointer("+1"),
+						CreateAt:  &reactionTime,
+					}, {
+						User:      &user.Username,
 						EmojiName: model.NewPointer("+1"),
 						CreateAt:  &reactionTime,
 					}},
@@ -2369,7 +2373,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		reactions, nErr := th.App.Srv().Store().Reaction().GetForPost(post.Id, false)
 		require.NoError(t, nErr, "Can't get reaction")
 
-		require.Len(t, reactions, 1, "Invalid number of reactions")
+		require.Len(t, reactions, 2, "Invalid number of reactions")
 
 		// Update post with replies with reactions.
 		newReactionTime := reactionTime + 1
