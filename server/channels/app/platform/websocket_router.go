@@ -49,7 +49,6 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 		session, err := conn.Suite.GetSession(token)
 		if err != nil {
-			conn.Platform.Log().Warn("Error while getting session token", mlog.Err(err))
 			conn.WebSocket.Close()
 			return
 		}
@@ -57,12 +56,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
-		nErr := conn.Platform.HubRegister(conn)
-		if nErr != nil {
-			conn.Platform.Log().Error("Error while registering to hub", mlog.String("user_id", conn.UserId), mlog.Err(nErr))
-			conn.WebSocket.Close()
-			return
-		}
+		conn.Platform.HubRegister(conn)
 
 		conn.Platform.Go(func() {
 			conn.Platform.SetStatusOnline(session.UserId, false)

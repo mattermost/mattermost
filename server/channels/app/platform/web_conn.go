@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 const (
@@ -94,8 +95,10 @@ type WebConn struct {
 	UserId           string
 	PostedAck        bool
 
-	lastUserActivityAt int64
-	send               chan model.WebSocketMessage
+	allChannelMembers         map[string]string
+	lastAllChannelMembersTime int64
+	lastUserActivityAt        int64
+	send                      chan model.WebSocketMessage
 	// deadQueue behaves like a queue of a finite size
 	// which is used to store all messages that are sent via the websocket.
 	// It basically acts as the user-space socket buffer, and is used
@@ -215,7 +218,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
-			ps.logger.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
+			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
 		}
 	}
 
@@ -318,9 +321,6 @@ func (wc *WebConn) SetConnectionID(id string) {
 
 // GetConnectionID returns the connection id of the connection.
 func (wc *WebConn) GetConnectionID() string {
-	if wc.connectionID.Load() == nil {
-		return ""
-	}
 	return wc.connectionID.Load().(string)
 }
 
@@ -566,7 +566,7 @@ func (wc *WebConn) writePump() {
 				err = enc.Encode(msg)
 			}
 			if err != nil {
-				wc.Platform.logger.Warn("Error in encoding websocket message", mlog.Err(err))
+				mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 				continue
 			}
 
@@ -581,7 +581,7 @@ func (wc *WebConn) writePump() {
 					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
 				}
 
-				wc.Platform.logger.Warn("websocket.full", logData...)
+				mlog.Warn("websocket.full", logData...)
 				wc.lastLogTimeFull = time.Now()
 			}
 
@@ -608,7 +608,7 @@ func (wc *WebConn) writePump() {
 
 		case <-authTicker.C:
 			if wc.GetSessionToken() == "" {
-				wc.Platform.logger.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -629,7 +629,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	var buf bytes.Buffer
 	err := msg.Encode(json.NewEncoder(&buf), &buf)
 	if err != nil {
-		wc.Platform.logger.Warn("Error in encoding websocket message", mlog.Err(err))
+		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil
 	}
 	wc.Sequence++
@@ -734,6 +734,8 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
+	wc.allChannelMembers = nil
+	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
 }
@@ -749,9 +751,9 @@ func (wc *WebConn) IsAuthenticated() bool {
 		session, err := wc.Suite.GetSession(wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
+				mlog.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 
 			wc.SetSessionToken("")
@@ -787,7 +789,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	case model.WebsocketEventUserUpdated:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
-			wc.Platform.logger.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
+			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
 		userID = user.Id
@@ -826,7 +828,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			model.WebsocketEventStatusChange,
 			model.WebsocketEventMultipleChannelsViewed:
 			if wc.Active.Load() && time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
-				wc.Platform.logger.Warn(
+				mlog.Warn(
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
@@ -891,8 +893,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the channel for the event
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
-		// For typing/reaction_added/reaction_removed events, we don't send them to users
-		// who don't have that channel or thread opened.
+		// For typing events, we don't send them to users who don't have
+		// that channel or thread opened.
 		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
 			slices.Contains([]model.WebsocketEventType{
 				model.WebsocketEventTyping,
@@ -902,9 +904,30 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 
-		// We don't need to do any further checks because this is already scoped
-		// to channel members from web_hub.
-		return true
+		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
+			wc.allChannelMembers = nil
+			wc.lastAllChannelMembersTime = 0
+		}
+
+		if wc.allChannelMembers == nil {
+			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
+				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
+				wc.UserId,
+				false,
+				false,
+			)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+				return false
+			}
+			wc.allChannelMembers = result
+			wc.lastAllChannelMembersTime = model.GetMillis()
+		}
+
+		if _, ok := wc.allChannelMembers[chID]; ok {
+			return true
+		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event
@@ -937,9 +960,9 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 		session, err := wc.Suite.GetSession(wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
+				mlog.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 			return false
 		}
@@ -953,12 +976,12 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 func (wc *WebConn) logSocketErr(source string, err error) {
 	// browsers will appear as CloseNoStatusReceived
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		wc.Platform.logger.Debug(source+": client side closed socket",
+		mlog.Debug(source+": client side closed socket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
 			mlog.String("origin_client", wc.originClient))
 	} else {
-		wc.Platform.logger.Debug(source+": closing websocket",
+		mlog.Debug(source+": closing websocket",
 			mlog.String("user_id", wc.UserId),
 			mlog.String("conn_id", wc.GetConnectionID()),
 			mlog.String("origin_client", wc.originClient),
