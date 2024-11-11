@@ -720,7 +720,7 @@ func (a *App) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, use
 		}
 		// revert to previous channel privacy
 		if _, err = a.UpdateChannel(c, channel); err != nil {
-			a.Log().Error("Failed to revert channel privacy", mlog.Err(err))
+			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
 		return channel, err
 	}
