@@ -10290,5 +10290,21 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "無效"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "您沒有權限更新這個資源。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "儲存更新於資料庫中的排程訊息失敗。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "排程訊息需要有 ID。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "無法排程空白的訊息。排程訊息至少需包含訊息或附件檔案。"
   }
 ]
