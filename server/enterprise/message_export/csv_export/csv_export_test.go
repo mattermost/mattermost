@@ -989,11 +989,9 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
 			results, err := CsvExport(rctx, shared.ExportParams{
-				ExportType:             "",
 				ChannelMetadata:        tt.metadata,
 				Posts:                  tt.posts,
 				ChannelMemberHistories: tt.cmhs,
-				JobStartTime:           0,
 				BatchPath:              exportFileName,
 				BatchStartTime:         tt.startTime,
 				BatchEndTime:           tt.endTime,
