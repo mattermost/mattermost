@@ -12,9 +12,12 @@ import type ReactRouterDom from 'react-router-dom';
 import type Redux from 'redux';
 import type StyledComponents from 'styled-components';
 
-import type {WebSocketClient, WebSocketMessage} from '@mattermost/client';
+import type {WebSocketClient} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
+
+import type {FormatTextOptions} from './markdown';
+import type {UseWebSocketOptions} from './websocket';
 
 export interface TextFormattingOptions {
 
@@ -89,24 +92,29 @@ export interface WindowExports {
 }
 
 export interface WindowPostUtils {
-    formatText(text: string, options?: TextFormattingOptions): string;
+
+    /** @deprecated Use useFormatTextToComponent from @mattermost/plugin-support instead */
+    formatText(text: string, options?: FormatTextOptions): string;
+
+    /** @deprecated Use useFormatTextToComponent from @mattermost/plugin-support instead */
     messageHtmlToComponent(html: string, options?: MessageHtmlToComponentOptions): JSX.Element;
 }
 
-export type UseWebSocketOptions = {
-    handler: (msg: WebSocketMessage) => void;
-}
-
 export interface WindowProductApi {
+
+    /** @deprecated Use useWebSocket from @mattermost/plugin-support instead */
     useWebSocket: (options: UseWebSocketOptions) => void;
+
+    /** @deprecated Use useWebSocketClient from @mattermost/plugin-support instead */
     useWebSocketClient: () => WebSocketClient;
 }
 
 declare global {
     interface Window extends WindowExports {
+
+        /** @deprecated Import useFormatTextToComponent from @mattermost/plugin-support instead */
         PostUtils: WindowPostUtils;
+
         ProductApi: WindowProductApi;
     }
 }
-
-export {};

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {TextFormattingOptions as TextFormattingOptionsBase} from '@hmhealey/plugin-support';
+import type {FormatTextOptions as TextFormattingOptionsBase} from '@hmhealey/plugin-support';
 import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
@@ -73,13 +73,6 @@ export interface TextFormattingOptions extends TextFormattingOptionsBase {
     searchMatches?: string[];
 
     searchPatterns?: SearchPattern[];
-
-    /**
-     * Specifies whether or not to highlight mentions of the current user.
-     *
-     * Defaults to `true`.
-     */
-    mentionHighlight?: boolean;
 
     /**
      * Specifies whether or not to display group mentions as blue links.
