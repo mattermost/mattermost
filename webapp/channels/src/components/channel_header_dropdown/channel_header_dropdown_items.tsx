@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -39,7 +40,7 @@ import MenuItemToggleInfo from './menu_items/toggle_info';
 import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
 
-export type Props = {
+export type Props = WrappedComponentProps & {
     user: UserProfile;
     channel?: Channel;
     isDefault: boolean;
@@ -66,6 +67,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
             isMobile,
             penultimateViewedChannelName,
             isLicensedForLDAPGroups,
+            intl,
         } = this.props;
 
         if (!channel) {

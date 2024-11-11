@@ -5,6 +5,8 @@ import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import type {Post} from '@mattermost/types/posts';
@@ -27,7 +29,7 @@ import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
 import './virtualized_thread_viewer.scss';
 
-type Props = {
+type Props = WrappedComponentProps & {
     currentUserId: string;
     directTeammate: UserProfile | undefined;
     highlightedPostId?: Post['id'];
@@ -90,7 +92,7 @@ const SCROLL_OFFSET_BUFFER = 5;
 const OVERSCAN_COUNT_FORWARD = 80;
 const OVERSCAN_COUNT_BACKWARD = 80;
 
-class ThreadViewerVirtualized extends PureComponent<Props, State> {
+export class ThreadViewerVirtualized extends PureComponent<Props, State> {
     private mounted = false;
     private scrollStopAction: DelayedAction;
     private scrollShortCircuit = 0;
@@ -411,6 +413,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
     render() {
         const {topRhsPostId} = this.state;
+        const {intl} = this.props;
 
         return (
             <div className='virtual-list__ctr'>
@@ -470,4 +473,4 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     }
 }
 
-export default ThreadViewerVirtualized;
+export default injectIntl(ThreadViewerVirtualized);

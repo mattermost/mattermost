@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {showMobileSubMenuModal} from 'actions/global_actions';
@@ -68,12 +69,12 @@ type State = {
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-export default class SubMenuItem extends React.PureComponent<Props, State> {
+class SubMenuItem extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLLIElement>;
 
     public static defaultProps = {
         show: true,
-        direction: 'left',
+        direction: 'left' as const,
         subMenuClass: 'pl-4',
         renderSelected: true,
     };
@@ -213,6 +214,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                                     direction={s.direction}
                                     isHeader={s.isHeader}
                                     tabIndex={1}
+                                    intl={this.props.intl}
                                 />
                                 {s.text === selectedValueText && <span className='sorting-menu-checkbox'>
                                     <i className='icon-check'/>
@@ -259,3 +261,5 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SubMenuItem);

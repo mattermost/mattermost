@@ -99,31 +99,31 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 <Menu
                     openLeft={false}
                     openUp={false}
-                    ariaLabel={intl.formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
+                    ariaLabel={formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
                 >
                     <Menu.ItemAction
                         show={props.permissionToEditGroup}
                         onClick={goToEditGroupModal}
-                        text={intl.formatMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
+                        text={formatMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToJoinGroup && !isGroupMember}
                         onClick={joinGroup}
-                        text={intl.formatMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
+                        text={formatMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToLeaveGroup && isGroupMember}
                         onClick={leaveGroup}
-                        text={intl.formatMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
+                        text={formatMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
                         disabled={false}
                         isDangerous={true}
                     />
                     <Menu.ItemAction
                         show={props.permissionToArchiveGroup}
                         onClick={archiveGroup}
-                        text={intl.formatMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
+                        text={formatMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
                         disabled={false}
                         isDangerous={true}
                     />

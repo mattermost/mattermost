@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -20,7 +21,7 @@ import {getHistory} from 'utils/browser_history';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 
-type Props = {
+type Props = WrappedComponentProps & {
     user: UserProfile;
     currentUser: UserProfile;
     teamMember: TeamMembership;
@@ -49,7 +50,7 @@ type State = {
     role: string|null;
 }
 
-export default class TeamMembersDropdown extends React.PureComponent<Props, State> {
+class TeamMembersDropdown extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -140,7 +141,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             );
         }
 
-        const {currentTeam, teamMember, user} = this.props;
+        const {currentTeam, teamMember, user, intl} = this.props;
 
         let currentRoles = null;
 
@@ -252,19 +253,34 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             <Menu.ItemAction
                 id='removeFromTeam'
                 onClick={this.handleRemoveFromTeam}
-                text={intl.formatMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove from Team'})}
+                text={
+                    <FormattedMessage
+                        id='team_members_dropdown.leave_team'
+                        defaultMessage='Remove from Team'
+                    />
+                }
             />
         );
         const menuMakeAdmin = (
             <Menu.ItemAction
                 onClick={this.handleMakeAdmin}
-                text={intl.formatMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
+                text={
+                    <FormattedMessage
+                        id='team_members_dropdown.makeAdmin'
+                        defaultMessage='Make Team Admin'
+                    />
+                }
             />
         );
         const menuMakeMember = (
             <Menu.ItemAction
                 onClick={this.handleMakeMember}
-                text={intl.formatMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'})}
+                text={
+                    <FormattedMessage
+                        id='team_members_dropdown.makeMember'
+                        defaultMessage='Make Team Member'
+                    />
+                }
             />
         );
         return (
@@ -295,3 +311,5 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
         );
     }
 }
+
+export default injectIntl(TeamMembersDropdown);

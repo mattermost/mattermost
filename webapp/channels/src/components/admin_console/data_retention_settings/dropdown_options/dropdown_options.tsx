@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
-
-import * as Utils from 'utils/utils';
 
 export const FOREVER = 'FOREVER';
 export const YEARS = 'YEARS';

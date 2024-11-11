@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
@@ -11,9 +10,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import VirtualizedThreadViewer from './virtualized_thread_viewer';
+import type {ThreadViewerVirtualized as VirtualizedThreadViewerClass} from './virtualized_thread_viewer';
 
 type Props = ComponentProps<typeof VirtualizedThreadViewer>;
 function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
@@ -76,10 +77,10 @@ describe('components/threading/VirtualizedThreadViewer', () => {
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {
         const scrollToBottom = jest.fn();
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <VirtualizedThreadViewer {...baseProps}/>,
         );
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
+        const instance = wrapper.instance() as VirtualizedThreadViewerClass;
         instance.scrollToBottom = scrollToBottom;
 
         expect(scrollToBottom).not.toHaveBeenCalled();
@@ -98,10 +99,10 @@ describe('components/threading/VirtualizedThreadViewer', () => {
     test('should not scroll to the bottom when another user makes a new post in the thread', () => {
         const scrollToBottom = jest.fn();
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <VirtualizedThreadViewer {...baseProps}/>,
         );
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
+        const instance = wrapper.dive().instance() as VirtualizedThreadViewerClass;
         instance.scrollToBottom = scrollToBottom;
 
         expect(scrollToBottom).not.toHaveBeenCalled();
@@ -121,13 +122,13 @@ describe('components/threading/VirtualizedThreadViewer', () => {
     test('should not scroll to the bottom when there is a highlighted reply', () => {
         const scrollToBottom = jest.fn();
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <VirtualizedThreadViewer
                 {...baseProps}
             />,
         );
 
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
+        const instance = wrapper.instance() as VirtualizedThreadViewerClass;
         instance.scrollToBottom = scrollToBottom;
 
         wrapper.setProps({
