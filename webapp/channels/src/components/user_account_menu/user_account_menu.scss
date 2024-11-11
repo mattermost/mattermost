@@ -15,18 +15,18 @@
         }
 
         h2.userAccountMenu_nameMenuItem_primaryLabel {
-            font-size: 16px;
-            line-height: 22px;
-            font-weight: 600;
-            margin: 0;
             max-width: 150px;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 22px;
             @include textEllipsis;
         }
 
         .userAccountMenu_nameMenuItem_secondaryLabel {
+            max-width: 150px;
             font-size: 14px;
             line-height: 18px;
-            max-width: 150px;
             @include textEllipsis;
         }
     }
@@ -70,16 +70,16 @@
 }
 
 .userAccountMenu_menuButton {
+    position: relative;
     display: flex;
     height: auto;
     align-items: center;
-    margin-inline-start: 8px;
+    align-self: center;
     padding: 4px 8px;
     border: none;
     border-radius: 4px;
     background: transparent;
-    position: relative;
-    align-self: center;
+    margin-inline-start: 8px;
 
     &:hover {
         background: var(--sidebar-text-08);
@@ -115,10 +115,10 @@
         height: 16px;
         align-items: center;
         justify-content: center;
-        background-color: var(--global-header-background);
-        color: var(--global-header-text);
         border-radius: 100px;
         margin: 0;
+        background-color: var(--global-header-background);
+        color: var(--global-header-text);
         line-height: 0;
         visibility: visible;
 

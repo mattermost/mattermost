@@ -4,10 +4,10 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import type {UserProfile} from '@mattermost/types/users';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import UserAccountNameMenuItem from './user_account_name_menuitem';
 
@@ -21,36 +21,54 @@ jest.mock('actions/views/modals', () => ({
 }));
 
 describe('UserAccountNameMenuItem', () => {
-    let currentUser: UserProfile;
+    const user = TestHelper.getUserMock({
+        first_name: 'sampleFirstName',
+        last_name: 'sampleLastName',
+        username: 'sampleUsername',
+    });
+
+    let initialState: GlobalState;
 
     beforeEach(() => {
-        currentUser = TestHelper.getUserMock({
-            first_name: 'sampleFirstName',
-            last_name: 'sampleLastName',
-            username: 'sampleUsername',
-        });
+        initialState = {
+            entities: {
+                users: {
+                    profiles: {
+                        [user.id]: user,
+                    },
+                    currentUserId: user.id,
+                },
+            },
+        } as GlobalState;
     });
 
     afterEach(() => {
         jest.resetAllMocks();
     });
 
-    afterAll(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render with both first and last name along with username', () => {
-        renderWithContext(<UserAccountNameMenuItem currentUser={currentUser}/>);
+        renderWithContext(<UserAccountNameMenuItem/>, initialState);
 
         expect(screen.getByText('sampleFirstName sampleLastName')).toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
     });
 
     test('should render with only username', () => {
-        Reflect.deleteProperty(currentUser, 'first_name');
-        Reflect.deleteProperty(currentUser, 'last_name');
+        const state = {
+            entities: {
+                users: {
+                    profiles: {
+                        [user.id]: {
+                            id: user.id,
+                            username: user.username,
+                        },
+                    },
+                    currentUserId: user.id,
+                },
+            },
+        } as GlobalState;
 
-        renderWithContext(<UserAccountNameMenuItem currentUser={currentUser}/>);
+        renderWithContext(<UserAccountNameMenuItem/>, state);
 
         expect(screen.queryByText('sampleFirstName sampleLastName')).not.toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
@@ -59,7 +77,7 @@ describe('UserAccountNameMenuItem', () => {
     test('should try to open user settings modal', async () => {
         jest.spyOn(reactRedux, 'useDispatch').mockReturnValue(jest.fn());
 
-        renderWithContext(<UserAccountNameMenuItem currentUser={currentUser}/>);
+        renderWithContext(<UserAccountNameMenuItem/>, initialState);
 
         userEvent.click(screen.getByRole('menuitem'));
 
