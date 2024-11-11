@@ -246,12 +246,12 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should remove masked values", func(c client.Client) {
+	s.Run("Should remove masked values for system admin client", func() {
 		printer.Clean()
 
 		exportCmd := &cobra.Command{}
 		exportCmd.Flags().Bool("remove-masked", true, "")
-		err := configExportCmdF(c, exportCmd, nil)
+		err := configExportCmdF(s.th.SystemAdminClient, exportCmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		m, ok := printer.GetLines()[0].(map[string]any)
@@ -260,6 +260,24 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		s.Require().True(ok)
 		_, ok = ss["DataSource"]
 		s.Require().False(ok)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should retrieve configuration as-is with local client", func() {
+		printer.Clean()
+
+		exportCmd := &cobra.Command{}
+		err := configExportCmdF(s.th.LocalClient, exportCmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		ss, ok := m["SqlSettings"].(map[string]any)
+		s.Require().True(ok)
+		ds, ok := ss["DataSource"]
+		s.Require().True(ok)
+		cfg := s.th.App.Config()
+		s.Require().Equal(*cfg.SqlSettings.DataSource, ds)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
