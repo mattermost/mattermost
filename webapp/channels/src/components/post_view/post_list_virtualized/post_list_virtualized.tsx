@@ -24,7 +24,6 @@ import Pluggable from 'plugins/pluggable';
 import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import LatestPostReader from './latest_post_reader';
 

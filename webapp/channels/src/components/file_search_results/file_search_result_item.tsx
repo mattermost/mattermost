@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -17,7 +17,7 @@ import WithTooltip from 'components/with_tooltip';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
-import {fileSizeToString, copyToClipboard, localizeMessage} from 'utils/utils';
+import {fileSizeToString, copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
 

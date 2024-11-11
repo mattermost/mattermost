@@ -10,7 +10,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
-import {localizeMessage} from 'utils/utils';
 
 import WithTooltip from './with_tooltip';
 

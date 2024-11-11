@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -12,7 +12,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 interface GroupRowProps {
     group: Partial<Group>;

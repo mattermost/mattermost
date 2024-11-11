@@ -2,12 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
-
-import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
 

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
@@ -12,8 +11,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
-
-import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
 

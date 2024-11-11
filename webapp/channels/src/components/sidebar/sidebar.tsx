@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {lazy} from 'react';
-import {defineMessage} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -15,7 +14,6 @@ import SidebarHeader from 'components/sidebar/sidebar_header';
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';

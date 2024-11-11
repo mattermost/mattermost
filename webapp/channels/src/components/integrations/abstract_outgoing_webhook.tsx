@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -17,7 +17,6 @@ import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
 import {DocLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 interface State {
     callbackUrls: string;

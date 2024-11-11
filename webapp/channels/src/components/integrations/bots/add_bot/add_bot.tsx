@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot, BotPatch} from '@mattermost/types/bots';

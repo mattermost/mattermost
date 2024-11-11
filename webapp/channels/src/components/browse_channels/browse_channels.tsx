@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
@@ -20,7 +20,6 @@ import SearchableChannelList from 'components/searchable_channel_list';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers, RHSStates, StoragePrefixes} from 'utils/constants';
 import {getRelativeChannelURL} from 'utils/url';
-import {localizeMessage} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';

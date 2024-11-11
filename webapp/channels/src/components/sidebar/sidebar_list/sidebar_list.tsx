@@ -8,7 +8,7 @@ import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 
@@ -26,7 +26,7 @@ import SidebarCategory from 'components/sidebar/sidebar_category';
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
-import {localizeMessage, mod} from 'utils/utils';
+import {mod} from 'utils/utils';
 
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
@@ -547,7 +547,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             />
         );
 
-        const ariaLabel = localizeMessage(defineMessage(defineMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'})));
+        const ariaLabel = intl.formatMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'});
 
         return (
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -13,7 +13,6 @@ import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
 import {DeveloperLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import InstalledOAuthApp from '../installed_oauth_app';
 import {matchesFilter} from '../installed_oauth_app/installed_oauth_app';

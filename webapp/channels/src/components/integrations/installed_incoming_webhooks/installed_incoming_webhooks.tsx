@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
@@ -17,7 +17,6 @@ import ExternalLink from 'components/external_link';
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 import {DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 const PAGE_SIZE = 200;
 

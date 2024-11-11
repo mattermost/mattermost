@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -18,7 +18,6 @@ import OAuthIcon from 'images/oauth_icon.png';
 import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
 import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
 import SlashCommandIcon from 'images/slash_command_icon.jpg';
-import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
 

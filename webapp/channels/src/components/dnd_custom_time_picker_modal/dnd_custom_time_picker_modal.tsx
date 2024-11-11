@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import {DateTime} from 'luxon';
 import React from 'react';
 import type {DayPickerProps} from 'react-day-picker';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {GenericModal} from '@mattermost/components';
@@ -23,7 +23,6 @@ import Constants, {A11yCustomEventTypes, UserStatuses} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
-import {localizeMessage} from 'utils/utils';
 
 import './dnd_custom_time_picker_modal.scss';
 

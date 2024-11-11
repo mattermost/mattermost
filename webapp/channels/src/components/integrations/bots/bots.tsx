@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
@@ -16,7 +16,6 @@ import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
 

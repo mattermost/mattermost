@@ -16,7 +16,6 @@ import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import OAuthConnectionAudienceInput from './outgoing_oauth_connections/oauth_connection_audience_input';
 

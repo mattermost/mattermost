@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
@@ -17,7 +17,6 @@ import ExternalLink from 'components/external_link';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 export type Props = {
 
@@ -222,10 +221,10 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                         }}
                     />
                 }
-                searchPlaceholder={localizeMessage(defineMessage({
+                searchPlaceholder={intl.formatMessage({
                     id: 'installed_outgoing_webhooks.search',
                     defaultMessage: 'Search Outgoing Webhooks',
-                }))}
+                })}
                 loading={this.state.loading}
             >
                 {(filter: string) => {

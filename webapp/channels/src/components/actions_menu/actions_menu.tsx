@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -24,7 +24,6 @@ import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
 import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
@@ -395,7 +394,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key='more-actions-button'
                         ref={this.buttonRef}
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage(defineMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase())}
+                        aria-label={intl.formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
                         className={classNames('post-menu__item', {
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}

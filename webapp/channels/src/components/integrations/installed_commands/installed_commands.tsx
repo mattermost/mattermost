@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -15,7 +15,6 @@ import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
 
 import {DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import InstalledCommand, {matchesFilter} from '../installed_command';
 

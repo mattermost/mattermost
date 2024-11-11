@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
-import {defineMessage, defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
@@ -33,7 +33,6 @@ import {
     generateId,
     isFileTransfer,
     isUriDrop,
-    localizeMessage,
     isTextDroppableEvent,
 } from 'utils/utils';
 

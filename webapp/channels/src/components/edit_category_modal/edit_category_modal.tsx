@@ -2,15 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
-
-import {localizeMessage} from 'utils/utils';
 
 import '../category_modal.scss';
 

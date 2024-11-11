@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {defineMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
@@ -13,7 +13,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 

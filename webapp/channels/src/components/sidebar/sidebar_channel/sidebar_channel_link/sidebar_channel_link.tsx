@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -20,7 +19,6 @@ import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {Mark} from 'utils/performance_telemetry';
-import {localizeMessage} from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
 

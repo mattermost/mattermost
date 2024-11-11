@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage, defineMessages} from 'react-intl';
+import {defineMessages} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -228,7 +228,7 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
         } else {
             name = teammate.username;
             if (teammate.id === currentUserId) {
-                name += (' ' + Utils.localizeMessage(defineMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'})));
+                name += (' ' + intl.formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
             }
             description = deactivated;
         }
@@ -545,7 +545,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         if (user.id === currentUserId && displayName) {
-            displayName += (' ' + Utils.localizeMessage(defineMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'})));
+            displayName += (' ' + intl.formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'}));
         }
 
         return {

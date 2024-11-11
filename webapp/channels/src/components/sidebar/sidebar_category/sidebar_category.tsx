@@ -5,14 +5,13 @@ import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
-import {defineMessage, FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 
 import {trackEvent} from 'actions/telemetry_actions';
 

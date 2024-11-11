@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -13,7 +12,6 @@ import Menu from 'components/widgets/menu/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
 

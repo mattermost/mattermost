@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -28,7 +27,6 @@ import Menu from 'components/widgets/menu/menu';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import type {PluginComponent} from 'types/store/plugins';
 

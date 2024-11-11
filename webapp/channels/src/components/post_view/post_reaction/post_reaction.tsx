@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage, defineMessages} from 'react-intl';
+import {defineMessages} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';

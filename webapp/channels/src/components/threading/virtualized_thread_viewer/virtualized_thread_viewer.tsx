@@ -5,7 +5,6 @@ import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
 import React, {PureComponent} from 'react';
 import type {RefObject} from 'react';
-import {defineMessage} from 'react-intl';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import type {Post} from '@mattermost/types/posts';
@@ -20,7 +19,6 @@ import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {PluginComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
