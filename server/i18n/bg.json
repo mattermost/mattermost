@@ -7901,7 +7901,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Приета покана | Онлайн | Последен пинг |"
+    "translation": "| Сигурна връзка | Показвано име | ИН на връзката | URL на сайта | Подразбиращ се екип | Приета покана | Онлайн | Последен пинг | Изтрит |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8390,5 +8390,317 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Вашият лиценз не поддържа отметки на канали."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Потребителя не е упълномощен да създава отметки на канали."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно създаване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно създаване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно изтриване отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Неуспешно актуализиране отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Нямате права да актуализирате името, display_name и целите на личните или груповите съобщения."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Не можете да премахнете потвърждение в архивиран канал."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Не можете да изтриете потвърждение след изминали 5 минути."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Не можете да потвърдите в архивиран канал."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "неуспешно добавяне на потребител към group-teams и group-channels"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Потребителят няма права да преобразува групово съобщение в частен канал"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Нямате права да актуализирате името, display_name и целите на личните или груповите съобщения."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Неуспешно актуализиране реда на сортиране за отметките на канала."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Невалидно обновяване член на канала: Гост не може да бъде член или администратор на екип, моля, първо го повишете в потребител."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Невалидно обновяване член на канала: Гост не може да бъде зададен за един канал, системен администратор трябва да повиши или понижи потребителите до/от гости."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Администраторът вече е уведомен"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Не може да се създаде екип, защото ограничението за екипи е достигнато"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Генериране на връзка за изтегляне на експорт."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Драйверът за съхранение на файлове не поддържа генериране на връзки."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Не е намерен експортен файл."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|име на zip файла|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Липсва display_name в тялото на заявката"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Липсва team_id в тялото на заявката"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Не може да се възстанови екип, защото ограничението за екипи е достигнато"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Не може да се създаде канал за лични съобщения с отдалечен потребител"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Не може да се създаде групов канал с отдалечени потребители"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} създаде този канал от групово съобщение с {{.GMMembers}}."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Не успяхме да намерим искания от вас файл."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "връзка за експорт"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Можете да изтеглите своя файл от тук: {{.Link}}.\nТази връзка ще изтече след {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Не може да се извлече списъкът за експорт."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Не може да се генерира предварителен url."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Нямате достатъчно права, за да изпълните тази команда."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost е платформа с отворен код за сигурна комуникация, сътрудничество и организиране на работата между инструменти и екипи.\nMattermost съдържа два основни инструмента:\n\n**Канали** - поддържайте връзка с екипа си чрез 1:1 и групови съобщения.\n**[Playbooks](/playbooks)** - Изграждайте и конфигурирайте повтарящи се процеси за постигане на конкретни и предвидими резултати.\n\n[Преглед на документация и ръководства]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} и {{.Others}}, добавени към канала {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} и {{.Others}} други вече са в канала."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Отвори пазара"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "пазар"
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Този канал се управлява от групи. Този потребител не е част от група, която е свързана с този канал."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Можете да добавите {{.FirstUser}} и {{.Others}} други потребители към този канал, след като те станат членове на екипа **{{.Team}}**."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Отдалечената страна не може да бъде поканена към канала: {{.Error}}"
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Неуспешно презареждане на конфигурацията."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Командата marketplace не се поддържа от вашето устройство."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Не може да се потвърди поканата: {{.Error}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Неуспешно актуализиране превода за сървъра."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Отдалечената страна не можа да бъде поканена, защото каналът {{.ChannelID}} не е споделен."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Възникна грешка при прилагането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Възникна грешка при извличането на IP филтри"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Възникна грешка при извличането на клиентския IP адрес"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP филтрирането не е налично на този сървър"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Възникна грешка при създаването на изходяща OAuth връзка ."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Не може да се активира функцията за автоматично попълване за канала, тъй като схемата на индекса на каналите е остаряла. Препоръчително е да регенерирате индекса на канала. За повече информация вижте списъка с промените в Mattermost"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Възникна грешка при изготвяне списъка на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Възникна грешка при изтриването на изходящата OAuth връзка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Неуспешно получаване на идентификационни данни с посочената конфигурация на връзката."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "не е лицензиран за потребителски групи"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id трябва да е празно за потребителските групи"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Възникна грешка при актуализирането на изходящите OAuth връзки."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Възникна грешка при проверка на идентификацията за изходящата OAuth връзка ."
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference трябва да е 'true' за потребителските групи"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Не може да се запази чернова в изтрит канал"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Функцията Чернови е забранена."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Неуспешно актуализиране на потребителския статус. Моля, добавете емотикон или персонализиран текстов статус, или и двете."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "функцията за потребителски групи е забранена"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "грешка при преброяване на групите"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Неуспешно актуализиране на потребителския статус. Не съществува емотикон с даденото име."
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Невъзможно е да се обработи заявката. Тялото на заявката е твърде голямо."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Невалидни входни параметри."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Изходящите OAuth връзки са недостъпни на този сървър."
   }
 ]

@@ -344,6 +344,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) testNotificationRoute() string {
+	return "/notifications/test"
+}
+
 func (c *Client4) usageRoute() string {
 	return "/usage"
 }
@@ -610,6 +614,73 @@ func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response
 		return nil, nil, NewAppError("GetServerLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &serverLimits, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	buf, err := json.Marshal(scheduledPost)
+	if err != nil {
+		return nil, nil, NewAppError("CreateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.postsRoute()+"/schedule", string(buf))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var createdScheduledPost ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&createdScheduledPost); err != nil {
+		return nil, nil, NewAppError("CreateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &createdScheduledPost, BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserScheduledPosts(ctx context.Context, teamId string, includeDirectChannels bool) (map[string][]*ScheduledPost, *Response, error) {
+	query := url.Values{}
+	query.Set("includeDirectChannels", fmt.Sprintf("%t", includeDirectChannels))
+
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/scheduled/team/"+teamId+"?"+query.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var scheduledPostsByTeam map[string][]*ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&scheduledPostsByTeam); err != nil {
+		return nil, nil, NewAppError("GetUserScheduledPosts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return scheduledPostsByTeam, BuildResponse(r), nil
+}
+
+func (c *Client4) UpdateScheduledPost(ctx context.Context, scheduledPost *ScheduledPost) (*ScheduledPost, *Response, error) {
+	buf, err := json.Marshal(scheduledPost)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateScheduledPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPut(ctx, c.postsRoute()+"/schedule/"+scheduledPost.Id, string(buf))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var updatedScheduledPost ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&updatedScheduledPost); err != nil {
+		return nil, nil, NewAppError("UpdateScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &updatedScheduledPost, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId string) (*ScheduledPost, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.postsRoute()+"/schedule/"+scheduledPostId)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var deletedScheduledPost ScheduledPost
+	if err := json.NewDecoder(r.Body).Decode(&deletedScheduledPost); err != nil {
+		return nil, nil, NewAppError("DeleteScheduledPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &deletedScheduledPost, BuildResponse(r), nil
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
@@ -4746,6 +4817,15 @@ func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, err
 		return nil, NewAppError("TestEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	r, err := c.DoAPIPostBytes(ctx, c.testEmailRoute(), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.testNotificationRoute(), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -9204,4 +9284,36 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 	}
 
 	return BuildResponse(res), nil
+}
+
+func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
+	v := url.Values{}
+	v.Set("in_team", options.TeamId)
+	v.Set("in_channel", options.ChannelId)
+	v.Set("include_deleted", strconv.FormatBool(options.IncludeDeleted))
+	v.Set("include_bots", strconv.FormatBool(options.IncludeBotAccounts))
+	v.Set("include_remote_users", strconv.FormatBool(options.IncludeRemoteUsers))
+
+	if len(options.Roles) > 0 {
+		v.Set("roles", strings.Join(options.Roles, ","))
+	}
+	if len(options.ChannelRoles) > 0 {
+		v.Set("channel_roles", strings.Join(options.ChannelRoles, ","))
+	}
+	if len(options.TeamRoles) > 0 {
+		v.Set("team_roles", strings.Join(options.TeamRoles, ","))
+	}
+
+	query := v.Encode()
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/stats/filtered?"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var stats UsersStats
+	if err := json.NewDecoder(r.Body).Decode(&stats); err != nil {
+		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &stats, BuildResponse(r), nil
 }

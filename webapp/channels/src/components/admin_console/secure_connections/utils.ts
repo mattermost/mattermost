@@ -235,11 +235,11 @@ export const useTeamOptions = () => {
 };
 
 export const getEditLocation = (rc: RemoteCluster): LocationDescriptor<RemoteCluster> => {
-    return {pathname: `/admin_console/environment/secure_connections/${rc.remote_id}`, state: rc};
+    return {pathname: `/admin_console/site_config/secure_connections/${rc.remote_id}`, state: rc};
 };
 
 export const getCreateLocation = (): LocationDescriptor<RemoteCluster> => {
-    return {pathname: '/admin_console/environment/secure_connections/create'};
+    return {pathname: '/admin_console/site_config/secure_connections/create'};
 };
 
 const SiteURLPendingPrefix = 'pending_';

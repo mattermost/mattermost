@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
@@ -1287,7 +1289,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
-	}, channel, false, true)
+	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
@@ -1344,7 +1346,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.PostTypeJoinLeave,
 			UserId:    th.BasicUser.Id,
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		up2 := &model.Post{
@@ -1361,7 +1363,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
-	}, channel, false, true)
+	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	t.Run("new message, add files", func(t *testing.T) {
@@ -1410,7 +1412,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			UserId:    th.BasicUser.Id,
 			CreateAt:  model.GetMillis() - 2000,
-		}, channel, false, true)
+		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		up4 := &model.Post{
@@ -2937,6 +2939,155 @@ func TestPermanentDeletePost(t *testing.T) {
 	})
 }
 
+func TestWebHubMembership(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	u1 := th.CreateUser()
+	th.LinkUserToTeam(u1, th.BasicTeam)
+	th.AddUserToChannel(u1, th.BasicChannel)
+
+	ch2 := th.CreatePrivateChannel()
+	u2 := th.CreateUser()
+	th.LinkUserToTeam(u2, th.BasicTeam)
+	th.AddUserToChannel(u2, ch2)
+
+	quitChan := make(chan struct{})
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+	for _, obj := range []struct {
+		testName string
+		user     *model.User
+	}{
+		{
+			testName: "basicUser",
+			user:     th.BasicUser,
+		},
+		{
+			testName: "u1",
+			user:     u1,
+		},
+		{
+			testName: "u2",
+			user:     u2,
+		},
+	} {
+		cli := th.CreateClient()
+		_, _, err := cli.Login(context.Background(), obj.user.Username, obj.user.Password)
+		require.NoError(t, err)
+
+		wsClient, err := th.CreateWebSocketClientWithClient(cli)
+		require.NoError(t, err)
+		defer wsClient.Close()
+
+		wsClient.Listen()
+
+		go func(testName string) {
+			defer wg.Done()
+			var cnt int
+			for {
+				select {
+				case event := <-wsClient.EventChannel:
+					if event.EventType() == model.WebsocketEventPosted {
+						var post model.Post
+						err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
+						require.NoError(t, err)
+
+						cnt++
+						// Cases:
+						// Post to basicChannel should go to u1 and basicUser.
+						// Add u1 to ch2.
+						// Post to ch2 should go to u1, u2 and basicUser.
+						// Remove u1 from ch2.
+						// Post to ch2 should go to u2 and basicUser.
+						switch testName {
+						case "basicUser":
+							if cnt == 1 {
+								assert.Equal(t, th.BasicChannel.Id, post.ChannelId)
+							} else if cnt == 2 {
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else if cnt == 3 {
+								// After removing, there will be a "removed from channel post"
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else if cnt == 4 {
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else {
+								assert.Fail(t, "more than 4 messages arrived for basicUser")
+							}
+						case "u1":
+							// First msg should be from basicChannel
+							if cnt == 1 {
+								assert.Equal(t, th.BasicChannel.Id, post.ChannelId)
+							} else if cnt == 2 {
+								// second should be from ch2
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else {
+								assert.Fail(t, "more than 2 messages arrived for u1")
+							}
+						case "u2":
+							if cnt == 1 {
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else if cnt == 2 {
+								// After removing, there will be a "removed from channel post"
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else if cnt == 3 {
+								assert.Equal(t, ch2.Id, post.ChannelId)
+							} else {
+								assert.Fail(t, "more than 3 messages arrived for u2")
+							}
+						}
+					}
+				case <-quitChan:
+					return
+				}
+			}
+		}(obj.testName)
+	}
+
+	// Will send to basic channel
+	th.CreatePost()
+	// Add u1 to ch2
+	th.AddUserToChannel(u1, ch2)
+	// Send post to ch2
+	th.CreatePostWithClient(th.Client, ch2)
+	// Remove u1 from ch2
+	th.RemoveUserFromChannel(u1, ch2)
+	// Send post to ch2
+	th.CreatePostWithClient(th.Client, ch2)
+
+	// It is possible to create a signalling mechanism from the goroutines
+	// after all events are received, but we also want to verify that no additional
+	// events are being sent.
+	time.Sleep(2 * time.Second)
+	close(quitChan)
+	wg.Wait()
+}
+
+func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer func() {
+		th.TearDown()
+		// Asserting that the error message is present in the log
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
+		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
+		require.NoError(t, err)
+	}()
+
+	cli := th.CreateClient()
+	_, _, err := cli.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+	require.NoError(t, err)
+
+	_, err = th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE ChannelMembers RENAME to dummy`)
+	require.NoError(t, err)
+
+	wsClient, err := th.CreateWebSocketClientWithClient(cli)
+	require.NoError(t, err)
+	defer wsClient.Close()
+
+	require.NoError(t, th.TestLogger.Flush())
+}
+
 func TestDeletePostEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3612,13 +3763,13 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Unread on a direct channel in a thread", func(t *testing.T) {
 		dc := th.CreateDmChannel(th.CreateUser())
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, false, false)
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: u1.Id, CreateAt: now, ChannelId: dc.Id, Message: "root"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, false, false)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 10, ChannelId: dc.Id, Message: "reply 1"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, false, false)
+		reply2, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 20, ChannelId: dc.Id, Message: "reply 2"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, false, false)
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: u1.Id, CreateAt: now + 30, ChannelId: dc.Id, Message: "reply 3"}, dc, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Ensure that post have been read
@@ -3714,19 +3865,19 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	// user1: a root post
 	// user2: Another root mention @u1
 	user1Mention := " @" + th.BasicUser.Username
-	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, false, false)
+	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, false, false)
+	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, false, false)
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
@@ -3830,7 +3981,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}
 
-	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	time.Sleep(1 * time.Millisecond)

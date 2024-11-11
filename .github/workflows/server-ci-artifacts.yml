@@ -40,7 +40,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -77,18 +77,18 @@ jobs:
       TAG: ${{ steps.set_tag.outputs.TAG }}
     steps:
       - name: cd/docker-login
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: cd/setup-cosign
-        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
         with:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
@@ -96,7 +96,7 @@ jobs:
           path: server/build/
 
       - name: cd/setup-docker-buildx
-        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
 
       - name: cd/set-docker-tag
         id: set_tag
