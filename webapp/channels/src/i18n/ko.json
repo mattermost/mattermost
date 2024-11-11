@@ -2153,7 +2153,6 @@
   "create_post.error_message": "메시지가 너무 깁니다. 문자 수 : {length}/{limit}",
   "create_post.fileProcessing": "진행 중...",
   "create_post.read_only": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다.",
-  "create_post.send_message": "메시지 보내기",
   "create_post.write": "{channelDisplayName}에 글쓰기",
   "create_team.display_name.nameHelp": "팀 이름을 자유롭게 입력하세요. 설정한 팀 이름은 메뉴와 상단의 헤더에 표시됩니다.",
   "create_team.display_name.next": "다음",

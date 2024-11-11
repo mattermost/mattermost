@@ -97,6 +97,21 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		}
 	}
 
+	if channel.IsShared() {
+		// if not marked as shared we don't try to reach the store, but needs double checking as it might not be truly shared
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channel.Id)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_posted",
+				map[string]any{
+					telemetry.TrackPropertyUser:    post.UserId,
+					telemetry.TrackPropertyChannel: channel.Id,
+				},
+			)
+		}
+	}
+
 	return rp, nil
 }
 
@@ -225,6 +240,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if user.IsBot {
 		post.AddProp(model.PostPropsFromBot, "true")
+	}
+
+	if flags.ForceNotification {
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
 	}
 
 	if c.Session().IsOAuth {
@@ -2706,4 +2725,35 @@ func (a *App) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteBy
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return nil
+}
+
+func (a *App) SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError) {
+	bot, err := a.GetSystemBot(c)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channel, err := a.GetOrCreateDirectChannel(c, userID, bot.UserId)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_channel", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_user", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	T := i18n.GetUserTranslations(user.Locale)
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   T("app.notifications.send_test_message.message_body"),
+		Type:      model.PostTypeDefault,
+		UserId:    bot.UserId,
+	}
+
+	post, err = a.CreatePost(c, post, channel, model.CreatePostFlags{ForceNotification: true})
+	if err != nil {
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.create_post", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return post, nil
 }

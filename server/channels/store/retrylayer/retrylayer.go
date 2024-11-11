@@ -1584,11 +1584,11 @@ func (s *RetryLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx conte
 
 }
 
-func (s *RetryLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+		result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 		if err == nil {
 			return result, nil
 		}
