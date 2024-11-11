@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
@@ -19,6 +19,7 @@ import {makeGetDraftsCount} from 'selectors/drafts';
 
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
+import WithTooltip from 'components/with_tooltip';
 
 import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
@@ -84,6 +85,28 @@ function DraftsLink() {
     const showScheduledPostCount = isScheduledPostEnabled && teamScheduledPostCount > 0;
     const draftsIcon = showScheduledPostCount ? pencilIcon : null;
 
+    const tooltipText = useMemo(() => {
+        const lineBreaks = (x: React.ReactNode) => {
+            if (draftCount > 0 && teamScheduledPostCount > 0) {
+                return (<><br/>{x}</>);
+            }
+
+            return null;
+        };
+
+        return (
+            <FormattedMessage
+                id='drafts.tooltipText'
+                defaultMessage=''
+                values={{
+                    draftCount,
+                    scheduledPostCount: teamScheduledPostCount,
+                    br: lineBreaks,
+                }}
+            />
+        );
+    }, [draftCount, teamScheduledPostCount]);
+
     if (!itemsExist && !urlMatches) {
         return null;
     }
@@ -103,7 +126,10 @@ function DraftsLink() {
                     className='SidebarLink sidebar-item'
                     tabIndex={0}
                 >
-                    {pencilIcon}
+                    <i
+                        data-testid='sendPostIcon'
+                        className='icon icon-send-post icon-send'
+                    />
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
                             <FormattedMessage
@@ -112,23 +138,31 @@ function DraftsLink() {
                             />
                         </span>
                     </div>
-                    {
-                        draftCount > 0 &&
-                        <ChannelMentionBadge
-                            unreadMentions={draftCount}
-                            icon={draftsIcon}
-                        />
-                    }
+                    <WithTooltip
+                        placement='right'
+                        id='draft-scheduled-post-tooltip'
+                        title={tooltipText}
+                    >
+                        <div>
+                            {
+                                draftCount > 0 &&
+                                <ChannelMentionBadge
+                                    unreadMentions={draftCount}
+                                    icon={draftsIcon}
+                                />
+                            }
 
-                    {
-                        showScheduledPostCount &&
-                        <ChannelMentionBadge
-                            unreadMentions={teamScheduledPostCount}
-                            icon={scheduleIcon}
-                            className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
-                            hasUrgent={scheduledPostsHasError}
-                        />
-                    }
+                            {
+                                showScheduledPostCount &&
+                                <ChannelMentionBadge
+                                    unreadMentions={teamScheduledPostCount}
+                                    icon={scheduleIcon}
+                                    className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
+                                    hasUrgent={scheduledPostsHasError}
+                                />
+                            }
+                        </div>
+                    </WithTooltip>
                 </NavLink>
                 <DraftsTourTip/>
             </li>
