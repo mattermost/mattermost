@@ -72,6 +72,7 @@ const Avatar = ({
     }
 
     function handleOnError(e: SyntheticEvent<HTMLImageElement, Event>) {
+        console.log('handleOnError', url, isURLForUser(url));
         const fallbackSrc = (url && isURLForUser(url)) ? replaceURLWithDefaultImageURL(url) : BotDefaultIcon;
 
         if (e.currentTarget.src !== fallbackSrc) {

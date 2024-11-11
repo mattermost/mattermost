@@ -55,7 +55,6 @@ const ViewUserGroupListItem = (props: Props) => {
             className='group-member-row'
         >
             <span className='status-wrapper'>
-
                 <Avatar
                     username={user.username}
                     size={'sm'}

@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import React, {type MouseEvent, type KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
@@ -50,8 +49,8 @@ export default function UserAccountMenu(props: Props) {
             }}
             menuButton={{
                 id: 'userAccountMenuButton',
-                class: classNames('status-wrapper style--none', {
-                    active: isCustomStatusSet,
+                class: classNames('userAccountMenu_menuButton', {
+                    withCustomStatus: isCustomStatusSet,
                 }),
                 'aria-label': formatMessage(getMenuButtonAriaLabel(props.status)),
                 children: (

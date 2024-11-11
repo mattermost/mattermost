@@ -63,13 +63,13 @@ export default function UserAccountOnlineMenuItem(props: Props) {
         if (props.isStatusOnline) {
             return formatMessage({
                 id: 'userAccountMenu.onlineMenuItem.ariaLabelChecked',
-                defaultMessage: 'Current status is online',
+                defaultMessage: 'Current status is set to "Online"',
             });
         }
 
         return formatMessage({
             id: 'userAccountMenu.onlineMenuItem.ariaLabelUnchecked',
-            defaultMessage: 'Click to set status as online',
+            defaultMessage: 'Click to set status to "Online"',
         });
     }, [props.isStatusOnline, formatMessage]);
 

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {defineMessages} from 'react-intl';
 
-import StatusIcon from '@mattermost/compass-components/components/status-icon';
+import {CheckCircleIcon, ClockIcon, MinusCircleIcon, RadioboxBlankIcon} from '@mattermost/compass-icons/components';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import Avatar from 'components/widgets/users/avatar/avatar';
@@ -19,6 +19,51 @@ interface Props {
 }
 
 export default function UserAccountMenuButton(props: Props) {
+    const statusIcon = useMemo(() => {
+        if (props.status && props.status === UserStatuses.ONLINE) {
+            return (
+                <CheckCircleIcon
+                    size='16'
+                    className='userAccountMenu_onlineMenuItem_icon'
+                />
+            );
+        }
+
+        if (props.status && props.status === UserStatuses.AWAY) {
+            return (
+                <ClockIcon
+                    size='16'
+                    className='userAccountMenu_awayMenuItem_icon'
+                />
+            );
+        }
+
+        if (props.status && props.status === UserStatuses.DND) {
+            return (
+                <MinusCircleIcon
+                    size='16'
+                    className='userAccountMenu_dndMenuItem_icon'
+                />
+            );
+        }
+
+        if (props.status && props.status === UserStatuses.OFFLINE) {
+            return (
+                <RadioboxBlankIcon
+                    size='16'
+                    className='userAccountMenu_offlineMenuItem_icon'
+                />
+            );
+        }
+
+        return (
+            <ClockIcon
+                size='16'
+                className='userAccountMenu_awayMenuItem_icon'
+            />
+        );
+    }, [props.status]);
+
     return (
         <>
             <CustomStatusEmoji
@@ -28,23 +73,16 @@ export default function UserAccountMenuButton(props: Props) {
                 aria-hidden={true}
                 onClick={props.openCustomStatusModal}
             />
-            {
-                props.profilePicture && (
-                    <Avatar
-                        size='sm'
-                        url={props.profilePicture}
-                        aria-hidden={true}
-                    />
-                )
-            }
+            <Avatar
+                size='sm'
+                url={props.profilePicture}
+                aria-hidden={true}
+            />
             <div
-                className='status'
+                className='userStatusIconWrapper'
+                aria-hidden={true}
             >
-                <StatusIcon
-                    size={'sm'}
-                    status={(props.status || 'offline')}
-                    aria-hidden={true}
-                />
+                {statusIcon}
             </div>
         </>
     );
@@ -52,27 +90,27 @@ export default function UserAccountMenuButton(props: Props) {
 
 const ariaLabelsDefineMessages = defineMessages({
     outOfOffice: {
-        id: 'status_dropdown.profile_button_label.ooo',
+        id: 'userAccountMenu.menuButton.ariaLabel.ooo',
         defaultMessage: 'Current status is "Out of office". Click to open user account menu.',
     },
     online: {
-        id: 'status_dropdown.profile_button_label.online',
+        id: 'userAccountMenu.menuButton.ariaLabel.online',
         defaultMessage: 'Current status is "Online". Click to open user account menu.',
     },
     away: {
-        id: 'status_dropdown.profile_button_label.away',
+        id: 'userAccountMenu.menuButton.ariaLabel.away',
         defaultMessage: 'Current status is "Away". Click to open user account menu.',
     },
     dnd: {
-        id: 'status_dropdown.profile_button_label.dnd',
+        id: 'userAccountMenu.menuButton.ariaLabel.dnd',
         defaultMessage: 'Current status is "Do not disturb". Click to open user account menu.',
     },
     offline: {
-        id: 'status_dropdown.profile_button_label.offline',
+        id: 'userAccountMenu.menuButton.ariaLabel.offline',
         defaultMessage: 'Current status is "Offline". Click to open user account menu.',
     },
     notSet: {
-        id: 'status_dropdown.profile_button_label',
+        id: 'userAccountMenu.menuButton.ariaLabel',
         defaultMessage: 'Click to open user account menu.',
     },
 });

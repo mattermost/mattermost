@@ -34,7 +34,6 @@ interface Props {
 
 export default function UserAccountDndMenuItem(props: Props) {
     const {formatMessage} = useIntl();
-
     const dispatch = useDispatch();
 
     const dndEndTime = useSelector((state: GlobalState) => getDndEndTimeForUserId(state, props.userId));
@@ -127,14 +126,22 @@ export default function UserAccountDndMenuItem(props: Props) {
         );
     }, [props.isStatusDnd]);
 
-    function getSecondaryLabel(dndEndTime?: number, timezone?: string) {
+    // This function has dual purpose, first it returns the secondary label for the menu item and
+    // second it returns the part of the aria label for the menu item.
+    function getSecondaryLabel(isStatusDnd: boolean, dndEndTime?: number, timezone?: string) {
+        if (!isStatusDnd) {
+            return formatMessage({
+                id: 'userAccountMenu.dndMenuItem.secondaryLabel',
+                defaultMessage: 'Disables all notifications',
+            });
+        }
+
+        // When DND is set to not clear
         if (!dndEndTime || dndEndTime === 0) {
-            return (
-                <FormattedMessage
-                    id='userAccountMenu.dndMenuItem.secondaryLabel'
-                    defaultMessage='Disables all notifications'
-                />
-            );
+            return formatMessage({
+                id: 'userAccountMenu.dndMenuItem.secondaryLabel.doNotClear',
+                defaultMessage: 'Until indefinitely',
+            });
         }
 
         const tz = timezone || getBrowserTimezone();
@@ -144,30 +151,44 @@ export default function UserAccountDndMenuItem(props: Props) {
         const diffDays = endTime.clone().startOf('day').diff(currentTime.clone().startOf('day'), 'days');
 
         if (diffDays === 0) {
-            return (
-                <FormattedMessage
-                    id='custom_status.expiry.until'
-                    defaultMessage='Until {time}'
-                    values={{time: endTime.format('h:mm A')}}
-                />
-            );
+            return formatMessage({
+                id: 'userAccountMenu.dndMenuItem.secondaryLabel.untilTodaySomeTime',
+                defaultMessage: 'Until {time}',
+            }, {
+                time: endTime.format('h:mm A'),
+            });
         } else if (diffDays === 1) {
-            return (
-                <FormattedMessage
-                    id='custom_status.expiry.until_tomorrow'
-                    defaultMessage='Until Tomorrow {time}'
-                    values={{time: endTime.format('h:mm A')}}
-                />
-            );
+            return formatMessage({
+                id: 'userAccountMenu.dndMenuItem.secondaryLabel.untilTomorrowSomeTime',
+                defaultMessage: 'Until Tomorrow {time}',
+            }, {
+                time: endTime.format('h:mm A'),
+            });
         }
-        return (
-            <FormattedMessage
-                id='custom_status.expiry.until'
-                defaultMessage='Until {time}'
-                values={{time: endTime.format('lll')}}
-            />
-        );
+
+        return formatMessage({
+            id: 'userAccountMenu.dndMenuItem.secondaryLabel.untilLaterSomeTime',
+            defaultMessage: 'Until {time}',
+        }, {
+            time: endTime.format('lll'),
+        });
     }
+
+    const menuItemAriaLabel = useMemo(() => {
+        if (!props.isStatusDnd) {
+            return formatMessage({
+                id: 'userAccountMenu.dndMenuItem.ariaLabel.unchecked',
+                defaultMessage: 'Click to set status to "Do not disturb", it disables all notifications',
+            });
+        }
+
+        return formatMessage({
+            id: 'userAccountMenu.dndMenuItem.ariaLabelChecked',
+            defaultMessage: 'Current status is set to "Do not disturb", {untilNthTime}',
+        }, {
+            untilNthTime: getSecondaryLabel(props.isStatusDnd, dndEndTime, props.timezone).toLowerCase(),
+        });
+    }, [props.isStatusDnd, dndEndTime, props.timezone]);
 
     return (
         <Menu.SubMenu
@@ -185,12 +206,18 @@ export default function UserAccountDndMenuItem(props: Props) {
                         id='userAccountMenu.dndMenuItem.primaryLabel'
                         defaultMessage='Do not disturb'
                     />
-                    {getSecondaryLabel(dndEndTime)}
+                    <span>
+                        {getSecondaryLabel(props.isStatusDnd, dndEndTime, props.timezone)}
+                    </span>
                 </>
             }
+            aria-label={menuItemAriaLabel}
             trailingElements={trailingElement}
         >
-            <h5 className='userAccountMenu_dndMenuItem_subMenuTitle'>
+            <h5
+                className='userAccountMenu_dndMenuItem_subMenuTitle'
+                aria-hidden={true}
+            >
                 {formatMessage({
                     id: 'userAccountMenu.dndSubMenu.title',
                     defaultMessage: 'Clear after:',
@@ -204,6 +231,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage="Don't clear"
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.doNotClear.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to not ever clear',
+                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -214,6 +245,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='30 mins'
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.30Minutes.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to clear after 30 minutes',
+                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -224,6 +259,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='1 hour'
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.1Hour.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to clear after 1 hour',
+                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -234,6 +273,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='2 hours'
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.2Hours.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to clear after 2 hours',
+                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -244,6 +287,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='Tomorrow'
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.tomorrow.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to clear tomorrow at 9 AM',
+                })}
                 trailingElements={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.tomorrowsDateTime'
@@ -276,6 +323,10 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='Choose date and time'
                     />
                 }
+                aria-label={formatMessage({
+                    id: 'userAccountMenu.dndSubMenuItem.custom.ariaLabel',
+                    defaultMessage: 'Click to set "Do not disturb" status to a custom date and time',
+                })}
                 onClick={openCustomTimePicker}
             />
         </Menu.SubMenu>

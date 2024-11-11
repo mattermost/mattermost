@@ -69,7 +69,10 @@ export default function UserAccountProfileMenuItem(props: Props) {
                     />
                 }
                 trailingElements={isCompleteYourProfileTaskPending && (
-                    <div onClick={handleTourClick}>
+                    <div
+                        onClick={handleTourClick}
+                        className='userAccountMenu_profileMenuItem_tourWrapper'
+                    >
                         <CompleteYourProfileTour/>
                     </div>
                 )}
