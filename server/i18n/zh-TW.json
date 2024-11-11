@@ -10281,7 +10281,7 @@
   },
   {
     "id": "app.update_scheduled_post.get_scheduled_post.error",
-    "translation": "禁止存取在資料庫中存在的"
+    "translation": "禁止存取在資料庫中存在的排程訊息。"
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
