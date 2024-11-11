@@ -3,9 +3,9 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserProfile} from '@mattermost/types/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
@@ -16,7 +16,6 @@ import Avatar from 'components/widgets/users/avatar/avatar';
 import {ModalIdentifiers} from 'utils/constants';
 
 interface Props {
-    currentUser?: UserProfile;
     profilePicture?: string;
 }
 
@@ -25,7 +24,9 @@ export default function UserAccountNameMenuItem(props: Props) {
 
     const {formatMessage} = useIntl();
 
-    if (!props.currentUser) {
+    const currentUser = useSelector(getCurrentUser);
+
+    if (!currentUser) {
         return null;
     }
 
@@ -38,15 +39,15 @@ export default function UserAccountNameMenuItem(props: Props) {
     }
 
     function getLabel() {
-        if (!props.currentUser) {
+        if (!currentUser) {
             return <></>;
         }
 
         if (
-            props.currentUser?.first_name?.length > 0 ||
-            props.currentUser?.last_name?.length > 0
+            currentUser.first_name?.length > 0 ||
+            currentUser.last_name?.length > 0
         ) {
-            const name = `${props.currentUser.first_name} ${props.currentUser.last_name}`?.trim();
+            const name = `${currentUser.first_name} ${currentUser.last_name}`?.trim();
 
             return (
                 <>
@@ -54,13 +55,13 @@ export default function UserAccountNameMenuItem(props: Props) {
                         {name}
                     </h2>
                     <span className='userAccountMenu_nameMenuItem_secondaryLabel'>
-                        {'@' + props.currentUser.username}
+                        {'@' + currentUser.username}
                     </span>
                 </>
             );
         }
 
-        const username = `@${props.currentUser?.username}`?.trim();
+        const username = `@${currentUser.username}`?.trim();
 
         return (
             <h2 className='userAccountMenu_nameMenuItem_primaryLabel'>
@@ -86,7 +87,7 @@ export default function UserAccountNameMenuItem(props: Props) {
                         id: 'userAccountPopover.nameMenuItem.ariaLabel',
                         defaultMessage: 'Logged in as {username}, click to open user settings',
                     },
-                    {username: props.currentUser?.username},
+                    {username: currentUser.username},
                 )}
                 onClick={handleClick}
             />

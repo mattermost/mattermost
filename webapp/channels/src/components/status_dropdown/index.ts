@@ -1,49 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {setStatus, unsetCustomStatus} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
-import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser, getDndEndTimeForUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
-import {setStatusDropdown} from 'actions/views/status_dropdown';
-import {makeGetCustomStatus, isCustomStatusEnabled, showStatusDropdownPulsatingDot, isCustomStatusExpired} from 'selectors/views/custom_status';
-import {isStatusDropdownOpen} from 'selectors/views/status_dropdown';
+import {makeGetCustomStatus, isCustomStatusExpired} from 'selectors/views/custom_status';
 
 import type {GlobalState} from 'types/store';
 
-import StatusDropdown from './status_dropdown';
+import UserAccountMenu from './user_account_menu';
 
 function makeMapStateToProps() {
     const getCustomStatus = makeGetCustomStatus();
 
     return function mapStateToProps(state: GlobalState) {
         const currentUser = getCurrentUser(state);
-
         const userId = currentUser?.id;
         const customStatus = getCustomStatus(state, userId);
-        const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
+
         return {
             userId,
             profilePicture: Client4.getProfilePictureUrl(userId, currentUser?.last_picture_update),
             autoResetPref: get(state, Preferences.CATEGORY_AUTO_RESET_MANUAL_STATUS, userId, ''),
             status: getStatusForUserId(state, userId),
             customStatus,
-            currentUser,
-            isCustomStatusEnabled: isCustomStatusEnabled(state),
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
-            isMilitaryTime,
-            isStatusDropdownOpen: isStatusDropdownOpen(state),
-            showCustomStatusPulsatingDot: showStatusDropdownPulsatingDot(state),
             timezone: getCurrentTimezone(state),
-            dndEndTime: getDndEndTimeForUserId(state, userId),
         };
     };
 }
@@ -52,11 +43,12 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
-            setStatus,
-            unsetCustomStatus,
-            setStatusDropdown,
         }, dispatch),
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(StatusDropdown);
+const connector = connect(makeMapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(UserAccountMenu);

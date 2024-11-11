@@ -9,9 +9,9 @@ import type {UserProfile} from '@mattermost/types/users';
 import {fakeDate} from 'tests/helpers/date';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import StatusDropdown from './status_dropdown';
+import UserAccountMenu from './user_account_menu';
 
-describe('components/StatusDropdown', () => {
+describe('UserAccountMenu', () => {
     let resetFakeDate: () => void;
 
     beforeEach(() => {
@@ -54,7 +54,7 @@ describe('components/StatusDropdown', () => {
 
     test('should match snapshot in default state', () => {
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...baseProps}/>,
+            <UserAccountMenu {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -66,7 +66,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -78,7 +78,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -91,7 +91,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -105,7 +105,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -125,7 +125,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -146,7 +146,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
@@ -167,7 +167,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
 
         expect(wrapper.find('.status-dropdown-menu__clear-container').exists()).toBe(true);
@@ -185,7 +185,7 @@ describe('components/StatusDropdown', () => {
         };
 
         const wrapper = shallowWithIntl(
-            <StatusDropdown {...props}/>,
+            <UserAccountMenu {...props}/>,
         );
 
         expect(wrapper.find('.status-dropdown-menu__clear-container').exists()).toBe(false);

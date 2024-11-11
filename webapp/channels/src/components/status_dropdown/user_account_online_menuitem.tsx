@@ -50,7 +50,7 @@ export default function UserAccountOnlineMenuItem(props: Props) {
             return (
                 <CheckIcon
                     size={16}
-                    className='userAccountMenu_menuItemCheckIcon'
+                    className='userAccountMenu_menuItemTrailingCheckIcon'
                     aria-hidden='true'
                 />
             );

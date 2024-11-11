@@ -74,23 +74,26 @@ export default function UserAccountOfflineMenuItem(props: Props) {
     }, [props.isStatusOffline, formatMessage]);
 
     return (
-        <Menu.Item
-            leadingElement={
-                <RadioboxBlankIcon
-                    size='18'
-                    className='userAccountMenu_offlineMenuItem_icon'
-                    aria-hidden='true'
-                />
-            }
-            labels={
-                <FormattedMessage
-                    id='userAccountMenu.offlineMenuItem.label'
-                    defaultMessage='Offline'
-                />
-            }
-            trailingElements={trailingElement}
-            aria-label={ariaLabel}
-            onClick={handleClick}
-        />
+        <>
+            <Menu.Item
+                leadingElement={
+                    <RadioboxBlankIcon
+                        size='18'
+                        className='userAccountMenu_offlineMenuItem_icon'
+                        aria-hidden='true'
+                    />
+                }
+                labels={
+                    <FormattedMessage
+                        id='userAccountMenu.offlineMenuItem.label'
+                        defaultMessage='Offline'
+                    />
+                }
+                trailingElements={trailingElement}
+                aria-label={ariaLabel}
+                onClick={handleClick}
+            />
+            <Menu.Separator/>
+        </>
     );
 }
