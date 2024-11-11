@@ -7,6 +7,8 @@ import { JsonEditor, IconCopy, NodeData, IconOk } from 'json-edit-react';
 import classNames from 'classnames';
 
 import './webhook_schema_editor.scss';
+import { Button } from 'react-bootstrap';
+import { Client4 } from 'mattermost-redux/client';
 
 type Props = {
     initialHook: IncomingWebhook;
@@ -17,10 +19,34 @@ const deepClone = (obj: any) => {
     return JSON.parse(JSON.stringify(obj));
 }
 
+const createEmptyIncomingWebhookRequest = (): IncomingWebhookRequest => {
+    return {
+        text: '',
+        username: '',
+        icon_url: '',
+        channel: '',
+        props: {},
+        attachments: [],
+        type: '',
+        icon_emoji: '',
+        priority: {
+            priority: '',
+            requested_ack: false,
+            persistent_notifications: false,
+            postId: '',
+            channelId: ''
+        }
+    };
+};
+
 export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Props) {
     const webhookListener = useListenForWebhookPayload(initialHook.id);
     const [selectedFromNode, setSelectedFromNode] = useState<null | NodeData>(null);
-    const [resultingSchema, setResultingSchema] = useState(initialHook.webhook_schema_translation as IncomingWebhookRequest);
+    const [resultingSchema, setResultingSchema] = useState<IncomingWebhookRequest>(
+        initialHook.webhook_schema_translation || createEmptyIncomingWebhookRequest()
+    );
+
+
 
 
     useEffect(() => {
@@ -35,18 +61,34 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
             case 'listening':
                 return (
                     <div>
-                        Listening for webhook payload...
+                        Listening for webhook payload at {`http://localhost:8065/hooks/${initialHook.id}`}
                         <Loading_spinner />
                     </div>
                 );
             case 'received':
-                return <div>Select values from the incoming payload, and assign them to values for your Mattermost webhook!</div>
+                return <div>
+                    <div>
+                        Select values from the incoming payload, and assign them to values for your Mattermost webhook!
+                    </div>
+                    <div>
+                        OR
+                    </div>
+                    <div>
+                        <Button className="btn btn-primary" onClick={handleCopilotSuggestionClick}>Get Copilot Suggestion</Button>
+                    </div>
+                </div>
             case 'error':
                 return <div>Error receiving webhook payload.</div>;
             default:
                 return <div>Unknown state.</div>;
         }
     };
+
+    const handleCopilotSuggestionClick = async () => {
+        const response = await Client4.fetchWebhookSchemaSuggestionFromCopilot(webhookListener.payload!);
+        console.log(response);
+        setResultingSchema(JSON.parse(response));
+    }
 
     const handleSelectFrom = (select: any, e: any) => {
         setSelectedFromNode(select);
@@ -68,7 +110,6 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
 
         let targetPointer = mergedJsonBase;
 
-        // Traverse to the target location
         // Traverse to the target location
         const path = (select as NodeData).path;
         for (let i = 0; i < path.length - 1; i++) {
@@ -117,10 +158,8 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
                     }
                 ]
             }
-
             return [];
         }
-
     }
 
     return (
@@ -129,18 +168,20 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
             <div className="incoming-webhook-listener">
                 {listenerContent()}
             </div>
-            {webhookListener.received && (
-                <div className="schemas-container">
-                    <div className="from-schema">
-                        <h2>Incoming Schema</h2>
+            <div className="schemas-container">
+                <div className="from-schema">
+                    <h2>Incoming Schema</h2>
+                    {webhookListener.received && <>
                         <JsonEditor enableClipboard={false} customButtons={customButtonsProp('from')} rootName={''} restrictAdd restrictDelete restrictEdit data={webhookListener.payload!} />
-                    </div>
-                    <div className={classNames("to-schema", Boolean(selectedFromNode) ? 'select-mode' : null)}>
-                        <h2>Resulting Schema</h2>
-                        <JsonEditor enableClipboard={false} onUpdate={handleManualUpdate} customButtons={customButtonsProp('to')} rootName={''} data={resultingSchema} />
-                    </div>
+
+                    </>
+                    }
                 </div>
-            )}
+                <div className={classNames("to-schema", Boolean(selectedFromNode) ? 'select-mode' : null)}>
+                    <h2>Resulting Schema</h2>
+                    <JsonEditor enableClipboard={false} onUpdate={handleManualUpdate} customButtons={customButtonsProp('to')} rootName={''} data={resultingSchema} />
+                </div>
+            </div>
         </div>
     );
 }

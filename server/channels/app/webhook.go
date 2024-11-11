@@ -1005,26 +1005,30 @@ func replacePlaceholders(schemaJSON []byte, requestJSON map[string]interface{}) 
 	return []byte(schemaString), nil
 }
 
-// getJSONValue retrieves a value from a JSON object based on a key path
-// (e.g., "message", "nested.field", "array.0")
 func getJSONValue(jsonMap map[string]interface{}, keyPath string) (interface{}, error) {
 	keys := strings.Split(keyPath, ".")
 	var current interface{} = jsonMap
+
 	for _, key := range keys {
-		if index, err := strconv.Atoi(key); err == nil { // Check if it's an array index
+		// Check if the key is an array index (by trying to convert it to an int)
+		if index, err := strconv.Atoi(key); err == nil { // It's an index
+			// If the current value is an array, access by index
 			if array, ok := current.([]interface{}); ok {
 				if index >= 0 && index < len(array) {
-					current = array[index]
+					current = array[index] // Move to the element at the index
 				} else {
 					return nil, fmt.Errorf("array index out of bounds: %s", keyPath)
 				}
 			} else {
-				return nil, fmt.Errorf("invalid key path: %s", keyPath)
+				return nil, fmt.Errorf("invalid key path for array index '%s': %s", key, keyPath)
 			}
-		} else if m, ok := current.(map[string]interface{}); ok { // Otherwise, treat it as a map key
-			current = m[key]
-		} else {
-			return nil, fmt.Errorf("invalid key path: %s", keyPath)
+		} else { // Otherwise, treat it as a map key
+			// If the current value is a map, access by the key
+			if m, ok := current.(map[string]interface{}); ok {
+				current = m[key] // Move to the next level in the map
+			} else {
+				return nil, fmt.Errorf("invalid key path for key '%s': %s", key, keyPath)
+			}
 		}
 	}
 	return current, nil

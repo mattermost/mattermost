@@ -2723,6 +2723,14 @@ export default class Client4 {
         );
     };
 
+    fetchWebhookSchemaSuggestionFromCopilot = (payload: any) => {
+        // http://localhost:8065/plugins/mattermost-ai/post/gie9onx4h7fym8mend73xiuqdc/react
+        return this.doFetch<any>(
+            `${this.url}/plugins/mattermost-ai/suggest_webhook_schema`,
+            {method: 'post', body: JSON.stringify(payload)},
+        );
+    }
+
     getIncomingWebhook = (hookId: string) => {
         return this.doFetch<IncomingWebhook>(
             `${this.getIncomingHookRoute(hookId)}`,

@@ -57,8 +57,16 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if webhook.WebhookSchemaTranslation != nil {
 
 		incomingWebhookPayload, errr = c.App.HandleWebhookSchemaTranslation(c.AppContext, webhook, r)
+
 		if errr != nil {
+			c.Logger.Error("Incoming webhook received, with schema translation error", mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId()), mlog.NamedErr("error", errr))
 			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, "webhook_id="+id+", error: "+errr.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if incomingWebhookPayload == nil {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, "webhook_id="+id+", error: incomingWebhookPayload is nil", http.StatusBadRequest)
+			return
 		}
 	} else {
 
