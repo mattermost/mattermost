@@ -30,6 +30,7 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Req
 	_, err = conn.Write([]byte("HTTP/1.1 200\n\nOK"))
 	if err != nil {
 		mlog.Error("Failed to write to connection", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = conn.Close()
