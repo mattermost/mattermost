@@ -42,7 +42,7 @@ export type ProductOptions = {
     /**
      * The public component to be displayed when a public route is active.
      */
-    publicComponent: React.ComponentType;
+    publicComponent?: React.ComponentType;
 
     /**
      * A component to fill the generic area in the center of
@@ -64,7 +64,7 @@ export type ProductOptions = {
     /**
      * A flag to display or hide the App Sidebar in products.
      */
-    showAppBar: boolean;
+    showAppBar?: boolean;
 
     /**
      * When `true`, {@link ProductComponent.mainComponent} will be wrapped in a container with `grid-area: center` applied automatically.
@@ -72,7 +72,7 @@ export type ProductOptions = {
      * or return multiple elements with their own `grid-area`s respectively.
      * @default true
      */
-    wrapped: boolean;
+    wrapped?: boolean;
 };
 
 export type SidebarChannelLinkLabelComponentOptions = {
@@ -90,7 +90,7 @@ export type GlobalComponentOptions = {
 type ActionBarComponentOptionsBase = {
     iconUrl: string;
     tooltipText: PluggableText;
-    supportedProductIds: ProductScope;
+    supportedProductIds?: ProductScope;
 };
 export type AppBarComponentOptionsWithAction = ActionBarComponentOptionsBase & {
     action: (channel: Channel, member: ChannelMembership) => void;
