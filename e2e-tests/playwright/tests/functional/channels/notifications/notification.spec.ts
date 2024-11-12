@@ -3,7 +3,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('MM-T483 Channel-wide mentions with uppercase letters', async ({pw, pages, browser, headless, browserName}) => {
+test('MM-T483 Channel-wide mentions with uppercase letters', async ({pw, pages, headless, browserName}) => {
     test.skip(
         headless && browserName !== 'firefox',
         'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
@@ -22,8 +22,7 @@ test('MM-T483 Channel-wide mentions with uppercase letters', async ({pw, pages, 
     await pw.stubNotification(adminPage, 'granted');
 
     // Log in as the regular user in a separate browser and navigate to the "off-topic" channel
-    const otherBrowser = new pw.TestBrowser(browser);
-    const {page: otherPage} = await otherBrowser.login(user);
+    const {page: otherPage} = await pw.testBrowser.login(user);
     const otherChannelPage = new pages.ChannelsPage(otherPage);
     await otherChannelPage.goto(team.name, 'off-topic');
     await otherChannelPage.toBeVisible();

@@ -2,7 +2,7 @@ import {test as base, Browser, Page} from '@playwright/test';
 import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
-import {TestBrowser as _TestBrowser} from './browser_context';
+import {TestBrowser} from './browser_context';
 import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, ensureLicense, skipIfNoLicense} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
@@ -42,7 +42,6 @@ export const test = base.extend<ExtendedFixtures>({
 
 class PlaywrightExtended {
     // ./browser_context
-    readonly TestBrowser;
     readonly testBrowser;
 
     // ./flag
@@ -73,8 +72,7 @@ class PlaywrightExtended {
 
     constructor(browser: Browser) {
         // ./browser_context
-        this.TestBrowser = _TestBrowser;
-        this.testBrowser = new _TestBrowser(browser);
+        this.testBrowser = new TestBrowser(browser);
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
