@@ -4,12 +4,13 @@
 import {render} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
-import mockStore from 'tests/test_store';
-import Constants from 'utils/constants';
-import {wrapIntl} from 'utils/test_intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
+
+import mockStore from 'tests/test_store';
+import Constants from 'utils/constants';
+import {wrapIntl} from 'utils/test_intl';
 
 import DraftTitle from './draft_title';
 
