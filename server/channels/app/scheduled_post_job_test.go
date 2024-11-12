@@ -208,4 +208,57 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[1].ErrorCode)
 		assert.Greater(t, scheduledPosts[1].ProcessedAt, int64(0))
 	})
+
+	t.Run("sets error code when user is not a team member", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		scheduledAt := model.GetMillis() + 1000
+		scheduledPost1 := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: scheduledAt,
+		}
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		assert.NoError(t, err)
+
+		scheduledPost2 := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is second scheduled post",
+			},
+			ScheduledAt: scheduledAt,
+		}
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		assert.NoError(t, err)
+
+		appErr := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		defer func() {
+			_, _, _ = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
+		}()
+
+		time.Sleep(1 * time.Second)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		assert.NoError(t, err)
+		assert.Len(t, scheduledPosts, 2)
+
+		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[0].ErrorCode)
+		assert.Greater(t, scheduledPosts[0].ProcessedAt, int64(0))
+
+		assert.Equal(t, model.ScheduledPostErrorCodeNoChannelPermission, scheduledPosts[1].ErrorCode)
+		assert.Greater(t, scheduledPosts[1].ProcessedAt, int64(0))
+	})
 }
