@@ -1438,6 +1438,8 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			if replyData.Reactions != nil && len(*replyData.Reactions) > 0 {
 				// although createAt is not unique, I think it is safe to
 				// assume that it could be near-unique especially for the same thread.
+				// If this assumption fails, the last reactions would be used for the
+				// posts that share same createAt value.
 				interimReactionsMap[reply.CreateAt] = replyData.Reactions
 			}
 		} else {
