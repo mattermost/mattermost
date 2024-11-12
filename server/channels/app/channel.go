@@ -3606,7 +3606,6 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 		}
 	} else {
 		// if there is no one converting the GM, then the everyone should become the channel admin.
-		// add an oprah meme here.
 		for _, user := range users {
 			_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, user.Id, false, true, true)
 			if appErr != nil {
