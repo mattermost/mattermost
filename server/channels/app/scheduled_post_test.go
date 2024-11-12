@@ -230,7 +230,6 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61523")
 		scheduledPost1 := &model.ScheduledPost{
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -243,6 +242,10 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost1)
+
+		// this wait is to ensure scheduled post 2 and 1 have some time gap between the two
+		// to ensure a deterministic ordering
+		time.Sleep(1 * time.Second)
 
 		scheduledPost2 := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -416,6 +419,43 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Equal(t, createdScheduledPost1.Id, retrievedScheduledPosts[0].Id)
 		require.Equal(t, createdScheduledPost2.Id, retrievedScheduledPosts[1].Id)
 	})
+
+	t.Run("should not be able to fetch scheduled posts for team user doesn't belong to", func(t *testing.T) {
+		// create a dummy team
+		team := th.CreateTeam()
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, th.BasicUser, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// create a channel in this team
+		channel := th.CreateChannel(th.Context, team)
+
+		// create scheduled post
+		scheduledPost1 := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost1)
+
+		// verify we are able to fetch this scheduled post
+		retrievedScheduledPosts, appErr := th.App.GetUserTeamScheduledPosts(th.Context, th.BasicUser.Id, team.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(retrievedScheduledPosts))
+
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// now we should not be able to fetch this scheduled post
+		retrievedScheduledPosts, appErr = th.App.GetUserTeamScheduledPosts(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(retrievedScheduledPosts))
+	})
 }
 
 func TestUpdateScheduledPost(t *testing.T) {
@@ -582,6 +622,52 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotEqual(t, newCreateAt, updatedScheduledPost.CreateAt)
 		require.Equal(t, 2, len(updatedScheduledPost.FileIds))
 		require.Equal(t, model.ScheduledPostErrorUnknownError, createdScheduledPost.ErrorCode)
+	})
+
+	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdScheduledPost)
+
+		// now user will leave the channel
+		appErr = th.RemoveUserFromChannel(th.BasicUser, channel)
+		require.Nil(t, appErr)
+
+		createdScheduledPost.Message = "Updated message"
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, createdScheduledPost, user1ConnID)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedScheduledPost)
+		require.Equal(t, updatedScheduledPost.Message, "Updated message")
+	})
+
+	t.Run("should not be able to update a non existing scheduled post", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			Id:          model.NewId(),
+			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
+		}
+
+		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, scheduledPost, user1ConnID)
+		require.NotNil(t, appErr)
+		require.Nil(t, updatedScheduledPost)
 	})
 }
 
