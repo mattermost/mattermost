@@ -875,29 +875,29 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
 					return err
-			}
-		}
-
-		for _, emoji := range customEmojiList {
-			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
-			filePath := filepath.Join(exportDir, emoji.Id, "image")
-			if exportFiles {
-				err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
-				if err != nil {
-					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
 				}
-			} else {
-				filePath = filepath.Join("emoji", emoji.Id, "image")
-				emojiPaths = append(emojiPaths, filePath)
 			}
 
-			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
-			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-				return nil, err
+			for _, emoji := range customEmojiList {
+				emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
+				filePath := filepath.Join(exportDir, emoji.Id, "image")
+				if exportFiles {
+					err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+					if err != nil {
+						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+					}
+				} else {
+					filePath = filepath.Join("emoji", emoji.Id, "image")
+					emojiPaths = append(emojiPaths, filePath)
+				}
+
+				emojiImportObject := ImportLineFromEmoji(emoji, filePath)
+				if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
-
 	return emojiPaths, nil
 }
 
@@ -908,10 +908,10 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 		return errors.New("Error reading " + emojiImagePath + " file")
 	}
 	defer func() {
-		if err = fromPath.Close(); err != nil {
-			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
-        }
-    }()
+		if closeErr = fromPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(closeErr))
+		}
+	}()
 
 	emojiDir := pathToDir + "/" + emojiId
 
@@ -930,10 +930,10 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 		return errors.New("Error creating the image file " + err.Error())
 	}
 	defer func() {
-		if err = toPath.Close(); err != nil {
-			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
-        }
-    }()
+		if closeErr := toPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(closeErr))
+		}
+	}()
 	_, err = io.Copy(toPath, fromPath)
 	if err != nil {
 		return errors.New("Error copying emojis " + err.Error())
