@@ -4361,7 +4361,6 @@ func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	fmt.Println(queryString)
 	ch := []*model.Channel{}
 	if err2 := s.GetReplicaX().Select(&ch, queryString, args...); err2 != nil {
 		return nil, errors.Wrap(err2, "failed to find group Channels")

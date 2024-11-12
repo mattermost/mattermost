@@ -418,4 +418,10 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+	Header      string `json:"header"`
+}
+
+func (r *GroupMessageConversionRequestBody) PrepareForAutoConversion() {
+	r.Name = "converted-" + NewId()[:7]
+	r.Header = strings.TrimSpace("This channel is automatically created from a group channel due to deletion of at least a member. " + r.Header)
 }

@@ -701,12 +701,15 @@ func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
 					// this is the case of a group channel remained intact has no change required
 					continue
 				}
-				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", &model.GroupMessageConversionRequestBody{
+				req := &model.GroupMessageConversionRequestBody{
 					ChannelID:   channel.Id,
 					TeamID:      channel.TeamId,
-					Name:        channel.Name, // this should be a unique name hence should be okay to keep it
+					Name:        "converted-" + model.NewId()[:7],
 					DisplayName: channel.DisplayName,
-				})
+					Header:      "This channel is automatically created from a group channel due to deletion of at least a member.",
+				}
+				req.PrepareForAutoConversion()
+				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", req)
 			case model.ChannelTypeDirect:
 				if _, u2 := channel.GetBothUsersForDM(); u2 == "" || len(channel.Members) > 1 {
 					// we have two users in the channel, and member count is greater than 1, this is a valid direct channel
@@ -716,7 +719,14 @@ func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
 			default:
 				appErr = model.NewAppError("doConvertIncompleteGMsMigration", "app.channel.permanent_delete_user.unexpected_channel_type.app_error", nil, "", http.StatusInternalServerError)
 			}
-			if appErr != nil {
+			if appErr != nil && appErr.Id == "app.channel.group_message_conversion.no_common_teams" {
+				mlog.Warn("Failed to convert group message to channel, going to soft delete channel anyway", mlog.String("channel_id", channel.Id), mlog.Err(appErr))
+				appErr = app.DeleteChannel(c, newCh, "")
+				if appErr != nil {
+					return appErr
+				}
+				continue
+			} else if appErr != nil {
 				return appErr
 			}
 

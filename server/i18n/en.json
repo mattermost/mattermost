@@ -4735,6 +4735,10 @@
     "translation": "The specified team ID in conversion request does not contain all the group message members"
   },
   {
+    "id": "app.channel.group_message_conversion.no_common_teams",
+    "translation": "Users of the group channel do not have any common teams"
+  },
+  {
     "id": "app.channel.group_message_conversion.original_channel_not_gm",
     "translation": "The channel being converted is not a group message. You can only convert group messages"
   },

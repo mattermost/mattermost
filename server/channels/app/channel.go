@@ -3611,6 +3611,7 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 	toUpdate.TeamId = gmConversionRequest.TeamID
 	toUpdate.Name = gmConversionRequest.Name
 	toUpdate.DisplayName = gmConversionRequest.DisplayName
+	toUpdate.Header = gmConversionRequest.Header
 
 	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
 	if appErr != nil {
@@ -3768,6 +3769,15 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 			teamFound = true
 			break
 		}
+	}
+
+	// we can't convert GM to a channel if the team is not common among all GM members
+	// since we are making this automagically, we are taking the first team from the common teams
+	if gmConversionRequest.TeamID == "" && len(commonTeams) > 0 {
+		gmConversionRequest.TeamID = commonTeams[0].Id
+		teamFound = true
+	} else if len(commonTeams) == 0 {
+		return model.NewAppError("validateForConvertGroupMessageToChannel", "app.channel.group_message_conversion.no_common_teams", nil, "", http.StatusBadRequest)
 	}
 
 	if !teamFound {
