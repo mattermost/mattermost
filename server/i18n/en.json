@@ -5111,6 +5111,10 @@
     "translation": "Unable to copy custom emoji images"
   },
   {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "An error occurred writing the export data."
   },

@@ -202,7 +202,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		emojisLen := len(emojiPaths)
 		ctx.Logger().Info("Bulk export: exporting custom emojis")
 		for _, emojiPath := range emojiPaths {
-			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
+			if err := a.exportFile(ctx, outPath, emojiPath, zipWr); err != nil {
 				return err
 			}
 			totalExportedEmojis++
@@ -217,7 +217,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	if opts.IncludeProfilePictures {
 		ctx.Logger().Info("Bulk export: exporting profile pictures")
 		for _, profilePicture := range profilePictures {
-			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
+			if err := a.exportFile(ctx, outPath, profilePicture, zipWr); err != nil {
 				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
 			}
 		}
@@ -231,7 +231,7 @@ func (a *App) exportAttachments(ctx request.CTX, attachments []imports.Attachmen
 	totalExportedFiles := 0
 	attachmentsLen := len(attachments)
 	for _, attachment := range attachments {
-		if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+		if err := a.exportFile(ctx, outPath, *attachment.Path, zipWr); err != nil {
 			return err
 		}
 		totalExportedFiles++
@@ -850,12 +850,12 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	cnt := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(rctx, pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err
@@ -874,7 +874,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 		if exportFiles {
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
-					return err
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "err="+err.Error(), http.StatusBadRequest)
 				}
 			}
 
@@ -882,7 +882,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 				emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
 				filePath := filepath.Join(exportDir, emoji.Id, "image")
 				if exportFiles {
-					err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+					err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
 					if err != nil {
 						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
 					}
@@ -908,8 +908,8 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 		return errors.New("Error reading " + emojiImagePath + " file")
 	}
 	defer func() {
-		if closeErr = fromPath.Close(); err != nil {
-			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(closeErr))
+		if err = fromPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
 		}
 	}()
 
@@ -930,8 +930,8 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 		return errors.New("Error creating the image file " + err.Error())
 	}
 	defer func() {
-		if closeErr := toPath.Close(); err != nil {
-			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(closeErr))
+		if err = toPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
 		}
 	}()
 	_, err = io.Copy(toPath, fromPath)
@@ -1151,7 +1151,7 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 	}
 	defer func() {
 		if err = rd.Close(); err != nil {
-			rctx.Logger().Error("Error closing file", mlog.Err(closeErr))
+			rctx.Logger().Error("Error closing file", mlog.Err(err))
 		}
 	}()
 
@@ -1177,7 +1177,7 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 		defer func() {
-			if err = wr.(*os.File).Close(); err != nil {
+			if err = wr.Close(); err != nil {
 				rctx.Logger().Error("Error closing file", mlog.Err(err))
 			}
 		}()
