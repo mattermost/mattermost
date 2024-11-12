@@ -10318,5 +10318,25 @@
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
     "translation": "Nieprawidłowy zaplanowany czas."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Post nie może zostać utworzony"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Nie można pobrać bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Nie można uzyskać bezpośredniej wiadomości od bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Jeśli otrzymałeś to powiadomienie testowe, to zadziałało!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Nie można uzyskać użytkownika"
   }
 ]
