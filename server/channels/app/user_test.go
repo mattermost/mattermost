@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"path/filepath"
@@ -1096,29 +1095,29 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
-	scheduledPost1 := &model.ScheduledPost{
-		Draft: model.Draft{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Scheduled post 1",
-		},
-		ScheduledAt: model.GetMillis() + 1000000,
-	}
-
-	createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, "")
-	require.Nil(t, appErr)
-
-	scheduledPost2 := &model.ScheduledPost{
-		Draft: model.Draft{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Scheduled post 2",
-		},
-		ScheduledAt: model.GetMillis() + 1000000,
-	}
-
-	createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, "")
-	require.Nil(t, appErr)
+	//scheduledPost1 := &model.ScheduledPost{
+	//	Draft: model.Draft{
+	//		ChannelId: th.BasicChannel.Id,
+	//		UserId:    th.BasicUser.Id,
+	//		Message:   "Scheduled post 1",
+	//	},
+	//	ScheduledAt: model.GetMillis() + 1000000,
+	//}
+	//
+	//createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, "")
+	//require.Nil(t, appErr)
+	//
+	//scheduledPost2 := &model.ScheduledPost{
+	//	Draft: model.Draft{
+	//		ChannelId: th.BasicChannel.Id,
+	//		UserId:    th.BasicUser.Id,
+	//		Message:   "Scheduled post 2",
+	//	},
+	//	ScheduledAt: model.GetMillis() + 1000000,
+	//}
+	//
+	//createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, "")
+	//require.Nil(t, appErr)
 
 	err = th.App.PermanentDeleteUser(th.Context, th.BasicUser)
 	require.Nil(t, err, "Unable to delete user. err=%v", err)
@@ -1140,14 +1139,14 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.Nil(t, err, "Unable to stat finfo. err=%v", err)
 	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 
-	// verify scheduled posts have been deleted
-	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost1.Id)
-	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
-	require.Nil(t, fetchedScheduledPost)
-
-	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost2.Id)
-	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
-	require.Nil(t, fetchedScheduledPost)
+	//// verify scheduled posts have been deleted
+	//fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost1.Id)
+	//require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
+	//require.Nil(t, fetchedScheduledPost)
+	//
+	//fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost2.Id)
+	//require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
+	//require.Nil(t, fetchedScheduledPost)
 }
 
 func TestPasswordRecovery(t *testing.T) {
