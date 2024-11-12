@@ -61,7 +61,7 @@ describe('archive tests while preventing viewing archived channels', () => {
 
                 // # Search for the post from step 1')
                 cy.uiGetSearchContainer().click();
-                cy.uiGetSearchBox().find('input').clear().type(`${messageText}{enter}`);
+                cy.uiGetSearchBox().first().clear().type(`${messageText}{enter}`);
 
                 // * Post is returned by search, since it's not archived anymore
                 cy.get('#searchContainer').should('be.visible');
@@ -96,7 +96,7 @@ describe('archive tests while preventing viewing archived channels', () => {
 
         // # Archive dialogue message reads "This will archive the channel from the team and make its contents inaccessible for all users" (Mobile dialogue makes no mention of the data will be accessible)
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').clear().type(`${testArchivedMessage}{enter}`);
+        cy.uiGetSearchBox().first().clear().type(`${testArchivedMessage}{enter}`);
 
         // * Post is not returned by search
         cy.get('#searchContainer').should('be.visible');
@@ -112,7 +112,7 @@ describe('archive tests while preventing viewing archived channels', () => {
 
             // # Search for the string of text from step 1
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').clear().type(`${messageText}{enter}`);
+            cy.uiGetSearchBox().first().clear().type(`${messageText}{enter}`);
 
             // * Post is returned by search, since it's not archived anymore
             cy.get('#searchContainer').should('be.visible');
@@ -131,7 +131,7 @@ describe('archive tests while preventing viewing archived channels', () => {
         // # Archive a channel and make a mental note of the channel name
         // # Type "in:" and note the list of channels that appear
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').clear().type(`in:${testChannel.name}`);
+        cy.uiGetSearchBox().first().clear().type(`in:${testChannel.name}`);
         cy.findByTestId(testChannel.name).should('not.exist');
     });
 });

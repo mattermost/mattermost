@@ -10,7 +10,7 @@ import {Posts} from 'mattermost-redux/constants';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {MessageWillFormatHook} from 'types/store/plugins';
 
 import PostMarkdown from './post_markdown';
 
@@ -235,7 +235,7 @@ describe('components/PostMarkdown', () => {
                         return updatedMessage + '!';
                     },
                 },
-            ] as PluginComponent[],
+            ] as MessageWillFormatHook[],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
@@ -269,7 +269,7 @@ describe('components/PostMarkdown', () => {
                         return post.message + '!';
                     },
                 },
-            ] as PluginComponent[],
+            ] as unknown as MessageWillFormatHook[],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
