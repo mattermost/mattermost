@@ -100,19 +100,19 @@ describe('Channel Info RHS', () => {
 
                 // * Verify tooltips appear with correct text
                 cy.uiGetRHS().findByText('Favorite').trigger('mouseover');
-                cy.get('[data-testid="favorite-tooltip"]').should('be.visible').and('have.text', 'Add this channel to favorites');
+                cy.get('#favorite-tooltip').should('be.visible').and('have.text', 'Add this channel to favorites');
                 cy.uiGetRHS().findByText('Favorite').trigger('mouseout');
 
                 cy.uiGetRHS().findByText('Mute').trigger('mouseover');
-                cy.get('[data-testid="mute-tooltip"]').should('be.visible').and('have.text', 'Mute notifications for this channel');
+                cy.get('#mute-tooltip').should('be.visible').and('have.text', 'Mute notifications for this channel');
                 cy.uiGetRHS().findByText('Mute').trigger('mouseout');
 
                 cy.uiGetRHS().findByText('Add People').trigger('mouseover');
-                cy.get('[data-testid="add-people-tooltip"]').should('be.visible').and('have.text', 'Add team members to this channel');
+                cy.get('#add-people-tooltip').should('be.visible').and('have.text', 'Add team members to this channel');
                 cy.uiGetRHS().findByText('Add People').trigger('mouseout');
 
                 cy.uiGetRHS().findByText('Copy Link').trigger('mouseover');
-                cy.get('[data-testid="copy-link-tooltip"]').should('be.visible').and('have.text', 'Copy link to this channel');
+                cy.get('#copy-link-tooltip').should('be.visible').and('have.text', 'Copy link to this channel');
                 cy.uiGetRHS().findByText('Copy Link').trigger('mouseout');
             });
 

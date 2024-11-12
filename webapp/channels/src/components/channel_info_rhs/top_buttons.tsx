@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import useCopyText from 'components/common/hooks/useCopyText';
-import OverlayTrigger from 'components/overlay_trigger';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -124,18 +123,14 @@ export default function TopButtons({
 
     return (
         <ChannelInfoRhsTopButtons>
-            <OverlayTrigger
+            <WithTooltip
                 placement='top'
-                overlay={
-                    <Tooltip
-                        id='favorite-tooltip'
-                        data-testid='favorite-tooltip'
-                    >
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.favorite.tooltip'
-                            defaultMessage='Add this channel to favorites'
-                        />
-                    </Tooltip>
+                id='favorite-tooltip'
+                title={
+                    <FormattedMessage
+                        id='channel_info_rhs.top_buttons.favorite.tooltip'
+                        defaultMessage='Add this channel to favorites'
+                    />
                 }
             >
                 <Button
@@ -147,19 +142,15 @@ export default function TopButtons({
                     </div>
                     <span>{favoriteText}</span>
                 </Button>
-            </OverlayTrigger>
-            <OverlayTrigger
+            </WithTooltip>
+            <WithTooltip
                 placement='top'
-                overlay={
-                    <Tooltip
-                        id='mute-tooltip'
-                        data-testid='mute-tooltip'
-                    >
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.mute.tooltip'
-                            defaultMessage='Mute notifications for this channel'
-                        />
-                    </Tooltip>
+                id='mute-tooltip'
+                title={
+                    <FormattedMessage
+                        id='channel_info_rhs.top_buttons.mute.tooltip'
+                        defaultMessage='Mute notifications for this channel'
+                    />
                 }
             >
                 <Button
@@ -171,20 +162,16 @@ export default function TopButtons({
                     </div>
                     <span>{mutedText}</span>
                 </Button>
-            </OverlayTrigger>
+            </WithTooltip>
             {canAddPeople && (
-                <OverlayTrigger
+                <WithTooltip
+                    id='add-people-tooltip'
                     placement='top'
-                    overlay={
-                        <Tooltip
-                            id='add-people-tooltip'
-                            data-testid='add-people-tooltip'
-                        >
-                            <FormattedMessage
-                                id='channel_info_rhs.top_buttons.add_people.tooltip'
-                                defaultMessage='Add team members to this channel'
-                            />
-                        </Tooltip>
+                    title={
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.add_people.tooltip'
+                            defaultMessage='Add team members to this channel'
+                        />
                     }
                 >
                     <Button
@@ -201,21 +188,17 @@ export default function TopButtons({
                             />
                         </span>
                     </Button>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
             {canCopyLink && (
-                <OverlayTrigger
+                <WithTooltip
+                    id='copy-link-tooltip'
                     placement='top'
-                    overlay={
-                        <Tooltip
-                            id='copy-link-tooltip'
-                            data-testid='copy-link-tooltip'
-                        >
-                            <FormattedMessage
-                                id='channel_info_rhs.top_buttons.copy_link.tooltip'
-                                defaultMessage='Copy link to this channel'
-                            />
-                        </Tooltip>
+                    title={
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.copy_link.tooltip'
+                            defaultMessage='Copy link to this channel'
+                        />
                     }
                 >
                     <CopyButton
@@ -227,7 +210,7 @@ export default function TopButtons({
                         </div>
                         <span>{copyText}</span>
                     </CopyButton>
-                </OverlayTrigger>
+                </WithTooltip>
             )}
         </ChannelInfoRhsTopButtons>
     );
