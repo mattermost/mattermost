@@ -187,7 +187,7 @@ func (th *TestHelper) initBasic() *TestHelper {
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.createUser()
 		_, err := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		require.NoError(th.t, err)
+		require.Nil(th.t, err)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
