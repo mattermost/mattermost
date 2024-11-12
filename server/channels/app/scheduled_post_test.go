@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -751,5 +752,58 @@ func TestDeleteScheduledPost(t *testing.T) {
 		deletedScheduledPost, appErr := th.App.DeleteScheduledPost(th.Context, th.BasicUser.Id, model.NewId(), "connection_id")
 		require.NotNil(t, appErr)
 		require.Nil(t, deletedScheduledPost)
+	})
+}
+
+func TestPublishScheduledPostEvent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	userID := th.BasicUser.Id
+
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketScheduledPostCreated})
+	defer closeWS()
+
+	t.Run("should publish ws event when scheduledPost is valid", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userID,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+
+		th.App.PublishScheduledPostEvent(th.Context, model.WebsocketScheduledPostCreated, scheduledPost, "fake_connection_id")
+
+		received := <-messages
+		require.Equal(t, model.WebsocketScheduledPostCreated, received.EventType())
+		require.Equal(t, userID, received.GetBroadcast().UserId)
+
+		scheduledPostJSON, err := json.Marshal(scheduledPost)
+		require.NoError(t, err)
+		require.Equal(t, string(scheduledPostJSON), received.GetData()["scheduledPost"])
+	})
+
+	t.Run("should handle nil scheduledPost scenario", func(t *testing.T) {
+		// Drain any existing messages
+		drained := false
+		for !drained {
+			select {
+			case <-messages:
+			default:
+				drained = true
+			}
+		}
+
+		th.App.PublishScheduledPostEvent(th.Context, model.WebsocketScheduledPostCreated, nil, "fake_connection_id")
+
+		select {
+		case msg := <-messages:
+			t.Errorf("Expected no message, but got one: %+v", msg)
+		case <-time.After(100 * time.Millisecond):
+			// there was no message sent to the channel, so test is successful
+		}
 	})
 }
