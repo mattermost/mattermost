@@ -14,10 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func handlerForGzip(c *Context, w http.ResponseWriter, r *http.Request) {
-	// gziphandler default requires body size greater than 1400 bytes
-	var body [1400]byte
-	w.Write(body[:])
+func handlerForGzip(t *testing.T) func(*Context, http.ResponseWriter, *http.Request) {
+	return func(_ *Context, w http.ResponseWriter, _ *http.Request) {
+		// gziphandler default requires body size greater than 1400 bytes
+		var body [1400]byte
+		_, err := w.Write(body[:])
+		require.NoError(t, err)
+	}
 }
 
 func testAPIHandlerGzipMode(t *testing.T, name string, h http.Handler, token string) {
@@ -76,20 +79,20 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 	t.Run("with WebserverMode == \"gzip\"", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "gzip" })
 
-		testAPIHandlerGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
-		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip), session.Token)
-		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
-		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
-		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip), session.Token)
+		testAPIHandlerGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip(t)), "")
+		testAPIHandlerGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip(t)), session.Token)
+		testAPIHandlerGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip(t)), session.Token)
+		testAPIHandlerGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip(t)), "")
+		testAPIHandlerGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
 	})
 
 	t.Run("with WebserverMode == \"nogzip\"", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "nogzip" })
 
-		testAPIHandlerNoGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip), "")
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip), session.Token)
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip), session.Token)
-		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip), "")
-		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiHandler", api.APIHandler(handlerForGzip(t)), "")
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequired", api.APISessionRequired(handlerForGzip(t)), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip(t)), session.Token)
+		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip(t)), "")
+		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
 	})
 }
