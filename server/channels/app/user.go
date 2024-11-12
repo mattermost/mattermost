@@ -54,7 +54,7 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 		if appErr := a.DeleteToken(token); appErr != nil {
-			c.Logger().Warn("Error while deleting token", mlog.Err(appErr))
+			c.Logger().Warn("Error while deleting expired signup-invite token", mlog.Err(appErr))
 		}
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -109,7 +109,7 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 	}
 
 	if appErr := a.AddDirectChannels(c, team.Id, ruser); appErr != nil {
-		c.Logger().Warn("Error while adding direct channels", mlog.Err(appErr))
+		return nil, appErr
 	}
 
 	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
@@ -164,7 +164,7 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 	}
 
 	if appErr := a.AddDirectChannels(c, team.Id, ruser); appErr != nil {
-		c.Logger().Warn("Error while adding direct channels", mlog.Err(appErr))
+		return nil, appErr
 	}
 
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
@@ -967,13 +967,13 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	// owners bots
 	if !user.IsBot {
 		if appErr := a.notifySysadminsBotOwnerDeactivated(c, userID); appErr != nil {
-			c.Logger().Warn("Error while notifying system admin of bot owner deactivation", mlog.Err(appErr))
+			c.Logger().Warn("Error while notifying the system admin that the owner of bot accounts got disabled", mlog.Err(appErr))
 		}
 	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
 		if appErr := a.disableUserBots(c, userID); appErr != nil {
-			c.Logger().Warn("Error while disabling user bots", mlog.Err(appErr))
+			c.Logger().Warn("Error while disabling all bots owned by the deactivated user", mlog.Err(appErr))
 		}
 	}
 
