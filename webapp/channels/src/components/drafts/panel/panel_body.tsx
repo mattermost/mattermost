@@ -57,52 +57,54 @@ function PanelBody({
 
     return (
         <div className='DraftPanelBody post'>
-            <ShowMore
-                text={message}
-            >
-                <div className='DraftPanelBody__left post__img'>
-                    <ProfilePicture
-                        status={status}
-                        channelId={channelId}
-                        username={username}
-                        userId={userId}
-                        size={'md'}
-                        src={imageURLForUser(userId)}
-                    />
-                </div>
-                <div
-                    onClick={handleClick}
-                    className='post__content'
+            <div className='DraftPanelBody__left post__img'>
+                <ProfilePicture
+                    status={status}
+                    channelId={channelId}
+                    username={username}
+                    userId={userId}
+                    size={'md'}
+                    src={imageURLForUser(userId)}
+                />
+            </div>
+            <div className='DraftPanelBody__post_body'>
+                <ShowMore
+                    text={message}
                 >
-                    <div className='DraftPanelBody__right'>
-                        <div className='post__header'>
-                            <strong>{displayName}</strong>
-                            {priority && (
-                                <PriorityLabels
-                                    canRemove={false}
-                                    padding='0 0 0 8px'
-                                    hasError={false}
-                                    persistentNotifications={priority.persistent_notifications}
-                                    priority={priority.priority}
-                                    requestedAck={priority.requested_ack}
+                    <div
+                        onClick={handleClick}
+                        className='post__content'
+                    >
+                        <div className='DraftPanelBody__right'>
+                            <div className='post__header'>
+                                <strong>{displayName}</strong>
+                                {priority && (
+                                    <PriorityLabels
+                                        canRemove={false}
+                                        padding='0 0 0 8px'
+                                        hasError={false}
+                                        persistentNotifications={priority.persistent_notifications}
+                                        priority={priority.priority}
+                                        requestedAck={priority.requested_ack}
+                                    />
+                                )}
+                            </div>
+                            <div className='post__body'>
+                                <Markdown
+                                    options={OPTIONS}
+                                    message={message}
                                 />
-                            )}
-                        </div>
-                        <div className='post__body'>
-                            <Markdown
-                                options={OPTIONS}
-                                message={message}
-                            />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </ShowMore>
-            {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
-                <FilePreview
-                    fileInfos={fileInfos}
-                    uploadsInProgress={uploadsInProgress}
-                />
-            )}
+                </ShowMore>
+                {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
+                    <FilePreview
+                        fileInfos={fileInfos}
+                        uploadsInProgress={uploadsInProgress}
+                    />
+                )}
+            </div>
         </div>
     );
 }
