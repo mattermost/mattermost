@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as useDesktopAppNotificationPermission from 'components/common/hooks/use_desktop_notification_permission';
+import type {DesktopNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
@@ -52,7 +53,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
     test('should render "Desktop denied" notice when desktop permission is denied', () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue('denied');
+        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionDenied as DesktopNotificationPermission, jest.fn()]);
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
@@ -61,7 +62,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
     test('should render nothing when desktop permission is granted', () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue('granted');
+        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionGranted as DesktopNotificationPermission, jest.fn()]);
 
         const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
 

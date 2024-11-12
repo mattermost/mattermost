@@ -6,10 +6,18 @@ import {useIntl} from 'react-intl';
 
 import SectionNotice from 'components/section_notice';
 
-export default function NotificationPermissionDesktopDeniedSectionNotice() {
+interface Props {
+    requestDesktopNotificationPermission: () => Promise<void>;
+}
+
+export default function NotificationPermissionDesktopDeniedSectionNotice(props: Props) {
     const intl = useIntl();
 
-    const handleClick = useCallback(() => {
+    function handleCheckPermissionButtonClick() {
+        props.requestDesktopNotificationPermission();
+    }
+
+    const handleInstructionButtonClick = useCallback(() => {
         window.open('https://mattermost.com/pl/manage-notifications', '_blank', 'noopener,noreferrer');
     }, []);
 
@@ -25,12 +33,19 @@ export default function NotificationPermissionDesktopDeniedSectionNotice() {
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message',
                     defaultMessage: 'Please allow Mattermost to notify you to start receiving message and call notifications. You need to enable notifications for Mattermost desktop in your system notification settings.',
                 })}
+                primaryButton={{
+                    text: intl.formatMessage({
+                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
+                        defaultMessage: 'Check permission',
+                    }),
+                    onClick: handleCheckPermissionButtonClick,
+                }}
                 tertiaryButton={{
                     text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.button',
+                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.instructionButton',
                         defaultMessage: 'How to enable notifications',
                     }),
-                    onClick: handleClick,
+                    onClick: handleInstructionButtonClick,
                 }}
             />
         </div>
