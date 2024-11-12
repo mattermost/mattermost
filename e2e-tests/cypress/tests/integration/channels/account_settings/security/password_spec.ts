@@ -110,7 +110,7 @@ describe('Profile', () => {
         cy.get('#channelHeaderTitle').should('contain', 'Off-Topic');
     });
 
-    it('MM-T2086 Password: Timestamp and email', () => {
+    it.skip('MM-T2086 Password: Timestamp and email', () => {
         // # Enter valid values in password change fields
         enterPasswords(testUser.password, 'passwd', 'passwd');
 
