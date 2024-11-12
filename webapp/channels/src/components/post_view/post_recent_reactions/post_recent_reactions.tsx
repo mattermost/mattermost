@@ -99,13 +99,13 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                     placement='top'
                 >
                     <div>
-                        <React.Fragment>
+                        <>
                             <EmojiItem
                                 emoji={emoji}
                                 onItemClick={this.handleToggleEmoji}
                                 order={n}
                             />
-                        </React.Fragment>
+                        </>
                     </div>
                 </WithTooltip>
             </ChannelPermissionGate>
