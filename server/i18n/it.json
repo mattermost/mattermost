@@ -8726,5 +8726,25 @@
   {
     "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
     "translation": "Parametri di input non validi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Non posso creare un canale diretto con un utente remoto"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "La tua licenza non supporta i segnalibri dei canali."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Non è permessa la creazione di un segnalibro all'utente."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Creazione di un segnalibro canale fallita."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Non è possibile rimuovere una conferma in un canale archiviato."
   }
 ]
