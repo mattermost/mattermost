@@ -30,6 +30,9 @@ const (
 	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
 	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
 
+	DesktopClientCPUUsage    MetricType = "desktop_cpu"
+	DesktopClientMemoryUsage MetricType = "desktop_memory"
+
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
 
@@ -104,8 +107,9 @@ func (r *PerformanceReport) IsValid() error {
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
 	return map[string]string{
-		"platform": processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
-		"agent":    processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"desktop_app_version": r.Labels["desktop_app_version"],
 	}
 }
 

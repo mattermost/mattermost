@@ -74,6 +74,66 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	return r0, r1
 }
 
+// GetAllAfter provides a mock function with given fields: limit, afterId
+func (_m *BotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+	ret := _m.Called(limit, afterId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllAfter")
+	}
+
+	var r0 []*model.Bot
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int, string) ([]*model.Bot, error)); ok {
+		return rf(limit, afterId)
+	}
+	if rf, ok := ret.Get(0).(func(int, string) []*model.Bot); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Bot)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, string) error); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByUsername provides a mock function with given fields: username
+func (_m *BotStore) GetByUsername(username string) (*model.Bot, error) {
+	ret := _m.Called(username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByUsername")
+	}
+
+	var r0 *model.Bot
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Bot, error)); ok {
+		return rf(username)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Bot); ok {
+		r0 = rf(username)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDelete provides a mock function with given fields: userID
 func (_m *BotStore) PermanentDelete(userID string) error {
 	ret := _m.Called(userID)

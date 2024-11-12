@@ -50,7 +50,6 @@ type PlatformService struct {
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
-	sessionPool   sync.Pool
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
@@ -123,11 +122,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
-		},
-		sessionPool: sync.Pool{
-			New: func() any {
-				return &model.Session{}
-			},
 		},
 		licenseListeners:          map[string]func(*model.License, *model.License){},
 		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
