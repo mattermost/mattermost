@@ -121,6 +121,7 @@ describe('components/Root', () => {
                 push: jest.fn(),
             } as unknown as RouteComponentProps['history'],
         } as RouteComponentProps,
+        isDevModeEnabled: false,
     };
 
     let originalMatchMedia: (query: string) => MediaQueryList;
