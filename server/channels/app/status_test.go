@@ -183,8 +183,8 @@ func TestSetCustomStatus(t *testing.T) {
 				defer func() {
 					removeErr := th.App.RemoveCustomStatus(th.Context, th.BasicUser.Id)
 					require.Nil(t, removeErr)
-					}()
-				}
+				}()
+			}
 
 			if testCase.ExpectsError {
 				require.NotNil(t, err)
