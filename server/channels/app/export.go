@@ -865,7 +865,7 @@ func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writ
 			break
 		}
 		cnt += len(customEmojiList)
-		updateJobProgress(c.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
 
 		pageNumber++
 
