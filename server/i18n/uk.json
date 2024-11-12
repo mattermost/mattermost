@@ -3529,7 +3529,7 @@
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час оновлення має бути дійсним."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -3565,7 +3565,7 @@
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Ім'я хоста має бути встановлено"
+    "translation": "Ім'я хоста має бути задано."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
@@ -3573,7 +3573,7 @@
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt повинен бути встановлений"
+    "translation": "Параметр LastPingAt має бути заданий."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
@@ -3605,39 +3605,39 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Недійсний ідентифікатор команди"
+    "translation": "Неправильний ідентифікатор команди."
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": "Невірний токен"
+    "translation": "Недійсний токен."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Неприпустимий тригер"
+    "translation": "Неприпустимий тригер."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час оновлення має бути дійсним."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Невірний URL"
+    "translation": "Неправильна URL-адреса."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Неприпустимий URL. Адреса URL повинен бути правильний і початися з http: // або https: //"
+    "translation": "Неправильна URL-адреса. URL-адреса повинна бути дійсною і починатися з http:// або https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Невірний channel id"
+    "translation": "Неправильний ідентифікатор каналу."
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Недійсний ідентифікатор команди"
+    "translation": "Неправильний ідентифікатор команди."
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -4017,7 +4017,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -4121,7 +4121,7 @@
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час оновлення має бути дійсним."
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
@@ -4193,11 +4193,11 @@
   },
   {
     "id": "model.oauth.is_valid.creator_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
-    "translation": "Неприпустимий опис ролі."
+    "translation": "Неправильний опис."
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
@@ -4209,19 +4209,19 @@
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
-    "translation": "Невірне ім'я"
+    "translation": "Неправильне ім'я."
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час оновлення має бути дійсним."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Невірна область"
+    "translation": "Невірна іконка."
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Недійсні URL-адреси зворотного виклику"
+    "translation": "Неправильні URL-адреси зворотного виклику."
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -9862,5 +9862,313 @@
   {
     "id": "mfa.deactivate.app_error",
     "translation": "Не вдалося оновити активний статус багатофакторної автентифікації (БФА) для користувача."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Час створення має бути коректним."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Час зберігання повідомлень не може бути меншим за 0"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Неправильні ідентифікатори файлів."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Список адрес електронної пошти порожній"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "URL-адреса аудиторії невірна: {{ .Url }}"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Час створення має бути коректним."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Налаштування CollapsedThreads має бути disabled, default_on або default_off"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Кількість днів та годин зберігання файлу не може дорівнювати 0."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Неправильна загальна кількість постійних сповіщень на допис. Повинно бути позитивним числом."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Невірна максимальна кількість отримувачів для постійних сповіщень. Повинне бути додатним числом."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Відсутнє відображуване ім'я."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Ідентифікатор файлу відсутній або недійсний."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Час оновлення має бути дійсним."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Невірний ідентифікатор власника."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Невірний початковий ідентифікатор."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Розмір пакета індексування Bleve Bulk повинен бути щонайменше {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Дні зберігання повідомлень та години зберігання повідомлень не можуть дорівнювати 0."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "ім'я групи вже існує як зарезервоване"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Неправильний секрет клієнта."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Допис не може бути створений"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Не вдається отримати системного бота"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Не вдається отримати приватне повідомлення від системного бота"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Не вдається отримати користувача"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Якщо ви отримали це тестове сповіщення, значить він працює!"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Невірна URL-адреса зображення."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Неможливо встановити посилання та файл в одній закладці."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "URL-посилання відсутнє або невірне."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Розмір пакету масового індексування Elasticsearch має бути не меншим за {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Неправильний формат: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Неправильний домен для налаштувань потоку переміщення"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Неправильний пріоритет"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Невірні властивості."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Невірний ідентифікатор користувача."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Максимальна довжина MattermostAppID - 32 символи."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Час створення має бути дійсним."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Неправильне значення таймауту {{.Value}}. Має бути додатне число."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Кількість днів та годин зберігання файлу не може бути більшою за 0."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Невірний ідентифікатор клієнта."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Неправильний пошуковий бекенд. Має бути elasticsearch або opensearch."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Невірне значення channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Дні зберігання повідомлень та години зберігання повідомлень не можуть бути більшими за 0."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Якщо GlobalRelaySettings.CustomerType дорівнює 'CUSTOM', то GlobalRelaySettings.CustomSMTPServerName та GlobalRelaySettings.CustomSMTPPort мають бути встановлені."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Невірне значення для байтів при завантаженні ліцензії."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ролі учасників каналу перевищують допустиму довжину в {{.Limit}} символів."
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Неправильний ідентифікатор плагіна."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow має бути увімкнено (true), щоб дозволити налаштування CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Час зберігання файлу не може бути меншим за 0"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Неправильний каталог локального сховища. Має бути непорожній рядок."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Невірне значення для RetentionDays. Значення має бути більше 0"
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Невірне значення для RetentionDays. Занадто низьке значення."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Не вдається знайти каталог локального файлу сокета."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Неправильний максимальний розмір корисного навантаження для налаштувань сервісу. Повинно бути цілим числом, більшим за нуль."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Неправильна частота постійних сповіщень. Повинна бути не менше двох хвилин."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Неправильний ідентифікатор каналу."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Неправильне значення для тайм-ауту відсутності користувача. Повинно бути додатнім числом."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Неправильний ідентифікатор root."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Аудиторія не повинна бути порожньою."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ігноровані індекси для очищення не повинні починатися з тире."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Неправильний паралелізм декодера {{.Value}}. Має бути додатне число або -1."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Невірні вихідні інтеграції запитують таймаут для налаштувань сервісу. Має бути додатнім числом."
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Потрібен ідентифікатор постачальника послуг"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Неправильний максимальний час простою з'єднання для налаштувань SQL. Повинно бути невід'ємним числом."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Неправильне повідомлення."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Неправильний тип."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Неправильний ідентифікатор батька."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Некоректний ідентифікатор."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Невірне значення для Каталогу."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Неправильне значення таймауту метаданих посилання. Повинно бути додатнім числом."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Не вдалося розібрати JSON: {{.Error}}"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Назва каналу невірна"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Повідомити про перевищення ліміту розміру реквізиту."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Неправильна максимальна довжина URL-адреси для налаштувань сервісу. Повинно бути цілим числом, більшим за нуль."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Ім'я конфліктує з існуючими системними іменами емодзі."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Час оновлення має бути дійсним."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB повинен мати значення більше або рівне нулю."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Тип кешу має бути lru або redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress має бути вказано для типу кешу Redis."
   }
 ]
