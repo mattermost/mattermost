@@ -1065,6 +1065,7 @@ type ScheduledPostStore interface {
 	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
 	Get(scheduledPostId string) (*model.ScheduledPost, error)
 	UpdateOldScheduledPosts(beforeTime int64) error
+	PermanentDeleteByUser(userId string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
