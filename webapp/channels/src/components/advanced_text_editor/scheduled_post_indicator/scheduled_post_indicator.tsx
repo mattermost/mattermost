@@ -80,7 +80,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
         scheduledPostText = (
             <FormattedMessage
                 id='scheduled_post.channel_indicator.multiple'
-                defaultMessage='You have {count} scheduled messages.'
+                defaultMessage='{count} scheduled messages in channel.'
                 values={{
                     count: scheduledPostData.count,
                 }}
@@ -98,7 +98,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
             <Link to={scheduledPostLinkURL}>
                 <FormattedMessage
                     id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
-                    defaultMessage='See all scheduled messages'
+                    defaultMessage='See all.'
                 />
             </Link>
         </div>
