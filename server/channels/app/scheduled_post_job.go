@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
@@ -418,13 +419,61 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 	}
 
 	T := i18n.GetUserTranslations(user.Locale)
-	messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
-		"Count": len(userFailedMessages),
+
+	type channelErrorKeyStruct struct {
+		ChannelId string
+		ErrorCode string
+	}
+
+	channelErrorCounts := make(map[channelErrorKeyStruct]int)
+	channelIdsSet := make(map[string]struct{})
+	for _, msg := range userFailedMessages {
+		key := channelErrorKeyStruct{ChannelId: msg.ChannelId, ErrorCode: msg.ErrorCode}
+		channelErrorCounts[key]++
+		channelIdsSet[msg.ChannelId] = struct{}{}
+	}
+
+	channelIds := make([]string, 0, len(channelIdsSet))
+	for channelId := range channelIdsSet {
+		channelIds = append(channelIds, channelId)
+	}
+
+	channelNames := make(map[string]string)
+	for _, channelId := range channelIds {
+		ch, err := a.GetChannel(rctx, channelId)
+		if err != nil {
+			rctx.Logger().Error("Failed to get channel", mlog.String("channel_id", channelId), mlog.Err(err))
+			channelNames[channelId] = T("app.scheduled_post.unknown_channel")
+			continue
+		}
+		channelNames[channelId] = ch.DisplayName
+	}
+
+	var sbMessageBuilder strings.Builder
+
+	totalFailedMessages := len(userFailedMessages)
+	messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
+		"Count": totalFailedMessages,
 	})
+	sbMessageBuilder.WriteString(messageHeader)
+	sbMessageBuilder.WriteString("\n")
+
+	for key, count := range channelErrorCounts {
+		channelName := channelNames[key.ChannelId]
+		errorReason := getErrorReason(T, key.ErrorCode)
+
+		detailedMessage := T("app.scheduled_post.failed_message_detail", map[string]interface{}{
+			"Count":       count,
+			"ChannelName": channelName,
+			"ErrorReason": errorReason,
+		})
+		sbMessageBuilder.WriteString(detailedMessage)
+		sbMessageBuilder.WriteString("\n")
+	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   messageContent,
+		Message:   sbMessageBuilder.String(),
 		Type:      model.PostTypeDefault,
 		UserId:    systemBot.UserId,
 	}
@@ -432,4 +481,13 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
+}
+
+func getErrorReason(T i18n.TranslateFunc, errorCode string) string {
+	key := "app.scheduled_post.error_reason." + errorCode
+	reason := T(key)
+	if reason == key {
+		return errorCode
+	}
+	return reason
 }
