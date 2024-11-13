@@ -85,7 +85,7 @@ function makeMapStateToProps() {
             if (postIds.length) {
                 const latestPostId = memoizedGetLatestPostId(postIds);
                 const latestPost = getPost(state, latestPostId);
-                latestPostTimeStamp = latestPost.create_at;
+                latestPostTimeStamp = latestPost?.create_at || 0;
             }
         }
 

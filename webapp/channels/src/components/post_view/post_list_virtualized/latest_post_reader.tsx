@@ -4,8 +4,6 @@
 import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import type {Post} from '@mattermost/types/posts';
-
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {getLatestPostId, usePostAriaLabel} from 'utils/post_utils';
@@ -19,7 +17,7 @@ interface Props {
 const LatestPostReader = (props: Props): JSX.Element => {
     const {postIds} = props;
     const latestPostId = useMemo(() => getLatestPostId(postIds || []), [postIds]);
-    const latestPost = useSelector<GlobalState, Post>((state) => getPost(state, latestPostId));
+    const latestPost = useSelector((state: GlobalState) => getPost(state, latestPostId));
 
     const ariaLabel = usePostAriaLabel(latestPost);
 

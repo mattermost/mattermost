@@ -40,7 +40,7 @@ export const getEditingPost = createSelector(
     (editingPost, post) => {
         return {
             ...editingPost,
-            post,
+            post: post || null,
         };
     },
 );

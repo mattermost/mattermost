@@ -15,7 +15,7 @@ type Props = {
     currentUserId: string;
     isLastPost: boolean;
     onCardClick: (post: Post) => void;
-    post: Post;
+    post?: Post;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
     id?: Post['id'];

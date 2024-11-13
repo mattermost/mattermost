@@ -16,7 +16,7 @@ import PostEditHistory from './post_edit_history';
 function mapStateToProps(state: GlobalState) {
     const selectedPostId = getSelectedPostId(state) || '';
     const originalPost = getPost(state, selectedPostId);
-    const channel = getCurrentChannel(state) ?? getChannel(state, originalPost.channel_id);
+    const channel = getCurrentChannel(state) ?? (originalPost ? getChannel(state, originalPost.channel_id) : undefined);
     const channelDisplayName = channel?.display_name || '';
 
     return {

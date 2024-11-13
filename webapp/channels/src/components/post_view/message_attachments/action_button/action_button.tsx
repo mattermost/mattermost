@@ -5,6 +5,7 @@ import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
@@ -51,8 +52,8 @@ const ActionButton = ({
     if (action.style) {
         const STATUS_COLORS = getStatusColors(theme);
         hexColor =
-            STATUS_COLORS[action.style] ||
-            theme[action.style] ||
+            secureGetFromRecord(STATUS_COLORS, action.style) ||
+            secureGetFromRecord(theme, action.style) ||
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
 

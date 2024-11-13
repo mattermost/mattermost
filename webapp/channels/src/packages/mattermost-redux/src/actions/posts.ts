@@ -394,22 +394,26 @@ export function setUnreadPost(userId: string, postId: string): ActionFuncAsync {
             if (isCombinedUserActivityPost(postId)) {
                 return {};
             }
-            dispatch({
-                type: ChannelTypes.ADD_MANUALLY_UNREAD,
-                data: {
-                    channelId: post.channel_id,
-                },
-            });
+            if (post) {
+                dispatch({
+                    type: ChannelTypes.ADD_MANUALLY_UNREAD,
+                    data: {
+                        channelId: post.channel_id,
+                    },
+                });
+            }
             unreadChan = await Client4.markPostAsUnread(userId, postId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            dispatch({
-                type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
-                data: {
-                    channelId: post.channel_id,
-                },
-            });
+            if (post) {
+                dispatch({
+                    type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
+                    data: {
+                        channelId: post.channel_id,
+                    },
+                });
+            }
             return {error};
         }
 
@@ -1098,7 +1102,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
                 if (attachment.fields) {
                     for (const field of attachment.fields) {
-                        findNeededUsernamesAndGroups(field.value);
+                        findNeededUsernamesAndGroups(String(field.value));
                     }
                 }
             }

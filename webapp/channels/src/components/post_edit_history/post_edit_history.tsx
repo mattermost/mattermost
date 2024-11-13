@@ -61,6 +61,12 @@ const PostEditHistory = ({
 
     useEffect(() => {
         const fetchPostEditHistory = async () => {
+            if (!originalPost) {
+                setIsLoading(false);
+                setHasError(true);
+                setPostEditHistory([]);
+                return;
+            }
             setIsLoading(true);
             const result = await dispatch(getPostEditHistory(originalPost.id));
             if (result.data) {
@@ -79,7 +85,7 @@ const PostEditHistory = ({
     useEffect(() => {
         setPostEditHistory([]);
         setHasError(false);
-    }, [originalPost.id]);
+    }, [originalPost?.id]);
 
     const title = formatMessage({
         id: 'search_header.title_edit.history',
@@ -120,13 +126,13 @@ const PostEditHistory = ({
         );
     }
 
-    const currentItem = (
+    const currentItem = originalPost ? (
         <EditedPostItem
             post={originalPost}
             key={originalPost.id}
             isCurrent={true}
         />
-    );
+    ) : null;
 
     const postEditItems = [currentItem, ...postEditHistory.map((postEdited) => (
         <EditedPostItem

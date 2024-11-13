@@ -45,3 +45,7 @@ export type Intersection<T1, T2> =
 Omit<Omit<T1&T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;
 
 export type PartialExcept<T extends Record<string, unknown>, TKeysNotPartial extends keyof T> = Partial<T> & Pick<T, TKeysNotPartial>;
+
+export function secureGetFromRecord<T>(v: Record<string, T> | undefined, key: string) {
+    return v?.hasOwnProperty(key) ? v[key] : undefined;
+}

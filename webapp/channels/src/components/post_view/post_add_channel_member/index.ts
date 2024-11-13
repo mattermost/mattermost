@@ -20,7 +20,7 @@ type OwnProps = {
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-    const post = getPost(state, ownProps.postId) || {};
+    const post = getPost(state, ownProps.postId);
     let channelType = '';
     if (post && post.channel_id) {
         const channel = getChannel(state, post.channel_id);

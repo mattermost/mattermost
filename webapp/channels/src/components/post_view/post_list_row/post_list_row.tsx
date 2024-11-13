@@ -33,7 +33,7 @@ export type PostListRowProps = {
     loadOlderPosts: () => void;
     loadNewerPosts: () => void;
     togglePostMenu: (opened: boolean) => void;
-    post: Post;
+    post?: Post;
     currentUserId: UserProfile['id'];
 
     /**

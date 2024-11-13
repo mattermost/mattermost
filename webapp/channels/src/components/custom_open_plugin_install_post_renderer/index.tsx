@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {Post} from '@mattermost/types/posts';
+import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
@@ -200,7 +201,7 @@ export default function OpenPluginInstallPost(props: {post: Post}) {
 
     const getUserNameForUser = (userId: string) => {
         const unknownName = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.unknown', defaultMessage: '@unknown'});
-        const username = userProfiles[userId]?.username;
+        const username = secureGetFromRecord(userProfiles, userId)?.username;
         return username ? '@' + username : unknownName;
     };
 

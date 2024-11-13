@@ -33,7 +33,7 @@ type Props = {
     directTeammate: UserProfile | undefined;
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
-    lastPost: Post;
+    lastPost?: Post;
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;
@@ -147,8 +147,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             prevProps.selectedPostFocusedAt !== selectedPostFocusedAt) {
             this.scrollToHighlightedPost();
         } else if (
-            prevProps.lastPost.id !== lastPost.id &&
-            (lastPost.user_id === currentUserId || this.state.userScrolledToBottom)
+            prevProps.lastPost?.id !== lastPost?.id &&
+            (lastPost?.user_id === currentUserId || this.state.userScrolledToBottom)
         ) {
             this.scrollToBottom();
         }
@@ -346,7 +346,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             }
         }
 
-        const isLastPost = itemId === this.props.lastPost.id;
+        const isLastPost = itemId === this.props.lastPost?.id;
         const isRootPost = itemId === this.props.selected.id;
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {

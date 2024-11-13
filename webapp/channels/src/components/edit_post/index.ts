@@ -51,7 +51,7 @@ function mapStateToProps(state: GlobalState, props: Props) {
         isAuthor = true;
     } else {
         editingPost = getEditingPost(state);
-        channelId = editingPost.post.channel_id;
+        channelId = editingPost.post?.channel_id || '';
         draft = getPostDraft(state, StoragePrefixes.EDIT_DRAFT, editingPost.postId);
         isAuthor = editingPost?.post?.user_id === currentUserId;
     }

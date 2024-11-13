@@ -22,7 +22,7 @@ export interface Props {
     currentUser: UserProfile;
     channelType: string;
     postId: string;
-    post: Post;
+    post?: Post;
     userIds: string[];
     usernames: string[];
     noGroupsUsernames: string[];

@@ -19,6 +19,9 @@ const RootPostDivider: React.FC<Props> = ({postId}) => {
     const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
 
     const totalReplies = useSelector((state: GlobalState) => {
+        if (!post) {
+            return 0;
+        }
         const thread = getThreadOrSynthetic(state, post);
         return thread.reply_count || 0;
     });

@@ -40,7 +40,7 @@ describe('components/post_edit_history', () => {
         });
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toBeCalledWith(baseProps.originalPost?.id);
     });
 
     test('should display error screen if errors are present', async () => {
@@ -52,6 +52,6 @@ describe('components/post_edit_history', () => {
         });
 
         expect(wrapper.container).toMatchSnapshot();
-        expect(mock).toBeCalledWith(baseProps.originalPost.id);
+        expect(mock).toBeCalledWith(baseProps.originalPost?.id);
     });
 });

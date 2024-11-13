@@ -5,6 +5,8 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
+import {secureGetFromRecord} from '@mattermost/types/utilities';
+
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
@@ -121,10 +123,12 @@ export class LastUsers extends React.PureComponent<Props, State> {
             {numOthers: lastIndex},
         );
 
-        const actorMessage = formatMessage(
-            {id: typeMessage[postType].id, defaultMessage: typeMessage[postType].defaultMessage},
+        const selectedTypeMessage = secureGetFromRecord(typeMessage, postType);
+
+        const actorMessage = selectedTypeMessage ? formatMessage(
+            {id: selectedTypeMessage.id, defaultMessage: selectedTypeMessage.defaultMessage},
             {actor},
-        );
+        ) : '';
 
         return (
             <span>

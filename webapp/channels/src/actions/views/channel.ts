@@ -485,7 +485,7 @@ export function prefetchChannelPosts(channelId: string, jitter?: number): Action
         }
 
         const recentPost = getPost(state, recentPostIdInChannel);
-        return dispatch(syncPostsInChannel(channelId, recentPost.create_at, true));
+        return dispatch(syncPostsInChannel(channelId, recentPost?.create_at || 0, true));
     };
 }
 
