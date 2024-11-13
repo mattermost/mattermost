@@ -48,4 +48,4 @@ export const getFilter = (state: GlobalState): string => state.views.marketplace
 
 export const getInstalling = (state: GlobalState, id: string): boolean => Boolean(secureGetFromRecord(state.views.marketplace.installing, id));
 
-export const getError = (state: GlobalState, id: string): string => secureGetFromRecord(state.views.marketplace.errors, id) || '';
+export const getError = (state: GlobalState, id: string): string | undefined => secureGetFromRecord(state.views.marketplace.errors, id);
