@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
-import {wrapIntl} from 'utils/test_intl';
 
 import DraftTitle from './draft_title';
 
@@ -32,13 +31,13 @@ describe('components/drafts/draft_actions', () => {
     it('should match snapshot', () => {
         const store = mockStore();
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...baseProps}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -50,13 +49,13 @@ describe('components/drafts/draft_actions', () => {
             selfDraft: true,
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -71,13 +70,13 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -92,13 +91,13 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -118,13 +117,13 @@ describe('components/drafts/draft_actions', () => {
             } as UserProfile,
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -140,13 +139,13 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -163,13 +162,13 @@ describe('components/drafts/draft_actions', () => {
             type: 'thread' as 'channel' | 'thread',
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -186,13 +185,13 @@ describe('components/drafts/draft_actions', () => {
             type: 'channel' as 'channel' | 'thread',
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 
@@ -211,13 +210,13 @@ describe('components/drafts/draft_actions', () => {
             type: 'channel' as 'channel' | 'thread',
         };
 
-        const {container} = render(wrapIntl(
+        const {container} = renderWithContext(
             <Provider store={store}>
                 <DraftTitle
                     {...props}
                 />
             </Provider>,
-        ));
+        );
         expect(container).toMatchSnapshot();
     });
 });
