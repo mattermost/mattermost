@@ -529,12 +529,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	if hook.ChannelId != "" {
 		channel, errCh := a.Srv().Store().Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
+			errCtx := map[string]any{"channel_id": hook.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(errCh, &nfErr):
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(errCh)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(errCh)
 			default:
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(errCh)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(errCh)
 			}
 		}
 

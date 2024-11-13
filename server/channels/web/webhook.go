@@ -81,14 +81,14 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		incomingWebhookPayload, appErr = decodePayload(r.Body)
 		if appErr != nil {
-			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", http.StatusBadRequest).Wrap(appErr)
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 	}
 
 	appErr = c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
 	if appErr != nil {
-		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.general.app_error", errCtx, "", http.StatusBadRequest).Wrap(appErr)
+		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 		return
 	}
 
@@ -109,7 +109,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	appErr := c.App.HandleCommandWebhook(c.AppContext, id, response)
 	if appErr != nil {
-		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.general.app_error", errCtx, "", http.StatusBadRequest).Wrap(appErr)
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 		return
 	}
 
