@@ -2,13 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
 
 import DraftTitle from './draft_title';
@@ -29,38 +27,29 @@ describe('components/drafts/draft_actions', () => {
     };
 
     it('should match snapshot', () => {
-        const store = mockStore();
-
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...baseProps}
-                />
-            </Provider>,
+            <DraftTitle
+                {...baseProps}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for self draft', () => {
-        const store = mockStore();
-
         const props = {
             ...baseProps,
             selfDraft: true,
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for private channel', () => {
-        const store = mockStore();
         const channel = {
             type: Constants.PRIVATE_CHANNEL,
             display_name: 'Test Channel',
@@ -71,17 +60,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for DM channel', () => {
-        const store = mockStore();
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
@@ -92,17 +78,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for DM channel with teammate', () => {
-        const store = mockStore();
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
@@ -118,17 +101,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for GM channel', () => {
-        const store = mockStore();
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
@@ -140,17 +120,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for thread', () => {
-        const store = mockStore();
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
@@ -163,17 +140,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for open channel', () => {
-        const store = mockStore();
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
@@ -186,18 +160,14 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
 
     it('should fetch members when member count is 0 for GM', () => {
-        const store = mockStore();
-
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
@@ -211,11 +181,9 @@ describe('components/drafts/draft_actions', () => {
         };
 
         const {container} = renderWithContext(
-            <Provider store={store}>
-                <DraftTitle
-                    {...props}
-                />
-            </Provider>,
+            <DraftTitle
+                {...props}
+            />,
         );
         expect(container).toMatchSnapshot();
     });
