@@ -137,7 +137,6 @@ issues:
         channels/app/security_update_check.go|\
         channels/app/server.go|\
         channels/app/server_test.go|\
-        channels/app/session_test.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_loadtest.go|\
