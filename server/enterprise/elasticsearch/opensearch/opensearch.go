@@ -171,7 +171,7 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up channels index template.
@@ -184,7 +184,7 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up users index template.
@@ -197,7 +197,7 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up files index template.
@@ -210,7 +210,7 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		Body:          bytes.NewReader(templateBuf),
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if atomic.LoadInt32(&os.channelIndexVerified) == 0 {
@@ -1497,7 +1497,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes []st
 		if err != nil {
 			openErr, ok := err.(*opensearch.StructError)
 			if !ok || openErr.Status != http.StatusNotFound {
-				rctx.Logger().Error("Elastic Search PurgeIndex Error", mlog.Err(err))
+				rctx.Logger().Error("Opensearch PurgeIndex Error", mlog.Err(err))
 				return model.NewAppError("Opensearch.PurgeIndexList", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
@@ -1511,7 +1511,7 @@ func (os *OpensearchInterfaceImpl) RefreshIndexes(rctx request.CTX) *model.AppEr
 	defer cancel()
 	_, err := os.client.Indices.Refresh(ctx, nil)
 	if err != nil {
-		rctx.Logger().Error("Elastic Search RefreshIndexes Error", mlog.Err(err))
+		rctx.Logger().Error("Opensearch RefreshIndexes Error", mlog.Err(err))
 		return model.NewAppError("Opensearch.RefreshIndexes", "ent.elasticsearch.refresh_indexes.refresh_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -1535,7 +1535,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "_*"},
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for index := range postIndexesResult.Indices {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
@@ -1545,7 +1545,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 				if _, err := os.client.Indices.Delete(ctx, opensearchapi.IndicesDeleteReq{
 					Indices: []string{index},
 				}); err != nil {
-					return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.delete_index.error", nil, "", http.StatusInternalServerError).Wrap(err)
+					return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.delete_index.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
 		}
