@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"runtime"
+	"slices"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -13,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -82,26 +84,30 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 
 	wg.Wait()
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		pluginContext := pluginContext(c)
-		for _, id := range options.PluginPackets {
-			hooks, err := pluginsEnvironment.HooksForPlugin(id)
-			if err != nil {
-				c.Logger().Error("Failed to call hooks for plugin", mlog.Err(err), mlog.String("plugin", id))
-				warnings = multierror.Append(warnings, err)
-				continue
-			}
-			pluginData, err := hooks.GenerateSupportData(pluginContext)
-			if err != nil {
-				c.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.Err(err), mlog.String("plugin", id))
-				warnings = multierror.Append(warnings, err)
-				continue
-			}
-			for _, data := range pluginData {
-				fileDatas = append(fileDatas, *data)
+	pluginContext := pluginContext(c)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		// If the plugin defined the support_packet prop it means there is a UI element to include it in the support packet.
+		// Check if the plugin is in the list of plugins to include in the Support Packet.
+		if _, ok := manifest.Props["support_packet"]; ok {
+			if !slices.Contains(options.PluginPackets, manifest.Id) {
+				return true
 			}
 		}
-	}
+
+		// Otherwise, just call the hook as the plugin decided to always include it in the Support Packet.
+		pluginData, err := hooks.GenerateSupportData(pluginContext)
+		if err != nil {
+			c.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.String("plugin", manifest.Id), mlog.Err(err))
+			warnings = multierror.Append(warnings, err)
+			return true
+		}
+
+		for _, data := range pluginData {
+			fileDatas = append(fileDatas, *data)
+		}
+
+		return true
+	}, plugin.GenerateSupportDataID)
 
 	// Adding a warning.txt file to the fileDatas if any warning
 	if warnings != nil {

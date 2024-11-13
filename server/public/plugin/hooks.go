@@ -387,6 +387,12 @@ type Hooks interface {
 	// GenerateSupportData is invoked when a Support Packet gets generated.
 	// It allows plugins to include their own content in the Support Packet.
 	//
+	// Plugins may specififes a "support_packet" field in the manifest props with a custom text.
+	// By doing so, the plugin will be included in the Support Packet UI and the user will be able to select it.
+	// This hook will only be called, if the user selects the plugin in the Support Packet UI.
+	//
+	// If no "support_packet" is specified, this hook will always be called.
+	//
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
 }
