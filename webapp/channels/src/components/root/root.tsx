@@ -255,9 +255,19 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
+    applyTheme() {
+        // don't apply theme when in system console; system console hardcoded to THEMES.denim
+        // AdminConsole will re-apply theme on unmount
+        if (this.props.location.pathname.startsWith('/admin_console')) {
+            return;
+        }
+
+        applyTheme(this.props.theme);
+    }
+
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            applyTheme(this.props.theme);
+            this.applyTheme();
         }
 
         if (this.props.location.pathname === '/') {
