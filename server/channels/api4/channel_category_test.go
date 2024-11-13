@@ -1168,6 +1168,63 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 func TestDeleteCategoryForTeamForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	t.Run("should move channels to default categories when custom category is deleted", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		// Create a custom category with different types of channels
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      user.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "Custom Category",
+				Type:        model.SidebarCategoryCustom,
+			},
+			// Add public, private channels and DM
+			Channels: []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, customCategory)
+
+		// Create a DM channel
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), user.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		// Add DM to custom category
+		customCategory.Channels = append(customCategory.Channels, dmChannel.Id)
+		updatedCategory, _, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id, customCategory)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id, dmChannel.Id}, updatedCategory.Channels)
+
+		// Delete the custom category
+		resp, err := client.DeleteSidebarCategory(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Get all categories to verify channel redistribution
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+
+		// Find default categories
+		var channelsCategory, dmsCategory *model.SidebarCategoryWithChannels
+		for _, cat := range categories.Categories {
+			switch cat.Type {
+			case model.SidebarCategoryChannels:
+				channelsCategory = cat
+			case model.SidebarCategoryDirectMessages:
+				dmsCategory = cat
+			}
+		}
+
+		require.NotNil(t, channelsCategory, "Channels category should exist")
+		require.NotNil(t, dmsCategory, "DMs category should exist")
+
+		// Verify public and private channels moved to channels category
+		require.Contains(t, channelsCategory.Channels, th.BasicChannel.Id, "Public channel should be in channels category")
+		require.Contains(t, channelsCategory.Channels, th.BasicPrivateChannel.Id, "Private channel should be in channels category")
+
+		// Verify DM moved to DMs category
+		require.Contains(t, dmsCategory.Channels, dmChannel.Id, "DM should be in direct messages category")
+	})
 
 	t.Run("should delete category when user has permission", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
