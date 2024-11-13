@@ -55,6 +55,13 @@ const sendNowTooltipText = (
     />
 );
 
+const copyTextTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.copy_text'
+        defaultMessage='Copy text'
+    />
+);
+
 type Props = {
     scheduledPost: ScheduledPost;
     channel?: Channel;
@@ -62,9 +69,10 @@ type Props = {
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
+    onCopyText: () => void;
 }
 
-function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit}: Props) {
+function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit, onCopyText}: Props) {
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
 
@@ -148,6 +156,14 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
 
                 />
             }
+
+            <Action
+                icon='icon-content-copy'
+                id='copy_text'
+                name='copy_text'
+                tooltipText={copyTextTooltipText}
+                onClick={onCopyText}
+            />
 
             {
                 showRescheduleOption &&
