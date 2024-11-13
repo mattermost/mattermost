@@ -1011,6 +1011,17 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name:  "string thai",
+			Input: "สวัสดี",
+			Words: []searchWord{
+				{
+					value:   "สวัสดี",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			words, flags := parseSearchFlags(splitWords(testCase.Input))
