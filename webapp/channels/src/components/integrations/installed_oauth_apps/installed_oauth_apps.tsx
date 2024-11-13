@@ -11,7 +11,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
@@ -183,7 +182,7 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                     />
                 }
                 emptyTextSearch={
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='installed_oauth_apps.emptySearch'
                         defaultMessage='No OAuth 2.0 Applications match {searchTerm}'
                     />

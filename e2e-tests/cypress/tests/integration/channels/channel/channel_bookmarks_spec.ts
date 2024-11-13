@@ -10,6 +10,9 @@
 // Group: @channels @channel @channel_bookmarks
 // node run_tests.js --group='@channel'
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
@@ -17,14 +20,12 @@ describe('Channel Bookmarks', () => {
     const SpaceKeyCode = 32;
     const RightArrowKeyCode = 39;
 
-    let testTeam: Cypress.Team;
+    let testTeam: Team;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let user1: Cypress.UserProfile;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let admin: Cypress.UserProfile;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let channel: Cypress.Channel;
+    let user1: UserProfile;
+    let admin: UserProfile;
+    let channel: Channel;
 
     before(() => {
         cy.apiGetMe().then(({user: adminUser}) => {

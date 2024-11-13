@@ -6,11 +6,9 @@ import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import AdminSettings from './admin_settings';
-import type {BaseState, BaseProps} from './admin_settings';
 import BooleanSetting from './boolean_setting';
+import OLDAdminSettings from './old_admin_settings';
+import type {BaseState, BaseProps} from './old_admin_settings';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -71,7 +69,7 @@ export const searchableStrings = [
     messages.sessionIdleTimeoutDesc,
 ];
 
-export default class SessionLengthSettings extends AdminSettings<Props, State> {
+export default class SessionLengthSettings extends OLDAdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         const MINIMUM_IDLE_TIMEOUT = 5;
 
@@ -125,7 +123,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     type='number'
                     label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
                     placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
-                    helpText={<FormattedMarkdownMessage {...messages.sessionIdleTimeoutDesc}/>}
+                    helpText={<FormattedMessage {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
                     setByEnv={this.isSetByEnv('ServiceSettings.SessionIdleTimeoutInMinutes')}

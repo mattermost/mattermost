@@ -13,10 +13,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (api *API) InitGroup() {
@@ -146,7 +148,9 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -206,7 +210,9 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -296,6 +302,14 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(group)
 	auditRec.AddEventObjectType("group")
 
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__edit_details",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
+
 	b, err := json.Marshal(group)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -303,7 +317,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -389,7 +405,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -437,7 +455,9 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -479,7 +499,9 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -566,7 +588,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -726,7 +750,9 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -766,7 +792,9 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -802,7 +830,9 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -820,7 +850,9 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -839,7 +871,9 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appError
 		return
 	}
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
@@ -973,7 +1007,9 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1138,7 +1174,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1190,7 +1228,9 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1244,7 +1284,9 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1303,7 +1345,16 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__add_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1362,7 +1413,16 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__remove_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 // hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.
