@@ -13,6 +13,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
+import {Preferences} from 'mattermost-redux/constants';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -462,7 +463,7 @@ export default class Root extends React.PureComponent<Props, State> {
                     >
                         <Switch>
                             <LoggedInRoute
-                                theme={this.props.theme}
+                                theme={Preferences.THEMES.denim}
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
