@@ -420,26 +420,21 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	type channelErrorKeyStruct struct {
+	type channelErrorKey struct {
 		ChannelId string
 		ErrorCode string
 	}
 
-	channelErrorCounts := make(map[channelErrorKeyStruct]int)
+	channelErrorCounts := make(map[channelErrorKey]int)
 	channelIdsSet := make(map[string]struct{})
 	for _, msg := range userFailedMessages {
-		key := channelErrorKeyStruct{ChannelId: msg.ChannelId, ErrorCode: msg.ErrorCode}
+		key := channelErrorKey{ChannelId: msg.ChannelId, ErrorCode: msg.ErrorCode}
 		channelErrorCounts[key]++
 		channelIdsSet[msg.ChannelId] = struct{}{}
 	}
 
-	channelIds := make([]string, 0, len(channelIdsSet))
-	for channelId := range channelIdsSet {
-		channelIds = append(channelIds, channelId)
-	}
-
 	channelNames := make(map[string]string)
-	for _, channelId := range channelIds {
+	for channelId := range channelIdsSet {
 		ch, err := a.GetChannel(rctx, channelId)
 		if err != nil {
 			rctx.Logger().Error("Failed to get channel", mlog.String("channel_id", channelId), mlog.Err(err))
@@ -449,14 +444,14 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		channelNames[channelId] = ch.DisplayName
 	}
 
-	var sbMessageBuilder strings.Builder
+	var messageBuilder strings.Builder
 
 	totalFailedMessages := len(userFailedMessages)
 	messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
 		"Count": totalFailedMessages,
 	})
-	sbMessageBuilder.WriteString(messageHeader)
-	sbMessageBuilder.WriteString("\n")
+	messageBuilder.WriteString(messageHeader)
+	messageBuilder.WriteString("\n")
 
 	for key, count := range channelErrorCounts {
 		channelName := channelNames[key.ChannelId]
@@ -467,13 +462,13 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 			"ChannelName": channelName,
 			"ErrorReason": errorReason,
 		})
-		sbMessageBuilder.WriteString(detailedMessage)
-		sbMessageBuilder.WriteString("\n")
+		messageBuilder.WriteString(detailedMessage)
+		messageBuilder.WriteString("\n")
 	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   sbMessageBuilder.String(),
+		Message:   messageBuilder.String(),
 		Type:      model.PostTypeDefault,
 		UserId:    systemBot.UserId,
 	}
