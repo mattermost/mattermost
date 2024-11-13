@@ -83,7 +83,6 @@ function DraftsLink() {
     }, [dispatch, isScheduledPostEnabled, teamId]);
 
     const showScheduledPostCount = isScheduledPostEnabled && teamScheduledPostCount > 0;
-    const draftsIcon = showScheduledPostCount ? pencilIcon : null;
 
     const tooltipText = useMemo(() => {
         const lineBreaks = (x: React.ReactNode) => {
@@ -148,7 +147,7 @@ function DraftsLink() {
                                 draftCount > 0 &&
                                 <ChannelMentionBadge
                                     unreadMentions={draftCount}
-                                    icon={draftsIcon}
+                                    icon={pencilIcon}
                                 />
                             }
 
