@@ -4304,8 +4304,8 @@
     "translation": "ID 無效。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "訊息無效。"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "訊息屬性超過了最大允許長度。"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -7928,8 +7928,8 @@
     "translation": "檔案 ID 無效。"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "訊息無效。"
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "草稿訊息屬性超過了最大允許長度。"
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

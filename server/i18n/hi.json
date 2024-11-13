@@ -1608,8 +1608,8 @@
     "translation": "अमान्य प्रकार।"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "अमान्य मैसेज।"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "संदेश गुणधर्म अधिकतम अनुमत लंबाई से लंबा है।"
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",

@@ -1676,8 +1676,8 @@
     "translation": "Ogiltigt originalpost-id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Egenskapen för meddelandet är längre än den maximalt tillåtna längden."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -8874,8 +8874,8 @@
     "translation": "Ogiltig prioritet"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Egenskapen för utkastmeddelandet är längre än den maximalt tillåtna längden."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

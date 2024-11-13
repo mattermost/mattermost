@@ -1528,8 +1528,8 @@
     "translation": "Virheellinen alkuperäinen ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Virheellinen viesti"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Viestin ominaisuus on pidempi kuin sallittu enimmäispituus."
   },
   {
     "id": "model.post.is_valid.id.app_error",

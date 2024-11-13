@@ -4304,8 +4304,8 @@
     "translation": "잘못된 ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "메시지 속성의 길이가 허용된 최대 길이를 초과했습니다."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",

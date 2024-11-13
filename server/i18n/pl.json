@@ -4316,8 +4316,8 @@
     "translation": "Nieprawidłowy identyfikator."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Właściwość wiadomości jest dłuższa niż maksymalna dozwolona długość."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8840,8 +8840,8 @@
     "translation": "Nieprawidłowa wartość."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Właściwość wiadomości roboczej jest dłuższa niż maksymalna dozwolona długość."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

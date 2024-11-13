@@ -4316,8 +4316,8 @@
     "translation": "Id invalide"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Message invalide"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "La propriété du message est plus longue que la longueur maximale autorisée."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",

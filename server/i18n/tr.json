@@ -4311,8 +4311,8 @@
     "translation": "Kimlik geçersiz."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Mesaj özelliği, izin verilen maksimum uzunluktan uzundur."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8854,8 +8854,8 @@
     "translation": "Öncelik geçersiz"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Taslak Mesaj özelliği, izin verilen maksimum uzunluktan daha uzundur."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

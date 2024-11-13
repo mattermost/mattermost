@@ -4311,8 +4311,8 @@
     "translation": "Ungültige Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Die Nachrichten-Eigenschaft überschreitet die maximal zulässige Länge."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8834,8 +8834,8 @@
     "translation": "Ungültige Eigenschaften."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Die Eigenschaft der Entwurf-Nachricht ist länger als die maximal erlaubte Länge."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

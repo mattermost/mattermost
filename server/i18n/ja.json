@@ -4306,8 +4306,8 @@
     "translation": "不正なIDです。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "不正なメッセージです。"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "メッセージのプロパティは許可されている最大長を超えています。"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8818,8 +8818,8 @@
     "translation": "不正なpropsです。"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正なmessageです。"
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "ドラフトメッセージのプロパティは、許可されている最大長を超えています。"
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

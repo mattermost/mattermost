@@ -1488,8 +1488,8 @@
     "translation": "Érvénytelen eredeti azonosító."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Érvénytelen üzenet."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Az üzenet tulajdonsága hosszabb, mint a maximálisan megengedett hossz."
   },
   {
     "id": "model.post.is_valid.id.app_error",

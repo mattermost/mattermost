@@ -4316,8 +4316,8 @@
     "translation": "ID inválida."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensagem inválida."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "A propriedade da mensagem é maior do que o comprimento máximo permitido."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",

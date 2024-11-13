@@ -356,8 +356,8 @@
     "translation": "Neplatné původní ID."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neplatná zpráva."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Vlastnost zprávy je delší než maximální povolená délka."
   },
   {
     "id": "model.post.is_valid.id.app_error",

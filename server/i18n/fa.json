@@ -244,8 +244,8 @@
     "translation": "شناسه اصلی نامعتبر است."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "پیام نامعتبر است."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "ویژگی پیام از حداکثر طول مجاز بیشتر است."
   },
   {
     "id": "model.post.is_valid.id.app_error",

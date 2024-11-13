@@ -1512,8 +1512,8 @@
     "translation": "Невалиден оригинален id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Невалидно съобщение."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Свойството на съобщението е по-дълго от максимално разрешената дължина."
   },
   {
     "id": "model.post.is_valid.id.app_error",

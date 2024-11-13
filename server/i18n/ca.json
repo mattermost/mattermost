@@ -200,8 +200,8 @@
     "translation": "Props no vàlid"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Estat no vàlid"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "La propietat del missatge supera la longitud màxima permesa."
   },
   {
     "id": "model.post.is_valid.id.app_error",

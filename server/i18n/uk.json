@@ -4316,8 +4316,8 @@
     "translation": "Неприпустимий ідентифікатор"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Властивість повідомлення перевищує максимально допустиму довжину."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",

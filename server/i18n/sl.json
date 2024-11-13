@@ -400,8 +400,8 @@
     "translation": "Neveljaven original ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neveljavno sporočilo"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Lastnost sporočila je daljša od največje dovoljene dolžine."
   },
   {
     "id": "model.post.is_valid.id.app_error",

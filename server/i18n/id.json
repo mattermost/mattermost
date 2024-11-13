@@ -1440,8 +1440,8 @@
     "translation": "ID asli tidak valid"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Pesan tidak valid"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Properti Pesan lebih panjang dari panjang maksimum yang diizinkan."
   },
   {
     "id": "model.post.is_valid.id.app_error",

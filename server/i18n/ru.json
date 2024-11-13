@@ -4316,8 +4316,8 @@
     "translation": "Недопустимый идентификатор."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Свойство Сообщение превышает максимально допустимую длину."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8840,8 +8840,8 @@
     "translation": "Некорректные свойства."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Свойство Сообщение длиннее максимально допустимой длины."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

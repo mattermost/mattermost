@@ -4728,8 +4728,8 @@
     "translation": "ID nhóm không hợp lệ"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Thuộc tính tin nhắn dài hơn độ dài tối đa được phép."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -9258,8 +9258,8 @@
     "translation": "Id tập tin không hợp lệ."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Thuộc tính Tin nhắn bản nháp dài hơn độ dài tối đa cho phép."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

@@ -744,8 +744,8 @@
     "translation": "Няправільныя рэквізіты."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Няправільнае паведамленне."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Уласцівасць паведамлення перавышае максімальна дапушчальную даўжыню."
   },
   {
     "id": "model.post.is_valid.id.app_error",

@@ -4306,8 +4306,8 @@
     "translation": "无效的 Id。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "无效的消息。"
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "消息属性超出了最大允许长度。"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8810,8 +8810,8 @@
     "translation": "不正确的优先级"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正确的消息。"
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "草稿消息属性超出了最大允许长度。"
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

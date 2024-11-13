@@ -1792,8 +1792,8 @@
     "translation": "Invalid original ID."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Post Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -8835,8 +8835,8 @@
     "translation": "Invalid props."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Draft Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
