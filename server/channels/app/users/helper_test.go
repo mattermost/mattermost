@@ -70,9 +70,8 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-
 	_, _, err = configStore.Set(config)
-	require.NoError(tb, err, "Failed to set config")
+	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
 	return &TestHelper{
