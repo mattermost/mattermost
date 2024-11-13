@@ -4,6 +4,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"strconv"
@@ -21,6 +22,32 @@ const (
 	MissingFileMessage = "File missing for post; cannot copy file to archive"
 
 	EstimatedPostCount = 10_000_000
+
+	// JobDataBatchStartTime is the posts.updateat value from the previous batch. Posts are selected using
+	// keyset pagination sorted by (posts.updateat, posts.id).
+	JobDataBatchStartTime = "batch_start_time"
+
+	// JobDataJobStartTime is the start of the job (doesn't change across batches)
+	JobDataJobStartTime = "job_start_time"
+
+	// JobDataBatchStartId is the posts.id value from the previous batch.
+	JobDataBatchStartId = "batch_start_id"
+
+	// JobDataJobEndTime is the point up to which this job is exporting. It is the time the job was started,
+	// i.e., we export everything from the end of previous batch to the moment this batch started.
+	JobDataJobEndTime = "job_end_time"
+
+	JobDataJobStartId              = "job_start_id"
+	JobDataExportType              = "export_type"
+	JobDataBatchSize               = "batch_size"
+	JobDataChannelBatchSize        = "channel_batch_size"
+	JobDataChannelHistoryBatchSize = "channel_history_batch_size"
+	JobDataMessagesExported        = "messages_exported"
+	JobDataWarningCount            = "warning_count"
+	JobDataIsDownloadable          = "is_downloadable"
+	JobDataExportDir               = "export_dir"
+	JobDataBatchNumber             = "job_batch_number"
+	JobDataTotalPostsExpected      = "total_posts_expected"
 )
 
 type PostUpdatedType string
@@ -34,28 +61,28 @@ const (
 )
 
 // JobData keeps the current state of the job.
+// When used by a worker, all fields marked exported are exported to the job's job.Data prop bag)
 type JobData struct {
-	// If used by a worker, this section is saved in the job.Data field.
-	ExportType              string
-	ExportDir               string
-	BatchStartTime          int64
-	BatchStartId            string
+	ExportType              string // exported
+	ExportDir               string // exported
+	BatchStartTime          int64  // exported
+	BatchStartId            string // exported
 	ExportPeriodStartTime   int64
-	JobStartTime            int64
-	JobEndTime              int64
-	JobStartId              string
-	BatchSize               int
-	ChannelBatchSize        int
-	ChannelHistoryBatchSize int
-	BatchNumber             int
-	TotalPostsExpected      int
-	TotalPostsExported      int
+	JobStartTime            int64  // exported
+	JobEndTime              int64  // exported
+	JobStartId              string // exported
+	BatchSize               int    // exported
+	ChannelBatchSize        int    // exported
+	ChannelHistoryBatchSize int    // exported
+	BatchNumber             int    // exported
+	TotalPostsExpected      int    // exported
+	MessagesExported        int    // exported
 
 	// This section is the current state of the export
 	ChannelMetadata        map[string]*MetadataChannel
 	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
 	Cursor                 model.MessageExportCursor
-	TotalWarningCount      int
+	WarningCount           int // exported
 	PostsToExport          []*model.MessageExport
 	BatchEndTime           int64
 	BatchPath              string
@@ -66,6 +93,39 @@ type JobData struct {
 	TransferringZipMs      []int64
 	TotalBatchMs           []int64
 	Finished               bool
+	IsDownloadable         bool // exported
+}
+
+func JobDataToStringMap(jd JobData) map[string]string {
+	ret := make(map[string]string)
+	ret[JobDataExportType] = jd.ExportType
+	ret[JobDataExportDir] = jd.ExportDir
+	ret[JobDataBatchStartTime] = strconv.FormatInt(jd.BatchStartTime, 10)
+	ret[JobDataBatchStartId] = jd.BatchStartId
+	ret[JobDataJobStartTime] = strconv.FormatInt(jd.JobStartTime, 10)
+	ret[JobDataJobEndTime] = strconv.FormatInt(jd.JobEndTime, 10)
+	ret[JobDataJobStartId] = jd.JobStartId
+	ret[JobDataBatchSize] = strconv.Itoa(jd.BatchSize)
+	ret[JobDataChannelBatchSize] = strconv.Itoa(jd.ChannelBatchSize)
+	ret[JobDataChannelHistoryBatchSize] = strconv.Itoa(jd.ChannelHistoryBatchSize)
+	ret[JobDataBatchNumber] = strconv.Itoa(jd.BatchNumber)
+	ret[JobDataTotalPostsExpected] = strconv.Itoa(jd.TotalPostsExpected)
+	ret[JobDataMessagesExported] = strconv.Itoa(jd.MessagesExported)
+	ret[JobDataWarningCount] = strconv.Itoa(jd.WarningCount)
+	ret[JobDataIsDownloadable] = strconv.FormatBool(jd.IsDownloadable)
+	return ret
+}
+
+func StringDataToJobData(strMap map[string]string) (JobData, error) {
+	mapBytes, err := json.Marshal(strMap)
+	if err != nil {
+		return JobData{}, err
+	}
+	var ret JobData
+	if err := json.Unmarshal(mapBytes, &ret); err != nil {
+		return JobData{}, err
+	}
+	return ret, nil
 }
 
 type BackendParams struct {
