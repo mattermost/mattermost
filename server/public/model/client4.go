@@ -344,6 +344,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) testNotificationRoute() string {
+	return "/notifications/test"
+}
+
 func (c *Client4) usageRoute() string {
 	return "/usage"
 }
@@ -4813,6 +4817,15 @@ func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, err
 		return nil, NewAppError("TestEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	r, err := c.DoAPIPostBytes(ctx, c.testEmailRoute(), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.testNotificationRoute(), "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
