@@ -176,7 +176,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
             );
         }
         return (
-            <React.Fragment>
+            <>
                 <div>{serverError}</div>
                 <AbstractList
                     headerLabels={headerLabels}
@@ -187,7 +187,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     emptyList={this.props.emptyList}
                     userId={this.props.userId}
                 />
-            </React.Fragment>
+            </>
         );
     }
 }
