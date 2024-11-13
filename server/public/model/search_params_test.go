@@ -1012,11 +1012,44 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string thai",
+			Name:  "string end with  thai upper vowel",
 			Input: "สวัสดี",
 			Words: []searchWord{
 				{
 					value:   "สวัสดี",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string end with  thai upper tone mark",
+			Input: "ที่นี่",
+			Words: []searchWord{
+				{
+					value:   "ที่นี่",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string end with  thai upper indication mark",
+			Input: "การันต์",
+			Words: []searchWord{
+				{
+					value:   "การันต์",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string end with  thai lower vowel",
+			Input: "กตัญญู",
+			Words: []searchWord{
+				{
+					value:   "กตัญญู",
 					exclude: false,
 				},
 			},
