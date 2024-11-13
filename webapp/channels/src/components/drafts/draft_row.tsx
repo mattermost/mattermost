@@ -37,6 +37,7 @@ import PlaceholderScheduledPostsTitle
 import EditPost from 'components/edit_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
+import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -278,6 +279,10 @@ function DraftRow({
         setIsEditing((isEditing) => !isEditing);
     }, []);
 
+    const handleCopyText = useCallback(() => {
+        copyToClipboard(item.message);
+    }, [item]);
+
     const handleScheduledPostOnSend = useCallback(() => {
         handleCancelEdit();
 
@@ -296,6 +301,7 @@ function DraftRow({
                 onDelete={handleSchedulePostOnDelete}
                 onSend={handleScheduledPostOnSend}
                 onEdit={handleSchedulePostEdit}
+                onCopyText={handleCopyText}
             />
         );
     }, [
@@ -304,6 +310,7 @@ function DraftRow({
         handleSchedulePostOnReschedule,
         handleScheduledPostOnSend,
         handleSchedulePostEdit,
+        handleCopyText,
         item,
     ]);
 

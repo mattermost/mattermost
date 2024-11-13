@@ -4713,11 +4713,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "118 版或更新"
+    "translation": "130 版或更新"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "118 版或更新"
+    "translation": "130 版或更新"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9001,7 +9001,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "您無法在封存頻道中勾選已讀。"
+    "translation": "您無法在封存頻道中勾選已讀回條。"
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -10197,7 +10197,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "複製授權失敗。"
+    "translation": "複製授權檔案目錄到到緩衝區失敗。"
   },
   {
     "id": "app.post.create_post.shared_dm_or_gm.app_error",
@@ -10218,5 +10218,93 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "無法建立遠端叢集邀請"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "無效的請求：錯誤的請求。"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "排程訊息功能需要授權"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "排程訊息功能已停用。"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "無法更新 Bot。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "從資料庫刪除排程訊息失敗。"
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "排程訊息不存在。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "您沒有權限以刪除這則資源。"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "無法於資料庫擷取存在的排程訊息。"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "取得排程貼文時遇到錯誤"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "無法找到 Bot 的擁有者"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "匯入資料行資料類型為「機器人」但機器人物件為 Null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "找不到機器人擁有者"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "無法於封存頻道中排程訊息。"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "儲存排程訊息時發生錯誤。"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "排程訊息不存在。"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "禁止存取在資料庫中存在的排程訊息。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "無效排程的時間。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "無效"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "您沒有權限更新這個資源。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "儲存更新於資料庫中的排程訊息失敗。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "排程訊息需要有 ID。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "無法排程空白的訊息。排程訊息至少需包含訊息或附件檔案。"
   }
 ]
