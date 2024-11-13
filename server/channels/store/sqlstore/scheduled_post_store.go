@@ -287,3 +287,24 @@ func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error 
 
 	return nil
 }
+
+func (s *SqlScheduledPostStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("ScheduledPosts").
+		Where(sq.Eq{"UserId": userId})
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentDeleteByUser: failed to generate SQL query for permanently deleting scheduled posts by user")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	if _, err := s.GetMasterX().Exec(sql, params...); err != nil {
+		errToReturn := errors.Wrapf(err, "PermanentDeleteByUser: failed to delete scheduled posts by user from database")
+		s.Logger().Error(errToReturn.Error())
+		return errToReturn
+	}
+
+	return nil
+}

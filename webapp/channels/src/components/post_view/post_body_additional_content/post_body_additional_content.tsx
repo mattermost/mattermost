@@ -157,13 +157,13 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (appEmbeds.length) {
                 // TODO Put some log / message if the form is not valid?
                 return (
-                    <React.Fragment>
+                    <>
                         {this.props.children}
                         <EmbeddedBindings
                             embeds={appEmbeds}
                             post={this.props.post}
                         />
-                    </React.Fragment>
+                    </>
                 );
             }
         }

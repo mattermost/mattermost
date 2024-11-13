@@ -375,9 +375,9 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 {content}
-            </React.Fragment>
+            </>
         );
     }
 }
