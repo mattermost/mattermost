@@ -112,12 +112,16 @@ func (d *Decoder) DecodeConfig(rd io.Reader) (image.Config, string, error) {
 }
 
 // GetDimensions returns the dimensions for the given encoded image data.
-func GetDimensions(imageData io.Reader) (int, int, error) {
+func GetDimensions(imageData io.Reader) (width int, height int, err error) {
 	cfg, _, err := image.DecodeConfig(imageData)
+	width, height = cfg.Width, cfg.Height
 	if seeker, ok := imageData.(io.Seeker); ok {
-		defer seeker.Seek(0, 0)
+		_, err2 := seeker.Seek(0, 0)
+		if err == nil && err2 != nil {
+			err = fmt.Errorf("failed to seek back to the beginning of the image data: %w", err2)
+		}
 	}
-	return cfg.Width, cfg.Height, err
+	return
 }
 
 // This is only needed to try and simplify GC work.

@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 type Props = {
-    channelDisplayName: string;
+    channelDisplayName?: string;
     onConfirm: () => Promise<{error?: string}>;
     onExited: () => void;
 }
@@ -54,14 +54,25 @@ export default function DeleteScheduledPostModal({
             autoCloseOnConfirmButton={false}
             errorText={errorMessage}
         >
-            <FormattedMessage
-                id={'scheduled_post.delete_modal.body'}
-                defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
-                values={{
-                    strong: (chunk: string) => <strong>{chunk}</strong>,
-                    displayName: channelDisplayName,
-                }}
-            />
+            {
+                channelDisplayName &&
+                <FormattedMessage
+                    id={'scheduled_post.delete_modal.body'}
+                    defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
+                    values={{
+                        strong: (chunk: string) => <strong>{chunk}</strong>,
+                        displayName: channelDisplayName,
+                    }}
+                />
+            }
+
+            {
+                !channelDisplayName &&
+                <FormattedMessage
+                    id={'scheduled_post.delete_modal.body_no_channel'}
+                    defaultMessage={'Are you sure you want to delete this scheduled post?'}
+                />
+            }
         </GenericModal>
     );
 }
