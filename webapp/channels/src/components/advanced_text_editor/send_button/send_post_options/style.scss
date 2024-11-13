@@ -6,4 +6,16 @@ ul#dropdown_send_post_options {
             font-weight: bold;
         }
     }
+
+    li.core-menu-options{
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+
+        .trailing-elements {
+            margin-top: 4px;
+            margin-left: 0;
+            opacity: 0.8;
+        }
+    }
 }

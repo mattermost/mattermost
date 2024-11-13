@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
+
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/pkg/errors"
@@ -225,6 +228,9 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
+	// send the WS event to delete the just posted scheduledPost from list
+	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, "")
+
 	return scheduledPost, nil
 }
 
@@ -337,6 +343,12 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 			)
 			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
 		}
+
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackScheduledPosts,
+			"scheduled_posts_success",
+			map[string]any{"count": len(successfulScheduledPostIDs)},
+		)
 	}
 
 	return nil
@@ -353,5 +365,71 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 				mlog.Err(err),
 			)
 		}
+		// send WS event for updating the scheduled post with the error code
+		a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, failedScheduledPost, "")
+	}
+
+	if len(failedScheduledPosts) > 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackScheduledPosts,
+			"scheduled_posts_failed",
+			map[string]any{"count": len(failedScheduledPosts)},
+		)
+		a.notifyUserAboutFailedScheduledMessages(rctx, failedScheduledPosts)
+	}
+}
+
+func (a *App) notifyUserAboutFailedScheduledMessages(rctx request.CTX, failedMessages []*model.ScheduledPost) {
+	failedMessagesByUser := aggregateFailMessagesByUser(failedMessages)
+	systemBot, err := a.GetSystemBot(rctx)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
+		return
+	}
+
+	for userId, userFailedMessages := range failedMessagesByUser {
+		a.Srv().Go(func(userId string, userFailedMessages []*model.ScheduledPost) func() {
+			return func() {
+				a.notifyUser(rctx, userId, userFailedMessages, systemBot)
+			}
+		}(userId, userFailedMessages))
+	}
+}
+
+func aggregateFailMessagesByUser(failedMessages []*model.ScheduledPost) map[string][]*model.ScheduledPost {
+	aggregated := make(map[string][]*model.ScheduledPost)
+	for _, msg := range failedMessages {
+		aggregated[msg.UserId] = append(aggregated[msg.UserId], msg)
+	}
+	return aggregated
+}
+
+func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*model.ScheduledPost, systemBot *model.Bot) {
+	channel, err := a.GetOrCreateDirectChannel(rctx, userId, systemBot.UserId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
+		return
+	}
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the user", mlog.Err(err))
+		return
+	}
+
+	T := i18n.GetUserTranslations(user.Locale)
+	messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
+		"Count": len(userFailedMessages),
+	})
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   messageContent,
+		Type:      model.PostTypeDefault,
+		UserId:    systemBot.UserId,
+	}
+
+	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
 	}
 }
