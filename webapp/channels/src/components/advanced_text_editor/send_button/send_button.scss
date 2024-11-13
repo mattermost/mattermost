@@ -49,6 +49,10 @@
         .ios & {
             display: flex;
         }
+
+        &.singleAction {
+            border-radius: 4px;
+        }
     }
 
     .button_send_post_options {
