@@ -451,10 +451,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 {iconComponent}
                 {title}
-            </React.Fragment>
+            </>
         );
     }
 
@@ -487,7 +487,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {fields, header} = this.props.form;
 
         return (fields || header) && (
-            <React.Fragment>
+            <>
                 {header && (
                     <AppsFormHeader
                         id='appsModalHeader'
@@ -495,7 +495,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     />
                 )}
                 {this.renderElements()}
-            </React.Fragment>
+            </>
         );
     }
 
@@ -549,7 +549,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <div>
                     {this.state.formError && (
                         <div>
@@ -571,7 +571,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     </button>
                     {submitButtons}
                 </div>
-            </React.Fragment>
+            </>
         );
     }
 
