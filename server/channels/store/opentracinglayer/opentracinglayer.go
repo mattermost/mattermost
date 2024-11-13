@@ -1425,7 +1425,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(ctx
 	return result, resultVar1, resultVar2, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string) (model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -1434,7 +1434,7 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(teamID string, offset int, lim
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID)
+	result, err := s.ChannelStore.GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8695,6 +8695,24 @@ func (s *OpenTracingLayerScheduledPostStore) GetScheduledPostsForUser(userId str
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerScheduledPostStore) PermanentDeleteByUser(userId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ScheduledPostStore.PermanentDeleteByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ScheduledPostStore.PermanentDeleteByUser(userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {

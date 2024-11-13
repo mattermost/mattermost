@@ -1065,7 +1065,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
 
-	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)

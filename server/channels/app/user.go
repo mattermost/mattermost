@@ -298,7 +298,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			}
 		}
 
-		a.sendUpdatedUserEvent(*nUser)
+		a.sendUpdatedUserEvent(nUser)
 	}
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceCategoryRecommendedNextSteps, Name: model.PreferenceNameRecommendedNextStepsHide, Value: "false"}
@@ -319,7 +319,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasBeenCreated(pluginContext, ruser)
 			return true
 		}, plugin.UserHasBeenCreatedID)
@@ -1055,12 +1055,12 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	}
 	a.InvalidateCacheForUser(user.Id)
 
-	a.sendUpdatedUserEvent(*ruser)
+	a.sendUpdatedUserEvent(ruser)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil && !active && user.DeleteAt != 0 {
+	if !active && user.DeleteAt != 0 {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.UserHasBeenDeactivated(pluginContext, user)
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
@@ -1190,11 +1190,14 @@ func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserA
 	return userAuth, nil
 }
 
-func (a *App) sendUpdatedUserEvent(user model.User) {
+func (a *App) sendUpdatedUserEvent(user *model.User) {
 	// exclude event creator user from admin, member user broadcast
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
 
+	// First, creating a base copy to avoid race conditions
+	// from setting the binaryParamKey in userstore.Update.
+	user = user.DeepCopy()
 	// declare admin and unsanitized copy of user
 	adminCopyOfUser := user.DeepCopy()
 	unsanitizedCopyOfUser := user.DeepCopy()
@@ -1205,9 +1208,9 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
-	a.SanitizeProfile(&user, false)
+	a.SanitizeProfile(user, false)
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
-	message.Add("user", &user)
+	message.Add("user", user)
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
@@ -1347,7 +1350,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 				}
 			})
 		}
-		a.sendUpdatedUserEvent(*newUser)
+		a.sendUpdatedUserEvent(newUser)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1825,6 +1828,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -2037,7 +2044,7 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 		return err
 	}
 
-	a.sendUpdatedUserEvent(*user)
+	a.sendUpdatedUserEvent(user)
 
 	return nil
 }
@@ -2420,7 +2427,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 	if err != nil {
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
-		a.sendUpdatedUserEvent(*promotedUser)
+		a.sendUpdatedUserEvent(promotedUser)
 		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
@@ -2467,7 +2474,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.sendUpdatedUserEvent(*demotedUser)
+	a.sendUpdatedUserEvent(demotedUser)
 	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
