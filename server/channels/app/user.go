@@ -313,7 +313,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasBeenCreated(pluginContext, ruser)
 			return true
 		}, plugin.UserHasBeenCreatedID)
@@ -1045,10 +1045,10 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 
 	a.sendUpdatedUserEvent(ruser)
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil && !active && user.DeleteAt != 0 {
+	if !active && user.DeleteAt != 0 {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.UserHasBeenDeactivated(pluginContext, user)
 				return true
 			}, plugin.UserHasBeenDeactivatedID)
@@ -1814,6 +1814,10 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 
 	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
