@@ -484,10 +484,30 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 }
 
 func getErrorReason(T i18n.TranslateFunc, errorCode string) string {
-	key := "app.scheduled_post.error_reason." + errorCode
-	reason := T(key)
-	if reason == key {
-		return errorCode
+	var reason string
+	switch errorCode {
+	case "unknown":
+		reason = T("app.scheduled_post.error_reason.unknown")
+	case "channel_archived":
+		reason = T("app.scheduled_post.error_reason.channel_archived")
+	case "channel_not_found":
+		reason = T("app.scheduled_post.error_reason.channel_not_found")
+	case "user_missing":
+		reason = T("app.scheduled_post.error_reason.user_missing")
+	case "user_deleted":
+		reason = T("app.scheduled_post.error_reason.user_deleted")
+	case "no_channel_permission":
+		reason = T("app.scheduled_post.error_reason.no_channel_permission")
+	case "no_channel_member":
+		reason = T("app.scheduled_post.error_reason.no_channel_member")
+	case "thread_deleted":
+		reason = T("app.scheduled_post.error_reason.thread_deleted")
+	case "unable_to_send":
+		reason = T("app.scheduled_post.error_reason.unable_to_send")
+	case "invalid_post":
+		reason = T("app.scheduled_post.error_reason.invalid_post")
+	default:
+		reason = errorCode
 	}
 	return reason
 }

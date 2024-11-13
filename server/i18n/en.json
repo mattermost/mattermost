@@ -6543,24 +6543,6 @@
     "translation": "Error occurred saving the scheduled post."
   },
   {
-    "id": "app.scheduled_post.failed_messages",
-    "translation": {
-      "one": "Failed to send {{.Count}} scheduled post.",
-      "other": "Failed to send {{.Count}} scheduled posts."
-    }
-  },
-  {
-    "id": "app.scheduled_post.failed_message_detail",
-    "translation": {
-      "one": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}",
-      "other": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}"
-    }
-  },
-  {
-    "id": "app.scheduled_post.error_reason.unknown",
-    "translation": "Unknown Error"
-  },
-  {
     "id": "app.scheduled_post.error_reason.channel_archived",
     "translation": "Channel is archived"
   },
@@ -6569,20 +6551,16 @@
     "translation": "Channel not found"
   },
   {
-    "id": "app.scheduled_post.error_reason.user_missing",
-    "translation": "User does not exist"
-  },
-  {
-    "id": "app.scheduled_post.error_reason.user_deleted",
-    "translation": "User account is deleted"
-  },
-  {
-    "id": "app.scheduled_post.error_reason.no_channel_permission",
-    "translation": "No permission to post in channel"
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Invalid post content"
   },
   {
     "id": "app.scheduled_post.error_reason.no_channel_member",
     "translation": "Not a member of the channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "No permission to post in channel"
   },
   {
     "id": "app.scheduled_post.error_reason.thread_deleted",
@@ -6593,16 +6571,38 @@
     "translation": "Unable to send the message"
   },
   {
-    "id": "app.scheduled_post.error_reason.invalid_post",
-    "translation": "Invalid post content"
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unknown Error"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "User account is deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "User does not exist"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}",
+      "other": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Failed to send {{.Count}} scheduled post.",
+      "other": "Failed to send {{.Count}} scheduled posts."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
   },
   {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
-  },  
-  {
-    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete scheduled posts for user."
   },
   {
     "id": "app.scheme.delete.app_error",

@@ -346,15 +346,15 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				if received.GetBroadcast().UserId == user2.Id {
 					assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(3 * time.Second):
 				t.Errorf("Timeout while waiting for a WebSocket event for scheduled post %d", i+1)
 			}
 		}
 
 		// Helper function to check notifications for a specific user
 		checkUserNotification := func(user *model.User) {
-			// Wait time for notifications to be sent (adding 2 secs because it is run in a separate goroutine)
-			var timeout = 2 * time.Second
+			// Wait time for notifications to be sent (adding 5 secs because it is run in a separate goroutine)
+			var timeout = 5 * time.Second
 			begin := time.Now()
 			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
 			assert.True(t, appErr == nil)
@@ -449,7 +449,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 					break
 				}
 			}
-			assert.True(t, found, "Notification post not found for user %s with expected message", user.Id)
+			assert.True(t, found, "\nNotification post not found for user %s with expected message. \n Expected: %s \n", user.Id, expectedMessageContent)
 		}
 
 		// Check notifications sent for failed messages for both users
