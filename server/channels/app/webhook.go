@@ -891,7 +891,6 @@ func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model
 	hook, nErr := a.Srv().Store().CommandWebhook().Get(hookID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
-
 		switch {
 		case errors.As(nErr, &nfErr):
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", nil, "", http.StatusNotFound).Wrap(nErr)
