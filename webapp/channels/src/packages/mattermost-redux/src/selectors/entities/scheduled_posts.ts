@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 const emptyList: string[] = [];
 
@@ -77,6 +78,11 @@ export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, ch
     return data;
 }
 
-export function isScheduledPostsEnabled(state: GlobalState) {
-    return getConfig(state).ScheduledPosts === 'true';
-}
+export const isScheduledPostsEnabled: (a: GlobalState) => boolean = createSelector(
+    'isScheduledPostsEnabled',
+    getConfig,
+    getLicense,
+    (config: Partial<ClientConfig>, license: ClientLicense): boolean => {
+        return config.ScheduledPosts === 'true' && license.IsLicensed === 'true';
+    },
+);
