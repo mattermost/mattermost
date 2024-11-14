@@ -287,7 +287,6 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
 		enterPostType := EnterPostType
 		createAt := model.NewPointer(join.Datetime)
-		channelCopy := channel
 		if join.Datetime <= channel.StartTime {
 			enterPostType = PreviouslyJoinedPostType
 			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
@@ -300,10 +299,10 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 				TeamName:        channel.TeamName,
 				TeamDisplayName: channel.TeamDisplayName,
 
-				ChannelId:          &channelCopy.ChannelId,
-				ChannelName:        &channelCopy.ChannelName,
-				ChannelDisplayName: &channelCopy.ChannelDisplayName,
-				ChannelType:        &channelCopy.ChannelType,
+				ChannelId:          &channel.ChannelId,
+				ChannelName:        &channel.ChannelName,
+				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelType:        &channel.ChannelType,
 
 				UserId:    model.NewPointer(join.UserId),
 				UserEmail: model.NewPointer(join.Email),
@@ -322,7 +321,6 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 	for _, leave := range leaves {
 		leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
 		leavePostType := LeavePostType
-		channelCopy := channel
 
 		joinLeavePosts = append(
 			joinLeavePosts,
@@ -331,10 +329,10 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 				TeamName:        channel.TeamName,
 				TeamDisplayName: channel.TeamDisplayName,
 
-				ChannelId:          &channelCopy.ChannelId,
-				ChannelName:        &channelCopy.ChannelName,
-				ChannelDisplayName: &channelCopy.ChannelDisplayName,
-				ChannelType:        &channelCopy.ChannelType,
+				ChannelId:          &channel.ChannelId,
+				ChannelName:        &channel.ChannelName,
+				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelType:        &channel.ChannelType,
 
 				UserId:    model.NewPointer(leave.UserId),
 				UserEmail: model.NewPointer(leave.Email),
