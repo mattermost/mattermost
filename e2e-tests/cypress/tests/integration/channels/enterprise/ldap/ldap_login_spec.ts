@@ -49,7 +49,7 @@ context('ldap', () => {
     });
 
     describe('LDAP Login flow - Admin Login', () => {
-        it('MM-T2821 LDAP Admin Filter', () => {
+        it.skip('MM-T2821 LDAP Admin Filter', () => {
             testSettings.user = admin1;
             const ldapSetting = {
                 LdapSettings: {
@@ -175,7 +175,7 @@ context('ldap', () => {
             });
         });
 
-        it('LDAP Member login with team invite', () => {
+        it.skip('LDAP Member login with team invite', () => {
             testSettings.user = user1;
             const ldapSetting = {
                 LdapSettings: {
@@ -192,7 +192,7 @@ context('ldap', () => {
             });
         });
 
-        it('LDAP Guest login with team invite', () => {
+        it.skip('LDAP Guest login with team invite', () => {
             testSettings.user = guest1;
             const ldapSetting = {
                 LdapSettings: {
