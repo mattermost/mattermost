@@ -105,7 +105,6 @@ type RunExportResults struct {
 	EditedNewMsgPosts  int
 	UpdatedPosts       int
 	DeletedPosts       int
-	IgnoredPosts       int
 	NumChannels        int
 	ProcessingPostsMs  int64
 	WriteExportResult

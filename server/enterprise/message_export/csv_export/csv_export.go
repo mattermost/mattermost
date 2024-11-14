@@ -87,12 +87,6 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 	channelsInThisBatch := make(map[string]bool)
 	for _, post := range p.Posts {
-		if post == nil {
-			results.IgnoredPosts++
-			rctx.Logger().Warn("ignored a nil post reference in the list")
-			continue
-		}
-
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
@@ -129,15 +123,16 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 	var joinLeavePosts []*model.MessageExport
 	for id := range channelsInThisBatch {
-		joinLeaves, err2 := getJoinLeavePosts(
+		var joinLeaves []*model.MessageExport
+		joinLeaves, err = getJoinLeavePosts(
 			p.BatchStartTime,
 			p.BatchEndTime,
 			metadata.Channels[id],
 			p.ChannelMemberHistories[id],
 			postAuthorsByChannel[id],
 		)
-		if err2 != nil {
-			return results, err2
+		if err != nil {
+			return results, err
 		}
 		joinLeavePosts = append(joinLeavePosts, joinLeaves...)
 	}
