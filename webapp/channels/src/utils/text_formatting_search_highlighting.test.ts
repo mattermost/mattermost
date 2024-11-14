@@ -98,7 +98,7 @@ describe('TextFormatting.searchHighlighting', () => {
         name: 'search match thai word',
         input: 'สวัสดีนี่คือการทดสอบภาษาไทย',
         searchMatches: ['สวัสดี'],
-        expected: '<p><span class="search-highlight">สวัสดีครับ</span>นี่คือการทดสอบภาษาไทย</p>',
+        expected: '<p><span class="search-highlight">สวัสดี</span>นี่คือการทดสอบภาษาไทย</p>',
     }];
 
     for (const testCase of testCases) {
