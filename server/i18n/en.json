@@ -5163,6 +5163,10 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Unable to seek to the beginning of the GIF data."
+  },
+  {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Unable to set the searchable content of the file."
   },
