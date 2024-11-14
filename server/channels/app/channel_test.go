@@ -1225,8 +1225,11 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	ruser, appErr := th.App.CreateUser(th.Context, &user3)
 	require.Nil(t, appErr)
 
+	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+	require.Nil(t, appErr)
+
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
-	require.NotNil(t, appErr, "user should not be able to join the channel without being in the team.")
+	require.Nil(t, appErr)
 
 	ruser.Timezone["automaticTimezone"] = "NoWhere/Island"
 	_, appErr = th.App.UpdateUser(th.Context, ruser, false)
