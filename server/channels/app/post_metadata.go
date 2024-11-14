@@ -855,7 +855,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 }
 
-func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
+func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
 	metadata := linkMetadataCache{
 		OpenGraph: og,
 		PostImage: image,
@@ -863,7 +863,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 	}
 
 	if err := platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration); err != nil {
-		mlog.Warn("Failed to cache link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
+		rctx.Logger().Warn("Failed to cache link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 
