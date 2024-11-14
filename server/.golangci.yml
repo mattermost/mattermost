@@ -101,7 +101,6 @@ issues:
         channels/app/integration_action.go|\
         channels/app/integration_action_test.go|\
         channels/app/job_test.go|\
-        channels/app/login_test.go|\
         channels/app/migrations.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
@@ -139,24 +138,20 @@ issues:
         channels/app/security_update_check.go|\
         channels/app/server.go|\
         channels/app/server_test.go|\
-        channels/app/session_test.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_loadtest.go|\
-        channels/app/slashcommands/command_remove_test.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
         channels/app/status.go|\
         channels/app/status_test.go|\
         channels/app/support_packet_test.go|\
-        channels/app/syncables.go|\
         channels/app/team.go|\
         channels/app/team_test.go|\
         channels/app/upload.go|\
         channels/app/upload_test.go|\
         channels/app/user.go|\
         channels/app/user_test.go|\
-        channels/app/user_viewmembers_test.go|\
         channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
