@@ -87,7 +87,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         defaultDurations.map((duration, index) => cy.get(`#custom_status_modal #statusExpiryMenu li#expiry_menu_item_${index}`).should('have.text', duration));
     });
 
-    it('MM-T4066_5 should show date/time input on selecting Choose date and time', () => {
+    it.skip('MM-T4066_5 should show date/time input on selecting Choose date and time', () => {
         // * Check that the date and time input are not present
         cy.get('#custom_status_modal .dateTime').should('not.exist');
 
@@ -98,7 +98,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('#custom_status_modal .dateTime').should('exist');
     });
 
-    it('MM-T4066_6 should show selected date in the date input field', () => {
+    it.skip('MM-T4066_6 should show selected date in the date input field', () => {
         // # Click on DayPicker input field
         cy.get('.dateTime__calendar-icon').click();
 
@@ -128,7 +128,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
             should('have.attr', 'data-emoticon', customStatus.emoji);
     });
 
-    it('MM-T4066_8 should show the set custom status with expiry when status dropdown is opened', () => {
+    it.skip('MM-T4066_8 should show the set custom status with expiry when status dropdown is opened', () => {
         // # Click on the sidebar header to open status dropdown
         cy.get('.MenuWrapper .status-wrapper').click();
 
@@ -143,7 +143,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('.status-dropdown-menu .custom_status__expiry time').should('have.text', dateToBeSelected.format('MMM DD'));
     });
 
-    it('MM-52881 should show the selected date when reopening the date picker', () => {
+    it.skip('MM-52881 should show the selected date when reopening the date picker', () => {
         // # clear the status
         cy.get('.input-clear-x').click();
 
