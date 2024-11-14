@@ -5,7 +5,9 @@ import {fireEvent, waitForElementToBeRemoved} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {createIntl} from 'react-intl';
 
+import defaultMessages from 'i18n/en.json';
 import {withIntl} from 'tests/helpers/intl-test-helper';
 import {render, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -16,8 +18,8 @@ jest.mock('../../is_mobile_view_hack', () => ({
 }));
 
 (global as any).MutationObserver = class {
-    public disconnect() {}
-    public observe() {}
+    public disconnect() { }
+    public observe() { }
 };
 
 describe('components/submenu_modal', () => {
@@ -48,6 +50,13 @@ describe('components/submenu_modal', () => {
             },
         ],
         onExited: jest.fn(),
+        intl: createIntl({
+            locale: 'en',
+            defaultLocale: 'en',
+            timeZone: 'UTC',
+            messages: defaultMessages,
+            textComponent: 'span',
+        }),
     };
 
     test('should match snapshot', () => {
@@ -78,9 +87,9 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        render(
+        render(withIntl(
             <SubMenuModal {...props}/>,
-        );
+        ));
 
         userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);

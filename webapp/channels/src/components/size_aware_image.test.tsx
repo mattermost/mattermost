@@ -3,12 +3,14 @@
 
 import {mount, shallow} from 'enzyme';
 import React from 'react';
+import {createIntl} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import SizeAwareImage from 'components/size_aware_image';
+import {SizeAwareImage} from 'components/size_aware_image';
 import type {Props} from 'components/size_aware_image';
 
+import defaultMessages from 'i18n/en.json';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
@@ -27,6 +29,13 @@ describe('components/SizeAwareImage', () => {
             name: 'photo-1533709752211-118fcaf03312',
         }),
         enablePublicLink: true,
+        intl: createIntl({
+            locale: 'es',
+            defaultLocale: 'es',
+            timeZone: 'Etc/UTC',
+            messages: defaultMessages,
+            textComponent: 'span',
+        }),
     };
 
     const store = mockStore({
@@ -122,8 +131,8 @@ describe('components/SizeAwareImage', () => {
         const errorEvent = {
             target: {},
             currentTarget: {},
-            preventDefault: () => {},
-            stopPropagation: () => {},
+            preventDefault: () => { },
+            stopPropagation: () => { },
         } as React.SyntheticEvent<HTMLImageElement>;
         wrapper.find(SizeAwareImage).find('img').prop('onError')?.(errorEvent);
 

@@ -3,7 +3,9 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {createIntl} from 'react-intl';
 
+import defaultMessages from 'i18n/en.json';
 import {TestHelper} from 'utils/test_helper';
 
 import PostReaction from './post_reaction';
@@ -20,6 +22,13 @@ describe('components/post_view/PostReaction', () => {
         actions: {
             toggleReaction: jest.fn(),
         },
+        intl: createIntl({
+            locale: 'en',
+            defaultLocale: 'en',
+            timeZone: 'UTC',
+            messages: defaultMessages,
+            textComponent: 'span',
+        }),
     };
 
     test('should match snapshot', () => {
