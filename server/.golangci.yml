@@ -139,7 +139,6 @@ issues:
         channels/app/server_test.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
-        channels/app/slashcommands/command_loadtest.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
         channels/app/status.go|\
