@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {defineMessages} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -16,7 +17,6 @@ import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 const TOP_OFFSET = -7;
 
@@ -27,7 +27,7 @@ const messages = defineMessages({
     },
 });
 
-export type Props = {
+export type Props = WrappedComponentProps & {
     channelId?: string;
     postId: string;
     teamId: string;
@@ -65,6 +65,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
             postId,
             showEmojiPicker,
             teamId,
+            intl,
         } = this.props;
 
         let spaceRequiredAbove;
@@ -98,7 +99,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         <button
                             data-testid='post-reaction-emoji-icon'
                             id={`${location}_reaction_${postId}`}
-                            aria-label={localizeMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'}).toLowerCase()}
+                            aria-label={intl.formatMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'})}
                             className={classNames('post-menu__item', 'post-menu__item--reactions', {
                                 'post-menu__item--active': showEmojiPicker,
                             })}

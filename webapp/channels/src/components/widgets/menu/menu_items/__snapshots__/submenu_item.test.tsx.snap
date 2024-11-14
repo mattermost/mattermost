@@ -5,6 +5,44 @@ exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should ma
   action={[MockFunction]}
   direction="left"
   id="1"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "UTC",
+    }
+  }
   renderSelected={true}
   root={true}
   show={true}
@@ -59,6 +97,44 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
   action={[MockFunction]}
   direction="left"
   id="1"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "UTC",
+    }
+  }
   renderSelected={true}
   root={true}
   show={true}
@@ -124,6 +200,44 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
           <SubMenuItem
             direction="left"
             id="A"
+            intl={
+              Object {
+                "$t": [Function],
+                "defaultFormats": Object {},
+                "defaultLocale": "en",
+                "defaultRichTextElements": undefined,
+                "fallbackOnEmptyString": true,
+                "formatDate": [Function],
+                "formatDateTimeRange": [Function],
+                "formatDateToParts": [Function],
+                "formatDisplayName": [Function],
+                "formatList": [Function],
+                "formatListToParts": [Function],
+                "formatMessage": [Function],
+                "formatNumber": [Function],
+                "formatNumberToParts": [Function],
+                "formatPlural": [Function],
+                "formatRelativeTime": [Function],
+                "formatTime": [Function],
+                "formatTimeToParts": [Function],
+                "formats": Object {},
+                "formatters": Object {
+                  "getDateTimeFormat": [Function],
+                  "getDisplayNames": [Function],
+                  "getListFormat": [Function],
+                  "getMessageFormat": [Function],
+                  "getNumberFormat": [Function],
+                  "getPluralRules": [Function],
+                  "getRelativeTimeFormat": [Function],
+                },
+                "locale": "en",
+                "messages": Object {},
+                "onError": [Function],
+                "onWarn": [Function],
+                "textComponent": "span",
+                "timeZone": "UTC",
+              }
+            }
             renderSelected={true}
             root={false}
             show={true}
@@ -180,6 +294,44 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
           <SubMenuItem
             direction="left"
             id="B"
+            intl={
+              Object {
+                "$t": [Function],
+                "defaultFormats": Object {},
+                "defaultLocale": "en",
+                "defaultRichTextElements": undefined,
+                "fallbackOnEmptyString": true,
+                "formatDate": [Function],
+                "formatDateTimeRange": [Function],
+                "formatDateToParts": [Function],
+                "formatDisplayName": [Function],
+                "formatList": [Function],
+                "formatListToParts": [Function],
+                "formatMessage": [Function],
+                "formatNumber": [Function],
+                "formatNumberToParts": [Function],
+                "formatPlural": [Function],
+                "formatRelativeTime": [Function],
+                "formatTime": [Function],
+                "formatTimeToParts": [Function],
+                "formats": Object {},
+                "formatters": Object {
+                  "getDateTimeFormat": [Function],
+                  "getDisplayNames": [Function],
+                  "getListFormat": [Function],
+                  "getMessageFormat": [Function],
+                  "getNumberFormat": [Function],
+                  "getPluralRules": [Function],
+                  "getRelativeTimeFormat": [Function],
+                },
+                "locale": "en",
+                "messages": Object {},
+                "onError": [Function],
+                "onWarn": [Function],
+                "textComponent": "span",
+                "timeZone": "UTC",
+              }
+            }
             renderSelected={true}
             root={false}
             show={true}

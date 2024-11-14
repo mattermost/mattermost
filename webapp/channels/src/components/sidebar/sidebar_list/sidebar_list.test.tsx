@@ -4,6 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+import {createIntl} from 'react-intl';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelType} from '@mattermost/types/channels';
@@ -11,10 +12,11 @@ import type {TeamType} from '@mattermost/types/teams';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
+import defaultMessages from 'i18n/en.json';
 import {DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import SidebarList from './sidebar_list';
+import {SidebarList} from './sidebar_list';
 
 describe('SidebarList', () => {
     const currentChannel = TestHelper.getChannelMock({
@@ -112,6 +114,13 @@ describe('SidebarList', () => {
             clearChannelSelection: jest.fn(),
             multiSelectChannelAdd: jest.fn(),
         },
+        intl: createIntl({
+            locale: 'es',
+            defaultLocale: 'es',
+            timeZone: 'Etc/UTC',
+            messages: defaultMessages,
+            textComponent: 'span',
+        }),
     };
 
     test('should match snapshot', () => {
