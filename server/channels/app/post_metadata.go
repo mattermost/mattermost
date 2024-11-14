@@ -641,7 +641,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok && previewedPostPropVal == "" {
-			cacheLinkMetadata(requestURL, timestamp, og, image, nil)
+			cacheLinkMetadata(c, requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
 		}
 	}
@@ -664,7 +664,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
-	cacheLinkMetadata(requestURL, timestamp, og, image, permalink)
+	cacheLinkMetadata(c, requestURL, timestamp, og, image, permalink)
 
 	return og, image, permalink, err
 }
