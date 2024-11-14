@@ -303,6 +303,46 @@ test('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
+test('MM-T5650 should copy scheduled message', async ({pw, pages, browserName}) => {
+    test.setTimeout(120000);
+
+    // Skip this test in Firefox clipboard permissions are not supported
+    test.skip(browserName === 'firefox', 'Test not supported in Firefox');
+
+    const draftMessage = 'Scheduled Draft';
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
+
+    const {user} = await pw.initSetup();
+    const {page, context} = await pw.testBrowser.login(user);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    const channelPage = new pages.ChannelsPage(page);
+    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+
+    await setupChannelPage(channelPage, draftMessage);
+    await scheduleMessage(channelPage);
+
+    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+
+    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+
+    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+
+    await scheduledDraftPage.copyScheduledMessage(draftMessage);
+
+    await page.goBack();
+
+    await channelPage.centerView.postCreate.input.focus();
+
+    await page.keyboard.down('Meta');
+    await page.keyboard.press('V');
+    await page.keyboard.up('Meta');
+
+    // * Assert the message typed is same as the copied message
+    await expect(channelPage.centerView.postCreate.input).toHaveText(draftMessage);
+});
+
 async function verifyNoscheduledDraftsPending(
     channelPage: ChannelsPage,
     team: any,
@@ -313,7 +353,6 @@ async function verifyNoscheduledDraftsPending(
     await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 }
-
 
 async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
     await page.goBack();

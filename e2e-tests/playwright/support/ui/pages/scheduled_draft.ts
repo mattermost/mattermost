@@ -8,6 +8,8 @@ export default class ScheduledDraftPage {
 
     readonly badgeCountOnScheduledTab;
     readonly confirmbutton;
+    readonly copyIcon;
+    readonly copyIconToolTip;
     readonly datePattern;
     readonly deleteIcon;
     readonly deleteIconToolTip;
@@ -35,6 +37,8 @@ export default class ScheduledDraftPage {
             page.locator(`article.Panel:has(div.post__body:has-text("${messageContent}"))`);
         this.deleteIcon = page.locator('#draft_icon-trash-can-outline_delete');
         this.deleteIconToolTip = page.locator('text=Delete scheduled post');
+        this.copyIcon = page.locator('#draft_icon-content-copy_copy_text');
+        this.copyIconToolTip = page.locator('text=Copy text');
         this.rescheduleIcon = page.locator('#draft_icon-clock-send-outline_reschedule');
         this.rescheduleIconToolTip = page.locator('text=Reschedule post');
         this.noscheduledDraftIcon = page.locator('.no-results__wrapper');
@@ -65,6 +69,7 @@ export default class ScheduledDraftPage {
         await this.scheduledDraftPanel(messageContent).isVisible();
         await this.scheduledDraftPanel(messageContent).hover();
         await this.verifyDeleteIcon();
+        await this.verifyCopyIcon();
         await this.verifyRescheduleIcon();
         await this.verifySendNowIcon();
     }
@@ -74,6 +79,13 @@ export default class ScheduledDraftPage {
         await this.deleteIcon.hover();
         await expect(this.deleteIconToolTip).toBeVisible();
         await expect(this.deleteIconToolTip).toHaveText('Delete scheduled post');
+    }
+
+    async verifyCopyIcon() {
+        await this.copyIcon.isVisible();
+        await this.copyIcon.hover();
+        await expect(this.copyIconToolTip).toBeVisible();
+        await expect(this.copyIconToolTip).toHaveText('Copy text');
     }
 
     async verifyRescheduleIcon() {
@@ -136,6 +148,13 @@ export default class ScheduledDraftPage {
         await this.editorSaveButton.click();
         await this.editBox.isHidden();
         await this.scheduledDraftPanel(newText).isVisible();
+    }
+
+    async copyScheduledMessage(draftMessage: string) {
+        await this.scheduledDraftPanel(draftMessage).isVisible();
+        await this.scheduledDraftPanel(draftMessage).hover();
+        await this.verifyCopyIcon();
+        await this.copyIcon.click();
     }
 }
 
