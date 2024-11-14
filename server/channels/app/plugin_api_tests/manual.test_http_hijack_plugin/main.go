@@ -36,6 +36,7 @@ func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Req
 	err = conn.Close()
 	if err != nil {
 		mlog.Error("Failed to close connection", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
