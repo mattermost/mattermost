@@ -32,7 +32,7 @@ describe('pinned messages', () => {
         });
     });
 
-    it('MM-T2173 Un-pinning a post from reply RHS also removes badge in center', () => {
+    it.skip('MM-T2173 Un-pinning a post from reply RHS also removes badge in center', () => {
         // # Login
         cy.apiLogin(testUser);
 

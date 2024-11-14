@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @ldap
 
 import {UserProfile} from '@mattermost/types/users';
@@ -49,7 +48,7 @@ context('ldap', () => {
     });
 
     describe('LDAP Login flow - Admin Login', () => {
-        it.skip('MM-T2821 LDAP Admin Filter', () => {
+        it('MM-T2821 LDAP Admin Filter', () => {
             testSettings.user = admin1;
             const ldapSetting = {
                 LdapSettings: {
@@ -175,7 +174,7 @@ context('ldap', () => {
             });
         });
 
-        it.skip('LDAP Member login with team invite', () => {
+        it('LDAP Member login with team invite', () => {
             testSettings.user = user1;
             const ldapSetting = {
                 LdapSettings: {
@@ -192,7 +191,7 @@ context('ldap', () => {
             });
         });
 
-        it.skip('LDAP Guest login with team invite', () => {
+        it('LDAP Guest login with team invite', () => {
             testSettings.user = guest1;
             const ldapSetting = {
                 LdapSettings: {
