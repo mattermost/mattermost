@@ -326,12 +326,12 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	post := th.CreatePost(archivedChannel)
-	err := th.App.DeleteChannel(th.Context, archivedChannel, "")
-	require.NoError(t, err)
+	deleteErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
+	require.Nil(t, deleteErr)
 
 	_, appErr := th.App.UpdatePost(th.Context, post, true)
 	require.NotNil(t, appErr)
-	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", deleteErr.Id)
 }
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
