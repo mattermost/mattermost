@@ -294,13 +294,13 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// figure out the initial number of testUsers in town square
+	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.NoError(t, err)
 	townSquareChannelID := channel.Id
-	testUsers, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
-	initialNumTownSquareUsers := len(testUsers)
+	initialNumTownSquareUsers := len(users)
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
@@ -326,13 +326,13 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// figure out the initial number of testUsers in off-topic
+	// figure out the initial number of users in off-topic
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
 	require.NoError(t, err)
 	offTopicChannelId := channel.Id
-	testUsers, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
 	require.NoError(t, nErr)
-	initialNumTownSquareUsers := len(testUsers)
+	initialNumTownSquareUsers := len(users)
 
 	// create a new user that joins the default channels
 	user := th.CreateUser()
@@ -375,7 +375,6 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 		require.Nil(t, appErr, "Expected nil, didn't receive nil")
 
 		member, appErr := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-
 		require.Nil(t, appErr, "Expected nil object, didn't receive nil")
 		require.NotNil(t, member, "Expected member object, got nil")
 	}
