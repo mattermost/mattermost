@@ -31,8 +31,6 @@ import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-const DATE_FORMAT = 'yyyy-MM-dd';
-
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
     const start = moment(value);
     const diff = start.minute() % roundedTo;
@@ -118,12 +116,16 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
-            const currentTime = getCurrentMomentForTimezone(timezone);
-            const roundedTime = getRoundedTime(currentTime, timePickerInterval);
+            const baseTime = getCurrentMomentForTimezone(timezone);
+            baseTime.hour(time.hours());
+            baseTime.minute(time.minutes());
+
+            const roundedTime = getRoundedTime(baseTime, timePickerInterval);
             handleChange(roundedTime);
         } else {
+            day.setHours(time.hour(), time.minute());
             const dayWithTimezone = timezone ? moment(day).tz(timezone, true) : moment(day);
-            handleChange(dayWithTimezone.startOf('day'));
+            handleChange(dayWithTimezone);
         }
         handlePopperOpenState(false);
     };
@@ -148,7 +150,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     }, []);
 
     const formatDate = (date: Moment): string => {
-        return relativeDate ? relativeFormatDate(date, formatMessage, DATE_FORMAT) : DateTime.fromJSDate(date.toDate()).toFormat(DATE_FORMAT);
+        return relativeDate ? relativeFormatDate(date, formatMessage) : DateTime.fromJSDate(date.toDate()).toLocaleString();
     };
 
     const inputIcon = (

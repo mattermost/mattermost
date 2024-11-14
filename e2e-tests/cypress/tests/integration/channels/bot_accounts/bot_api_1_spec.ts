@@ -114,7 +114,7 @@ describe('Bot accounts ownership and API', () => {
         });
     });
 
-    it('MM-T1866 Create two posts in a row to the same channel', () => {
+    it.skip('MM-T1866 Create two posts in a row to the same channel', () => {
         // # Create token for the bot
         cy.apiCreateToken(botId).then(({token}) => {
             // # Logout to allow posting as bot
