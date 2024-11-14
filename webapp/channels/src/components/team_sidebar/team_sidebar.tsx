@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {injectIntl} from 'react-intl';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
@@ -63,7 +64,7 @@ export function renderThumbVertical(props: Props) {
     );
 }
 
-export default class TeamSidebar extends React.PureComponent<Props, State> {
+export class TeamSidebar extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -350,3 +351,5 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(TeamSidebar);

@@ -3,10 +3,12 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {createIntl} from 'react-intl';
+import defaultMessages from 'i18n/en.json';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const baseProps = {
@@ -46,6 +48,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             unsetEditingPost: jest.fn(),
             closeRightHandSide: jest.fn(),
         },
+        intl: createIntl({
+            locale: 'en',
+            defaultLocale: 'en',
+            timeZone: 'Etc/UTC',
+            messages: defaultMessages,
+            textComponent: 'span',
+        }),
     };
 
     test('should match snapshot', () => {

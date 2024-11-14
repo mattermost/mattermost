@@ -6,8 +6,10 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
+import {FileTypes} from 'utils/constants';
+import {copyToClipboard, getFileType} from 'utils/utils';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
@@ -18,9 +20,6 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
-
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -57,7 +56,7 @@ export type Props = WrappedComponentProps & {
     /*
     * A callback that is called as soon as the image component has a height value
     */
-    onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
+    onImageLoaded?: ({height, width}: { height: number; width: number }) => void;
 
     /*
     * A callback that is called when image load fails
@@ -87,7 +86,7 @@ export type Props = WrappedComponentProps & {
     /**
     * Action to fetch public link of an image from server.
     */
-    getFilePublicLink?: () => Promise<ActionResult<{link: string}>>;
+    getFilePublicLink?: () => Promise<ActionResult<{ link: string }>>;
 
     /*
     * Prevents display of utility buttons when image in a location that makes them inappropriate
@@ -106,10 +105,10 @@ type State = {
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.
-export default class SizeAwareImage extends React.PureComponent<Props, State> {
+export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
-    public timeout: NodeJS.Timeout|null = null;
+    public timeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -399,7 +398,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
         } = this.props;
 
-        let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
+        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -503,3 +502,5 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SizeAwareImage);

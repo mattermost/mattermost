@@ -2,7 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, type IntlShape, type MessageDescriptor} from 'react-intl';
+import {FormattedMessage, createIntl, createIntlCache, type IntlShape, type MessageDescriptor} from 'react-intl';
+
+import {getCurrentLocale, getTranslations} from 'selectors/i18n';
+import store from 'stores/redux_store';
+
+const cache = createIntlCache();
+
+export function getIntl(): IntlShape {
+    const state = store.getState();
+    const locale = getCurrentLocale(state);
+
+    return createIntl({
+        locale,
+        messages: getTranslations(state, locale),
+    }, cache);
+}
 
 export function isMessageDescriptor(descriptor: unknown): descriptor is MessageDescriptor {
     return Boolean(descriptor && (descriptor as MessageDescriptor).id);
