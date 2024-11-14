@@ -92,7 +92,6 @@ issues:
         channels/app/export_test.go|\
         channels/app/file.go|\
         channels/app/file_bench_test.go|\
-        channels/app/file_info.go|\
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
@@ -140,22 +139,18 @@ issues:
         channels/app/server_test.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
-        channels/app/slashcommands/command_loadtest.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
         channels/app/status.go|\
         channels/app/status_test.go|\
         channels/app/support_packet_test.go|\
-        channels/app/syncables.go|\
         channels/app/team.go|\
         channels/app/team_test.go|\
         channels/app/upload.go|\
         channels/app/upload_test.go|\
         channels/app/user.go|\
         channels/app/user_test.go|\
-        channels/app/user_viewmembers_test.go|\
         channels/app/users/helper_test.go|\
-        channels/app/users/users_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
         channels/jobs/batch_worker_test.go|\
