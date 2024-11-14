@@ -441,7 +441,11 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 			channelNames[channelId] = T("app.scheduled_post.unknown_channel")
 			continue
 		}
-		channelNames[channelId] = ch.DisplayName
+		if ch.Type != model.ChannelTypePrivate {
+			channelNames[channelId] = ch.DisplayName
+		} else {
+			channelNames[channelId] = T("app.scheduled_post.private_channel")
+		}
 	}
 
 	var messageBuilder strings.Builder
