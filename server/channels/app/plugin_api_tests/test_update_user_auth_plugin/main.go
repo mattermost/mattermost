@@ -63,21 +63,33 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, appErr.Error()
 	}
 
-	p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
-	p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	err := p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if err != nil {
+		return nil, err.Error()
+	}
+	err = p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	if err != nil {
+		return nil, err.Error()
+	}
 
 	// Update BasicUser to LDAP
 	expectedUserAuth = &model.UserAuth{
 		AuthService: model.UserAuthServiceLdap,
 		AuthData:    model.NewPointer("ldap_auth_data"),
 	}
-	_, err := p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	_, err = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
 	if err != nil {
 		return nil, err.Error()
 	}
 
-	p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
-	p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	err = p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if err != nil {
+		return nil, err.Error()
+	}
+	err = p.expectUserAuth(p.configuration.BasicUser2Id, expectedUser2Auth)
+	if err != nil {
+		return nil, err.Error()
+	}
 
 	return nil, "OK"
 }
