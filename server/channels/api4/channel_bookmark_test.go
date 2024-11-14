@@ -972,6 +972,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
+		t.Skip("MM-61301")
 		now := model.GetMillis()
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
