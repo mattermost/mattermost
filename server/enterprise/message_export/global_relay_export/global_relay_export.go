@@ -97,12 +97,6 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 	channelsInThisBatch := make(map[string]bool)
 
 	for _, post := range p.Posts {
-		if post == nil {
-			results.IgnoredPosts++
-			rctx.Logger().Warn("ignored a nil post reference in the list")
-			continue
-		}
-
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
