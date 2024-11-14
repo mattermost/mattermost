@@ -1341,7 +1341,7 @@ export function searchChannelsInPolicy(state: GlobalState, policyId: string, ter
 
 export function getDirectTeammate(state: GlobalState, channelId: string): UserProfile | undefined {
     const channel = getChannel(state, channelId);
-    if (!channel) {
+    if (!channel || channel.type !== 'D') {
         return undefined;
     }
 
@@ -1444,3 +1444,8 @@ export const getRecentProfilesFromDMs: (state: GlobalState) => UserProfile[] = c
         return [...sortedUserProfiles];
     },
 );
+
+export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string) => {
+    const teammate = getDirectTeammate(state, channelId);
+    return Boolean(teammate && teammate.delete_at);
+};

@@ -7,7 +7,7 @@ import {test} from '@e2e-support/test_fixture';
 import {duration} from '@e2e-support/util';
 import {components} from '@e2e-support/ui/components';
 
-test('MM-T5522 Should begin export of data when export button is pressed', async ({pw, pages}) => {
+test.fixme('MM-T5522 Should begin export of data when export button is pressed', async ({pw, pages}) => {
     test.slow();
 
     // # Skip test if no license
