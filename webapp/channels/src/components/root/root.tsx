@@ -192,7 +192,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.showLandingPageIfNecessary();
 
-        applyTheme(this.props.theme);
+        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -258,7 +258,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
     applyTheme() {
         // don't apply theme when in system console; system console hardcoded to THEMES.denim
-        // AdminConsole will re-apply theme on unmount
+        // AdminConsole will apply denim on mount re-apply user theme on unmount
         if (this.props.location.pathname.startsWith('/admin_console')) {
             return;
         }
