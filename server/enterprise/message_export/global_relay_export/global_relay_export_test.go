@@ -108,7 +108,7 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 			},
 			startTime: 1,
-			endTime:   100000,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),

@@ -368,8 +368,8 @@ func GetJoinsAndLeavesForChannel(startTime int64, endTime int64, channelMembersH
 	return joins, leaves
 }
 
+// GetPostAttachments: if the post included any files, we need to add special elements to the export.
 func GetPostAttachments(db MessageExportStore, post *model.MessageExport) ([]*model.FileInfo, error) {
-	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
 		return []*model.FileInfo{}, nil
 	}
