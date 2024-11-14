@@ -2325,6 +2325,7 @@ func TestAddTeamMember(t *testing.T) {
 	appErr = th.App.DeleteToken(token)
 	require.Nil(t, appErr)
 	// by invite_id
+
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	defer th.App.Srv().SetLicense(nil)
 	_, _, err = client.Login(context.Background(), guest.Email, guest.Password)
