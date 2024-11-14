@@ -270,7 +270,7 @@ func Test_GetBatchPath(t *testing.T) {
 	}
 }
 
-func TestJobDataToStringMapAndBack(t *testing.T) {
+func TestJobDataToStringMap_and_StringMapToJobData(t *testing.T) {
 	jd := JobData{
 		ExportType:              "cli_message_export",
 		ExportDir:               "/here/there/34234-123",
@@ -287,16 +287,8 @@ func TestJobDataToStringMapAndBack(t *testing.T) {
 		TotalPostsExpected:      999999,
 		MessagesExported:        343499,
 		WarningCount:            39,
-		BatchEndTime:            999999999,
-		BatchPath:               "/another/path/123-123",
-		MessageExportMs:         nil,
-		ProcessingPostsMs:       nil,
-		ProcessingXmlMs:         nil,
-		TransferringFilesMs:     nil,
-		TransferringZipMs:       nil,
-		TotalBatchMs:            nil,
-		Finished:                false,
-		IsDownloadable:          false,
+		BatchEndTime:            999999999,               // not exported
+		BatchPath:               "/another/path/123-123", // not exported
 	}
 
 	strMap := JobDataToStringMap(jd)
@@ -329,4 +321,28 @@ func TestJobDataToStringMapAndBack(t *testing.T) {
 		_, ok := strMap[k]
 		assert.False(t, ok)
 	}
+
+	// zero the fields that weren't exported:
+	jd.ExportPeriodStartTime = 0
+	jd.BatchEndTime = 0
+	jd.BatchPath = ""
+
+	// now convert back
+	jd2, err := StringMapToJobDataWithZeroValues(strMap)
+	assert.NoError(t, err)
+	assert.Equal(t, jd, jd2)
+
+	// and test bad conversion (just a couple):
+	badStrMap := map[string]string{JobDataJobStartTime: "56aaa"}
+	_, err = StringMapToJobDataWithZeroValues(badStrMap)
+	assert.Error(t, err)
+	badStrMap = map[string]string{JobDataJobEndTime: "blah blah"}
+	_, err = StringMapToJobDataWithZeroValues(badStrMap)
+	assert.Error(t, err)
+
+	// test that zero values are used when not present
+	emptyStrMap := make(map[string]string)
+	emptyJd, err := StringMapToJobDataWithZeroValues(emptyStrMap)
+	assert.NoError(t, err)
+	assert.Equal(t, JobData{}, emptyJd)
 }

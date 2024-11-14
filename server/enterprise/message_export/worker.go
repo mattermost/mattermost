@@ -355,14 +355,11 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
 }
 
-func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.JobData, err error) {
-	data.ExportType = strmap[shared.JobDataExportType]
-
-	data.BatchStartTime, err = strconv.ParseInt(strmap[shared.JobDataBatchStartTime], 10, 64)
+func extractJobData(logger *mlog.Logger, strmap map[string]string) (shared.JobData, error) {
+	data, err := shared.StringMapToJobDataWithZeroValues(strmap)
 	if err != nil {
-		return data, fmt.Errorf("JobDataBatchStartTime conversion error: %w", err)
+		return data, err
 	}
-	data.BatchStartId = strmap[shared.JobDataBatchStartId]
 
 	// ExportPeriodStartTime is initialized to BatchStartTime because this is where we will start exporting. But unlike
 	// BatchStartTime, it won't change as we process the batches.
@@ -370,46 +367,9 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 	// been resumed, then BatchStartTime will be the start of the newest batch. This is expected--the channel activity
 	// and total posts will be calculated from ExportPeriodStartTime (anything earlier has already been exported in
 	// previous batches).
+	// Note: ExportPeriodStartTime is different from JobStartTime because JobStartTime won't change
+	//	     if the job processes some batches, is stopped, and picked up again.
 	data.ExportPeriodStartTime = data.BatchStartTime
-
-	// JobStartTime is the start of this job. It is different from ExportPeriodStartTime because JobStartTime won't change
-	// if the job processes some batches, is stopped, and picked up again.
-	data.JobStartTime, err = strconv.ParseInt(strmap[shared.JobDataJobStartTime], 10, 64)
-	if err != nil {
-		return data, fmt.Errorf("JobDataJobStartTime conversion error: %w", err)
-	}
-
-	data.JobEndTime, err = strconv.ParseInt(strmap[shared.JobDataJobEndTime], 10, 64)
-	if err != nil {
-		return data, fmt.Errorf("JobDataJobEndTime conversion error: %w", err)
-	}
-
-	data.JobStartId = strmap[shared.JobDataJobStartId]
-
-	data.BatchSize, err = strconv.Atoi(strmap[shared.JobDataBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("JobDataBatchSize conversion error: %w", err)
-	}
-	data.ChannelBatchSize, err = strconv.Atoi(strmap[shared.JobDataChannelBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("JobDataChannelBatchSize conversion error: %w", err)
-	}
-	data.ChannelHistoryBatchSize, err = strconv.Atoi(strmap[shared.JobDataChannelHistoryBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("JobDataChannelHistoryBatchSize conversion error: %w", err)
-	}
-
-	data.BatchNumber, err = strconv.Atoi(strmap[shared.JobDataBatchNumber])
-	if err != nil {
-		return data, fmt.Errorf("JobDataBatchNumber conversion error: %w", err)
-	}
-
-	data.MessagesExported, err = strconv.Atoi(strmap[shared.JobDataMessagesExported])
-	if err != nil {
-		return data, fmt.Errorf("JobDataMessagesExported conversion error: %w", err)
-	}
-
-	data.ExportDir = strmap[shared.JobDataExportDir]
 
 	logger.Info("Worker: initial job variables set",
 		mlog.String("export_type", data.ExportType),
@@ -425,7 +385,7 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 		mlog.Int("batch_number", data.BatchNumber),
 		mlog.Int("total_posts_exported", data.MessagesExported))
 
-	return
+	return data, err
 }
 
 func setJobDataEndOfBatch(job *model.Job, data shared.JobData) {
