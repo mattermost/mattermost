@@ -16,7 +16,7 @@ fs.readdirSync('./channels/src/i18n').forEach(file => {
     if (langID === 'en') {
       return
     }
-    
+
     langIDs.push(langID);
     lines += `import ${langID.replace('-', '')} from './${file}';\n`;
     langFiles[langID] = langID.replace('-', '');
@@ -41,7 +41,7 @@ lines += `\nexport const langIDs = ${JSON.stringify(langIDs)};\n`
 lines += `\nexport const langLabels = ${JSON.stringify(langLabels)};\n`
 
 // To generate the file exports we need to do a bit more work to handle ids with dashes and also output a map of literals rather than strings.
-lines += '\nexport const langFiles = {' + Object.keys(langFiles).reduce((out, id, idx) => {
+lines += '\nexport const langFiles: Record<string, Record<string, string>> = {' + Object.keys(langFiles).reduce((out, id, idx) => {
   if (id.includes('-')) {
     out += `'${id}':${langFiles[id]}`;
   } else {
