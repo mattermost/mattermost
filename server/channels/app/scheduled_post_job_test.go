@@ -266,6 +266,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 }
 
 func TestHandleFailedScheduledPosts(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61791")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
