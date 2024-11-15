@@ -8237,7 +8237,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Não pode reconhecer em um canal arquivado."
+    "translation": "Não é possível confirmar recebimento em um canal arquivado."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -8258,5 +8258,9 @@
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Falha ao remover o marcador de canal."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "falha ao adicionar usuário aos times e canais do grupo"
   }
 ]
