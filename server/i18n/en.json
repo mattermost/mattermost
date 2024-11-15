@@ -5939,6 +5939,26 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "The post cannot be created"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Cannot get the system bot"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Cannot get the system bot direct message"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Cannot get the user"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "If you received this test notification, it worked!"
+  },
+  {
     "id": "app.notify_admin.save.app_error",
     "translation": "Unable to save notify data."
   },
@@ -6521,6 +6541,17 @@
   {
     "id": "app.save_scheduled_post.save.app_error",
     "translation": "Error occurred saving the scheduled post."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Failed to send {{.Count}} scheduled post.",
+      "other": "Failed to send {{.Count}} scheduled posts."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -7600,63 +7631,63 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "{{.Backend}} aggregator worker failed to create the indexing job"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "{{.Backend}} aggregator worker failed to delete the indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "{{.Backend}} aggregator worker failed to get indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Could not open the CA file for Elasticsearch"
+    "translation": "Could not open the CA file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Decoding of the client certificate for Elasticsearch failed"
+    "translation": "Decoding of the client certificate for {{.Backend}} failed"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Could not open the client certificate file for Elasticsearch"
+    "translation": "Could not open the client certificate file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Could not open the client key file for Elasticsearch"
+    "translation": "Could not open the client key file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Setting up {{.Backend}} Client Failed"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Failed to create {{.Backend}} template for channels"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for files"
+    "translation": "Failed to create {{.Backend}} template for files"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Failed to create {{.Backend}} template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Failed to get {{.Backend}} indexes"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -9129,6 +9160,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Invalid storage class {{.Value}}."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
