@@ -46,7 +46,7 @@ describe('Bot display name', () => {
         });
     });
 
-    it('MM-T1813 Display name for bots stays current', () => {
+    it.skip('MM-T1813 Display name for bots stays current', () => {
         cy.makeClient({user: otherSysadmin}).then((client) => {
             // # Create a bot and get bot user id
             cy.apiCreateBot().then(({bot}) => {

@@ -344,6 +344,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) testNotificationRoute() string {
+	return "/notifications/test"
+}
+
 func (c *Client4) usageRoute() string {
 	return "/usage"
 }
@@ -4820,6 +4824,15 @@ func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, err
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.testNotificationRoute(), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // TestSiteURL will test the validity of a site URL.
 func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, error) {
 	requestBody := make(map[string]string)
@@ -8710,6 +8723,9 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 	}
 	if options.TotalsOnly {
 		v.Set("totalsOnly", "true")
+	}
+	if options.ExcludeDirect {
+		v.Set("excludeDirect", fmt.Sprintf("%t", options.ExcludeDirect))
 	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {

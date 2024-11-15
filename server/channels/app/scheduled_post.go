@@ -34,7 +34,7 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostCreated, savedScheduledPost, connectionId)
+	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostCreated, savedScheduledPost, connectionId)
 
 	return savedScheduledPost, nil
 }
@@ -85,7 +85,7 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError)
 	}
 
-	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostUpdated, scheduledPost, connectionId)
+	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, scheduledPost, connectionId)
 
 	return scheduledPost, nil
 }
@@ -108,12 +108,12 @@ func (a *App) DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, con
 		return nil, model.NewAppError("app.DeleteScheduledPost", "app.delete_scheduled_post.delete_error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPostId}, "", http.StatusInternalServerError)
 	}
 
-	publishScheduledPostEvent(a, rctx, model.WebsocketScheduledPostDeleted, scheduledPost, connectionId)
+	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, connectionId)
 
 	return scheduledPost, nil
 }
 
-func publishScheduledPostEvent(a *App, rctx request.CTX, eventType model.WebsocketEventType, scheduledPost *model.ScheduledPost, connectionId string) {
+func (a *App) PublishScheduledPostEvent(rctx request.CTX, eventType model.WebsocketEventType, scheduledPost *model.ScheduledPost, connectionId string) {
 	if scheduledPost == nil {
 		rctx.Logger().Warn("publishScheduledPostEvent called with nil scheduledPost")
 		return
