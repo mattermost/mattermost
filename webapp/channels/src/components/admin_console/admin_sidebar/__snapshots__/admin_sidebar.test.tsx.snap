@@ -54,7 +54,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -134,7 +134,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -201,7 +201,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -244,7 +244,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -359,7 +359,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -394,7 +394,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             icon={
               <FormatListBulletedIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="compliance"
@@ -541,7 +541,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -571,7 +571,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -634,7 +634,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -697,7 +697,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -837,7 +837,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -955,7 +955,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -1029,7 +1029,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -1064,7 +1064,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -1127,7 +1127,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
@@ -1235,7 +1235,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -1265,7 +1265,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -1328,7 +1328,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -1391,7 +1391,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -1531,7 +1531,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -1649,7 +1649,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -1723,7 +1723,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -1758,7 +1758,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -1821,7 +1821,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
@@ -1984,7 +1984,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -2014,7 +2014,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -2077,7 +2077,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -2140,7 +2140,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -2280,7 +2280,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -2398,7 +2398,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -2472,7 +2472,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -2507,7 +2507,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -2570,7 +2570,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
@@ -2678,7 +2678,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -2708,7 +2708,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -2771,7 +2771,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -2834,7 +2834,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -2974,7 +2974,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -3092,7 +3092,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -3166,7 +3166,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -3201,7 +3201,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -3264,7 +3264,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
@@ -3372,7 +3372,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -3402,7 +3402,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -3465,7 +3465,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -3550,7 +3550,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -3712,7 +3712,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -3841,7 +3841,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -3959,7 +3959,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -3994,7 +3994,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -4057,7 +4057,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <FormatListBulletedIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="compliance"
@@ -4120,7 +4120,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
@@ -4228,7 +4228,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <InformationOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="about"
@@ -4258,7 +4258,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <ChartBarIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="reporting"
@@ -4321,7 +4321,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <AccountMultipleOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="user_management"
@@ -4432,7 +4432,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <ServerVariantIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="environment"
@@ -4572,7 +4572,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <CogOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="site"
@@ -4714,7 +4714,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <ShieldOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="authentication"
@@ -4884,7 +4884,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <PowerPlugOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="plugins"
@@ -4919,7 +4919,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <SitemapIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="integrations"
@@ -4982,7 +4982,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <FormatListBulletedIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="compliance"
@@ -5073,7 +5073,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             icon={
               <FlaskOutlineIcon
                 color="currentColor"
-                size={16}
+                size={14}
               />
             }
             key="experimental"
