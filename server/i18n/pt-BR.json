@@ -4713,7 +4713,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -8269,6 +8269,62 @@
   },
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
-    "translation": "Falha ao remover o marcador de canal."
+    "translation": "Falha ao excluir o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} criou esse canal a partir de uma mensagem de grupo com {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Você não tem permissão para atualizar o nome, display_name e a finalidade de mensagens diretas ou de grupo."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Falta do campo display_name no corpo da solicitação"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Falta do campo team_id no corpo da solicitação"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "O usuário não tem permissão para converter mensagem de grupo em canal privado"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Gerar um link para baixar uma exportação."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Atualização de membro do canal inválida: não é possível definir um convidado para um único canal; o administrador do sistema deve promover ou rebaixar os usuários de/para convidados."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Atualização de membro do canal inválida: um convidado não pode se tornar membro ou administrador da equipe; promova-o a usuário primeiro."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal de grupo com usuários remotos"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal direto com um usuário remoto"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Você não tem permissão para atualizar o nome, display_name e a finalidade de mensagens diretas ou de grupo."
   }
 ]
