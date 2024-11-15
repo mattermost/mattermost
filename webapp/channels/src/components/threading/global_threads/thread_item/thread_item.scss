@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/_mixins';
+@use 'utils/_mixins';
 
 .ThreadItem {
     position: relative;
@@ -28,7 +28,7 @@
     }
 
     &__author {
-        @include clearfix;
+        @include mixins.clearfix;
 
         overflow: hidden;
         max-width: 100%;
@@ -124,7 +124,7 @@
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
-        @include text-clamp(2, 20);
+        @include mixins.text-clamp(2, 20);
     }
 
     time {
