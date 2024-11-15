@@ -8266,5 +8266,9 @@
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
     "translation": "Falha ao excluir o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao remover o marcador de canal."
   }
 ]
