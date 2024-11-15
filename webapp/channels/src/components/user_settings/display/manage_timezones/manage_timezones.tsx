@@ -156,10 +156,6 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         });
     };
 
-    // * This method is not used anywhere in this file. Should be deleted.
-    handleManualTimezone = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        this.setState({manualTimezone: e.target.value});
-    };
     render() {
         const {timezones} = this.props;
         const {useAutomaticTimezone} = this.state;
