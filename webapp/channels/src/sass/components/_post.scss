@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .app__body {
     .custom-textarea {
@@ -9,7 +11,7 @@
         border: none;
         border-radius: 4px;
         background: transparent;
-        box-shadow: inset 0 0 0 1px rgba(v(center-channel-color-rgb), 0.24);
+        box-shadow: inset 0 0 0 1px rgba(functions.v(center-channel-color-rgb), 0.24);
         line-height: 20px;
         resize: none;
         transition: none;
@@ -17,7 +19,7 @@
         word-wrap: break-word;
 
         &:focus {
-            box-shadow: inset 0 0 0 2px rgba(v(center-channel-color-rgb), 0.32);
+            box-shadow: inset 0 0 0 2px rgba(functions.v(center-channel-color-rgb), 0.32);
         }
 
         &.bad-connection {
@@ -42,7 +44,7 @@
         left: 0;
 
         &:focus {
-            border-color: rgba(v(center-channel-color-rgb), 0.4);
+            border-color: rgba(functions.v(center-channel-color-rgb), 0.4);
         }
 
         p {
@@ -133,22 +135,22 @@
     left: 0;
     width: 100%;
     height: 100%;
-    color: $white;
-    font-size: em(20px);
+    color: variables.$white;
+    font-size: functions.em(20px);
     font-weight: 600;
     pointer-events: none;
     text-align: center;
 
     .overlay__indent {
-        @include clearfix;
-        @include alpha-property(background-color, $black, 0.75);
+        @include mixins.clearfix;
+        @include mixins.alpha-property(background-color, variables.$black, 0.75);
 
         position: relative;
         height: 100%;
     }
 
     &.right-file-overlay {
-        font-size: em(18px);
+        font-size: functions.em(18px);
 
         .overlay__circle {
             width: 300px;
@@ -172,7 +174,7 @@
         margin: -185px 0 0 -185px;
         pointer-events: none;
 
-        @include alpha-property(background, $black, 0.7);
+        @include mixins.alpha-property(background, variables.$black, 0.7);
     }
 
     .overlay__files {
@@ -281,7 +283,7 @@
 
         body.enable-animations & {
             transition-delay: 0s;
-            transition-duration: $transition-quick;
+            transition-duration: variables.$transition-quick;
             transition-property: opacity, visibility;
             transition-timing-function: ease-in, step-end;
         }
@@ -292,7 +294,7 @@
 
             body.enable-animations & {
                 transition-delay: 0s;
-                transition-duration: $transition-quick;
+                transition-duration: variables.$transition-quick;
                 transition-property: opacity, visibility;
                 transition-timing-function: ease-out, step-start;
             }
@@ -333,7 +335,7 @@
         line-height: 25px;
         text-align: center;
 
-        @include font-smoothing(initial);
+        @include mixins.font-smoothing(initial);
     }
 }
 
@@ -465,21 +467,21 @@
         border-radius: 4px;
         margin: 5px 0;
         background: transparent;
-        color: rgba(v(center-channel-color-rgb), 0.75);
-        fill: rgba(v(center-channel-color-rgb), 0.75);
+        color: rgba(functions.v(center-channel-color-rgb), 0.75);
+        fill: rgba(functions.v(center-channel-color-rgb), 0.75);
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.75);
-            fill: rgba(v(center-channel-color-rgb), 0.75);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
+            fill: rgba(functions.v(center-channel-color-rgb), 0.75);
         }
 
         &:active,
         &--active,
         &--active:hover {
             background: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
 
         & + input {
@@ -530,7 +532,7 @@
     gap: 8px;
 
     > button {
-        @include button-small;
+        @include mixins.button-small;
 
         padding: 10px 16px;
         border-width: 0;
@@ -550,15 +552,15 @@
                 background: rgba(var(--button-bg-rgb), 0.16);
             }
 
-            @include button-focus;
+            @include mixins.button-focus;
         }
 
         &.save {
-            @include primary-button;
+            @include mixins.primary-button;
 
             box-shadow: none;
 
-            @include button-focus;
+            @include mixins.button-focus;
         }
     }
 }
@@ -621,7 +623,7 @@
     word-wrap: break-word;
 
     &:not(.post--editing):not(.post--editing):hover {
-        background-color: rgba(v(center-channel-color-rgb), 0.04);
+        background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
 
         .PostAttachmentOpenGraph .remove-button {
             display: flex;
@@ -857,7 +859,7 @@
         }
 
         .auto-responder {
-            background: alpha-color($white, 0.7);
+            background: functions.alpha-color(variables.$white, 0.7);
         }
 
         .post__img .status-wrapper {
@@ -1007,7 +1009,7 @@
             }
 
             .post-image__name {
-                @include clearfix;
+                @include mixins.clearfix;
 
                 display: block;
                 width: 100%;
@@ -1295,7 +1297,7 @@
             }
 
             .user-popover {
-                @include clearfix;
+                @include mixins.clearfix;
 
                 text-align: left;
                 text-overflow: ellipsis;
@@ -1352,7 +1354,7 @@
         text-align: right;
 
         .icon {
-            fill: v(center-channel-color);
+            fill: functions.v(center-channel-color);
 
             svg {
                 width: 32px;
@@ -1531,12 +1533,12 @@
             top: 0;
             right: 0;
             padding: 5px 7px;
-            background: alpha-color($black, 0.7);
-            color: $white;
+            background: functions.alpha-color(variables.$black, 0.7);
+            color: variables.$white;
             font-size: 0.9em;
 
             a {
-                color: $white;
+                color: variables.$white;
             }
         }
     }
@@ -1563,8 +1565,8 @@
     .post-add-reaction-emoji-picker-open {
         .Reaction {
             background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 
@@ -1638,7 +1640,7 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background-color: var(--center-channel-bg);
-        box-shadow: $elevation-1;
+        box-shadow: variables.$elevation-1;
 
         button.size-aware-image__copy_link,
         a.size-aware-image__download {
@@ -1763,7 +1765,7 @@
 
     .permalink-icon {
         display: inline-block;
-        color: $primary-color;
+        color: variables.$primary-color;
         visibility: hidden;
     }
 
@@ -1784,7 +1786,7 @@
         position: relative;
         top: 1px;
         display: inline-block;
-        fill: $primary-color;
+        fill: variables.$primary-color;
         text-decoration: none;
         visibility: hidden;
 
@@ -1821,7 +1823,7 @@
 
     .reacticon__container {
         display: inline-block;
-        fill: $primary-color;
+        fill: variables.$primary-color;
         font-size: 16px;
         vertical-align: top;
         visibility: hidden;
@@ -1835,14 +1837,13 @@
     }
 
     .card-icon__container {
-        @extend %btn-transition;
-
         position: relative;
         z-index: 1;
         top: 2px;
         margin: 0 6px 0 4px;
         color: rgba(var(--center-channel-color-rgb), 0.3);
         opacity: 0.24;
+        transition: all 0.15s ease;
         vertical-align: top;
 
         &:hover {
@@ -1867,7 +1868,7 @@
         border-radius: 2px;
         text-overflow: ellipsis;
 
-        @include alpha-property(background, $black, 0.05);
+        @include mixins.alpha-property(background, variables.$black, 0.05);
 
         .embed-title {
             overflow: hidden;

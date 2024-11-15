@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/functions";
 
 .header-popover-text-measurer {
     position: absolute;
@@ -231,7 +231,7 @@
     text-transform: uppercase;
 
     span {
-        background: v(center-channel-bg);
+        background: functions.v(center-channel-bg);
     }
 
     &:first-child {
@@ -280,7 +280,7 @@
             }
 
             &::-webkit-scrollbar-thumb {
-                border: 1px solid v(center-channel-bg);
+                border: 1px solid functions.v(center-channel-bg);
                 border-radius: 4px;
                 background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
             }
