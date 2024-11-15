@@ -8234,5 +8234,9 @@
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
     "translation": "Não é possível deletar uma confirmação de recebimento após 5 minutos."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Não pode reconhecer em um canal arquivado."
   }
 ]
