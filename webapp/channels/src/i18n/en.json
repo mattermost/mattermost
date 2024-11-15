@@ -1021,6 +1021,8 @@
   "admin.general.localization.availableLocalesTitle": "Available Languages:",
   "admin.general.localization.clientLocaleDescription": "Default language for newly created users and pages where the user hasn't logged in.",
   "admin.general.localization.clientLocaleTitle": "Default Client Language:",
+  "admin.general.localization.enableExperimentalLocalesDescription": "When true, it allows users to select experimental (e.g. in progress) languages",
+  "admin.general.localization.enableExperimentalLocalesTitle": "Enable Experimental Locales",
   "admin.general.localization.serverLocaleDescription": "Default language for system messages.",
   "admin.general.localization.serverLocaleTitle": "Default Server Language:",
   "admin.general.log": "Logging",
