@@ -167,18 +167,21 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
             if (timeObject.utc[index] === previousTimezone?.utc[index]) {
                 index++;
             } else {
-                // * It's safe to use the first item since consecutive timezones
-                // * don't have the same 'utc' array.
+                // It's safe to use the first item since consecutive timezones
+                // don't have the same 'utc' array.
                 index = index === 0 ? index : 0;
             }
 
             previousTimezone = timeObject;
 
+            // Some more context on why different 'utc' items are used can be found here.
+            // https://github.com/mattermost/mattermost/pull/29290#issuecomment-2478492626
             return {
                 value: timeObject.utc[index],
                 label: timeObject.text,
             };
         });
+
         let serverError;
         if (this.state.serverError) {
             serverError = <label className='has-error'>{this.state.serverError}</label>;
