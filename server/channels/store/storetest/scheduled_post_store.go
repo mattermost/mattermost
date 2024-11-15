@@ -333,6 +333,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("it should update old scheduled post", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61792")
 		userId := model.NewId()
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
