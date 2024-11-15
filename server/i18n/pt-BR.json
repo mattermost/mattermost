@@ -8230,5 +8230,9 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Não é permitido remover um reconhecimento em um canal arquivado."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Não pode deletar um reconhecimento passados 5 minutos."
   }
 ]
