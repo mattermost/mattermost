@@ -106,7 +106,6 @@ issues:
         channels/app/platform/busy_test.go|\
         channels/app/platform/cluster_handlers.go|\
         channels/app/platform/config_test.go|\
-        channels/app/platform/feature_flags.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
         channels/app/platform/link_cache.go|\
