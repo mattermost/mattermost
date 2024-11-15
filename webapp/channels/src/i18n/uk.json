@@ -1722,6 +1722,7 @@
   "apps.error.parser.no_match": "`{command}`: У цьому робочому просторі не знайдено відповідної команди.",
   "apps.error.parser.unexpected_flag": "Команда не приймає прапор `{flagName}`.",
   "apps.error.parser.unexpected_squared_bracket": "Несподіване відкриття списку.",
+  "apps.error.parser.unexpected_state": "Недоступно: Неочікуваний стан у matchBinding: `{state}`.",
   "audit_table.accountActive": "Акаунт активований",
   "audit_table.accountInactive": "Акаунт деактивовано",
   "audit_table.action": "Дія",
