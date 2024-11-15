@@ -865,7 +865,7 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "видалити"
+    "translation": "вилучити"
   },
   {
     "id": "api.command_remove.permission.app_error",
@@ -5341,11 +5341,11 @@
   },
   {
     "id": "app.channel.update.bad_id",
-    "translation": "Не вдалося оновити канал."
+    "translation": "Не вдалося оновити Канал."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
-    "translation": "Не вдалося остаточно видалити канал."
+    "translation": "Неможливо остаточно видалити канал."
   },
   {
     "id": "app.channel.get_deleted.missing.app_error",
@@ -5385,7 +5385,7 @@
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "Не вдалося видалити канал."
+    "translation": "Неможливо видалити канал."
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
@@ -8041,7 +8041,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed_footer.contact_support",
-    "translation": "Зверніться до служби підтримки"
+    "translation": "Зверніться до служби технічної підтримки"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
@@ -8061,7 +8061,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
-    "translation": "Зв'яжіться з відділом продажів"
+    "translation": "Зв'язатися з відділом продажів"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
