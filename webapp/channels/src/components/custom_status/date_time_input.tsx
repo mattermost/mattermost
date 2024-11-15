@@ -29,7 +29,7 @@ import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
-const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
+const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 5;
 
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
     const start = moment(value);
@@ -117,8 +117,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            baseTime.hour(time.hours());
-            baseTime.minute(time.minutes());
+            if (baseTime.hour() < 9) {
+                baseTime.hour(time.hours());
+                baseTime.minute(time.minutes());
+            }
 
             const roundedTime = getRoundedTime(baseTime, timePickerInterval);
             handleChange(roundedTime);
