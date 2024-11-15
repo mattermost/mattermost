@@ -36,7 +36,7 @@ type TestHelper struct {
 	LogBuffer         *bytes.Buffer
 	TestLogger        *mlog.Logger
 	IncludeCacheLayer bool
-	t                 *testing.T
+	t                 testing.TB
 	tempWorkspace     string
 }
 
@@ -92,20 +92,21 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
+		t:                 tb,
 	}
 
 	if enterprise {
 		err := th.App.Srv().Jobs.StopWorkers()
-		require.NoError(tb, err)
+		require.NoError(th.t, err)
 		err = th.App.Srv().Jobs.StopSchedulers()
-		require.NoError(tb, err)
+		require.NoError(th.t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense())
 
 		err = th.App.Srv().Jobs.StartWorkers()
-		require.NoError(tb, err)
+		require.NoError(th.t, err)
 		err = th.App.Srv().Jobs.StartSchedulers()
-		require.NoError(tb, err)
+		require.NoError(th.t, err)
 	} else {
 		th.App.Srv().SetLicense(getLicense(false, memoryConfig))
 	}
