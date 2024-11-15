@@ -8262,5 +8262,9 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "falha ao adicionar usuário aos times e canais do grupo"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao remover o marcador de canal."
   }
 ]
