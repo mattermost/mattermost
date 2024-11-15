@@ -105,7 +105,7 @@
         place-content: center;
     }
 
-    h1 {
+    > header {
         position: relative;
         display: grid;
         margin: 0 0 6px;
@@ -117,6 +117,14 @@
         justify-items: start;
         line-height: 20px;
         white-space: nowrap;
+
+        > time {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: normal;
+            grid-column: 3/4;
+            line-height: 20px;
+        }
     }
 
     div.preview {
@@ -125,14 +133,6 @@
         color: rgba(var(--center-channel-color-rgb), 1);
 
         @include mixins.text-clamp(2, 20);
-    }
-
-    time {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 12px;
-        font-weight: normal;
-        grid-column: 3/4;
-        line-height: 20px;
     }
 
     .menu-anchor {
