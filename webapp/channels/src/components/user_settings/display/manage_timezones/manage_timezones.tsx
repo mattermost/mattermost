@@ -164,13 +164,12 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         let previousTimezone: Timezone;
 
         const timeOptions = this.props.timezones.map((timeObject) => {
-            if (timeObject.utc[index] !== previousTimezone?.utc[index]) {
-                if (index !== 0)
-                    index = 0;
-            }
-
-            else {
+            if (timeObject.utc[index] === previousTimezone?.utc[index]) {
                 index++;
+            } else {
+                // * It's safe to use the first item since consecutive timezones
+                // * don't have the same 'utc' array.
+                index = index === 0 ? index : 0;
             }
 
             previousTimezone = timeObject;
