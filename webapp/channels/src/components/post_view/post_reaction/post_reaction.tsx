@@ -80,7 +80,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <React.Fragment>
+                <>
                     <EmojiPickerOverlay
                         show={showEmojiPicker}
                         target={this.props.getDotMenuRef}
@@ -107,7 +107,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                             <EmojiIcon className='icon icon--small'/>
                         </button>
                     </WithTooltip>
-                </React.Fragment>
+                </>
             </ChannelPermissionGate>
         );
     }

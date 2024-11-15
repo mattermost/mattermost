@@ -313,7 +313,7 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Komutlar sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Komutlar sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -349,7 +349,7 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "E-posta davetleri devre dışı bırakılmış. Herhangi bir davet gönderilmedi"
+    "translation": "E-posta davetleri kapatılmış. Herhangi bir davet gönderilmedi"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Bu sunucu üzerine kullanıcı eklemek devre dışı bırakılmış olduğundan davet gönderilmedi"
+    "translation": "Bu sunucu üzerine kullanıcı ekleme özelliği kapatılmış olduğundan davet gönderilmedi"
   },
   {
     "id": "api.command.invite_people.name",
@@ -517,7 +517,7 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını etkinleştirir"
+    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını açar"
   },
   {
     "id": "api.command_collapse.name",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Rahatsız etmeyin kipini etkinleştirerek masaüstü ve mobil uygulamalarda anında bildirimleri devre dışı bırakır."
+    "translation": "Rahatsız etmeyin kipini açarak masaüstü ve mobil uygulamalarda anında bildirimleri kapatır."
   },
   {
     "id": "api.command_dnd.name",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Rahatsız etmeyin kipi etkinleştirilmiş. Rahatsız etmeyin kipini devre dışı bırakana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+    "translation": "Rahatsız etmeyin kipi açık. Rahatsız etmeyin kipini kapatana kadar masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -565,7 +565,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını devre dışı bırakır"
+    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını kapatır"
   },
   {
     "id": "api.command_expand.name",
@@ -656,7 +656,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "{{.User}} kullanıcısı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
+    "translation": "{{.User}} kullanıcısı bulunamadı. Sistem yöneticisi tarafından kullanımdan kaldırılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -859,7 +859,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kullanıcı bulunamadı. Sistem yöneticisi tarafından devre dışı bırakılmış olabilir."
+    "translation": "Kullanıcı bulunamadı. Sistem yöneticisi tarafından kullanımdan kaldırılmış olabilir."
   },
   {
     "id": "api.command_remove.name",
@@ -967,7 +967,7 @@
   },
   {
     "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
-    "translation": "Özel hizmet koşulları özelliği devre dışı."
+    "translation": "Özel hizmet koşulları özelliği kapalı."
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -979,7 +979,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Toplu e-posta gönderimi sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Toplu e-posta gönderimi sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1006,7 +1006,7 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Özel görsel ifade özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Özel görsel ifade özelliği sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -1050,7 +1050,7 @@
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "Bu sunucuda ek dosyalarının kullanımı devre dışı bırakılmış."
+    "translation": "Bu sunucuda ek dosyalar özelliği kapalı."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1066,7 +1066,7 @@
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Herkese açık bağlantılar devre dışı bırakılmış."
+    "translation": "Herkese açık bağlantılar kapalı."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
@@ -1114,7 +1114,7 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1266,7 +1266,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
-    "translation": "Kullanıcı hesap açma özelliği devre dışı bırakılmış."
+    "translation": "Kullanıcı hesap açma özelliği kapalı."
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
@@ -1278,7 +1278,7 @@
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": "Giden İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Giden İnternet kancaları sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1330,15 +1330,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @all seçeneği devre dışı bırakıldı."
+    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @all seçeneği kapatıldı."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @channel seçeneği devre dışı bırakıldı."
+    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @channel seçeneği kapatıldı."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @here seçeneği devre dışı bırakıldı."
+    "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @here seçeneği kapatıldı."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -1476,11 +1476,11 @@
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "LetsEncrypt kullanılırken Forward80To443 etkinleştirilmelidir"
+    "translation": "LetsEncrypt kullanılırken Forward80To443 açılmalıdır"
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "%s bağlantı noktası dinlenirken 80 numaralı bağlantı noktası 443 numaralı bağlantı noktasına yönlendirilemedi. Bir vekil sunucu kullanıyorsanız Forward80To443 seçeneğini devre dışı bırakın"
+    "translation": "%s bağlantı noktası dinlenirken 80 numaralı bağlantı noktası 443 numaralı bağlantı noktasına yönlendirilemedi. Bir vekil sunucu kullanıyorsanız Forward80To443 seçeneğini kapatın"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1628,7 +1628,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "E-posta davetleri devre dışı bırakılmış."
+    "translation": "E-posta davetleri özelliği kapalı."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -1640,7 +1640,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Takım ekleme özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+    "translation": "Takım ekleme özelliği kapalı. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -1740,19 +1740,19 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "{{ .SiteURL }} sitesindeki hesabınızı devre dışı bıraktınız."
+    "translation": "{{ .SiteURL }} sitesindeki hesabınızı kullanımdan kaldırdınız."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "{{ .ServerURL }} üzerindeki hesabınız devre dışı bırakıldı"
+    "translation": "{{ .ServerURL }} üzerindeki hesabınız kullanımdan kaldırıldı"
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "Bu işlemi siz yapmadıysanız ya da hesabınızı yeniden etkinleştirmek istiyorsanız lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Bu işlemi siz yapmadıysanız ya da hesabınızı yeniden kullanıma almak istiyorsanız lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] {{ .ServerURL }} üzerindeki hesabınız devre dışı bırakıldı"
+    "translation": "[{{ .SiteName }}] {{ .ServerURL }} üzerindeki hesabınız kullanımdan kaldırıldı"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -2032,7 +2032,7 @@
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": "Kullanıcı ekleme özelliği devre dışı bırakılmış."
+    "translation": "Kullanıcı ekleme özelliği kapalı."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2040,7 +2040,7 @@
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": "E-posta ile kullanıcı hesabı açma özelliği devre dışı bırakılmış."
+    "translation": "E-posta ile kullanıcı hesabı açma özelliği kapalı."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -2088,7 +2088,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Hesabınız devre dışı bırakılmış olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
+    "translation": "Hesabınız kullanımdan kaldırılmış olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2148,7 +2148,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Hesabı devre dışı bırakma bildirimi e-postası gönderilemedi"
+    "translation": "Hesabı kullanımdan kaldırma bildirimi e-postası gönderilemedi"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2172,7 +2172,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Bu özellik etkinleştirilmemiş olduğundan kendi hesabınızı devre dışı bırakamazsınız. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Bu özellik açılmamış olduğundan kendi hesabınızı kullanımdan kaldıramazsınız. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2864,7 +2864,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Küme özelliği kullanılırken ve ReadOnlyConfig seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
+    "translation": "Küme özelliği kullanılırken ve ReadOnlyConfig seçeneği açıkken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2872,11 +2872,11 @@
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Uygulama eki devre dışı bırakılamadı."
+    "translation": "Uygulama eki kullanımdan kaldırılamadı."
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Uygulama ekleri devre dışı bırakıldı. Ayrıntılar için günlük kayıtlarına bakın."
+    "translation": "Uygulama ekleri kullanımdan kaldırıldı. Ayrıntılar için günlük kayıtlarına bakın."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -2932,7 +2932,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış."
+    "translation": "Uygulama ekleri ve/veya uygulama eki yüklemeleri kapalı."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -2960,7 +2960,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Bu sunucu üzerinde kişisel erişim kodları devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+    "translation": "Bu sunucu üzerinde kişisel erişim kodları kapatılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -2996,7 +2996,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Yüksek erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında salt okunur yapılandırma (ReadOnlyConfig) seçeneği devre dışı bırakılmamış ise sistem panosu salt okunur olarak ayarlanır."
+    "translation": "Yüksek erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında salt okunur yapılandırma (ReadOnlyConfig) seçeneği kapatılmamış ise sistem panosu salt okunur olarak ayarlanır."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3096,7 +3096,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch araması bu sunucu üzerinde etkinleştirilmemiş"
+    "translation": "Bu sunucu üzerinde Elasticsearch araması açılmamış"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3120,7 +3120,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch araması bu sunucu üzerinde devre dışı bırakılmış"
+    "translation": "Bu sunucu üzerine Elasticsearch arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3140,7 +3140,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch devre dışı."
+    "translation": "Elasticsearch kapalı."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3160,7 +3160,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "AD/LDAP devre dışı ya da lisans AD/LDAP özelliğini desteklemiyor."
+    "translation": "AD/LDAP kapalı ya da lisans AD/LDAP özelliğini desteklemiyor."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -3316,7 +3316,7 @@
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "Şifreleme etkinleştirilmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Şifreleme kapalı olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3400,7 +3400,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Bu sunucuda çok adımlı doğrulama devre dışı bırakılmış."
+    "translation": "Bu sunucuda çok adımlı doğrulama özelliği kapalı."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -3688,7 +3688,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Küme özelliği etkinleştirilmişken toplu e-posta etkinleştirilemez."
+    "translation": "Küme özelliği kapalıyken toplu e-posta özelliği açılamaz."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -3712,7 +3712,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch dizine ekleme özelliği etkinleştirildiğinde Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
+    "translation": "Elasticsearch dizine ekleme özelliği açıldığında Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -3932,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Site adresi ayarlanmadan toplu e-posta etkinleştirilemez."
+    "translation": "Site adresi ayarlanmadan toplu e-posta özelliği açılamaz."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4540,7 +4540,7 @@
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
-    "translation": "Herkese açık bağlantılar devre dışı bırakılmış."
+    "translation": "Herkese açık bağlantılar kapalı."
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
@@ -4596,7 +4596,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Bu sunucu üzerinde arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Bu sunucu üzerinde arama özelliği kapalı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
@@ -4632,7 +4632,7 @@
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Gelen İnternet kancaları sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -4876,7 +4876,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı."
+    "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici kullanımdan kaldırılmış."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
@@ -4972,7 +4972,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch araması bu sunucu üzerinde devre dışı bırakılmış"
+    "translation": "Bu sunucu üzerinde Elasticsearch arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -5084,7 +5084,7 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Blave dizinleri boşaltılırken sorun çıktı: İşleyici devre dışı"
+    "translation": "Blave dizinleri boşaltılırken sorun çıktı: İşleyici kullanımdan kaldırılmış"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -5168,7 +5168,7 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Bu sunucu üzerinde anında bildirimler devre dışı bırakılmış."
+    "translation": "Bu sunucu üzerinde anında bildirimler kapalı."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
@@ -5200,7 +5200,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen şimdi lisansı yenileyin."
+    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler kullanımdan kaldırılabilir. Lütfen şimdi lisansı yenileyin."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -5212,7 +5212,7 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Konuk hesapları devre dışı bırakılmış"
+    "translation": "Konuk hesapları özelliği kapalı"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
@@ -5224,7 +5224,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "Konuk erişimi özelliği devre dışı bırakılmış olduğundan bir konuk hesabı etkinleştirilemez."
+    "translation": "Konuk erişimi özelliği kapalı olduğundan bir konuk hesabı etkinleştirilemez."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
@@ -5244,7 +5244,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} devre dışı bırakılmış. Bunlar şu anda devre dışı bırakılmış şu bot hesaplarını yönetiyor.\n\n{{.BotNames}}{{else}}{{.UserName}} devre dışı bırakılmış. Bunlar şu anda devre dışı bırakılmış şu {{.NumBots}} bot hesaplarını yönetiyor:\n\n{{.BotNames}}{{end}}Bu bot hesaplarının sahipliğini almak için, hesapları **Bütünleştirmeler > Bot Hesapları** bölümünden etkinleştirin ve bot hesapları için yeni kodlar oluşturun.\n\nAyrıntılı bilgi almak için [belgelere bakabilirsiniz](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} devre dışı bırakılmış. Bunlar şu anda hala etkin olan şu bot hesaplarını yönetiyor.\n\n{{.BotNames}}\n{{else}}{{.UserName}} devre dışı bırakılmış. Bunlar şu anda hala etkin olan şu {{.NumBots}} bot hesaplarını yönetiyor:\n\n{{.BotNames}}{{end}}Bu bot hesaplarının sahipliğini almak için, hesapları **Bütünleştirmeler > Bot Hesapları** bölümünden yeniden etkinleştirmeniz ve bot hesapları için yeni kodlar oluşturmanız önemle önerilir.\n\nAyrıntılı bilgi almak için [belgelere bakabilirsiniz](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nKullanıcıların devre dışı bırakılmasından sonra bot hesaplarının da otomatik olarak devre dışı bırakılmasını istiyorsanız, **Sistem panosu > Bütünleştirmeler > Bot hesapları** bölümünden “Kullanıcı hesabı devre dışı bırakıldığında bot hesapları devre dışı bırakılsın” seçeneğini etkinleştirin.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} kullanımdan kaldırılmış. Bunlar şu anda kullanımdan kaldırılmış şu bot hesaplarını yönetiyor.\n\n{{.BotNames}}{{else}}{{.UserName}} kullanımdan kaldırılmış. Bunlar şu anda kullanımdan kaldırılmış şu {{.NumBots}} bot hesaplarını yönetiyor:\n\n{{.BotNames}}{{end}}Bu bot hesaplarının sahipliğini almak için, hesapları **Bütünleştirmeler > Bot Hesapları** bölümünden kullanıma alın ve bot hesapları için yeni kodlar oluşturun.\n\nAyrıntılı bilgi almak için [belgelere bakabilirsiniz](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} kullanımdan kaldırılmış Bunlar şu anda hala etkin olan şu bot hesaplarını yönetiyor.\n\n{{.BotNames}}\n{{else}}{{.UserName}} kullanımdan kaldırılmış. Bunlar şu anda hala kullanımda olan şu {{.NumBots}} bot hesaplarını yönetiyor:\n\n{{.BotNames}}{{end}}Bu bot hesaplarının sahipliğini almak için, hesapları **Bütünleştirmeler > Bot Hesapları** bölümünden yeniden kullanıma almanız ve bot hesapları için yeni kodlar oluşturmanız önemle önerilir.\n\nAyrıntılı bilgi almak için [belgelere bakabilirsiniz](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nKullanıcıların kullanımdan kaldırılmasından sonra bot hesaplarının da otomatik olarak kullanımdan kaldırılmasını istiyorsanız, **Sistem panosu > Bütünleştirmeler > Bot hesapları** bölümünden “Kullanıcı hesabı kullanımdan kaldırıldığında bot hesapları da kullanımdan kaldırılsın” seçeneğini açın.{{end}}"
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
@@ -5288,7 +5288,7 @@
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Mağaza devre dışı bırakılmış. Ayrıntılar için günlük kayıtlarına bakın."
+    "translation": "Mağaza özelliği kapatıldı. Ayrıntılar için günlük kayıtlarına bakın."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -5392,7 +5392,7 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "{{.ChannelName}} kanalında kanal bildirimleri devre dışı bırakılmış. {{.Mention}} ile herhangi bir bildirim gönderilmez."
+    "translation": "{{.ChannelName}} kanalında kanal bildirimleri kapatılmış. {{.Mention}} ile herhangi bir bildirim gönderilmez."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -5460,7 +5460,7 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot ekleme özelliği devre dışı bırakılmış."
+    "translation": "Bot ekleme özelliği kapalı."
   },
   {
     "id": "api.channel.add_guest.added",
@@ -5544,7 +5544,7 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "Lisansı devre dışı bırakma bildirimi e-postası gönderilemedi."
+    "translation": "Lisansı kullanımdan kaldırma bildirimi e-postası gönderilemedi."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -5576,7 +5576,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise lisansı devre dışı bırakıldı."
+    "translation": "Mattermost Enterprise lisansı kullanımdan kaldırıldı."
   },
   {
     "id": "api.team.add_members.error",
@@ -5588,7 +5588,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": "Konuk hesapları devre dışı bırakılmış."
+    "translation": "Konuk hesapları özelliği kapalı."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
@@ -5620,7 +5620,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Konuk hesapları devre dışı bırakılmış."
+    "translation": "Konuk hesapları özelliği kapalı."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -5792,11 +5792,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 126+"
+    "translation": "Sürüm 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 126+"
+    "translation": "Sürüm 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -6108,11 +6108,11 @@
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
-    "translation": "Takımları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Takımları kalıcı olarak silme özelliği açılmamış. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
-    "translation": "Kullanıcıları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kullanıcıları kalıcı olarak silme özelliği açılmamış. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -6124,11 +6124,11 @@
   },
   {
     "id": "app.user_access_token.update_token_enable.app_error",
-    "translation": "Erişim kodu etkinleştirilemedi."
+    "translation": "Erişim kodu kullanıma alınamadı."
   },
   {
     "id": "app.user_access_token.update_token_disable.app_error",
-    "translation": "Erişim kodu devre dışı bırakılamadı."
+    "translation": "Erişim kodu kullanımdan kaldırılamadı."
   },
   {
     "id": "app.user_access_token.search.app_error",
@@ -6496,7 +6496,7 @@
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
-    "translation": "Kanalları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kanalları kalıcı olarak silme özelliği açılmamış. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -6680,7 +6680,7 @@
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
-    "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı."
+    "translation": "Kullanımdan kaldırılmış kullanıcılar kanaldan çıkarılamadı."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -7084,7 +7084,7 @@
   },
   {
     "id": "app.user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Konuklar devre dışı bırakılamadı."
+    "translation": "Konuklar kullanımdan kaldırılamadı."
   },
   {
     "id": "app.user.update.finding.app_error",
@@ -7188,7 +7188,7 @@
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
-    "translation": "Belirtilen aralıkta etkin kullanıcılar alınamadı."
+    "translation": "Belirtilen aralıktaki etkin kullanıcılar alınamadı."
   },
   {
     "id": "app.upload.upload_data.update.app_error",
@@ -7412,7 +7412,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch dosyaları bu sunucu üzerinde devre dışı bırakılmış"
+    "translation": "Bu sunucu üzerinde Elasticsearch dosya arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -7584,11 +7584,11 @@
   },
   {
     "id": "mfa.deactivate.app_error",
-    "translation": "Kullanıcının çok adımlı doğrulama durumu etkin olarak güncellenemedi."
+    "translation": "Kullanıcının çok adımlı doğrulama açık durumu güncellenemedi."
   },
   {
     "id": "mfa.activate.app_error",
-    "translation": "Kullanıcının çok adımlı doğrulama durumu etkin olarak güncellenemedi."
+    "translation": "Kullanıcının çok adımlı doğrulama açık durumu güncellenemedi."
   },
   {
     "id": "bleveengine.purge_file_index.error",
@@ -7604,7 +7604,7 @@
   },
   {
     "id": "api.custom_status.disabled",
-    "translation": "Özel durum özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+    "translation": "Özel durum özelliği kapalı. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.command_custom_status.success",
@@ -7664,7 +7664,7 @@
   },
   {
     "id": "store.sql_file_info.search.disabled",
-    "translation": "Bu sunucu üzerinde dosya arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Bu sunucu üzerinde dosya arama özelliği kapalı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7952,11 +7952,11 @@
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Güvenli bağlantı hizmeti etkinleştirilmemiş."
+    "translation": "Güvenli bağlantı hizmeti açılmamış."
   },
   {
     "id": "api.command_remote.service_disabled",
-    "translation": "Güvenli bağlantı hizmeti devre dışı bırakılmış."
+    "translation": "Güvenli bağlantı hizmeti kapatılmış."
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
@@ -8068,7 +8068,7 @@
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
-    "translation": "Uzak küme hizmeti etkinleştirilmemiş."
+    "translation": "Uzak küme hizmeti açılmamış."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
@@ -8152,7 +8152,7 @@
   },
   {
     "id": "api.command_share.service_disabled",
-    "translation": "Paylaşılmış kanallar hizmeti devre dışı bırakılmış."
+    "translation": "Paylaşılmış kanallar hizmeti kapalı."
   },
   {
     "id": "api.command_share.remote_table_header",
@@ -8415,7 +8415,7 @@
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
-    "translation": "CollapsedThreads seçeneğini etkinleştirmek için ThreadAutoFollow seçeneği true olmalıdır"
+    "translation": "CollapsedThreads seçeneğini açmak için ThreadAutoFollow seçeneği true olmalıdır"
   },
   {
     "id": "api.config.reload_config.app_error",
@@ -8583,7 +8583,7 @@
   },
   {
     "id": "api.custom_groups.feature_disabled",
-    "translation": "özel gruplar özelliği devre dışı bırakılmış"
+    "translation": "özel gruplar özelliği kapalı"
   },
   {
     "id": "api.custom_groups.count_err",
@@ -8807,11 +8807,11 @@
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları devre dışı bırakılmış"
+    "translation": "Konuk hesapları özelliği kapalı"
   },
   {
     "id": "api.drafts.disabled.app_error",
-    "translation": "Taslaklar özelliği devre dışı."
+    "translation": "Taslaklar özelliği kapalı."
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
@@ -8899,7 +8899,7 @@
   },
   {
     "id": "app.draft.feature_disabled",
-    "translation": "Taslaklar özelliği devre dışı bırakılmış."
+    "translation": "Taslaklar özelliği kapalı."
   },
   {
     "id": "app.draft.delete.app_error",
@@ -9427,7 +9427,7 @@
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
-    "translation": "Kanal dizini şeması güncel olmadığı için kanal otomatik tamamlama özelliği etkinleştirilemedi. Kanal dizininizi yeniden oluşturmanız önerilir. Ayrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın"
+    "translation": "Kanal dizini şeması güncel olmadığı için kanal otomatik tamamlama özelliği açılamadı. Kanal dizininizi yeniden oluşturmanız önerilir. Ayrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın"
   },
   {
     "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
@@ -9855,11 +9855,11 @@
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
-    "translation": "Konuları taşımak devre dışı bırakılmış"
+    "translation": "Konuları taşıma özelliği kapalı"
   },
   {
     "id": "api.server.cws.disabled",
-    "translation": "Mattermost müşteri portalı ile etkileşimler sistem yöneticisi tarafından devre dışı bırakılmış."
+    "translation": "Mattermost müşteri portalı ile etkileşim kurma özelliği sistem yöneticisi tarafından kapatılmış."
   },
   {
     "id": "api.templates.ip_filters_changed.title",
@@ -10196,5 +10196,37 @@
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
     "translation": "İletinin dosyası kalıcı olarak silinemedi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Bir uzak kullanıcı ile doğrudan kanal oluşturulamıyor"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Uzak kullanıcılar ile bir grup kanalı oluşturulamıyor"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Lisans dosyası içeriği ara belleğe kopyalanamadı"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Uzak küme daveti oluşturulamadı"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Uzak kullanıcılara bir doğrudan ileti veya grup iletisi gönderilemedi"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Site adresi geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Kod geçersiz."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Uzak kimlik geçersiz."
   }
 ]

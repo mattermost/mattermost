@@ -16,6 +16,8 @@ import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {sendDesktopNotification} from './notification_actions';
+
 jest.mock('mattermost-redux/actions/posts', () => ({
     removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
@@ -34,7 +36,7 @@ jest.mock('actions/emoji_actions', () => ({
 }));
 
 jest.mock('actions/notification_actions', () => ({
-    sendDesktopNotification: jest.fn().mockReturnValue({type: 'MOCK_SEND_DESKTOP_NOTIFICATION'}),
+    sendDesktopNotification: jest.fn().mockReturnValue(() => ({data: {}})),
 }));
 
 jest.mock('actions/storage', () => {
@@ -57,6 +59,8 @@ jest.mock('utils/post_utils', () => ({
 
 const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
 const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
+
+const mockedSendDesktopNotification = jest.mocked(sendDesktopNotification);
 
 const POST_CREATED_TIME = Date.now();
 
@@ -213,10 +217,8 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('handleNewPostOtherChannel', async () => {
@@ -263,10 +265,8 @@ describe('Actions.Posts', () => {
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
             },
-            {
-                type: 'MOCK_SEND_DESKTOP_NOTIFICATION',
-            },
         ]);
+        expect(mockedSendDesktopNotification).toHaveBeenCalled();
     });
 
     test('unsetEditingPost', async () => {

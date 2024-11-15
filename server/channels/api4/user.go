@@ -3290,8 +3290,10 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.After = r.URL.Query().Get("after")
 	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	excludeDirectStr := r.URL.Query().Get("excludeDirect")
 	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+	options.ExcludeDirect, _ = strconv.ParseBool(excludeDirectStr)
 
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {

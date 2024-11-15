@@ -458,3 +458,10 @@ func (lr *LicenseRecord) IsValid() *AppError {
 func (lr *LicenseRecord) PreSave() {
 	lr.CreateAt = GetMillis()
 }
+
+func MinimumProfessionalProvidedLicense(license *License) *AppError {
+	if license == nil || (license.SkuShortName != LicenseShortSkuProfessional && license.SkuShortName != LicenseShortSkuEnterprise) {
+		return NewAppError("", NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
+	}
+	return nil
+}
