@@ -79,7 +79,6 @@ issues:
         channels/api4/system.go|\
         channels/api4/system_local.go|\
         channels/api4/team_local.go|\
-        channels/api4/team_test.go|\
         channels/api4/user_test.go|\
         channels/api4/websocket_test.go|\
         channels/app/bot_test.go|\
@@ -106,7 +105,6 @@ issues:
         channels/app/platform/busy_test.go|\
         channels/app/platform/cluster_handlers.go|\
         channels/app/platform/config_test.go|\
-        channels/app/platform/feature_flags.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
         channels/app/platform/link_cache.go|\
@@ -122,7 +120,6 @@ issues:
         channels/app/platform/web_conn.go|\
         channels/app/platform/web_hub.go|\
         channels/app/platform/web_hub_test.go|\
-        channels/app/plugin_api_tests/manual.test_http_hijack_plugin/main.go|\
         channels/app/plugin_api_tests/manual.test_serve_metrics_plugin/main.go|\
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
         channels/app/plugin_install.go|\
@@ -147,7 +144,6 @@ issues:
         channels/app/team_test.go|\
         channels/app/upload.go|\
         channels/app/upload_test.go|\
-        channels/app/user.go|\
         channels/app/user_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
         channels/app/webhook_test.go|\
