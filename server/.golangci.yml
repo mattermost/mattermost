@@ -103,7 +103,6 @@ issues:
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/busy_test.go|\
-        channels/app/platform/cluster_handlers.go|\
         channels/app/platform/config_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
