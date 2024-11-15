@@ -1723,6 +1723,7 @@
   "apps.error.parser.unexpected_flag": "Команда не приймає прапор `{flagName}`.",
   "apps.error.parser.unexpected_squared_bracket": "Несподіване відкриття списку.",
   "apps.error.parser.unexpected_state": "Недоступно: Неочікуваний стан у matchBinding: `{state}`.",
+  "apps.error.responses.unexpected_type": "Тип відповіді застосунку не відповідає очікуваному. Тип відповіді: {type}",
   "audit_table.accountActive": "Акаунт активований",
   "audit_table.accountInactive": "Акаунт деактивовано",
   "audit_table.action": "Дія",
