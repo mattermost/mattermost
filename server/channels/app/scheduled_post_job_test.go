@@ -354,7 +354,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		// Helper function to check notifications for a specific user
 		checkUserNotification := func(user *model.User) {
 			// Wait time for notifications to be sent (adding 5 secs because it is run in a separate goroutine)
-			var timeout = 10 * time.Second
+			var timeout = 5 * time.Second
 			begin := time.Now()
 			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
 			assert.True(t, appErr == nil)
