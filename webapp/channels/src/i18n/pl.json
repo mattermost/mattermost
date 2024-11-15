@@ -1266,7 +1266,7 @@
   "admin.ldap.bindPwdDesc": "Hasło użytkownika podanego w \"Powiąż Nazwę Użytkownika\".",
   "admin.ldap.bindPwdTitle": "Hasło Bind-a:",
   "admin.ldap.bindUserDesc": "Nazwa używana do przeszukiwania AD/LDAP. Zazwyczaj powinno być to konto utworzone specjalnie do użytku przez Mattermost. Powinno być ono ograniczone do odczytu części struktury AD/LDAP podanej w polu Base DN.",
-  "admin.ldap.bindUserTitle": "Nazwa użytkownika Bind:",
+  "admin.ldap.bindUserTitle": "Powiąż nazwę użytkownika:",
   "admin.ldap.emailAttrDesc": "Atrybut na serwerze AD/LDAP który będzie używany do wypełnienia pola adresu email użytkowników w Mattermost.",
   "admin.ldap.emailAttrEx": "Np. \"mail\" lub \"userPrincipalName\"",
   "admin.ldap.emailAttrTitle": "Atrybut Email:",
