@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-
+import { CloseIcon } from '@mattermost/compass-icons/components';
 import Menu from 'components/widgets/menu/menu';
 
 import {getHistory} from 'utils/browser_history';
@@ -107,6 +107,7 @@ export default class CloseMessage extends React.PureComponent<Props> {
                 show={channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL}
                 onClick={this.handleClose}
                 text={text}
+                icon={<CloseIcon color='#808080'/>}
             />
         );
     }

@@ -155,9 +155,11 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
                 subMenu={getMoveToCategorySubmenuItems(categories)}
                 text={formatMessage({id: 'sidebar_left.sidebar_channel_menu.moveTo', defaultMessage: 'Move to...'})}
                 direction={'right'}
-                icon={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={16}/>}
+                icon={
+                    <span style={{ fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2' }}>
+                        <FolderMoveOutlineIcon size={16} color='#808080' />
+                    </span>}
                 openUp={props.openUp}
-                styleSelectableItem={true}
                 selectedValueText={currentCategory?.display_name}
                 renderSelected={false}
             />

@@ -46,7 +46,7 @@
             line-height: 16px;
         }
 
-        div.text{
+        div.text {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -81,9 +81,9 @@
             }
         }
 
-        > div,
-        > button,
-        > a {
+        >div,
+        >button,
+        >a {
             display: block;
             overflow: hidden;
             width: 100%;
@@ -110,7 +110,7 @@
                 }
             }
 
-            i.icon + span.MenuItem__primary-text {
+            i.icon+span.MenuItem__primary-text {
                 padding: 5px 4px;
             }
 
@@ -190,7 +190,7 @@
             }
         }
 
-        > a {
+        >a {
             text-decoration: none;
 
             &:focus,
@@ -343,8 +343,10 @@
         .editionText {
             position: relative;
             width: 100%;
+
             a {
                 color: var(--link-color);
+
                 &:hover {
                     background: none;
                 }

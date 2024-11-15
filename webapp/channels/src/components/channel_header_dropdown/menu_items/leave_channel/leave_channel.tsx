@@ -12,6 +12,7 @@ import Menu from 'components/widgets/menu/menu';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
+import { LogoutVariantIcon } from '@mattermost/compass-icons/components';
 
 type Props = PropsFromRedux & {
 
@@ -71,6 +72,7 @@ const LeaveChannel = ({
             onClick={handleLeave}
             text={intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'})}
             isDangerous={true}
+            icon={<LogoutVariantIcon/>}
         />
     );
 };

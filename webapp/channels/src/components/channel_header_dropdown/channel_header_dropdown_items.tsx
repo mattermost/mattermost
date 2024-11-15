@@ -2,34 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-
-import {Permissions} from 'mattermost-redux/constants';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
-import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
-import ChannelInviteModal from 'components/channel_invite_modal';
+import type { Channel } from '@mattermost/types/channels';
+import type { UserProfile } from '@mattermost/types/users';
+import { Permissions } from 'mattermost-redux/constants';
+import { isGuest } from 'mattermost-redux/utils/user_utils';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
-import ConvertChannelModal from 'components/convert_channel_modal';
-import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
-import MoreDirectChannels from 'components/more_direct_channels';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import RenameChannelModal from 'components/rename_channel_modal';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { Constants, ModalIdentifiers } from 'utils/constants';
+import { localizeMessage } from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type { PluginComponent, Menu as PluginMenu } from 'types/store/plugins';
 
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
@@ -39,6 +27,13 @@ import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel'
 import MenuItemToggleInfo from './menu_items/toggle_info';
 import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
+import DMChannelSubMenu from 'components/dm_channel_submenu';
+import ChannelActionsMenu from 'components/channel_settings';
+import NotChannelSubMenu from 'components/not_channel_submenu';
+import { ArchiveOutlineIcon, BellOutlineIcon } from '@mattermost/compass-icons/components';
+import { Actions } from 'components/convert_gm_to_channel_modal';
+
+
 
 export type Props = {
     user: UserProfile;
@@ -52,6 +47,11 @@ export type Props = {
     penultimateViewedChannelName: string;
     pluginMenuItems: PluginComponent[];
     isLicensedForLDAPGroups: boolean;
+    onExited: () => void;
+    actions: Actions;
+    profilesInChannel: UserProfile[];
+    teammateNameDisplaySetting: string;
+    currentUserId: string;
 }
 
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
@@ -67,6 +67,11 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
             isMobile,
             penultimateViewedChannelName,
             isLicensedForLDAPGroups,
+            onExited,
+            actions,
+            profilesInChannel,
+            teammateNameDisplaySetting,
+            currentUserId,
         } = this.props;
 
         if (!channel) {
@@ -84,38 +89,75 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
         if (isMobile) {
             divider = (
                 <li className='MenuGroup mobile-menu-divider'>
-                    <hr/>
+                    <hr />
                 </li>
             );
         }
 
-        const pluginItems = this.props.pluginMenuItems.map((item) => {
-            return (
-                <Menu.ItemAction
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={() => {
-                        if (item.action) {
-                            item.action(channel.id);
-                        }
-                    }}
-                    text={item.text}
-                />
-            );
+        const pluginItems = this.props.pluginMenuItems.map((item): PluginMenu => {
+            return {
+                id: item.id,
+                text: item.text,
+                icon: item.icon,
+                action: item.action,
+            }
+
         });
 
         return (
             <React.Fragment>
                 <MenuItemToggleInfo
-                    show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
+                    show={true}
                     channel={channel}
                 />
+                <MenuItemToggleMuteChannel
+                    id='channelToggleMuteChannel'
+                    user={user}
+                    channel={channel}
+                    isMuted={isMuted}
+                />
+                <Menu.ItemToggleModalRedux
+                    id='channelNotificationPreferences'
+                    show={channel.type !== Constants.DM_CHANNEL && !isArchived}
+                    modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
+                    dialogType={ChannelNotificationsModal}
+                    dialogProps={{
+                        channel,
+                        currentUser: user,
+                    }}
+                    text={localizeMessage({ id: 'navbar.preferences', defaultMessage: 'Notification Preferences' })}
+                    icon={<BellOutlineIcon color='#808080' />}
+                />
+                {(channel.type === Constants.OPEN_CHANNEL || isPrivate) && (
+                    <ChannelActionsMenu
+                        channel={channel}
+                        isArchived={isArchived}
+                        isDefault={isDefault}
+                        isReadonly={isReadonly}
+                    />
+                )}
+                {channel.type === Constants.GM_CHANNEL && (
+                    <NotChannelSubMenu
+                        channel={channel}
+                        isArchived={isArchived}
+                        isReadonly={isReadonly}
+                        isGuest={isGuest(user.roles)}
+                        onExited={onExited}
+                        actions={actions}
+                        profilesInChannel={profilesInChannel}
+                        teammateNameDisplaySetting={teammateNameDisplaySetting}
+                        currentUserId={currentUserId}
+
+                    />
+                )}
+                {channel.type === Constants.DM_CHANNEL && (
+                    <DMChannelSubMenu
+                        channel={channel}
+                        isArchived={isArchived}
+                        isReadonly={isReadonly}
+                    />
+                )}
                 {/* Remove when this components is migrated to new menus */}
-                <ChannelMoveToSubMenuOld
-                    channel={channel}
-                    openUp={false}
-                    inHeaderDropdown={true}
-                />
                 <Menu.Group divider={divider}>
                     <MenuItemToggleFavoriteChannel
                         show={isMobile}
@@ -126,82 +168,25 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         show={isMobile}
                         channel={channel}
                     />
-                    <Menu.ItemToggleModalRedux
-                        id='channelNotificationPreferences'
-                        show={channel.type !== Constants.DM_CHANNEL && !isArchived}
-                        modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-                        dialogType={ChannelNotificationsModal}
-                        dialogProps={{
-                            channel,
-                            currentUser: user,
-                        }}
-                        text={localizeMessage({id: 'navbar.preferences', defaultMessage: 'Notification Preferences'})}
-                    />
-                    <MenuItemToggleMuteChannel
-                        id='channelToggleMuteChannel'
-                        user={user}
-                        channel={channel}
-                        isMuted={isMuted}
-                    />
                 </Menu.Group>
 
                 <Menu.Group divider={divider}>
-                    <ChannelPermissionGate
-                        channelId={channel.id}
-                        teamId={channel.team_id}
-                        permissions={[channelMembersPermission]}
-                    >
-                        <Menu.ItemToggleModalRedux
-                            id='channelAddMembers'
-                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault && !isGroupConstrained}
-                            modalId={ModalIdentifiers.CHANNEL_INVITE}
-                            dialogType={ChannelInviteModal}
-                            dialogProps={{channel}}
-                            text={localizeMessage({id: 'navbar.addMembers', defaultMessage: 'Add Members'})}
-                        />
-                        <Menu.ItemToggleModalRedux
-                            id='channelAddMembers'
-                            show={channel.type === Constants.GM_CHANNEL && !isArchived && !isGroupConstrained}
-                            modalId={ModalIdentifiers.CREATE_DM_CHANNEL}
-                            dialogType={MoreDirectChannels}
-                            dialogProps={{isExistingChannel: true}}
-                            text={localizeMessage({id: 'navbar.addMembers', defaultMessage: 'Add Members'})}
-                        />
-                    </ChannelPermissionGate>
+
                     <MenuItemOpenMembersRHS
                         id='channelViewMembers'
                         channel={channel}
                         show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && (isArchived || isDefault)}
-                        text={localizeMessage({id: 'channel_header.viewMembers', defaultMessage: 'View Members'})}
+                        text='Members'
+
+
                     />
-                    <ChannelPermissionGate
-                        channelId={channel.id}
-                        teamId={channel.team_id}
-                        permissions={[channelMembersPermission]}
-                    >
-                        <Menu.ItemToggleModalRedux
-                            id='channelAddGroups'
-                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault && isGroupConstrained && isLicensedForLDAPGroups}
-                            modalId={ModalIdentifiers.ADD_GROUPS_TO_CHANNEL}
-                            dialogType={AddGroupsToChannelModal}
-                            text={localizeMessage({id: 'navbar.addGroups', defaultMessage: 'Add Groups'})}
-                        />
-                        <Menu.ItemToggleModalRedux
-                            id='channelManageGroups'
-                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault && isGroupConstrained && isLicensedForLDAPGroups}
-                            modalId={ModalIdentifiers.MANAGE_CHANNEL_GROUPS}
-                            dialogType={ChannelGroupsManageModal}
-                            dialogProps={{channelID: channel.id}}
-                            text={localizeMessage({id: 'navbar_dropdown.manageGroups', defaultMessage: 'Manage Groups'})}
-                        />
-                        <MenuItemOpenMembersRHS
-                            id='channelManageMembers'
-                            channel={channel}
-                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault}
-                            text={localizeMessage({id: 'channel_header.manageMembers', defaultMessage: 'Manage Members'})}
-                            editMembers={!isArchived}
-                        />
-                    </ChannelPermissionGate>
+                    <MenuItemOpenMembersRHS
+                        id='channelViewMembers'
+                        channel={channel}
+                        show={channel.type === Constants.GM_CHANNEL}
+                        text='Members'
+
+                    />
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}
@@ -212,79 +197,32 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             id='channelViewMembers'
                             channel={channel}
                             show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault}
-                            text={localizeMessage({id: 'channel_header.viewMembers', defaultMessage: 'View Members'})}
+                            text='Members'
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
 
-                <Menu.Group divider={divider}>
-                    <Menu.ItemToggleModalRedux
-                        id='channelEditHeader'
-                        show={(channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) && !isArchived && !isReadonly}
-                        modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-                        dialogType={EditChannelHeaderModal}
-                        dialogProps={{channel}}
-                        text={localizeMessage({id: 'channel_header.setConversationHeader', defaultMessage: 'Edit Conversation Header'})}
-                    />
 
-                    <Menu.ItemToggleModalRedux
-                        id='convertGMPrivateChannel'
-                        show={channel.type === Constants.GM_CHANNEL && !isArchived && !isReadonly && !isGuest(user.roles)}
-                        modalId={ModalIdentifiers.CONVERT_GM_TO_CHANNEL}
-                        dialogType={ConvertGmToChannelModal}
-                        dialogProps={{channel}}
-                        text={localizeMessage({id: 'sidebar_left.sidebar_channel_menu_convert_to_channel', defaultMessage: 'Convert to Private Channel'})}
+                <Menu.Group divider={divider}>
+                    <ChannelMoveToSubMenuOld
+                        channel={channel}
+                        openUp={false}
+                        inHeaderDropdown={true}
+                    />
+                    <Menu.ItemSubMenu
+                        id="pluginItems-submenu"
+                        subMenu={pluginItems}
+                        text={
+                            <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                {localizeMessage({ id: 'sidebar_left.sidebar_channel_menu.plugins ', defaultMessage: ' More Actions' })}
+                            </span>
+                        }
+                        direction="right"
+                    //To do-The required icon is under PR-https://github.com/mattermost/compass-icons/pull/100
+                    // icon={}
                     />
                 </Menu.Group>
-
                 <Menu.Group divider={divider}>
-                    <ChannelPermissionGate
-                        channelId={channel.id}
-                        teamId={channel.team_id}
-                        permissions={[channelPropertiesPermission]}
-                    >
-                        <Menu.ItemToggleModalRedux
-                            id='channelEditHeader'
-                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isReadonly}
-                            modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-                            dialogType={EditChannelHeaderModal}
-                            dialogProps={{channel}}
-                            text={localizeMessage({id: 'channel_header.setHeader', defaultMessage: 'Edit Channel Header'})}
-                        />
-                        <Menu.ItemToggleModalRedux
-                            id='channelEditPurpose'
-                            show={!isArchived && !isReadonly && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
-                            modalId={ModalIdentifiers.EDIT_CHANNEL_PURPOSE}
-                            dialogType={EditChannelPurposeModal}
-                            dialogProps={{channel}}
-                            text={localizeMessage({id: 'channel_header.setPurpose', defaultMessage: 'Edit Channel Purpose'})}
-                        />
-                        <Menu.ItemToggleModalRedux
-                            id='channelRename'
-                            show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
-                            modalId={ModalIdentifiers.RENAME_CHANNEL}
-                            dialogType={RenameChannelModal}
-                            dialogProps={{channel}}
-                            text={localizeMessage({id: 'channel_header.rename', defaultMessage: 'Rename Channel'})}
-                        />
-                    </ChannelPermissionGate>
-                    <ChannelPermissionGate
-                        channelId={channel.id}
-                        teamId={channel.team_id}
-                        permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE]}
-                    >
-                        <Menu.ItemToggleModalRedux
-                            id='channelConvertToPrivate'
-                            show={!isArchived && !isDefault && channel.type === Constants.OPEN_CHANNEL}
-                            modalId={ModalIdentifiers.CONVERT_CHANNEL}
-                            dialogType={ConvertChannelModal}
-                            dialogProps={{
-                                channelId: channel.id,
-                                channelDisplayName: channel.display_name,
-                            }}
-                            text={localizeMessage({id: 'channel_header.convert', defaultMessage: 'Convert to Private Channel'})}
-                        />
-                    </ChannelPermissionGate>
                     <MenuItemLeaveChannel
                         id='channelLeaveChannel'
                         channel={channel}
@@ -306,7 +244,8 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                                 channel,
                                 penultimateViewedChannelName,
                             }}
-                            text={localizeMessage({id: 'channel_header.delete', defaultMessage: 'Archive Channel'})}
+                            text={localizeMessage({ id: 'channel_header.delete', defaultMessage: 'Archive Channel' })}
+                            icon={<ArchiveOutlineIcon />}
                         />
                     </ChannelPermissionGate>
                     {isMobile &&
@@ -323,9 +262,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         isArchived={isArchived}
                     />
                 </Menu.Group>
-                <Menu.Group>
-                    {pluginItems}
-                </Menu.Group>
+
                 <Menu.Group divider={divider}>
                     <ChannelPermissionGate
                         channelId={channel.id}
@@ -340,7 +277,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             dialogProps={{
                                 channel,
                             }}
-                            text={localizeMessage({id: 'channel_header.unarchive', defaultMessage: 'Unarchive Channel'})}
+                            text={localizeMessage({ id: 'channel_header.unarchive', defaultMessage: 'Unarchive Channel' })}
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
