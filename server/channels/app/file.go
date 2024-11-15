@@ -1374,7 +1374,7 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (a *App) CreateZipFileAndAddFiles(rctx request.CTX, fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {
@@ -1386,7 +1386,7 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	zipFileWriter := zip.NewWriter(conglomerateZipFile)
 
 	// Populate Zip file with File Datas array
-	err = populateZipfile(zipFileWriter, fileDatas)
+	err = populateZipfile(rctx, zipFileWriter, fileDatas)
 	if err != nil {
 		return err
 	}
