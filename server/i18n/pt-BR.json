@@ -8326,5 +8326,17 @@
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
     "translation": "Você não tem permissão para atualizar o nome, display_name e a finalidade de mensagens diretas ou de grupo."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
   }
 ]
