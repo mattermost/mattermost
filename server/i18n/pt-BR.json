@@ -8233,6 +8233,6 @@
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Não pode deletar um reconhecimento passados 5 minutos."
+    "translation": "Não é possível deletar uma confirmação de recebimento após 5 minutos."
   }
 ]
