@@ -44,14 +44,14 @@ test('MM-T483 Channel-wide mentions with uppercase letters', async ({pw, pages, 
     expect(notification.silent).toBe(false);
 
     // Verify the last post as viewed by the regular user in the "off-topic" channel contains the message and is highlighted
-    const otherLastPost = await otherChannelPage.getLastPost();
+    const otherLastPost = await otherChannelPage.centerView.getLastPost();
     await otherLastPost.toContainText(message);
     await expect(otherLastPost.container.locator('.mention--highlight')).toBeVisible();
     await expect(otherLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
 
     // Admin navigates to the "off-topic" channel and verifies the message is posted and highlighted correctly
     await adminChannelPage.goto(team.name, 'off-topic');
-    const adminLastPost = await adminChannelPage.getLastPost();
+    const adminLastPost = await adminChannelPage.centerView.getLastPost();
     await adminLastPost.toContainText(message);
     await expect(adminLastPost.container.locator('.mention--highlight')).toBeVisible();
     await expect(adminLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
