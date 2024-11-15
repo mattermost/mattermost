@@ -8238,5 +8238,25 @@
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
     "translation": "Não pode reconhecer em um canal arquivado."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Sua licença não suporta marcadores de canais."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Usuário não tem permissão para criar um marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao criar marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao remover o marcador de canal."
   }
 ]
