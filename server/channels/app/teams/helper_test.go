@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -24,6 +26,7 @@ type TestHelper struct {
 
 	Context   *request.Context
 	LogBuffer *bytes.Buffer
+	TB        testing.TB
 }
 
 type mockWebHub struct{}
@@ -44,9 +47,7 @@ func Setup(tb testing.TB) *TestHelper {
 
 func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "teamservicetest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -66,7 +67,8 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	_, _, err = configStore.Set(config)
+	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
 
@@ -106,38 +108,30 @@ func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
 	old := th.configStore.Get()
 	updated := old.Clone()
 	f(updated)
-	if _, _, err := th.configStore.Set(updated); err != nil {
-		panic(err)
-	}
+	_, _, err := th.configStore.Set(updated)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) CreateUser(u *model.User) *model.User {
 	u.EmailVerified = true
 	user, err := th.dbStore.User().Save(th.Context, u)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.TB, err)
 
 	return user
 }
 
 func (th *TestHelper) DeleteUser(u *model.User) {
 	err := th.dbStore.User().PermanentDelete(th.Context, u.Id)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) DeleteTeam(t *model.Team) {
-	if err := th.dbStore.Channel().PermanentDeleteByTeam(t.Id); err != nil {
-		panic(err)
-	}
+	err := th.dbStore.Channel().PermanentDeleteByTeam(t.Id)
+	require.NoError(th.TB, err)
 
-	if err := th.dbStore.Team().RemoveAllMembersByTeam(t.Id); err != nil {
-		panic(err)
-	}
+	err = th.dbStore.Team().RemoveAllMembersByTeam(t.Id)
+	require.NoError(th.TB, err)
 
-	if err := th.dbStore.Team().PermanentDelete(t.Id); err != nil {
-		panic(err)
-	}
+	err = th.dbStore.Team().PermanentDelete(t.Id)
+	require.NoError(th.TB, err)
 }
