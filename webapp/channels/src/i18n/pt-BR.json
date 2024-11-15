@@ -451,6 +451,7 @@
   "admin.channel_settings.channel_list.managementHeader": "Gerenciamento",
   "admin.channel_settings.channel_list.nameHeader": "Nome",
   "admin.channel_settings.channel_list.no_channels_found": "Nenhum canal encontrado",
+  "admin.channel_settings.channel_list.no_logs_found": "Nenhum log encontrado",
   "admin.channel_settings.channel_list.search_channels_errored": "Algo deu errado. Tente novamente",
   "admin.channel_settings.channel_list.teamHeader": "Equipe",
   "admin.channel_settings.channel_moderation.channelMentions": "Menções Canal",
