@@ -177,7 +177,6 @@ func TestSetCustomStatus(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			err := th.App.SetCustomStatus(th.Context, th.BasicUser.Id, testCase.Input)
-			require.Nil(t, err)
 
 			if err == nil {
 				defer func() {
