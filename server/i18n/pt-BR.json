@@ -8226,5 +8226,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.button",
     "translation": "Abrir Mattermost"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Não é permitido remover um reconhecimento em um canal arquivado."
   }
 ]
