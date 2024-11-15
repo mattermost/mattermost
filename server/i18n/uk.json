@@ -2249,19 +2249,19 @@
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
-    "translation": "Погана перевірка електронної пошти."
+    "translation": "Неправильне посилання для підтвердження електронної пошти."
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Поганий тип токена перевірки email."
+    "translation": "Невірний тип токена для підтвердження електронної пошти."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Термін дії посилання для підтвердження електронної пошти вийшов."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Не вдалося розібрати дані токенів при перевірці електронної пошти"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2269,31 +2269,31 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Не відома WebSocket дія."
+    "translation": "Невідома дія WebSocket."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Неприпустима послідовність повідомлень через websocket."
+    "translation": "Невірна послідовність для повідомлення WebSocket."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "Немає websocket дії."
+    "translation": "Відсутня WebSocket дія."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "Підключення WebSocket не пройшло перевірку справжності. Будь ласка, увійдіть в систему і спробуйте ще раз."
+    "translation": "З'єднання WebSocket не автентифіковано. Будь ласка, увійдіть в систему і спробуйте ще раз."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Вихідні webhooks з того ж каналу не можуть мати однакові тригерні слова / URL-адреси зворотного виклику."
+    "translation": "Вихідні вебхуки з одного каналу не можуть мати однакові тригерні слова/URL зворотного виклику."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Вихідні webhooks можна створювати лише для загальнодоступних каналів."
+    "translation": "Вихідні вебхуки можна створювати лише для публічних каналів."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Недійсні дозволи для створення вихідного webhook."
+    "translation": "Невірні дозволи на створення вихідного вебхука."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2301,7 +2301,7 @@
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Не вдається розшифрувати багатовагове корисне навантаження вхідного webhook."
+    "translation": "Не вдалося декодувати багаточастинне навантаження вхідного вебхука."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -2309,7 +2309,7 @@
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Вихідні webhooks з того ж каналу не можуть мати однакові тригерні слова / URL-адреси зворотного виклику."
+    "translation": "Вихідні вебхуки з одного каналу не можуть мати однакові тригерні слова/URL зворотного виклику."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2317,7 +2317,7 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "З'єднання невдало: {{.Error}}"
+    "translation": "Не вдалося встановити з'єднання: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2325,7 +2325,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Не вдається перемістити канал, якщо всі його учасники не є членами команди призначення."
+    "translation": "Неможливо перемістити канал, якщо всі його учасники ще не є учасниками цільової команди."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2333,11 +2333,11 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "%s видалив заголовок каналу (був: %s)"
+    "translation": "%s видалив опис каналу (було: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "Не вдалося отримати користувача при спробі оновлення повідомлення заголовка каналу %v"
+    "translation": "Не вдалося отримати користувача під час оновлення повідомлення про опис каналу: %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
@@ -4113,7 +4113,7 @@
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
@@ -4621,7 +4621,7 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4641,11 +4641,11 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Невірний вебхук"
+    "translation": "Неправильний вебхук."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
@@ -5313,23 +5313,23 @@
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "Не вдалося знайти смайли для видалення"
+    "translation": "Ми не змогли знайти емодзі для видалення."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "Неможливо видалити смайли"
+    "translation": "Не вдається видалити емодзі."
   },
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
@@ -5401,7 +5401,7 @@
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "Не вдалось видалити бота назавжди."
   },
   {
     "id": "app.bot.patchbot.internal_error",
@@ -5417,7 +5417,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} був деактивований. Вони керували наступними бот-акаунтами, які тепер вимкнені.\n\n{{.BotNames}}{{else}}{{.UserName}} був деактивований. Вони керували {{.NumBots}} бот-акаунтами, які тепер були вимкнені, включаючи наступні:\n\n{{.BotNames}}{{end}} Ви можете взяти на себе керування кожним ботом, увімкнувши його в розділі **Інтеграції > Бот-акаунти** та створивши нові токени для бота.\n\nДля додаткової інформації ознайомтесь з нашою [документацією](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} був деактивований. Вони керували наступними бот-акаунтами, які все ще увімкнені.\n\n{{.BotNames}}\n{{else}}{{.UserName}} був деактивований. Вони керували {{.NumBots}} бот-акаунтами, які все ще увімкнені, включаючи наступні:\n\n{{.BotNames}}{{end}} Ми рішуче рекомендуємо взяти на себе керування кожним ботом, повторно увімкнувши його в розділі **Інтеграції > Бот-акаунти** та створивши нові токени для бота.\n\nДля додаткової інформації ознайомтесь з нашою [документацією](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nЯкщо ви хочете, щоб бот-акаунти вимикалися автоматично після деактивації власника, встановіть опцію \"Вимикати бот-акаунти після деактивації власника\" в **Системній консолі > Інтеграції > Бот-акаунти** на значення \"так\".{{end}}"
   },
   {
     "id": "app.bot.createbot.internal_error",
@@ -5425,27 +5425,27 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Це недійсне активне URL-посилання"
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "Не вдалося зчитати відповідь, отриману від постачальника ідентифікації."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "Сталася помилка під час зчитування корисного навантаження відповіді, отриманої від постачальника ідентифікації."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "Не вдалося декодувати XML-метадані, отримані від постачальника ідентифікації."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable."
+    "translation": "Сервер зайнятий, некритичні сервіси тимчасово недоступні."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+    "translation": "Вказана вами електронна адреса не належить до дозволених доменів для гостьових акаунтів. Будь ласка, зверніться до адміністратора або зареєструйтеся з іншою адресою."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
@@ -5813,27 +5813,27 @@
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": "Неправильний веб-хокс"
+    "translation": "Неправильний вебхук."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": "Неможливо використовувати веб-ключа"
+    "translation": "Не вдається використати вебхук."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": "Неможливо використовувати веб-ключ"
+    "translation": "Не вдалося знайти вебхук."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": "Неможливо використовувати веб-ключ"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": "Не вдається зберегти команду Webhook"
+    "translation": "Не вдається зберегти CommandWebhook."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
@@ -5993,11 +5993,11 @@
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": "Не вдається зберегти смайли"
+    "translation": "Неможливо зберегти емодзі."
   },
   {
     "id": "app.channel.update_channel.internal_error",
-    "translation": "Не вдалося оновити канал."
+    "translation": "Неможливо оновити канал."
   },
   {
     "id": "app.channel.restore.app_error",
@@ -6113,27 +6113,27 @@
   },
   {
     "id": "app.webhooks.get_outgoing_by_team.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_incoming.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
@@ -6305,7 +6305,7 @@
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Не вдалося видалити вкладення користувача"
+    "translation": "Неможливо видалити вкладення користувача."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6317,7 +6317,7 @@
   },
   {
     "id": "app.file_info.get.app_error",
-    "translation": "Не вдається отримати інформацію про файл"
+    "translation": "Не вдалося отримати інформацію про файл."
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
@@ -6545,7 +6545,7 @@
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date."
+    "translation": "Неможливо порахувати кількість повідомленнь з вказаної дати."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
