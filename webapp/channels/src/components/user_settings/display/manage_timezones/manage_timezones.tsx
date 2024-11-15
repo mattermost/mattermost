@@ -185,6 +185,14 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         }
 
         const inputs = [];
+
+        // These are passed to the 'key' prop and should all be unique.
+        const inputId = {
+            automaticTimezoneInput: 1,
+            manualTimezoneInput: 2,
+            message: 3,
+        };
+
         const reactStyles = {
 
             menuPortal: (provided: React.CSSProperties) => ({
@@ -196,7 +204,10 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
 
         const noTimezonesFromServer = timezones.length === 0;
         const automaticTimezoneInput = (
-            <div className='checkbox'>
+            <div
+                className='checkbox'
+                key={inputId.automaticTimezoneInput}
+            >
                 <label>
                     <input
                         id='automaticTimezoneInput'
@@ -217,6 +228,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         const manualTimezoneInput = (
             <div
                 className='pt-2'
+                key={inputId.manualTimezoneInput}
             >
                 <ReactSelect
                     className='react-select react-select-top'
@@ -240,7 +252,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         inputs.push(manualTimezoneInput);
 
         inputs.push(
-            <div>
+            <div key={inputId.message}>
                 <br/>
                 <FormattedMessage
                     id='user.settings.timezones.promote'
