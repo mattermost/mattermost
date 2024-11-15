@@ -7,9 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @ldap
 
+import {UserProfile} from '@mattermost/types/users';
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import {getRandomId} from '../../../../utils';
 
@@ -220,7 +220,7 @@ function setLDAPTestSettings(config) {
 }
 
 function disableOnboardingTaskList(ldapLogin) {
-    cy.apiLogin(ldapLogin).then((user) => {
+    cy.apiLogin(ldapLogin).then(({user}: {user: UserProfile}) => {
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_show', 'false');
         cy.apiSaveSkipStepsPreference(user.id, 'true');
@@ -228,7 +228,7 @@ function disableOnboardingTaskList(ldapLogin) {
 }
 
 function removeUserFromAllTeams(testUser) {
-    cy.apiGetUsersByUsernames([testUser.username]).then((users) => {
+    cy.apiGetUsersByUsernames([testUser.username]).then(({users}) => {
         if (users.length > 0) {
             users.forEach((user) => {
                 cy.apiGetTeamsForUser(user.id).then((teams) => {

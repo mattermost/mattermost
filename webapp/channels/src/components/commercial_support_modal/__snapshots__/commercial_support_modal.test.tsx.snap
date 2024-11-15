@@ -51,20 +51,26 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
     <div
       className="CommercialSupportModal"
     >
-      <FormattedMarkdownMessage
-        defaultMessage="If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
-        id="commercial_support.description"
+      <MemoizedFormattedMessage
+        defaultMessage="If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
+        id="commercial_support_modal.description"
         values={
           Object {
-            "supportLink": "https://support.mattermost.com/hc/en-us/requests/new",
+            "supportLink": [Function],
           }
         }
       />
       <AlertBanner
         message={
-          <FormattedMarkdownMessage
-            defaultMessage="Before downloading the Support Packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging)."
-            id="commercial_support.warning.banner"
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>."
+            id="commercial_support_modal.warning.banner"
+            values={
+              Object {
+                "debugLink": [Function],
+                "strong": [Function],
+              }
+            }
           />
         }
         mode="info"
@@ -73,10 +79,12 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       <div
         className="CommercialSupportModal__packet_contents_download"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="**Select your Support Packet contents to download**"
-          id="commercial_support.download_contents"
-        />
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Select your Support Packet contents to download"
+            id="commercial_support_modal.download_contents"
+          />
+        </strong>
       </div>
       <div
         className="CommercialSupportModal__download"

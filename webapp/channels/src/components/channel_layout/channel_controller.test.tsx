@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, act} from '@testing-library/react';
+import {act} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import * as actions from 'actions/status_actions';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -54,7 +55,7 @@ describe('ChannelController', () => {
         mockState.entities.general.config.EnableUserStatuses = 'true';
         const store = mockStore(mockState);
 
-        render(
+        renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,
@@ -71,7 +72,7 @@ describe('ChannelController', () => {
         const store = mockStore(mockState);
         mockState.entities.general.config.EnableUserStatuses = 'false';
 
-        render(
+        renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,
