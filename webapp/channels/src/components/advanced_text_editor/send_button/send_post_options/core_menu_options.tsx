@@ -122,6 +122,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 />
             }
             className='core-menu-options'
+            autoFocus={true}
             {...extraProps}
         />
     );
@@ -158,6 +159,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 />
             }
             className='core-menu-options'
+            autoFocus={now.weekday === 5 || now.weekday === 6}
             {...extraProps}
         />
     );

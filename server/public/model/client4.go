@@ -8724,6 +8724,9 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 	if options.TotalsOnly {
 		v.Set("totalsOnly", "true")
 	}
+	if options.ExcludeDirect {
+		v.Set("excludeDirect", fmt.Sprintf("%t", options.ExcludeDirect))
+	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()

@@ -70,6 +70,12 @@ describe('components/drafts/panel/panel_body', () => {
                 },
             },
         },
+        views: {
+            rhs: {
+                isSidebarExpanded: false,
+                isSidebarOpen: false,
+            },
+        },
     };
 
     it('should match snapshot', () => {
