@@ -24,7 +24,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) expectUserAuth(userID string, expectedUserAuth *model.UserAuth) error {
-	user, err := p.API.GetUser(p.configuration.BasicUserID)
+	user, err := p.API.GetUser(userID)
 	if err != nil {
 		return err
 	}
