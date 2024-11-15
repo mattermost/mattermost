@@ -1724,6 +1724,7 @@
   "apps.error.parser.unexpected_squared_bracket": "Несподіване відкриття списку.",
   "apps.error.parser.unexpected_state": "Недоступно: Неочікуваний стан у matchBinding: `{state}`.",
   "apps.error.responses.unexpected_type": "Тип відповіді застосунку не відповідає очікуваному. Тип відповіді: {type}",
+  "apps.error.responses.unknown_field_error": "Отримано помилку для невідомого поля. Назва поля: `{field}`. Помилка: \n{error}",
   "audit_table.accountActive": "Акаунт активований",
   "audit_table.accountInactive": "Акаунт деактивовано",
   "audit_table.action": "Дія",
