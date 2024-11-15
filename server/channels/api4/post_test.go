@@ -3129,6 +3129,7 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()

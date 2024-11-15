@@ -23,8 +23,8 @@ import Input from 'components/widgets/inputs/input/input';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
