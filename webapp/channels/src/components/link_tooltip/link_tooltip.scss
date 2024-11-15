@@ -1,8 +1,8 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .tooltip-container {
     opacity: 0;
-    transition: opacity $transition-quick ease-in;
+    transition: opacity variables.$transition-quick ease-in;
     visibility: hidden;
 
     &.visible {

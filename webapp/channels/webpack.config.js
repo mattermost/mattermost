@@ -95,7 +95,7 @@ var config = {
                         loader: 'sass-loader',
                         options: {
                             sassOptions: {
-                                includePaths: ['src/sass'],
+                                loadPaths: ['src/sass'],
                             },
                         },
                     },
