@@ -349,6 +349,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
 		// now we'll update the scheduled post
+		now := model.GetMillis()
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 
 		err = ss.ScheduledPost().UpdatedScheduledPost(scheduledPost)
@@ -356,6 +357,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 		updatedScheduledPost, err := ss.ScheduledPost().Get(scheduledPost.Id)
 		assert.NoError(t, err)
+		assert.LessOrEqual(t, now, updatedScheduledPost.ProcessedAt)
 		assert.Equal(t, model.ScheduledPostErrorUnknownError, updatedScheduledPost.ErrorCode)
 	})
 }
