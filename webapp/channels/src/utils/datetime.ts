@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment-timezone';
+import {DateTime} from 'luxon';
+import moment, {type Moment} from 'moment-timezone';
+import type {useIntl} from 'react-intl';
 
 const shouldTruncate = new Map<Intl.RelativeTimeFormatUnit, boolean>([
     ['year', true],
@@ -88,3 +90,21 @@ export function toUTCUnix(date: Date): number {
     return Math.round(new Date(date.toISOString()).getTime() / 1000);
 }
 
+export function relativeFormatDate(date: Moment, formatMessage: ReturnType<typeof useIntl>['formatMessage'], format?: string): string {
+    const now = moment();
+    const inputDate = moment(date);
+
+    if (inputDate.isSame(now, 'day')) {
+        return formatMessage({id: 'date_separator.today', defaultMessage: 'Today'});
+    } else if (inputDate.isSame(now.clone().subtract(1, 'days'), 'day')) {
+        return formatMessage({id: 'date_separator.yesterday', defaultMessage: 'Yesterday'});
+    } else if (inputDate.isSame(now.clone().add(1, 'days'), 'day')) {
+        return formatMessage({id: 'date_separator.tomorrow', defaultMessage: 'Tomorrow'});
+    }
+
+    if (format) {
+        return DateTime.fromJSDate(date.toDate()).toFormat(format);
+    }
+
+    return DateTime.fromJSDate(date.toDate()).toLocaleString();
+}

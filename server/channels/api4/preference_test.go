@@ -45,7 +45,8 @@ func TestGetPreferences(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	_, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.NoError(t, err)
 
 	prefs, _, err := client.GetPreferences(context.Background(), user1.Id)
 	require.NoError(t, err)
@@ -70,7 +71,8 @@ func TestGetPreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -111,7 +113,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	_, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.NoError(t, err)
 
 	prefs, _, err := client.GetPreferencesByCategory(context.Background(), user1.Id, category)
 	require.NoError(t, err)
@@ -138,7 +141,8 @@ func TestGetPreferencesByCategory(t *testing.T) {
 
 	require.Equal(t, len(prefs), 0, "received the wrong number of preferences")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -177,7 +181,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 		},
 	}
 
-	client.UpdatePreferences(context.Background(), user.Id, preferences)
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
 
 	pref, _, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, model.PreferenceCategoryDirectChannelShow, name)
 	require.NoError(t, err)
@@ -187,7 +192,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	require.Equal(t, preferences[0].Name, pref.Name, "Name preference not saved")
 
 	preferences[0].Value = model.NewId()
-	client.UpdatePreferences(context.Background(), user.Id, preferences)
+	_, err = client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
 
 	_, resp, err := client.GetPreferenceByCategoryAndName(context.Background(), user.Id, "junk", preferences[0].Name)
 	require.Error(t, err)
@@ -204,7 +210,8 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, _, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -275,7 +282,8 @@ func TestUpdatePreferences(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -637,7 +645,8 @@ func TestDeletePreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 	}
 
-	client.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+	_, err := client.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+	require.NoError(t, err)
 
 	// delete 10 preferences
 	th.LoginBasic2()
@@ -658,7 +667,8 @@ func TestDeletePreferences(t *testing.T) {
 	prefs, _, _ = client.GetPreferences(context.Background(), th.BasicUser.Id)
 	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	resp, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -674,7 +684,8 @@ func TestDeletePreferences(t *testing.T) {
 			Value:    "true",
 		}
 		preferences = append(preferences, preference)
-		c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+		_, err = c.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+		require.NoError(t, err)
 
 		// Delete Prefrerences Operation
 		resp, err = c.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)

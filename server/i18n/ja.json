@@ -2315,7 +2315,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "すべてのメンバーが異動先のチームのメンバーになるまでチャンネルを移動することはできません。"
+    "translation": "すべてのメンバーが移動先のチームのメンバーになるまでチャンネルを移動することはできません。"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3415,7 +3415,7 @@
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": "不正なクライアントIDです。"
+    "translation": "不正なclient IDです。"
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -3435,7 +3435,7 @@
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "不正なクライアントIDです。"
+    "translation": "不正なClient IDです。"
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
@@ -4175,7 +4175,7 @@
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
-    "translation": "不正なクライアント秘密情報です。"
+    "translation": "不正なClient Secretです。"
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
@@ -4715,11 +4715,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8915,7 +8915,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "アーカイブされたチャンネルで確認応答をすることはできません。"
+    "translation": "アーカイブされたチャンネルで確認応答を保存することはできません。"
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -9331,11 +9331,11 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
-    "translation": "不正なclient idです。"
+    "translation": "不正なClient IDです。"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
-    "translation": "不正なclient secretです。"
+    "translation": "不正なClient Secretです。"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
@@ -10164,5 +10164,61 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "投稿のスレッドメンバーシップを保存できませんでした。"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "確認済みのクラスターに対する招待コードは生成できません"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "ServiceSettings.EnableAPIPostDeletionが有効でないため、投稿を削除できません。"
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "ユーザーステータスを変更できません。ユーザーはLDAPで管理されています"
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "投稿に対するファイルが見つかりませんでした。"
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "投稿に対するファイルを完全に削除できませんでした。"
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "投稿を完全に削除できませんでした。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "リモートユーザーとのダイレクトチャンネルは作成できません"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "リモートユーザーとのグループチャンネルは作成できません"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "ライセンスファイルの内容をバッファにコピーできませんでした"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "リモートクラスターへの招待を作成できませんでした"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "リモートユーザーとのDMやGM内に投稿は作成できません"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "不正なremote idです。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "不正なsite urlです。"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "不正なtokenです。"
   }
 ]
