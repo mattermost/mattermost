@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	sq "github.com/mattermost/squirrel"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
@@ -44,14 +45,25 @@ func botFromModel(b *model.Bot) *bot {
 type SqlBotStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
+
+	// botsQuery is a starting point for all queries that return one or more Bots.
+	botsQuery sq.SelectBuilder
 }
 
 // newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
 func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
-	return &SqlBotStore{
+	bs := &SqlBotStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
+
+	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
+	bs.botsQuery = bs.getQueryBuilder().
+		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
+		From("Bots b").
+		Join("Users u ON ( u.Id = b.UserId )")
+
+	return bs
 }
 
 // Get fetches the given bot in the database.
@@ -218,4 +230,41 @@ func (us SqlBotStore) PermanentDelete(botUserId string) error {
 		return store.NewErrInvalidInput("Bot", "UserId", botUserId).Wrap(err)
 	}
 	return nil
+}
+
+func (us SqlBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, error) {
+	query := us.botsQuery.Where("b.UserId > ?", afterId).OrderBy("b.UserId ASC").Limit(uint64(limit))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_all_after_tosql")
+	}
+
+	bots := []*model.Bot{}
+	if err := us.GetReplicaX().Select(&bots, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Bots")
+	}
+
+	return bots, nil
+}
+
+// Get fetches the given bot in the database.
+func (us SqlBotStore) GetByUsername(username string) (*model.Bot, error) {
+	query := us.botsQuery.Where("u.Username = lower(?)", username)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_username_tosql")
+	}
+
+	bot := model.Bot{}
+	if err := us.GetReplicaX().Get(&bot, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrap(store.NewErrNotFound("Bot", fmt.Sprintf("username=%s", username)), "failed to find Bot")
+		}
+
+		return nil, errors.Wrapf(err, "failed to find Bot with username=%s", username)
+	}
+
+	return &bot, nil
 }

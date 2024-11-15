@@ -28,7 +28,7 @@ var ShowCmd = &cobra.Command{
 	Use:     "show <role_name>",
 	Short:   "Show the role information",
 	Long:    "Show all the information about a role.",
-	Example: `  permissions show system_user`,
+	Example: `  permissions role show system_user`,
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(showRoleCmdF),
 }

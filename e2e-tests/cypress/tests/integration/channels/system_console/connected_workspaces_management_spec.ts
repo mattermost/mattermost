@@ -51,7 +51,7 @@ describe('Connected Workspaces', () => {
     it('empty state', () => {
         cy.visit('/admin_console');
 
-        cy.get("a[id='environment/secure_connections']").click();
+        cy.get("a[id='site_config/secure_connections']").click();
 
         cy.findByTestId('secureConnectionsSection').within(() => {
             cy.findByRole('heading', {name: 'Connected Workspaces'});
@@ -64,7 +64,7 @@ describe('Connected Workspaces', () => {
         const orgDisplayName = 'Testing Org Name ' + getRandomId();
 
         before(() => {
-            cy.visit('/admin_console/environment/secure_connections');
+            cy.visit('/admin_console/site_config/secure_connections');
         });
 
         it('accept - bad codes', () => {
@@ -123,7 +123,7 @@ describe('Connected Workspaces', () => {
         const orgDisplayName2 = 'new display name here ' + getRandomId();
 
         before(() => {
-            cy.visit('/admin_console/environment/secure_connections');
+            cy.visit('/admin_console/site_config/secure_connections');
         });
 
         it('create', () => {

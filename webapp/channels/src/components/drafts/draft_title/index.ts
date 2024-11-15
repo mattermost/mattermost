@@ -25,7 +25,6 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const {channel, userId} = ownProps;
 
-        const channelName = channel.display_name;
         let teammateId;
         let teammate;
         let membersCount;
@@ -40,8 +39,7 @@ function makeMapStateToProps() {
         }
 
         return {
-            channelName,
-            channelType: channel.type,
+            channel,
             membersCount,
             selfDraft: teammateId === userId,
             teammate,
