@@ -77,9 +77,9 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		AuthService: model.UserAuthServiceLdap,
 		AuthData:    model.NewPointer("ldap_auth_data"),
 	}
-	_, err = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
-	if err != nil {
-		return nil, err.Error()
+	_, appErr = p.API.UpdateUserAuth(p.configuration.BasicUserID, expectedUserAuth)
+	if appErr != nil {
+		return nil, appErr.Error()
 	}
 
 	err = p.expectUserAuth(p.configuration.BasicUserID, expectedUserAuth)
