@@ -164,6 +164,7 @@ function Drafts({
                         title={draftTabHeading}
                         unmountOnExit={false}
                         tabClassName='drafts_tab'
+                        tabIndex={0}
                     >
                         <DraftList
                             drafts={drafts}
