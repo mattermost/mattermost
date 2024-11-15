@@ -2525,7 +2525,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Прямий заголовок каналу задовгий"
+    "translation": "Заголовок приватного каналу занадто довгий"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
@@ -4305,11 +4305,11 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Недійсні імена файлів"
+    "translation": "Некоректні імена файлів."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Некоректний хештег"
+    "translation": "Некоректні гештеги."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -4529,7 +4529,7 @@
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": "неможливо декодувати"
+    "translation": "не змогли розшифрувати."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4565,7 +4565,7 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Бота не існує."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -4617,7 +4617,7 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не вдалося знайти команду"
+    "translation": "Не вдалось знайти команду."
   },
   {
     "id": "web.command_webhook.parse.app_error",
@@ -4629,7 +4629,7 @@
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Не вдалося знайти канал"
+    "translation": "Не вдалось знайти канал."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
@@ -4693,11 +4693,11 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Зробити за замовчуванням"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Відкрити Edge"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -4737,23 +4737,23 @@
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Посібник з інсталяції"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Посібник з інсталяції"
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Завантажити додаток"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Завантажте додаток Mattermost або використовуйте підтримуваний браузер для кращого досвіду."
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Завантажити додаток"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.safari",
@@ -4773,15 +4773,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Отримайте останню версію браузера Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Отримайте останню версію браузера Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Отримайте останню версію браузера Chrome"
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -5309,7 +5309,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Неможливо скопіювати користувацькі зображення емодзі"
   },
   {
     "id": "app.emoji.get_list.internal_error",
@@ -6489,7 +6489,7 @@
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": "Недійсне значення ідентифікатора."
+    "translation": "Недійсне значення ідентифікатора"
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
