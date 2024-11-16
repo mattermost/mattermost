@@ -103,10 +103,14 @@ type PlatformService struct {
 	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
+
+	// This is a test mode setting used to enable Redis
+	// without a license.
+	forceEnableRedis bool
 }
 
 type HookRunner interface {
-	RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int)
+	RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, _ *model.Manifest) bool, hookId int)
 	GetPluginsEnvironment() *plugin.Environment
 }
 
@@ -257,8 +261,26 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
+	ps.Store, err = ps.newStore()
+	if err != nil {
+		return nil, fmt.Errorf("cannot create store: %w", err)
+	}
+
+	// Step 7: Init License
+	if model.BuildEnterpriseReady == "true" {
+		ps.LoadLicense()
+	}
 	license := ps.License()
-	// Step 3: Initialize filestore
+
+	// This is a hack because ideally we wouldn't even have started the Redis client
+	// if the license didn't have clustering. But there's an intricate deadlock
+	// where license cannot be loaded before store, and store cannot be loaded before
+	// cache. So loading license before loading cache is an uphill battle.
+	if (license == nil || !*license.Features.Cluster) && *cacheConfig.CacheType == model.CacheTypeRedis && !ps.forceEnableRedis {
+		return nil, fmt.Errorf("Redis cannot be used in an instance without a license or a license without clustering")
+	}
+
+	// Step 8: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
 		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
@@ -282,17 +304,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	ps.Store, err = ps.newStore()
-	if err != nil {
-		return nil, fmt.Errorf("cannot create store: %w", err)
-	}
-
 	// Note: we hardcode the session and status cache to LRU because they lead
 	// to a lot of SCAN calls in case of Redis. We could potentially have a
 	// reverse mapping to avoid the scan, but this needs more complicated code.
 	// Leaving this for now.
 
-	// Needed before loading license
 	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
 		Name:           "Status",
 		Size:           model.StatusCacheSize,
@@ -314,12 +330,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-	// Step 7: Init License
-	if model.BuildEnterpriseReady == "true" {
-		ps.LoadLicense()
-	}
-
-	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
+	// Step 9: Init Metrics Server depends on step 6 (store) and 7 (license)
 	if ps.startMetrics {
 		if mErr := ps.resetMetrics(); mErr != nil {
 			return nil, mErr
@@ -334,7 +345,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		})
 	}
 
-	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
+	// Step 10: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}

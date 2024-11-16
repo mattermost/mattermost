@@ -50,5 +50,6 @@ const errorCodeToErrorMessage = defineMessages<ScheduledPostErrorCode>({
 });
 
 export function getErrorStringFromCode(intl: IntlShape, errorCode: ScheduledPostErrorCode = 'unknown') {
-    return intl.formatMessage(errorCodeToErrorMessage[errorCode]).toUpperCase();
+    const textDefinition = errorCodeToErrorMessage[errorCode] ?? errorCodeToErrorMessage.unknown;
+    return intl.formatMessage(textDefinition).toUpperCase();
 }

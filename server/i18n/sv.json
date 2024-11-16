@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8847,7 +8847,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Du kan inte bekräfta i en arkiverad kanal."
+    "translation": "Du kan inte spara en bekräfta i en arkiverad kanal."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10207,7 +10207,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Misslyckades med att kopiera licens."
+    "translation": "Misslyckades med att kopiera licensfilens innehåll till buffert"
   },
   {
     "id": "app.post.create_post.shared_dm_or_gm.app_error",
