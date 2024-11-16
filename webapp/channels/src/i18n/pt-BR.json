@@ -565,6 +565,7 @@
   "admin.complianceExport.globalRelayCustomSMTPPort.example": "Ex.: \"25\"",
   "admin.complianceExport.globalRelayCustomSMTPPort.title": "Porta do Servidor SMTP:",
   "admin.complianceExport.globalRelayCustomSMTPServerName.description": "O nome do servidor SMTP que receberá o Global Relay EML.",
+  "admin.complianceExport.globalRelayCustomSMTPServerName.example": "Ex.: \"feeds.globalrelay.com\"",
   "admin.complianceExport.globalRelayCustomSMTPServerName.title": "Nome do Servidor SMTP:",
   "admin.complianceExport.globalRelayCustomerType.a10.description": "A10/Type 10",
   "admin.complianceExport.globalRelayCustomerType.a9.description": "A9/Type 9",
