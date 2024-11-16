@@ -482,6 +482,7 @@
   "admin.channel_settings.channel_moderation.guests": "Convidados",
   "admin.channel_settings.channel_moderation.manageBookmarks": "Gerenciar Marcadores",
   "admin.channel_settings.channel_moderation.manageBookmarks.disabledBoth": "O gerenciamento de marcadores para membros e convidados está desativado em [{scheme_name}](../permissions/{scheme_link}).",
+  "admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest": "O gerenciamento de marcadores para convidados está desativado em [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.manageMembers": "Gerenciar Membros",
   "admin.channel_settings.channel_moderation.manageMembers.disabledBoth": "Os membros do gerenciamento para membros e convidados estão desativados em [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.manageMembers.disabledGuest": "Os membros do gerenciamento para convidados estão desativados em [{scheme_name}](../permissions/{scheme_link}).",
