@@ -304,7 +304,9 @@ func TestProcessAttachments(t *testing.T) {
 	userLine := imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			ProfileImage: model.NewPointer("profile.jpg"),
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer("profile.jpg"),
+			},
 		},
 	}
 

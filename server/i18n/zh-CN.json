@@ -5779,11 +5779,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 126+"
+    "translation": "版本 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 126+"
+    "translation": "版本 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10199,7 +10199,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "复制授权失败。"
+    "translation": "复制授权失败"
   },
   {
     "id": "api.remote_cluster.create_invite_error",

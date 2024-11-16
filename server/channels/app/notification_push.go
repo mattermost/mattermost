@@ -530,9 +530,12 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
-		a.SetExtraSessionProps(session, map[string]string{
+		appErr := a.SetExtraSessionProps(session, map[string]string{
 			model.SessionPropLastRemovedDeviceId: session.DeviceId,
 		})
+		if appErr != nil {
+			return fmt.Errorf("Failed to set extra session properties: %w", appErr)
+		}
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:
@@ -596,6 +599,10 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
+		return true
+	}
+
 	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - notify props",

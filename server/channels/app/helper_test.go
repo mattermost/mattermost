@@ -519,6 +519,14 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
+func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) *model.AppError {
+	appErr := th.App.RemoveUserFromChannel(th.Context, user.Id, user.Id, channel)
+	if appErr != nil {
+		panic(appErr)
+	}
+	return appErr
+}
+
 func (th *TestHelper) CreateRole(roleName string) *model.Role {
 	role, _ := th.App.CreateRole(&model.Role{Name: roleName, DisplayName: roleName, Description: roleName, Permissions: []string{}})
 	return role
