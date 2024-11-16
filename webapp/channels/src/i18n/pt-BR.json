@@ -561,7 +561,7 @@
   "admin.complianceExport.exportJobStartTime.description": "Ajuste a hora de início para exportação de diária de conformidade. Escolha uma hora em que tenha menos pessoas utilizando o sistema. A hora em 24 horas e no formato HH:MM.",
   "admin.complianceExport.exportJobStartTime.example": "Ex.: \"02:00\"",
   "admin.complianceExport.exportJobStartTime.title": "Hora Exportação de Conformidade:",
-  "admin.complianceExport.globalRelayCustomSMTPPort.description": "A porta do servidor SMTP que receberá os Relays globais EML.",
+  "admin.complianceExport.globalRelayCustomSMTPPort.description": "A porta do servidor SMTP que receberá os Global Relay EML.",
   "admin.complianceExport.globalRelayCustomSMTPPort.example": "Ex.: \"25\"",
   "admin.complianceExport.globalRelayCustomSMTPPort.title": "Porta do servidor SMTP:",
   "admin.complianceExport.globalRelayCustomerType.a10.description": "A10/Type 10",
