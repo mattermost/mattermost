@@ -8419,7 +8419,8 @@ func TestGetUsersByNames(t *testing.T) {
 	})
 
 	t.Run("Get users without permissions", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 		defer th.LoginBasic() // Ensure the client is logged back in after the test
 
 		_, resp, err := th.Client.GetUsersByUsernames(context.Background(), []string{th.BasicUser.Username})
@@ -8568,7 +8569,8 @@ func TestGetDefaultProfileImage(t *testing.T) {
 	t.Run("Get default profile image without proper permissions", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 		_, resp, err := th.Client.GetDefaultProfileImage(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -8589,7 +8591,8 @@ func TestGetDefaultProfileImage(t *testing.T) {
 		user := th.CreateUser()
 
 		// Login as the newly created user
-		th.Client.Login(context.Background(), user.Email, user.Password)
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
 
 		img1, resp, err := th.Client.GetDefaultProfileImage(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -8602,7 +8605,8 @@ func TestGetDefaultProfileImage(t *testing.T) {
 		require.Equal(t, img1, img2, "Default profile images should be consistent for the same user")
 
 		// Logout after the test
-		th.Client.Logout(context.Background())
+		_, err = th.Client.Logout(context.Background())
+		require.NoError(t, err)
 	})
 }
 
@@ -8675,7 +8679,8 @@ func TestGetUserThread(t *testing.T) {
 		require.NoError(t, err)
 
 		// Log out
-		client.Logout(context.Background())
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.GetUserThread(context.Background(), user.Id, team.Id, post.Id, false)
 		require.Error(t, err)
@@ -8684,7 +8689,8 @@ func TestGetUserThread(t *testing.T) {
 
 	t.Run("get thread for different user", func(t *testing.T) {
 		// Log back in
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
 
 		post, _, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -8775,7 +8781,8 @@ func TestUpdateReadStateThreadByUser(t *testing.T) {
 		require.NoError(t, err)
 
 		// Log out
-		client.Logout(context.Background())
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.UpdateThreadReadForUser(context.Background(), user.Id, team.Id, post.Id, model.GetMillis())
 		require.Error(t, err)
@@ -8784,7 +8791,8 @@ func TestUpdateReadStateThreadByUser(t *testing.T) {
 
 	t.Run("update read state for different user", func(t *testing.T) {
 		// Log back in
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
 
 		post, _, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -8856,7 +8864,8 @@ func TestSetUnreadThreadByPostId(t *testing.T) {
 		require.NoError(t, err)
 
 		// Log out
-		client.Logout(context.Background())
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
 
 		_, resp, err := client.SetThreadUnreadByPostId(context.Background(), user.Id, team.Id, post.Id, post.Id)
 		require.Error(t, err)
@@ -8865,7 +8874,8 @@ func TestSetUnreadThreadByPostId(t *testing.T) {
 
 	t.Run("set unread state for different user", func(t *testing.T) {
 		// Log back in
-		client.Login(context.Background(), user.Email, user.Password)
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
 
 		post, _, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
