@@ -255,8 +255,8 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		var b bytes.Buffer
-		err = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
-		require.Nil(t, err)
+		appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
 
 		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
