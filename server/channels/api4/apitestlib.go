@@ -514,7 +514,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
 	require.Nil(th.T, appErr)
 	_, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
-	require.Nil(th.T, err)
+	require.NoError(th.T, err)
 
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
