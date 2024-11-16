@@ -562,6 +562,8 @@
   "admin.complianceExport.exportJobStartTime.example": "Ex.: \"02:00\"",
   "admin.complianceExport.exportJobStartTime.title": "Hora Exportação de Conformidade:",
   "admin.complianceExport.globalRelayCustomSMTPPort.description": "A porta do servidor SMTP que receberá os Relays globais EML.",
+  "admin.complianceExport.globalRelayCustomSMTPPort.example": "Ex.: \"25\"",
+  "admin.complianceExport.globalRelayCustomSMTPPort.title": "Porta do servidor SMTP:",
   "admin.complianceExport.globalRelayCustomerType.a10.description": "A10/Type 10",
   "admin.complianceExport.globalRelayCustomerType.a9.description": "A9/Type 9",
   "admin.complianceExport.globalRelayCustomerType.custom.description": "Customizado",
