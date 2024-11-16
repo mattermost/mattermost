@@ -40,15 +40,15 @@ describe('Search', () => {
         cy.uiGetSearchContainer().click();
 
         // * Search word in searchBox and validate searchWord
-        cy.uiGetSearchBox().find('input').type(searchWord + '{enter}');
+        cy.uiGetSearchBox().type(searchWord + '{enter}');
 
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').should('have.value', searchWord);
+        cy.uiGetSearchBox().should('have.value', searchWord);
 
         // # Click on "x" displayed on searchbox
-        cy.uiGetSearchBox().find('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
-        cy.uiGetSearchBox().find('#searchHints').should('be.visible');
-        cy.uiGetSearchBox().type('{esc}');
+        cy.uiGetSearchBox().parent().siblings('.input-clear-x').wait(TIMEOUTS.ONE_SEC).click({force: true});
+        cy.uiGetSearchBox().parents('[class*="SearchInputContainer"]').siblings('#searchHints').should('be.visible');
+        cy.uiGetSearchBox().first().focus().type('{esc}');
 
         // # RHS should be visible with search results
         cy.get('#search-items-container').should('be.visible');
@@ -77,16 +77,16 @@ describe('Search', () => {
             cy.uiGetSearchContainer().click();
 
             // # Search for posts from that user
-            cy.uiGetSearchBox().find('input').type(testSearch, {force: true}).wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchBox().type(testSearch, {force: true}).wait(TIMEOUTS.HALF_SEC);
 
             // # Select user from suggestion list
             cy.contains('.suggestion-list__item', `@${testUser.username}`).scrollIntoView().click({force: true});
 
             // # Verify that search box has the updated query
-            cy.uiGetSearchBox().find('input').should('have.value', `FROM:${testUser.username} `);
+            cy.uiGetSearchBox().should('have.value', `FROM:${testUser.username} `);
 
             // # Perform search
-            cy.uiGetSearchBox().find('input').type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Assert that RHS should be visible with search results
             cy.get('#search-items-container').should('be.visible');
@@ -116,7 +116,7 @@ describe('Search', () => {
         assertSearchHintFilesOrMessages();
 
         // # Search for search term in:
-        cy.uiGetSearchBox().find('input').type('in:');
+        cy.uiGetSearchBox().type('in:');
 
         // # Select option from suggestion list
         cy.get('.suggestion-list__item').first().click({force: true});
@@ -128,7 +128,7 @@ describe('Search', () => {
         cy.get('.input-clear-x').first().click({force: true}).wait(TIMEOUTS.HALF_SEC);
 
         // # Search for search term in:town-square{space}
-        cy.uiGetSearchBox().find('input').type('in:town-square ').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().type('in:town-square ').wait(TIMEOUTS.HALF_SEC);
 
         // * Check the hint contents are now visible
         assertSearchHint();
@@ -137,22 +137,22 @@ describe('Search', () => {
         cy.uiGetSearchBox().get('.input-clear-x').first().click({force: true}).wait(TIMEOUTS.HALF_SEC);
 
         // # Search for search term in:town-square{enter}
-        cy.uiGetSearchBox().find('input').type('in:town-square').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().type('in:town-square').wait(TIMEOUTS.HALF_SEC);
 
         // * Assert that channel name displays appropriately
         cy.get('.suggestion-list__item').first().should('contain.text', 'Town Square~town-square');
 
         // # Press enter to register search term
-        cy.uiGetSearchBox().find('input').type('{enter}');
+        cy.uiGetSearchBox().type('{enter}');
 
         // * Check the hint contents are now visible
         assertSearchHint();
 
         // * Assert that searchBox now includes a trailing space
-        cy.uiGetSearchBox().find('input').should('have.value', 'in:town-square ');
+        cy.uiGetSearchBox().should('have.value', 'in:town-square ');
 
         // # Perform the search
-        cy.uiGetSearchBox().find('input').type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // * Assert autocomplete list is gone
         cy.get('.suggestion-list__item').should('not.exist');
@@ -167,7 +167,7 @@ describe('Search', () => {
         cy.uiGetSearchContainer().click();
 
         // # Search for `Hell*`
-        cy.uiGetSearchBox().find('input').type('Hell*{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetSearchBox().type('Hell*{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // # RHS should be visible with search results
         cy.get('#search-items-container').should('be.visible');

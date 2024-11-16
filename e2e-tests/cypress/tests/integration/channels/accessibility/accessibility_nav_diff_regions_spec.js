@@ -126,7 +126,7 @@ describe('Verify Quick Navigation support across different regions in the app', 
     it('MM-T1460_8 Verify Navigation Support in Search Results', () => {
         // # Search for some text
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').should('be.visible').type('hello {enter}');
+        cy.uiGetSearchBox().should('be.visible').first().type('hello {enter}');
 
         // # Change the focus to search results
         cy.get('#searchContainer').within(() => {
