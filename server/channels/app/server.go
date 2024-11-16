@@ -82,7 +82,8 @@ import (
 )
 
 const (
-	scheduledPostJobInterval = 5 * time.Minute
+	scheduledPostJobInterval      = 5 * time.Minute
+	debugScheduledPostJobInterval = 2 * time.Second
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
@@ -1841,10 +1842,17 @@ func runScheduledPostJob(a *App) {
 }
 
 func doRunScheduledPostJob(a *App) {
+	var jobInterval time.Duration
+	if *a.Config().ServiceSettings.EnableTesting {
+		jobInterval = debugScheduledPostJobInterval
+	} else {
+		jobInterval = scheduledPostJobInterval
+	}
+
 	rctx := request.EmptyContext(a.Log())
 	withMut(&a.ch.scheduledPostMut, func() {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
-		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, scheduledPostJobInterval)
+		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 
