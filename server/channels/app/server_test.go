@@ -368,7 +368,7 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	_, err = client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	err = logger.Flush()
 	assert.NoError(t, err, "flush should succeed")
