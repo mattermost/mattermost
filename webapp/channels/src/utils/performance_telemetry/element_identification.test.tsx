@@ -37,6 +37,11 @@ describe('identifyElementRegion', () => {
         const user = TestHelper.getUserMock({
             id: 'test-user-id',
             roles: 'system_admin system_user',
+            timezone: {
+                useAutomaticTimezone: 'true',
+                automaticTimezone: 'America/New_York',
+                manualTimezone: '',
+            },
         });
         const post = TestHelper.getPostMock({
             id: 'test-post-id',

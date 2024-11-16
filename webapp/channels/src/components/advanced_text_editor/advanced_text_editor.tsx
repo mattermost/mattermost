@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
@@ -24,6 +25,7 @@ import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -50,7 +52,6 @@ import type {PostDraft} from 'types/store/draft';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-import RemoteUserHour from './remote_user_hour';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -121,7 +122,6 @@ const AdvancedTextEditor = ({
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
-    const showRemoteUserHour = useSelector((state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -438,6 +438,8 @@ const AdvancedTextEditor = ({
         draftRef.current = draft;
     }, [draft]);
 
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
+
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
         // Store the draft that existed when we opened the channel to know if it should be saved
@@ -456,7 +458,8 @@ const AdvancedTextEditor = ({
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
-            handleSubmit={handleSubmit}
+            handleSubmit={handleSubmitPostAndScheduledMessage}
+            channelId={channelId}
         />
     );
 
@@ -576,12 +579,12 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {showRemoteUserHour && (
-                <RemoteUserHour
-                    teammateId={teammateId}
-                    displayName={teammateDisplayName}
-                />
-            )}
+            <PostBoxIndicator
+                channelId={channelId}
+                teammateDisplayName={teammateDisplayName}
+                location={location}
+                postId={postId}
+            />
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
