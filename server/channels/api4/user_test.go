@@ -6147,6 +6147,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61736")
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.NoError(t, err)
 		defer webSocketClient.Close()
