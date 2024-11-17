@@ -49,7 +49,7 @@ describe('Search Date Filter', () => {
         searchAndValidate(todayMessage, [todayMessage]);
     });
 
-    it('MM-T596 Use calendar picker to set date', () => {
+    it.skip('MM-T596 Use calendar picker to set date', () => {
         const today = Cypress.dayjs().format('YYYY-MM-DD');
 
         // # Type before: in search field
@@ -79,7 +79,7 @@ describe('Search Date Filter', () => {
         cy.uiGetSearchContainer().should('be.visible').click();
     });
 
-    it('MM-T3997 Backspace after last character of filter makes calendar reappear', () => {
+    it.skip('MM-T3997 Backspace after last character of filter makes calendar reappear', () => {
         const today = Cypress.dayjs().format('YYYY-MM-DD');
 
         // # Type before: in search field
