@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .StarterEditionRightPannel {
     .svg-image {
@@ -87,7 +87,7 @@
         margin-left: auto;
 
         &.btn {
-            @include tertiary-button;
+            @include mixins.tertiary-button;
         }
     }
 
