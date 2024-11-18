@@ -9,6 +9,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {hasScheduledPostError} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -47,9 +48,20 @@ export default function ScheduledPostList({
     const targetScheduledPostId = useRef<string>();
 
     const dispatch = useDispatch();
+    const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
+
     useEffect(() => {
-        dispatch(fetchMissingChannels(scheduledPosts.map((post) => post.channel_id)));
-    }, [scheduledPosts]);
+        if (myChannelsMemberships && scheduledPosts) {
+            const channelIds = Array.from(new Set(
+                scheduledPosts.
+                    filter((post) => Object.prototype.hasOwnProperty.call(myChannelsMemberships, post.channel_id)).
+                    map((post) => post.channel_id),
+            ));
+            if (channelIds.length > 0) {
+                dispatch(fetchMissingChannels(channelIds));
+            }
+        }
+    }, [scheduledPosts, myChannelsMemberships, dispatch]);
 
     return (
         <div className='ScheduledPostList'>
