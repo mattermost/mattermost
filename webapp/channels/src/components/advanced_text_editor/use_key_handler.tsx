@@ -5,6 +5,8 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
@@ -39,7 +41,7 @@ const useKeyHandler = (
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
-    handleSubmit: (submittingDraft?: PostDraft) => void,
+    handleSubmit: (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,

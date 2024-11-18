@@ -81,15 +81,15 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchContainer().click();
 
         // * Verify Accessibility support in search input
-        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
-        cy.uiGetSearchBox().find('input').focus();
+        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchbar-help-popup').and('have.attr', 'aria-label', 'Search messages');
+        cy.uiGetSearchBox().focus();
         cy.get('#searchHints').should('be.visible');
 
         // # Ensure User list is cached once in UI
-        cy.uiGetSearchBox().find('input').type('from:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().first().clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,10 +103,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');
@@ -290,7 +290,7 @@ function getUserMentionAriaLabel(displayName) {
 }
 
 function verifySearchAutocomplete(index, type = 'user') {
-    cy.uiGetSearchBox().find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
         if (type === 'user') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const usernameLength = 12;

@@ -294,7 +294,7 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ChannelHasBeenCreated(pluginContext, sc)
 			return true
 		}, plugin.ChannelHasBeenCreatedID)
@@ -378,7 +378,7 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ChannelHasBeenCreated(pluginContext, channel)
 			return true
 		}, plugin.ChannelHasBeenCreatedID)
@@ -424,7 +424,7 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 }
 
 func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	if user.IsRemote() || otherUser.IsRemote() {
+	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && (user.IsRemote() || otherUser.IsRemote()) {
 		return nil, model.NewAppError("createDirectChannelWithUser", "api.channel.create_channel.direct_channel.remote_restricted.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -528,9 +528,11 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	for _, user := range users {
-		if user.IsRemote() {
-			return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
+	if !a.Config().FeatureFlags.EnableSharedChannelsDMs {
+		for _, user := range users {
+			if user.IsRemote() {
+				return nil, model.NewAppError("createGroupChannel", "api.channel.create_group.remote_restricted.app_error", nil, "", http.StatusForbidden)
+			}
 		}
 	}
 
@@ -598,7 +600,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ChannelHasBeenCreated(pluginContext, channel)
 			return true
 		}, plugin.ChannelHasBeenCreatedID)
@@ -1583,7 +1585,7 @@ func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.C
 		a.Srv().telemetryService.SendTelemetryForFeature(
 			telemetry.TrackGuestFeature,
 			"add_guest_to_channel",
-			map[string]any{"user_actual_id": user.Id})
+			map[string]any{telemetry.TrackPropertyUser: user.Id})
 	}
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
@@ -1677,7 +1679,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 			return true
 		}, plugin.UserHasJoinedChannelID)
@@ -2017,8 +2019,8 @@ func (a *App) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (
 	return count, nil
 }
 
-func (a *App) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetDeleted(teamID, offset, limit, userID)
+func (a *App) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store().Channel().GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2282,7 +2284,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 			return true
 		}, plugin.UserHasJoinedChannelID)
@@ -2596,7 +2598,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 			return true
 		}, plugin.UserHasLeftChannelID)
@@ -2661,10 +2663,12 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 
 	oldStatus := model.StatusOffline
 
+	oldChannelID := ""
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelID}
 	} else {
 		oldStatus = status.Status
+		oldChannelID = status.ActiveChannel
 		status.ActiveChannel = channelID
 		if !status.Manual && channelID != "" {
 			status.Status = model.StatusOnline
@@ -2676,6 +2680,35 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 
 	if status.Status != oldStatus {
 		a.Srv().Platform().BroadcastStatus(status)
+	}
+
+	if channelID != "" && oldChannelID != channelID {
+		// is this a read-only channel?
+		isReadOnly, ircErr := a.Srv().Store().Channel().IsReadOnlyChannel(channelID)
+		if ircErr != nil {
+			mlog.Warn("Error trying to check if it is a readonly channel", mlog.Err(ircErr))
+		}
+		if isReadOnly {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackReadOnlyFeature,
+				"read_only_channel_viewed",
+				map[string]any{
+					telemetry.TrackPropertyUser:    userID,
+					telemetry.TrackPropertyChannel: channelID,
+				},
+			)
+		}
+		isShared, shErr := a.Srv().Store().SharedChannel().HasChannel(channelID)
+		if shErr == nil && isShared {
+			a.Srv().telemetryService.SendTelemetryForFeature(
+				telemetry.TrackSharedChannelsFeature,
+				"shared_channel_viewed",
+				map[string]any{
+					telemetry.TrackPropertyUser:    userID,
+					telemetry.TrackPropertyChannel: channelID,
+				},
+			)
+		}
 	}
 
 	return nil
@@ -2932,7 +2965,7 @@ func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSe
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
-		IncludeSearchById:        opts.IncludeSearchById,
+		IncludeSearchByID:        opts.IncludeSearchById,
 		ExcludeRemote:            opts.ExcludeRemote,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,

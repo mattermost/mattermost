@@ -51,7 +51,7 @@ var RemoveChannelUsersCmd = &cobra.Command{
 	Long:  "Remove some users from channel",
 	Example: `  channel remove myteam:mychannel user@example.com username
   channel remove myteam:mychannel --all-users`,
-	Deprecated: "please use \"users remove\" instead",
+	Deprecated: "please use \"mmctl channel users remove\" instead",
 	RunE:       withClient(channelUsersRemoveCmdF),
 }
 
@@ -60,7 +60,7 @@ var AddChannelUsersCmd = &cobra.Command{
 	Short:      "Add users to channel",
 	Long:       "Add some users to channel",
 	Example:    "  channel add myteam:mychannel user@example.com username",
-	Deprecated: "please use \"users add\" instead",
+	Deprecated: "please use \"mmctl channel users add\" instead",
 	RunE:       withClient(channelUsersAddCmdF),
 }
 
@@ -108,13 +108,13 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 }
 
 var RestoreChannelsCmd = &cobra.Command{
-	Use:        "restore [channels]",
-	Deprecated: "please use \"unarchive\" instead",
-	Short:      "Restore some channels",
+	Use:   "restore [channels]",
+	Short: "Restore some channels",
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel restore myteam:mychannel",
-	RunE:    withClient(unarchiveChannelsCmdF),
+	Example:    "  channel restore myteam:mychannel",
+	Deprecated: "please use \"mmctl channel unarchive\" instead",
+	RunE:       withClient(unarchiveChannelsCmdF),
 }
 
 var UnarchiveChannelCmd = &cobra.Command{
@@ -133,7 +133,7 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example:    "  channel make-private myteam:mychannel",
-	Deprecated: "please use \"channel modify --private\" instead",
+	Deprecated: "please use \"mmctl channel modify --private\" instead",
 	RunE:       withClient(makeChannelPrivateCmdF),
 }
 

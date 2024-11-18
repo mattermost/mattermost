@@ -73,7 +73,7 @@ func (ps *PlatformService) IsConfigReadOnly() bool {
 func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	if ps.pluginEnv != nil {
 		var hookErr error
-		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks) bool {
+		ps.pluginEnv.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			var cfg *model.Config
 			cfg, hookErr = hooks.ConfigurationWillBeSaved(newCfg)
 			if hookErr == nil && cfg != nil {
