@@ -4865,7 +4865,6 @@
   "scheduled_post.action.reschedule": "Nachricht neu planen",
   "scheduled_post.action.send_now": "Jetzt senden",
   "scheduled_post.channel_indicator.link_to_scheduled_posts.text": "Alle geplanten Nachrichten anzeigen",
-  "scheduled_post.channel_indicator.multiple": "Du hast {count} geplante Nachrichten.",
   "scheduled_post.channel_indicator.single": "Die Nachricht ist für {dateTime} vorgesehen.",
   "scheduled_post.channel_indicator.with_other_user_late_time": "Du hast {count, plural, =1 {eine} other {#}} <a>geplante {count, plural, =1 {Nachricht} other {Nachrichten}}</a>.",
   "scheduled_post.delete_modal.body": "Bist du sicher, dass du diese geplante Nachricht an <strong>{displayName}</strong> löschen möchtest?",

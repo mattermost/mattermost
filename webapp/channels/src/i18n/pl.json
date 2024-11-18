@@ -4865,7 +4865,6 @@
   "scheduled_post.action.reschedule": "Przełóż post",
   "scheduled_post.action.send_now": "Wyślij teraz",
   "scheduled_post.channel_indicator.link_to_scheduled_posts.text": "Zobacz wszystkie zaplanowane wiadomości",
-  "scheduled_post.channel_indicator.multiple": "Masz {count} zaplanowane(ych) wiadomości.",
   "scheduled_post.channel_indicator.single": "Wiadomość zaplanowana na {dateTime}.",
   "scheduled_post.channel_indicator.with_other_user_late_time": "Masz {count, plural, =1 {jedną zaplanowaną} other {#}} <a>{count, plural, =1 {wiadomość} other {zaplanowanych wiadomości}}</a>.",
   "scheduled_post.delete_modal.body": "Czy na pewno chcesz usunąć ten zaplanowany post na <strong>{displayName}</strong> ?",

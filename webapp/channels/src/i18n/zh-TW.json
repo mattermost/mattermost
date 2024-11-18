@@ -4863,7 +4863,6 @@
   "scheduled_post.action.reschedule": "重新排程訊息",
   "scheduled_post.action.send_now": "現在寄送",
   "scheduled_post.channel_indicator.link_to_scheduled_posts.text": "查看所有排程訊息",
-  "scheduled_post.channel_indicator.multiple": "您有{count}則排程訊息。",
   "scheduled_post.channel_indicator.single": "{dateTime}排程訊息。",
   "scheduled_post.channel_indicator.with_other_user_late_time": "您有 {count, plural, =1 {1} other {#}} <a>個排程 {count, plural, =1 {訊息} other {訊息}}</a>.",
   "scheduled_post.delete_modal.body": "您確定要",

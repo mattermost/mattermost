@@ -4865,7 +4865,6 @@
   "scheduled_post.action.reschedule": "Bericht opnieuw plannen",
   "scheduled_post.action.send_now": "Nu verzenden",
   "scheduled_post.channel_indicator.link_to_scheduled_posts.text": "Alle geplande berichten bekijken",
-  "scheduled_post.channel_indicator.multiple": "Je hebt {count} geplande berichten.",
   "scheduled_post.channel_indicator.single": "Bericht gepland voor op {dateTime}.",
   "scheduled_post.channel_indicator.with_other_user_late_time": "Je hebt {count, plural, =1 {één} other {#}} <a>geplande {count, plural, =1 {bericht} other {berichten}}</a>.",
   "scheduled_post.delete_modal.body": "Weet je zeker dat je dit geplande bericht naar <strong>{displayName}</strong> wil verwijderen?",

@@ -4863,7 +4863,6 @@
   "scheduled_post.action.reschedule": "Reschedule post",
   "scheduled_post.action.send_now": "Send now",
   "scheduled_post.channel_indicator.link_to_scheduled_posts.text": "See all scheduled messages",
-  "scheduled_post.channel_indicator.multiple": "You have {count} scheduled messages.",
   "scheduled_post.channel_indicator.single": "Message scheduled for {dateTime}.",
   "scheduled_post.channel_indicator.with_other_user_late_time": "You have {count, plural, =1 {one} other {#}} <a>scheduled {count, plural, =1 {message} other {messages}}</a>.",
   "scheduled_post.delete_modal.body": "Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?",
