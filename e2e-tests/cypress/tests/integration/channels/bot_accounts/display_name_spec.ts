@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @bot_accounts
 
 import {Bot} from '@mattermost/types/bots';
@@ -46,7 +45,7 @@ describe('Bot display name', () => {
         });
     });
 
-    it.skip('MM-T1813 Display name for bots stays current', () => {
+    it('MM-T1813 Display name for bots stays current', () => {
         cy.makeClient({user: otherSysadmin}).then((client) => {
             // # Create a bot and get bot user id
             cy.apiCreateBot().then(({bot}) => {
