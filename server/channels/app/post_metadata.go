@@ -920,12 +920,14 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		Format: format,
 	}
 
-	if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
-		(imageOrientation == imaging.RotatedCWMirrored ||
-			imageOrientation == imaging.RotatedCCW ||
-			imageOrientation == imaging.RotatedCCWMirrored ||
-			imageOrientation == imaging.RotatedCW) {
-		image.Width, image.Height = image.Height, image.Width
+	if format == "jpeg" || format == "png" {
+		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
+			(imageOrientation == imaging.RotatedCWMirrored ||
+				imageOrientation == imaging.RotatedCCW ||
+				imageOrientation == imaging.RotatedCCWMirrored ||
+				imageOrientation == imaging.RotatedCW) {
+			image.Width, image.Height = image.Height, image.Width
+		}
 	}
 
 	if format == "gif" {
