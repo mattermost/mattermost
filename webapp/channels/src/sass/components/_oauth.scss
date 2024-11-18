@@ -1,18 +1,19 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
 
 .prompt {
     width: 600px;
     max-width: 90%;
     padding: 1em 2em 0;
-    border: 1px solid $light-gray;
+    border: 1px solid variables.$light-gray;
     margin: 50px auto;
-    background: $white;
+    background: variables.$white;
 
     .prompt__heading {
         display: table;
         width: 100%;
         margin: 1em 0;
-        font-size: em(18px);
+        font-size: functions.em(18px);
         line-height: normal;
         table-layout: fixed;
 
@@ -32,12 +33,12 @@
 
     .prompt__allow {
         margin: 1em 0;
-        font-size: em(20px);
+        font-size: functions.em(20px);
     }
 
     .prompt__buttons {
         padding: 1.5em 0;
-        border-top: 1px solid $light-gray;
+        border-top: 1px solid variables.$light-gray;
         text-align: right;
     }
 

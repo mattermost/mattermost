@@ -104,7 +104,7 @@ const SearchHint = (props: Props): JSX.Element => {
     }
 
     return (
-        <React.Fragment>
+        <>
             {props.withTitle && (!props.searchType) &&
                 <h4 className='search-hint__title'>
                     <FormattedMessage
@@ -154,7 +154,7 @@ const SearchHint = (props: Props): JSX.Element => {
                         </div>
                     </li>))}
             </ul>
-        </React.Fragment>
+        </>
     );
 };
 

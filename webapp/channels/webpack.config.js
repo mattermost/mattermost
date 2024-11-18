@@ -14,8 +14,6 @@ const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
-// const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
@@ -97,7 +95,7 @@ var config = {
                         loader: 'sass-loader',
                         options: {
                             sassOptions: {
-                                includePaths: ['src/sass'],
+                                loadPaths: ['src/sass'],
                             },
                         },
                     },
@@ -141,7 +139,6 @@ var config = {
             crypto: require.resolve('crypto-browserify'),
             stream: require.resolve('stream-browserify'),
             buffer: require.resolve('buffer/'),
-            process: require.resolve('process/browser.js'),
         },
     },
     performance: {
@@ -266,13 +263,6 @@ var config = {
                 sizes: '96x96',
             }],
         }),
-
-        // Disabling this plugin until we come up with better bundle analysis ci
-        // new BundleAnalyzerPlugin({
-        //     analyzerMode: 'disabled',
-        //     generateStatsFile: true,
-        //     statsFilename: 'bundlestats.json',
-        // }),
     ],
 };
 
@@ -407,16 +397,21 @@ if (targetIsDevServer) {
         devtool: 'eval-cheap-module-source-map',
         devServer: {
             liveReload: true,
-            proxy: {
-
-                // Forward these requests to the server
-                '/api': {
+            proxy: [
+                {
+                    context: '/api',
                     ...proxyToServer,
                     ws: true,
                 },
-                '/plugins': proxyToServer,
-                '/static/plugins': proxyToServer,
-            },
+                {
+                    context: '/plugins',
+                    ...proxyToServer,
+                },
+                {
+                    context: '/static/plugins',
+                    ...proxyToServer,
+                },
+            ],
             port: 9005,
             devMiddleware: {
                 writeToDisk: false,

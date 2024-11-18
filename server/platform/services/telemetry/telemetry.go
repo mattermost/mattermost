@@ -107,6 +107,7 @@ const (
 	TrackGroupsFeature         TrackFeature = "custom_groups"
 	TrackReadOnlyFeature       TrackFeature = "read_only_channels"
 	TrackSharedChannelsFeature TrackFeature = "shared_channels"
+	TrackScheduledPosts        TrackFeature = "scheduled_posts"
 )
 
 const (
@@ -114,6 +115,7 @@ const (
 	TrackPropertyGroup      = "group_id"
 	TrackPropertyChannel    = "channel_id"
 	TrackPropertyPostAuthor = "post_owner_id"
+	TrackPropertyUserAgent  = "user_agent"
 )
 
 type ServerIface interface {
@@ -1063,7 +1065,7 @@ func (ts *TelemetryService) trackPlugins() {
 		"plugins_with_broken_manifests": brokenManifestCount,
 	})
 
-	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)

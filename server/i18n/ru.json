@@ -5793,11 +5793,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 126+"
+    "translation": "Версия 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 126+"
+    "translation": "Версия 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -8925,7 +8925,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Вы не можете подтвердить в архивированном канале."
+    "translation": "Вы не можете сохранить подтверждение в архивированном канале."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10142,5 +10142,37 @@
   {
     "id": "api.shared_channel.has_remote_error",
     "translation": "Не удалось определить, является ли канал общим с удаленным"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Неверный запрос."
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "для функции запланированных сообщений требуется лицензия"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "функция запланированных сообщений отключена"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Невозможно удалить сообщение, ServiceSettings.EnableAPIPostDeletion не включен."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Невозможно создать канал личных сообщений с удаленным пользователем"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Невозможно создать канал в группе с удалёнными пользователями"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Не удалось скопировать содержимое файла лицензии в буфер"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Не удалось создать приглашение на удаленный кластер"
   }
 ]
