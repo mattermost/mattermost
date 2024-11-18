@@ -2349,11 +2349,11 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "Виникла помилка запису даних експорту."
+    "translation": "Виникла помилка під час запису даних для експорту."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Виникла помилка при скасуванні даних JSON для експорту."
+    "translation": "Виникла помилка під час формування даних JSON для експорту."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2365,11 +2365,11 @@
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
-    "translation": "Помилка читання файлу імпорту даних."
+    "translation": "Помилка читання файлу даних імпорту."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
-    "translation": "Не вдалося декодування рядка JSON."
+    "translation": "Не вдалося декодувати JSON рядок."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -2745,7 +2745,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Пропущено назва каналу в «Участь користувачів на каналах»"
+    "translation": "Відсутнє ім'я каналу в членстві користувача в каналі."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
@@ -3069,31 +3069,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Працівник агрегатора Elasticsearch не зміг створити роботу з індексації"
+    "translation": "Робітник агрегації {{.Backend}} не зміг створити завдання індексації"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Працівник агрегатора Elasticsearch не зміг видалити індекси"
+    "translation": "Робітник агрегації {{.Backend}} не зміг видалити індекси"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Працівник агрегатора Elasticsearch не зміг отримати індекси"
+    "translation": "Робітник агрегації {{.Backend}} не зміг отримати індекси"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Робота агрегатора Elasticsearch не виконана через невдалу роботу з індексацією"
+    "translation": "Робітник агрегації {{.Backend}} не вдалося через невдачу завдання індексації"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Налаштування клієнта Elasticsearch не вдалося"
+    "translation": "Налаштування {{.Backend}} помилка клієнта"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
+    "translation": "Не вдалося видалити індекс {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не вдалося отримати індекси Elasticsearch"
+    "translation": "Не вдалося отримати індекси {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4997,15 +4997,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Не вдалося створити шаблон {{.Backend}} для користувачів"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Не вдалося створити шаблон {{.Backend}} для дописів"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Не вдалося створити шаблон {{.Backend}} для каналів"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -5333,7 +5333,7 @@
   },
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
-    "translation": "Не вдалося записати історію учасників каналу. Не вдалося оновити існуючий запис"
+    "translation": "Не вдалося записати історію учасників каналу. Не вдалося оновити існуючий запис про приєднання"
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -6041,11 +6041,11 @@
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Ми зіткнулися з помилкою при збереженні звіту про відповідність."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Ми зіткнулися з помилкою при отриманні звітів про відповідність."
   },
   {
     "id": "app.preference.save.updating.app_error",
@@ -6309,7 +6309,7 @@
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    "translation": "Неможливо отримати інформацію про файл з параметрами"
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -6325,7 +6325,7 @@
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels."
+    "translation": "Неможливо визначити, чи належить користувач до списку каналів."
   },
   {
     "id": "app.channel.search_group_channels.app_error",
@@ -6505,7 +6505,7 @@
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread."
+    "translation": "Не вдалося позначити канал як непрочитаний."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -9677,7 +9677,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Не вдалося створити шаблон Elasticsearch для файлів"
+    "translation": "Не вдалося створити шаблон {{.Backend}} для файлів"
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
@@ -9745,19 +9745,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Не вдалося розшифрувати клієнтський сертифікат для Elasticsearch"
+    "translation": "Не вдалося розшифрувати клієнтський сертифікат для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Не вдалося відкрити файл CA для Elasticsearch"
+    "translation": "Не вдалося відкрити файл CA для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Не вдалося відкрити файл клієнтського сертифіката для Elasticsearch"
+    "translation": "Не вдалося відкрити файл клієнтського сертифіката для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Не вдалося відкрити файл клієнтського ключа для Elasticsearch"
+    "translation": "Не вдалося відкрити файл клієнтського ключа для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -10338,5 +10338,81 @@
   {
     "id": "model.session.is_valid.roles_limit.app_error",
     "translation": "Ролі сесії перевищують допустиму довжину у {{.Limit}} символів."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Неможливо перейти до початку даних GIF."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Канал заархівовано"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Канал не знайдено"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Невірний вміст допису"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Не є учасником каналу"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Не вдалося надіслати {{.Count}} запланованих повідомлень.",
+      "many": "Не вдалося надіслати {{.Count}} запланованих повідомлень.",
+      "one": "Не вдалося надіслати {{.Count}} заплановане повідомлення."
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Немає дозволу на публікацію в каналі"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Обговорення видалено"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Не вдалося надіслати повідомлення"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Невідома помилка"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Обліковий запис користувача видалено"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Користувач не існує"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Неможливо видалити заплановані повідомлення для користувача."
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Приватний канал"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Невідомий Канал"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Неправильний клас сховища {{.Value}}."
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "many": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
+      "one": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}"
+    }
   }
 ]
