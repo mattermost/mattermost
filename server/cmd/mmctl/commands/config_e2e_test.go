@@ -244,6 +244,22 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		if c == s.th.LocalClient {
+			// filter config is used to convert the config to a map[string]any
+			// local client has unrestricted access to the config
+			expectedConfig, err2 := model.FilterConfig(s.th.App.Config(), model.ConfigFilterOptions{GetConfigOptions: model.GetConfigOptions{}})
+			s.Require().NoError(err2)
+			s.Require().Equal(expectedConfig, m)
+		} else {
+			// filter config is used to convert the config to a map[string]any
+			// system admin client has restricted access to the config
+			expectedConfig, err2 := model.FilterConfig(s.th.App.GetSanitizedConfig(), model.ConfigFilterOptions{GetConfigOptions: model.GetConfigOptions{}})
+			s.Require().NoError(err2)
+			s.Require().Equal(expectedConfig, m)
+		}
 	})
 
 	s.Run("Should remove masked values for system admin client", func() {

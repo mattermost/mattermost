@@ -4591,6 +4591,10 @@ type GetConfigOptions struct {
 	RemoveDefaults bool
 }
 
+// FilterConfig returns a map[string]any representation of the configuration.
+// Also, the function can filtered the configuration by the options passed
+// in the argument. The options are used to remove the default values, the masked
+// values and to filter the configuration by the tags passed in the TagFilters.
 func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error) {
 	if cfg == nil {
 		return nil, nil
