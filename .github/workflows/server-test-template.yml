@@ -84,6 +84,7 @@ jobs:
           check_retries: true
           flaky_summary: true
           include_passed: true
+          check_annotations: true
       - name: Report retried tests via webhook (master || release-*)
         if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
         uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a # v2.0.0
