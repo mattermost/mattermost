@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 //  since the modal is kind of tall, this makes it look more aligned to the top and the content better distributed
 .GenericModal.modal-dialog {
@@ -100,8 +100,8 @@
                 margin-top: 24px;
                 margin-left: auto;
 
-                @include primary-button;
-                @include button-medium;
+                @include mixins.primary-button;
+                @include mixins.button-medium;
 
                 &:focus-visible {
                     outline: none !important;

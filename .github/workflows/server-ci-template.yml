@@ -300,7 +300,7 @@ jobs:
       logsartifact: mmctl-test-logs
   build-mattermost-server:
     name: Build mattermost server app
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: server

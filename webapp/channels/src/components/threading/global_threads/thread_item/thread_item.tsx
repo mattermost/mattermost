@@ -182,7 +182,7 @@ function ThreadItem({
             id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
             onClick={selectHandler}
         >
-            <h1>
+            <header>
                 {Boolean(newMentions || newReplies) && (
                     <div className='indicator'>
                         {newMentions ? (
@@ -217,7 +217,7 @@ function ThreadItem({
                     className='alt-hidden'
                     value={lastReplyAt}
                 />
-            </h1>
+            </header>
             <div className='menu-anchor alt-visible'>
                 <ThreadMenu
                     threadId={threadId}

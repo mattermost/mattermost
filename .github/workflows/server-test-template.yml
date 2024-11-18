@@ -74,11 +74,12 @@ jobs:
             server/report.xml
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
+        uses: mikepenz/action-junit-report@ec3a351c13e080dc4fa94c49ab7ad5bf778a9668 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: server/report.xml
           check_name: ${{ inputs.name }} (Results)
+          job_name: ${{ inputs.name }}
           require_tests: true
       - name: Report retried tests via webhook (master || release-*)
         if: ${{ steps.report.outputs.retried > 0 && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}

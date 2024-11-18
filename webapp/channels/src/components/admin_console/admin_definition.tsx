@@ -1098,6 +1098,17 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'FileSettings.AmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
+                            ),
+                        },
+                        {
                             type: 'button',
                             action: testS3Connection,
                             key: 'TestS3Connection',
@@ -1279,6 +1290,17 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
                             ),
                         },
                         {
@@ -2078,6 +2100,13 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             multiple: true,
                             no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'LocalizationSettings.EnableExperimentalLocales',
+                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
+                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                     ],

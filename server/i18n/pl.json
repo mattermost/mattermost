@@ -10230,5 +10230,113 @@
   {
     "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
     "translation": "Nieprawidłowy adres URL strony."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Nieprawidłowe żądanie."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funkcja zaplanowanych postów jest wyłączona"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funkcja zaplanowanych postów wymaga licencji"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Nie można zaktualizować bota."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Nie udało się usunąć zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Nie masz uprawnień do usunięcia tego zasobu."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zaplanowany post nie istnieje."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Nie można pobrać istniejącego zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Wystąpił błąd podczas pobierania zaplanowanych postów."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Nie można znaleźć właściciela bota"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Importowany wiersz danych ma typ \"bot\" ale obiekt bota ma wartość null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Brakuje właściciela bota"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Nie można zaplanować postu w zarchiwizowanym kanale."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Wystąpił błąd podczas zapisywania zaplanowanego wpisu."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zaplanowany post nie istnieje."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Nie można pobrać istniejącego zaplanowanego postu z bazy danych."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Nie udało się zapisać zaktualizowanego zaplanowanego wpisu w bazie danych."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Nie masz uprawnień do aktualizacji tego zasobu."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zaplanowany post musi mieć identyfikator."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Nie możesz zaplanować pustego postu. Zaplanowany post musi zawierać przynajmniej wiadomość lub załączniki w postaci plików."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Nieprawidłowo przetworzone w czasie."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Nieprawidłowy zaplanowany czas."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Post nie może zostać utworzony"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Nie można pobrać bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Nie można uzyskać bezpośredniej wiadomości od bota systemowego"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Jeśli otrzymałeś to powiadomienie testowe, to zadziałało!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Nie można uzyskać użytkownika"
   }
 ]

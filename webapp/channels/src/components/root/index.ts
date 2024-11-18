@@ -17,6 +17,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadRecentlyUsedCustomEmojis, migrateRecentEmojis} from 'actions/emoji_actions';
+import {isDevModeEnabled} from 'selectors/general';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
 import {
@@ -72,6 +73,7 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         shouldShowAppBar: shouldShowAppBar(state),
         isCloud: isCurrentLicenseCloud(state),
+        isDevModeEnabled: isDevModeEnabled(state),
     };
 }
 
