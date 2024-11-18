@@ -4,7 +4,6 @@
 package shared
 
 import (
-	"encoding/json"
 	"fmt"
 	"path"
 	"strconv"
@@ -216,18 +215,6 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 	}
 
 	return jd, nil
-}
-
-func StringDataToJobData(strMap map[string]string) (JobData, error) {
-	mapBytes, err := json.Marshal(strMap)
-	if err != nil {
-		return JobData{}, err
-	}
-	var ret JobData
-	if err := json.Unmarshal(mapBytes, &ret); err != nil {
-		return JobData{}, err
-	}
-	return ret, nil
 }
 
 type BackendParams struct {
