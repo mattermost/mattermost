@@ -265,7 +265,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
 
 	ps.Go(func() {
-		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		runner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnWebSocketConnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketConnectID)
@@ -278,7 +278,7 @@ func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for msg := range wc.pluginPosted {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
 			return true
 		}, plugin.WebSocketMessageHasBeenPostedID)
@@ -417,7 +417,7 @@ func (wc *WebConn) Pump() {
 
 	userID := wc.UserId
 	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
 			return true
 		}, plugin.OnWebSocketDisconnectID)

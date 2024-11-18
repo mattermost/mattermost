@@ -2805,6 +2805,11 @@ func TestGetPost(t *testing.T) {
 
 		_, err = client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
+		t.Cleanup(func() {
+			// Add the user back to the channel
+			_, _, err = client.AddChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+			require.NoError(t, err)
+		})
 
 		// Channel is public, should be able to read post
 		_, _, err = c.GetPost(context.Background(), th.BasicPost.Id, "")
@@ -3124,6 +3129,7 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()

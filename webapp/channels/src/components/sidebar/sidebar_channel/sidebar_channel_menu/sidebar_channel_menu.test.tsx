@@ -43,7 +43,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         onToggleMenu: jest.fn(),
         multiSelectedChannelIds: [],
         displayedChannels: [],
-        markMultipleChannelsAsRead: jest.fn(),
+        readMultipleChannels: jest.fn(),
         markMostRecentPostInChannelAsUnread: jest.fn(),
         favoriteChannel: jest.fn(),
         unfavoriteChannel: jest.fn(),
