@@ -84,7 +84,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ReactionHasBeenAdded(pluginContext, reaction)
 			return true
 		}, plugin.ReactionHasBeenAddedID)
@@ -155,7 +155,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.ReactionHasBeenRemoved(pluginContext, reaction)
 			return true
 		}, plugin.ReactionHasBeenRemovedID)
