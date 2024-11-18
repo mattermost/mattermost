@@ -127,7 +127,6 @@ issues:
         channels/app/plugin_test.go|\
         channels/app/post.go|\
         channels/app/post_helpers_test.go|\
-        channels/app/post_metadata.go|\
         channels/app/post_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
