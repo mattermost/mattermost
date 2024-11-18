@@ -6,13 +6,13 @@ import {FormattedMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-interface Props {
+type Props = {
 
     /*
      * An array of file metadata for the parent post
      */
     fileInfos?: FileInfo[];
-}
+};
 
 const CommentedOnFilesMessage = ({
     fileInfos,

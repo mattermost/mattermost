@@ -1,11 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-@charset 'UTF-8';
-
-@import '../../../../channels/src/sass/utils/variables';
-@import '../../../../channels/src/sass/utils/mixins';
-
 .console__body .modal .GenericModal,
 .app__body .modal .GenericModal {
     &.modal-dialog {
@@ -20,6 +12,22 @@
 
     .no-header__img {
         margin-top: -40px;
+    }
+
+    .modal-header {
+        .GenericModal__header__text_container {
+            margin-top: 8px;
+            width: 100%;
+
+            .modal-subheading-container {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+        }
+
+        p#genericModalSubheading {
+            font-size: 12px;
+            margin-block: 10px;
+        }
     }
 
     .modal-body {
@@ -96,7 +104,7 @@
                 display: flex;
                 box-sizing: border-box;
                 flex: 1;
-                padding: 14px;
+                padding: 14px 32px;
                 border: 1px solid rgba(var(--dnd-indicator-rgb), 0.16);
                 margin-bottom: 24px;
                 background: rgba(var(--dnd-indicator-rgb), 0.08);
