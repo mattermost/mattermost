@@ -272,23 +272,25 @@ func Test_GetBatchPath(t *testing.T) {
 
 func TestJobDataToStringMap_and_StringMapToJobData(t *testing.T) {
 	jd := JobData{
-		ExportType:              "cli_message_export",
-		ExportDir:               "/here/there/34234-123",
-		BatchStartTime:          45,
-		BatchStartId:            "34arsitenaorsten",
-		ExportPeriodStartTime:   123456, // not exported
-		JobStartTime:            99,
-		JobEndTime:              1234,
-		JobStartId:              "99abcdef34",
-		BatchSize:               2000,
-		ChannelBatchSize:        30000,
-		ChannelHistoryBatchSize: 30,
-		BatchNumber:             4,
-		TotalPostsExpected:      999999,
-		MessagesExported:        343499,
-		WarningCount:            39,
-		BatchEndTime:            999999999,               // not exported
-		BatchPath:               "/another/path/123-123", // not exported
+		JobDataExported: JobDataExported{
+			ExportType:              "cli_message_export",
+			ExportDir:               "/here/there/34234-123",
+			BatchStartTime:          45,
+			BatchStartId:            "34arsitenaorsten",
+			JobStartTime:            99,
+			JobEndTime:              1234,
+			JobStartId:              "99abcdef34",
+			BatchSize:               2000,
+			ChannelBatchSize:        30000,
+			ChannelHistoryBatchSize: 30,
+			BatchNumber:             4,
+			TotalPostsExpected:      999999,
+			MessagesExported:        343499,
+			WarningCount:            39,
+		},
+		ExportPeriodStartTime: 123456,                  // not exported
+		BatchEndTime:          999999999,               // not exported
+		BatchPath:             "/another/path/123-123", // not exported
 	}
 
 	strMap := JobDataToStringMap(jd)
