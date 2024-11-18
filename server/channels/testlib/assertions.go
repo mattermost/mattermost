@@ -13,6 +13,7 @@ import (
 
 // AssertLog asserts that a JSON-encoded buffer of logs contains one with the given level and message.
 func AssertLog(t *testing.T, logs io.Reader, level, message string) {
+	t.Helper()
 	if !hasMsg(t, logs, level, message) {
 		assert.Failf(t, "failed to find %s log message: %s", level, message)
 	}
@@ -20,6 +21,7 @@ func AssertLog(t *testing.T, logs io.Reader, level, message string) {
 
 // AssertNoLog asserts that a JSON-encoded buffer of logs does not contains one with the given level and message.
 func AssertNoLog(t *testing.T, logs io.Reader, level, message string) {
+	t.Helper()
 	if hasMsg(t, logs, level, message) {
 		assert.Failf(t, "found %s log message: %s", level, message)
 	}
