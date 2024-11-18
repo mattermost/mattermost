@@ -10228,5 +10228,113 @@
   {
     "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
     "translation": "Ungültige URL der Website."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Die Funktion für zeitgesteuerte Beiträge ist deaktiviert"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Die Funktion \"Zeitgesteuerte Beiträge\" erfordert eine Lizenz"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Konnte den Bot nicht aktualisieren."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Der geplante Beitrag konnte nicht aus der Datenbank gelöscht werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu löschen."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Beim Abrufen der zeitgesteurten Beiträge ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Besitzer des Bots kann nicht gefunden werden"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Die Importdatenzeile hat den Typ \"bot\", aber das Bot-Objekt ist null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot-Besitzer fehlt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Du kannst keinen Beitrag in einem archivierten Channel planen."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Beim Speichern des zeitgesteuerten Beitrags ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Aktualisierter zeitgesteuerter Beitrag konnte nicht in der Datenbank gespeichert werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu aktualisieren."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Ein leerer Beitrag kann nicht zeitgesteuert werden. Ein zeitgesteuerter Beitrag muss mindestens eine Nachricht oder einen Dateianhang enthalten."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zeitgesteuerte Beiträge müssen eine ID haben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Die Nachricht kann nicht erstellt werden"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kann die System Bot-Direktnachricht nicht erhalten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kann den Benutzer nicht holen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Wenn du diese Testbenachrichtigung erhalten hast, hat es funktioniert!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kann den Systembot nicht holen"
   }
 ]
