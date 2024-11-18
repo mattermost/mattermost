@@ -51,6 +51,9 @@ func StoreOverrideWithCache(override store.Store) Option {
 			if err != nil {
 				return nil, err
 			}
+			// Clearing all the caches because the in-mem data
+			// is persisted in case of Redis.
+			lcl.Invalidate()
 			return lcl, nil
 		}
 
