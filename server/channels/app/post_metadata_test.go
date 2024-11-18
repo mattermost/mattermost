@@ -2755,7 +2755,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-2": {
@@ -2763,7 +2763,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-3": {
@@ -2771,7 +2771,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-4": {
@@ -2779,7 +2779,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-5": {
@@ -2787,7 +2787,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-6": {
@@ -2795,7 +2795,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jepg",
 			},
 		},
 		"jpg-7": {
@@ -2803,7 +2803,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-8": {
@@ -2811,7 +2811,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jpg",
+				Format: "jpeg",
 			},
 		},
 		"animated gif": {
