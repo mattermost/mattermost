@@ -2795,7 +2795,7 @@ func TestParseImages(t *testing.T) {
 			Expected: &model.PostImage{
 				Width:  2860,
 				Height: 1578,
-				Format: "jepg",
+				Format: "jpeg",
 			},
 		},
 		"jpg-7": {
