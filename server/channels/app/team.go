@@ -604,10 +604,17 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
-
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		a.DeleteToken(token)
-		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
+		if delErr := a.DeleteToken(token); delErr != nil { // Use a new variable for the error
+			c.Logger().Warn("Error while deleting token", mlog.Err(delErr))
+		}
+		return nil, nil, model.NewAppError(
+			"AddUserToTeamByToken",
+			"api.user.create_user.signup_link_expired.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
 	}
 
 	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
@@ -1753,7 +1760,9 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		}
 	} else {
 		for _, ch := range channels {
-			a.PermanentDeleteChannel(c, ch)
+			if delErr := a.PermanentDeleteChannel(c, ch); delErr != nil { // Use a new variable for loop scope
+				c.Logger().Warn("Error while deleting channel", mlog.Err(delErr))
+			}
 		}
 	}
 
@@ -1883,7 +1892,9 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 		}
 
 		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-			a.DeleteToken(token)
+			if err := a.DeleteToken(token); err != nil {
+				return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.delete_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -2046,7 +2057,6 @@ func (a *App) InvalidateAllEmailInvites(c request.CTX) *model.AppError {
 	}
 	return nil
 }
-
 func (a *App) InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError {
 	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(c, model.JobTypeResendInvitationEmail, model.JobStatusPending)
 	if appErr != nil {
@@ -2054,9 +2064,15 @@ func (a *App) InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError 
 	}
 
 	for _, j := range jobs {
-		a.Srv().Jobs.SetJobCanceled(j)
-		// clean up any system values this job was using
-		a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		if err := a.Srv().Jobs.SetJobCanceled(j); err != nil {
+			return model.NewAppError("InvalidateAllResendInviteEmailJobs", "api.jobs.set_job_canceled.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Clean up any system values this job was using
+		_, err := a.Srv().Store().System().PermanentDeleteByName(j.Id)
+		if err != nil {
+			return model.NewAppError("InvalidateAllResendInviteEmailJobs", "api.system.permanent_delete.error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
