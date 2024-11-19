@@ -1503,6 +1503,10 @@ function handleSidebarCategoryCreated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
+        if (!msg.broadcast.team_id) {
+            return;
+        }
+
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The new category will be loaded when we switch teams.
             return;
@@ -1518,6 +1522,10 @@ function handleSidebarCategoryUpdated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
+        if (!msg.broadcast.team_id) {
+            return;
+        }
+
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The updated categories will be loaded when we switch teams.
             return;
@@ -1532,6 +1540,10 @@ function handleSidebarCategoryUpdated(msg) {
 function handleSidebarCategoryDeleted(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
+
+        if (!msg.broadcast.team_id) {
+            return;
+        }
 
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The category will be removed when we switch teams.

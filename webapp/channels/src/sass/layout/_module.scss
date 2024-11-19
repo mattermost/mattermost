@@ -1,13 +1,13 @@
 // Only for combining all the files in this folder
-@import 'content';
-@import 'footer';
-@import 'headers';
-@import 'markdown';
-@import 'navigation';
-@import 'sidebar-left';
-@import 'sidebar-menu';
-@import 'sidebar-right';
-@import 'team-button';
-@import 'team-sidebar';
-@import 'webhooks';
-@import 'channel-icon';
+@use 'content';
+@use 'footer';
+@use 'headers';
+@use 'markdown';
+@use 'navigation';
+@use 'sidebar-left';
+@use 'sidebar-menu';
+@use 'sidebar-right';
+@use 'team-button';
+@use 'team-sidebar';
+@use 'webhooks';
+@use 'channel-icon';
