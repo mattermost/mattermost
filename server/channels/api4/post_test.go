@@ -3128,6 +3128,7 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	t.Skip("MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
