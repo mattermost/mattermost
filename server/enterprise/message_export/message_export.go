@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
@@ -16,8 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-
-	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -51,7 +50,7 @@ func (m *MessageExportInterfaceImpl) StartSynchronizeJob(rctx request.CTX, expor
 	// if a valid export time was specified, put it in the job data
 	jobData := make(map[string]string)
 	if exportFromTimestamp >= 0 {
-		jobData[JobDataBatchStartTimestamp] = strconv.FormatInt(exportFromTimestamp, 10)
+		jobData[shared.JobDataBatchStartTime] = strconv.FormatInt(exportFromTimestamp, 10)
 	}
 
 	// passing nil for job data will cause the worker to inherit start time from previously successful job
@@ -104,7 +103,7 @@ func RunBatch(rctx request.CTX, data shared.JobData, params shared.BackendParams
 	data.TransferringFilesMs = append(data.TransferringFilesMs, res.TransferringFilesMs)
 	data.TransferringZipMs = append(data.TransferringZipMs, res.TransferringZipMs)
 	data.TotalBatchMs = append(data.TotalBatchMs, time.Since(start).Milliseconds())
-	data.TotalWarningCount += res.NumWarnings
+	data.WarningCount += res.NumWarnings
 	data.BatchStartTime = data.BatchEndTime
 
 	return res, data, err
@@ -142,7 +141,7 @@ func GetDataForBatch(rctx request.CTX, data shared.JobData, params shared.Backen
 	}
 
 	rctx.Logger().Debug("Found posts to export", mlog.Int("num_posts", len(data.PostsToExport)))
-	data.TotalPostsExported += len(data.PostsToExport)
+	data.MessagesExported += len(data.PostsToExport)
 	data.BatchNumber++
 	data.BatchPath = shared.GetBatchPath(data.ExportDir, data.BatchStartTime, data.BatchEndTime, data.BatchNumber)
 
