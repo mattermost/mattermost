@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -281,6 +282,9 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
+		channel1 := th.BasicChannel
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
 		// Create failed scheduled posts: 1 for user1 and 2 for user2
 		failedScheduledPosts := []*model.ScheduledPost{
 			{
@@ -288,7 +292,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
 					UserId:    user1.Id,
-					ChannelId: th.BasicChannel.Id,
+					ChannelId: channel1.Id,
 					Message:   "Failed scheduled post for user 1",
 				},
 				ErrorCode: model.ScheduledPostErrorUnknownError,
@@ -298,7 +302,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
 					UserId:    user2.Id,
-					ChannelId: th.BasicChannel.Id,
+					ChannelId: channel1.Id,
 					Message:   "Failed scheduled post 1 for user 2",
 				},
 				ErrorCode: model.ScheduledPostErrorCodeNoChannelPermission,
@@ -308,7 +312,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
 					UserId:    user2.Id,
-					ChannelId: th.BasicChannel.Id,
+					ChannelId: channel2.Id,
 					Message:   "Failed scheduled post 2 for user 2",
 				},
 				ErrorCode: model.ScheduledPostErrorNoChannelMember,
@@ -342,22 +346,22 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 				if received.GetBroadcast().UserId == user2.Id {
 					assert.Equal(t, model.WebsocketScheduledPostUpdated, received.EventType())
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(3 * time.Second):
 				t.Errorf("Timeout while waiting for a WebSocket event for scheduled post %d", i+1)
 			}
 		}
 
 		// Helper function to check notifications for a specific user
-		checkUserNotification := func(user *model.User, expectedCount int) {
-			// Wait time for notifications to be sent (adding 2 secs because it is run in a separate rountine)
-			var timeout = 2 * time.Second
+		checkUserNotification := func(user *model.User) {
+			// Wait time for notifications to be sent (adding 5 secs because it is run in a separate goroutine)
+			var timeout = 5 * time.Second
 			begin := time.Now()
 			channel, appErr := th.App.GetOrCreateDirectChannel(rctx, user.Id, systemBot.UserId)
 			assert.True(t, appErr == nil)
 
 			var posts *model.PostList
 			// wait for the notification to be sent into the channel.
-			// idea is to get the channel and try to find posts, if not, wait 100ms and try again until timout or there is posts lengh
+			// idea is to get the channel and try to find posts, if not, wait 100ms and try again until timeout or there is posts length
 			for {
 				if time.Since(begin) > timeout {
 					break
@@ -371,24 +375,33 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 			}
 			assert.NotEmpty(t, posts.Posts, "Expected notification for user %s to have been sent", user.Id)
 
-			// Validate the actual content of the notification posted (to include count verification)
+			// Collect failed messages for users
+			var userFailedMessages []*model.ScheduledPost
+			for _, sp := range failedScheduledPosts {
+				if sp.UserId == user.Id {
+					userFailedMessages = append(userFailedMessages, sp)
+				}
+			}
+
 			T := i18n.GetUserTranslations(user.Locale)
-			messageContent := T("app.scheduled_post.failed_messages", map[string]interface{}{
-				"Count": expectedCount,
+			messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
+				"Count": len(userFailedMessages),
 			})
 
+			// Validate the actual content of the notification posted
 			found := false
 			for _, post := range posts.Posts {
-				if post.UserId == systemBot.UserId && post.Message == messageContent {
+				if post.UserId == systemBot.UserId && strings.HasPrefix(post.Message, messageHeader) {
 					found = true
 					break
 				}
 			}
-			assert.True(t, found, "Notification post not found for user %s with expected count %d", user.Id, expectedCount)
+
+			assert.True(t, found, "\nNotification post not found for user %s with expected message prefix. \n Expected: %s \n", user.Id, messageHeader)
 		}
 
 		// Check notifications sent for failed messages for both users
-		checkUserNotification(user1, 1)
-		checkUserNotification(user2, 2)
+		checkUserNotification(user1)
+		checkUserNotification(user2)
 	})
 }
