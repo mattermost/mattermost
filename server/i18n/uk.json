@@ -2873,11 +2873,11 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Помилка збереження стану плагіна в налаштуваннях"
+    "translation": "Помилка збереження стану плагіна у конфігурації."
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Неможливо вимкнути плагін"
+    "translation": "Не вдалося деактивувати плагін."
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -2885,11 +2885,11 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Виявлено помилку вилучення плагіна"
+    "translation": "Виникла помилка під час розпакування комплекту плагінів."
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Виникла помилка файлової системи"
+    "translation": "Виникла помилка файлової системи."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -2897,7 +2897,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Не вдається отримати активні плагіни"
+    "translation": "Не вдалося отримати активні плагіни."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -2921,7 +2921,7 @@
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Не вдається знайти маніфест для вилученого плагіна"
+    "translation": "Не вдалося знайти маніфест для витягнутого плагіна."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -2929,11 +2929,11 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Плагін не встановлений"
+    "translation": "Плагін не встановлено."
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Неможливо видалити плагін"
+    "translation": "Не вдалося видалити плагін."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -5261,7 +5261,7 @@
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+    "translation": "Виникла помилка при видаленні відкритого ключа."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
@@ -5841,11 +5841,11 @@
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
-    "translation": "Виникла помилка під час оновлення додатка"
+    "translation": "Виникла помилка при оновленні програми."
   },
   {
     "id": "app.oauth.update_app.find.app_error",
-    "translation": "Неможливо знайти існуючу програму для оновлення"
+    "translation": "Не вдалося знайти існуючу програму для оновлення."
   },
   {
     "id": "app.oauth.save_app.save.app_error",
@@ -5853,39 +5853,39 @@
   },
   {
     "id": "app.oauth.save_app.existing.app_error",
-    "translation": "Необхідно викликати оновлення наявної програми"
+    "translation": "Необхідно викликати оновлення для існуючого додатку."
   },
   {
     "id": "app.oauth.remove_access_data.app_error",
-    "translation": "Неможливо видалити маркер доступу"
+    "translation": "Не вдалося видалити токен доступу."
   },
   {
     "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Не вдалося видалити код авторизації"
+    "translation": "Не вдалося видалити код авторизації."
   },
   {
     "id": "app.oauth.get_apps.find.app_error",
-    "translation": "Під час пошуку додатків OAuth2 сталася помилка"
+    "translation": "Виникла помилка під час пошуку OAuth2 програм."
   },
   {
     "id": "app.oauth.get_app_by_user.find.app_error",
-    "translation": "Не вдалося знайти дійсну команду для оновлення"
+    "translation": "Не вдалося знайти жодної існуючої програми."
   },
   {
     "id": "app.oauth.get_app.finding.app_error",
-    "translation": "Виникла помилка під час знаходження додатку"
+    "translation": "Виникла помилка при пошуку програми."
   },
   {
     "id": "app.oauth.get_app.find.app_error",
-    "translation": "Не вдалося знайти потрібний додаток"
+    "translation": "Не вдалося знайти потрібну програму."
   },
   {
     "id": "app.oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "Виникла помилка під час знаходження всіх токенів доступу"
+    "translation": "Виникла помилка при пошуку всіх токенів доступу."
   },
   {
     "id": "app.oauth.delete_app.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+    "translation": "Виникла помилка під час видалення OAuth2 додатку."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -6213,7 +6213,7 @@
   },
   {
     "id": "app.plugin_store.save.app_error",
-    "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
+    "translation": "Не вдалося зберегти або оновити значення ключа плагіна."
   },
   {
     "id": "app.plugin_store.list.app_error",
@@ -6221,11 +6221,11 @@
   },
   {
     "id": "app.plugin_store.get.app_error",
-    "translation": "Не вдалося отримати значення ключа плагіна"
+    "translation": "Не вдалося отримати значення ключа плагіна."
   },
   {
     "id": "app.plugin_store.delete.app_error",
-    "translation": "Не вдалося видалити значення клавіші плагіна"
+    "translation": "Не вдалося видалити значення ключа плагіна."
   },
   {
     "id": "migrations.system.save.app_error",
@@ -6277,27 +6277,27 @@
   },
   {
     "id": "app.job.update.app_error",
-    "translation": "Не вдається оновити схему"
+    "translation": "Не вдалося оновити завдання."
   },
   {
     "id": "app.job.save.app_error",
-    "translation": "Неможливо зберегти схему"
+    "translation": "Не вдалося зберегти роботу."
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    "translation": "Не вдалось отримати найновішу роботу за статусом і типом."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
-    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    "translation": "Не вдалось отримати кількість завдань за статусом і типом."
   },
   {
     "id": "app.job.get_all.app_error",
-    "translation": "Не вдається отримати схему"
+    "translation": "Не вдалось отримати завдання."
   },
   {
     "id": "app.job.get.app_error",
-    "translation": "Не вдається отримати схему"
+    "translation": "Не вдалось отримати завдання."
   },
   {
     "id": "app.file_info.save.app_error",
