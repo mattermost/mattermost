@@ -47,7 +47,7 @@ func TestCreateOAuthUser(t *testing.T) {
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
 
 		appErr := th.App.PermanentDeleteUser(th.Context, user)
-		require.Nil(t, appErr) // Ensure that user deletion works
+		require.Nil(t, appErr)
 	})
 
 	t.Run("user exists, update authdata successfully", func(t *testing.T) {
