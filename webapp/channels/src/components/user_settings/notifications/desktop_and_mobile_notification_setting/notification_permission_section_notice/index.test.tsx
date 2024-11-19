@@ -57,7 +57,7 @@ describe('NotificationPermissionSectionNotice', () => {
 
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
-        expect(screen.getByText('Desktop notifications permission was denied')).toBeInTheDocument();
+        expect(screen.getByText('Desktop notifications permission required')).toBeInTheDocument();
     });
 
     test('should render nothing when desktop permission is granted', () => {

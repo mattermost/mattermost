@@ -15,7 +15,7 @@ let desktopNotificationPermissionGlobalState: DesktopNotificationPermission | un
 // This is used to request notification permission for desktop app
 // it also returns the permission state. We use this as a workaround for bug with Electron - https://github.com/electron/electron/issues/11221
 // tl;dr Electron always show 'granted' when queries for Notification.permission, hence this workaround
-export function useDesktopAppNotificationPermission(): [DesktopNotificationPermission, () => Promise<void>] {
+export function useDesktopAppNotificationPermission(): [DesktopNotificationPermission, () => Promise<NotificationPermission>] {
     const [desktopNotificationPermission, setDesktopNotificationPermission] = useState<DesktopNotificationPermission>(undefined);
 
     const isDesktop = isDesktopApp();
@@ -33,6 +33,8 @@ export function useDesktopAppNotificationPermission(): [DesktopNotificationPermi
 
         // Update the local state
         setDesktopNotificationPermission(permission as DesktopNotificationPermission);
+
+        return permission;
     }, []);
 
     useEffect(() => {

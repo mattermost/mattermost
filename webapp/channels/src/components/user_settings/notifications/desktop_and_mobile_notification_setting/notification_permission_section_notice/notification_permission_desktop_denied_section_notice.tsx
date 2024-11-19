@@ -1,25 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import SectionNotice from 'components/section_notice';
 
+import {NotificationPermissionDenied} from 'utils/notifications';
+
 interface Props {
-    requestDesktopNotificationPermission: () => Promise<void>;
+    requestDesktopNotificationPermission: () => Promise<NotificationPermission>;
 }
 
 export default function NotificationPermissionDesktopDeniedSectionNotice(props: Props) {
     const intl = useIntl();
 
-    function handleCheckPermissionButtonClick() {
-        props.requestDesktopNotificationPermission();
+    const [checkedPermissionDenied, setCheckedPermissionDenied] = useState(false);
+
+    async function handleCheckPermissionButtonClick() {
+        const permission = await props.requestDesktopNotificationPermission();
+        if (permission === NotificationPermissionDenied) {
+            setCheckedPermissionDenied(true);
+        }
     }
 
     const handleInstructionButtonClick = useCallback(() => {
         window.open('https://mattermost.com/pl/manage-notifications', '_blank', 'noopener,noreferrer');
     }, []);
+
+    const text = checkedPermissionDenied ? intl.formatMessage({
+        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.messageDenied',
+        defaultMessage: 'Notifications for this Mattermost server are blocked. To receive notifications, please enable them manually.',
+    }) : intl.formatMessage({
+        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message',
+        defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for this server and the Mattermost application.',
+    });
 
     return (
         <div className='extraContentBeforeSettingList'>
@@ -27,18 +42,16 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
                 type='danger'
                 title={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.title',
-                    defaultMessage: 'Desktop notifications permission was denied',
+                    defaultMessage: 'Desktop notifications permission required',
                 })}
-                text={intl.formatMessage({
-                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message',
-                    defaultMessage: 'Please allow Mattermost to notify you to start receiving message and call notifications. You need to enable notifications for Mattermost desktop in your system notification settings.',
-                })}
+                text={text}
                 primaryButton={{
                     text: intl.formatMessage({
                         id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
                         defaultMessage: 'Check permission',
                     }),
                     onClick: handleCheckPermissionButtonClick,
+                    disabled: checkedPermissionDenied,
                 }}
                 tertiaryButton={{
                     text: intl.formatMessage({
