@@ -22,7 +22,7 @@ export default function PlaceholderScheduledPostsTitle({type}: Props) {
     const tooltipText = (
         <FormattedMessage
             id='scheduled_posts.row_title_thread.placeholder_tooltip'
-            defaultMessage={'This was scheduled in a private channel you are no member of.'}
+            defaultMessage={'The channel either doesn’t exist or you do not have access to it.'}
         />
     );
 

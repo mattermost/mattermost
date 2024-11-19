@@ -184,4 +184,52 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).toContain('draft_icon-clock-send-outline_reschedule');
         expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
     });
+
+    it('should only render delete and copy text buttons when the channel is archived and is regular user', () => {
+        const archivedChannelProps = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                delete_at: 1,
+            } as Channel,
+        };
+
+        renderComponent(archivedChannelProps);
+
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(2);
+
+        const buttonIds = buttons.map((button) => button.id);
+        expect(buttonIds).toContain('draft_icon-trash-can-outline_delete');
+        expect(buttonIds).toContain('draft_icon-content-copy_copy_text');
+
+        // Validate that other action buttons are not present
+        expect(buttonIds).not.toContain('draft_icon-send-outline_sendNow');
+        expect(buttonIds).not.toContain('draft_icon-pencil-outline_edit');
+        expect(buttonIds).not.toContain('draft_icon-clock-send-outline_reschedule');
+    });
+
+    it('should render all action buttons when the channel is archived and the user is admin', () => {
+        const archivedChannelProps = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                delete_at: 1,
+            } as Channel,
+        };
+
+        isCurrentUserSystemAdminMock.mockReturnValue(true);
+
+        renderComponent(archivedChannelProps);
+
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(5);
+
+        const buttonIds = buttons.map((button) => button.id);
+        expect(buttonIds).toContain('draft_icon-trash-can-outline_delete');
+        expect(buttonIds).toContain('draft_icon-content-copy_copy_text');
+        expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
+        expect(buttonIds).toContain('draft_icon-pencil-outline_edit');
+        expect(buttonIds).toContain('draft_icon-clock-send-outline_reschedule');
+    });
 });

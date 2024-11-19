@@ -134,10 +134,10 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const userChannelMember = channel && Object.prototype.hasOwnProperty.call(myChannelsMemberships, channel?.id);
     const isChannelArchived = Boolean(channel?.delete_at);
 
-    const showEditOption = !scheduledPost.error_code && userChannelMember;
+    const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
     const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
-    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember;
+    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
 
     return (
         <div className='ScheduledPostActions'>
