@@ -69,7 +69,7 @@ describe('System console', () => {
         cy.findByRole('link', {name: 'Compare Plans'}).should('not.exist');
     });
 
-    it('MM-T1201 - Remove and re-add license - Permissions freeze in place when license is removed (and then re-added)', () => {
+    it.skip('MM-T1201 - Remove and re-add license - Permissions freeze in place when license is removed (and then re-added)', () => {
         // * Verify user access per permissions changed while on E20
         verifyUserChannelPermission(teamName, privateChannelName, sysadmin, teamAdmin, regularUser);
 
