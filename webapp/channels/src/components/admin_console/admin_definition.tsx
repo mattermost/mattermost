@@ -35,7 +35,7 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -294,6 +294,24 @@ const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFe
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
+    cache_settings_title: {id: 'admin.cacheSettings.title', defaultMessage: 'Cache Settings'},
+
+    cache_type_title: {id: 'admin.cacheSettings.cacheTypeTitle', defaultMessage: 'Cache Type'},
+    cache_type_desc: {id: 'admin.cacheSettings.cacheTypeDesc', defaultMessage: 'The type of the cache backend. E.g.: "redis" or "lru"'},
+
+    redis_address_title: {id: 'admin.cacheSettings.redisAddress', defaultMessage: 'Redis Address'},
+    redis_address_desc: {id: 'admin.cacheSettings.redisAddressDesc', defaultMessage: 'The hostname:port of the Redis server. E.g.: "localhost:6379"'},
+    redis_address_placeholder: {id: 'admin.cacheSettings.redisAddressPlaceholder', defaultMessage: 'localhost:6379'},
+
+    redis_password_title: {id: 'admin.cacheSettings.redisPassword', defaultMessage: 'Redis Password'},
+    redis_password_desc: {id: 'admin.cacheSettings.redisPasswordDesc', defaultMessage: 'The password of the Redis server.'},
+
+    redis_db_title: {id: 'admin.cacheSettings.redisDB', defaultMessage: 'Redis DB'},
+    redis_db_desc: {id: 'admin.cacheSettings.redisDBDesc', defaultMessage: 'The database of the Redis server. E.g.: "0"'},
+    redis_db_placeholder: {id: 'admin.cacheSettings.redisDBPlaceholder', defaultMessage: '0'},
+
+    redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
+    redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 const AdminDefinition: AdminDefinitionType = {
     about: {
@@ -1522,6 +1540,101 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ClusterSettings',
                     component: ClusterSettings,
+                },
+            },
+            cache_settings: {
+                url: 'environment/cache_settings',
+                title: adminDefinitionMessages.cache_settings_title,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('Cluster')),
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                ),
+                searchableStrings: [
+                    adminDefinitionMessages.cache_settings_title,
+                    adminDefinitionMessages.cache_type_title,
+                    adminDefinitionMessages.cache_type_desc,
+                    adminDefinitionMessages.redis_address_title,
+                    adminDefinitionMessages.redis_address_desc,
+                    adminDefinitionMessages.redis_password_title,
+                    adminDefinitionMessages.redis_password_desc,
+                    adminDefinitionMessages.redis_db_title,
+                    adminDefinitionMessages.redis_db_desc,
+                    adminDefinitionMessages.redis_clientcache_title,
+                    adminDefinitionMessages.redis_clientcache_desc,
+                ],
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                schema: {
+                    id: 'CacheSettings',
+                    name: adminDefinitionMessages.cache_settings_title,
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'CacheSettings.CacheType',
+                            label: adminDefinitionMessages.cache_type_title,
+                            help_text: adminDefinitionMessages.cache_type_desc,
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: CacheTypes.LRU,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.lru', defaultMessage: 'LRU'}),
+                                },
+                                {
+                                    value: CacheTypes.REDIS,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.redis', defaultMessage: 'Redis'}),
+                                },
+                            ],
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisAddress',
+                            label: adminDefinitionMessages.redis_address_title,
+                            help_text: adminDefinitionMessages.redis_address_desc,
+                            placeholder: adminDefinitionMessages.redis_address_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisPassword',
+                            label: adminDefinitionMessages.redis_password_title,
+                            help_text: adminDefinitionMessages.redis_password_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'CacheSettings.RedisDB',
+                            label: adminDefinitionMessages.redis_db_title,
+                            help_text: adminDefinitionMessages.redis_db_desc,
+                            placeholder: adminDefinitionMessages.redis_db_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'CacheSettings.DisableClientCache',
+                            label: adminDefinitionMessages.redis_clientcache_title,
+                            help_text: adminDefinitionMessages.redis_clientcache_desc,
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                    ],
                 },
             },
             rate_limiting: {
