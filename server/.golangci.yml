@@ -126,7 +126,6 @@ issues:
         channels/app/plugin_test.go|\
         channels/app/post.go|\
         channels/app/post_helpers_test.go|\
-        channels/app/post_metadata.go|\
         channels/app/post_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
@@ -135,7 +134,6 @@ issues:
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\
         channels/app/slashcommands/helper_test.go|\
-        channels/app/status.go|\
         channels/app/status_test.go|\
         channels/app/support_packet_test.go|\
         channels/app/team.go|\
