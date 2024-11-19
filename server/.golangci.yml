@@ -83,9 +83,7 @@ issues:
         channels/api4/websocket_test.go|\
         channels/app/bot_test.go|\
         channels/app/brand.go|\
-        channels/app/channel.go|\
         channels/app/channel_bookmark_test.go|\
-        channels/app/channel_test.go|\
         channels/app/config_test.go|\
         channels/app/export.go|\
         channels/app/export_test.go|\
@@ -102,7 +100,6 @@ issues:
         channels/app/migrations.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
-        channels/app/platform/busy_test.go|\
         channels/app/platform/cluster_handlers.go|\
         channels/app/platform/config_test.go|\
         channels/app/platform/helper_test.go|\
