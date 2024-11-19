@@ -44,6 +44,8 @@ func StoreOverride(override any) Option {
 	}
 }
 
+// StoreOverrideWithCache is a test option to construct the app with the store layer
+// wrapped on top of the store that is passed.
 func StoreOverrideWithCache(override store.Store) Option {
 	return func(ps *PlatformService) error {
 		ps.newStore = func() (store.Store, error) {
