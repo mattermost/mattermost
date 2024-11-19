@@ -13,6 +13,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
+import {Preferences} from 'mattermost-redux/constants';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
@@ -79,6 +80,7 @@ const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('compone
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
+const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 
 const noop = () => {};
 
@@ -190,7 +192,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.showLandingPageIfNecessary();
 
-        applyTheme(this.props.theme);
+        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -254,9 +256,19 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
+    applyTheme() {
+        // don't apply theme when in system console; system console hardcoded to THEMES.denim
+        // AdminConsole will apply denim on mount re-apply user theme on unmount
+        if (this.props.location.pathname.startsWith('/admin_console')) {
+            return;
+        }
+
+        applyTheme(this.props.theme);
+    }
+
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            applyTheme(this.props.theme);
+            this.applyTheme();
         }
 
         if (this.props.location.pathname === '/') {
@@ -440,12 +452,18 @@ export default class Root extends React.PureComponent<Props, State> {
                         path={'/landing'}
                         component={LinkingLandingPage}
                     />
+                    {this.props.isDevModeEnabled && (
+                        <Route
+                            path={'/component_library'}
+                            component={ComponentLibrary}
+                        />
+                    )}
                     <Route
                         path={'/admin_console'}
                     >
                         <Switch>
                             <LoggedInRoute
-                                theme={this.props.theme}
+                                theme={Preferences.THEMES.denim}
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
