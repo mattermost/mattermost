@@ -14,8 +14,6 @@ export default class ChannelsPage {
     readonly centerView;
     readonly scheduledDraftDropdown;
     readonly scheduledDraftModal;
-    readonly scheduledDraftDropdown;
-    readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly appBar;
@@ -24,7 +22,6 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly settingsModal;
 
-    readonly postContainer;
     readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
@@ -57,19 +54,10 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
-        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
-        this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
-
-        // Posts
-        this.postContainer = page.locator('div.post-message__text');
     }
 
     async toBeVisible() {
         await this.centerView.toBeVisible();
-    }
-
-    async getLastPost() {
-        return this.postContainer.last();
     }
 
     async getLastPost() {
@@ -81,7 +69,7 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                const prefix = channelName.startsWith('@') ? '/messages' : '';
+                const prefix = channelName.startsWith('@') ? '/messages' : '/channels';
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
