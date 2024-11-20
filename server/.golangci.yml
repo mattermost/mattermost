@@ -84,7 +84,6 @@ issues:
         channels/app/bot_test.go|\
         channels/app/brand.go|\
         channels/app/channel_bookmark_test.go|\
-        channels/app/channel_test.go|\
         channels/app/config_test.go|\
         channels/app/export.go|\
         channels/app/export_test.go|\
@@ -102,7 +101,6 @@ issues:
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/cluster_handlers.go|\
-        channels/app/platform/config_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
         channels/app/platform/link_cache.go|\
@@ -118,16 +116,13 @@ issues:
         channels/app/platform/web_conn.go|\
         channels/app/platform/web_hub.go|\
         channels/app/platform/web_hub_test.go|\
-        channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
         channels/app/plugin_install.go|\
-        channels/app/plugin_signature.go|\
         channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
         channels/app/post_helpers_test.go|\
         channels/app/post_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
-        channels/app/server_test.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\
