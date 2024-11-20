@@ -865,7 +865,7 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "видалити"
+    "translation": "вилучити"
   },
   {
     "id": "api.command_remove.permission.app_error",
@@ -997,7 +997,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "Недійсний ідентифікатор користувача."
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1285,15 +1285,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "Масив файлів порожній у багаточастинному запиті/запиті на форму."
+    "translation": "Масив файлів порожній у запиті multipart/form."
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Не вдалось відкрити файл у багаточастинному запиті/запиті на форму."
+    "translation": "Не вдалося відкрити файл у запиті multipart/form."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Відсутній файл у багаточастинному запиті/запиті на форму."
+    "translation": "Відсутній файл у запиті multipart/form."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1669,7 +1669,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Цей канал був перенесений у цю команду з% v."
+    "translation": "Цей канал перенесено до цієї команди з %v."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1677,7 +1677,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
-    "translation": "Користувач, здається, не є частиною цієї команди."
+    "translation": "Користувач не є частиною цієї команди."
   },
   {
     "id": "api.team.remove_user_from_team.removed",
@@ -1729,11 +1729,11 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Вказаний користувач не є учасником зазначеної команди."
+    "translation": "Вказаний користувач не є членом вказаної команди."
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Обмеження команди до {{ .Domain }} не дозволено конфігурацією системи. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Обмеження команди {{ .Domain }} заборонено конфігурацією системи. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1741,7 +1741,7 @@
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Не вдається встановити схему для команди, оскільки схема, що постачається, не є схемою команди."
+    "translation": "Не вдається встановити схему команди, оскільки надана схема не є командною."
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -1753,7 +1753,7 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "Якщо ця зміна не була ініційована вами або ви хочете повторно активувати свій обліковий запис, зверніться до системного адміністратора."
+    "translation": "Якщо ця зміна була ініційована не вами або ви хочете відновити свій обліковий запис, зверніться до свого системного адміністратора."
   },
   {
     "id": "api.templates.deactivate_subject",
@@ -1761,11 +1761,11 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Вашу адресу електронної пошти для {{.TeamDisplayName}} змінено на {{.NewEmail}}."
+    "translation": "Вашу адресу електронної пошти для {{.TeamDisplayName}} було змінено на {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
-    "translation": "Ви оновили свою електронну адресу"
+    "translation": "Ви оновили свою електронну пошту"
   },
   {
     "id": "api.templates.email_change_subject",
@@ -1773,15 +1773,15 @@
   },
   {
     "id": "api.templates.email_change_verify_body.button",
-    "translation": "Перевірте Email"
+    "translation": "Перевірити електронну пошту"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Щоб завершити оновлення електронної адреси для {{.TeamDisplayName}}, натисніть на посилання нижче, щоб підтвердити, що це правильна адреса."
+    "translation": "Щоб завершити оновлення адреси електронної пошти для {{.TeamDisplayName}}, будь ласка, натисніть на посилання нижче, щоб підтвердити правильність адреси."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Ви оновили свою електронну адресу"
+    "translation": "Ви успішно оновили свою електронну адресу"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1789,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Щоб змінити налаштування сповіщень, увійдіть на сайт вашої команди та перейдіть до налаштувань облікового запису> Сповіщення."
+    "translation": "Щоб змінити налаштування сповіщень, увійдіть на сайт вашої команди та перейдіть до Налаштування > Сповіщення."
   },
   {
     "id": "api.templates.email_info1",
@@ -1813,7 +1813,7 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Приєднатися до команди"
+    "translation": "Приєднуйтесь зараз"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1829,7 +1829,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Багатофакторна автентифікація була додана"
+    "translation": "Додано багатофакторну автентифікацію (БФА)"
   },
   {
     "id": "api.templates.mfa_change_subject",
@@ -1841,7 +1841,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Багатофакторна автентифікація була вилучена"
+    "translation": "Багатофакторну автентифікацію (БФА) видалено"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -1849,7 +1849,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "Ваш пароль був оновлений"
+    "translation": "Ваш пароль було оновлено"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -1865,7 +1865,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Ви запитували скидання пароля"
+    "translation": "Скинути Ваш пароль"
   },
   {
     "id": "api.templates.reset_subject",
@@ -1893,7 +1893,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Токен особистого доступу до вашого облікового запису"
+    "translation": "Персональний токен доступу додано до вашого облікового запису"
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -1901,7 +1901,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Ваше ім'я користувача для {{.TeamDisplayName}} змінено на {{.NewUsername}}."
+    "translation": "Ваше ім'я користувача для {{.TeamDisplayName}} було змінено на {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -1913,11 +1913,11 @@
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Підтвердити електронну пошту"
+    "translation": "Перевірити електронну пошту"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Будь-ласка, підтвердьте свою електронну адресу, натиснувши нижче."
+    "translation": "Ця електронна адреса була використана для створення облікового запису на Mattermost."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -1933,11 +1933,11 @@
   },
   {
     "id": "api.templates.welcome_body.button",
-    "translation": "Підтвердити електронну пошту"
+    "translation": "Перевірити електронну пошту"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Будь-ласка, підтвердьте свою електронну адресу, натиснувши нижче."
+    "translation": "Ця електронна адреса була використана для створення облікового запису на Mattermost."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -1953,7 +1953,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Не вдалося додати параметри прямого каналу для користувача user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "Не вдалося додати налаштування приватного каналу для користувача user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -1989,11 +1989,11 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Ваш обліковий запис заблоковано через надто багато невдалих спроб пароля. Будь ласка, скиньте свій пароль."
+    "translation": "Ваш акаунт заблоковано через занадто велику кількість невдалих спроб введення пароля. Будь ласка, змініть пароль."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "Невірний MFA токен."
+    "translation": "Недійсний токен БФА."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2009,11 +2009,11 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Не вдалося створити дані токенів для перевірки електронної пошти"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Існує вже обліковий запис, пов'язаний з цією електронною адресою, використовуючи метод входу, відмінний від {{.Service}}. Увійдіть, використовуючи {{.Auth}}."
+    "translation": "З цією адресою вже існує обліковий запис, пов'язаний з методом входу, відмінним від {{.Service}}. Будь ласка, увійдіть за допомогою {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -2033,15 +2033,15 @@
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+    "translation": "Вказана вами електронна адреса не належить до дозволених доменів. Будь ласка, зверніться до адміністратора або зареєструйтеся з іншою адресою."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": "Створення акаунтів відключено."
+    "translation": "Створення користувачів вимкнено."
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Цей сервер не дозволяє відкрити реєстрацію. Будь ласка, зверніться до свого адміністратора, щоб отримати запрошення."
+    "translation": "Цей сервер не дозволяє відкриту реєстрацію.   Будь ласка, зверніться до вашого адміністратора, щоб отримати запрошення."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2061,15 +2061,15 @@
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Автентифікація передача не налаштовується або недоступна на цьому сервері."
+    "translation": "Передачу аутентифікації не налаштовано або вона недоступна на цьому сервері."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Unable to get user by email."
+    "translation": "Не вдалося знайти користувача за електронною адресою."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "AD/LDAP не доступний на цьому сервері."
+    "translation": "AD/LDAP недоступний на цьому сервері."
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
@@ -2077,7 +2077,7 @@
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
-    "translation": "Поле пароля не повинно бути порожнім"
+    "translation": "Поле з паролем не повинно бути порожнім"
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -2093,7 +2093,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Вхід не вдалося, оскільки ваш обліковий запис було вимкнено. Будь ласка, зв'яжіться з адміністратором."
+    "translation": "Не вдалося увійти, оскільки ваш обліковий запис було деактивовано.   Будь ласка, зверніться до адміністратора."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2117,15 +2117,15 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "AD/LDAP не доступний на цьому сервері"
+    "translation": "AD/LDAP недоступний на цьому сервері."
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Не вдалося оновити пароль, оскільки контекст user_id не співпав з вказаним ідентифікатором користувача"
+    "translation": "Не вдалося оновити пароль, оскільки user_id в контексті не відповідав наданому ідентифікатору користувача."
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": "Автентифікація передачі не налаштовується або недоступна на цьому сервері."
+    "translation": "Передачу аутентифікації не налаштовано або вона недоступна на цьому сервері."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2145,7 +2145,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Неможливо скинути пароль для облікових записів SSO"
+    "translation": "Не вдається скинути пароль для облікових записів SSO."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2153,31 +2153,31 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
+    "translation": "Не вдалося успішно надіслати повідомлення про деактивацію акаунта"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Не вдалося успішно надіслати лист підтвердження змін електронною поштою"
+    "translation": "Не вдалося успішно відправити лист з підтвердженням зміни адреси електронної пошти"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Не вдалося успішно надіслати електронний лист для відновлення пароля"
+    "translation": "Не вдалося успішно надіслати електронного листа для скидання пароля."
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Неможливо скинути пароль для облікових записів SSO"
+    "translation": "Не вдається скинути пароль для облікових записів SSO."
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Не вдалося відправити лист про оновлення пароля"
+    "translation": "Не вдалося успішно надіслати електронний лист з оновленим паролем"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Не вдалося успішно надіслати електронний лист для підтвердження"
+    "translation": "Не вдалося успішно відправити електронний лист з підтвердженням"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Ви не можете відключити себе, оскільки ця функція не активована. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Ви не можете деактивувати себе самостійно, оскільки ця функція не ввімкнена. Зверніться до вашого системного адміністратора."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2185,31 +2185,31 @@
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Не вдалося отримати користувача з об'єкта користувача {{.Service}}"
+    "translation": "Не вдалося отримати користувача з об'єкта користувача {{.Service}}."
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Не вдалося оновити пароль, тому що контекст user_id не співпав з підтримкою user_id"
+    "translation": "Не вдалося оновити пароль, оскільки user_id в контексті не співпадає з user_id в параметрах."
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "Не вдалося оновити пароль"
+    "translation": "Не вдалося оновити пароль."
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "Введений \"поточний пароль\" неправильний. Перевірте, чи не вимкнено Caps Lock, і повторіть спробу."
+    "translation": "Ви ввели неправильний \"Поточний пароль\". Переконайтеся, що Caps Lock вимкнено, і спробуйте ще раз."
   },
   {
     "id": "api.user.update_password.menu",
-    "translation": "використовуйте меню налаштувань"
+    "translation": "за допомогою меню налаштувань"
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "Не вдалося оновити пароль, оскільки користувач ввійшов через службу OAuth"
+    "translation": "Не вдалося оновити пароль, оскільки користувач увійшов через службу OAuth."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Не вдалося оновити пароль, оскільки ми не змогли знайти дійсний обліковий запис"
+    "translation": "Не вдалося оновити пароль, оскільки ми не змогли знайти дійсний обліковий запис."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2217,11 +2217,11 @@
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Не вдається декодувати зображення профілю"
+    "translation": "Не вдалося декодувати зображення профілю."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "Не вдається кодувати зображення профілю"
+    "translation": "Не вдалося закодувати зображення профілю."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
@@ -2245,23 +2245,23 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "Не вдалося завантажити зображення профілю"
+    "translation": "Не вдалося завантажити зображення профілю."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
-    "translation": "Погана перевірка електронної пошти."
+    "translation": "Неправильне посилання для підтвердження електронної пошти."
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Поганий тип токена перевірки email."
+    "translation": "Невірний тип токена для підтвердження електронної пошти."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Термін дії посилання для підтвердження електронної пошти вийшов."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Не вдалося розібрати дані токенів при перевірці електронної пошти"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2269,47 +2269,47 @@
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Не відома WebSocket дія."
+    "translation": "Невідома дія WebSocket."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Неприпустима послідовність повідомлень через websocket."
+    "translation": "Невірна послідовність для повідомлення WebSocket."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "Немає websocket дії."
+    "translation": "Відсутня WebSocket дія."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "Підключення WebSocket не пройшло перевірку справжності. Будь ласка, увійдіть в систему і спробуйте ще раз."
+    "translation": "З'єднання WebSocket не автентифіковано. Будь ласка, увійдіть в систему і спробуйте ще раз."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Вихідні webhooks з того ж каналу не можуть мати однакові тригерні слова / URL-адреси зворотного виклику."
+    "translation": "Вихідні вебхуки з одного каналу не можуть мати однакові тригерні слова/URL зворотного виклику."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Вихідні webhooks можна створювати лише для загальнодоступних каналів."
+    "translation": "Вихідні вебхуки можна створювати лише для публічних каналів."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Недійсні дозволи для створення вихідного webhook."
+    "translation": "Невірні дозволи на створення вихідного вебхука."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Необхідно встановити або trigger_words, або channel_id"
+    "translation": "Має бути задано або trigger_words, або channel_id."
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Не вдається розшифрувати багатовагове корисне навантаження вхідного webhook."
+    "translation": "Не вдалося декодувати багаточастинне навантаження вхідного вебхука."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Не вдалося оновити webhook в різних командах"
+    "translation": "Неможливо оновити вебхук у різних командах."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Вихідні webhooks з того ж каналу не можуть мати однакові тригерні слова / URL-адреси зворотного виклику."
+    "translation": "Вихідні вебхуки з одного каналу не можуть мати однакові тригерні слова/URL зворотного виклику."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2317,15 +2317,15 @@
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "З'єднання невдало: {{.Error}}"
+    "translation": "Не вдалося встановити з'єднання: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Необхідно вказати ідентифікатор команди, щоб створити канал"
+    "translation": "Необхідно вказати ідентифікатор команди для створення каналу."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Не вдається перемістити канал, якщо всі його учасники не є членами команди призначення."
+    "translation": "Неможливо перемістити канал, якщо всі його учасники ще не є учасниками цільової команди."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2333,11 +2333,11 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "%s видалив заголовок каналу (був: %s)"
+    "translation": "%s видалив опис каналу (було: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "Не вдалося отримати користувача при спробі оновлення повідомлення заголовка каналу %v"
+    "translation": "Не вдалося отримати користувача під час оновлення повідомлення про опис каналу: %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
@@ -2525,7 +2525,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Прямий заголовок каналу задовгий"
+    "translation": "Заголовок приватного каналу занадто довгий"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML 2.0 не налаштований та не підтримується на цьому сервері."
+    "translation": "SAML 2.0 не налаштовано і не підтримується на цьому сервері."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -3397,7 +3397,7 @@
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Невірний MFA токен"
+    "translation": "Недійсний токен БФА."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -3409,7 +3409,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Помилка при спробі аутентифікації за допомогою MFA маркера"
+    "translation": "Недійсний токен БФА."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -3437,7 +3437,7 @@
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Недійсний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
@@ -3473,7 +3473,7 @@
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
@@ -3481,7 +3481,7 @@
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
@@ -3505,7 +3505,7 @@
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
@@ -3517,7 +3517,7 @@
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "Неприпустимий ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -3529,7 +3529,7 @@
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -3557,7 +3557,7 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
@@ -3565,15 +3565,15 @@
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Ім'я хоста має бути встановлено"
+    "translation": "Ім'я хоста має бути задано."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "Недійсний ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt повинен бути встановлений"
+    "translation": "Параметр LastPingAt має бути заданий."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
@@ -3597,7 +3597,7 @@
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "Неприпустимий ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.command.is_valid.method.app_error",
@@ -3605,39 +3605,39 @@
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Недійсний ідентифікатор команди"
+    "translation": "Недійсний ідентифікатор команди."
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": "Невірний токен"
+    "translation": "Недійсний токен."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Неприпустимий тригер"
+    "translation": "Неприпустимий тригер."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Невірний URL"
+    "translation": "Неправильна URL-адреса."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Неприпустимий URL. Адреса URL повинен бути правильний і початися з http: // або https: //"
+    "translation": "Неправильна URL-адреса. URL-адреса повинна бути дійсною і починатися з http:// або https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Невірний channel id"
+    "translation": "Неправильний ідентифікатор каналу."
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Недійсний ідентифікатор команди"
+    "translation": "Неправильний ідентифікатор команди."
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -3653,7 +3653,7 @@
   },
   {
     "id": "model.command_hook.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
@@ -3669,7 +3669,7 @@
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
-    "translation": "Неприпустимий ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
@@ -4013,11 +4013,11 @@
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Час оновлення повинен бути дійсним."
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -4113,19 +4113,19 @@
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Невірний ідентифікатор команди"
+    "translation": "Недійсний ідентифікатор команди."
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.incoming_hook.username.app_error",
@@ -4193,11 +4193,11 @@
   },
   {
     "id": "model.oauth.is_valid.creator_id.app_error",
-    "translation": "Неприпустимий ідентифікатор автора"
+    "translation": "Неправильний ідентифікатор автора."
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
-    "translation": "Неприпустимий опис ролі."
+    "translation": "Неправильний опис."
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
@@ -4209,19 +4209,19 @@
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
-    "translation": "Невірне ім'я"
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Невірна область"
+    "translation": "Невірна іконка."
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Недійсні URL-адреси зворотного виклику"
+    "translation": "Неправильні URL-адреси зворотного виклику."
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -4245,7 +4245,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
-    "translation": "Неприпустимий ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
@@ -4261,7 +4261,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "Час оновлення має бути дійсним."
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
@@ -4269,7 +4269,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "Недійсний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
@@ -4305,15 +4305,15 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Недійсні імена файлів"
+    "translation": "Некоректні імена файлів."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Некоректний хештег"
+    "translation": "Некоректні гештеги."
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "Неприпустимий ідентифікатор"
+    "translation": "Недійсний ідентифікатор."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
@@ -4337,11 +4337,11 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -4349,11 +4349,11 @@
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "Невірний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.preference.is_valid.name.app_error",
-    "translation": "Некоректна назва"
+    "translation": "Недійсне ім'я."
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
@@ -4373,11 +4373,11 @@
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": "Невірний ідентифікатор повідомлення"
+    "translation": "Неправильний ідентифікатор допису."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
-    "translation": "Недійсний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.team.is_valid.characters.app_error",
@@ -4409,7 +4409,7 @@
   },
   {
     "id": "model.team.is_valid.name.app_error",
-    "translation": "Некоректна назва"
+    "translation": "Недійсне ім'я."
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
@@ -4421,7 +4421,7 @@
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -4429,11 +4429,11 @@
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Недійсне ім'я команди"
+    "translation": "Недійсний ідентифікатор команди."
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": "Невірне ім'я користувача."
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -4525,11 +4525,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Невірне ім'я користувача."
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": "неможливо декодувати"
+    "translation": "не змогли розшифрувати."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4565,11 +4565,11 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Бота не існує."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Не вдається знайти канал"
+    "translation": "Не вдалося знайти існуючий канал."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4597,7 +4597,7 @@
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Не вдається отримати команду"
+    "translation": "Не вдалося отримати команду."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -4617,11 +4617,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не вдалося знайти команду"
+    "translation": "Не вдалось знайти команду."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4629,7 +4629,7 @@
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Не вдалося знайти канал"
+    "translation": "Не вдалось знайти канал."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
@@ -4641,11 +4641,11 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Невірний вебхук"
+    "translation": "Неправильний вебхук."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
@@ -4685,7 +4685,7 @@
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
+    "translation": "Не вдалося отримати канали."
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
@@ -4693,11 +4693,11 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Зробити за замовчуванням"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Відкрити Edge"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -4737,23 +4737,23 @@
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Посібник з інсталяції"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Посібник з інсталяції"
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Завантажити додаток"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Завантажте додаток Mattermost або використовуйте підтримуваний браузер для кращого досвіду."
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Завантажити додаток"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.safari",
@@ -4773,15 +4773,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Отримайте останню версію браузера Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Отримайте останню версію браузера Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Отримайте останню версію браузера Chrome"
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -4797,7 +4797,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "\"Оновити в\" повинно бути коректним часом"
+    "translation": "Час для оновлення має бути дійсним."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4821,7 +4821,7 @@
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": "Недійсний ідентифікатор користувача"
+    "translation": "Неправильний ідентифікатор користувача."
   },
   {
     "id": "model.user.is_valid.first_name.app_error",
@@ -5309,27 +5309,27 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Неможливо скопіювати користувацькі зображення емодзі"
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "Неможливо отримати смайли"
+    "translation": "Не вдалося отримати емодзі."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "Не вдалося знайти смайли для видалення"
+    "translation": "Ми не змогли знайти емодзі для видалення."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "Неможливо видалити смайли"
+    "translation": "Не вдається видалити емодзі."
   },
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
@@ -5337,147 +5337,147 @@
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
-    "translation": "Не вдалося записати історію учасників каналу"
+    "translation": "Не вдалося записати історію користувача каналу."
   },
   {
     "id": "app.channel.update.bad_id",
-    "translation": "Не вдається оновити канал"
+    "translation": "Не вдалося оновити Канал."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
-    "translation": "Не вдається видалити канал"
+    "translation": "Неможливо остаточно видалити канал."
   },
   {
     "id": "app.channel.get_deleted.missing.app_error",
-    "translation": "Немає видалених каналів"
+    "translation": "Видалених каналів не існує."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
-    "translation": "Не вдається знайти існуючий видалений канал"
+    "translation": "Не вдалося знайти існуючий видалений канал."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
-    "translation": "Канали не знайдені"
+    "translation": "Канали не знайдено."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
+    "translation": "Не вдалося отримати канали."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
-    "translation": "Каналу не існує"
+    "translation": "Каналу не існує."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
-    "translation": "Не вдається знайти канал"
+    "translation": "Не вдалося знайти існуючий канал."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
-    "translation": "Неможливо отримати всі канали"
+    "translation": "Не вдалось отримати всі канали."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Сталася помилка під час пошуку каналу"
+    "translation": "Виникла помилка при пошуку каналу."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не вдається знайти канал"
+    "translation": "Не вдалося знайти існуючий канал."
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "Не вдається видалити канал"
+    "translation": "Неможливо видалити канал."
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": "Не вдається зберегти канал"
+    "translation": "Не вдалося зберегти приватний канал."
   },
   {
     "id": "app.channel.create_channel.internal_error",
-    "translation": "Не вдається зберегти канал"
+    "translation": "Не вдалося зберегти канал."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
-    "translation": "Неможливо видалити публікацію"
+    "translation": "Не вдалося видалити бота."
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "Не вдалось видалити бота назавжди."
   },
   {
     "id": "app.bot.patchbot.internal_error",
-    "translation": "Не вдається оновити повідомлення"
+    "translation": "Не вдалося оновити бота."
   },
   {
     "id": "app.bot.getbots.internal_error",
-    "translation": "Не вдається отримати повідомлення"
+    "translation": "Не вдалося отримати ботів."
   },
   {
     "id": "app.bot.getbot.internal_error",
-    "translation": "Не вдається отримати повідомлення"
+    "translation": "Не вдалося отримати бота."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} був деактивований. Вони керували наступними бот-акаунтами, які тепер вимкнені.\n\n{{.BotNames}}{{else}}{{.UserName}} був деактивований. Вони керували {{.NumBots}} бот-акаунтами, які тепер були вимкнені, включаючи наступні:\n\n{{.BotNames}}{{end}} Ви можете взяти на себе керування кожним ботом, увімкнувши його в розділі **Інтеграції > Бот-акаунти** та створивши нові токени для бота.\n\nДля додаткової інформації ознайомтесь з нашою [документацією](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} був деактивований. Вони керували наступними бот-акаунтами, які все ще увімкнені.\n\n{{.BotNames}}\n{{else}}{{.UserName}} був деактивований. Вони керували {{.NumBots}} бот-акаунтами, які все ще увімкнені, включаючи наступні:\n\n{{.BotNames}}{{end}} Ми рішуче рекомендуємо взяти на себе керування кожним ботом, повторно увімкнувши його в розділі **Інтеграції > Бот-акаунти** та створивши нові токени для бота.\n\nДля додаткової інформації ознайомтесь з нашою [документацією](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nЯкщо ви хочете, щоб бот-акаунти вимикалися автоматично після деактивації власника, встановіть опцію \"Вимикати бот-акаунти після деактивації власника\" в **Системній консолі > Інтеграції > Бот-акаунти** на значення \"так\".{{end}}"
   },
   {
     "id": "app.bot.createbot.internal_error",
-    "translation": "Не вдається зберегти публікацію"
+    "translation": "Не вдалося зберегти бота."
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Це недійсне активне URL-посилання"
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "Не вдалося зчитати відповідь, отриману від постачальника ідентифікації."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "Сталася помилка під час зчитування корисного навантаження відповіді, отриманої від постачальника ідентифікації."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "Не вдалося декодувати XML-метадані, отримані від постачальника ідентифікації."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable."
+    "translation": "Сервер зайнятий, некритичні сервіси тимчасово недоступні."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+    "translation": "Вказана вами електронна адреса не належить до дозволених доменів для гостьових акаунтів. Будь ласка, зверніться до адміністратора або зареєструйтеся з іншою адресою."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+    "translation": "Вказана вами електронна адреса не належить до дозволених доменів. Будь ласка, зверніться до адміністратора або зареєструйтеся з іншою адресою."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "Ви не можете активувати гостьовий обліковий запис, оскільки функція Гостьовий доступ не ввімкнена."
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "Не вдалося розібрати токен для скидання пароля"
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest."
+    "translation": "Неможливо перетворити гостя на звичайного користувача, оскільки він не є гостем."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Введіть дійсне ім'я користувача та/або пароль."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method."
+    "translation": "Введіть дійсну електронну адресу або ім'я користувача та/або пароль, або увійдіть іншим способом."
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Введіть дійсну електронну адресу або ім'я користувача та/або пароль."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Введіть дійсну електронну адресу та/або пароль"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
@@ -5485,15 +5485,15 @@
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": "Guest accounts are disabled"
+    "translation": "Гостьові облікові записи вимкнено"
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest."
+    "translation": "Неможливо перетворити користувача на гостя, оскільки він вже є гостем."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Не вдалося створити користувача, недійсне запрошення."
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
@@ -5501,19 +5501,19 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": "Guest accounts are disabled."
+    "translation": "Гостьові акаунти вимкнено."
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "Не вдається створити токен для відновлення пароля"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Ліцензію Mattermost Enterprise вимкнено."
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
+    "translation": "Термін дії вашої ліцензії на Enterprise версію закінчився, і деякі функції можуть бути вимкнені. Будь ласка, поновіть ліцензію."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5521,19 +5521,19 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "Неправильне оновлення члена команди: користувач повинен бути гостем або користувачем, але не обома."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Pagination not implemented for public-only team search."
+    "translation": "Пагінація не реалізована для публічного пошуку команд."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": "Pagination not implemented for private-only team search."
+    "translation": "Пагінація не реалізована для приватного пошуку в командах."
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "Неможливо видалити користувача з команди, обмеженої групою."
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -5573,7 +5573,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message."
+    "translation": "Виникла помилка під час створення повідомлення підтвердження пуш-сповіщення."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -5793,51 +5793,51 @@
   },
   {
     "id": "app.audit.save.saving.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Ми зіткнулися з помилкою під час збереження аудитів."
   },
   {
     "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Виникла помилка під час видалення аудитів."
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": "Перевищене обмеження кількості сторінок"
+    "translation": "Перевищено ліміт сторінок."
   },
   {
     "id": "app.audit.get.finding.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Ми зіткнулися з помилкою при пошуку аудитів."
   },
   {
     "id": "app.command.listteamcommands.internal_error",
-    "translation": "Не вдається отримати команди"
+    "translation": "Не вдалося вивести команди команди."
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": "Неправильний веб-хокс"
+    "translation": "Неправильний вебхук."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": "Неможливо використовувати веб-ключа"
+    "translation": "Не вдається використати вебхук."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
-    "translation": "Неможливо проаналізувати вхідні дані"
+    "translation": "Не вдається розібрати вхідні дані."
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": "Неможливо використовувати веб-ключ"
+    "translation": "Не вдалося знайти вебхук."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": "Неможливо використовувати веб-ключ"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": "Не вдається зберегти команду Webhook"
+    "translation": "Не вдається зберегти CommandWebhook."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": "Ви не можете оновити існуючий CommandWebhook"
+    "translation": "Ви не можете оновити існуючий CommandWebhook."
   },
   {
     "id": "app.oauth.update_app.updating.app_error",
@@ -5933,27 +5933,27 @@
   },
   {
     "id": "app.command.updatecommand.internal_error",
-    "translation": "Не вдається оновити команду"
+    "translation": "Не вдалося оновити команду."
   },
   {
     "id": "app.command.movecommand.internal_error",
-    "translation": "Не вдається зберегти команду"
+    "translation": "Не вдалося перемістити команду."
   },
   {
     "id": "app.command.listallcommands.internal_error",
-    "translation": "Не вдається отримати команди"
+    "translation": "Не вдалося отримати список команд."
   },
   {
     "id": "app.command.getcommand.internal_error",
-    "translation": "Не вдається отримати схему"
+    "translation": "Не вдалося отримати команду."
   },
   {
     "id": "app.command.deletecommand.internal_error",
-    "translation": "Неможливо видалити команду"
+    "translation": "Не вдалося видалити команду."
   },
   {
     "id": "app.command.createcommand.internal_error",
-    "translation": "Не вдається зберегти команду"
+    "translation": "Не вдалося зберегти команду."
   },
   {
     "id": "app.recover.save.app_error",
@@ -5993,19 +5993,19 @@
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": "Не вдається зберегти смайли"
+    "translation": "Неможливо зберегти емодзі."
   },
   {
     "id": "app.channel.update_channel.internal_error",
-    "translation": "Не вдається оновити канал"
+    "translation": "Неможливо оновити канал."
   },
   {
     "id": "app.channel.restore.app_error",
-    "translation": "Не вдається видалити канал"
+    "translation": "Не вдається відновити канал."
   },
   {
     "id": "app.channel.get_all_channels_count.app_error",
-    "translation": "Неможливо отримати всі канали"
+    "translation": "Не вдалось порахувати всі канали."
   },
   {
     "id": "app.user_access_token.update_token_enable.app_error",
@@ -6113,27 +6113,27 @@
   },
   {
     "id": "app.webhooks.get_outgoing_by_team.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхуки."
   },
   {
     "id": "app.webhooks.get_incoming.app_error",
-    "translation": "Не вдається отримати веб-ключа"
+    "translation": "Не вдалося отримати вебхук."
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
@@ -6305,7 +6305,7 @@
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Не вдалося видалити вкладення користувача"
+    "translation": "Неможливо видалити вкладення користувача."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -6317,11 +6317,11 @@
   },
   {
     "id": "app.file_info.get.app_error",
-    "translation": "Не вдається отримати інформацію про файл"
+    "translation": "Не вдалося отримати інформацію про файл."
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
+    "translation": "Не вдається отримати пакет каналів для індексації."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -6333,47 +6333,47 @@
   },
   {
     "id": "app.channel.search.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
+    "translation": "Виникла помилка під час пошуку каналів."
   },
   {
     "id": "app.channel.reset_all_channel_schemes.app_error",
-    "translation": "Не вдалося скинути схеми каналів"
+    "translation": "Ми не змогли скинути схеми каналів."
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
-    "translation": "Не вдалося вилучити деактивованих користувачів із каналу"
+    "translation": "Не вдалося видалити деактивованих користувачів з каналу."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
-    "translation": "Не вдалося вибрати партію учасників каналу"
+    "translation": "Не вдалося вибрати групу учасників каналу."
   },
   {
     "id": "app.channel.get_unread.app_error",
-    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
+    "translation": "Не вдалось отримати список непрочитаних повідомленнь каналу."
   },
   {
     "id": "app.channel.get_members_by_ids.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
+    "translation": "Не вдалося знайти учасників каналу."
   },
   {
     "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
+    "translation": "Не вдається отримати пакет каналів для індексації."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
-    "translation": "Неможливо отримати канали для наданої схеми"
+    "translation": "Не вдалося отримати канали для наданої схеми."
   },
   {
     "id": "app.channel.get_all_direct.app_error",
-    "translation": "Неможливо отримати всі канали"
+    "translation": "Неможливо отримати всі приватні канали."
   },
   {
     "id": "app.channel.get_all.app_error",
-    "translation": "Неможливо отримати всі канали"
+    "translation": "Не вдалось отримати всі канали."
   },
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
+    "translation": "Не вдалося отримати учасників каналу."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6397,7 +6397,7 @@
   },
   {
     "id": "app.post.get_posts.app_error",
-    "translation": "Перевищене обмеження кількості сторінок"
+    "translation": "Перевищено ліміт сторінок."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -6469,7 +6469,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Неможливо отримати канали для наданої схеми"
+    "translation": "Не вдалося отримати канали для наданої схеми."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -6489,7 +6489,7 @@
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": "Недійсне значення ідентифікатора."
+    "translation": "Недійсне значення ідентифікатора"
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
@@ -6509,47 +6509,47 @@
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
-    "translation": "Ну вдалося встановити час останнього перегляду на"
+    "translation": "Не вдалося оновити час останнього перегляду."
   },
   {
     "id": "app.channel.remove_member.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
+    "translation": "Не вдалося видалити учасника каналу."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "Не вдається знайти прикріплені повідомлення"
+    "translation": "Не вдалося знайти закріплені повідомлення."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
+    "translation": "Не вдалося видалити учасника каналу."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
-    "translation": "Не вдалося отримати кількість учасників каналу"
+    "translation": "Не вдалося отримати кількість закріплених повідомлень."
   },
   {
     "id": "app.channel.get_members.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
+    "translation": "Не вдалося знайти учасників каналу."
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": "Не вдалося отримати кількість учасників каналу"
+    "translation": "Не вдається отримати кількість учасників каналу."
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
+    "translation": "Не знайдено жодного учасника каналу для цього ідентифікатора користувача та ідентифікатора каналу."
   },
   {
     "id": "app.channel.get_member.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
+    "translation": "Не вдалося отримати учасника каналу."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date."
+    "translation": "Неможливо порахувати кількість повідомленнь з вказаної дати."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "Неможливо отримати кількість каналів"
+    "translation": "Не вдається отримати кількість типів каналів."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -6573,31 +6573,31 @@
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
+    "translation": "Не вдалось отримати публічні канали."
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
-    "translation": "Неможливо отримати всі канали"
+    "translation": "Не вдалось отримати приватні канали."
   },
   {
     "id": "app.channel.get_for_post.app_error",
-    "translation": "Не вдалося отримати канал для даної публікації"
+    "translation": "Не вдалося отримати канал для цього допису."
   },
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
-    "translation": "Канали не знайдені"
+    "translation": "Канал не знайдено."
   },
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": "Неможливо отримати канали"
+    "translation": "Не вдалося отримати канали."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": "Неможливо отримати канали"
+    "translation": "Не вдається отримати канали за ідентифікаторами."
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Неможливо отримати кількість каналів"
+    "translation": "Не вдається отримати кількість каналів."
   },
   {
     "id": "app.team.update.updating.app_error",
@@ -6669,7 +6669,7 @@
   },
   {
     "id": "api.user.login_cws.license.error",
-    "translation": "Bot login is forbidden."
+    "translation": "Вхід через CWS заборонено."
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
@@ -8041,7 +8041,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed_footer.contact_support",
-    "translation": "Зверніться до служби підтримки"
+    "translation": "Зверніться до служби технічної підтримки"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
@@ -8061,7 +8061,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
-    "translation": "Зв'яжіться з відділом продажів"
+    "translation": "Зв'язатися з відділом продажів"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
@@ -9645,7 +9645,7 @@
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
-    "translation": "Неправильний ідентифікатор повідомлення."
+    "translation": "Неправильний ідентифікатор допису."
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -9862,5 +9862,481 @@
   {
     "id": "mfa.deactivate.app_error",
     "translation": "Не вдалося оновити активний статус багатофакторної автентифікації (БФА) для користувача."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Час створення має бути коректним."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Час зберігання повідомлень не може бути меншим за 0"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Неправильні ідентифікатори файлів."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Список адрес електронної пошти порожній"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "URL-адреса аудиторії невірна: {{ .Url }}"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Час створення має бути коректним."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Налаштування CollapsedThreads має бути disabled, default_on або default_off"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Кількість днів та годин зберігання файлу не може дорівнювати 0."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Неправильна загальна кількість постійних сповіщень на допис. Повинно бути позитивним числом."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Невірна максимальна кількість отримувачів для постійних сповіщень. Повинне бути додатним числом."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Відсутнє відображуване ім'я."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "Ідентифікатор файлу відсутній або недійсний."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Час для оновлення має бути дійсним."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Невірний ідентифікатор власника."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Невірний початковий ідентифікатор."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Розмір пакета індексування Bleve Bulk повинен бути щонайменше {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Дні зберігання повідомлень та години зберігання повідомлень не можуть дорівнювати 0."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "ім'я групи вже існує як зарезервоване"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Неправильний секрет клієнта."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Допис не може бути створений"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Не вдається отримати системного бота"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Не вдається отримати приватне повідомлення від системного бота"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Не вдається отримати користувача"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Якщо ви отримали це тестове сповіщення, значить він працює!"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Невірна URL-адреса зображення."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Неможливо встановити посилання та файл в одній закладці."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "URL-посилання відсутнє або невірне."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Розмір пакету масового індексування Elasticsearch має бути не меншим за {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Неправильний формат: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Неправильний домен для налаштувань потоку переміщення"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Неправильний пріоритет"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Невірні властивості."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Неправильний ідентифікатор користувача."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Максимальна довжина MattermostAppID - 32 символи."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Час створення має бути дійсним."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Неправильне значення таймауту {{.Value}}. Має бути додатне число."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Кількість днів та годин зберігання файлу не може бути більшою за 0."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Невірний ідентифікатор клієнта."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Неправильний пошуковий бекенд. Має бути elasticsearch або opensearch."
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Невірне значення channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Дні зберігання повідомлень та години зберігання повідомлень не можуть бути більшими за 0."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Якщо GlobalRelaySettings.CustomerType дорівнює 'CUSTOM', то GlobalRelaySettings.CustomSMTPServerName та GlobalRelaySettings.CustomSMTPPort мають бути встановлені."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Невірне значення для байтів при завантаженні ліцензії."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Ролі учасників каналу перевищують допустиму довжину в {{.Limit}} символів."
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Неправильний ідентифікатор плагіна."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow має бути увімкнено (true), щоб дозволити налаштування CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Час зберігання файлу не може бути меншим за 0"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Неправильний каталог локального сховища. Має бути непорожній рядок."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Невірне значення для RetentionDays. Значення має бути більше 0"
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Невірне значення для RetentionDays. Занадто низьке значення."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Не вдається знайти каталог локального файлу сокета."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Неправильний максимальний розмір корисного навантаження для налаштувань сервісу. Повинно бути цілим числом, більшим за нуль."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Неправильна частота постійних сповіщень. Повинна бути не менше двох хвилин."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Неправильний ідентифікатор каналу."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Неправильне значення для тайм-ауту відсутності користувача. Повинно бути додатнім числом."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Неправильний ідентифікатор root."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Аудиторія не повинна бути порожньою."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ігноровані індекси для очищення не повинні починатися з тире."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Неправильний паралелізм декодера {{.Value}}. Має бути додатне число або -1."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Невірні вихідні інтеграції запитують таймаут для налаштувань сервісу. Має бути додатнім числом."
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Потрібен ідентифікатор постачальника послуг"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Неправильний максимальний час простою з'єднання для налаштувань SQL. Повинно бути невід'ємним числом."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Неправильне повідомлення."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Неправильний тип."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Неправильний ідентифікатор батька."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Невірне значення для Каталогу."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Неправильне значення таймауту метаданих посилання. Повинно бути додатнім числом."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Не вдалося розібрати JSON: {{.Error}}"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Назва каналу невірна"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Повідомити про перевищення ліміту розміру реквізиту."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Неправильна максимальна довжина URL-адреси для налаштувань сервісу. Повинно бути цілим числом, більшим за нуль."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Ім'я конфліктує з існуючими системними іменами емодзі."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Час для оновлення має бути дійсним."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB повинен мати значення більше або рівне нулю."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Тип кешу має бути lru або redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress має бути вказано для типу кешу Redis."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Неправильний пароль."
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Значення для Директорії не повинно бути порожнім."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Час для оновлення має бути дійсним."
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Неправильне значення для ChannelId."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Невірні ролі користувача, довжина перевищує {{.Limit}} символів."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Невірне поле UserId для сесії."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Відсутній маніфест"
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Не вдалося записати допис у формат для передачі."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Недійсний ідентифікатор."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Недійсне ім'я."
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Неправильне значення для параметра FileSize"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Неправильний ідентифікатор автора."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Недійсний тип доступу."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Неправильний URL oauth токену."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Час для оновлення має бути дійсним."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Неправильний Ідентифікатор допису."
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "Команда /{{.Command}} призвела до аварійного завершення роботи плагіна {{.PluginId}}. Зверніться до системного адміністратора"
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Ваш пароль повинен містити не більше 72 символів."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Виникла внутрішня помилка при збереженні пароля."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Ваш пароль повинен містити не більше 72 символів."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів."
+  },
+  {
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": "Команди не існує."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Плагін для /{{.Command}} не працює. Зверніться до вашого системного адміністратора"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Вказаний діапазон дат є невірним."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Пошук файлів вимкнено на цьому сервері. Будь ласка, зверніться до вашого системного адміністратора."
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Неправильне значення для FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Невірне значення для параметра Ім'я файлу"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Невірні властивості (користувацький статус)"
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Не вдалося кодувати поле в JSON"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Один або кілька дописів не вдалося доставити на віддалений сайт {{.Remote}}, оскільки він перебуває в режимі офлайн. Дописи будуть доставлені, коли сайт буде онлайн."
+  },
+  {
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": "Команди не існує."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Неправильний Ідентифікатор користувача."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Не вдалося записати файл глобальної ретрансляції."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Невірне поле CreateAt для сесії."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Невірний ідентифікатор сесії."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Ролі учасника команди перевищують допустиму довжину у {{.Limit}} символів."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Ця публікація містить дозволені посилання на інші канали, які можуть бути невидимими для користувачів інших сайтів."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Вказаний стовпець сортування не є дійсним."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Невірне значення для параметра limit_visible_dms_gms."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Відсутня конфігурація повторного підключення плагіна"
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Команда з такою URL-адресою вже існує."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Ролі сесії перевищують допустиму довжину у {{.Limit}} символів."
   }
 ]

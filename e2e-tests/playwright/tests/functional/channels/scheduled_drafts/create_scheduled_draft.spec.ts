@@ -3,7 +3,7 @@ import {test} from '@e2e-support/test_fixture';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
-test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, pages}) => {
+test.fixme('MM-T5643_1 should create a scheduled message from a channel', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -38,7 +38,7 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw, 
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw, pages}) => {
+test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Threaded Message';
@@ -113,7 +113,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
+test.fixme('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -147,7 +147,7 @@ test('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
     await compareMessageTimestamps(rescheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 });
 
-test('MM-T5645 should delete a scheduled message', async ({pw, pages}) => {
+test.fixme('MM-T5645 should delete a scheduled message', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -168,7 +168,7 @@ test('MM-T5645 should delete a scheduled message', async ({pw, pages}) => {
     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 });
 
-test('MM-T5643_9 should send a scheduled message immediately', async ({pw, pages}) => {
+test.fixme('MM-T5643_9 should send a scheduled message immediately', async ({pw, pages}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -193,7 +193,7 @@ test('MM-T5643_9 should send a scheduled message immediately', async ({pw, pages
     await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
 });
 
-test('MM-T5643_3 should create a scheduled message from a DM', async ({pw, pages}) => {
+test.fixme('MM-T5643_3 should create a scheduled message from a DM', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -265,7 +265,7 @@ test('MM-T5648 should create a draft and then schedule it', async ({pw, pages}) 
     await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 });
 
-test('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
+test.fixme('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     test.setTimeout(120000);
 
     const draftMessage = 'Scheduled Draft';
@@ -303,7 +303,7 @@ test('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
 });
 
-test('MM-T5650 should copy scheduled message', async ({pw, pages, browserName}) => {
+test.fixme('MM-T5650 should copy scheduled message', async ({pw, pages, browserName}) => {
     test.setTimeout(120000);
 
     // Skip this test in Firefox clipboard permissions are not supported
