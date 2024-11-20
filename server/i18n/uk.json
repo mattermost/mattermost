@@ -2849,7 +2849,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Пропущено назву команди в «Участь користувачів в команді»"
+    "translation": "Назва команди відсутня у списку членів команди користувача."
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -5121,7 +5121,7 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
+    "translation": "Помилка при створенні індекс-каналу bleve."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -6409,11 +6409,11 @@
   },
   {
     "id": "app.post.analytics_posts_count_by_day.app_error",
-    "translation": "Не вдається отримати кількість постів за день"
+    "translation": "Неможливо отримати кількість дописів за днями."
   },
   {
     "id": "app.post.analytics_posts_count.app_error",
-    "translation": "Не вдається отримати кількість постів"
+    "translation": "Не вдалось отримати кількість дописів."
   },
   {
     "id": "app.team.save_member.save.app_error",
