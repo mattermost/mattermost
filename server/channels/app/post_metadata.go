@@ -920,7 +920,7 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		Format: format,
 	}
 
-	if format == "jpeg" || format == "png" {
+	if format == "jpeg" {
 		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
 			(imageOrientation == imaging.RotatedCWMirrored ||
 				imageOrientation == imaging.RotatedCCW ||
