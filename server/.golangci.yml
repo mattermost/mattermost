@@ -100,7 +100,10 @@ issues:
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/cluster_handlers.go|\
+<<<<<<< HEAD
         channels/app/platform/config_test.go|\
+=======
+>>>>>>> master
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
         channels/app/platform/link_cache.go|\
@@ -116,17 +119,21 @@ issues:
         channels/app/platform/web_conn.go|\
         channels/app/platform/web_hub.go|\
         channels/app/platform/web_hub_test.go|\
+<<<<<<< HEAD
         channels/app/plugin_api_tests/test_update_user_auth_plugin/main.go|\
+=======
+>>>>>>> master
         channels/app/plugin_install.go|\
-        channels/app/plugin_signature.go|\
         channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
-        channels/app/post.go|\
         channels/app/post_helpers_test.go|\
         channels/app/post_test.go|\
         channels/app/security_update_check.go|\
         channels/app/server.go|\
+<<<<<<< HEAD
         channels/app/server_test.go|\
+=======
+>>>>>>> master
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\
@@ -194,7 +201,6 @@ issues:
         channels/utils/license_test.go|\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
-        channels/web/static.go|\
         channels/web/web_test.go|\
         channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\

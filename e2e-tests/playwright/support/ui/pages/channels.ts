@@ -14,6 +14,8 @@ export default class ChannelsPage {
     readonly centerView;
     readonly scheduledDraftDropdown;
     readonly scheduledDraftModal;
+    readonly scheduledDraftDropdown;
+    readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly appBar;
@@ -22,6 +24,7 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly settingsModal;
 
+    readonly postContainer;
     readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
@@ -54,10 +57,19 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
+        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
+        this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
+
+        // Posts
+        this.postContainer = page.locator('div.post-message__text');
     }
 
     async toBeVisible() {
         await this.centerView.toBeVisible();
+    }
+
+    async getLastPost() {
+        return this.postContainer.last();
     }
 
     async getLastPost() {
@@ -74,6 +86,14 @@ export default class ChannelsPage {
             }
         }
         await this.page.goto(channelsUrl);
+    }
+
+    /**
+     * `postMessage` posts a message in the current channel
+     * @param message Message to post
+     */
+    async postMessage(message: string) {
+        await this.centerView.postCreate.postMessage(message);
     }
 }
 

@@ -19,6 +19,9 @@ jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      checks: write
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
