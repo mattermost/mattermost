@@ -40,7 +40,7 @@ exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should ma
       "onError": [Function],
       "onWarn": [Function],
       "textComponent": "span",
-      "timeZone": "UTC",
+      "timeZone": "Etc/UTC",
     }
   }
   renderSelected={true}
@@ -132,7 +132,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
       "onError": [Function],
       "onWarn": [Function],
       "textComponent": "span",
-      "timeZone": "UTC",
+      "timeZone": "Etc/UTC",
     }
   }
   renderSelected={true}
@@ -235,7 +235,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 "onError": [Function],
                 "onWarn": [Function],
                 "textComponent": "span",
-                "timeZone": "UTC",
+                "timeZone": "Etc/UTC",
               }
             }
             renderSelected={true}
@@ -329,7 +329,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 "onError": [Function],
                 "onWarn": [Function],
                 "textComponent": "span",
-                "timeZone": "UTC",
+                "timeZone": "Etc/UTC",
               }
             }
             renderSelected={true}

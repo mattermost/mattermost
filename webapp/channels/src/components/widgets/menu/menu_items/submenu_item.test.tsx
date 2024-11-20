@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {createIntl} from 'react-intl';
 
-import defaultMessages from 'i18n/en.json';
-import {mountWithIntl, withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {screen, userEvent, renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import SubMenuItem, {SubMenuItem as SubMenuItemClass} from './submenu_item';
@@ -16,20 +14,9 @@ jest.mock('../is_mobile_view_hack', () => ({
 }));
 
 describe('components/widgets/menu/menu_items/submenu_item', () => {
-    const baseProps = {
-        intl: createIntl({
-            locale: 'en',
-            defaultLocale: 'en',
-            timeZone: 'UTC',
-            messages: defaultMessages,
-            textComponent: 'span',
-        }),
-    };
-
     test('empty subMenu should match snapshot', () => {
         const wrapper = mountWithIntl(
             <SubMenuItem
-                {...baseProps}
                 key={'_pluginmenuitem'}
                 id={'1'}
                 text={'test'}
@@ -45,7 +32,6 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
     test('present subMenu should match snapshot with submenu', () => {
         const wrapper = mountWithIntl(
             <SubMenuItem
-                {...baseProps}
                 key={'_pluginmenuitem'}
                 id={'1'}
                 text={'test'}
@@ -74,9 +60,8 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         const action2 = jest.fn();
         const action3 = jest.fn();
 
-        render(withIntl(
+        renderWithContext(
             <SubMenuItem
-                {...baseProps}
                 key={'_pluginmenuitem'}
                 id={'Z'}
                 text={'test'}
@@ -97,7 +82,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
                 action={action1}
                 root={true}
             />,
-        ));
+        );
 
         userEvent.click(screen.getByText('test'));
         expect(action1).toHaveBeenCalledTimes(1);
@@ -115,7 +100,6 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
     test('should show/hide submenu based on keyboard commands', () => {
         const wrapper = mountWithIntl(
             <SubMenuItem
-                {...baseProps}
                 key={'_pluginmenuitem'}
                 id={'1'}
                 text={'test'}

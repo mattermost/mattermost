@@ -3,8 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
+import {defineMessages, injectIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -32,7 +32,7 @@ export type Props = WrappedComponentProps & {
     postId: string;
     teamId: string;
     getDotMenuRef: () => HTMLDivElement | null;
-    location: keyof typeof Locations;
+    location?: keyof typeof Locations;
     showEmojiPicker: boolean;
     toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     actions: {
@@ -45,7 +45,7 @@ type State = {
     showEmojiPicker: boolean;
 }
 
-export default class PostReaction extends React.PureComponent<Props, State> {
+export class PostReaction extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
         location: Locations.CENTER as 'CENTER',
         showEmojiPicker: false,
@@ -113,3 +113,5 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(PostReaction);

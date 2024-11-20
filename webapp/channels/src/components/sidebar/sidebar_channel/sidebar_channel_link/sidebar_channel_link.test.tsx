@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {createIntl} from 'react-intl';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {SidebarChannelLink} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import type {SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import defaultMessages from 'i18n/en.json';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const baseProps = {
@@ -49,17 +48,10 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             unsetEditingPost: jest.fn(),
             closeRightHandSide: jest.fn(),
         },
-        intl: createIntl({
-            locale: 'en',
-            defaultLocale: 'en',
-            timeZone: 'Etc/UTC',
-            messages: defaultMessages,
-            textComponent: 'span',
-        }),
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -70,7 +62,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         const userAgentMock = jest.requireMock('utils/user_agent');
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -78,7 +70,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -94,7 +86,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -102,10 +94,10 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should enable tooltip when needed', () => {
-        const wrapper = shallow<SidebarChannelLink>(
+        const wrapper = shallowWithIntl(
             <SidebarChannelLink {...baseProps}/>,
         );
-        const instance = wrapper.instance();
+        const instance = wrapper.instance() as SidebarChannelLinkComponent;
 
         instance.labelRef = {
             current: {

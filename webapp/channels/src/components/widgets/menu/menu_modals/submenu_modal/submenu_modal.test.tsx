@@ -5,11 +5,8 @@ import {fireEvent, waitForElementToBeRemoved} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {createIntl} from 'react-intl';
 
-import defaultMessages from 'i18n/en.json';
-import {withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
 
@@ -50,13 +47,6 @@ describe('components/submenu_modal', () => {
             },
         ],
         onExited: jest.fn(),
-        intl: createIntl({
-            locale: 'en',
-            defaultLocale: 'en',
-            timeZone: 'UTC',
-            messages: defaultMessages,
-            textComponent: 'span',
-        }),
     };
 
     test('should match snapshot', () => {
@@ -67,9 +57,9 @@ describe('components/submenu_modal', () => {
     });
 
     test('should hide on modal body click', async () => {
-        const view = render(withIntl(
+        const view = renderWithContext(
             <SubMenuModal {...baseProps}/>,
-        ));
+        );
 
         screen.getByText('Text A');
         screen.getByText('Text B');
@@ -87,9 +77,9 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        render(withIntl(
+        renderWithContext(
             <SubMenuModal {...props}/>,
-        ));
+        );
 
         userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);
