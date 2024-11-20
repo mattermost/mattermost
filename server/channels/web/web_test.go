@@ -146,6 +146,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
+		t:                 &tb,
 	}
 
 	return th
