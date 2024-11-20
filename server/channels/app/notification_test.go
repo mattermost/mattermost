@@ -170,8 +170,6 @@ func TestSendNotifications(t *testing.T) {
 	})
 
 	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
 		testUserNotNotified := func(t *testing.T, user *model.User) {
 			rootPost := &model.Post{
 				UserId:    user.Id,
