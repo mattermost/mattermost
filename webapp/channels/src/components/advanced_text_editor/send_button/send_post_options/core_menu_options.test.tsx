@@ -64,6 +64,7 @@ describe('CoreMenuOptions Component', () => {
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: false,
+            isSelfDM: false,
             isBot: false,
         });
     });
@@ -121,6 +122,7 @@ describe('CoreMenuOptions Component', () => {
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: true,
+            isSelfDM: false,
             isBot: false,
         });
 
@@ -161,7 +163,24 @@ describe('CoreMenuOptions Component', () => {
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: true,
+            isSelfDM: false,
             isBot: true,
+        });
+
+        renderComponent();
+
+        // Check the trailing element is NOT rendered in the component as this is a bot
+        expect(screen.queryByText(/John Doe/)).toBeNull();
+    });
+
+    it('should NOT include trailing element when the DM is with oneself', () => {
+        setMockDate(2); // Tuesday
+
+        mockedUseTimePostBoxIndicator.mockReturnValue({
+            ...defaultUseTimePostBoxIndicatorReturnValue,
+            isDM: true,
+            isSelfDM: true,
+            isBot: false,
         });
 
         renderComponent();
