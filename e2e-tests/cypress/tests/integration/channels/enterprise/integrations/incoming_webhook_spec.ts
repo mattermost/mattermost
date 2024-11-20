@@ -67,7 +67,8 @@ describe('Incoming webhook', () => {
 
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
-        cy.get('#searchBox').
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().
             wait(TIMEOUTS.HALF_SEC).
             typeWithForce('findme').
             typeWithForce('{enter}');

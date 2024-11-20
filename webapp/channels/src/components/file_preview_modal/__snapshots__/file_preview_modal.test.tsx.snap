@@ -125,7 +125,12 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
-            loading="Loading"
+            loading={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading"
+                id="view_image.loading"
+              />
+            }
             progress={0}
           />
         </div>
@@ -260,7 +265,12 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
-            loading="Loading"
+            loading={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading"
+                id="view_image.loading"
+              />
+            }
             progress={0}
           />
         </div>
@@ -395,7 +405,12 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
         >
           <LoadingImagePreview
             containerClass="view-image__loading"
-            loading="Loading"
+            loading={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading"
+                id="view_image.loading"
+              />
+            }
             progress={0}
           />
         </div>

@@ -96,7 +96,8 @@ describe('Leave an archived channel', () => {
                 cy.visit(previousChannel);
 
                 // # Search for content from an archived channel
-                cy.get('#searchBox').click().clear().type(`${messageD}{enter}`);
+                cy.uiGetSearchContainer().click();
+                cy.uiGetSearchBox().first().clear().type(`${messageD}{enter}`);
 
                 // # Open the channel from search results
                 cy.get('#searchContainer').should('be.visible');
@@ -107,7 +108,8 @@ describe('Leave an archived channel', () => {
                 cy.url().should('contain', `${testTeam.name}/channels/${archivedChannelD.name}`);
 
                 // # Search for content from a different archived channel
-                cy.get('#searchBox').click().clear().type(`${messageC}{enter}`);
+                cy.uiGetSearchContainer().click();
+                cy.uiGetSearchBox().first().clear().type(`${messageC}{enter}`);
 
                 // # Open the channel from search result by clicking Jump
                 cy.get('#searchContainer').should('be.visible').findByText('Jump').click().wait(TIMEOUTS.ONE_SEC);

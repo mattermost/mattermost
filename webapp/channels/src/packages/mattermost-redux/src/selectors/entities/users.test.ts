@@ -293,10 +293,87 @@ describe('Selectors.Users', () => {
         });
     });
 
-    it('getProfilesInCurrentTeam', () => {
-        const users = [user1, user2, user7].sort(sortByUsername);
-        expect(Selectors.getProfilesInCurrentTeam(testState)).toEqual(users);
+    describe('getProfilesInCurrentTeam', () => {
+        it('getProfilesInCurrentTeam', () => {
+            const users = [user1, user2, user7].sort(sortByUsername);
+            expect(Selectors.getProfilesInCurrentTeam(testState)).toEqual(users);
+        });
+
+        const remoteUser = TestHelper.fakeUserWithId();
+        remoteUser.remote_id = 'remoteID';
+        const state = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                users: {
+                    ...testState.entities.users,
+                    profiles: {
+                        ...testState.entities.users.profiles,
+                        [remoteUser.id]: remoteUser,
+                    },
+                    profilesInTeam: {
+                        ...testState.entities.users.profilesInTeam,
+                        [team1.id]: new Set([...testState.entities.users.profilesInTeam[team1.id], remoteUser.id]),
+                    },
+                },
+                teams: {
+                    ...testState.teams,
+                    currentTeamId: team1.id,
+                    membersInTeam,
+                },
+            },
+        };
+
+        it('getProfilesInCurrentTeam include remote', () => {
+            const users = [user1, user2, user7, remoteUser].sort(sortByUsername);
+            expect(Selectors.getProfilesInCurrentTeam(state)).toEqual(users);
+        });
+
+        it('getProfilesInCurrentTeam with remote filter', () => {
+            const users = [user1, user2, user7].sort(sortByUsername);
+            const filters = {exclude_remote: true};
+            expect(Selectors.getProfilesInCurrentTeam(state, filters)).toEqual(users);
+        });
     });
+
+    describe('getProfilesNotInCurrentChannel', () => {
+        it('getProfilesNotInCurrentChannel', () => {
+            const users = [user2, user3].sort(sortByUsername);
+            expect(Selectors.getProfilesNotInCurrentChannel(testState)).toEqual(users);
+        });
+
+        const remoteUser = TestHelper.fakeUserWithId();
+        remoteUser.remote_id = 'remoteID';
+        const state = {
+            ...testState,
+            entities: {
+                ...testState.entities,
+                users: {
+                    ...testState.entities.users,
+                    profiles: {
+                        ...testState.entities.users.profiles,
+                        [remoteUser.id]: remoteUser,
+                    },
+                    profilesNotInChannel: {
+                        ...testState.entities.users.profilesNotInChannel,
+                        [channel1.id]: new Set([...testState.entities.users.profilesNotInChannel[channel1.id], remoteUser.id]),
+                    },
+                },
+            },
+        };
+
+        it('getProfilesNotInCurrentChannel include remote', () => {
+            const users = [user2, user3, remoteUser].sort(sortByUsername);
+            expect(Selectors.getProfilesNotInCurrentChannel(state)).toEqual(users);
+        });
+
+        it('getProfilesNotInCurrentChannel with remote filter', () => {
+            const users = [user2, user3].sort(sortByUsername);
+            const filters = {exclude_remote: true};
+            expect(Selectors.getProfilesNotInCurrentChannel(state, filters)).toEqual(users);
+        });
+    });
+
     describe('getProfilesInTeam', () => {
         it('getProfilesInTeam without filter', () => {
             const users = [user1, user2, user7].sort(sortByUsername);

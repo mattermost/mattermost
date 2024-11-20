@@ -14,6 +14,9 @@ exports[`plugins/Pluggable should match snapshot with extended component 1`] = `
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -29,6 +32,7 @@ exports[`plugins/Pluggable should match snapshot with extended component 1`] = `
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }
@@ -148,6 +152,9 @@ exports[`plugins/Pluggable should match snapshot with extended component with pl
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -163,6 +170,7 @@ exports[`plugins/Pluggable should match snapshot with extended component with pl
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }
@@ -282,6 +290,9 @@ exports[`plugins/Pluggable should match snapshot with no extended component 1`] 
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -290,6 +301,7 @@ exports[`plugins/Pluggable should match snapshot with no extended component 1`] 
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }
@@ -341,6 +353,9 @@ exports[`plugins/Pluggable should match snapshot with non-null pluggableId 1`] =
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -356,6 +371,7 @@ exports[`plugins/Pluggable should match snapshot with non-null pluggableId 1`] =
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }
@@ -408,6 +424,9 @@ exports[`plugins/Pluggable should match snapshot with null pluggableId 1`] = `
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -423,6 +442,7 @@ exports[`plugins/Pluggable should match snapshot with null pluggableId 1`] = `
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }
@@ -542,6 +562,9 @@ exports[`plugins/Pluggable should match snapshot with valid pluggableId 1`] = `
       "FilesWillUploadHook": Array [],
       "LinkTooltip": Array [],
       "MainMenu": Array [],
+      "MessageWillBePosted": Array [],
+      "MessageWillBeUpdated": Array [],
+      "MessageWillFormat": Array [],
       "MobileChannelHeaderButton": Array [],
       "NeedsTeamComponent": Array [],
       "NewMessagesSeparatorAction": Array [],
@@ -557,6 +580,7 @@ exports[`plugins/Pluggable should match snapshot with valid pluggableId 1`] = `
       "PostEditorAction": Array [],
       "Product": Array [],
       "RightHandSidebarComponent": Array [],
+      "SlashCommandWillBePosted": Array [],
       "UserGuideDropdownItem": Array [],
     }
   }

@@ -122,7 +122,7 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if model.IsReservedTeamName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidTeamName(*data.Name) {
+	} else if !model.IsValidTeamName(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in team names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -158,7 +158,7 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.ChannelNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidChannelIdentifier(*data.Name) {
+	} else if !model.IsValidChannelIdentifier(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in channel names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -192,6 +192,8 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -307,6 +309,34 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Teams != nil {
 		return ValidateUserTeamsImportData(data.Teams)
+	}
+
+	return nil
+}
+
+func ValidateBotImportData(data *BotImportData) *model.AppError {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if data.Username == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Username) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DisplayName != nil && utf8.RuneCountInString(*data.DisplayName) > model.UserFirstNameMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Owner == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_bot_import_data.owner_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Owner) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
