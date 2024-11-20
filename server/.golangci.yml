@@ -119,7 +119,6 @@ issues:
         channels/app/plugin_install.go|\
         channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
-        channels/app/post.go|\
         channels/app/post_helpers_test.go|\
         channels/app/post_test.go|\
         channels/app/security_update_check.go|\
@@ -191,7 +190,6 @@ issues:
         channels/utils/license_test.go|\
         channels/web/oauth_test.go|\
         channels/web/saml.go|\
-        channels/web/static.go|\
         channels/web/web_test.go|\
         channels/web/webhook.go|\
         cmd/mattermost/commands/cmdtestlib.go|\
