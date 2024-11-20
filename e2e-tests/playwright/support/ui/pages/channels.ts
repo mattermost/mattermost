@@ -69,11 +69,19 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                const prefix = channelName.startsWith('@') ? '/messages' : '';
+                const prefix = channelName.startsWith('@') ? '/messages' : '/channels';
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
         await this.page.goto(channelsUrl);
+    }
+
+    /**
+     * `postMessage` posts a message in the current channel
+     * @param message Message to post
+     */
+    async postMessage(message: string) {
+        await this.centerView.postCreate.postMessage(message);
     }
 }
 
