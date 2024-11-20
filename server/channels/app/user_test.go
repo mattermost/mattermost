@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"path/filepath"
@@ -1129,7 +1130,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err1 = sqlStore.GetMasterX().Select(&bots2, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
-	
+
 	scheduledPost1 := &model.ScheduledPost{
 		Draft: model.Draft{
 			ChannelId: th.BasicChannel.Id,
@@ -1153,6 +1154,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, "")
 	require.Nil(t, appErr)
+
 	err = th.App.PermanentDeleteUser(th.Context, th.BasicUser)
 	require.Nil(t, err, "Unable to delete user. err=%v", err)
 
