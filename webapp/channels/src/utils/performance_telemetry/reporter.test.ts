@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import nock from 'nock';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
+import {onCLS, onFCP, onINP, onLCP} from 'web-vitals/attribution';
 
 import {Client4} from '@mattermost/client';
 
