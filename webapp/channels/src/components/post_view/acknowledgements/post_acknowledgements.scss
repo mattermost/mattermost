@@ -1,10 +1,8 @@
-@charset "UTF-8";
-
-@import 'utils/mixins';
-@import 'utils/variables';
+@use 'utils/mixins';
+@use 'utils/variables';
 
 .AcknowledgementButton {
-    @include button-xsmall;
+    @include mixins.button-xsmall;
 
     position: relative;
     display: flex;

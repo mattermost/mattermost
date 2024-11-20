@@ -10316,5 +10316,25 @@
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
     "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Die Nachricht kann nicht erstellt werden"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kann die System Bot-Direktnachricht nicht erhalten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kann den Benutzer nicht holen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Wenn du diese Testbenachrichtigung erhalten hast, hat es funktioniert!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kann den Systembot nicht holen"
   }
 ]
