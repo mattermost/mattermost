@@ -177,7 +177,9 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 
 	nErr := ps.Store.License().Save(record)
 	if nErr != nil {
-		ps.RemoveLicense()
+		if err := ps.RemoveLicense(); err != nil {
+			ps.logger.Error("Failed to remove license from store", mlog.Err(err))
+		}
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
@@ -191,7 +193,9 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = license.Id
 	if err := ps.Store.System().SaveOrUpdate(sysVar); err != nil {
-		ps.RemoveLicense()
+		if err := ps.RemoveLicense(); err != nil {
+			ps.logger.Error("Failed to remove license from store", mlog.Err(err))
+		}
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
 	// only on prem licenses set this in the first place
@@ -202,8 +206,12 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		}
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches", mlog.Err(err))
+	}
 
 	return &license, nil
 }
@@ -287,8 +295,13 @@ func (ps *PlatformService) RemoveLicense() *model.AppError {
 	}
 
 	ps.SetLicense(nil)
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -344,8 +357,12 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return err
 	}
 
-	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	if err := ps.ReloadConfig(); err != nil {
+		ps.logger.Warn("Failed to reload config", mlog.Err(err))
+	}
+	if err := ps.InvalidateAllCaches(); err != nil {
+		ps.logger.Warn("Failed to invalidate caches", mlog.Err(err))
+	}
 
 	return nil
 }
