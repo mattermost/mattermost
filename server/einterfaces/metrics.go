@@ -105,6 +105,8 @@ type MetricsInterface interface {
 	IncrementNotificationUnsupportedCounter(notificationType model.NotificationType, notSentReason model.NotificationReason, platform string)
 
 	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
+	ObserveClientTimeToLastByte(platform, agent string, elapsed float64)
+	ObserveClientTimeToDomInteractive(platform, agent string, elapsed float64)
 	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
 	ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64)
 	ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64)

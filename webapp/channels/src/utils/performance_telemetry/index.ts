@@ -13,6 +13,9 @@ export const enum Measure {
     ChannelSwitch = 'channel_switch',
     GlobalThreadsLoad = 'global_threads_load',
     PageLoad = 'page_load',
+    TTFB = 'TTFB',
+    TTLB = 'TTLB',
+    DomInteractive = 'dom_interactive',
     RhsLoad = 'rhs_load',
     TeamSwitch = 'team_switch',
 }

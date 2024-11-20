@@ -216,8 +216,6 @@ describe.skip('PerformanceReporter', () => {
         onINPCallback({name: 'INP', value: 200});
         const onLCPCallback = (onLCP as jest.Mock).mock.calls[0][0];
         onLCPCallback({name: 'LCP', value: 2500, entries: []});
-        const onTTFBCallback = (onTTFB as jest.Mock).mock.calls[0][0];
-        onTTFBCallback({name: 'TTFB', value: 800});
 
         await waitForReport();
 
@@ -233,10 +231,6 @@ describe.skip('PerformanceReporter', () => {
                 {
                     metric: 'LCP',
                     value: 2500,
-                },
-                {
-                    metric: 'TTFB',
-                    value: 800,
                 },
             ],
         });
