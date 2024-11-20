@@ -131,7 +131,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
         }));
     }, [channel, dispatch, onSend, scheduledPost.id]);
 
-    const userChannelMember = channel && Object.prototype.hasOwnProperty.call(myChannelsMemberships, channel?.id);
+    const userChannelMember = Boolean(channel && myChannelsMemberships[channel.id]);
     const isChannelArchived = Boolean(channel?.delete_at);
 
     const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
