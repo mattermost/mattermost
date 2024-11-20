@@ -46,6 +46,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         teammateTimezone,
         teammateDisplayName,
         isDM,
+        isBot,
     } = useTimePostBoxIndicator(channelId);
 
     const currentUserId = useSelector(getCurrentUserId);
@@ -87,7 +88,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     const extraProps: Partial<MenuItemProps> = {};
 
-    if (isDM) {
+    if (isDM && !isBot) {
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
         const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
         const teammateTimeDisplay = (
