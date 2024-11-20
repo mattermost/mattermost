@@ -57,11 +57,11 @@ func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
 	var status model.Status
 	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
-		ps.logger.Warn("Failed to decode status from JSON")
+		ps.logger.Warn("Failed to decode status from JSON", mlog.Err(jsonErr))
 	}
 
 	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
-		ps.logger.Warn("Failed to store the given key and value")
+		ps.logger.Warn("Failed to store the given key and value", mlog.Err(err))
 	}
 }
 
@@ -116,7 +116,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.logger.Info("Purging all caches")
 	ps.ClearAllUsersSessionCacheLocal()
 	if err := ps.statusCache.Purge(); err != nil {
-		ps.logger.Warn("Failed to clear the status cache")
+		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
 	}
 	ps.Store.Team().ClearCaches()
 	ps.Store.Channel().ClearCaches()
@@ -126,7 +126,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.Store.Webhook().ClearCaches()
 
 	if err := linkCache.Purge(); err != nil {
-		ps.logger.Warn("Failed to clear the link cache")
+		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
 	}
 	ps.LoadLicense()
 }
