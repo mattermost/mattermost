@@ -496,13 +496,12 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
-	if resp.ContentLength == 0 {
-		return &model.SubmitDialogResponse{}, nil
-	}
-
 	var response model.SubmitDialogResponse
 	err = json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
 	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return &response, nil
+		}
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
