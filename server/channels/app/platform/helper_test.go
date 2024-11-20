@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -32,6 +33,7 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
+	Tb              testing.TB
 }
 
 var initBasicOnce sync.Once
@@ -91,7 +93,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	err := mainHelper.GetSQLStore().User().InsertUsers(users)
+	require.NoError(th.Tb, err)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -143,7 +146,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	options = append(options, ConfigStore(configStore))
 
@@ -204,9 +208,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func (th *TestHelper) TearDown() {
-	th.Service.ShutdownMetrics()
-	th.Service.Shutdown()
-	th.Service.ShutdownConfig()
+	err := th.Service.ShutdownMetrics()
+	require.NoError(th.Tb, err)
+	err = th.Service.Shutdown()
+	require.NoError(th.Tb, err)
+	err = th.Service.ShutdownConfig()
+	require.NoError(th.Tb, err)
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
