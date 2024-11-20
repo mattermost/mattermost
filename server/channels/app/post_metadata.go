@@ -641,7 +641,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok && previewedPostPropVal == "" {
-			cacheLinkMetadata(requestURL, timestamp, og, image, nil)
+			cacheLinkMetadata(c, requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
 		}
 	}
@@ -664,7 +664,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
-	cacheLinkMetadata(requestURL, timestamp, og, image, permalink)
+	cacheLinkMetadata(c, requestURL, timestamp, og, image, permalink)
 
 	return og, image, permalink, err
 }
@@ -726,7 +726,9 @@ func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provid
 	}
 
 	defer func() {
-		io.Copy(io.Discard, res.Body)
+		if _, err = io.Copy(io.Discard, res.Body); err != nil {
+			c.Logger().Warn("error discarding oEmbed response body", mlog.Err(err))
+		}
 		res.Body.Close()
 	}()
 
@@ -769,7 +771,9 @@ func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengrap
 
 	if body != nil {
 		defer func() {
-			io.Copy(io.Discard, body)
+			if _, err = io.Copy(io.Discard, body); err != nil {
+				c.Logger().Warn("error discarding OG image response body", mlog.Err(err))
+			}
 			body.Close()
 		}()
 	}
@@ -851,14 +855,16 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 }
 
-func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
+func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
 	metadata := linkMetadataCache{
 		OpenGraph: og,
 		PostImage: image,
 		Permalink: permalink,
 	}
 
-	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
+	if err := platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration); err != nil {
+		rctx.Logger().Warn("Failed to cache link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
+	}
 }
 
 // peekContentType peeks at the first 512 bytes of p, and attempts to detect
