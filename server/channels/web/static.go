@@ -86,7 +86,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Failed to read content from file",
 			mlog.String("file_path", filepath.Join(staticDir, "root.html")),
 			mlog.Err(err))
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
