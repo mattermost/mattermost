@@ -47,7 +47,8 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 	f(cfg)
 
-	store.Set(cfg)
+	_, _, err = store.Set(cfg)
+	require.NoError(t, err)
 
 	return NewServer(ConfigStore(store))
 }
@@ -61,7 +62,8 @@ func TestStartServerSuccess(t *testing.T) {
 	serverErr := s.Start()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	err = checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	require.NoError(t, err)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -155,7 +157,8 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+	require.NoError(t, err)
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -204,7 +207,8 @@ func TestStartServerTLSVersion(t *testing.T) {
 	*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
 
-	store.Set(cfg)
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
 
 	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
@@ -334,7 +338,8 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 	cfg := store.Get()
 	cfg.SqlSettings = *mainHelper.GetSQLSettings()
-	store.Set(cfg)
+	_, _, err = store.Set(cfg)
+	require.NoError(t, err)
 
 	// Creating a server with logger
 	s, err := NewServer(ConfigStore(store), SetLogger(logger))
@@ -362,7 +367,8 @@ func TestPanicLog(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	_, err = client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	require.Error(t, err)
 
 	err = logger.Flush()
 	assert.NoError(t, err, "flush should succeed")

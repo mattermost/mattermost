@@ -63,8 +63,10 @@ function mapStateToProps(state: GlobalState, props: Props) {
     const channel = getChannel(state, channelId);
     const useChannelMentions = haveIChannelPermission(state, teamId, channelId, Permissions.USE_CHANNEL_MENTIONS);
 
+    const canEdit = haveIChannelPermission(state, teamId, channelId, editPermission);
+
     return {
-        canEditPost: haveIChannelPermission(state, teamId, channelId, editPermission),
+        canEditPost: canEdit,
         canDeletePost: haveIChannelPermission(state, teamId, channelId, deletePermission),
         codeBlockOnCtrlEnter: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true),
         ctrlSend: getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
