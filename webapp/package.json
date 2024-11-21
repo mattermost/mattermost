@@ -16,7 +16,8 @@
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",
     "check-types": "npm run check-types --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "clean": "npm run clean --workspaces --if-present",
+    "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
     "react-intl": "6.6.2",
@@ -45,8 +46,8 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
     "patch-package": "8.0.0",
-    "sass": "1.71.1",
-    "sass-loader": "14.1.1",
+    "sass": "1.80.5",
+    "sass-loader": "16.0.2",
     "strip-ansi": "7.1.0",
     "style-loader": "4.0.0",
     "webpack": "5.95.0",

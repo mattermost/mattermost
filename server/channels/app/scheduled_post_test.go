@@ -497,6 +497,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 			},
 			ScheduledAt: model.GetMillis() + 100000, // 100 seconds in the future
 		}
+
 		createdScheduledPost, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost, user1ConnID)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdScheduledPost)
@@ -556,7 +557,6 @@ func TestUpdateScheduledPost(t *testing.T) {
 		newScheduledAtTime := model.GetMillis() + 9999999
 		createdScheduledPost.ScheduledAt = newScheduledAtTime
 		createdScheduledPost.Message = "Updated Message!!!"
-
 		updatedScheduledPost, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser2.Id, createdScheduledPost, user1ConnID)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)

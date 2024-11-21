@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .TrialBenefitsModalStep {
     &.slide-container {
@@ -70,16 +70,16 @@
                 margin-top: 10px;
 
                 .tertiary-button {
-                    @include tertiary-button;
-                    @include button-medium;
+                    @include mixins.tertiary-button;
+                    @include mixins.button-medium;
 
                     height: 32px;
                     font-size: 12px;
                 }
 
                 .primary-button {
-                    @include primary-button;
-                    @include button-small;
+                    @include mixins.primary-button;
+                    @include mixins.button-small;
 
                     margin-left: 8px;
                 }
