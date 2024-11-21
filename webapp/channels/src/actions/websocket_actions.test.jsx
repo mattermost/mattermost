@@ -3,6 +3,7 @@
 
 import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
+import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -69,6 +70,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
+    fetchAllMyTeamsChannels: jest.fn(),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -647,6 +649,11 @@ describe('reconnect', () => {
     test('should call fetchMyCategories when socket reconnects', () => {
         reconnect();
         expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
+    });
+
+    test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
+        reconnect();
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
     });
 });
 

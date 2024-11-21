@@ -33,6 +33,7 @@ import {
     markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
     fetchAllMyChannelMembers,
+    fetchAllMyTeamsChannels,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -238,6 +239,7 @@ export function reconnect() {
         }
 
         dispatch(loadChannelsForCurrentUser());
+        dispatch(fetchAllMyTeamsChannels());
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
 
