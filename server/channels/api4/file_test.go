@@ -1365,8 +1365,12 @@ func TestSearchFilesAcrossTeams(t *testing.T) {
 	th.LinkUserToTeam(newUser, teams[0])
 	th.AddUserToChannel(newUser, channels[0])
 	th.UnlinkUserFromTeam(th.BasicUser, teams[1])
-	th.Client.Logout(context.Background())
-	th.Client.Login(context.Background(), newUser.Email, newUser.Password)
+
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	_, _, err = th.Client.Login(context.Background(), newUser.Email, newUser.Password)
+	require.NoError(t, err)
+
 	fileInfos, _, err = client.SearchFilesAcrossTeams(context.Background(), terms, false)
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 1, "wrong search")
