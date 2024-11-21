@@ -15,6 +15,7 @@ export const enum Measure {
     PageLoad = 'page_load',
     TTFB = 'TTFB',
     TTLB = 'TTLB',
+    SplashScreen = 'splash_screen',
     DomInteractive = 'dom_interactive',
     RhsLoad = 'rhs_load',
     TeamSwitch = 'team_switch',
@@ -32,8 +33,7 @@ export function markAndReport(name: string): PerformanceMark {
  * Measures the duration between two performance marks, schedules it to be reported to the server, and returns the
  * PerformanceMeasure created by doing this. If endMark is omitted, the measure will measure the duration until now.
  *
- * If either the start or end mark does not exist, undefined will be returned and, if canFail is false, an error
- * will be logged.
+ * If the end mark does not exist, undefined will be returned and, if canFail is false, an error will be logged.
  */
 export function measureAndReport({
     name,
@@ -43,8 +43,8 @@ export function measureAndReport({
     canFail = false,
 }: {
     name: string;
-    startMark: string;
-    endMark?: string;
+    startMark?: string | DOMHighResTimeStamp;
+    endMark?: string | DOMHighResTimeStamp;
     labels?: Record<string, string>;
     canFail?: boolean;
 }): PerformanceMeasure | undefined {

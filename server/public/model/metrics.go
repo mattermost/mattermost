@@ -16,6 +16,7 @@ const (
 	ClientTimeToFirstByte           MetricType = "TTFB"
 	ClientTimeToLastByte            MetricType = "TTLB"
 	ClientTimeToDOMInteractive      MetricType = "dom_interactive"
+	ClientSplashScreenEnd           MetricType = "splash_screen"
 	ClientFirstContentfulPaint      MetricType = "FCP"
 	ClientLargestContentfulPaint    MetricType = "LCP"
 	ClientInteractionToNextPaint    MetricType = "INP"
