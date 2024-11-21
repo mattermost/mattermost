@@ -56,12 +56,12 @@ func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 
 func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
 	var status model.Status
-	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
-		ps.logger.Warn("Failed to decode status from JSON", mlog.Err(jsonErr))
+	if err := json.Unmarshal(msg.Data, &status); err != nil {
+		ps.logger.Warn("Failed to decode status from JSON", mlog.Err(err))
 	}
 
 	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
-		ps.logger.Warn("Failed to store the given key and value", mlog.Err(err))
+		ps.logger.Warn("Failed to store the status in the cache", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 }
 
@@ -93,8 +93,8 @@ func (ps *PlatformService) clusterClearSessionCacheForAllUsersHandler(msg *model
 
 func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
-	if jsonErr := json.Unmarshal(msg.Data, &sbs); jsonErr != nil {
-		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
+	if err := json.Unmarshal(msg.Data, &sbs); err != nil {
+		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(err))
 	}
 
 	ps.Busy.ClusterEventChanged(&sbs)
