@@ -42,21 +42,24 @@ function ThreadFooter({
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
     const post = useSelector((state: GlobalState) => getPost(state, threadId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
-    const thread = useSelector((state: GlobalState) => (post ? getThreadOrSynthetic(state, post) : undefined));
+    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+    const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
 
     useEffect(() => {
-        if (!thread) {
-            return;
-        }
         if (threadIsSynthetic(thread) && thread.is_following && thread.reply_count > 0) {
             dispatch(fetchThread(currentUserId, currentTeamId, threadId));
         }
     }, []);
 
-    const participants = thread?.participants;
-    const channelId = thread?.post.channel_id;
-    const isFollowing = thread?.is_following;
+    const {
+        participants,
+        reply_count: totalReplies = 0,
+        last_reply_at: lastReplyAt,
+        is_following: isFollowing = false,
+        post: {
+            channel_id: channelId,
+        },
+    } = thread;
 
     const participantIds = useMemo(() => (participants || []).map(({id}) => id).reverse(), [participants]);
 
@@ -75,15 +78,6 @@ function ThreadFooter({
         e.stopPropagation();
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
-
-    if (!thread) {
-        return null;
-    }
-
-    const {
-        reply_count: totalReplies = 0,
-        last_reply_at: lastReplyAt,
-    } = thread;
 
     return (
         <div className='ThreadFooter'>

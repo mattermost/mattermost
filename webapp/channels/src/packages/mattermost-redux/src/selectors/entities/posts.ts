@@ -17,7 +17,6 @@ import type {
     RelationOneToOne,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import {General, Posts, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -47,8 +46,8 @@ export type UserActivityPost = Post & {
     user_activity_posts: Post[];
 }
 
-export function getPost(state: GlobalState, postId: Post['id']): Post | undefined {
-    return secureGetFromRecord(getAllPosts(state), postId);
+export function getPost(state: GlobalState, postId: Post['id']): Post {
+    return getAllPosts(state)[postId];
 }
 
 export function isPostFlagged(state: GlobalState, postId: Post['id']): boolean {

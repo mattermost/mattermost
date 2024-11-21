@@ -257,9 +257,6 @@ function addPostToSearchResults(postId: string): ActionFunc {
         const index = results.indexOf(postId);
         if (index === -1) {
             const newPost = PostSelectors.getPost(state, postId);
-            if (!newPost) {
-                return {data: true};
-            }
             const posts = getPostsForIds(state, results).reduce((acc, post) => {
                 acc[post.id] = post;
                 return acc;
@@ -391,9 +388,6 @@ export function markMostRecentPostInChannelAsUnread(channelId: string): ActionFu
         }
         if (postId) {
             const lastPost = PostSelectors.getPost(state, postId);
-            if (!lastPost) {
-                return {data: true};
-            }
             dispatch(markPostAsUnread(lastPost, 'CENTER'));
         }
         return {data: true};

@@ -7,7 +7,6 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
-import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -34,8 +33,6 @@ type Props = {
     children?: ReactNode;
 };
 
-const EMPTY_POST_LIST: Post[] = [];
-
 const ThreadPane = ({
     thread,
     children,
@@ -59,9 +56,9 @@ const ThreadPane = ({
 
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
-    const postsInThread = useSelector((state: GlobalState) => (post ? getPostsForThread(state, post.id) : EMPTY_POST_LIST));
+    const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
     const selectHandler = useCallback(() => select(), []);
-    let unreadTimestamp = post?.edit_at || post?.create_at || 0;
+    let unreadTimestamp = post.edit_at || post.create_at;
 
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp

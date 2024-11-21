@@ -125,9 +125,6 @@ export function selectPostFromRightHandSideSearch(post: Post) {
 export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
-        if (!post) {
-            return {data: true};
-        }
         return dispatch(selectPostFromRightHandSideSearch(post));
     };
 }
