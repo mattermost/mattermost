@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -17,9 +18,10 @@ type Props = {
     channel: Channel;
     user: UserProfile;
     isMuted: boolean;
+    pluginItems: ReactNode;
 };
 
-const ChannelHeaderDirectMenu = ({channel, user, isMuted}: Props) => {
+const ChannelHeaderDirectMenu = ({channel, user, isMuted, pluginItems}: Props) => {
     return (
         <>
             <ChannelMoveToSubMenu channel={channel}/>
@@ -39,6 +41,8 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted}: Props) => {
                 currentUser={user}
                 channel={channel}
             />
+            <Menu.Separator/>
+            {pluginItems}
         </>
     );
 };

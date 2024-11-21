@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -26,9 +27,10 @@ type Props = {
     isArchived: boolean;
     isGroupConstrained: boolean;
     isReadonly: boolean;
+    pluginItems: ReactNode;
 };
 
-const ChannelHeaderGroupMenu = ({channel, user, isMuted, isArchived, isGroupConstrained, isReadonly}: Props) => {
+const ChannelHeaderGroupMenu = ({channel, user, isMuted, isArchived, isGroupConstrained, isReadonly, pluginItems}: Props) => {
     return (
         <>
             <ChannelMoveToSubMenu channel={channel}/>
@@ -71,6 +73,9 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isArchived, isGroupCons
                 currentUser={user}
                 channel={channel}
             />
+            <Menu.Separator/>
+            {pluginItems}
+
         </>
     );
 };

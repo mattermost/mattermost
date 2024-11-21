@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -23,6 +24,7 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 
 import MenutItemAddMembers from '../menu_items/add_channel_members/add_channel_members';
 import MenuItemArchiveChannel from '../menu_items/archive_channel/archive_channel';
+import MenuItemCloseChannel from '../menu_items/close_channel/close_channel';
 import MenuItemConvertToPrivate from '../menu_items/convert_public_to_private/convert_public_to_private';
 import MenuItemEditChannelData from '../menu_items/edit_channel_data/edit_channel_data';
 import MenuItemGroupsMenuItems from '../menu_items/groups/groups';
@@ -32,7 +34,7 @@ import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs/open_members_
 // import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
-// import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
+import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel/unarchive_channel';
 
 type Props = {
     channel: Channel;
@@ -44,12 +46,14 @@ type Props = {
     isDefault: boolean;
     isPrivate: boolean;
     isLicensedForLDAPGroups: boolean;
+    pluginItems: ReactNode;
 };
 
-const ChannelHeaderPublicMenu = ({channel, user, isMuted, isArchived, isGroupConstrained, isReadonly, isDefault, isPrivate, isLicensedForLDAPGroups}: Props) => {
+const ChannelHeaderPublicMenu = ({channel, user, isMuted, isArchived, isGroupConstrained, isReadonly, isDefault, isPrivate, isLicensedForLDAPGroups, pluginItems}: Props) => {
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
     const channelPropertiesPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
+    const channelUnarchivePermission = Permissions.MANAGE_TEAM;
 
     return (
         <>
@@ -188,6 +192,26 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isArchived, isGroupCon
                     isDefault={isDefault}
                 />
             </ChannelPermissionGate>
+
+            <MenuItemCloseChannel
+                isArchived={isArchived}
+            />
+
+            <Menu.Separator/>
+            {pluginItems}
+
+            <ChannelPermissionGate
+                channelId={channel.id}
+                teamId={channel.team_id}
+                permissions={[channelUnarchivePermission]}
+            >
+                <MenuItemUnarchiveChannel
+                    channel={channel}
+                    isArchived={isArchived}
+                    isDefault={isDefault}
+                />
+            </ChannelPermissionGate>
+
         </>
     );
 };

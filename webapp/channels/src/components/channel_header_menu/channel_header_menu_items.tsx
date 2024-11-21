@@ -29,8 +29,6 @@ import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
 import * as Menu from 'components/menu';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants, ModalIdentifiers} from 'utils/constants';
@@ -38,7 +36,6 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 import ChannelDirectMenu from './channel_header_direct_menu/channel_header_direct_menu';
 import ChannelGroupMenu from './channel_header_direct_menu/channel_header_group_menu';
 import ChannelPublicMenu from './channel_header_direct_menu/channel_header_public_menu';
-import MenuItemCloseChannel from './menu_items/close_channel/close_channel';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
@@ -71,7 +68,6 @@ export default function ChannelHeaderMenuItems(props: Props): JSX.Element | null
     const isGroupConstrained = channel?.group_constrained === true;
     const {dmUser, gmMembers, isMobile, archivedIcon, sharedIcon} = props;
     const [titleMenuOpen, setTitleMenuOpen] = useState(false);
-    const channelUnarchivePermission = Permissions.MANAGE_TEAM;
 
     if (!channel) {
         return null;
@@ -143,6 +139,7 @@ export default function ChannelHeaderMenuItems(props: Props): JSX.Element | null
                     channel={channel}
                     user={user}
                     isMuted={isMuted}
+                    pluginItems={pluginItems}
                 />
             )}
             {channel.type === Constants.GM_CHANNEL && (
@@ -153,6 +150,7 @@ export default function ChannelHeaderMenuItems(props: Props): JSX.Element | null
                     isArchived={isArchived}
                     isGroupConstrained={isGroupConstrained}
                     isReadonly={isReadonly}
+                    pluginItems={pluginItems}
                 />
             )}
             {(channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) && (
@@ -166,6 +164,7 @@ export default function ChannelHeaderMenuItems(props: Props): JSX.Element | null
                     isDefault={isDefault}
                     isPrivate={isPrivate}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
+                    pluginItems={pluginItems}
                 />
             )}
 
@@ -195,41 +194,6 @@ export default function ChannelHeaderMenuItems(props: Props): JSX.Element | null
                 currentUser={user}
                 redirectChannel={redirectChannelName}
             /> */}
-            {isArchived && (
-                <MenuItemCloseChannel/>
-            )}
-            <Menu.Separator/>
-            {pluginItems}
-
-            <ChannelPermissionGate
-                channelId={channel.id}
-                teamId={channel.team_id}
-                permissions={[channelUnarchivePermission]}
-            >
-                {channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && isArchived && !isDefault && (
-                    <>
-                        <Menu.Separator/>
-                        <Menu.Item
-                            id='channelUnarchiveChannel'
-                            onClick={() => {
-                                dispatch(
-                                    openModal({
-                                        modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
-                                        dialogType: UnarchiveChannelModal,
-                                        dialogProps: {channel},
-                                    }),
-                                );
-                            }}
-                            labels={
-                                <FormattedMessage
-                                    id='channel_header.unarchive'
-                                    defaultMessage='Unarchive Channel'
-                                />
-                            }
-                        />
-                    </>
-                )}
-            </ChannelPermissionGate>
         </Menu.Container>
     );
 }

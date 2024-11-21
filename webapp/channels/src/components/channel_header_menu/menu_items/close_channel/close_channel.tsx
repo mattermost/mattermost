@@ -8,7 +8,14 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 
 import * as Menu from 'components/menu';
 
-const CloseChannel = (): JSX.Element => {
+type Props = {
+    isArchived: boolean;
+}
+
+const CloseChannel = (props: Props): JSX.Element => {
+    if (!props.isArchived) {
+        return <></>;
+    }
     return (
         <Menu.Item
             onClick={goToLastViewedChannel}
@@ -20,5 +27,4 @@ const CloseChannel = (): JSX.Element => {
         />
     );
 };
-
 export default React.memo(CloseChannel);

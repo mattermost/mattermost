@@ -93,12 +93,6 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                     </p>
                     <p>
                         <FormattedMessage
-                            id='convert_channel.question2'
-                            defaultMessage='The change is permanent and cannot be undone.'
-                        />
-                    </p>
-                    <p>
-                        <FormattedMessage
                             id='convertChannel.question3'
                             defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
                             values={{
