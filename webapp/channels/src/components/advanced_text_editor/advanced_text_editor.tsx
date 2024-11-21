@@ -168,6 +168,7 @@ const AdvancedTextEditor = ({
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
+    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
@@ -282,6 +283,7 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         location,
         textboxRef,
+        showFormattingBar,
         focusTextbox,
         applyMarkdown,
         handleDraftChange,
@@ -514,8 +516,6 @@ const AdvancedTextEditor = ({
         textboxId = 'modal_textbox';
         break;
     }
-
-    const showFormattingBar = !isFormattingBarHidden && !isDisabled;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
