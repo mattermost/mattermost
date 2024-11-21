@@ -5,6 +5,7 @@ import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
+import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
@@ -36,6 +37,28 @@ export type ChannelNamesMap = {
         team_name?: string;
     } | string;
 };
+
+export function isChannelNamesMap(v: unknown): v is ChannelNamesMap {
+    return isRecordOf(v, (e) => {
+        if (typeof e === 'string') {
+            return true;
+        }
+
+        if (typeof e !== 'object' || !e) {
+            return false;
+        }
+
+        if (!('display_name' in e) || typeof e.display_name !== 'string') {
+            return false;
+        }
+
+        if ('team_name' in e && typeof e.team_name !== 'string') {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 export type SearchPattern = {
     pattern: RegExp;

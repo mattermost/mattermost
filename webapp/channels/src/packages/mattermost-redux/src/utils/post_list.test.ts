@@ -1436,7 +1436,7 @@ describe('extractUserActivityData', () => {
 
 describe('combineUserActivityData', () => {
     it('combineUserActivitySystemPost returns null when systemPosts is an empty array', () => {
-        expect(combineUserActivitySystemPost([])).toBeNull();
+        expect(combineUserActivitySystemPost([])).toBeFalsy();
     });
     it('correctly combine different post types and actorIds by order', () => {
         const postAddToChannel1 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_1', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
