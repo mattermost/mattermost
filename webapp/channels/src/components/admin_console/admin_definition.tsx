@@ -591,6 +591,10 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_role: {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('LDAPGroups')),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
