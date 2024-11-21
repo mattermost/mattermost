@@ -23,11 +23,11 @@ env:
   DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
 jobs:
   esr-upgrade-server:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run docker compose
         run: |
           cd server/build
@@ -89,16 +89,16 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SERVER_NAME} | gzip > ${DUMP_SERVER_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: upgraded-dump-server
           path: ${{ env.DUMP_SERVER_NAME }}.gz
   esr-upgrade-script:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run docker compose
         run: |
           cd server/build
@@ -134,7 +134,7 @@ jobs:
           # We skip the very last line, which simply contains the date of the dump
           head -n -1 ${DUMP_SCRIPT_NAME} | gzip > ${DUMP_SCRIPT_NAME}.gz
       - name: Upload dump
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: upgraded-dump-script
           path: ${{ env.DUMP_SCRIPT_NAME }}.gz
@@ -145,7 +145,7 @@ jobs:
       - esr-upgrade-script
     steps:
       - name: Retrieve dumps
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Diff dumps
         run: |
           gzip -d upgraded-dump-server/${DUMP_SERVER_NAME}.gz
@@ -153,7 +153,7 @@ jobs:
           diff upgraded-dump-server/$DUMP_SERVER_NAME upgraded-dump-script/$DUMP_SCRIPT_NAME > $DIFF_NAME
       - name: Upload diff
         if: failure() # Upload the diff only if the previous step failed; i.e., if the diff is non-empty
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dumps-diff
           path: ${{ env.DIFF_NAME }}
