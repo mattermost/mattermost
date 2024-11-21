@@ -115,7 +115,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return <span>{post.message}</span>;
         }
 
-        const postType = post.props && post.props.type ? post.props.type : post.type;
+        const postType = typeof post.props?.type === 'string' ? post.props.type : post.type;
 
         if (pluginPostTypes && pluginPostTypes.hasOwnProperty(postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
