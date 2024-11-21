@@ -344,10 +344,6 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
-func (c *Client4) testNotificationRoute() string {
-	return "/notifications/test"
-}
-
 func (c *Client4) usageRoute() string {
 	return "/usage"
 }
@@ -4824,15 +4820,6 @@ func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, err
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, c.testNotificationRoute(), "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
 // TestSiteURL will test the validity of a site URL.
 func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, error) {
 	requestBody := make(map[string]string)
@@ -8292,6 +8279,17 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userI
 	return cat, BuildResponse(r), nil
 }
 
+// DeleteSidebarCategoryForTeamForUser deletes a sidebar category for a user in a team.
+func (c *Client4) DeleteSidebarCategoryForTeamForUser(ctx context.Context, userId string, teamId string, categoryId string) (*Response, error) {
+	url := fmt.Sprintf("%s/%s", c.userCategoryRoute(userId, teamId), categoryId)
+	r, err := c.DoAPIDelete(ctx, url)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // CheckIntegrity performs a database integrity check.
 func (c *Client4) CheckIntegrity(ctx context.Context) ([]IntegrityCheckResult, *Response, error) {
 	r, err := c.DoAPIPost(ctx, "/integrity", "")
@@ -9316,15 +9314,4 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &stats, BuildResponse(r), nil
-}
-
-// DeleteSidebarCategory deletes a sidebar category for a user in a team.
-func (c *Client4) DeleteSidebarCategory(ctx context.Context, userId string, teamId string, categoryId string) (*Response, error) {
-	url := fmt.Sprintf("%s/%s", c.userCategoryRoute(userId, teamId), categoryId)
-	r, err := c.DoAPIDelete(ctx, url)
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
 }

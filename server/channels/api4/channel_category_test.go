@@ -566,12 +566,12 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 	t.Run("should return error when user doesn't have permission", func(t *testing.T) {
 		// Create a new user that's not on the team
-		user, app_err := th.App.CreateUser(th.Context, &model.User{
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: "user_" + model.NewId(),
 			Password: "password",
 		})
-		require.Nil(t, app_err)
+		require.Nil(t, appErr)
 
 		client := th.CreateClient()
 		_, _, err := client.Login(context.Background(), user.Email, "password")
@@ -881,15 +881,15 @@ func TestValidateSidebarCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// Create a test context with logger once for all subtests
+	c := &Context{
+		App:        th.App,
+		AppContext: th.Context,
+		Logger:     th.App.Log(),
+	}
+
 	t.Run("should validate category with valid channels", func(t *testing.T) {
 		user, _ := setupUserForSubtest(t, th)
-
-		// Create a test context with logger
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
 
 		// Create a category with channels the user is a member of
 		category := &model.SidebarCategoryWithChannels{
@@ -910,12 +910,6 @@ func TestValidateSidebarCategory(t *testing.T) {
 	t.Run("should filter out invalid channel IDs", func(t *testing.T) {
 		user, _ := setupUserForSubtest(t, th)
 
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		category := &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId: user.Id,
@@ -933,12 +927,6 @@ func TestValidateSidebarCategory(t *testing.T) {
 
 	t.Run("should filter out channels user is not a member of", func(t *testing.T) {
 		user, _ := setupUserForSubtest(t, th)
-
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
 
 		// Create a channel that the user is not a member of
 		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
@@ -967,12 +955,6 @@ func TestValidateSidebarCategory(t *testing.T) {
 	t.Run("should return error with invalid team id", func(t *testing.T) {
 		user, _ := setupUserForSubtest(t, th)
 
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		category := &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId: user.Id,
@@ -987,12 +969,6 @@ func TestValidateSidebarCategory(t *testing.T) {
 	})
 
 	t.Run("should return error with invalid user id", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		category := &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
 				UserId: "invalid_user_id",
@@ -1008,12 +984,6 @@ func TestValidateSidebarCategory(t *testing.T) {
 
 	t.Run("should handle empty channel list", func(t *testing.T) {
 		user, _ := setupUserForSubtest(t, th)
-
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
 
 		category := &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
@@ -1033,13 +1003,14 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("should filter valid channels", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
+	// Create a test context with logger once for all subtests
+	c := &Context{
+		App:        th.App,
+		AppContext: th.Context,
+		Logger:     th.App.Log(),
+	}
 
+	t.Run("should filter valid channels", func(t *testing.T) {
 		// Create test channels
 		channels := model.ChannelList{
 			th.BasicChannel,
@@ -1058,12 +1029,6 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	})
 
 	t.Run("should filter out invalid channels", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		channels := model.ChannelList{
 			th.BasicChannel,
 		}
@@ -1080,12 +1045,6 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	})
 
 	t.Run("should handle empty channel list", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		channels := model.ChannelList{}
 		channelIds := []string{th.BasicChannel.Id}
 
@@ -1094,12 +1053,6 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	})
 
 	t.Run("should handle empty channelIds", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		channels := model.ChannelList{
 			th.BasicChannel,
 			th.BasicChannel2,
@@ -1110,23 +1063,11 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 	})
 
 	t.Run("should handle nil inputs", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
 		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, nil, nil)
 		require.Empty(t, filtered)
 	})
 
-	t.Run("should filter duplicate channel IDs", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
+	t.Run("should preserve duplicate channel IDs", func(t *testing.T) {
 		channels := model.ChannelList{
 			th.BasicChannel,
 		}
@@ -1140,28 +1081,6 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
 		require.Len(t, filtered, 2) // Function preserves duplicates as per implementation
 		require.Equal(t, []string{th.BasicChannel.Id, th.BasicChannel.Id}, filtered)
-	})
-
-	t.Run("should log message for filtered channels", func(t *testing.T) {
-		c := &Context{
-			App:        th.App,
-			AppContext: th.Context,
-			Logger:     th.App.Log(),
-		}
-
-		channels := model.ChannelList{
-			th.BasicChannel,
-		}
-
-		channelIds := []string{
-			th.BasicChannel.Id,
-			"invalid_channel_id",
-		}
-
-		filtered := validateSidebarCategoryChannels(c, th.BasicUser.Id, channelIds, channels)
-		require.Len(t, filtered, 1)
-		require.Contains(t, filtered, th.BasicChannel.Id)
-		require.NotContains(t, filtered, "invalid_channel_id")
 	})
 }
 
@@ -1196,7 +1115,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.ElementsMatch(t, []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id, dmChannel.Id}, updatedCategory.Channels)
 
 		// Delete the custom category
-		resp, err := client.DeleteSidebarCategory(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id)
+		resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, customCategory.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -1242,7 +1161,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.NotNil(t, category)
 
 		// Delete the category
-		resp, err := client.DeleteSidebarCategory(context.Background(), user.Id, th.BasicTeam.Id, category.Id)
+		resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, category.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -1273,7 +1192,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.NotEmpty(t, categories.Categories)
 
 		// Attempt to delete category for the basic user
-		resp, err := client.DeleteSidebarCategory(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, categories.Categories[0].Id)
+		resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, categories.Categories[0].Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -1284,7 +1203,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, categories.Categories)
 
-		resp, err := th.Client.DeleteSidebarCategory(context.Background(), "invalid_user_id", th.BasicTeam.Id, categories.Categories[0].Id)
+		resp, err := th.Client.DeleteSidebarCategoryForTeamForUser(context.Background(), "invalid_user_id", th.BasicTeam.Id, categories.Categories[0].Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
@@ -1295,13 +1214,13 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, categories.Categories)
 
-		resp, err := th.Client.DeleteSidebarCategory(context.Background(), th.BasicUser.Id, "invalid_team_id", categories.Categories[0].Id)
+		resp, err := th.Client.DeleteSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, "invalid_team_id", categories.Categories[0].Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
 	t.Run("should return error with invalid category id", func(t *testing.T) {
-		resp, err := th.Client.DeleteSidebarCategory(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "invalid_category_id")
+		resp, err := th.Client.DeleteSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "invalid_category_id")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -1313,7 +1232,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		require.NotEmpty(t, categories.Categories)
 
 		client := th.CreateClient()
-		resp, err := client.DeleteSidebarCategory(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, categories.Categories[0].Id)
+		resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, categories.Categories[0].Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
@@ -1328,7 +1247,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		// Try to delete each default category
 		for _, category := range categories.Categories {
 			if category.Type != model.SidebarCategoryCustom {
-				resp, err := client.DeleteSidebarCategory(context.Background(), user.Id, th.BasicTeam.Id, category.Id)
+				resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, category.Id)
 				require.Error(t, err)
 				require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 			}
