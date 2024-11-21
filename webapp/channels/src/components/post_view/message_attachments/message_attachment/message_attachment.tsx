@@ -8,7 +8,6 @@ import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
-    MessageAttachmentField,
 } from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 import {secureGetFromRecord} from '@mattermost/types/utilities';
@@ -241,7 +240,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let nrTables = 0;
         const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
 
-        fields.forEach((field: MessageAttachmentField, i: number) => {
+        fields.forEach((field, i) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
                 fieldTables.push(
                     <table

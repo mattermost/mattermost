@@ -12,17 +12,39 @@ export default class ChannelsCenterView {
 
     readonly header;
     readonly postCreate;
+    readonly scheduledDraftOptions;
+    readonly scheduledDraftChannelInfo;
+    readonly scheduledDraftChannelIcon;
+    readonly scheduledDraftChannelInfoMessage;
+    readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftSeeAllLink;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
+        this.scheduledDraftOptions = new components.ChannelsPostCreate(
+            container.locator('#dropdown_send_post_options'),
+        );
+        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
+        this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
+        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await this.postCreate.toBeVisible();
+    }
+
+    /**
+     * Click on "See all scheduled messages"
+     */
+    async clickOnSeeAllscheduledDrafts() {
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
     }
 
     /**
@@ -85,6 +107,13 @@ export default class ChannelsCenterView {
             },
             {timeout},
         );
+    }
+
+    async verifyscheduledDraftChannelInfo() {
+        await this.scheduledDraftChannelInfo.isVisible();
+        await this.scheduledDraftChannelIcon.isVisible();
+        const messageLocator = this.scheduledDraftChannelInfoMessage.first();
+        await expect(messageLocator).toContainText('Message scheduled for');
     }
 }
 
