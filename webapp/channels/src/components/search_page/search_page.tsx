@@ -3,7 +3,7 @@
 
 import React, { memo, useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { type match, useHistory, useRouteMatch } from 'react-router-dom';
+import { type match, useHistory, useRouteMatch, useLocation } from 'react-router-dom';
 import Scrollbars from 'react-custom-scrollbars';
 
 import type { FileSearchResultItem as FileSearchResultItemType } from '@mattermost/types/files';
@@ -26,8 +26,8 @@ type SearchBookmark = {
     title: string;
     terms: string;
     search_type: string;
-    results: Post[];
-    fileResults: Post[];
+    results: Record<string, Post>;
+    fileResults: Record<string, Post>;
 }
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
@@ -58,6 +58,12 @@ const renderTrackVertical = (props: Record<string, unknown>): JSX.Element => (
     />
 );
 
+function useQuery() {
+    const { search } = useLocation();
+
+    return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
 function SearchPage() {
     const scrollbars = useRef<Scrollbars | null>(null);
     const [currentPage, setCurrentPage] = useState(0)
@@ -65,25 +71,55 @@ function SearchPage() {
     const [searchBookmark, setSearchBookmark] = useState<SearchBookmark | null>(null);
 
     const match: match<{ team: string, searchId: string }> = useRouteMatch();
+    const params = useQuery()
+
+    const search_type = params.get('search_type') || '';
+    const terms = params.get('terms') || '';
 
     const currentTeam = useSelector(getCurrentTeam);
 
     useEffect(() => {
         setCurrentPage(0)
-        Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }).then(async (data) => {
-            await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }));
-            setSearchBookmark(data);
-        });
+        if (match.params.searchId !== undefined) {
+            Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }).then(async (data) => {
+                await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }));
+                setSearchBookmark(data);
+            });
+        } else {
+            Client4.searchPostsWithParams(currentTeam?.id || '', { terms: terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }).then(async (data) => {
+                await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }));
+                setSearchBookmark({
+                    title: "Shared search",
+                    terms,
+                    search_type,
+                    results: data.posts,
+                    fileResults: {},
+                });
+            });
+        }
     }, [dispatch, currentTeam?.id, match.params.searchId]);
 
     const loadMoreFiles = () => []
     const loadMorePosts = () => {
-        Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }).then(async (data) => {
-            await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }));
-            setCurrentPage(currentPage + 1)
-            data.results = Object.assign({}, data.results, (searchBookmark?.results || {}))
-            setSearchBookmark(data);
-        });
+        if (match.params.searchId !== undefined) {
+            Client4.getSearchBookmark(currentTeam?.id || '', match.params.searchId, { is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }).then(async (data) => {
+                await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: data.terms, is_or_search: false, include_deleted_channels: false, page: currentPage + 1, per_page: 20 }));
+                setCurrentPage(currentPage + 1)
+                data.results = Object.assign({}, data.results, (searchBookmark?.results || {}))
+                setSearchBookmark(data);
+            });
+        } else {
+            Client4.searchPostsWithParams(currentTeam?.id || '', { terms: terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }).then(async (data) => {
+                await dispatch(searchPostsWithParams(currentTeam?.id || '', { terms: terms, is_or_search: false, include_deleted_channels: false, page: currentPage, per_page: 20 }));
+                setSearchBookmark({
+                    title: "Shared search",
+                    terms,
+                    search_type,
+                    results: Object.assign({}, data.posts, (searchBookmark?.results || {})),
+                    fileResults: {},
+                });
+            });
+        }
     }
 
     if (searchBookmark == null) {

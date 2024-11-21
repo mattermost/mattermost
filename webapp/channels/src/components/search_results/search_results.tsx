@@ -412,6 +412,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         <i className='icon icon-bookmark' />
                     </button>
                 )}
+                <a href={`/${props.currentTeamName}/searches?search_type=${searchType}&terms=${encodeURIComponent(searchTerms)}`} className='btn btn-icon'>
+                    <FormattedMessage
+                        id='search_results.shared-search-link'
+                        defaultMessage='link'
+                    />
+                </a>
 
                 {newBookmarkOpen && (
                     <RootPortal>
