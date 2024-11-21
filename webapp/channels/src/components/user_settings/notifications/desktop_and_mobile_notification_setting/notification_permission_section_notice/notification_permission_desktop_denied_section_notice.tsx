@@ -28,6 +28,14 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
         window.open('https://mattermost.com/pl/manage-notifications', '_blank', 'noopener,noreferrer');
     }, []);
 
+    const title = checkedPermissionDenied ? intl.formatMessage({
+        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.titleDenied',
+        defaultMessage: 'Desktop notifications permission was denied',
+    }) : intl.formatMessage({
+        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.title',
+        defaultMessage: 'Desktop notifications permission required',
+    });
+
     const text = checkedPermissionDenied ? intl.formatMessage({
         id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.messageDenied',
         defaultMessage: 'Notifications for this Mattermost server are blocked. To receive notifications, please enable them manually.',
@@ -40,10 +48,7 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
         <div className='extraContentBeforeSettingList'>
             <SectionNotice
                 type='danger'
-                title={intl.formatMessage({
-                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.title',
-                    defaultMessage: 'Desktop notifications permission required',
-                })}
+                title={title}
                 text={text}
                 primaryButton={{
                     text: intl.formatMessage({
