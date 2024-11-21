@@ -94,7 +94,7 @@ func (ps *PlatformService) clusterClearSessionCacheForAllUsersHandler(msg *model
 func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
 	if err := json.Unmarshal(msg.Data, &sbs); err != nil {
-		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(err))
+		ps.logger.Warn("Failed to decode server busy state from JSON", mlog.Err(err))
 	}
 
 	ps.Busy.ClusterEventChanged(&sbs)
