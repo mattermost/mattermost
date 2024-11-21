@@ -9,10 +9,11 @@ import {Link} from 'react-router-dom';
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {Post} from '@mattermost/types/posts';
-import {secureGetFromRecord, isArrayOf, isRecordOf} from '@mattermost/types/utilities';
+import {isArrayOf, isRecordOf} from '@mattermost/types/utilities';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import {fetchListing, installPlugin} from 'actions/marketplace';
 import {getError, getInstalledListing, getInstalling, getPlugins} from 'selectors/views/marketplace';

@@ -5,9 +5,9 @@ import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';

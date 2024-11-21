@@ -12,7 +12,6 @@ import type {
     RelationOneToManyUnique,
     RelationOneToOne,
 } from '@mattermost/types/utilities';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -27,6 +26,7 @@ import {
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,

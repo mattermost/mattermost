@@ -5,7 +5,8 @@ import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 
 import type {PostAction} from '@mattermost/types/integration_actions';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
+
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsers} from 'actions/user_actions';

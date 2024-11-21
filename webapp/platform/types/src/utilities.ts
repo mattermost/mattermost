@@ -73,7 +73,3 @@ export function isRecordOf<T>(v: unknown, check: (e: unknown) => boolean): v is 
 
     return true;
 }
-
-export function secureGetFromRecord<T>(v: Record<string, T> | undefined, key: string) {
-    return typeof v === 'object' && v && Object.prototype.hasOwnProperty.call(v, key) ? v[key] : undefined;
-}

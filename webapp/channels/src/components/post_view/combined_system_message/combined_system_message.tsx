@@ -6,10 +6,10 @@ import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 import type {MessageData} from 'mattermost-redux/utils/post_list';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 

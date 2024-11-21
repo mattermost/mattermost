@@ -5,9 +5,8 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
-import {secureGetFromRecord} from '@mattermost/types/utilities';
-
 import {Posts} from 'mattermost-redux/constants';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import Markdown from 'components/markdown';
 

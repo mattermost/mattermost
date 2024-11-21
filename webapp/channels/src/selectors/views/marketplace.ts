@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isPlugin} from 'mattermost-redux/utils/marketplace';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 

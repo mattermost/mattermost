@@ -10,9 +10,9 @@ import type {
     MessageAttachment as MessageAttachmentType,
 } from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
-import {secureGetFromRecord} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
