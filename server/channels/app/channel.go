@@ -1842,12 +1842,13 @@ func (a *App) GetChannel(c request.CTX, channelID string) (*model.Channel, *mode
 func (s *Server) getChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {
+		errCtx := map[string]any{"channel_id": channelID}
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channel, nil
@@ -1856,12 +1857,13 @@ func (s *Server) getChannel(c request.CTX, channelID string) (*model.Channel, *m
 func (a *App) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store().Channel().GetMany(channelIDs, true)
 	if err != nil {
+		errCtx := map[string]any{"channel_id": channelIDs}
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channels, nil
@@ -2370,12 +2372,13 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 
 	cresult := <-sc
 	if cresult.NErr != nil {
+		errCtx := map[string]any{"channel_id": channelID}
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(cresult.NErr, &nfErr):
-			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(cresult.NErr)
+			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(cresult.NErr)
 		default:
-			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cresult.NErr)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(cresult.NErr)
 		}
 	}
 	uresult := <-uc
