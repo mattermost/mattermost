@@ -47,7 +47,7 @@ func (s *Server) initPostMetadata() {
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
 			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
 			if err := platform.PurgeLinkCache(); err != nil {
-				mlog.Warn("Failed to remove cached links when the proxy settings have changed", mlog.Err(err))
+				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
 			}
 		}
 	})
