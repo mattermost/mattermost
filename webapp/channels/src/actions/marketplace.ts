@@ -9,7 +9,6 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
@@ -19,7 +18,7 @@ import type {DoAppCallResult} from 'components/suggestion/command_provider/app_c
 import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 

@@ -17,13 +17,6 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {
-    DispatchFunc,
-    ActionFunc,
-    ActionFuncAsync,
-    ThunkActionFunc,
-    GetStateFunc,
-} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -50,7 +43,14 @@ import {
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
-import type {GlobalState} from 'types/store';
+import type {
+    DispatchFunc,
+    ActionFunc,
+    ActionFuncAsync,
+    ThunkActionFunc,
+    GetStateFunc,
+    GlobalState,
+} from 'types/store';
 
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';

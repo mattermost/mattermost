@@ -23,7 +23,6 @@ import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/e
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -42,7 +41,7 @@ import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {

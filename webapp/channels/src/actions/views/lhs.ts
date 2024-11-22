@@ -3,14 +3,13 @@
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ActionTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ThunkActionFunc, GlobalState} from 'types/store';
 import {LhsItemType} from 'types/store/lhs';
 
 export const setLhsSize = (sidebarSize?: SidebarSize) => {

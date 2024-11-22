@@ -18,7 +18,6 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {
     isFromWebhook,
     isSystemMessage,
@@ -32,7 +31,7 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 
 export type NewPostMessageProps = {
     channel_type: ChannelType;

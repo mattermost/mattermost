@@ -14,7 +14,6 @@ import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
@@ -23,7 +22,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 type Draft = {

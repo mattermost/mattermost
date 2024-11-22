@@ -12,7 +12,6 @@ import {getCurrentChannel, getChannel as getChannelFromRedux} from 'mattermost-r
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -25,7 +24,7 @@ import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ActionTypes, Constants, ErrorPageTypes} from 'utils/constants';
 import {isComment, getPostURL} from 'utils/post_utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
 let privateChannelJoinPromptVisible = false;
 

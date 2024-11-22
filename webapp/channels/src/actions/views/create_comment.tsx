@@ -21,7 +21,6 @@ import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/prefere
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import type {ExecuteCommandReturnType} from 'actions/command';
 import {executeCommand} from 'actions/command';
@@ -33,7 +32,7 @@ import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 export function submitPost(
