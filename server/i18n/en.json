@@ -6155,6 +6155,10 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
     "id": "app.plugin.signature_decode.app_error",
     "translation": "Unable to decode base64 signature."
   },

@@ -10,6 +10,8 @@ import {Link} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {ensureString} from 'mattermost-redux/utils/post_utils';
+
 import {emitCloseRightHandSide} from 'actions/global_actions';
 
 import Markdown from 'components/markdown';
@@ -126,9 +128,10 @@ export default class RhsCard extends React.Component<Props, State> {
         }
 
         if (!content) {
+            const message = ensureString(selected.props?.card);
             content = (
                 <div className='info-card'>
-                    <Markdown message={(selected.props && selected.props.card) || ''}/>
+                    <Markdown message={message}/>
                 </div>
             );
         }
@@ -140,13 +143,14 @@ export default class RhsCard extends React.Component<Props, State> {
                 disablePopover={true}
             />
         );
-        if (selected.props.override_username && this.props.enablePostUsernameOverride) {
+        const overrideUsername = ensureString(selected.props.override_username);
+        if (overrideUsername && this.props.enablePostUsernameOverride) {
             user = (
                 <UserProfile
                     userId={selected.user_id}
                     hideStatus={true}
                     disablePopover={true}
-                    overwriteName={selected.props.override_username}
+                    overwriteName={overrideUsername}
                 />
             );
         }
