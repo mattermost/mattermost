@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.enterprise for license information.
+
 package message_export
 
 import (
@@ -104,7 +107,6 @@ type SetupReturn struct {
 	jobEndTime        int64
 	batches           []string
 	posts             []*model.Post
-	postsPerBatch     [][]*model.Post
 	channels          []*model.Channel
 	teams             []*model.Team
 	batchTimes        []batchStartEndTimes
@@ -437,7 +439,6 @@ func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, atta
 
 func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
 	attachmentBackend, exportBackend filestore.FileBackend) SetupReturn {
-
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.EnableExport = true
 		*cfg.MessageExportSettings.ExportFromTimestamp = 0
@@ -601,7 +602,6 @@ type SetupType3Return struct {
 
 func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
 	attachmentBackend, exportBackend filestore.FileBackend) (SetupReturn, SetupType3Return) {
-
 	// This tests (reading the files exported and testing the exported xml):
 	//  - post create at field is set
 	//  - post deleted fields are set
@@ -845,7 +845,6 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 
 func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
 	attachmentBackend, exportBackend filestore.FileBackend) SetupReturn {
-
 	// Users:
 	users := make([]*model.User, 0)
 	user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
@@ -1010,7 +1009,6 @@ type SetupType5Return struct {
 // setupAndRunE2ETestType5 does 4 jobs, returns an array of each job's data to use in testing
 func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
 	attachmentBackend, exportBackend filestore.FileBackend) ([]SetupReturn, []SetupType5Return) {
-
 	// This tests (reading the files exported and testing the exported file):
 	//  - post deleted in current job: shows created post, then deleted post
 	//  - post deleted in current job but different batch: shows created post (in second batch), then deleted post
