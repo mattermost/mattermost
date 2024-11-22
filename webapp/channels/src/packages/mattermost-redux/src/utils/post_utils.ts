@@ -251,5 +251,5 @@ export function ensureNumber(v: unknown) {
 }
 
 export function secureGetFromRecord<T>(v: Record<string, T> | undefined, key: string) {
-    return typeof v === 'object' && v && Object.prototype.hasOwnProperty.call(v, key) ? v[key] : undefined;
+    return typeof v === 'object' && v && Object.hasOwn(v, key) ? v[key] : undefined;
 }
