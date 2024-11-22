@@ -765,7 +765,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Не вдалося знайти користувача."
+    "translation": "Неможливо знайти користувача."
   },
   {
     "id": "api.command_msg.name",
@@ -4025,7 +4025,7 @@
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Недійсне значення ідентифікатора."
+    "translation": "Недійсне значення для ідентифікатора."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
@@ -4357,7 +4357,7 @@
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
-    "translation": "Недійсна тема."
+    "translation": "Некоректне оформлення."
   },
   {
     "id": "model.preference.is_valid.value.app_error",
@@ -4513,11 +4513,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
-    "translation": "Невірне опис має містити не більше 255 символів"
+    "translation": "Неправильний опис, має бути 255 або менше символів."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "Недійсне значення ідентифікатора"
+    "translation": "Недійсне значення для ідентифікатора."
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
@@ -4581,11 +4581,11 @@
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Потрібно оновити дзвінок для існуючого каналу"
+    "translation": "Необхідно викликати оновлення для існуючого каналу."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "Канал з такою назвою вже існує в одній команді"
+    "translation": "Канал з такою назвою вже існує в тій же команді."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4605,7 +4605,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Учасник команди з таким ідентифікатором вже існує"
+    "translation": "Член команди з таким ідентифікатором вже існує."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -4625,7 +4625,7 @@
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Не вдалося оновити дані користувача"
+    "translation": "Не вдалося оновити дані доступу користувача."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -4633,7 +4633,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Цей webhook забороняється розміщувати на запитуваному каналі"
+    "translation": "Цей вебхук не дозволено публікувати на запитуваному каналі."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4649,7 +4649,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Невідповідні права каналу"
+    "translation": "Невідповідні дозволи на канали."
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4657,11 +4657,11 @@
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": "Текст не заданий"
+    "translation": "Текст не вказаний."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не вдалося знайти користувача"
+    "translation": "Не вдалося знайти користувача."
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Некоректна роль"
+    "translation": "Недійсна мова."
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
@@ -6477,7 +6477,7 @@
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
-    "translation": "Неправильне значення для user_id."
+    "translation": "Неправильне значення для UserId"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -7861,7 +7861,7 @@
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
-    "translation": "Недійсна тема."
+    "translation": "Невірна тема обговорення."
   },
   {
     "id": "api.remote_cluster.get.not_found",
@@ -8113,7 +8113,7 @@
   },
   {
     "id": "api.team.user.missing_account",
-    "translation": "Користувач не знайдений."
+    "translation": "Неможливо знайти користувача."
   },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
@@ -9429,7 +9429,7 @@
   },
   {
     "id": "app.user.missing_account.const",
-    "translation": "Не вдалося знайти користувача."
+    "translation": "Неможливо знайти користувача."
   },
   {
     "id": "app.user.permanent_delete.app_error",
