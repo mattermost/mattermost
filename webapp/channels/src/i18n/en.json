@@ -4887,6 +4887,7 @@
   "scheduled_post.panel.header.time": "Send {isTodayOrTomorrow, select, true {} other {on}} {scheduledDateTime}",
   "scheduled_posts.row_title_channel.placeholder": "In: {icon} No Destination",
   "scheduled_posts.row_title_thread.placeholder": "Thread to: {icon} No Destination",
+  "scheduled_posts.row_title_thread.placeholder_tooltip": "The channel either doesn’t exist or you do not have access to it.",
   "search_bar.channels": "Channels",
   "search_bar.clear": "Clear",
   "search_bar.file_types": "File types",
