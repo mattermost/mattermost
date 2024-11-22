@@ -60,7 +60,7 @@ import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 
-import type {ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -179,8 +179,8 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
             LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
         }
-        const selectedPost = getSelectedPost(state as GlobalState);
-        const selectedPostId = getSelectedPostId(state as GlobalState);
+        const selectedPost = getSelectedPost(state);
+        const selectedPostId = getSelectedPostId(state);
         if (selectedPostId && selectedPost.exists === false) {
             dispatch(closeRightHandSide());
         }
@@ -423,9 +423,9 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     return async (dispatch, getState) => {
         const time = Date.now();
         const state = getState();
-        const socketStatus = getSocketStatus(state as GlobalState);
+        const socketStatus = getSocketStatus(state);
         let sinceTimeToGetPosts = since;
-        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state as GlobalState, channelId);
+        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state, channelId);
         const actions = [];
 
         if (lastPostsApiCallForChannel && lastPostsApiCallForChannel < socketStatus.lastDisconnectAt) {

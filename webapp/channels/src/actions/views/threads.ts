@@ -12,7 +12,7 @@ import {isThreadManuallyUnread, isThreadOpen} from 'selectors/views/threads';
 
 import {ActionTypes, Threads} from 'utils/constants';
 
-import type {ThunkActionFunc, GlobalState} from 'types/store';
+import type {ThunkActionFunc} from 'types/store';
 
 export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
     return {
@@ -51,7 +51,7 @@ export function updateThreadToastStatus(status: boolean) {
     };
 }
 
-export function markThreadAsRead(threadId: string): ThunkActionFunc<void, GlobalState> {
+export function markThreadAsRead(threadId: string): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);

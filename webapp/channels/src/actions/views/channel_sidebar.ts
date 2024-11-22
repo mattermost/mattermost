@@ -35,7 +35,7 @@ export function stopDragging() {
 export function createCategory(teamId: string, displayName: string, channelIds?: string[]): ActionFuncAsync<unknown> {
     return async (dispatch, getState) => {
         if (channelIds) {
-            const state = getState() as GlobalState;
+            const state = getState();
             const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
             channelIds.forEach((channelId) => {
                 if (multiSelectedChannelIds.indexOf(channelId) >= 0) {

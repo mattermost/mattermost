@@ -94,7 +94,7 @@ const getPostsForIds = PostSelectors.makeGetPostsForIds();
 export function flagPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         await dispatch(PostActions.flagPost(postId));
-        const state = getState() as GlobalState;
+        const state = getState();
         const rhsState = getRhsState(state);
 
         if (rhsState === RHSStates.FLAG) {
@@ -108,7 +108,7 @@ export function flagPost(postId: string): ActionFuncAsync {
 export function unflagPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         await dispatch(PostActions.unflagPost(postId));
-        const state = getState() as GlobalState;
+        const state = getState();
         const rhsState = getRhsState(state);
 
         if (rhsState === RHSStates.FLAG) {
@@ -159,7 +159,7 @@ export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): Actio
     return async (dispatch, getState) => {
         dispatch(addRecentEmojisForMessage(scheduledPost.message));
 
-        const state = getState() as GlobalState;
+        const state = getState();
         const connectionId = getConnectionId(state);
         const channel = state.entities.channels.channels[scheduledPost.channel_id];
         const result = await dispatch(createSchedulePost(scheduledPost, channel.team_id, connectionId));
@@ -187,7 +187,7 @@ function storeCommentDraft(rootPostId: string, draft: null): ActionFunc {
 
 export function submitReaction(postId: string, action: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType> {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
         const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
@@ -218,7 +218,7 @@ export function toggleReaction(postId: string, emojiName: string): ActionFuncAsy
 export function addReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType> {
     const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
         const config = getConfig(state);
         const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
 

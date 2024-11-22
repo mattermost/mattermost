@@ -41,7 +41,7 @@ import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
@@ -309,7 +309,7 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ac
 
 export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(closeRightHandSide());

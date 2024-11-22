@@ -43,7 +43,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 }
 
 // NOTE: suggestions where to keep this welcomed
-const getChannelURLAction = (channelId: string, teamId: string, url: string): ThunkActionFunc<void, GlobalState> => (dispatch, getState) => {
+const getChannelURLAction = (channelId: string, teamId: string, url: string): ThunkActionFunc<void> => (dispatch, getState) => {
     const state = getState();
 
     if (url && isPermalinkURL(url)) {

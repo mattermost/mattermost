@@ -34,7 +34,7 @@ import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
@@ -48,7 +48,7 @@ export type ExecuteCommandReturnType = {
 
 export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
 
         let msg = message;
 
@@ -148,7 +148,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (appsEnabled(state)) {
-            const getGlobalState = () => getState() as GlobalState;
+            const getGlobalState = () => getState();
             const createErrorMessage = (errMessage: string) => {
                 return {error: {message: errMessage}};
             };

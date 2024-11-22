@@ -24,7 +24,7 @@ import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {ActionTypes, Constants, ErrorPageTypes} from 'utils/constants';
 import {isComment, getPostURL} from 'utils/post_utils';
 
-import type {ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 let privateChannelJoinPromptVisible = false;
 
@@ -34,7 +34,7 @@ type Option = {
 
 function focusRootPost(post: Post, channel: Channel): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const postURL = getPostURL(getState() as GlobalState, post);
+        const postURL = getPostURL(getState(), post);
 
         dispatch(selectChannel(channel.id));
         dispatch({
@@ -57,7 +57,7 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
             return {data: false};
         }
 
-        const state = getState() as GlobalState;
+        const state = getState();
 
         const team = getTeam(state, channel.team_id || teamId);
         const currentChannel = getCurrentChannel(state);

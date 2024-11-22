@@ -19,7 +19,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getActiveTeamsList, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();
@@ -153,7 +153,7 @@ export const useSharedChannelRemoteRows = (remoteId: string, opts: {filter: 'hom
         }
 
         setLoadingState(true);
-        dispatch<ActionFuncAsync<IDMappedObjects<SharedChannelRemoteRow>, GlobalState>>(async (dispatch, getState) => {
+        dispatch<ActionFuncAsync<IDMappedObjects<SharedChannelRemoteRow>>>(async (dispatch, getState) => {
             const collected: IDMappedObjects<SharedChannelRemoteRow> = {};
             const missing: SharedChannelRemote[] = [];
 

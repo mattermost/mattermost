@@ -20,9 +20,9 @@ import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import {isSuccess} from 'types/actions';
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
-export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
+export function initializeTeam(team: Team): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         dispatch(selectTeam(team.id));
 
@@ -80,7 +80,7 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team, GlobalState> {
     };
 }
 
-export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team, GlobalState> {
+export function joinTeam(teamname: string, joinedOnFirstLoad: boolean): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUser = getCurrentUser(state);
