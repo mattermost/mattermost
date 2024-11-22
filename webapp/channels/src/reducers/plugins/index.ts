@@ -13,6 +13,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
+import type {MMAction} from 'types/store';
 import type {
     PluginsState,
     PluginComponent,
@@ -144,7 +145,7 @@ function removePluginComponent(state: PluginsState['components'], action: AnyAct
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: AnyAction) {
+function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
         if (action.data) {
@@ -205,7 +206,7 @@ const initialComponents: PluginsState['components'] = {
     SlashCommandWillBePosted: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
+function components(state: PluginsState['components'] = initialComponents, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
         if (action.name && action.data) {
@@ -242,7 +243,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
+function postTypes(state: PluginsState['postTypes'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
         if (action.data) {
@@ -271,7 +272,7 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     }
 }
 
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
+function postCardTypes(state: PluginsState['postTypes'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
         if (action.data) {
@@ -300,7 +301,7 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction)
     }
 }
 
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: AnyAction) {
+function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
         if (action.data) {
@@ -333,7 +334,7 @@ function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: Any
     }
 }
 
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: AnyAction) {
+function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
         if (!action.data) {
@@ -371,7 +372,7 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
-function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, AdminConsolePluginCustomSection>} = {}, action: AnyAction) {
+function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, AdminConsolePluginCustomSection>} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: {
         if (!action.data) {
@@ -409,7 +410,7 @@ function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, A
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
+function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
         if (action.data) {
@@ -434,7 +435,7 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function userSettings(state: PluginsState['userSettings'] = {}, action: AnyAction) {
+function userSettings(state: PluginsState['userSettings'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {

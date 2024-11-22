@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import localForage from 'localforage';
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
@@ -13,12 +12,14 @@ import {General} from 'mattermost-redux/constants';
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
+import type {MMAction} from 'types/store';
+
 type StorageEntry = {
     timestamp: Date;
     data: any;
 }
 
-function storage(state: Record<string, any> = {}, action: AnyAction) {
+function storage(state: Record<string, any> = {}, action: MMAction) {
     switch (action.type) {
     case REHYDRATE: {
         if (!action.payload || action.key !== 'storage') {
@@ -134,7 +135,7 @@ function migrateDrafts(state: any) {
     return drafts;
 }
 
-function initialized(state = false, action: AnyAction) {
+function initialized(state = false, action: MMAction) {
     switch (action.type) {
     case General.STORE_REHYDRATION_COMPLETE:
         return state || action.complete;
