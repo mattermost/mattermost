@@ -17,8 +17,7 @@ var linkCache = cache.NewLRU(&cache.CacheOptions{
 })
 
 func PurgeLinkCache() error {
-	err := linkCache.Purge()
-	return err
+	return linkCache.Purge()
 }
 
 func LinkCache() cache.Cache {
