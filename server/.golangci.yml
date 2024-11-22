@@ -108,7 +108,6 @@ issues:
         channels/app/platform/service_test.go|\
         channels/app/platform/session.go|\
         channels/app/platform/session_test.go|\
-        channels/app/platform/status.go|\
         channels/app/platform/web_broadcast_hook.go|\
         channels/app/platform/web_conn.go|\
         channels/app/platform/web_hub.go|\
