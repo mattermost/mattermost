@@ -21,3 +21,9 @@ func AssertHeaderContains(t *testing.T, msg string, expected map[string]string) 
 		assert.Equal(t, v, header.Get(k))
 	}
 }
+
+func CleanTestOutput(msg string) string {
+	msg = strings.Replace(msg, "=\r\n", "", -1)
+	msg = strings.Replace(msg, "\r\n", "\n", -1)
+	return msg
+}
