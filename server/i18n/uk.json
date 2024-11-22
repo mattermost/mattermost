@@ -725,7 +725,7 @@
   },
   {
     "id": "api.command_leave.name",
-    "translation": "вийти"
+    "translation": "покинути"
   },
   {
     "id": "api.command_logout.desc",
