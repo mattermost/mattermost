@@ -10348,5 +10348,41 @@
   {
     "id": "app.notifications.send_test_message.message_body",
     "translation": "Als je deze testmelding hebt ontvangen, dan werkt het!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Kan niet naar het begin van de GIF-gegevens zoeken."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanaal is gearchiveerd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Geen lid van het kanaal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Geen toestemming om in kanaal te posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Draadje is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan het bericht niet verzenden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Onbekende fout"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Gebruikersaccount is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Gebruiker bestaat niet"
   }
 ]
