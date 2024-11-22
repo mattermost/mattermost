@@ -3072,23 +3072,23 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet ophalen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet ophalen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-aggregator werker mislukte omwille van een gefaalde indexeertaak"
+    "translation": "{{.Backend}}-aggregator werker mislukte omwille van een gefaalde indexeertaak"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Het opzetten van Elasticsearch Client mislukte"
+    "translation": "Het opzetten van {{.Backend}} Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -5016,15 +5016,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
+    "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -7440,7 +7440,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+    "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8959,7 +8959,7 @@
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+    "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10384,5 +10384,9 @@
   {
     "id": "app.scheduled_post.error_reason.user_missing",
     "translation": "Gebruiker bestaat niet"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ongeldige opslagklasse {{.Value}}."
   }
 ]
