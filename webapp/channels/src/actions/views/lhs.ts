@@ -9,7 +9,7 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ActionTypes} from 'utils/constants';
 
-import type {ActionFunc, ThunkActionFunc, GlobalState} from 'types/store';
+import type {ActionFunc, ThunkActionFunc} from 'types/store';
 import {LhsItemType} from 'types/store/lhs';
 
 export const setLhsSize = (sidebarSize?: SidebarSize) => {
@@ -79,7 +79,7 @@ export const selectLhsItem = (type: LhsItemType, id?: string): ThunkActionFunc<u
     };
 };
 
-export function switchToLhsStaticPage(id: string): ActionFunc<boolean, GlobalState> {
+export function switchToLhsStaticPage(id: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const teamUrl = getCurrentRelativeTeamUrl(state);

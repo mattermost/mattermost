@@ -31,7 +31,7 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
 
-import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
+import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
 export type NewPostMessageProps = {
     channel_type: ChannelType;
@@ -48,7 +48,7 @@ export type NewPostMessageProps = {
     post: string;
 }
 
-export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean, GlobalState> {
+export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
@@ -149,7 +149,7 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
     return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
-export function setThreadRead(post: Post): ActionFunc<boolean, GlobalState> {
+export function setThreadRead(post: Post): ActionFunc<boolean> {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
     return (dispatch, getState) => {
         const state = getState();

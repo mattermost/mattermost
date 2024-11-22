@@ -7,9 +7,9 @@ import * as Actions from 'mattermost-redux/actions/channel_bookmarks';
 
 import {getConnectionId} from 'selectors/general';
 
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
-export function deleteBookmark(channelId: string, id: string): ActionFuncAsync<boolean, GlobalState> {
+export function deleteBookmark(channelId: string, id: string): ActionFuncAsync<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
@@ -17,7 +17,7 @@ export function deleteBookmark(channelId: string, id: string): ActionFuncAsync<b
     };
 }
 
-export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreate): ActionFuncAsync<boolean, GlobalState> {
+export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreate): ActionFuncAsync<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
@@ -25,7 +25,7 @@ export function createBookmark(channelId: string, bookmark: ChannelBookmarkCreat
     };
 }
 
-export function editBookmark(channelId: string, id: string, patch: ChannelBookmarkPatch): ActionFuncAsync<boolean, GlobalState> {
+export function editBookmark(channelId: string, id: string, patch: ChannelBookmarkPatch): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
@@ -33,7 +33,7 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
     };
 }
 
-export function reorderBookmark(channelId: string, id: string, newOrder: number): ActionFuncAsync<boolean, GlobalState> {
+export function reorderBookmark(channelId: string, id: string, newOrder: number): ActionFuncAsync<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
@@ -41,6 +41,6 @@ export function reorderBookmark(channelId: string, id: string, newOrder: number)
     };
 }
 
-export function fetchChannelBookmarks(channelId: string): ActionFuncAsync<ChannelBookmark[], GlobalState> {
+export function fetchChannelBookmarks(channelId: string): ActionFuncAsync<ChannelBookmark[]> {
     return Actions.fetchChannelBookmarks(channelId);
 }

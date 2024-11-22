@@ -494,7 +494,7 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markAsReadOnFocus(): ThunkActionFunc<void, GlobalState> {
+export function markAsReadOnFocus(): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentChannelId = getCurrentChannelId(state);
@@ -522,7 +522,7 @@ export function updateToastStatus(status: boolean) {
     };
 }
 
-export function deleteChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {

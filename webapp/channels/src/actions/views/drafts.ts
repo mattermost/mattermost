@@ -35,7 +35,7 @@ type Draft = {
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
  * @param teamId Only drafts for the given teamId will be fetched.
  */
-export function getDrafts(teamId: string): ActionFuncAsync<boolean, GlobalState> {
+export function getDrafts(teamId: string): ActionFuncAsync<boolean> {
     const getLocalDrafts = makeGetDrafts(false);
 
     return async (dispatch, getState) => {
@@ -69,7 +69,7 @@ export function getDrafts(teamId: string): ActionFuncAsync<boolean, GlobalState>
     };
 }
 
-export function removeDraft(key: string, channelId: string, rootId = ''): ActionFuncAsync<boolean, GlobalState> {
+export function removeDraft(key: string, channelId: string, rootId = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -90,7 +90,7 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean, GlobalState> {
+export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         let updatedValue: PostDraft|null = null;

@@ -46,7 +46,7 @@ export type ExecuteCommandReturnType = {
     appResponse?: AppCallResponse;
 }
 
-export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType, GlobalState> {
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
 

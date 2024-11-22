@@ -10,7 +10,7 @@ import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import type {ActionFunc, ThunkActionFunc, GlobalState} from 'types/store';
+import type {ActionFunc, ThunkActionFunc} from 'types/store';
 
 export function getInstallation() {
     return async () => {
@@ -124,7 +124,7 @@ export function getTeamsUsage(): ThunkActionFunc<Promise<boolean | ServerError>>
     };
 }
 
-export function retryFailedCloudFetches(): ActionFunc<boolean, GlobalState> {
+export function retryFailedCloudFetches(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {

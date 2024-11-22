@@ -13,7 +13,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {ActionFunc, GlobalState} from 'types/store';
+import type {ActionFunc} from 'types/store';
 
 /**
  * Adds the following users to the status pool for fetching their statuses:
@@ -21,7 +21,7 @@ import type {ActionFunc, GlobalState} from 'types/store';
  * - All users who have DMs open with the current user.
  * - The current user.
  */
-export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean, GlobalState> {
+export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);

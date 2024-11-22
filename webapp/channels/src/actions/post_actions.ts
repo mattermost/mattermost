@@ -48,7 +48,6 @@ import type {
     ActionFunc,
     ActionFuncAsync,
     ThunkActionFunc,
-    GetStateFunc,
     GlobalState,
 } from 'types/store';
 
@@ -61,7 +60,7 @@ export type CreatePostOptions = {
     ignorePostError?: boolean;
 }
 
-export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean, GlobalState> {
+export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();
@@ -137,7 +136,7 @@ export function createPost(
     files: FileInfo[],
     afterSubmit?: (response: SubmitPostReturnType) => void,
     options?: OnSubmitOptions,
-): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
+): ActionFuncAsync<PostActions.CreatePostReturnType> {
     return async (dispatch) => {
         dispatch(addRecentEmojisForMessage(post.message));
 
@@ -156,8 +155,8 @@ export function createPost(
     };
 }
 
-export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType, GlobalState> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createSchedulePostFromDraft(scheduledPost: ScheduledPost): ActionFuncAsync<PostActions.CreatePostReturnType> {
+    return async (dispatch, getState) => {
         dispatch(addRecentEmojisForMessage(scheduledPost.message));
 
         const state = getState() as GlobalState;
@@ -186,7 +185,7 @@ function storeCommentDraft(rootPostId: string, draft: null): ActionFunc {
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
+export function submitReaction(postId: string, action: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
@@ -202,7 +201,7 @@ export function submitReaction(postId: string, action: string, emojiName: string
     };
 }
 
-export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
+export function toggleReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
@@ -216,7 +215,7 @@ export function toggleReaction(postId: string, emojiName: string): ActionFuncAsy
     };
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType, GlobalState> {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<PostActions.SubmitReactionReturnType> {
     const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
@@ -242,7 +241,7 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
     };
 }
 
-export function searchForTerm(term: string): ActionFunc<boolean, GlobalState> {
+export function searchForTerm(term: string): ActionFunc<boolean> {
     return (dispatch) => {
         dispatch(RhsActions.updateSearchTerms(term));
         dispatch(RhsActions.showSearchResults());
@@ -291,7 +290,7 @@ function removePostFromSearchResults(postId: string, state: GlobalState, dispatc
     }
 }
 
-export function pinPost(postId: string): ActionFuncAsync<boolean, GlobalState> {
+export function pinPost(postId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         await dispatch(PostActions.pinPost(postId));
         const state = getState();
@@ -304,7 +303,7 @@ export function pinPost(postId: string): ActionFuncAsync<boolean, GlobalState> {
     };
 }
 
-export function unpinPost(postId: string): ActionFuncAsync<boolean, GlobalState> {
+export function unpinPost(postId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         await dispatch(PostActions.unpinPost(postId));
         const state = getState();
@@ -395,7 +394,7 @@ export function markMostRecentPostInChannelAsUnread(channelId: string): ActionFu
 }
 
 // Action called by DeletePostModal when the post is deleted
-export function deleteAndRemovePost(post: Post): ActionFuncAsync<boolean, GlobalState> {
+export function deleteAndRemovePost(post: Post): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const {error} = await dispatch(PostActions.deletePost(post));
         if (error) {
@@ -432,7 +431,7 @@ export function deleteAndRemovePost(post: Post): ActionFuncAsync<boolean, Global
     };
 }
 
-export function toggleEmbedVisibility(postId: string): ThunkActionFunc<void, GlobalState> {
+export function toggleEmbedVisibility(postId: string): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -446,7 +445,7 @@ export function resetEmbedVisibility() {
     return StorageActions.actionOnGlobalItemsWithPrefix(StoragePrefixes.EMBED_VISIBLE, () => null);
 }
 
-export function toggleInlineImageVisibility(postId: string, imageKey: string): ThunkActionFunc<void, GlobalState> {
+export function toggleInlineImageVisibility(postId: string, imageKey: string): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
