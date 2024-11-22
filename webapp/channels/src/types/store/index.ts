@@ -31,14 +31,14 @@ export type DispatchFunc = MMReduxTypes.DispatchFunc;
 /**
  * A version of {@link MMReduxTypes.GetStateFunc} which supports web app state.
  */
-export type GetStateFunc<State = BaseGlobalState> = MMReduxTypes.GetStateFunc<State>;
+export type GetStateFunc<State extends GlobalState = GlobalState> = MMReduxTypes.GetStateFunc<State>;
 
 /**
  * A version of {@link MMReduxTypes.ActionFunc} which supports web app state and allows dispatching its actions.
  */
 export type ActionFunc<
     Data = unknown,
-    State extends BaseGlobalState = BaseGlobalState,
+    State extends GlobalState = GlobalState,
 > = MMReduxTypes.ActionFunc<Data, State>;
 
 /**
@@ -46,7 +46,7 @@ export type ActionFunc<
  */
 export type ActionFuncAsync<
     Data = unknown,
-    State extends BaseGlobalState = BaseGlobalState,
+    State extends GlobalState = GlobalState,
 > = MMReduxTypes.ActionFuncAsync<Data, State>;
 
 /**
@@ -54,5 +54,5 @@ export type ActionFuncAsync<
  */
 export type ThunkActionFunc<
     ReturnType,
-    State extends BaseGlobalState = BaseGlobalState
+    State extends GlobalState = GlobalState
 > = MMReduxTypes.ThunkActionFunc<ReturnType, State>;
