@@ -17,6 +17,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
+func TimestampConvert(timestampMS int64) string {
+	return time.Unix(timestampMS/1000, 0).UTC().Format(time.RFC3339)
+
+	// for testing:  (keep in case we need to be specific -- helps when you have joins and leaves within millis of each other)
+	//return fmt.Sprintf("%d", timestampMS)
+}
+
 func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *templates.Container) (string, error) {
 	durationMilliseconds := channelExport.EndTime - channelExport.StartTime
 	// TODO CHECK IF WE NEED THE MILISECONS HERE OR WE CAN ROUND IT DIRECTLY HERE
@@ -51,12 +58,12 @@ func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *temp
 	data := templates.Data{
 		Props: map[string]any{
 			"ChannelName":     channelExport.ChannelName,
-			"Started":         time.Unix(channelExport.StartTime/1000, 0).UTC().Format(time.RFC3339),
-			"Ended":           time.Unix(channelExport.EndTime/1000, 0).UTC().Format(time.RFC3339),
+			"Started":         TimestampConvert(channelExport.StartTime),
+			"Ended":           TimestampConvert(channelExport.EndTime),
 			"Duration":        durafmt.Parse(duration.Round(time.Minute)).String(),
 			"ParticipantRows": template.HTML(participantRowsBuffer.String()),
 			"Messages":        template.HTML(messagesBuffer.String()),
-			"ExportDate":      time.Unix(channelExport.ExportedOn/1000, 0).UTC().Format(time.RFC3339),
+			"ExportDate":      TimestampConvert(channelExport.ExportedOn),
 		},
 	}
 
@@ -73,8 +80,8 @@ func participantToHTML(participant *ParticipantRow, t *templates.Container) (str
 			"Username":    participant.Username,
 			"UserType":    participant.UserType,
 			"Email":       participant.Email,
-			"Joined":      time.Unix(participant.JoinTime/1000, 0).UTC().Format(time.RFC3339),
-			"Left":        time.Unix(participant.LeaveTime/1000, 0).UTC().Format(time.RFC3339),
+			"Joined":      TimestampConvert(participant.JoinTime),
+			"Left":        TimestampConvert(participant.LeaveTime),
 			"Duration":    durafmt.Parse(duration.Round(time.Minute)).String(),
 			"NumMessages": participant.MessagesSent,
 		},
@@ -90,7 +97,7 @@ func messageToHTML(message *Message, t *templates.Container) (string, error) {
 	}
 	data := templates.Data{
 		Props: map[string]any{
-			"SentTime":     time.Unix(message.SentTime/1000, 0).UTC().Format(time.RFC3339),
+			"SentTime":     TimestampConvert(message.SentTime),
 			"Username":     message.SenderUsername,
 			"PostUsername": postUsername,
 			"UserType":     message.SenderUserType,
