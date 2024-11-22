@@ -4,11 +4,10 @@
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
 import * as Actions from 'mattermost-redux/actions/channel_bookmarks';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getConnectionId} from 'selectors/general';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 export function deleteBookmark(channelId: string, id: string): ActionFuncAsync<boolean, GlobalState> {
     return (dispatch, getState) => {

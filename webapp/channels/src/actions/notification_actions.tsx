@@ -17,7 +17,6 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -36,7 +35,7 @@ import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 import {runDesktopNotificationHooks} from './hooks';
 import type {NewPostMessageProps} from './new_post';

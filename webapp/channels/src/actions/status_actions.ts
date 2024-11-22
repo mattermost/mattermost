@@ -10,11 +10,10 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, GlobalState} from 'types/store';
 
 /**
  * Adds the following users to the status pool for fetching their statuses:

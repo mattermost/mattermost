@@ -5,9 +5,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
-
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {DesktopNotificationArgs} from 'types/store/plugins';
 
 import type {NewPostMessageProps} from './new_post';

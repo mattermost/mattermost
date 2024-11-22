@@ -18,9 +18,8 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getActiveTeamsList, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 export const useRemoteClusters = () => {
     const [remoteClusters, setRemoteClusters] = useState<RemoteCluster[]>();

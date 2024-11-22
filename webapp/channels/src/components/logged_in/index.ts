@@ -10,7 +10,6 @@ import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelURL} from 'selectors/urls';
 
@@ -18,7 +17,7 @@ import {getHistory} from 'utils/browser_history';
 import {checkIfMFARequired} from 'utils/route';
 import {isPermalinkURL} from 'utils/url';
 
-import type {GlobalState} from 'types/store';
+import type {ThunkActionFunc, GlobalState} from 'types/store';
 
 import LoggedIn from './logged_in';
 
