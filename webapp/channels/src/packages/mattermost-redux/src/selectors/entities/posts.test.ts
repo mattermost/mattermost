@@ -1079,7 +1079,7 @@ describe('Selectors.Posts', () => {
                             e: {
                                 ...modifiedState.entities.posts.posts.e,
                                 props: {
-                                    from_webhook: true,
+                                    from_webhook: 'true',
                                 },
                                 user_id: user1.id,
                             },

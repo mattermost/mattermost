@@ -150,7 +150,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* LDAP */
 
 	var vendorName, vendorVersion string
-	if ldap := a.Ldap(); ldap != nil {
+	if ldap := a.Ldap(); ldap != nil && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		vendorName, vendorVersion, err = ldap.GetVendorNameAndVendorVersion(c)
 		if err != nil {
 			rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))

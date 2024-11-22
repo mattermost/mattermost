@@ -1,11 +1,11 @@
 @use 'sass:color';
 
-@import 'utils/variables';
+@use 'utils/variables';
 
 .DataGrid {
     width: 100%;
     padding: 2rem 2rem 2rem 2rem;
-    background: $bg--gray;
+    background: variables.$bg--gray;
     color: var(--sys-center-channel-color);
 
     .DataGrid_search {
@@ -14,7 +14,7 @@
         flex-direction: row;
         padding: 0.5em 0;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
-        background: $white;
+        background: variables.$white;
         font-weight: bold;
 
         .DataGrid_searchBar {
@@ -43,7 +43,7 @@
                 position: absolute;
                 top: 5px;
                 left: 10px;
-                color: $dark-gray;
+                color: variables.$dark-gray;
                 pointer-events: none;
             }
 
@@ -91,12 +91,12 @@
             border-left: 2px solid transparent;
 
             &:nth-child(odd) {
-                background-color: $bg--gray;
+                background-color: variables.$bg--gray;
             }
 
             &:hover {
-                border-left: 2px solid $primary-color;
-                background-color: color.adjust($primary-color, $lightness: 45%);
+                border-left: 2px solid variables.$primary-color;
+                background-color: color.adjust(variables.$primary-color, $lightness: 45%);
             }
 
             .DataGrid_cell {
@@ -143,7 +143,7 @@
         padding: 8px;
         border-top: solid 1px rgba(0, 0, 0, 0.1);
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
-        background: $white;
+        background: variables.$white;
         color: rgba(0, 0, 0, 0.5);
         font-size: 1.1em;
         text-align: right;
