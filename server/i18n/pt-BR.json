@@ -7797,7 +7797,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Convite aceito | Online | Último ping |"
+    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Time Padrão | Convite aceito | Online | Último ping | Excluído |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8338,5 +8338,273 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Você pode fazer o download do seu arquivo aqui: {{.Link}}.\nEste link expirará em {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Não foi possível recuperar a lista de exportação."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "link de exportação"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Você não tem permissões suficientes para executar esse comando."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Este canal é gerenciado por grupos.  Este usuário não faz parte de um grupo sincronizado com este canal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Você pode adicionar {{.FirstUser}} e {{.Others}} outras pessoas a esse canal quando elas forem membros da equipe **{{.Team}}**."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "O comando de marketplace não é compatível com seu dispositivo."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Abra o Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Não foi possível confirmar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Não é possível convidar o externo porque o canal {{.ChannelID}} não é compartilhado."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Falha ao recarregar a configuração."
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ocorreu um erro ao buscar o endereço IP do cliente"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Não é possível obter essa quantidade de emojis por nome. Somente {{.MaxNames}} emojis podem ser solicitados de uma vez."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Erro ao tentar recuperar a configuração completa do primeiro administrador da loja."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Erro: nenhum nome de organização foi fornecido para o onboarding auto-hospedado."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "As configurações de armazenamento de arquivos têm valores não definidos."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Os parâmetros OnlyThreads e OnlyTotals para getThreadsForUser são mutuamente exclusivos"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao aplicar os filtros IP"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "As configurações do Elasticsearch têm valores não definidos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Confira abaixo um resumo de suas novas mensagens."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Certifique-se de que seu bucket do Amazon S3 está disponível e verifique as permissões do bucket."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Não foi possível obter a URL do site da instância"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ocorreu um erro durante a validação das credenciais de conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Não foi possível recuperar as credenciais com a configuração de conexão especificada."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Não é possível buscar o início do arquivo."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Não é possível convidar o remoto para o canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Conexão segura | URL do site | Somente leitura | Convite aceito | Online | Última sincronização |"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Falha ao atualizar as traduções do servidor."
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "A Filtragem de IP não está disponível neste servidor"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ocorreu um erro ao excluir a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Ocorreu um erro ao listar as conexões OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ocorreu um erro ao atualizar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "erro na contagem de grupos"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "o recurso de grupos personalizados está desativado"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id deve estar em branco para o grupo personalizado"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "não licenciado para grupos personalizados"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference deve ser 'true' para grupos personalizados"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Falha ao atualizar o status personalizado. Não existe um emoji com o nome fornecido."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Não é possível salvar o rascunho no canal excluído"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "O recurso Rascunhos está desativado."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Erro ao tentar salvar a configuração completa do primeiro administrador na loja."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "O upload via mmctl para uma instância do Cloud não é suportado. Verifique a documentação aqui: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "O tamanho da página é inválido ou muito grande."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Não é possível ocultar usuários ativos e inativos simultaneamente."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "O ID de equipe fornecido é inválido ."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "O Mattermost é uma plataforma de código aberto para comunicação segura, colaboração e orquestração de trabalho entre ferramentas e equipes.\nO Mattermost contém duas ferramentas principais:\n\n**Canais** - Mantenha-se conectado com sua equipe por meio de mensagens individuais e em grupo.\n**[Playbooks](/playbooks)** - Crie e configure processos reprodutíveis para que você alcance resultados específicos e previsíveis.\n\n[Veja a documentação e os guias]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "O driver de armazenamento de arquivos não é compatível com a geração de links."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nenhum arquivo de exportação foi encontrado."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|arquivo zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Não é possível gerar o URL pré-assinado."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} e {{.Others}} outros já estão no canal."
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao buscar os filtros IP"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ocorreu um erro ao criar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "As conexões OAuth de saída não estão disponíveis neste servidor."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Falha ao atualizar o status personalizado. Adicione emoji ou status de texto ou ambos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Não foi possível conectar-se ao S3. Verifique os parâmetros de autorização de conexão do Amazon S3 e as configurações de autenticação."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "O preenchimento automático nos canais não pode ser ativado porque o esquema do índice de canais está desatualizado. Recomenda-se que você gere novamente o índice do canal. Consulte o registro de alterações do Mattermost para obter mais informações"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Não foi possível encontrar o arquivo solicitado."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Não é possível processar a solicitação. O corpo da solicitação é muito grande."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} e {{.Others}} adicionados ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
   }
 ]
