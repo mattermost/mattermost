@@ -51,6 +51,7 @@ func TestGetOldClientLicense(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
+	require.Equal(t, model.GetServiceEnvironment(), license["ServiceEnvironment"])
 }
 
 func TestUploadLicenseFile(t *testing.T) {

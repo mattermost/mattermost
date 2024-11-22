@@ -45,6 +45,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		clientLicense = c.App.Srv().GetSanitizedClientLicense()
 	}
 
+	// The ServiceEnvironment isn't strictly a property of the license, but explains the context in which the license applies.
+	clientLicense["ServiceEnvironment"] = model.GetServiceEnvironment()
+
 	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
