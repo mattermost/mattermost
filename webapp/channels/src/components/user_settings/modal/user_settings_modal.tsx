@@ -343,8 +343,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}
-                role='dialog'
                 aria-label={modalTitle}
+                role='none'
             >
                 <Modal.Header
                     id='accountSettingsHeader'
