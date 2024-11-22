@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {JobType, Job, JobsByType} from '@mattermost/types/jobs';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {JobTypes} from 'mattermost-redux/action_types';
 
-function jobs(state: IDMappedObjects<Job> = {}, action: AnyAction): IDMappedObjects<Job> {
+function jobs(state: IDMappedObjects<Job> = {}, action: MMReduxAction): IDMappedObjects<Job> {
     switch (action.type) {
     case JobTypes.RECEIVED_JOB: {
         const nextState = {...state};
@@ -28,7 +28,7 @@ function jobs(state: IDMappedObjects<Job> = {}, action: AnyAction): IDMappedObje
     }
 }
 
-function jobsByTypeList(state: JobsByType = {}, action: AnyAction): JobsByType {
+function jobsByTypeList(state: JobsByType = {}, action: MMReduxAction): JobsByType {
     switch (action.type) {
     case JobTypes.RECEIVED_JOBS_BY_TYPE: {
         const nextState = {...state};
