@@ -914,9 +914,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Updating the file_ids of a post is not a supported operation and will be ignored
-	post.FileIds = nil
-
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)

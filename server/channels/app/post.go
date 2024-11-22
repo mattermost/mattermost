@@ -730,6 +730,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.FileIds = receivedUpdatedPost.FileIds
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -811,6 +812,10 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	rpost = sanitizedPost
 
 	return rpost, nil
+}
+
+func (a *App) processPostFileChanges(rctx request.CTX, newPost, receivedUpdatedPost *model.Post) *model.AppError {
+	
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
@@ -1849,7 +1854,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -1934,7 +1939,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                      // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny
