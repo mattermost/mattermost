@@ -2469,7 +2469,7 @@
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": "Команда повинна бути призначена схемою рівня команд."
+    "translation": "Команду необхідно призначити до схеми з прив'язкою до команди."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
@@ -2477,11 +2477,11 @@
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Помилка імпортування членських каналів користувача. Не вдалося зберегти налаштування."
+    "translation": "Помилка під час імпорту членства користувача в каналі. Не вдалося зберегти налаштування."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Неможливо прочитати версію файлу даних імпорту."
+    "translation": "Не вдалось прочитати версію файлу імпорту даних."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -5293,11 +5293,11 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Unable to save the team theme preferences"
+    "translation": "Не вдалось зберегти налаштування теми команди"
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": "Error importing user channels. Channel not found."
+    "translation": "Помилка імпорту каналів користувача. Канал не знайдено."
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
@@ -6329,7 +6329,7 @@
   },
   {
     "id": "app.channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
+    "translation": "Неможливо отримати групові канали для вказаного користувача та заданих умов."
   },
   {
     "id": "app.channel.search.app_error",
