@@ -68,6 +68,7 @@ function makeMapStateToProps() {
 
         const config = getConfig(state);
         const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+        const enableRenderEmoticonsAsEmoji = config.EnableRenderEmoticonsAsEmoji === 'true';
 
         return {
             channel,
@@ -82,6 +83,7 @@ function makeMapStateToProps() {
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
             isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
             isEnterpriseReady,
+            renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, enableRenderEmoticonsAsEmoji),
         };
     };
 }
