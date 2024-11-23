@@ -65,7 +65,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 
 		var packet model.SupportPacket
 		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-		require.NotNil(t, packet)
 		return &packet
 	}
 
@@ -135,15 +134,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, int64(0), sp.Stats.SlashCommands)
 		assert.Equal(t, int64(0), sp.Stats.IncomingWebhooks)
 		assert.Equal(t, int64(0), sp.Stats.OutgoingWebhooks)
-
-		/* Jobs */
-		assert.Empty(t, sp.Jobs.LDAPSyncJobs)
-		assert.Empty(t, sp.Jobs.DataRetentionJobs)
-		assert.Empty(t, sp.Jobs.MessageExportJobs)
-		assert.Empty(t, sp.Jobs.ElasticPostIndexingJobs)
-		assert.Empty(t, sp.Jobs.ElasticPostAggregationJobs)
-		assert.Empty(t, sp.Jobs.BlevePostIndexingJobs)
-		assert.Empty(t, sp.Jobs.MigrationJobs)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
@@ -249,6 +239,37 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	})
 }
 
+func TestGenerateSupportPacketJobListYaml(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	generateJobList := func(t *testing.T) *model.SupportPacketJobList {
+		t.Helper()
+
+		fileData, err := th.App.generateSupportPacketJobListYaml(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "jobs.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		var jobs model.SupportPacketJobList
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &jobs))
+		return &jobs
+	}
+
+	t.Run("no jobs run yet", func(t *testing.T) {
+		jobs := generateJobList(t)
+
+		assert.Empty(t, jobs.LDAPSyncJobs)
+		assert.Empty(t, jobs.DataRetentionJobs)
+		assert.Empty(t, jobs.MessageExportJobs)
+		assert.Empty(t, jobs.ElasticPostIndexingJobs)
+		assert.Empty(t, jobs.ElasticPostAggregationJobs)
+		assert.Empty(t, jobs.BlevePostIndexingJobs)
+		assert.Empty(t, jobs.MigrationJobs)
+	})
+}
+
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -283,8 +304,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 		var rFileNames []string
 		testFiles := []string{
-			"support_packet.yaml",
 			"metadata.yaml",
+			"support_packet.yaml",
+			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"mattermost.log",
@@ -308,8 +330,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		testFiles := []string{
-			"support_packet.yaml",
 			"metadata.yaml",
+			"support_packet.yaml",
+			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",
@@ -338,8 +361,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 			IncludeLogs: true,
 		})
 		testFiles := []string{
-			"support_packet.yaml",
 			"metadata.yaml",
+			"support_packet.yaml",
+			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
 			"cpu.prof",

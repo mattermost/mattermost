@@ -86,16 +86,18 @@ type SupportPacket struct {
 		IncomingWebhooks   int64 `yaml:"incoming_webhooks"`
 		OutgoingWebhooks   int64 `yaml:"outgoing_webhooks"`
 	}
+}
 
-	Jobs struct {
-		LDAPSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
-		DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
-		MessageExportJobs          []*Job `yaml:"message_export_jobs"`
-		ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
-		ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
-		BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
-		MigrationJobs              []*Job `yaml:"migration_jobs"`
-	}
+// SupportPacketJobList contains the list of latest run enterprise job runs.
+// It is included in the Support Packet.
+type SupportPacketJobList struct {
+	LDAPSyncJobs               []*Job `yaml:"ldap_sync_jobs"`
+	DataRetentionJobs          []*Job `yaml:"data_retention_jobs"`
+	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
+	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
+	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
+	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
+	MigrationJobs              []*Job `yaml:"migration_jobs"`
 }
 
 type FileData struct {

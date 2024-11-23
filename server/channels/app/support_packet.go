@@ -28,13 +28,14 @@ const (
 func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	// A array of the functions that we can iterate through since they all have the same return value
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
+		"metadata":       a.createSupportPacketMetadata,
 		"support packet": a.generateSupportPacketYaml,
+		"jobs":           a.generateSupportPacketJobListYaml,
 		"plugins":        a.createPluginsFile,
 		"config":         a.createSanitizedConfigFile,
 		"cpu profile":    a.Srv().Platform().CreateCPUProfile,
 		"heap profile":   a.Srv().Platform().CreateHeapProfile,
 		"goroutines":     a.Srv().Platform().CreateGoroutineProfile,
-		"metadata":       a.createSupportPacketMetadata,
 	}
 
 	if options.IncludeLogs {
@@ -127,9 +128,11 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 }
 
 func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
-	var rErr *multierror.Error
-
-	var sp model.SupportPacket
+	var (
+		rErr *multierror.Error
+		err  error
+		sp   model.SupportPacket
+	)
 
 	sp.Version = model.CurrentSupportPacketVersion
 
@@ -294,44 +297,64 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		rErr = multierror.Append(errors.Wrap(err, "failed to get  outgoing webhook count"))
 	}
 
-	/* Jobs  */
-	sp.Jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
-	}
-	sp.Jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
-	}
-	sp.Jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
-	}
-	sp.Jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
-	}
-	sp.Jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
-	}
-	sp.Jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
-	}
-	sp.Jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, 2)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
-	}
-
-	supportPacketYaml, err := yaml.Marshal(&sp)
+	b, err := yaml.Marshal(&sp)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
 
 	fileData := &model.FileData{
 		Filename: "support_packet.yaml",
-		Body:     supportPacketYaml,
+		Body:     b,
+	}
+	return fileData, rErr.ErrorOrNil()
+}
+
+func (a *App) generateSupportPacketJobListYaml(c request.CTX) (*model.FileData, error) {
+	const numberOfJobsRuns = 5
+
+	var (
+		rErr *multierror.Error
+		err  error
+		jobs model.SupportPacketJobList
+	)
+
+	jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
+	}
+	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+	}
+	jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+	}
+	jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
+	}
+	jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
+	}
+	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
+	}
+	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, numberOfJobsRuns)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
+	}
+
+	b, err := yaml.Marshal(&jobs)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to marshal jobs list into yaml"))
+	}
+
+	fileData := &model.FileData{
+		Filename: "jobs.yaml",
+		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
 }
