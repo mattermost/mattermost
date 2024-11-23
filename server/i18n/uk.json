@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.templates.reset_body.button",
-    "translation": "Скинути пароль"
+    "translation": "Скинути Пароль"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2485,15 +2485,15 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": "Ім'я дисплея каналу не в межах дозволених обмежень довжини."
+    "translation": "Назва каналу display_name не відповідає дозволеним обмеженням за довжиною."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
-    "translation": "Заголовок каналу задовгий."
+    "translation": "Занадто довгий заголовок каналу."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": "Назва каналу містить недійсні символи."
+    "translation": "Назва каналу містить неприпустимі символи."
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
@@ -2501,19 +2501,19 @@
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: ім'я"
+    "translation": "Відсутня необхідна властивість каналу: name"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": "Тема каналу занадто довга."
+    "translation": "Мета каналу занадто довга."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": "Неприпустиме ім'я схеми для каналу."
+    "translation": "Недійсна назва схеми для каналу."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: команда"
+    "translation": "Відсутня необхідна властивість каналу: команда"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -2521,7 +2521,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: тип."
+    "translation": "Відсутня необхідна властивість каналу: type."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
@@ -2529,19 +2529,19 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Відсутній необхідний власник прямого каналу: учасники"
+    "translation": "Відсутня необхідна властивість прямого каналу: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Список прямих каналів містить замало елементів"
+    "translation": "Список учасників приватного каналу містить занадто мало елементів"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Список прямих каналів містить забагато елементів"
+    "translation": "Список учасників приватного каналу містить занадто багато елементів"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Поточний канал може бути доданий в обране тільки членами команди. \"{{.Username}}\" не є членом даної команди."
+    "translation": "Приватний канал може бути обраний лише учасниками. \"{{.Username}}\" не є учасником."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2565,7 +2565,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Повідомлення задовге"
+    "translation": "Повідомлення занадто довге"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
@@ -2573,7 +2573,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Прямий пост може бути позначений лише учасниками каналу, в якому він знаходиться. \"{{.Username}}\" не є учасником."
+    "translation": "Приватний допис може бути позначений лише учасниками каналу, в якому він знаходиться. \"{{.Username}}\" не є учасником."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -2581,11 +2581,11 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Імпортувати дані смайли порожніми."
+    "translation": "Імпортувати дані емодзі порожніми."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Імпорт emoji - зображення відсутнє або поле пусте."
+    "translation": "Поле \"Імпортувати зображення емодзі\" відсутнє або порожнє."
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
@@ -2593,23 +2593,23 @@
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": "Відсутній необхідний ресурс публікації: канал."
+    "translation": "Відсутня необхідна властивість для Допису: Channel."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
+    "translation": "Відсутня необхідна властивість для Допису: created_at."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Властивість Post CreateAt не може бути нулем."
+    "translation": "Властивість Допису CreateAt не може бути нулем."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": "Post Message довше, ніж максимально дозволена довжина."
+    "translation": "Властивість Допису Message довша за максимально допустиму довжину."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": "Відсутнє необхідне поле для Post: Message."
+    "translation": "Відсутня необхідна властивість Допису: Message."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -2617,35 +2617,35 @@
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": "Відсутній необхідний ресурс публікації: користувач."
+    "translation": "Відсутня необхідна властивість Допису: User."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Реакція властивості CreateAt повинна бути більшою, ніж батьківський запис CreateAt."
+    "translation": "Властивість CreateAt для Реакції має бути більшою за батьківський Допис CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Відсутня необхідна властивість Reaction: created_at."
+    "translation": "Відсутня необхідна властивість Реакції: create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "Реакція властивості CreateAt не може бути нулем."
+    "translation": "Властивість для CreateAt Реакції не повинна бути нульовою."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "Реакція властивості EmojiName перевищує максимальну дозволену довжину."
+    "translation": "Властивість реакції EmojiName перевищує максимальну дозволену довжину."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Відсутня необхідна властивість Reaction: EmojiName."
+    "translation": "Відсутня необхідна властивість для Реакції: EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Відсутня необхідна властивість Реакція: користувач."
+    "translation": "Відсутня необхідна властивість Реакції: User."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Відсутня необхідна відповідь властивість: created_at."
+    "translation": "Відсутня необхідна властивість для Відповісти: create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
@@ -5289,7 +5289,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
-    "translation": "Post Props are longer than the maximum permitted length."
+    "translation": "Довжина Допису перевищує максимально дозволену."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -8161,7 +8161,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
-    "translation": "Завантажити з серверу"
+    "translation": "Завантажити"
   },
   {
     "id": "api.templates.welcome_body.info1",
