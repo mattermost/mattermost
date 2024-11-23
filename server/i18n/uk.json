@@ -2373,27 +2373,27 @@
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "Неправильна або відсутня версія у файлі імпорту даних. Переконайтеся, що версія - це перший об'єкт у файлі імпорту і спробуйте знову."
+    "translation": "Неправильна або відсутня версія у файлі імпорту даних. Переконайтеся, що версія є першим об'єктом у файлі імпорту та спробуйте ще раз."
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Помилка читання файлу імпорту. Емоції з назвою: \"{{.EmojiName}}\""
+    "translation": "Помилка при зчитуванні файлу зображення емодзі. Емодзі з назвою: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Не вдається встановити канал для використання видаленої схеми."
+    "translation": "Неможливо призначити каналу видалену схему."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "Канал повинен бути призначений в схемі рівня каналу."
+    "translation": "Канал повинен бути призначений схемі, що обмежена каналом."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": "Помилка імпорту каналу. Команду з назвою \"{{.TeamName}}\" не вдалося знайти."
+    "translation": "Помилка імпорту каналу. Не вдалося знайти команду з іменем \"{{.TeamName}}\"."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Не вдалося створити прямий канал"
+    "translation": "Не вдалося створити приватний канал"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
@@ -2401,7 +2401,7 @@
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
+    "translation": "Не вдалося оновити заголовок приватного каналу"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
@@ -2413,23 +2413,23 @@
   },
   {
     "id": "app.import.import_line.null_channel.error",
-    "translation": "Імпорт лінії даних має тип \"канал\", але об'єкт каналу є нульовим."
+    "translation": "Рядок даних імпорту має тип \"channel\", але channel дорівнює null."
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "Імпорт лінії даних має тип \"прямий_канал\", але об'єкт прямого каналу є нульовим."
+    "translation": "Рядок даних імпорту має тип \"direct_channel\", але direct_channel дорівнює null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Імпорт лінії даних має тип \"пряме_повідомлення\", але об'єкт прямого повідомлення є нульовим."
+    "translation": "Рядок даних імпорту має тип \"direct_post\", але direct_post дорівнює null."
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "Імпорт лінії даних має тип \"post\", але об'єкт повідомлення є нульовим."
+    "translation": "Рядок даних імпорту має тип \"emoji\", але emoji дорівнює null."
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": "Імпорт лінії даних має тип \"post\", але об'єкт повідомлення є нульовим."
+    "translation": "Рядок даних імпорту має тип \"post\", але post дорівнює null."
   },
   {
     "id": "app.import.import_line.null_scheme.error",
@@ -2437,23 +2437,23 @@
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": "Імпорт лінії даних має тип \"команда\", але об'єкт команди є нульовим."
+    "translation": "Рядок даних імпорту має тип \"team\", але team дорівнює null."
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "Імпорт лінії даних має тип \"user\", але об'єкт користувача нулювий."
+    "translation": "Рядок даних імпорту має тип \"user\", але user дорівнює null."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Імпорт лінії даних має невідомий тип \"{{.Type}}\"."
+    "translation": "Рядок даних імпорту має невідомий тип \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Помилка імпорту публікації. Канал з назвою \"{{.ChannelName}}\" не знайдено."
+    "translation": "Помилка при імпорті запису. Канал з назвою \"{{.ChannelName}}\" не знайдено."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Помилка імпорту публікації. Не вдалося зберегти налаштування."
+    "translation": "Помилка при імпорті публікації. Не вдалося зберегти налаштування."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
@@ -2461,11 +2461,11 @@
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": "Основний імпортер не може змінити масштаб існуючої схеми."
+    "translation": "Масовий імпортер не може змінити сферу застосування вже існуючої схеми."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Не вдається встановити команду для використання видаленої схеми."
+    "translation": "Не вдається налаштувати команду на використання видаленої схеми."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
@@ -5301,11 +5301,11 @@
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Some users not found"
+    "translation": "Деякі користувачі не знайдені"
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": "Some teams not found"
+    "translation": "Деякі команди не знайдено"
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
