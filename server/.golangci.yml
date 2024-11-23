@@ -130,7 +130,6 @@ issues:
         channels/app/upload_test.go|\
         channels/app/user_test.go|\
         channels/app/web_broadcast_hooks_test.go|\
-        channels/app/webhook_test.go|\
         channels/jobs/batch_worker_test.go|\
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
