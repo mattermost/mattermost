@@ -413,5 +413,9 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": "Әлі есепшот ұсыну тарихы жоқ",
   "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": "Және тағы {count} элемент",
   "admin.bleve.bulkIndexingTitle": "Жаппай индекстеу:",
+  "admin.bleve.createJob.help": "Дерекқордағы барлық қолданушылар, арналар және хабарламалар ең ескіден ең жаңаға индекстеледі. Индекстеу кезінде Bleve қол жетімді болады, бірақ индекстеу қызметі аяқталғанға шейін іздеу нәтижелері толық болмауы мүмкін.",
+  "admin.bleve.createJob.title": "Қазір индекстеу",
+  "admin.bleve.enableAutocompleteDescription": "Іске қолсылса, Bleve ең соңғы индексті қолданып, қолданушылар мен арналарға жасалатын барлық авто-толтыру сұратымдарына қолданылатын болады. Авто-толтыру нәтижелері қазіргі қолданушылар мен арналар дерекқорының жаппай индекстелуі бітпегенше толық болмауы мүмкін. Өшірілсе, дерекқор авто-толтыруы қолданылады.",
+  "admin.bleve.enableAutocompleteTitle": "Bleve-ті сұратымдарды авто-толтыру үшін іске қосу:",
   "admin_settings.save_unsaved_changes": "Алдымен сақталмаған өзгерістерді сақтауыңызды сұраймыз"
 }
