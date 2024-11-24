@@ -2649,7 +2649,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "Відповідь властивості CreateAt не може бути нулем."
+    "translation": "Властивість CreateAt в Reply не повинна бути нульовою."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
