@@ -3064,11 +3064,11 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-aggregator kon geen indexeertaak aanmaken"
+    "translation": "{{.Backend}}-aggregator kon geen indexeertaak aanmaken"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet wissen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet wissen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
@@ -8947,15 +8947,15 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-keybestand voor {{.Backend}}niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-certificaatbestand voor {{.Backend}} niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+    "translation": "Het decoderen van het client-certificaat voor {{.Backend}} is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
@@ -10396,5 +10396,31 @@
   {
     "id": "app.scheduled_post.error_reason.invalid_post",
     "translation": "Ongeldige inhoud van bericht"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
+      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privé-kanaal"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Fout bij het verzenden {{.Count}} gepland bericht.",
+      "other": "Fout bij het verzenden {{.Count}} geplande berichten."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kan geplande berichten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Onbekend Kanaal"
   }
 ]
