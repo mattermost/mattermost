@@ -3075,15 +3075,15 @@
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
+    "translation": "设置 {{.Backend}} 客户端失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "删除 ElasticSearch 索引失败"
+    "translation": "删除 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "获取 ElasticSearch 索引失败"
+    "translation": "获取 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4955,11 +4955,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 消息模板失败"
+    "translation": "创建消息的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 用户模板失败"
+    "translation": "创建用户的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5303,7 +5303,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 频道模板失败"
+    "translation": "创建频道的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -7511,7 +7511,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 文件模板失败"
+    "translation": "创建文件的 {{.Backend}} 模板失败"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8839,11 +8839,11 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "无法打开 Elasticsearch 客户密钥文件"
+    "translation": "无法打开 {{.Backend}} 的客户端密钥文件"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "无法打开 Elasticsearch 客户证书"
+    "translation": "无法打开 {{.Backend}} 的客户端证书"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
@@ -9447,7 +9447,7 @@
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
-    "translation": "对话移动已禁用"
+    "translation": "话题移动已禁用"
   },
   {
     "id": "api.post.move_thread.no_permission",
@@ -9459,7 +9459,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动至私信/群组消息\n"
   },
   {
     "id": "app.post.move_thread_command.error",
@@ -9467,7 +9467,7 @@
   },
   {
     "id": "app.post.move_thread.from_another_channel",
-    "translation": "此对话移动自其他频道"
+    "translation": "此话题移动自其他频道"
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
@@ -9483,7 +9483,7 @@
   },
   {
     "id": "app.post.move_thread_command.channel.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动：{{.Link}}\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动：{{.Link}}\n"
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
@@ -10339,7 +10339,7 @@
   },
   {
     "id": "app.scheduled_post.error_reason.thread_deleted",
-    "translation": "对话已被删除"
+    "translation": "话题已被删除"
   },
   {
     "id": "app.scheduled_post.error_reason.unable_to_send",
@@ -10380,5 +10380,25 @@
   {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "未知频道"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "无法计划空消息。计划消息必须至少有一条消息或文件附件。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "计划消息必须有 ID。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "计划时间无效。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "处理时间无效。"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "存储类别 {{.Value}} 无效。"
   }
 ]
