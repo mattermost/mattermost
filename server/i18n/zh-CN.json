@@ -3059,19 +3059,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch 聚合器工作者创建索引任务失败"
+    "translation": "{{.Backend}} 聚合器工作者创建索引任务失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者创删除引失败"
+    "translation": "{{.Backend}} 聚合器工作者删除索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者获取索引失败"
+    "translation": "{{.Backend}} 聚合器工作者获取索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch 聚合器工作者因索引任务失败而失败"
+    "translation": "{{.Backend}} 聚合器工作者因索引任务失败而失败"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -8847,11 +8847,11 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "解码 Elasticsearch 客户证书失败"
+    "translation": "解码 {{.Backend}} 客户端证书失败"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "无法打开 Elasticsearch CA 文件"
+    "translation": "无法打开 {{.Backend}} 的 CA 文件"
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -10220,5 +10220,165 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "令牌无效。"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request：错误的请求。"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "计划消息功能已禁用"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "计划消息功能需要授权"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "无法升级机器人。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "从数据库删除计划消息失败。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "您没有删除此资源的权限。"
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "获取计划消息时遇到错误。"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "无法找到机器人的拥有者"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "导入数据行的类型为“bot”，但 bot 对象为 null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "缺少机器人的拥有者"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "无法在已归档的频道内计划消息。"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "保存计划消息时出错。"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "您没有更新此资源的权限。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "在数据库中保存更新后的计划消息失败。"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "此消息无法创建"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "无法获取用户"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "无法获取系统机器人"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "如果您收到了这条测试通知，表示通知正常工作！"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "无法获取系统机器人的私信"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "无法定位到 GIF 数据的开头。"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "频道已归档"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "未找到频道"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "消息内容无效"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "不是该频道的成员"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "没有在频道中发送消息的权限"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "对话已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "无法发送消息"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "未知错误"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "用户账号已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "用户不存在"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "other": "- {{.Count}} 条在{{.ChannelName}}频道内。原因：{{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "other": "{{.Count}} 条计划消息发送失败。"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "无法为用户删除计划消息。"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "私有频道"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "未知频道"
   }
 ]
