@@ -10388,5 +10388,13 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Ongeldige opslagklasse {{.Value}}."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ongeldige inhoud van bericht"
   }
 ]
