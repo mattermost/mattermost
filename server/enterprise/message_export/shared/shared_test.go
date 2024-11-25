@@ -269,3 +269,82 @@ func Test_GetBatchPath(t *testing.T) {
 		})
 	}
 }
+
+func TestJobDataToStringMap_and_StringMapToJobData(t *testing.T) {
+	jd := JobData{
+		JobDataExported: JobDataExported{
+			ExportType:              "cli_message_export",
+			ExportDir:               "/here/there/34234-123",
+			BatchStartTime:          45,
+			BatchStartId:            "34arsitenaorsten",
+			JobStartTime:            99,
+			JobEndTime:              1234,
+			JobStartId:              "99abcdef34",
+			BatchSize:               2000,
+			ChannelBatchSize:        30000,
+			ChannelHistoryBatchSize: 30,
+			BatchNumber:             4,
+			TotalPostsExpected:      999999,
+			MessagesExported:        343499,
+			WarningCount:            39,
+		},
+		ExportPeriodStartTime: 123456,                  // not exported
+		BatchEndTime:          999999999,               // not exported
+		BatchPath:             "/another/path/123-123", // not exported
+	}
+
+	strMap := JobDataToStringMap(jd)
+
+	expected := make(map[string]string)
+	expected[JobDataExportType] = "cli_message_export"
+	expected[JobDataExportDir] = "/here/there/34234-123"
+	expected[JobDataBatchStartTime] = "45"
+	expected[JobDataBatchStartId] = "34arsitenaorsten"
+	expected[JobDataJobStartTime] = "99"
+	expected[JobDataJobEndTime] = "1234"
+	expected[JobDataJobStartId] = "99abcdef34"
+	expected[JobDataBatchSize] = "2000"
+	expected[JobDataChannelBatchSize] = "30000"
+	expected[JobDataChannelHistoryBatchSize] = "30"
+	expected[JobDataBatchNumber] = "4"
+	expected[JobDataTotalPostsExpected] = "999999"
+	expected[JobDataMessagesExported] = "343499"
+	expected[JobDataWarningCount] = "39"
+	expected[JobDataIsDownloadable] = "false"
+
+	for k, v := range expected {
+		val, ok := strMap[k]
+		assert.True(t, ok)
+		assert.Equal(t, v, val)
+	}
+
+	// not exported:
+	for _, k := range []string{"export_period_start_time", "batch_end_time", "batch_path"} {
+		_, ok := strMap[k]
+		assert.False(t, ok)
+	}
+
+	// zero the fields that weren't exported:
+	jd.ExportPeriodStartTime = 0
+	jd.BatchEndTime = 0
+	jd.BatchPath = ""
+
+	// now convert back
+	jd2, err := StringMapToJobDataWithZeroValues(strMap)
+	assert.NoError(t, err)
+	assert.Equal(t, jd, jd2)
+
+	// and test bad conversion (just a couple):
+	badStrMap := map[string]string{JobDataJobStartTime: "56aaa"}
+	_, err = StringMapToJobDataWithZeroValues(badStrMap)
+	assert.Error(t, err)
+	badStrMap = map[string]string{JobDataJobEndTime: "blah blah"}
+	_, err = StringMapToJobDataWithZeroValues(badStrMap)
+	assert.Error(t, err)
+
+	// test that zero values are used when not present
+	emptyStrMap := make(map[string]string)
+	emptyJd, err := StringMapToJobDataWithZeroValues(emptyStrMap)
+	assert.NoError(t, err)
+	assert.Equal(t, JobData{}, emptyJd)
+}

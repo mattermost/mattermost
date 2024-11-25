@@ -143,24 +143,24 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (results shared.
 
 	err = zipFile.Close()
 	if err != nil {
-		return results, fmt.Errorf("unable to close the zip file: %w", err)
+		return results, fmt.Errorf("unable to close the zip file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
 	}
 
 	_, err = tmpFile.Seek(0, 0)
 	if err != nil {
-		return results, fmt.Errorf("unable to re-read the Global Relay temporary export file: %w", err)
+		return results, fmt.Errorf("unable to re-read the Global Relay temporary export file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
 	}
 
 	if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
 		// Try to disable the write timeout for the potentially big export file.
 		_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, tmpFile, p.BatchPath)
 		if err != nil {
-			return results, fmt.Errorf("unable to write the global relay file: %w", err)
+			return results, fmt.Errorf("unable to write the global relay file, using tmpFile.Name: %v, batchPath: %v, err: %w", tmpFile.Name(), p.BatchPath, err)
 		}
 	} else {
 		err = Deliver(tmpFile, p.Config)
 		if err != nil {
-			return results, err
+			return results, fmt.Errorf("unable to deliver tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
 		}
 	}
 
