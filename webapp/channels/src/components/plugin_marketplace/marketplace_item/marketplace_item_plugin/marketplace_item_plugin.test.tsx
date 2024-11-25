@@ -93,6 +93,7 @@ describe('components/MarketplaceItemPlugin', () => {
                 entities: {
                     general: {
                         config: {},
+                        license: {},
                     },
                     users: {
                         currentUserId: 'currentUserId',

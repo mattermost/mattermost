@@ -85,7 +85,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	th.ResetRoleMigration()
 
-	th.App.DoAdvancedPermissionsMigration()
+	err := th.App.DoAdvancedPermissionsMigration()
+	require.NoError(t, err)
 
 	roleNames := []string{
 		"system_user",
@@ -232,7 +233,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Check the migration doesn't change anything if run again.
-	th.App.DoAdvancedPermissionsMigration()
+	err = th.App.DoAdvancedPermissionsMigration()
+	require.NoError(t, err)
 
 	roles2, err2 := th.App.GetRolesByNames(roleNames)
 	assert.Nil(t, err2)

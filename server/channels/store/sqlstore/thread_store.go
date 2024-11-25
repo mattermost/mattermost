@@ -134,11 +134,16 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		})
 
 	if teamId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.Eq{"Threads.ThreadTeamId": teamId},
-				sq.Eq{"Threads.ThreadTeamId": ""},
-			})
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
+			query = query.Where(
+				sq.Or{
+					sq.Eq{"Threads.ThreadTeamId": teamId},
+					sq.Eq{"Threads.ThreadTeamId": ""},
+				},
+			)
+		}
 	}
 
 	if !opts.Deleted {
@@ -196,11 +201,16 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		})
 
 	if teamId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.Eq{"Threads.ThreadTeamId": teamId},
-				sq.Eq{"Threads.ThreadTeamId": ""},
-			})
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
+			query = query.Where(
+				sq.Or{
+					sq.Eq{"Threads.ThreadTeamId": teamId},
+					sq.Eq{"Threads.ThreadTeamId": ""},
+				},
+			)
+		}
 	}
 
 	if !opts.Deleted {
@@ -235,11 +245,16 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	}
 
 	if teamId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.Eq{"Threads.ThreadTeamId": teamId},
-				sq.Eq{"Threads.ThreadTeamId": ""},
-			})
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
+			query = query.Where(
+				sq.Or{
+					sq.Eq{"Threads.ThreadTeamId": teamId},
+					sq.Eq{"Threads.ThreadTeamId": ""},
+				},
+			)
+		}
 	}
 
 	if !opts.Deleted {
@@ -296,14 +311,19 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
 	}
 
-	// If a team is specified, constrain to channels in that team or DMs/GMs without
+	// If a team is specified, constrain to channels in that team and if not excluded also return DMs/GMs without
 	// a team at all.
 	if teamId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.Eq{"Threads.ThreadTeamId": teamId},
-				sq.Eq{"Threads.ThreadTeamId": ""},
-			})
+		if opts.ExcludeDirect {
+			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
+		} else {
+			query = query.Where(
+				sq.Or{
+					sq.Eq{"Threads.ThreadTeamId": teamId},
+					sq.Eq{"Threads.ThreadTeamId": ""},
+				},
+			)
+		}
 	}
 
 	if !opts.Deleted {

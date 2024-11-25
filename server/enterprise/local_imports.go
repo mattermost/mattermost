@@ -16,4 +16,6 @@ import (
 	_ "github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch"
 )

@@ -8,6 +8,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
+import type {MessageData} from 'mattermost-redux/utils/post_list';
 
 import Markdown from 'components/markdown';
 
@@ -189,11 +190,7 @@ export type Props = {
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
-    messageData: Array<{
-        actorId?: string;
-        postType: string;
-        userIds: string[];
-    }>;
+    messageData: MessageData[];
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
     actions: {
@@ -378,9 +375,9 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 {content}
-            </React.Fragment>
+            </>
         );
     }
 }
