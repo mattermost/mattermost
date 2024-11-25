@@ -10197,7 +10197,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "複製授權檔案目錄到到緩衝區失敗。"
+    "translation": "複製授權檔案目錄到到緩衝區失敗"
   },
   {
     "id": "app.post.create_post.shared_dm_or_gm.app_error",
@@ -10229,7 +10229,7 @@
   },
   {
     "id": "api.scheduled_posts.feature_disabled",
-    "translation": "排程訊息功能已停用。"
+    "translation": "排程訊息功能已停用"
   },
   {
     "id": "app.bot.update.app_error",
@@ -10253,7 +10253,7 @@
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",
-    "translation": "取得排程貼文時遇到錯誤"
+    "translation": "取得排程貼文時遇到錯誤。"
   },
   {
     "id": "app.import.import_bot.owner_could_not_found.error",
