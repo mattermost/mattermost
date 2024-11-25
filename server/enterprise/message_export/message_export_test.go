@@ -363,11 +363,11 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		job := runJobForTest(t, th, nil)
 
-		warnings, err := strconv.Atoi(job.Data[JobDataWarningCount])
+		warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 		require.NoError(t, err)
 		require.Equal(t, 0, warnings)
 
-		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(3), numExported)
 	})
@@ -437,17 +437,17 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		job := runJobForTest(t, th, nil)
 
-		warnings, err := strconv.Atoi(job.Data[JobDataWarningCount])
+		warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 		require.NoError(t, err)
 		require.Equal(t, 0, warnings)
 
-		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(11), numExported)
 
-		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
+		jobEnd, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 0, 64)
 		require.NoError(t, err)
-		jobExportDir := job.Data[JobDataExportDir]
+		jobExportDir := job.Data[shared.JobDataExportDir]
 		batch001 := shared.GetBatchPath(jobExportDir, jobStart, now+3, 1)
 		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+8, 2)
 		batch003 := shared.GetBatchPath(jobExportDir, now+8, jobEnd, 3)
@@ -511,22 +511,22 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		// start at the 2nd post and get till the 7th post (inclusive) = 6 posts
 		job := runJobForTest(t, th, map[string]string{
-			JobDataBatchStartTimestamp: strconv.Itoa(int(now) + 1),
-			JobDataEndTimestamp:        strconv.Itoa(int(now) + 6),
+			shared.JobDataBatchStartTime: strconv.Itoa(int(now) + 1),
+			shared.JobDataJobEndTime:     strconv.Itoa(int(now) + 6),
 		})
-		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
-		numExpected, err := strconv.ParseInt(job.Data[JobDataTotalPostsExpected], 0, 64)
+		numExpected, err := strconv.ParseInt(job.Data[shared.JobDataTotalPostsExpected], 0, 64)
 		require.NoError(t, err)
-		// test that we only exported 6 (because the JobDataEndTimestamp was translated to the cursor's UntilUpdateAt)
+		// test that we only exported 6 (because the JobDataJobEndTime was translated to the cursor's UntilUpdateAt)
 		require.Equal(t, 6, int(numExported))
 		// test that we were reporting that correctly in the UI
 		require.Equal(t, 6, int(numExpected))
 
-		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
+		jobEnd, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, now+6, jobEnd)
-		jobExportDir := job.Data[JobDataExportDir]
+		jobExportDir := job.Data[shared.JobDataExportDir]
 		batch001 := shared.GetBatchPath(jobExportDir, now+1, now+3, 1)
 		// lastPostUpdateAt will be post#4 (now+3), even though we exported it above, because LastPostId will exclude it
 		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+6, 2)
@@ -2429,17 +2429,17 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		job := runJobForTest(t, th, nil)
 
-		warnings, err := strconv.Atoi(job.Data[JobDataWarningCount])
+		warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 		require.NoError(t, err)
 		require.Equal(t, 0, warnings)
 
-		numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+		numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
 		require.NoError(t, err)
 		require.Equal(t, int64(11), numExported)
-		jobEnd, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 0, 64)
+		jobEnd, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 0, 64)
 		require.NoError(t, err)
 
-		jobExportDir := job.Data[JobDataExportDir]
+		jobExportDir := job.Data[shared.JobDataExportDir]
 		batch001 := shared.GetBatchPath(jobExportDir, jobStart, now+3, 1)
 		batch002 := shared.GetBatchPath(jobExportDir, now+3, now+8, 2)
 		batch003 := shared.GetBatchPath(jobExportDir, now+8, jobEnd, 3)
