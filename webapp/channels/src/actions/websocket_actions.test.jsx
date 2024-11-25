@@ -78,6 +78,11 @@ jest.mock('actions/post_actions', () => ({
     handleNewPost: jest.fn(() => ({type: 'HANDLE_NEW_POST'})),
 }));
 
+jest.mock('actions/user_actions', () => ({
+    ...jest.requireActual('actions/user_actions'),
+    loadProfilesForSidebar: jest.fn(),
+}));
+
 jest.mock('actions/global_actions', () => ({
     ...jest.requireActual('actions/global_actions'),
     redirectUserToDefaultTeam: jest.fn(),
