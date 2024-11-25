@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Şu uygulama kurulumu isteklerini aldınız:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> ya da tüm uygulama eklerini görüntülemek için <marketplaceLink>Mağazaya</marketplaceLink> bakın.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "{pluginRequests} uygulamasının kurulmasını istedi.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} kuruldu.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Uygulamaları kurun ya da tüm uygulama eklerini görüntülemek için <marketplaceLink>Mağazaya</marketplaceLink> bakın.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "ve",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} üye",

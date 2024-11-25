@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "您收到以下应用安装请求：",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> 或访问 <marketplaceLink>应用市场</marketplaceLink> 查看所有插件。",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "请求安装 {pluginRequests} 应用。",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} 已安装。",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "安装这些应用或访问 <marketplaceLink>应用市场</marketplaceLink> 查看所有插件。",
   "postypes.custom_open_pricing_modal_post_renderer.and": "并且",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} 成员",

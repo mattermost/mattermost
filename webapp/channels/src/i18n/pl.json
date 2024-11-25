@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Otrzymałeś następujące prośby o instalację aplikacji:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> lub odwiedź stronę <marketplaceLink>Marketplace</marketplaceLink>, aby zobaczyć wszystkie wtyczki.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "zażądał zainstalowania aplikacji {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} jest teraz zainstalowane.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Zainstaluj aplikacje lub odwiedź stronę <marketplaceLink>Marketplace</marketplaceLink>, aby zobaczyć wszystkie wtyczki.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "oraz",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} członkowie",

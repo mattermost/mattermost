@@ -3873,7 +3873,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Gavote toliau nurodytas programos diegimo užklausas:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp>arba apsilankykite<marketplaceLink> Turgavietė</marketplaceLink> norėdami peržiūrėti visus papildinius.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "paprašė įdiegti {pluginRequests} programą.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} dabar įdiegtas.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Įdiekite programas arba apsilankykite<marketplaceLink> Turgavietė</marketplaceLink> norėdami peržiūrėti visus papildinius.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "ir",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} nariai",

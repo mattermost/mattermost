@@ -3470,7 +3470,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Ви отримали наступні запити на встановлення програми:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> або відвідайте <marketplaceLink>Магазин додатків</marketplaceLink>, щоб переглянути всі плагіни.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "попросив встановити додаток {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} встановлено.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Встановіть програми або відвідайте <marketplaceLink>Магазин додатків</marketplaceLink>, щоб переглянути всі плагіни.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "і",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} учасники",

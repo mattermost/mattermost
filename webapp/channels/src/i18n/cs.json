@@ -4689,7 +4689,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Obdrželi jste následující požadavky na instalaci aplikace:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> nebo navštivte <marketplaceLink>Marketplace</marketplaceLink> a zobrazte všechny pluginy.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "požádal o instalaci aplikace {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} je nyní nainstalován.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Nainstalujte si aplikace nebo navštivte <marketplaceLink>Marketplace</marketplaceLink> a zobrazte všechny pluginy.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "a",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} členů",

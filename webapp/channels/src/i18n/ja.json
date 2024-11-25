@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "以下のアプリのインストール依頼が届きました:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "すべてのプラグインを見るには <pluginApp></pluginApp> または <marketplaceLink>マーケットプレース</marketplaceLink> をご覧ください。",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "{pluginRequests} アプリのインストールを要求しました。",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} がインストールされました。",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "アプリをインストールするか、<marketplaceLink>マーケットプレース</marketplaceLink> ですべてのプラグインをご覧ください。",
   "postypes.custom_open_pricing_modal_post_renderer.and": "と",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} メンバー",

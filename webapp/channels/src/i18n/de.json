@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Du hast die folgenden Anfragen zur Installation einer App erhalten:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> oder besuche den <marketplaceLink>Marketplace</marketplaceLink>, um alle Plugins zu sehen.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "hat die Installation der App {pluginRequests} angefordert.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} ist nun installiert.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Installiere die Anwendungen oder besuche den <marketplaceLink>Marketplace</marketplaceLink>, um alle Plugins zu sehen.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "und",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} Mitglieder",

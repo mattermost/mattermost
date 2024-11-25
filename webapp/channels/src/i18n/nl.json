@@ -4714,7 +4714,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Je hebt de volgende app-installatie-verzoeken ontvangen:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> of bezoek de <marketplaceLink>Marktplaats</marketplaceLink> om alle plugins te bekijken.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "vroeg om de {pluginRequests} app te installeren.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} is nu geïnstalleerd.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Installeer de apps of bezoek de <marketplaceLink>Marketplace</marketplaceLink> om alle plugins te bekijken.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "en",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} leden",
