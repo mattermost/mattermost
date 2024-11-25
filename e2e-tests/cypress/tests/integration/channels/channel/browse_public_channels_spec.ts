@@ -21,7 +21,7 @@ function ensureHideJoinedCheckboxEnabled(shouldBeChecked) {
     cy.get('#hideJoinedPreferenceCheckbox').then(($checkbox) => {
         cy.wrap($checkbox).findByText('Hide Joined').should('be.visible');
         cy.wrap($checkbox).find('button').invoke('attr', 'class').then(($classList) => {
-            if($classList.split(' ').includes('checked') ^ shouldBeChecked) {
+            if ($classList.split(' ').includes('checked') ^ shouldBeChecked) {
                 // We click on the button only when the XOR operands do not match
                 // e.g. checkbox is checked, but should not be checked; and vice-versa
                 cy.wrap($checkbox).click();
