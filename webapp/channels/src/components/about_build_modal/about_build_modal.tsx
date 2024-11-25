@@ -15,6 +15,11 @@ import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 
+type SocketStatus = {
+    connected: boolean;
+    serverHostname: string | undefined;
+}
+
 type Props = {
 
     /**
@@ -31,6 +36,8 @@ type Props = {
      * Global license object
      */
     license: ClientLicense;
+
+    socketStatus: SocketStatus;
 };
 
 type State = {
@@ -54,6 +61,11 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
     render() {
         const config = this.props.config;
         const license = this.props.license;
+
+        var serverHostname = 'disconnected';
+        if (this.props.socketStatus.connected) {
+            serverHostname = this.props.socketStatus.serverHostname ?? 'unknown';
+        }
 
         if (license.Cloud === 'true') {
             return (
@@ -245,6 +257,13 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                         defaultMessage='Database:'
                                     />
                                     {'\u00a0' + config.SQLDriverName}
+                                </div>
+                                <div>
+                                    <FormattedMessage
+                                        id='about.serverHostname'
+                                        defaultMessage='Hostname:'
+                                    />
+                                    {'\u00a0' + serverHostname}
                                 </div>
                             </div>
                             {licensee}
