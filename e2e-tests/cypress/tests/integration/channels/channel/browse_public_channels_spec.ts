@@ -17,9 +17,6 @@ function verifyNoChannelToJoinMessage(isVisible) {
     cy.findByText('No public channels').should(isVisible ? 'be.visible' : 'not.exist');
 }
 
-function getHideJoinedCheckboxState() {
-}
-
 function ensureHideJoinedCheckboxEnabled(shouldBeChecked) {
     cy.get('#hideJoinedPreferenceCheckbox').then(($checkbox) => {
         cy.wrap($checkbox).findByText('Hide Joined').should('be.visible');
