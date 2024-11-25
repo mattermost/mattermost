@@ -63,8 +63,8 @@ describe('components/new_search/SearchHint', () => {
     test('should not have From: and In: where the searchTeam is set to all teams (\'\')', () => {
         const props = {...baseProps, searchTeam: '', searchTerms: 'test '};
         renderWithContext(<SearchHint {...props}/>);
-        expect(screen.queryByText("From:")).not.toBeInTheDocument();
-        expect(screen.queryByText("In:")).not.toBeInTheDocument();
+        expect(screen.queryByText('From:')).not.toBeInTheDocument();
+        expect(screen.queryByText('In:')).not.toBeInTheDocument();
     });
 
     test('should be empty on search if is date', () => {
@@ -83,5 +83,11 @@ describe('components/new_search/SearchHint', () => {
         renderWithContext(<SearchHint {...baseProps}/>);
         screen.getByText('From:').click();
         expect(baseProps.onSelectFilter).toHaveBeenCalledWith('From:');
+    });
+
+    test('Shows the filter reset message when instructed', () => {
+        const props = {...baseProps, showFilterHaveBeenReset: true};
+        renderWithContext(<SearchHint {...props}/>);
+        expect(screen.getByText('Your filters were reset because your chose a different team')).toBeInTheDocument();
     });
 });

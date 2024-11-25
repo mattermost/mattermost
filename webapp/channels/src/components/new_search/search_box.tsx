@@ -64,11 +64,11 @@ const SearchBoxHeader = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-`
+`;
 
 const SearchTeamSelector = styled.div`
     margin: 20px 65px 0 0;
-`
+`;
 
 const SearchBox = forwardRef(
     (
