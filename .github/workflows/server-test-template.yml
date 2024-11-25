@@ -19,6 +19,9 @@ jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      checks: write
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
@@ -74,15 +77,19 @@ jobs:
             server/report.xml
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@ec3a351c13e080dc4fa94c49ab7ad5bf778a9668 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
+        uses: mikepenz/action-junit-report@a427a90771729d8f85b6ab0cdaa1a5929cab985d # v5.0.0
         if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: server/report.xml
           check_name: ${{ inputs.name }} (Results)
           job_name: ${{ inputs.name }}
           require_tests: true
+          check_retries: true
+          flaky_summary: true
+          include_passed: true
+          check_annotations: true
       - name: Report retried tests via webhook (master || release-*)
-        if: ${{ steps.report.outputs.retried > 0 && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
         uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a # v2.0.0
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
@@ -93,10 +100,10 @@ jobs:
             * Finally, reply to this message with a link to the created JIRA ticket.
       - name: Report retried tests (pull request)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ steps.report.outputs.retried > 0 && !(github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && !(github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
         with:
           script: |
-            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.`
+            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${{ steps.report.outputs.flaky_summary }}`
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,

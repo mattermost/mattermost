@@ -2119,7 +2119,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		timestamp := int64(1547510400000)
 		title := "from cache"
 
-		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil)
 
 		t.Run("should use cache if cached entry exists", func(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
@@ -2484,7 +2484,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil)
 
 		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.NotNil(t, og)
