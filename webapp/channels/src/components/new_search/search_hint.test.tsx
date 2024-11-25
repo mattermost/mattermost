@@ -60,6 +60,13 @@ describe('components/new_search/SearchHint', () => {
         expect(screen.getByText('Ext:')).toBeInTheDocument();
     });
 
+    test('should not have From: and In: where the searchTeam is set to all teams (\'\')', () => {
+        const props = {...baseProps, searchTeam: '', searchTerms: 'test '};
+        renderWithContext(<SearchHint {...props}/>);
+        expect(screen.queryByText("From:")).not.toBeInTheDocument();
+        expect(screen.queryByText("In:")).not.toBeInTheDocument();
+    });
+
     test('should be empty on search if is date', () => {
         const props = {...baseProps, isDate: true};
         const {asFragment} = renderWithContext(<SearchHint {...props}/>);
