@@ -1488,9 +1488,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					"secrettext":   FakeSetting,
 					"secretnumber": FakeSetting,
 				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
 			},
 		},
 		"two plugins installed": {
@@ -1543,9 +1540,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			name := name // TODO: Remove once go1.22 is used
-			tc := tc     // TODO: Remove once go1.22 is used
-
 			if name != "one plugin installed" {
 				return
 			}
@@ -1559,49 +1553,6 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			assert.Equal(t, tc.expected, c.Plugins, name)
 		})
 	}
-
-	t.Run("one plugin installed, two in the config", func(t *testing.T) {
-		c := PluginSettings{}
-		c.SetDefaults(*NewLogSettings())
-		c.Plugins = plugins
-
-		c.Sanitize([]*Manifest{
-			{
-				Id: "plugin.id",
-				SettingsSchema: &PluginSettingsSchema{
-					Settings: []*PluginSetting{
-						{
-							Key:    "somesetting",
-							Type:   "text",
-							Secret: false,
-						},
-						{
-							Key:    "secrettext",
-							Type:   "text",
-							Secret: true,
-						},
-						{
-							Key:    "secretnumber",
-							Type:   "number",
-							Secret: true,
-						},
-					},
-				},
-			},
-		})
-
-		expected := map[string]map[string]any{
-			"plugin.id": {
-				"somesetting":  "some value",
-				"secrettext":   FakeSetting,
-				"secretnumber": FakeSetting,
-			},
-			"another.plugin": {
-				"somesetting": FakeSetting,
-			},
-		}
-		assert.Equal(t, expected, c.Plugins)
-	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
@@ -1846,6 +1797,39 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 
 		c1.SetDefaults()
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+}
+
+func TestConfigDefaultAIPluginState(t *testing.T) {
+	t.Run("should enable AI plugin by default on self-hosted", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should not re-enable AI plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"mattermost-ai": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
 	})
 }
 

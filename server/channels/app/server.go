@@ -55,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
@@ -78,6 +79,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+)
+
+const (
+	scheduledPostJobInterval      = 5 * time.Minute
+	debugScheduledPostJobInterval = 2 * time.Second
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
@@ -505,6 +511,7 @@ func (s *Server) runJobs() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -1566,6 +1573,12 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeMobileSessionMetadata,
+		mobile_session_metadata.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		mobile_session_metadata.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
 		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
@@ -1809,6 +1822,37 @@ func runPostReminderJob(a *App) {
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
+	})
+}
+
+func runScheduledPostJob(a *App) {
+	if a.IsLeader() {
+		doRunScheduledPostJob(a)
+	}
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			doRunScheduledPostJob(a)
+		} else {
+			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
+		}
+	})
+}
+
+func doRunScheduledPostJob(a *App) {
+	var jobInterval time.Duration
+	if *a.Config().ServiceSettings.EnableTesting {
+		jobInterval = debugScheduledPostJobInterval
+	} else {
+		jobInterval = scheduledPostJobInterval
+	}
+
+	rctx := request.EmptyContext(a.Log())
+	withMut(&a.ch.scheduledPostMut, func() {
+		fn := func() { a.ProcessScheduledPosts(rctx) }
+		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 

@@ -21,6 +21,7 @@ import {
     CloudTypes,
     HostedCustomerTypes,
     ChannelBookmarkTypes,
+    ScheduledPostTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -31,6 +32,7 @@ import {
     getChannelStats,
     markMultipleChannelsAsRead,
     getChannelMemberCountsByGroup,
+    fetchAllMyChannelMembers,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -82,6 +84,7 @@ import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermo
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
+    getTeamIdByChannelId,
     getMyTeams,
     getCurrentRelativeTeamUrl,
     getCurrentTeamId,
@@ -99,7 +102,7 @@ import {
 } from 'actions/cloud';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {sendDesktopNotification} from 'actions/notification_actions';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
@@ -235,6 +238,8 @@ export function reconnect() {
         }
 
         dispatch(loadChannelsForCurrentUser());
+        dispatch(fetchAllMyChannelMembers());
+        dispatch(fetchMyCategories(currentTeamId));
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
@@ -246,7 +251,7 @@ export function reconnect() {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(StatusActions.addVisibleUsersInCurrentChannelToStatusPoll());
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
@@ -605,6 +610,15 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
+        break;
+    case SocketEvents.SCHEDULED_POST_CREATED:
+        dispatch(handleCreateScheduledPostEvent(msg));
+        break;
+    case SocketEvents.SCHEDULED_POST_UPDATED:
+        dispatch(handleUpdateScheduledPostEvent(msg));
+        break;
+    case SocketEvents.SCHEDULED_POST_DELETED:
+        dispatch(handleDeleteScheduledPostEvent(msg));
         break;
     case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
         dispatch(handlePersistentNotification(msg));
@@ -1489,6 +1503,10 @@ function handleSidebarCategoryCreated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
+        if (!msg.broadcast.team_id) {
+            return;
+        }
+
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The new category will be loaded when we switch teams.
             return;
@@ -1504,6 +1522,10 @@ function handleSidebarCategoryUpdated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
+        if (!msg.broadcast.team_id) {
+            return;
+        }
+
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The updated categories will be loaded when we switch teams.
             return;
@@ -1518,6 +1540,10 @@ function handleSidebarCategoryUpdated(msg) {
 function handleSidebarCategoryDeleted(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
+
+        if (!msg.broadcast.team_id) {
+            return;
+        }
 
         if (msg.broadcast.team_id !== getCurrentTeamId(state)) {
             // The category will be removed when we switch teams.
@@ -1742,6 +1768,48 @@ function handleUpsertDraftEvent(msg) {
         value.show = true;
 
         doDispatch(setGlobalDraft(key, value, true));
+    };
+}
+
+function handleCreateScheduledPostEvent(msg) {
+    return async (doDispatch) => {
+        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+        const state = getState();
+        const teamId = getTeamIdByChannelId(state, scheduledPost.channel_id);
+
+        doDispatch({
+            type: ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED,
+            data: {
+                scheduledPost,
+                teamId,
+            },
+        });
+    };
+}
+
+function handleUpdateScheduledPostEvent(msg) {
+    return async (doDispatch) => {
+        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+
+        doDispatch({
+            type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
+            data: {
+                scheduledPost,
+            },
+        });
+    };
+}
+
+function handleDeleteScheduledPostEvent(msg) {
+    return async (doDispatch) => {
+        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+
+        doDispatch({
+            type: ScheduledPostTypes.SCHEDULED_POST_DELETED,
+            data: {
+                scheduledPost,
+            },
+        });
     };
 }
 

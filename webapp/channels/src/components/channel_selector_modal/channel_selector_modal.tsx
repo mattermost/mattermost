@@ -4,18 +4,16 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 
@@ -208,7 +206,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             />
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
+        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
 
         let options = this.state.channels.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
         if (this.props.alreadySelected) {
@@ -236,9 +234,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         componentClass='h1'
                         id='channelSelectorModalLabel'
                     >
-                        <FormattedMarkdownMessage
-                            id='add_channels_to_scheme.title'
-                            defaultMessage='Add Channels to **Channel Selection** List'
+                        <FormattedMessage
+                            id='channelSelectorModal.title'
+                            defaultMessage='Add Channels to <b>Channel Selection</b> List'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>
@@ -261,7 +262,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                         buttonSubmitText={buttonSubmitText}
                         saving={false}
                         loading={this.state.loadingChannels}
-                        placeholderText={localizeMessage('multiselect.addChannelsPlaceholder', 'Search and add channels')}
+                        placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
                     />
                 </Modal.Body>
             </Modal>

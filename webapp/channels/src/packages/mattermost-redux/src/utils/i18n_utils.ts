@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-type LocalizeFunc = (id: string, defaultMessage: string) => string;
+type LocalizeFunc = (descriptor: {id: string; defaultMessage?: string}) => string;
 
 let localizeFunction: LocalizeFunc;
 
@@ -9,10 +9,10 @@ export function setLocalizeFunction(func: LocalizeFunc) {
     localizeFunction = func;
 }
 
-export function localizeMessage(id: string, defaultMessage: string): string {
+export function localizeMessage(descriptor: {id: string; defaultMessage?: string}): string {
     if (!localizeFunction) {
-        return defaultMessage;
+        return descriptor.defaultMessage ?? '';
     }
 
-    return localizeFunction(id, defaultMessage);
+    return localizeFunction(descriptor);
 }

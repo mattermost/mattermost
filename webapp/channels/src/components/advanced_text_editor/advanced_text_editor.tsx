@@ -7,11 +7,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -24,6 +25,7 @@ import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -50,7 +52,6 @@ import type {PostDraft} from 'types/store/draft';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-import RemoteUserHour from './remote_user_hour';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -108,7 +109,10 @@ const AdvancedTextEditor = ({
     const isRHS = Boolean(postId && !isThreadView);
 
     const currentUserId = useSelector(getCurrentUserId);
-    const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
+    const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
+    const channelDisplayName = channel?.display_name || '';
+    const channelType = channel?.type || '';
+    const isChannelShared = channel?.shared;
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
@@ -118,7 +122,6 @@ const AdvancedTextEditor = ({
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
-    const showRemoteUserHour = useSelector((state: GlobalState) => !showDndWarning && Boolean(getDirectChannel(state, channelId)?.teammate_id));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -150,7 +153,7 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
-    const previousDraft = useRef(draftFromStore);
+    const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
 
@@ -165,6 +168,10 @@ const AdvancedTextEditor = ({
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
+    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
+    const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
+    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -241,19 +248,33 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
-    const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, readOnlyChannel, textboxRef, handleDraftChange, focusTextbox, setServerError);
+    const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, isDisabled, textboxRef, handleDraftChange, focusTextbox, setServerError);
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(readOnlyChannel, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
     const {
         labels,
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
-    const [handleSubmit, errorClass] = useSubmit(draft, postError, channelId, postId, serverError, lastBlurAt, focusTextbox, setServerError, setPostError, setShowPreview, handleDraftChange, prioritySubmitCheck, afterSubmit);
+    const [handleSubmit, errorClass] = useSubmit(
+        draft,
+        postError,
+        channelId,
+        postId,
+        serverError,
+        lastBlurAt,
+        focusTextbox,
+        setServerError,
+        setShowPreview,
+        handleDraftChange,
+        prioritySubmitCheck,
+        undefined,
+        afterSubmit,
+    );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -262,6 +283,7 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         location,
         textboxRef,
+        showFormattingBar,
         focusTextbox,
         applyMarkdown,
         handleDraftChange,
@@ -271,6 +293,8 @@ const AdvancedTextEditor = ({
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
     );
+
+    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -388,6 +412,7 @@ const AdvancedTextEditor = ({
     // Remove show preview when we switch channels or posts
     useEffect(() => {
         setShowPreview(false);
+        setServerError(null);
     }, [channelId, postId]);
 
     // Remove uploads in progress on mount
@@ -410,22 +435,33 @@ const AdvancedTextEditor = ({
         };
     }, [handleDraftChange, draft]);
 
-    // Set the draft from store when changing post or channels, and store the previus one
+    // Keep track of the draft as a ref so that we can save it when changing channels
     useEffect(() => {
-        setDraft(draftFromStore);
-        return () => handleDraftChange(previousDraft.current, {instant: true, show: true});
-    }, [channelId, postId]);
-
-    // Keep track of the previous draft
-    useEffect(() => {
-        previousDraft.current = draft;
+        draftRef.current = draft;
     }, [draft]);
 
-    const disableSendButton = Boolean(readOnlyChannel || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
+
+    // Set the draft from store when changing post or channels, and store the previous one
+    useEffect(() => {
+        // Store the draft that existed when we opened the channel to know if it should be saved
+        const draftOnOpen = draftFromStore;
+
+        setDraft(draftOnOpen);
+
+        return () => {
+            if (draftOnOpen !== draftRef.current) {
+                handleDraftChange(draftRef.current, {instant: true, show: true});
+            }
+        };
+    }, [channelId, postId]);
+
+    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel ? null : (
         <SendButton
             disabled={disableSendButton}
-            handleSubmit={handleSubmit}
+            handleSubmit={handleSubmitPostAndScheduledMessage}
+            channelId={channelId}
         />
     );
 
@@ -439,7 +475,7 @@ const AdvancedTextEditor = ({
     let createMessage;
     if (placeholder) {
         createMessage = placeholder;
-    } else if (!postId && !readOnlyChannel) {
+    } else if (!postId && !isDisabled) {
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
@@ -454,11 +490,18 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'This channel is read-only. Only members with permission can post here.',
             },
         );
+    } else if (!enableSharedChannelsDMs && isDMOrGMRemote) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.dm_or_gm_remote',
+                defaultMessage: 'Direct Messages and Group Messages with remote users are not supported.',
+            },
+        );
     } else {
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
-    const messageValue = readOnlyChannel ? '' : draft.message;
+    const messageValue = isDisabled ? '' : draft.message;
 
     let textboxId = 'textbox';
 
@@ -473,8 +516,6 @@ const AdvancedTextEditor = ({
         textboxId = 'modal_textbox';
         break;
     }
-
-    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
@@ -532,18 +573,18 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleSubmit}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {showRemoteUserHour && (
-                <RemoteUserHour
-                    teammateId={teammateId}
-                    displayName={teammateDisplayName}
-                />
-            )}
+            <PostBoxIndicator
+                channelId={channelId}
+                teammateDisplayName={teammateDisplayName}
+                location={location}
+                postId={postId}
+            />
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -564,7 +605,7 @@ const AdvancedTextEditor = ({
                 )}
                 <div
                     className={'AdvancedTextEditor__body'}
-                    disabled={readOnlyChannel}
+                    disabled={isDisabled}
                 >
                     <div
                         ref={editorBodyRef}
@@ -595,7 +636,7 @@ const AdvancedTextEditor = ({
                             channelId={channelId}
                             id={textboxId}
                             ref={textboxRef!}
-                            disabled={readOnlyChannel}
+                            disabled={isDisabled}
                             characterLimit={maxPostSize}
                             preview={showPreview}
                             badConnection={badConnection}
@@ -604,7 +645,7 @@ const AdvancedTextEditor = ({
                             onWidthChange={handleWidthChange}
                         />
                         {attachmentPreview}
-                        {!readOnlyChannel && (showFormattingBar || showPreview) && (
+                        {!isDisabled && (showFormattingBar || showPreview) && (
                             <TexteditorActions
                                 placement='top'
                                 isScrollbarRendered={renderScrollbar}
@@ -617,7 +658,7 @@ const AdvancedTextEditor = ({
                                 {formattingBar}
                             </FormattingBarSpacer>
                         ) : formattingBar}
-                        {!readOnlyChannel && (
+                        {!isDisabled && (
                             <TexteditorActions
                                 ref={editorActionsRef}
                                 placement='bottom'
@@ -657,7 +698,7 @@ const AdvancedTextEditor = ({
                     <MessageSubmitError
                         error={serverError}
                         submittedMessage={serverError.submittedMessage}
-                        handleSubmit={handleSubmit}
+                        handleSubmit={noArgumentHandleSubmit}
                     />
                 )}
                 <MsgTyping

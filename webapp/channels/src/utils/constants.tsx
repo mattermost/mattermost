@@ -195,8 +195,10 @@ export const ActionTypes = keyMirror({
 
     UPDATE_RHS_STATE: null,
     UPDATE_RHS_SEARCH_TERMS: null,
+    UPDATE_RHS_SEARCH_TEAM: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
+    UPDATE_RHS_SEARCH_RESULTS_TYPE: null,
 
     SET_RHS_SIZE: null,
 
@@ -403,7 +405,6 @@ export const ModalIdentifiers = {
     EDIT_GROUP_MODAL: 'edit_group_modal',
     POST_DELETED_MODAL: 'post_deleted_modal',
     FILE_PREVIEW_MODAL: 'file_preview_modal',
-    IMPORT_THEME_MODAL: 'import_theme_modal',
     LEAVE_PRIVATE_CHANNEL_MODAL: 'leave_private_channel_modal',
     GET_PUBLIC_LINK_MODAL: 'get_public_link_modal',
     KEYBOARD_SHORTCUTS_MODAL: 'keyboar_shortcuts_modal',
@@ -462,6 +463,12 @@ export const ModalIdentifiers = {
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
+    SCHEDULED_POST_CUSTOM_TIME_MODAL: 'scheduled_post_custom_time',
+    SECURE_CONNECTION_DELETE: 'secure_connection_delete',
+    SECURE_CONNECTION_CREATE_INVITE: 'secure_connection_create_invite',
+    SECURE_CONNECTION_ACCEPT_INVITE: 'secure_connection_accept_invite',
+    SHARED_CHANNEL_REMOTE_INVITE: 'shared_channel_remote_invite',
+    SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
 };
 
 export const UserStatuses = {
@@ -653,6 +660,9 @@ export const SocketEvents = {
     DRAFT_CREATED: 'draft_created',
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
+    SCHEDULED_POST_CREATED: 'scheduled_post_created',
+    SCHEDULED_POST_UPDATED: 'scheduled_post_updated',
+    SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
 };
@@ -866,6 +876,7 @@ export const StoragePrefixes = {
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
+    HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
 };
 
 export const LandingPreferenceTypes = {
@@ -990,6 +1001,7 @@ export const NotificationLevels = {
 } as const;
 
 export const DesktopSound = {
+    DEFAULT: 'default',
     ON: 'on',
     OFF: 'off',
 } as const;
@@ -1436,6 +1448,11 @@ export const exportFormats = {
     EXPORT_FORMAT_GLOBALRELAY: 'globalrelay',
 };
 
+export const CacheTypes = {
+    REDIS: 'redis',
+    LRU: 'lru',
+};
+
 export const ZoomSettings = {
     DEFAULT_SCALE: 1.75,
     SCALE_DELTA: 0.25,
@@ -1645,7 +1662,7 @@ export const Constants = {
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
     DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
     EMOJI_PICKER_WIDTH_OFFSET: 295,
-    SIDEBAR_MINIMUM_WIDTH: 400,
+    SIDEBAR_MINIMUM_WIDTH: 640,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',
@@ -2209,4 +2226,12 @@ export const PageLoadContext = {
     RECONNECT: 'reconnect',
 } as const;
 
+export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
+
+export const scheduledPosts = {
+    RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
+    SCHEDULED_POSTS: 'scheduled_posts',
+};
+
 export default Constants;
+

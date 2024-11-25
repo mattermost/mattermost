@@ -547,7 +547,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             />
         );
 
-        const ariaLabel = localizeMessage('accessibility.sections.lhsList', 'channel sidebar region');
+        const ariaLabel = localizeMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'});
 
         return (
 

@@ -115,7 +115,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return <span>{post.message}</span>;
         }
 
-        const postType = post.props && post.props.type ? post.props.type : post.type;
+        const postType = typeof post.props?.type === 'string' ? post.props.type : post.type;
 
         if (pluginPostTypes && pluginPostTypes.hasOwnProperty(postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
@@ -132,7 +132,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
-            const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
+            const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);
         }
 

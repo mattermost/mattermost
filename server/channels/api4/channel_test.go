@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
@@ -958,7 +959,8 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 100, "")
 		require.NoError(t, err)
-		require.Len(t, channels, numInitialChannelsForTeam+2)
+		// Local admin should see private archived channels
+		require.Len(t, channels, numInitialChannelsForTeam+4)
 	})
 
 	channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 1, "")
@@ -1404,6 +1406,40 @@ func TestGetAllChannels(t *testing.T) {
 		}
 		require.True(t, found)
 	})
+
+	t.Run("verify correct sanitization", func(t *testing.T) {
+		channels, resp, err := th.SystemAdminClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, len(channels) > 0)
+		for _, channel := range channels {
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
+		}
+
+		channels, resp, err = th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, len(channels) > 0)
+		for _, channel := range channels {
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
+		}
+
+		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
+		channels, resp, err = th.SystemManagerClient.GetAllChannels(context.Background(), 0, 10000, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, len(channels) > 0)
+		for _, channel := range channels {
+			require.Equal(t, "", channel.CreatorId)
+			require.Equal(t, "", channel.Name)
+		}
+	})
 }
 
 func TestGetAllChannelsWithCount(t *testing.T) {
@@ -1662,7 +1698,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 }
 
 func TestSearchAllChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupForSharedChannels(t).InitBasic()
 	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
@@ -1702,6 +1738,29 @@ func TestSearchAllChannels(t *testing.T) {
 		TeamId:           team.Id,
 	})
 	require.NoError(t, err)
+
+	// share the open and private channels, one homed locally and the
+	// other remotely
+	sco := &model.SharedChannel{
+		ChannelId: openChannel.Id,
+		TeamId:    openChannel.TeamId,
+		Home:      true,
+		ShareName: "testsharelocal",
+		CreatorId: th.BasicChannel.CreatorId,
+	}
+	_, scoErr := th.App.ShareChannel(th.Context, sco)
+	require.NoError(t, scoErr)
+
+	scp := &model.SharedChannel{
+		ChannelId: privateChannel.Id,
+		TeamId:    privateChannel.TeamId,
+		Home:      false,
+		RemoteId:  model.NewId(),
+		ShareName: "testshareremote",
+		CreatorId: th.BasicChannel.CreatorId,
+	}
+	_, scpErr := th.App.ShareChannel(th.Context, scp)
+	require.NoError(t, scpErr)
 
 	testCases := []struct {
 		Description        string
@@ -1813,6 +1872,11 @@ func TestSearchAllChannels(t *testing.T) {
 			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeGroupConstrained: true},
 			[]string{openChannel.Id, privateChannel.Id},
 		},
+		{
+			"Search for local only channels",
+			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeRemote: true},
+			[]string{openChannel.Id, groupConstrainedChannel.Id},
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
@@ -1886,6 +1950,40 @@ func TestSearchAllChannels(t *testing.T) {
 			}
 		}
 		require.True(t, found)
+	})
+
+	t.Run("verify correct sanitization", func(t *testing.T) {
+		channels, resp, err := th.SystemAdminClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, len(channels) > 0)
+		for _, channel := range channels {
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
+		}
+
+		channels, resp, err = th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, len(channels) > 0)
+		for _, channel := range channels {
+			if channel.DisplayName != "Off-Topic" && channel.DisplayName != "Town Square" {
+				require.NotEqual(t, "", channel.CreatorId)
+				require.NotEqual(t, "", channel.Name)
+			}
+		}
+
+		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementChannels.Id, model.SystemManagerRoleId)
+		channels, resp, err = th.SystemManagerClient.SearchAllChannels(context.Background(), &model.ChannelSearch{Term: ""})
+		require.NoError(t, err)
+		require.True(t, len(channels) > 0)
+		CheckOKStatus(t, resp)
+		for _, channel := range channels {
+			require.Equal(t, "", channel.CreatorId)
+			require.Equal(t, "", channel.Name)
+		}
 	})
 }
 
@@ -3394,6 +3492,38 @@ func TestAddChannelMember(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, err = client.AddChannelMember(context.Background(), privateChannel.Id, user.Id)
 		require.NoError(t, err)
+	})
+
+	t.Run("invalid request data", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			// correct type for user ids (string) but invalid value.
+			requestBody := map[string]any{"user_ids": []string{"invalid", user2.Id}}
+			requestData, err := json.Marshal(requestBody)
+			require.NoError(t, err)
+
+			res, err := client.DoAPIPost(context.Background(), "/channels/"+publicChannel.Id+"/members", string(requestData))
+			if client == th.LocalClient {
+				require.EqualError(t, err, "Invalid or missing user_id in request body.")
+			} else {
+				require.EqualError(t, err, "Invalid or missing user_id in user_ids in request body.")
+			}
+			defer res.Body.Close()
+			io.Copy(io.Discard, res.Body)
+
+			// invalid type for user ids (should be string).
+			requestBody = map[string]any{"user_ids": []any{45, user2.Id}}
+			requestData, err = json.Marshal(requestBody)
+			require.NoError(t, err)
+
+			res, err = client.DoAPIPost(context.Background(), "/channels/"+privateChannel.Id+"/members", string(requestData))
+			if client == th.LocalClient {
+				require.EqualError(t, err, "Invalid or missing user_id in request body.")
+			} else {
+				require.EqualError(t, err, "Invalid or missing user_id in user_ids in request body.")
+			}
+			defer res.Body.Close()
+			io.Copy(io.Discard, res.Body)
+		})
 	})
 }
 

@@ -469,7 +469,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
@@ -512,15 +512,15 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
+func (a *App) sendUpdatedTeamMemberEvent(member *model.TeamMember) *model.AppError {
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", member.UserId, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -803,7 +803,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasJoinedTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasJoinedTeamID)
@@ -1175,7 +1175,7 @@ func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMe
 
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 			return true
 		}, plugin.UserHasLeftTeamID)
@@ -1286,7 +1286,7 @@ func (a *App) postLeaveTeamMessage(c request.CTX, user *model.User, channel *mod
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1304,7 +1304,7 @@ func (a *App) postRemoveFromTeamMessage(c request.CTX, user *model.User, channel
 		},
 	}
 
-	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
+	if _, err := a.CreatePost(c, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

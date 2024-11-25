@@ -1,5 +1,5 @@
-@import 'sass/utils/mixins';
-@import 'sass/utils/functions';
+@use 'utils/mixins';
+@use 'utils/functions';
 
 .reaction-emoji--large img {
     width: 48px;
@@ -10,7 +10,7 @@
 }
 
 .Reaction {
-    @include button-style--none;
+    @include mixins.button-style--none;
 
     display: inline-flex;
     min-width: 28px;
@@ -40,15 +40,15 @@
     &:not(.Reaction--reacted) {
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            background-color: v(center-channel-bg);
+            background-color: functions.v(center-channel-bg);
             color: rgba(var(--center-channel-color-rgb), 0.75);
             fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 
@@ -90,19 +90,19 @@
 
     &.Reaction--reacted,
     &.Reaction--reacting {
-        border-color: v(button-bg);
+        border-color: functions.v(button-bg);
         background-color: rgba(var(--button-bg-rgb), 0.08);
-        color: v(button-bg);
+        color: functions.v(button-bg);
 
         &:hover {
-            border-color: v(button-bg);
-            background: v(center-channel-bg);
+            border-color: functions.v(button-bg);
+            background: functions.v(center-channel-bg);
         }
 
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 

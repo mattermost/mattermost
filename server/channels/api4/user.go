@@ -374,7 +374,9 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -419,11 +421,17 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error discarding request body", mlog.Err(err))
+		}
+	}()
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -932,7 +940,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -979,7 +989,9 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1010,7 +1022,9 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1125,7 +1139,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1537,6 +1553,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		return
+	}
+
+	if user.AuthService == model.UserAuthServiceLdap {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
 
@@ -2011,7 +2032,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		c.Logger.Warn("Failed to parse form data", mlog.Err(err))
+	}
 	var loginID string
 	var token string
 	var campaign string
@@ -2115,7 +2138,9 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2435,7 +2460,9 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(model.MapToJSON(map[string]string{"follow_link": link})))
+	if _, err := w.Write([]byte(model.MapToJSON(map[string]string{"follow_link": link}))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2543,7 +2570,9 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2564,7 +2593,9 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2595,7 +2626,9 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3011,7 +3044,9 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3036,7 +3071,9 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3253,8 +3290,10 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.After = r.URL.Query().Get("after")
 	totalsOnlyStr := r.URL.Query().Get("totalsOnly")
 	threadsOnlyStr := r.URL.Query().Get("threadsOnly")
+	excludeDirectStr := r.URL.Query().Get("excludeDirect")
 	options.TotalsOnly, _ = strconv.ParseBool(totalsOnlyStr)
 	options.ThreadsOnly, _ = strconv.ParseBool(threadsOnlyStr)
+	options.ExcludeDirect, _ = strconv.ParseBool(excludeDirectStr)
 
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
@@ -3341,6 +3380,14 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// We want to make sure the thread is followed when marking as unread
+	// https://mattermost.atlassian.net/browse/MM-36430
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
+	if err != nil {
+		c.Err = err
 		return
 	}
 

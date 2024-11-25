@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -267,6 +268,19 @@ const (
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
 	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+
+	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
+	StorageClassStandard           = "STANDARD"
+	StorageClassReducedRedundancy  = "REDUCED_REDUNDANCY"
+	StorageClassStandardIA         = "STANDARD_IA"
+	StorageClassOnezoneIA          = "ONEZONE_IA"
+	StorageClassIntelligentTiering = "INTELLIGENT_TIERING"
+	StorageClassGlacier            = "GLACIER"
+	StorageClassDeepArchive        = "DEEP_ARCHIVE"
+	StorageClassOutposts           = "OUTPOSTS"
+	StorageClassGlacierIR          = "GLACIER_IR"
+	StorageClassSnow               = "SNOW"
+	StorageClassExpressOnezone     = "EXPRESS_ONEZONE"
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -387,6 +401,8 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPITriggerAdminNotifications                *bool
 	EnableAPIUserDeletion                             *bool
+	EnableAPIPostDeletion                             *bool
+	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
@@ -417,6 +433,7 @@ type ServiceSettings struct {
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ScheduledPosts                                    *bool   `access:"site_posts"`
 }
 
 var MattermostGiphySdkKey string
@@ -805,6 +822,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAPIUserDeletion = NewPointer(false)
 	}
 
+	if s.EnableAPIPostDeletion == nil {
+		s.EnableAPIPostDeletion = NewPointer(false)
+	}
+
 	if s.EnableAPIChannelDeletion == nil {
 		s.EnableAPIChannelDeletion = NewPointer(false)
 	}
@@ -823,6 +844,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableBotAccountCreation == nil {
 		s.EnableBotAccountCreation = NewPointer(false)
+	}
+
+	if s.EnableDesktopLandingPage == nil {
+		s.EnableDesktopLandingPage = NewPointer(true)
 	}
 
 	if s.EnableSVGs == nil {
@@ -932,30 +957,39 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.MaximumURLLength == nil {
 		s.MaximumURLLength = NewPointer(ServiceSettingsDefaultMaxURLLength)
 	}
+
+	if s.ScheduledPosts == nil {
+		s.ScheduledPosts = NewPointer(true)
+	}
 }
 
 type CacheSettings struct {
-	CacheType     *string `access:",write_restrictable,cloud_restrictable"`
-	RedisAddress  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisPassword *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
-	RedisDB       *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	CacheType          *string `access:",write_restrictable,cloud_restrictable"`
+	RedisAddress       *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *CacheSettings) SetDefaults() {
 	if s.CacheType == nil {
-		s.CacheType = NewString(CacheTypeLRU)
+		s.CacheType = NewPointer(CacheTypeLRU)
 	}
 
 	if s.RedisAddress == nil {
-		s.RedisAddress = NewString("")
+		s.RedisAddress = NewPointer("")
 	}
 
 	if s.RedisPassword == nil {
-		s.RedisPassword = NewString("")
+		s.RedisPassword = NewPointer("")
 	}
 
 	if s.RedisDB == nil {
-		s.RedisDB = NewInt(-1)
+		s.RedisDB = NewPointer(-1)
+	}
+
+	if s.DisableClientCache == nil {
+		s.DisableClientCache = NewPointer(false)
 	}
 }
 
@@ -1126,7 +1160,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 	}
 
 	if s.YoutubeReferrerPolicy == nil {
-		s.YoutubeReferrerPolicy = NewBool(false)
+		s.YoutubeReferrerPolicy = NewPointer(false)
 	}
 }
 
@@ -1629,6 +1663,7 @@ type FileSettings struct {
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1646,6 +1681,7 @@ type FileSettings struct {
 	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1758,6 +1794,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes))
 	}
 
+	if s.AmazonS3StorageClass == nil {
+		s.AmazonS3StorageClass = NewPointer("")
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewPointer(false)
 	}
@@ -1822,6 +1862,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3UploadPartSizeBytes == nil {
 		s.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
+	}
+
+	if s.ExportAmazonS3StorageClass == nil {
+		s.ExportAmazonS3StorageClass = NewPointer("")
 	}
 }
 
@@ -2553,9 +2597,10 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale *string `access:"site_localization"`
-	DefaultClientLocale *string `access:"site_localization"`
-	AvailableLocales    *string `access:"site_localization"`
+	DefaultServerLocale       *string `access:"site_localization"`
+	DefaultClientLocale       *string `access:"site_localization"`
+	AvailableLocales          *string `access:"site_localization"`
+	EnableExperimentalLocales *bool   `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2569,6 +2614,10 @@ func (s *LocalizationSettings) SetDefaults() {
 
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = NewPointer("")
+	}
+
+	if s.EnableExperimentalLocales == nil {
+		s.EnableExperimentalLocales = NewPointer(false)
 	}
 }
 
@@ -2764,6 +2813,7 @@ type NativeAppSettings struct {
 	AppDownloadLink        *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string  `access:"site_customization,write_restrictable,cloud_restrictable"`
+	MobileExternalBrowser  *bool    `access:"site_customization,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2781,6 +2831,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.AppCustomURLSchemes == nil {
 		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
+	}
+
+	if s.MobileExternalBrowser == nil {
+		s.MobileExternalBrowser = NewPointer(false)
 	}
 }
 
@@ -3170,6 +3224,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates[PluginIdAI] == nil {
+		// Enable the AI plugin by default
+		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewPointer(PluginSettingsDefaultEnableMarketplace)
 	}
@@ -3216,9 +3275,9 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 
 		for key := range settings {
 			if manifest == nil {
-				// Sanitize plugin settings for plugins that are not installed
-				settings[key] = FakeSetting
-				continue
+				// Don't return plugin settings for plugins that are not installed
+				delete(s.Plugins, id)
+				break
 			}
 
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
@@ -3928,6 +3987,14 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
+	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -4500,6 +4567,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
+	}
+
+	if o.CacheSettings.RedisPassword != nil {
+		*o.CacheSettings.RedisPassword = FakeSetting
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)

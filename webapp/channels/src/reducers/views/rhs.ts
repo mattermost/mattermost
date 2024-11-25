@@ -209,6 +209,22 @@ function searchTerms(state = '', action: AnyAction) {
     }
 }
 
+function searchTeam(state = null, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
+        return action.teamId;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.SEARCH) {
+            return null;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
 function searchType(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TYPE:
@@ -247,6 +263,18 @@ function searchResultsTerms(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TERMS:
         return action.terms;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return '';
+    default:
+        return state;
+    }
+}
+
+function searchResultsType(state = '', action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_SEARCH_RESULTS_TYPE:
+        return action.searchType;
 
     case UserTypes.LOGOUT_SUCCESS:
         return '';
@@ -405,8 +433,10 @@ export default combineReducers({
     filesSearchExtFilter,
     rhsState,
     searchTerms,
+    searchTeam,
     searchType,
     searchResultsTerms,
+    searchResultsType,
     size,
     pluggableId,
     isSearchingFlaggedPost,

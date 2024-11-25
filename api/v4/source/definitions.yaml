@@ -1429,6 +1429,8 @@ components:
               type: string
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1901,6 +1903,8 @@ components:
               type: boolean
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -2205,29 +2209,29 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: object
+      type: array
       properties:
-        id:
-          description: The unique ID for the node
-          type: string
-        version:
-          description: The server version the node is on
-          type: string
-        config_hash:
-          description: The hash of the configuartion file the node is using
-          type: string
-        internode_url:
-          description: The URL used to communicate with those node from other nodes
-          type: string
-        hostname:
-          description: The hostname for this node
-          type: string
-        last_ping:
-          description: The time of the last ping to this node
-          type: integer
-        is_alive:
-          description: Whether or not the node is alive and well
-          type: boolean
+        items:
+          type: object
+          properties:
+            id:
+              description: The unique ID for the node
+              type: string
+            version:
+              description: The server version the node is on
+              type: string
+            schema_version:
+              description: The number of the latest DB migration successfully executed for the node
+              type: string
+            config_hash:
+              description: The hash of the configuration file the node is using
+              type: string
+            ipaddress:
+              description: The IP address of the node
+              type: string
+            hostname:
+              description: The hostname for this node
+              type: string
     AppError:
       type: object
       properties:
@@ -3055,6 +3059,19 @@ components:
           format: int64
         has_syncables:
           type: boolean
+    GroupMember:
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     GroupSyncableTeam:
       type: object
       properties:
@@ -3779,6 +3796,46 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a scheduled post was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a scheduled post was last updated
+          type: integer
+          format: int64
+        user_id:
+          type: string
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+        props:
+          type: object
+        file_ids:
+          type: array
+          items:
+            type: string
+        scheduled_at:
+          description: The time in milliseconds a scheduled post is scheduled to be sent at
+          type: integer
+          format: int64
+        processed_at:
+          description: The time in milliseconds a scheduled post was processed at
+          type: integer
+          format: int64
+        error_code:
+          type: string
+          description: Explains the error behind why a scheduled post could not have been sent
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

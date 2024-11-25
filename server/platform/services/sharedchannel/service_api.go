@@ -22,6 +22,10 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, fmt.Errorf("cannot fetch channel while sharing channel %s: %w", sc.ChannelId, err)
 	}
 
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelsDMs && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		return nil, errors.New("cannot share a direct or group channel")
+	}
+
 	// check if channel is already shared
 	scExisting, err := scs.server.GetStore().SharedChannel().Get(sc.ChannelId)
 	if err == nil {
@@ -150,7 +154,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 	// (also blocks cyclic invitations)
 	if err = scs.CheckCanInviteToSharedChannel(channelID); err != nil {
 		if errors.Is(err, model.ErrChannelHomedOnRemote) {
-			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusBadRequest)
 		}
 		scs.server.Log().Debug("InviteRemoteToChannel failed to check if can-invite",
 			mlog.String("name", rc.Name),

@@ -407,6 +407,9 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
         changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
         changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
+
+        changeCss('.app__body .SendMessageButton:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
+        changeCss('.app__body #button_send_post_options:not(.disabled):hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
     }
 
     if (theme.buttonColor) {
@@ -1181,7 +1184,7 @@ export function clearFileInput(elm: HTMLInputElement) {
 /**
  * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
  */
-export function localizeMessage(id: string, defaultMessage?: string) {
+export function localizeMessage({id, defaultMessage}: {id: string; defaultMessage?: string}) {
     const state = store.getState();
 
     const locale = getCurrentLocale(state);
@@ -1197,8 +1200,8 @@ export function localizeMessage(id: string, defaultMessage?: string) {
 /**
  * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
  */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
+export function localizeAndFormatMessage(descriptor: {id: string; defaultMessage?: string}, template: { [name: string]: any } | undefined) {
+    const base = localizeMessage(descriptor);
 
     if (!template) {
         return base;

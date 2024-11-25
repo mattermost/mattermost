@@ -251,6 +251,12 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if changing "AllowOpenInvite" or "AllowedDomains", user must have InviteUser permission
+	if (team.AllowOpenInvite != nil || team.AllowedDomains != nil) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
 	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
 		auditRec.AddEventPriorState(oldTeam)
 		auditRec.AddEventObjectType("team")
@@ -498,7 +504,9 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -527,7 +535,9 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getTeamsUnreadForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -602,7 +612,9 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -639,7 +651,9 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -680,7 +694,9 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -938,7 +954,9 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1171,7 +1189,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1235,7 +1255,9 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		payload = js
 	}
 
-	w.Write(payload)
+	if _, err := w.Write(payload); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1269,7 +1291,9 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]bool{"exists": exists}
-	w.Write([]byte(model.MapBoolToJSON(resp)))
+	if _, err := w.Write([]byte(model.MapBoolToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1358,7 +1382,9 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write([]byte(model.MapToJSON(data)))
+	if _, err := w.Write([]byte(model.MapToJSON(data))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1460,7 +1486,9 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
 		appErr := c.App.InviteNewUsersToTeam(c.AppContext, emailList, c.Params.TeamId, c.AppContext.Session().UserId)
 		if appErr != nil {
@@ -1551,7 +1579,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		w.Write(js)
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	} else {
 		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if appErr != nil {
@@ -1650,11 +1680,17 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set(model.HeaderEtagServer, etag)
-	w.Write(img)
+	if _, err := w.Write(img); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(io.Discard, r.Body)
+	defer func() {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			c.Logger.Warn("Error while reading request body", mlog.Err(err))
+		}
+	}()
 
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -1846,5 +1882,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

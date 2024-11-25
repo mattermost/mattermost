@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -1190,6 +1192,15 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 
+	if opts.GroupConstrained {
+		query = query.Where(sq.Eq{"c.GroupConstrained": true})
+	} else if opts.ExcludeGroupConstrained {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.GroupConstrained": true},
+			sq.Eq{"c.GroupConstrained": nil},
+		})
+	}
+
 	if len(opts.ExcludeChannelNames) > 0 {
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
@@ -1479,24 +1490,37 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (model.ChannelList, error) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	channels := model.ChannelList{}
 
-	query := `
-		SELECT * FROM Channels
-		WHERE (TeamId = ? OR TeamId = '')
-		AND DeleteAt != 0
-		AND Type != ?
-		UNION
-			SELECT * FROM Channels
-			WHERE (TeamId = ? OR TeamId = '')
-			AND DeleteAt != 0
-			AND Type = ?
-			AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
-		ORDER BY DisplayName LIMIT ? OFFSET ?
-	`
+	builder := s.getQueryBuilder().
+		Select("*").
+		From("Channels").
+		Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		}).
+		Where(sq.NotEq{"DeleteAt": 0}).
+		OrderBy("DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-	if err := s.GetReplicaX().Select(&channels, query, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset); err != nil {
+	if !skipTeamMembershipCheck {
+		builder = builder.Where(sq.Or{
+			sq.NotEq{"Type": model.ChannelTypePrivate},
+			sq.And{
+				sq.Eq{"Type": model.ChannelTypePrivate},
+				sq.Expr("Id IN (?)", sq.Select("ChannelId").From("ChannelMembers").Where(sq.Eq{"UserId": userId})),
+			},
+		})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetDeleted_ToSql")
+	}
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}
@@ -3346,7 +3370,7 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 	}
 
 	likeFields := "c.Name, c.DisplayName, c.Purpose"
-	if opts.IncludeSearchById {
+	if opts.IncludeSearchByID {
 		likeFields = likeFields + ", c.Id"
 	}
 
@@ -3399,6 +3423,16 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			sq.Eq{"c.Type": model.ChannelTypeOpen},
 			sq.Eq{"c.Type": model.ChannelTypePrivate},
 		})
+	}
+
+	if opts.ExcludeRemote {
+		// local channels either have a SharedChannels record with
+		// home set to true, or don't have a SharedChannels record at all
+		query = query.LeftJoin("SharedChannels ON c.Id = SharedChannels.ChannelId").
+			Where(sq.Or{
+				sq.Eq{"SharedChannels.Home": true},
+				sq.Eq{"SharedChannels.ChannelId": nil},
+			})
 	}
 
 	return query
@@ -4161,27 +4195,76 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 	return c > 0, nil
 }
 
-// TODO: parameterize userIDs
-func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
-	sql := fmt.Sprintf(`
-		UPDATE
-			ChannelMembers
-		SET
-			SchemeAdmin = CASE WHEN UserId IN ('%s') THEN
-				TRUE
-			ELSE
-				FALSE
-			END
-		WHERE
-			ChannelId = ?
-			AND (SchemeGuest = false OR SchemeGuest IS NULL)
-			`, strings.Join(userIDs, "', '"))
+// UpdateMembersRole updates all the members of channelID in the adminIDs string array to be admins and sets all other
+// users as not being admin.
+// It returns the list of userIDs whose roles got updated.
+//
+// TODO: parameterize adminIDs
+func (s SqlChannelStore) UpdateMembersRole(channelID string, adminIDs []string) (_ []*model.ChannelMember, err error) {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(transaction, &err)
 
-	if _, err := s.GetMasterX().Exec(sql, channelID); err != nil {
-		return errors.Wrap(err, "failed to update ChannelMembers")
+	// On MySQL it's not possible to update a table and select from it in the same query.
+	// A SELECT and a UPDATE query are needed.
+	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("ChannelMembers").
+		Where(sq.Eq{"ChannelID": channelID}).
+		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
+		Where(
+			sq.Or{
+				// New admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": false},
+					sq.Eq{"UserId": adminIDs},
+				},
+				// Demoted admins
+				sq.And{
+					sq.Eq{"SchemeAdmin": true},
+					sq.NotEq{"UserId": adminIDs},
+				},
+			},
+		).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	return nil
+	var updatedMembers []*model.ChannelMember
+	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get list of updated users")
+	}
+
+	// Update SchemeAdmin field as the data from the SQL is not updated yet
+	for _, member := range updatedMembers {
+		if slices.Contains(adminIDs, member.UserId) {
+			member.SchemeAdmin = true
+		} else {
+			member.SchemeAdmin = false
+		}
+	}
+
+	query, args, err = s.getQueryBuilder().
+		Update("ChannelMembers").
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
+		Where(sq.Eq{"ChannelId": channelID}).
+		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to update ChannelMembers")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return updatedMembers, nil
 }
 
 func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
@@ -4252,4 +4335,41 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
 	}
 	return &team, nil
+}
+
+func (s SqlChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
+	query := s.getQueryBuilder().Select("schemeid").From("channels").Where(sq.Eq{"id": channelID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+	// we look for schemeID to look for a custom scheme, if there is none chances are it is a writeable
+	// there might be in effect a custom scheme for the user that doesn't allow to create posts, but that wouldn't
+	// be a readonly channel but a readonly user
+	var schemaId string
+	err = s.GetReplicaX().Get(&schemaId, squery, args...)
+	if err != nil {
+		return false, nil
+	}
+	if schemaId == "" {
+		return false, nil
+	}
+	return s.IsChannelReadOnlyScheme(schemaId)
+}
+
+func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) {
+	query := s.getQueryBuilder().Select("roles.permissions").From("roles").InnerJoin("schemes ON roles.name = schemes.defaultchanneluserrole").Where(sq.Eq{"schemes.id": schemeID}).Limit(1)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	var permissions string
+	err = s.GetReplicaX().Get(&permissions, squery, args...)
+	if err != nil {
+		mlog.Err(err)
+		return false, err
+	}
+	permissionList := strings.Split(permissions, " ")
+	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }

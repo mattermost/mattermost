@@ -204,6 +204,17 @@ func TestUserPreSave(t *testing.T) {
 	user.Etag(true, true)
 	assert.NotNil(t, user.Timezone, "Timezone is nil")
 	assert.Equal(t, user.Timezone["useAutomaticTimezone"], "true", "Timezone is not set to default")
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserPreSavePwdTooLong(t *testing.T) {
@@ -215,6 +226,17 @@ func TestUserPreSavePwdTooLong(t *testing.T) {
 func TestUserPreUpdate(t *testing.T) {
 	user := User{Password: "test"}
 	user.PreUpdate()
+
+	// Set default user with notify props
+	userWithDefaultNotifyProps := User{}
+	userWithDefaultNotifyProps.SetDefaultNotifications()
+
+	for notifyPropKey, expectedNotifyPropValue := range userWithDefaultNotifyProps.NotifyProps {
+		actualNotifyPropValue, ok := user.NotifyProps[notifyPropKey]
+
+		assert.True(t, ok, "Notify prop %s is not set", notifyPropKey)
+		assert.Equal(t, expectedNotifyPropValue, actualNotifyPropValue, "Notify prop %s is not set to default", notifyPropKey)
+	}
 }
 
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
@@ -332,6 +354,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.EmailVerified = true
 	user.FailedAttempts = 10
 	user.LastActivityAt = GetMillis()
+	user.MfaUsedTimestamps = StringArray{"1234", "4566"}
 
 	user.SanitizeInput(false)
 
@@ -347,6 +370,7 @@ func TestUserSanitizeInput(t *testing.T) {
 	require.Equal(t, int64(0), user.LastPictureUpdate)
 	require.Equal(t, int64(0), user.LastActivityAt)
 	require.Equal(t, 0, user.FailedAttempts)
+	require.Equal(t, StringArray{}, user.MfaUsedTimestamps)
 
 	// these fields should remain intact
 	require.Equal(t, "user@example.com", user.Email)
@@ -429,9 +453,9 @@ var usernames = []usernamesTest{
 	{"spin-punch", true, true},
 	{"sp", true, true},
 	{"s", true, true},
-	{"1spin-punch", false, false},
-	{"-spin-punch", false, false},
-	{".spin-punch", false, false},
+	{"1spin-punch", true, true},
+	{"-spin-punch", true, true},
+	{".spin-punch", true, true},
 	{"Spin-punch", false, false},
 	{"spin punch-", false, false},
 	{"spin_punch", true, true},

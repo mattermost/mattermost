@@ -1,5 +1,5 @@
-@import 'sass/utils/_mixins';
-@import './mixins';
+@use 'utils/_mixins' as utils-mixins;
+@use 'mixins';
 
 .BillingSubscriptions {
     .BillingSubscriptions__topWrapper {
@@ -121,7 +121,7 @@
 }
 
 .PrivateCloudCard {
-    @include cloud-card;
+    @include mixins.cloud-card;
 
     display: flex;
 
@@ -137,7 +137,7 @@
 }
 
 .PrivateCloudCard__text-title {
-    @include cloud-card-title;
+    @include mixins.cloud-card-title;
 }
 
 .PrivateCloudCard__text-description {
@@ -165,7 +165,7 @@
     font-weight: 600;
     line-height: 14px;
 
-    @include fit-content;
+    @include utils-mixins.fit-content;
 
     &:hover:not(.disabled) {
         background: rgba(var(--sys-button-bg-rgb), 0.04);
@@ -219,7 +219,7 @@
     font-weight: 600;
     line-height: 9.5px;
 
-    @include fit-content;
+    @include utils-mixins.fit-content;
 
     &:hover:not(.disabled) {
         background: rgba(var(--sys-dnd-indicator-rgb), 0.04);

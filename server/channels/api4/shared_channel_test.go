@@ -161,11 +161,36 @@ func TestGetRemoteClusterById(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
-	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
+	t.Run("should not create a local DM channel that is shared", func(t *testing.T) {
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
+
+		localUser := th.BasicUser
+		remoteUser := th.CreateUser()
+		remoteUser.RemoteId = model.NewPointer(model.NewId())
+		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
+		require.Nil(t, appErr)
+
+		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
+		require.Error(t, err)
+		require.Nil(t, dm)
+	})
+
+	t.Run("creates a local DM channel that is shared", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
+		th := setupForSharedChannels(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -182,10 +207,15 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	})
 
 	t.Run("sends a shared channel invitation to the remote", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -211,10 +241,15 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 	})
 
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
+		t.Skip("Remote DMs are currently disabled")
+
 		th := setupForSharedChannels(t).InitBasic()
 		defer th.TearDown()
 		client := th.Client
-		defer client.Logout(context.Background())
+		defer func() {
+			_, err := client.Logout(context.Background())
+			require.NoError(t, err)
+		}()
 
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
@@ -313,6 +348,20 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc4)
 	require.NoError(t, err)
 
+	c5 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc5 := &model.SharedChannel{
+		ChannelId:        c5.Id,
+		TeamId:           th.BasicTeam.Id,
+		ShareName:        "shared_5",
+		ShareDisplayName: "Shared Channel 5",
+		CreatorId:        th.BasicUser.Id,
+		RemoteId:         rc1.RemoteId,
+		Home:             false,
+	}
+
+	_, err = th.App.ShareChannel(th.Context, sc5)
+	require.NoError(t, err)
+
 	// for the pagination test, we need to get the channelId of the
 	// second SharedChannelRemote that belongs to RC1, sorted by ID,
 	// so we accumulate those SharedChannelRemotes on creation and
@@ -321,7 +370,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	sharedChannelRemotesFromRC1 := []*model.SharedChannelRemote{}
 
 	// create the shared channel remotes
-	for _, sc := range []*model.SharedChannel{sc1, sc2, sc3, sc4} {
+	for _, sc := range []*model.SharedChannel{sc1, sc2, sc3, sc4, sc5} {
 		scr := &model.SharedChannelRemote{
 			Id:                model.NewId(),
 			ChannelId:         sc.ChannelId,
@@ -329,6 +378,10 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
 			RemoteId:          sc.RemoteId,
+		}
+		// scr for c5 is not confirmed yet
+		if sc.ChannelId == sc5.ChannelId {
+			scr.IsInviteConfirmed = false
 		}
 		_, err = th.App.SaveSharedChannelRemote(scr)
 		require.NoError(t, err)
@@ -355,9 +408,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 			Name               string
 			Client             *model.Client4
 			RemoteId           string
-			ExcludeHome        bool
-			ExcludeRemote      bool
-			IncludeDeleted     bool
+			Filter             model.SharedChannelRemoteFilterOpts
 			Page               int
 			PerPage            int
 			ExpectedStatusCode int
@@ -396,7 +447,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return the complete list of shared channel remotes for a remote cluster, including deleted",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				IncludeDeleted:     true,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -407,7 +458,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return only the shared channel remotes homed localy",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				ExcludeRemote:      true,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeRemote: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -418,7 +469,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				Name:               "should return only the shared channel remotes homed remotely",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				ExcludeHome:        true,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeHome: true},
 				Page:               0,
 				PerPage:            100,
 				ExpectedStatusCode: http.StatusOK,
@@ -426,10 +477,32 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 				ExpectedIds:        []string{sc2.ChannelId},
 			},
 			{
+				Name:               "should return the complete list of shared channel remotes for a remote cluster including unconfirmed",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeUnconfirmed: true},
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc1.ChannelId, sc2.ChannelId, sc5.ChannelId},
+			},
+			{
+				Name:               "should return only the unconfirmed shared channel remotes for a remote cluster",
+				Client:             th.SystemAdminClient,
+				RemoteId:           rc1.RemoteId,
+				Filter:             model.SharedChannelRemoteFilterOpts{ExcludeConfirmed: true},
+				Page:               0,
+				PerPage:            100,
+				ExpectedStatusCode: http.StatusOK,
+				ExpectedError:      false,
+				ExpectedIds:        []string{sc5.ChannelId},
+			},
+			{
 				Name:               "should correctly paginate the results",
 				Client:             th.SystemAdminClient,
 				RemoteId:           rc1.RemoteId,
-				IncludeDeleted:     true,
+				Filter:             model.SharedChannelRemoteFilterOpts{IncludeDeleted: true, IncludeUnconfirmed: true},
 				Page:               1,
 				PerPage:            1,
 				ExpectedStatusCode: http.StatusOK,
@@ -440,7 +513,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.ExcludeHome, tc.ExcludeRemote, tc.IncludeDeleted, tc.Page, tc.PerPage)
+				scrs, resp, err := tc.Client.GetSharedChannelRemotesByRemoteCluster(context.Background(), tc.RemoteId, tc.Filter, tc.Page, tc.PerPage)
 				checkHTTPStatus(t, resp, tc.ExpectedStatusCode)
 				if tc.ExpectedError {
 					require.Error(t, err)

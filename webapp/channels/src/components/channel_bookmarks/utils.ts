@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -12,8 +12,9 @@ import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_b
 import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
-import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
+import {fetchChannelBookmarks, reorderBookmark} from 'actions/channel_bookmarks';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 
 import Constants from 'utils/constants';
@@ -103,6 +104,13 @@ export const useChannelBookmarks = (channelId: string) => {
     const order = useMemo(() => {
         return Object.keys(bookmarks).sort((a, b) => bookmarks[a].sort_order - bookmarks[b].sort_order);
     }, [bookmarks]);
+    const [tempOrder, setTempOrder] = useState<typeof order>();
+
+    useEffect(() => {
+        if (tempOrder) {
+            setTempOrder(undefined);
+        }
+    }, [order]);
 
     useEffect(() => {
         if (channelId) {
@@ -124,8 +132,19 @@ export const useChannelBookmarks = (channelId: string) => {
         }
     }, [bookmarks]);
 
+    const reorder = async (id: string, prevOrder: number, nextOrder: number) => {
+        setTempOrder(insertWithoutDuplicates(order, id, nextOrder));
+        const {error} = await dispatch(reorderBookmark(channelId, id, nextOrder));
+
+        if (error) {
+            setTempOrder(undefined);
+        }
+    };
+
     return {
         bookmarks,
-        order,
-    };
+        order: tempOrder ?? order,
+        reorder,
+    } as const;
 };
+

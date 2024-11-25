@@ -8,7 +8,6 @@ import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 import type {
     MessageAttachment as MessageAttachmentType,
-    MessageAttachmentField,
 } from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -99,6 +98,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
     handleHeightReceivedForThumbUrl = ({height}: {height: number}) => {
         const {attachment} = this.props;
+        if (!attachment.thumb_url) {
+            return;
+        }
         if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.thumb_url])) {
             this.handleHeightReceived(height);
         }
@@ -106,6 +108,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
     handleHeightReceivedForImageUrl = ({height}: {height: number}) => {
         const {attachment} = this.props;
+        if (!attachment.image_url) {
+            return;
+        }
         if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.image_url])) {
             this.handleHeightReceived(height);
         }
@@ -232,9 +237,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false};
+        const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
 
-        fields.forEach((field: MessageAttachmentField, i: number) => {
+        fields.forEach((field, i) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
                 fieldTables.push(
                     <table
@@ -421,6 +426,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
                                 autolinkedUrlSchemes: [],

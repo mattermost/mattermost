@@ -14,6 +14,10 @@ import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
+import {TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent} from 'mattermost-redux/constants/telemetry';
+
+import {trackFeatureEvent} from 'actions/telemetry_actions.jsx';
+
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -27,6 +31,7 @@ import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notificat
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+import SendTestNotificationNotice from './send_test_notification_notice';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -283,6 +288,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             });
         }
         data.highlight_keys = highlightKeys.join(',');
+        if (this.props.user.notify_props?.highlight_keys !== data.highlight_keys && data.highlight_keys.length > 0) {
+            trackFeatureEvent(TrackPassiveKeywordsFeature, TrackPassiveKeywordsEvent);
+        }
 
         this.setState({isSaving: true});
         stopTryNotificationRing();
@@ -429,7 +437,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHightlightInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: ValueType<{ value: string }>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -682,7 +690,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             MenuList: () => null,
                         }}
                         aria-labelledby='mentionKeysWithHighlightInput'
-                        onChange={this.handleChangeForCustomKeysWithHightlightInput}
+                        onChange={this.handleChangeForCustomKeysWithHighlightInput}
                         value={this.state.customKeysWithHighlight}
                         inputValue={this.state.customKeysWithHighlightInputValue}
                         onInputChange={this.handleChangeForCustomKeysWithHighlightInputValue}
@@ -1092,7 +1100,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    <div className='divider-dark'/>
+                    <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>
 
@@ -1142,9 +1150,12 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
+/**
+ * Check's if user's global notification settings for desktop and mobile are different
+ */
 export function areDesktopAndMobileSettingsDifferent(
     desktopActivity: UserNotifyProps['desktop'],
-    pushActivity: UserNotifyProps['push'],
+    pushActivity?: UserNotifyProps['push'],
     desktopThreads?: UserNotifyProps['desktop_threads'],
     pushThreads?: UserNotifyProps['push_threads'],
     isCollapsedThreadsEnabled?: boolean,

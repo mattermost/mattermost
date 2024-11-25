@@ -47,7 +47,8 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		require.NoError(t, err)
 		_, _, activationErr := env.Activate(pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
@@ -100,7 +101,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -141,7 +142,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "Post rejected by plugin. rejected", err.Message)
 		}
@@ -181,7 +182,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		assert.Equal(t, "message", post.Message)
@@ -225,7 +226,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		assert.Equal(t, "message_fromplugin", post.Message)
@@ -291,7 +292,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		assert.Equal(t, "prefix_message_suffix", post.Message)
 	})
@@ -335,7 +336,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 }
 
@@ -374,7 +375,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited_"
@@ -422,7 +423,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		Message:   "message_",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	assert.Equal(t, "message_", post.Message)
 	post.Message = post.Message + "edited"
@@ -468,7 +469,7 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 		Message:   "message",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -508,14 +509,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
+		_, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
+		if assert.NotNil(t, appErr) {
+			assert.Equal(t, "File rejected by plugin. rejected", appErr.Message)
 		}
 	})
 
@@ -558,14 +559,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
+		_, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
+		if assert.NotNil(t, appErr) {
+			assert.Equal(t, "File rejected by plugin. rejected", appErr.Message)
 		}
 	})
 
@@ -602,25 +603,26 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
+		response, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
 
-		assert.Nil(t, err)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, response)
 
 		fileID := response.Id
-		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
-		assert.Nil(t, err)
+		fileInfo, appErr := th.App.GetFileInfo(th.Context, fileID)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
 
-		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
+		fileReader, appErr := th.App.FileReader(fileInfo.Path)
+		assert.Nil(t, appErr)
 		var resultBuf bytes.Buffer
-		io.Copy(&resultBuf, fileReader)
+		_, err := io.Copy(&resultBuf, fileReader)
+		require.NoError(t, err)
 		assert.Equal(t, "inputfile", resultBuf.String())
 	})
 
@@ -674,24 +676,25 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
+		response, appErr := th.App.UploadFile(th.Context,
 			[]byte("inputfile"),
 			th.BasicChannel.Id,
 			"testhook.txt",
 		)
-		assert.Nil(t, err)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, response)
 		fileID := response.Id
 
-		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
-		assert.Nil(t, err)
+		fileInfo, appErr := th.App.GetFileInfo(th.Context, fileID)
+		assert.Nil(t, appErr)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
 
-		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
+		fileReader, appErr := th.App.FileReader(fileInfo.Path)
+		assert.Nil(t, appErr)
 		var resultBuf bytes.Buffer
-		io.Copy(&resultBuf, fileReader)
+		_, err := io.Copy(&resultBuf, fileReader)
+		require.NoError(t, err)
 		assert.Equal(t, "changedtext", resultBuf.String())
 	})
 }
@@ -1035,7 +1038,7 @@ func TestHookContext(t *testing.T) {
 		Message:   "not this",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	_, err := th.App.CreatePost(ctx, post, th.BasicChannel, false, true)
+	_, err := th.App.CreatePost(ctx, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 }
 
@@ -1161,7 +1164,8 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		require.NoError(t, err)
 
 		// Setup mocks before activating
 		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()
@@ -1331,7 +1335,7 @@ func TestHookRunDataRetention(t *testing.T) {
 	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 	hookCalled := false
-	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks) bool {
+	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		n, _ := hooks.RunDataRetention(0, 0)
 		// Ensure return it correct
 		assert.Equal(t, int64(100), n)
@@ -1375,7 +1379,7 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 	hookCalled := false
-	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks) bool {
+	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		hooks.OnSendDailyTelemetry()
 
 		hookCalled = true
@@ -1419,7 +1423,7 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 	hookCalled := false
-	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks) bool {
+	th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		hooks.OnCloudLimitsUpdated(nil)
 
 		hookCalled = true
@@ -1603,7 +1607,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
@@ -1626,7 +1630,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 			Message:   "message",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)

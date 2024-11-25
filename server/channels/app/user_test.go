@@ -6,9 +6,9 @@ package app
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
-	"net/http"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -1096,6 +1096,30 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
+	scheduledPost1 := &model.ScheduledPost{
+		Draft: model.Draft{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Scheduled post 1",
+		},
+		ScheduledAt: model.GetMillis() + 1000000,
+	}
+
+	createdScheduledPost1, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost1, "")
+	require.Nil(t, appErr)
+
+	scheduledPost2 := &model.ScheduledPost{
+		Draft: model.Draft{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Scheduled post 2",
+		},
+		ScheduledAt: model.GetMillis() + 1000000,
+	}
+
+	createdScheduledPost2, appErr := th.App.SaveScheduledPost(th.Context, scheduledPost2, "")
+	require.Nil(t, appErr)
+
 	err = th.App.PermanentDeleteUser(th.Context, th.BasicUser)
 	require.Nil(t, err, "Unable to delete user. err=%v", err)
 
@@ -1115,6 +1139,15 @@ func TestPermanentDeleteUser(t *testing.T) {
 	exists, err := th.App.FileExists(filepath.Join("users", user.Id))
 	require.Nil(t, err, "Unable to stat finfo. err=%v", err)
 	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
+
+	// verify scheduled posts have been deleted
+	fetchedScheduledPost, scheduledPostErr := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost1.Id)
+	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
+	require.Nil(t, fetchedScheduledPost)
+
+	fetchedScheduledPost, scheduledPostErr = th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost2.Id)
+	require.ErrorIs(t, scheduledPostErr, sql.ErrNoRows)
+	require.Nil(t, fetchedScheduledPost)
 }
 
 func TestPasswordRecovery(t *testing.T) {
@@ -1930,7 +1963,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
+	t.Run("Ensure thread membership exists before updating read", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1938,57 +1971,22 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 		})
 
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, false, false)
+		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 
 		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
-		require.Nil(t, appErr)
-
-		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-		require.Nil(t, appErr)
-		assert.NotZero(t, threads.Total)
-
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, threadMembership)
-		assert.True(t, threadMembership.Following)
-
-		_, appErr = th.App.GetThreadMembershipForUser(th.BasicUser.Id, "notfound")
 		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
-	})
 
-	t.Run("Ensure no panic on error", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
-
-		mockThreadStore := storemocks.ThreadStore{}
-		mockThreadStore.On("MaintainMembership", "user1", "postid", mock.Anything).Return(nil, errors.New("error"))
-
-		var err error
-		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
-			UserStore:    &mockUserStore,
-			SessionStore: &storemocks.SessionStore{},
-			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.ch.srv.platform.Config,
-			LicenseFn:    th.App.ch.srv.License,
-		})
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser.Id, rootPost.Id, store.ThreadMembershipOpts{Following: true, UpdateFollowing: true})
 		require.NoError(t, err)
-		mockStore.On("User").Return(&mockUserStore)
-		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", "user1", "team1", "postid", 100)
-		require.Error(t, err)
+		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		require.Nil(t, appErr)
 	})
 }
 

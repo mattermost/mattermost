@@ -3,11 +3,12 @@ import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
-import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, skipIfNoLicense} from './flag';
+import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, ensureLicense, skipIfNoLicense} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
+import {stubNotification, waitForNotification} from './mock_browser_api';
 
 export {expect} from '@playwright/test';
 
@@ -41,12 +42,13 @@ export const test = base.extend<ExtendedFixtures>({
 
 class PlaywrightExtended {
     // ./browser_context
-    readonly testBrowser: TestBrowser;
+    readonly testBrowser;
 
     // ./flag
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
+    readonly ensureLicense;
     readonly skipIfNoLicense;
 
     // ./server
@@ -64,6 +66,10 @@ class PlaywrightExtended {
     // ./visual
     readonly matchSnapshot;
 
+    // ./mock_browser_api
+    readonly stubNotification;
+    readonly waitForNotification;
+
     constructor(browser: Browser) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
@@ -72,6 +78,7 @@ class PlaywrightExtended {
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
+        this.ensureLicense = ensureLicense;
         this.skipIfNoLicense = skipIfNoLicense;
 
         // ./server
@@ -88,6 +95,10 @@ class PlaywrightExtended {
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
+
+        // ./mock_browser_api
+        this.stubNotification = stubNotification;
+        this.waitForNotification = waitForNotification;
     }
 }
 

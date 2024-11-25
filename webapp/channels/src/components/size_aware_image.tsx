@@ -18,7 +18,8 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingImagePreview from 'components/loading_image_preview';
 import WithTooltip from 'components/with_tooltip';
 
-import {localizeMessage, copyToClipboard} from 'utils/utils';
+import {FileTypes} from 'utils/constants';
+import {localizeMessage, copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -194,6 +195,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
     renderImageWithContainerIfNeeded = () => {
         const {
             fileInfo,
+            dimensions,
             src,
             fileURL,
             enablePublicLink,
@@ -209,9 +211,19 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = localizeMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
+        }
+
+        const fileType = getFileType(fileInfo?.extension ?? '');
+
+        let conditionalSVGStyleAttribute;
+        if (fileType === FileTypes.SVG) {
+            conditionalSVGStyleAttribute = {
+                width: dimensions?.width || MIN_IMAGE_SIZE,
+                height: 'auto',
+            };
         }
 
         const image = (
@@ -228,6 +240,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
+                style={conditionalSVGStyleAttribute}
             />
         );
 
@@ -256,7 +269,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className={classNames('style--none', 'size-aware-image__copy_link', {
                         'size-aware-image__copy_link--recently_copied': this.state.linkCopiedRecently,
                     })}
-                    aria-label={localizeMessage('single_image_view.copy_link_tooltip', 'Copy link')}
+                    aria-label={localizeMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
                     onClick={this.copyLinkToAsset}
                 >
                     {this.state.linkCopiedRecently ? (
@@ -293,7 +306,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                     className='style--none size-aware-image__download'
                     download={true}
                     role={this.isInternalImage ? 'button' : undefined}
-                    aria-label={localizeMessage('single_image_view.download_tooltip', 'Download')}
+                    aria-label={localizeMessage({id: 'single_image_view.download_tooltip', defaultMessage: 'Download'})}
                 >
                     <DownloadOutlineIcon
                         className={'style--none'}
@@ -383,7 +396,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
             fileInfo,
         } = this.props;
 
-        let ariaLabelImage = localizeMessage('file_attachment.thumbnail', 'file thumbnail');
+        let ariaLabelImage = localizeMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
@@ -433,7 +446,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
 
         return (
-            <React.Fragment>
+            <>
                 {fallback}
                 <div
                     className='file-preview__button'
@@ -441,7 +454,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
                 >
                     {this.renderImageWithContainerIfNeeded()}
                 </div>
-            </React.Fragment>
+            </>
         );
     };
 

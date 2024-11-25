@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -44,6 +45,11 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/actions/channel_categories', () => ({
+    ...jest.requireActual('mattermost-redux/actions/channel_categories'),
+    fetchMyCategories: jest.fn(),
+}));
+
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
     ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
@@ -62,6 +68,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
+    fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -635,6 +642,11 @@ describe('reconnect', () => {
     test('should call syncPostsInChannel when socket reconnects', () => {
         reconnect();
         expect(syncPostsInChannel).toHaveBeenCalledWith('otherChannel', '12345');
+    });
+
+    test('should call fetchMyCategories when socket reconnects', () => {
+        reconnect();
+        expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
     });
 });
 

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/integrations/AddCommand should match snapshot 1`] = `
-<injectIntl(AbstractCommand)
+<AbstractCommand
   action={[Function]}
   footer="Save"
   header="Add"

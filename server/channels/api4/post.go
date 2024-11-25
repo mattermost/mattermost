@@ -48,6 +48,26 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 }
 
+func createPostChecks(where string, c *Context, post *model.Post) {
+	// ***************************************************************
+	// NOTE - if you make any change here, please make sure to apply the
+	//	      same change for scheduled posts as well in the `scheduledPostChecks()` function
+	//	      in API layer.
+	// ***************************************************************
+
+	userCreatePostPermissionCheckWithContext(c, post.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
+	postHardenedModeCheckWithContext(where, c, post.GetProps())
+	if c.Err != nil {
+		return
+	}
+
+	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
+}
+
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
@@ -56,87 +76,19 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post.SanitizeInput()
-
 	post.UserId = c.AppContext.Session().UserId
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameterAuditable(auditRec, "post", &post)
 
-	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
-		hasPermission = true
-	} else if channel, err := c.App.GetChannel(c.AppContext, post.ChannelId); err == nil {
-		// Temporary permission check method until advanced permissions, please do not copy
-		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
-			hasPermission = true
-		}
-	}
-
-	if !hasPermission {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return
-	}
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
-			return
-		}
-	}
-
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		post.CreateAt = 0
 	}
 
-	if post.GetPriority() != nil {
-		priorityForbiddenErr := model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
-
-		if !c.App.IsPostPriorityEnabled() {
-			c.Err = priorityForbiddenErr
-			return
-		}
-
-		if post.RootId != "" {
-			c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		if ack := post.GetRequestedAck(); ack != nil && *ack {
-			licenseErr := minimumProfessionalLicense(c)
-			if licenseErr != nil {
-				c.Err = licenseErr
-				return
-			}
-		}
-
-		if notification := post.GetPersistentNotification(); notification != nil && *notification {
-			licenseErr := minimumProfessionalLicense(c)
-			if licenseErr != nil {
-				c.Err = licenseErr
-				return
-			}
-			if !c.App.IsPersistentNotificationsEnabled() {
-				c.Err = priorityForbiddenErr
-				return
-			}
-
-			if !post.IsUrgent() {
-				c.Err = model.NewAppError("Api4.createPost", "api.post.post_priority.urgent_persistent_notification_post.request_error", nil, "", http.StatusBadRequest)
-				return
-			}
-
-			if !*c.App.Config().ServiceSettings.AllowPersistentNotificationsForGuests {
-				user, err := c.App.GetUser(c.AppContext.Session().UserId)
-				if err != nil {
-					c.Err = err
-					return
-				}
-				if user.IsGuest() {
-					c.Err = priorityForbiddenErr
-					return
-				}
-			}
-		}
+	createPostChecks("Api4.createPost", c, &post)
+	if c.Err != nil {
+		return
 	}
 
 	setOnline := r.URL.Query().Get("set_online")
@@ -626,13 +578,28 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	permanent := c.Params.Permanent
+
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	audit.AddEventParameter(auditRec, "post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "permanent", permanent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	if err != nil {
-		c.SetPermissionError(model.PermissionDeletePost)
+	includeDeleted := permanent
+
+	if permanent && !*c.App.Config().ServiceSettings.EnableAPIPostDeletion {
+		c.Err = model.NewAppError("deletePost", "api.post.delete_post.not_enabled.app_error", nil, "postId="+c.Params.PostId, http.StatusNotImplemented)
+		return
+	}
+
+	if permanent && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(post)
@@ -650,8 +617,14 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	if _, err := c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId); err != nil {
-		c.Err = err
+	if permanent {
+		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+	} else {
+		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+	}
+
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -867,11 +840,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
-			return
-		}
+	postHardenedModeCheckWithContext("UpdatePost", c, post.GetProps())
+	if c.Err != nil {
+		return
 	}
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
@@ -936,9 +907,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameterAuditable(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
-		if reservedProps := post.ContainsIntegrationsReservedProps(); len(reservedProps) > 0 && !c.AppContext.Session().IsIntegration() {
-			c.SetInvalidParamWithDetails("props", fmt.Sprintf("Cannot use props reserved for integrations. props: %v", reservedProps))
+	if post.Props != nil {
+		postHardenedModeCheckWithContext("patchPost", c, *post.Props)
+		if c.Err != nil {
 			return
 		}
 	}
@@ -1127,7 +1098,9 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1284,7 +1257,9 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1305,7 +1280,9 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model.ChannelMember) bool {

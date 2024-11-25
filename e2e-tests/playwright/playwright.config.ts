@@ -6,12 +6,13 @@ import {defineConfig, devices} from '@playwright/test';
 import {duration} from '@e2e-support/util';
 import testConfig from '@e2e-test.config';
 
-const defaultOutputFolder = './playwright-report';
+const defaultOutputFolder = './results';
 
 export default defineConfig({
     globalSetup: require.resolve('./global_setup'),
     forbidOnly: testConfig.isCI,
-    outputDir: './test-results',
+    outputDir: './results/tests',
+    retries: testConfig.isCI ? 2 : 0,
     testDir: 'tests',
     timeout: duration.one_min,
     workers: testConfig.workers,
@@ -40,7 +41,7 @@ export default defineConfig({
         screenshot: 'only-on-failure',
         timezoneId: 'America/Los_Angeles',
         trace: 'off',
-        video: 'on-first-retry',
+        video: 'retain-on-failure',
         actionTimeout: duration.half_min,
         storageState: {
             cookies: [],
@@ -58,6 +59,7 @@ export default defineConfig({
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
+                permissions: ['notifications'],
             },
         },
         {

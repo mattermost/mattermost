@@ -564,7 +564,7 @@ function SystemUsers(props: Props) {
                         />
                         <SystemUsersExport
                             currentUserId={props.currentUser.id}
-                            dateRange={props.tablePropertyDateRange}
+                            usersLenght={userReports.length}
                         />
                     </div>
                     <AdminConsoleListTable<UserReport>
