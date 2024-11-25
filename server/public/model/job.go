@@ -10,6 +10,7 @@ import (
 const (
 	JobTypeDataRetention                 = "data_retention"
 	JobTypeMessageExport                 = "message_export"
+	JobTypeCLIMessageExport              = "cli_message_export"
 	JobTypeElasticsearchPostIndexing     = "elasticsearch_post_indexing"
 	JobTypeElasticsearchPostAggregation  = "elasticsearch_post_aggregation"
 	JobTypeBlevePostIndexing             = "bleve_post_indexing"

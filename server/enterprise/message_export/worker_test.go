@@ -69,11 +69,11 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	now := time.Now()
 	worker.initJobData(logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
-	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[shared.JobDataBatchStartTime])
 	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
-	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
@@ -124,11 +124,11 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	now := time.Now()
 	worker.initJobData(logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
-	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10), job.Data[shared.JobDataBatchStartTime])
 	expectedDir := path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%d-%d", now.Format(model.ComplianceExportDirectoryFormat), 0, now.UnixMilli()))
-	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
@@ -143,7 +143,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 		Type:           model.JobTypeMessageExport,
 		StartAt:        model.GetMillis() - 1000,
 		LastActivityAt: model.GetMillis() - 1000,
-		Data:           map[string]string{JobDataBatchStartTimestamp: "123"},
+		Data:           map[string]string{shared.JobDataBatchStartTime: "123"},
 	}
 
 	job := &model.Job{
@@ -151,7 +151,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
-		Data:     map[string]string{JobDataExportDir: "this-is-the-export-dir"},
+		Data:     map[string]string{shared.JobDataExportDir: "this-is-the-export-dir"},
 	}
 
 	// mock job store returns a previously successful job that has the config that we're looking for, so we use it
@@ -181,11 +181,11 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	now := time.Now()
 	worker.initJobData(logger, job, now)
 
-	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[JobDataExportType])
-	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[jobDataBatchSize])
-	assert.Equal(t, previousJob.Data[JobDataBatchStartTimestamp], job.Data[JobDataBatchStartTimestamp])
+	assert.Equal(t, model.ComplianceExportTypeActiance, job.Data[shared.JobDataExportType])
+	assert.Equal(t, strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize), job.Data[shared.JobDataBatchSize])
+	assert.Equal(t, previousJob.Data[shared.JobDataBatchStartTime], job.Data[shared.JobDataBatchStartTime])
 	expectedDir := "this-is-the-export-dir"
-	assert.Equal(t, expectedDir, job.Data[JobDataExportDir])
+	assert.Equal(t, expectedDir, job.Data[shared.JobDataExportDir])
 }
 
 func TestDoJobNoPostsToExport(t *testing.T) {
