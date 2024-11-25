@@ -2262,6 +2262,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				UserId:    model.NewId(),
 				Message:   "zz" + model.NewId() + "b",
 				CreateAt:  now + int64(i),
+				UpdateAt:  now + int64(i),
 			})
 			require.NoError(t, e)
 		}

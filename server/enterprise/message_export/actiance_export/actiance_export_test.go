@@ -874,7 +874,7 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			res, err := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts,
 				ChannelMemberHistories: channelMemberHistories,
@@ -1323,7 +1323,7 @@ func runTestActianceExportMultipleBatches(t *testing.T, exportBackend filestore.
 				exportFileName := path.Join("export", "jobName",
 					fmt.Sprintf("jobName-batch00%d.zip", batch+1))
 
-				res, err := ActianceExport(rctx, Params{
+				res, err := ActianceExport(rctx, shared.ExportParams{
 					ChannelMetadata:        channelMetadata,
 					Posts:                  tt.posts[batch],
 					ChannelMemberHistories: channelMemberHistories,
@@ -1753,7 +1753,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 			assert.NoError(t, err)
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			res, err := ActianceExport(rctx, Params{
+			res, err := ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step1"],
 				ChannelMemberHistories: channelMemberHistories,
@@ -1780,7 +1780,7 @@ func runTestMultipleActianceExport(t *testing.T, exportBackend filestore.FileBac
 
 			assert.Equal(t, tt.expectedData["step1"], string(xmlData))
 
-			res, err = ActianceExport(rctx, Params{
+			res, err = ActianceExport(rctx, shared.ExportParams{
 				ChannelMetadata:        channelMetadata,
 				Posts:                  tt.posts["step2"],
 				ChannelMemberHistories: channelMemberHistories,
@@ -1952,7 +1952,7 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 					call.Return(tc.attachments, nil)
 				})
 			}
-			uploadStarts, uploadStops, files, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, shared.NewMessageExportStore(mockStore))
+			files, uploadStarts, uploadStops, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, shared.NewMessageExportStore(mockStore))
 			if tc.expectError {
 				assert.Error(t, err)
 			} else {
@@ -2160,7 +2160,7 @@ func Test_channelHasActivity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, channelHasActivity(tt.cmhs, tt.startTime, tt.endTime), "channelHasActivity(%v, %v, %v)", tt.cmhs, tt.startTime, tt.endTime)
+			assert.Equalf(t, tt.want, shared.ChannelHasActivity(tt.cmhs, tt.startTime, tt.endTime), "channelHasActivity(%v, %v, %v)", tt.cmhs, tt.startTime, tt.endTime)
 		})
 	}
 }

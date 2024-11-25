@@ -92,20 +92,6 @@ func (metadata *Metadata) Update(post *model.MessageExport, attachments int) {
 	metadata.Channels[*post.ChannelId] = channelMetadata
 }
 
-func (metadata *Metadata) UpdateCounts(channelId string, attachments int) error {
-	_, ok := metadata.Channels[channelId]
-	if !ok {
-		return fmt.Errorf("could not find channelId for post in metadata.Channels")
-	}
-
-	metadata.Channels[channelId].AttachmentsCount += attachments
-	metadata.AttachmentsCount += attachments
-	metadata.Channels[channelId].MessagesCount += 1
-	metadata.MessagesCount += 1
-
-	return nil
-}
-
 type ChannelExportsParams struct {
 	Store                   shared.MessageExportStore
 	ExportPeriodStartTime   int64

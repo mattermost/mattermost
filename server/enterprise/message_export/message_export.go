@@ -169,39 +169,33 @@ func DataToExportParams(data shared.JobData) ExportParams {
 func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (results shared.RunExportResults, err error) {
 	preparePosts(rctx, p.PostsToExport)
 
+	exportParams := shared.ExportParams{
+		ExportType:             p.ExportType,
+		ChannelMetadata:        p.ChannelMetadata,
+		Posts:                  p.PostsToExport,
+		ChannelMemberHistories: p.ChannelMemberHistories,
+		JobStartTime:           p.JobStartTime,
+		BatchPath:              p.BatchPath,
+		BatchStartTime:         p.BatchStartTime,
+		BatchEndTime:           p.BatchEndTime,
+		Config:                 b.Config,
+		Db:                     b.Store,
+		FileAttachmentBackend:  b.FileAttachmentBackend,
+		ExportBackend:          b.ExportBackend,
+	}
+
 	switch p.ExportType {
 	case model.ComplianceExportTypeCsv:
 		rctx.Logger().Debug("Exporting CSV")
-		results.NumWarnings, err = csv_export.CsvExport(rctx, p.PostsToExport, b.Store, b.ExportBackend, b.FileAttachmentBackend, p.BatchPath)
-		return results, err
+		return csv_export.CsvExport(rctx, exportParams)
 
 	case model.ComplianceExportTypeActiance:
 		rctx.Logger().Debug("Exporting Actiance")
-		return actiance_export.ActianceExport(rctx, actiance_export.Params{
-			ChannelMetadata:        p.ChannelMetadata,
-			Posts:                  p.PostsToExport,
-			ChannelMemberHistories: p.ChannelMemberHistories,
-			JobStartTime:           p.JobStartTime,
-			BatchPath:              p.BatchPath,
-			BatchStartTime:         p.BatchStartTime,
-			BatchEndTime:           p.BatchEndTime,
-			Db:                     b.Store,
-			FileAttachmentBackend:  b.FileAttachmentBackend,
-			ExportBackend:          b.ExportBackend,
-		})
+		return actiance_export.ActianceExport(rctx, exportParams)
 
 	case model.ComplianceExportTypeGlobalrelay, model.ComplianceExportTypeGlobalrelayZip:
 		rctx.Logger().Debug("Exporting GlobalRelay")
-		return global_relay_export.GlobalRelayExport(rctx, global_relay_export.Params{
-			ExportType:            p.ExportType,
-			Posts:                 p.PostsToExport,
-			BatchPath:             p.BatchPath,
-			Config:                b.Config,
-			Db:                    b.Store,
-			FileAttachmentBackend: b.FileAttachmentBackend,
-			ExportBackend:         b.ExportBackend,
-			Templates:             b.HtmlTemplates,
-		})
+		return global_relay_export.GlobalRelayExport(rctx, exportParams)
 
 	default:
 		return results, errors.New("Unknown output format: " + p.ExportType)
