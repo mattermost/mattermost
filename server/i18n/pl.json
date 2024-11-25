@@ -2300,10 +2300,6 @@
     "translation": "Należy uzupełnić trigger_words lub channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nie można odszyfrować wieloczęściowego ładunku wchodzącego webhooka."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nie można zaktualizować webhooków pomiędzy zespołami."
   },

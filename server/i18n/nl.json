@@ -2295,10 +2295,6 @@
     "translation": "Ofwel trigger_words of channel_id moet ingesteld zijn."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kan multipart payload van inkomende webhook niet decoderen."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kan webhook niet bijwerken tussen teams."
   },

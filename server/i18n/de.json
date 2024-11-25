@@ -2295,10 +2295,6 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Konnte die Multipart-Daten des eingehenden Webhooks nicht entschlüsseln."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren."
   },

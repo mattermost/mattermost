@@ -2288,10 +2288,6 @@
     "translation": "必須設定 trigger_words 或者 channel_id。"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "無法解碼內送 Webhook 的 multipart 內容。"
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "無法更新不同團隊的 Webhook。"
   },

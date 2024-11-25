@@ -4616,10 +4616,6 @@
     "translation": "Unable to update webhook across teams."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Either trigger_words or channel_id must be set."
   },

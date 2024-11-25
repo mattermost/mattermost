@@ -4420,10 +4420,6 @@
     "translation": "Kan inte uppdatera webhook över flera team."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kunde inte tolka multipart-meddelandet i inkommande webbhook."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Antingen måste trigger_words eller channel_id vara konfigurerat."
   },

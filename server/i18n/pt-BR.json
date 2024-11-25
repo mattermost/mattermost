@@ -2300,10 +2300,6 @@
     "translation": "Ou trigger_words ou channel_id precisa ser definido."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Não foi possível decodificar a carga multiparte do webhook de entrada."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Não é possível atualizar os webhook entre as equipes."
   },

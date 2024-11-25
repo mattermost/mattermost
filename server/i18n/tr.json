@@ -2295,10 +2295,6 @@
     "translation": "trigger_words ya da channel_id değerleri ayarlanmış olmalıdır."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Gelen İnternet kancasının birkaç parçalı paketinin kodu çözülemedi."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "İnternet kancası takımlar arasında güncellenemez."
   },
