@@ -1448,6 +1448,8 @@ export default class Client4 {
     };
 
     sendEmailGuestInvitesToChannels = (teamId: string, channelIds: string[], emails: string[], message: string) => {
+        this.trackEvent('api', 'api_teams_invite_guests', {team_id: teamId, channel_ids: channelIds});
+
         return this.doFetch<StatusOK>(
             `${this.getTeamRoute(teamId)}/invite-guests/email`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
@@ -2420,8 +2422,6 @@ export default class Client4 {
     };
 
     unacknowledgePost = (postId: string, userId: string) => {
-        this.trackEvent('api', 'api_posts_unack');
-
         return this.doFetch<null>(
             `${this.getUserRoute(userId)}/posts/${postId}/ack`,
             {method: 'delete'},
@@ -3733,6 +3733,8 @@ export default class Client4 {
     };
 
     getGroupsAssociatedToChannel = (channelID: string, q = '', page = 0, perPage = PER_PAGE_DEFAULT, filterAllowReference = false) => {
+        this.trackEvent('api', 'api_groups_get_associated_to_channel', {channel_id: channelID});
+
         return this.doFetch<{
             groups: Group[];
             total_group_count: number;
