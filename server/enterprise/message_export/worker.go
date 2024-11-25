@@ -22,33 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-const (
-	// JobDataBatchStartTimestamp is the posts.updateat value from the previous batch. Posts are selected using
-	// keyset pagination sorted by (posts.updateat, posts.id).
-	JobDataBatchStartTimestamp = "batch_start_timestamp"
-
-	// JobDataStartTimestamp is the start of the job (doesn't change across batches)
-	JobDataStartTimestamp = "job_start_timestamp"
-
-	// JobDataBatchStartId is the posts.id value from the previous batch.
-	JobDataBatchStartId = "batch_start_id"
-
-	// JobDataEndTimestamp is the point up to which this job is exporting. It is the time the job was started,
-	// i.e., we export everything from the end of previous batch to the moment this batch started.
-	JobDataEndTimestamp            = "batch_end_timestamp"
-	JobDataStartId                 = "start_id"
-	JobDataExportType              = "export_type"
-	jobDataBatchSize               = "batch_size"
-	jobDataChannelBatchSize        = "channel_batch_size"
-	jobDataChannelHistoryBatchSize = "channel_history_batch_size"
-	JobDataMessagesExported        = "messages_exported"
-	JobDataWarningCount            = "warning_count"
-	JobDataIsDownloadable          = "is_downloadable"
-	JobDataExportDir               = "export_dir"
-	JobDataBatchNumber             = "job_batch_number"
-	JobDataTotalPostsExpected      = "total_posts_expected"
-	TimeBetweenBatchesMs           = 100
-)
+const TimeBetweenBatchesMs = 100
 
 // testEndOfBatchCb is only used for testing
 var testEndOfBatchCb func(worker *MessageExportWorker)
@@ -222,7 +196,7 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 		w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
-	job.Data[JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
+	job.Data[shared.JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
 
 	for {
 		select {
@@ -254,12 +228,12 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 			setJobDataEndOfBatch(job, data)
 
 			if data.Finished {
-				w.finishExport(rctx, logger, job, data.TotalWarningCount)
+				w.finishExport(rctx, logger, job, data.WarningCount)
 				return
 			}
 
 			// also saves job.Data
-			if err := w.setJobProgress(logger, job, getJobProgress(data.TotalPostsExported, data.TotalPostsExpected)); err != nil {
+			if err := w.setJobProgress(logger, job, getJobProgress(data.MessagesExported, data.TotalPostsExpected)); err != nil {
 				// TODO: MM-59093 handle job errors (robust, recoverable)
 				return
 			}
@@ -273,11 +247,11 @@ func (w *MessageExportWorker) DoJob(job *model.Job) {
 }
 
 func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger, job *model.Job, totalWarningCount int) {
-	job.Data[JobDataWarningCount] = strconv.Itoa(totalWarningCount)
+	job.Data[shared.JobDataWarningCount] = strconv.Itoa(totalWarningCount)
 	// we've exported everything up to the current time
 	logger.Debug("FormatExport complete")
 
-	job.Data[JobDataIsDownloadable] = "false"
+	job.Data[shared.JobDataIsDownloadable] = "false"
 
 	if totalWarningCount > 0 {
 		w.setJobWarning(logger, job)
@@ -291,33 +265,33 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	if _, exists := job.Data[JobDataMessagesExported]; !exists {
+	if _, exists := job.Data[shared.JobDataMessagesExported]; !exists {
 		logger.Info("Worker: JobDataMessagesExported does not exist, starting at 0")
-		job.Data[JobDataMessagesExported] = "0"
+		job.Data[shared.JobDataMessagesExported] = "0"
 	}
-	if _, exists := job.Data[JobDataExportType]; !exists {
+	if _, exists := job.Data[shared.JobDataExportType]; !exists {
 		exportFormat := *w.jobServer.Config().MessageExportSettings.ExportFormat
 		logger.Info("Worker: Defaulting to configured export format", mlog.String("export_format", exportFormat))
-		job.Data[JobDataExportType] = exportFormat
+		job.Data[shared.JobDataExportType] = exportFormat
 	}
-	if _, exists := job.Data[jobDataBatchSize]; !exists {
+	if _, exists := job.Data[shared.JobDataBatchSize]; !exists {
 		batchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.BatchSize)
 		logger.Info("Worker: Defaulting to configured batch size", mlog.String("batch_size", batchSize))
-		job.Data[jobDataBatchSize] = batchSize
+		job.Data[shared.JobDataBatchSize] = batchSize
 	}
-	if _, exists := job.Data[jobDataChannelBatchSize]; !exists {
+	if _, exists := job.Data[shared.JobDataChannelBatchSize]; !exists {
 		channelBatchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.ChannelBatchSize)
 		logger.Info("Worker: Defaulting to configured channel batch size", mlog.String("channel_batch_size", channelBatchSize))
-		job.Data[jobDataChannelBatchSize] = channelBatchSize
+		job.Data[shared.JobDataChannelBatchSize] = channelBatchSize
 	}
-	if _, exists := job.Data[jobDataChannelHistoryBatchSize]; !exists {
+	if _, exists := job.Data[shared.JobDataChannelHistoryBatchSize]; !exists {
 		channelHistoryBatchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.ChannelHistoryBatchSize)
 		logger.Info("Worker: Defaulting to configured channel history batch size", mlog.String("channel_history_batch_size", channelHistoryBatchSize))
-		job.Data[jobDataChannelHistoryBatchSize] = channelHistoryBatchSize
+		job.Data[shared.JobDataChannelHistoryBatchSize] = channelHistoryBatchSize
 	}
-	if _, exists := job.Data[JobDataBatchNumber]; !exists {
+	if _, exists := job.Data[shared.JobDataBatchNumber]; !exists {
 		logger.Info("Worker: JobDataBatchNumber does not exist, starting at 0")
-		job.Data[JobDataBatchNumber] = "0"
+		job.Data[shared.JobDataBatchNumber] = "0"
 	}
 
 	// If this is a new job (JobEndTime doesn't exist), set it to now, because this is when the job has first started.
@@ -327,20 +301,20 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	// starting from the last successful batchStartTimestamp up until now. This is intentional (for now) because failed
 	// jobs do not get rescheduled properly yet, and when they are run again it means that new day's worth of messages
 	// need to be exported.
-	if _, exists := job.Data[JobDataEndTimestamp]; !exists {
-		job.Data[JobDataEndTimestamp] = strconv.FormatInt(model.GetMillisForTime(now), 10)
+	if _, exists := job.Data[shared.JobDataJobEndTime]; !exists {
+		job.Data[shared.JobDataJobEndTime] = strconv.FormatInt(model.GetMillisForTime(now), 10)
 	}
 
-	if _, exists := job.Data[JobDataBatchStartTimestamp]; !exists {
+	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
 		previousJob, err := w.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
 		if err != nil {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
-			job.Data[JobDataBatchStartTimestamp] = exportFromTimestamp
-			job.Data[JobDataStartTimestamp] = exportFromTimestamp
-			job.Data[JobDataBatchStartId] = ""
-			job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
-			job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, exportFromTimestamp, job.Data[JobDataEndTimestamp])
+			job.Data[shared.JobDataBatchStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataJobStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataBatchStartId] = ""
+			job.Data[shared.JobDataJobStartId] = job.Data[shared.JobDataBatchStartId]
+			job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, exportFromTimestamp, job.Data[shared.JobDataJobEndTime])
 			return
 		}
 
@@ -351,44 +325,41 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 		if previousJob.Data == nil {
 			previousJob.Data = make(map[string]string)
 		}
-		if _, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; !prevExists {
+		if _, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; !prevExists {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
-			job.Data[JobDataBatchStartTimestamp] = exportFromTimestamp
-			job.Data[JobDataStartTimestamp] = exportFromTimestamp
+			job.Data[shared.JobDataBatchStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataJobStartTime] = exportFromTimestamp
 		} else {
-			job.Data[JobDataBatchStartTimestamp] = previousJob.Data[JobDataBatchStartTimestamp]
+			job.Data[shared.JobDataBatchStartTime] = previousJob.Data[shared.JobDataBatchStartTime]
 		}
-		if _, prevExists := previousJob.Data[JobDataBatchStartId]; !prevExists {
+		if _, prevExists := previousJob.Data[shared.JobDataBatchStartId]; !prevExists {
 			logger.Info("Worker: Previously successful job lacks post ID, falling back to empty string")
-			job.Data[JobDataBatchStartId] = ""
+			job.Data[shared.JobDataBatchStartId] = ""
 		} else {
-			job.Data[JobDataBatchStartId] = previousJob.Data[JobDataBatchStartId]
+			job.Data[shared.JobDataBatchStartId] = previousJob.Data[shared.JobDataBatchStartId]
 		}
-		job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
+		job.Data[shared.JobDataJobStartId] = job.Data[shared.JobDataBatchStartId]
 	} else {
-		logger.Info("Worker: JobDataBatchStartTimestamp start time was already set",
-			mlog.String("batch_start_timestamp", job.Data[JobDataBatchStartTimestamp]))
+		logger.Info("Worker: JobDataBatchStartTime start time was already set",
+			mlog.String(shared.JobDataBatchStartTime, job.Data[shared.JobDataBatchStartTime]))
 	}
 
-	if _, exists := job.Data[JobDataStartTimestamp]; !exists {
-		// Just in case, if we don't have this (JobDataBatchStartTimestamp was already set, but this wasn't) set it:
-		job.Data[JobDataStartTimestamp] = job.Data[JobDataBatchStartTimestamp]
-		logger.Info("Worker: JobDataStartTimestamp start time was not set, using batch startTimestamp",
-			mlog.String("job_start_timestamp", job.Data[JobDataStartTimestamp]))
+	if _, exists := job.Data[shared.JobDataJobStartTime]; !exists {
+		// Just in case, if we don't have this (JobDataBatchStartTime was already set, but this wasn't) set it:
+		job.Data[shared.JobDataJobStartTime] = job.Data[shared.JobDataBatchStartTime]
+		logger.Info("Worker: JobDataJobStartTime start time was not set, using batch startTimestamp",
+			mlog.String(shared.JobDataJobStartTime, job.Data[shared.JobDataJobStartTime]))
 	}
 
-	job.Data[JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[JobDataStartTimestamp], job.Data[JobDataEndTimestamp])
+	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
 }
 
-func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.JobData, err error) {
-	data.ExportType = strmap[JobDataExportType]
-
-	data.BatchStartTime, err = strconv.ParseInt(strmap[JobDataBatchStartTimestamp], 10, 64)
+func extractJobData(logger *mlog.Logger, strmap map[string]string) (shared.JobData, error) {
+	data, err := shared.StringMapToJobDataWithZeroValues(strmap)
 	if err != nil {
-		return data, fmt.Errorf("JobDataBatchStartTimestamp conversion error: %w", err)
+		return data, err
 	}
-	data.BatchStartId = strmap[JobDataBatchStartId]
 
 	// ExportPeriodStartTime is initialized to BatchStartTime because this is where we will start exporting. But unlike
 	// BatchStartTime, it won't change as we process the batches.
@@ -396,46 +367,9 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 	// been resumed, then BatchStartTime will be the start of the newest batch. This is expected--the channel activity
 	// and total posts will be calculated from ExportPeriodStartTime (anything earlier has already been exported in
 	// previous batches).
+	// Note: ExportPeriodStartTime is different from JobStartTime because JobStartTime won't change
+	//	     if the job processes some batches, is stopped, and picked up again.
 	data.ExportPeriodStartTime = data.BatchStartTime
-
-	// JobStartTime is the start of this job. It is different from ExportPeriodStartTime because JobStartTime won't change
-	// if the job processes some batches, is stopped, and picked up again.
-	data.JobStartTime, err = strconv.ParseInt(strmap[JobDataStartTimestamp], 10, 64)
-	if err != nil {
-		return data, fmt.Errorf("JobDataStartTimestamp conversion error: %w", err)
-	}
-
-	data.JobEndTime, err = strconv.ParseInt(strmap[JobDataEndTimestamp], 10, 64)
-	if err != nil {
-		return data, fmt.Errorf("JobDataEndTimestamp conversion error: %w", err)
-	}
-
-	data.JobStartId = strmap[JobDataStartId]
-
-	data.BatchSize, err = strconv.Atoi(strmap[jobDataBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("jobDataBatchSize conversion error: %w", err)
-	}
-	data.ChannelBatchSize, err = strconv.Atoi(strmap[jobDataChannelBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("jobDataChannelBatchSize conversion error: %w", err)
-	}
-	data.ChannelHistoryBatchSize, err = strconv.Atoi(strmap[jobDataChannelHistoryBatchSize])
-	if err != nil {
-		return data, fmt.Errorf("jobDataChannelHistoryBatchSize conversion error: %w", err)
-	}
-
-	data.BatchNumber, err = strconv.Atoi(strmap[JobDataBatchNumber])
-	if err != nil {
-		return data, fmt.Errorf("JobDataBatchNumber conversion error: %w", err)
-	}
-
-	data.TotalPostsExported, err = strconv.Atoi(strmap[JobDataMessagesExported])
-	if err != nil {
-		return data, fmt.Errorf("JobDataMessagesExported conversion error: %w", err)
-	}
-
-	data.ExportDir = strmap[JobDataExportDir]
 
 	logger.Info("Worker: initial job variables set",
 		mlog.String("export_type", data.ExportType),
@@ -449,23 +383,22 @@ func extractJobData(logger *mlog.Logger, strmap map[string]string) (data shared.
 		mlog.Int("channel_batch_size", data.ChannelBatchSize),
 		mlog.Int("channel_history_batch_size", data.ChannelHistoryBatchSize),
 		mlog.Int("batch_number", data.BatchNumber),
-		mlog.Int("total_posts_exported", data.TotalPostsExported))
+		mlog.Int("total_posts_exported", data.MessagesExported))
 
-	return
+	return data, err
 }
 
 func setJobDataEndOfBatch(job *model.Job, data shared.JobData) {
-	// batchEndTime will be the JobEndTime if this is the lastBatch (see GetDataForBatch)
-	job.Data[JobDataBatchStartTimestamp] = strconv.FormatInt(data.BatchStartTime, 10)
-	job.Data[JobDataBatchStartId] = data.Cursor.LastPostId
-	job.Data[JobDataMessagesExported] = strconv.Itoa(data.TotalPostsExported)
-	job.Data[JobDataBatchNumber] = strconv.Itoa(data.BatchNumber)
+	job.Data[shared.JobDataBatchStartTime] = strconv.FormatInt(data.BatchStartTime, 10)
+	job.Data[shared.JobDataBatchStartId] = data.Cursor.LastPostId
+	job.Data[shared.JobDataMessagesExported] = strconv.Itoa(data.MessagesExported)
+	job.Data[shared.JobDataBatchNumber] = strconv.Itoa(data.BatchNumber)
 }
 
 // getJobExportDir will use the existing JobDataExportDir if available. If it's not available, this is the first run
 // for the job, so we use the startTime and endTime passed in.
 func getJobExportDir(logger mlog.LoggerIFace, data model.StringMap, startTime string, endTime string) string {
-	exportDir, exists := data[JobDataExportDir]
+	exportDir, exists := data[shared.JobDataExportDir]
 	if !exists {
 		// If we don't have a jobDataExportDir, this is the first run for the job, so we use the batch startTime
 		exportDir = path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%s-%s", time.Now().Format(model.ComplianceExportDirectoryFormat), startTime, endTime))

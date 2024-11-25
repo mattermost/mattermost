@@ -87,12 +87,6 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	channelsInThisBatch := make(map[string]bool)
 
 	for _, post := range p.Posts {
-		if post == nil {
-			results.IgnoredPosts++
-			rctx.Logger().Warn("ignored a nil post reference in the list")
-			continue
-		}
-
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
@@ -129,15 +123,16 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 	var joinLeavePosts []*model.MessageExport
 	for id := range channelsInThisBatch {
-		joinLeaves, err2 := getJoinLeavePosts(
+		var joinLeaves []*model.MessageExport
+		joinLeaves, err = getJoinLeavePosts(
 			p.BatchStartTime,
 			p.BatchEndTime,
 			metadata.Channels[id],
 			p.ChannelMemberHistories[id],
 			postAuthorsByChannel[id],
 		)
-		if err2 != nil {
-			return results, err2
+		if err != nil {
+			return results, err
 		}
 		joinLeavePosts = append(joinLeavePosts, joinLeaves...)
 	}
@@ -292,7 +287,6 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
 		enterPostType := EnterPostType
 		createAt := model.NewPointer(join.Datetime)
-		channelCopy := channel
 		if join.Datetime <= channel.StartTime {
 			enterPostType = PreviouslyJoinedPostType
 			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
@@ -305,10 +299,10 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 				TeamName:        channel.TeamName,
 				TeamDisplayName: channel.TeamDisplayName,
 
-				ChannelId:          &channelCopy.ChannelId,
-				ChannelName:        &channelCopy.ChannelName,
-				ChannelDisplayName: &channelCopy.ChannelDisplayName,
-				ChannelType:        &channelCopy.ChannelType,
+				ChannelId:          &channel.ChannelId,
+				ChannelName:        &channel.ChannelName,
+				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelType:        &channel.ChannelType,
 
 				UserId:    model.NewPointer(join.UserId),
 				UserEmail: model.NewPointer(join.Email),
@@ -327,7 +321,6 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 	for _, leave := range leaves {
 		leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
 		leavePostType := LeavePostType
-		channelCopy := channel
 
 		joinLeavePosts = append(
 			joinLeavePosts,
@@ -336,10 +329,10 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 				TeamName:        channel.TeamName,
 				TeamDisplayName: channel.TeamDisplayName,
 
-				ChannelId:          &channelCopy.ChannelId,
-				ChannelName:        &channelCopy.ChannelName,
-				ChannelDisplayName: &channelCopy.ChannelDisplayName,
-				ChannelType:        &channelCopy.ChannelType,
+				ChannelId:          &channel.ChannelId,
+				ChannelName:        &channel.ChannelName,
+				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelType:        &channel.ChannelType,
 
 				UserId:    model.NewPointer(leave.UserId),
 				UserEmail: model.NewPointer(leave.Email),
