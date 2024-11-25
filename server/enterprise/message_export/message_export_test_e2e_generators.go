@@ -79,13 +79,13 @@ func setup(t *testing.T) *api4.TestHelper {
 
 // jobDataInvariantsShouldBeEqual tests that the parts of the job.Data that shouldn't change, don't change.
 func jobDataInvariantsShouldBeEqual(t *testing.T, expected map[string]string, received map[string]string) {
-	require.Equal(t, expected[JobDataExportType], received[JobDataExportType])
-	require.Equal(t, expected[jobDataBatchSize], received[jobDataBatchSize])
-	require.Equal(t, expected[jobDataChannelBatchSize], received[jobDataChannelBatchSize])
-	require.Equal(t, expected[jobDataChannelHistoryBatchSize], received[jobDataChannelHistoryBatchSize])
-	require.Equal(t, expected[JobDataExportDir], received[JobDataExportDir])
-	require.Equal(t, expected[JobDataEndTimestamp], received[JobDataEndTimestamp])
-	require.Equal(t, expected[JobDataStartTimestamp], received[JobDataStartTimestamp])
+	require.Equal(t, expected[shared.JobDataExportType], received[shared.JobDataExportType])
+	require.Equal(t, expected[shared.JobDataBatchSize], received[shared.JobDataBatchSize])
+	require.Equal(t, expected[shared.JobDataChannelBatchSize], received[shared.JobDataChannelBatchSize])
+	require.Equal(t, expected[shared.JobDataChannelHistoryBatchSize], received[shared.JobDataChannelHistoryBatchSize])
+	require.Equal(t, expected[shared.JobDataExportDir], received[shared.JobDataExportDir])
+	require.Equal(t, expected[shared.JobDataJobEndTime], received[shared.JobDataJobEndTime])
+	require.Equal(t, expected[shared.JobDataJobStartTime], received[shared.JobDataJobStartTime])
 }
 
 type joinLeave struct {
@@ -337,7 +337,7 @@ func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, atta
 		LastActivityAt: 0,
 		Status:         model.JobStatusSuccess,
 		Progress:       100,
-		Data:           map[string]string{JobDataBatchStartTimestamp: strconv.Itoa(int(start))},
+		Data:           map[string]string{shared.JobDataBatchStartTime: strconv.Itoa(int(start))},
 	})
 	require.NoError(t, err)
 
@@ -346,7 +346,7 @@ func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, atta
 	require.NotNilf(t, previousJob, "prevJob")
 
 	var prevUpdatedAt int64
-	if timestamp, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; prevExists {
+	if timestamp, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; prevExists {
 		prevUpdatedAt, err = strconv.ParseInt(timestamp, 10, 64)
 		require.NoError(t, err)
 	}
@@ -395,16 +395,16 @@ func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, atta
 		job = runJobForTest(t, th, nil)
 	}
 
-	warnings, err := strconv.Atoi(job.Data[JobDataWarningCount])
+	warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 	require.NoError(t, err)
 	require.Equal(t, 0, warnings)
 
-	numExported, err := strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 9, numExported)
 
-	jobExportDir := job.Data[JobDataExportDir]
-	jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batchTimes := []batchStartEndTimes{
@@ -534,7 +534,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 		LastActivityAt: 0,
 		Status:         model.JobStatusSuccess,
 		Progress:       100,
-		Data:           map[string]string{JobDataBatchStartTimestamp: strconv.Itoa(int(start))},
+		Data:           map[string]string{shared.JobDataBatchStartTime: strconv.Itoa(int(start))},
 	})
 	require.NoError(t, err)
 
@@ -543,7 +543,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	require.NotNilf(t, previousJob, "prevJob")
 
 	var prevUpdatedAt int64
-	if timestamp, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; prevExists {
+	if timestamp, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; prevExists {
 		prevUpdatedAt, err = strconv.ParseInt(timestamp, 10, 64)
 		require.NoError(t, err)
 	}
@@ -560,16 +560,16 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
 
-	warnings, err := strconv.Atoi(job.Data[JobDataWarningCount])
+	warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 	require.NoError(t, err)
 	require.Equal(t, 0, warnings)
 
-	numExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 0, 64)
+	numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
 	require.NoError(t, err)
 	require.Equal(t, 2, int(numExported))
 
-	jobExportDir := job.Data[JobDataExportDir]
-	jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batch001 := shared.GetBatchPath(jobExportDir, prevUpdatedAt, jobEndTime, 1)
@@ -802,12 +802,12 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
 
-	numExported, err := strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 8, numExported)
 
-	jobExportDir := job.Data[JobDataExportDir]
-	jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batchTimes := []batchStartEndTimes{
@@ -970,12 +970,12 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	_, err = th.App.Srv().Store().Job().Delete(job.Id)
 	require.NoError(t, err)
 
-	numExported, err := strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 5, numExported)
 
-	jobExportDir := job.Data[JobDataExportDir]
-	jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batchTimes := []batchStartEndTimes{{start, jobEndTime}}
@@ -1068,12 +1068,12 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
 
-	numExported, err := strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 1, numExported)
 
-	jobExportDir := job.Data[JobDataExportDir]
-	jobEndTime, err := strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batchTimes := []batchStartEndTimes{
@@ -1166,12 +1166,12 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 2, numExported)
 
-	jobExportDir = job.Data[JobDataExportDir]
-	jobEndTime, err = strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir = job.Data[shared.JobDataExportDir]
+	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	// use the message1 updateAt, because the message0's updateAt is now after
@@ -1252,12 +1252,12 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 2, numExported)
 
-	jobExportDir = job.Data[JobDataExportDir]
-	jobEndTime, err = strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir = job.Data[shared.JobDataExportDir]
+	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batch001 = shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
@@ -1342,12 +1342,12 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[JobDataMessagesExported])
+	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
 	require.Equal(t, 3, numExported)
 
-	jobExportDir = job.Data[JobDataExportDir]
-	jobEndTime, err = strconv.ParseInt(job.Data[JobDataEndTimestamp], 10, 64)
+	jobExportDir = job.Data[shared.JobDataExportDir]
+	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
 	require.NoError(t, err)
 
 	batch001 = shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
