@@ -3,22 +3,22 @@
 
 import regeneratorRuntime from 'regenerator-runtime';
 
-import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import { Client4 } from 'mattermost-redux/client';
+import { Preferences } from 'mattermost-redux/constants';
+import { getConfig, isPerformanceDebuggingEnabled } from 'mattermost-redux/selectors/entities/general';
+import { getBool } from 'mattermost-redux/selectors/entities/preferences';
 
-import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
-import {unregisterPluginTranslationsSource} from 'actions/views/root';
-import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
+import { unregisterAdminConsolePlugin } from 'actions/admin_actions';
+import { trackPluginInitialization } from 'actions/telemetry_actions';
+import { unregisterPluginTranslationsSource } from 'actions/views/root';
+import { unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler } from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
 import PluginRegistry from 'plugins/registry';
-import {ActionTypes} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
+import { ActionTypes } from 'utils/constants';
+import { getSiteURL } from 'utils/url';
 
-import {removeWebappPlugin} from './actions';
+import { removeWebappPlugin } from './actions';
 
 // Including the fullscreen modal css to make it available to the plugins
 // (without lazy loading). This should be removed in the future whenever we
@@ -93,7 +93,7 @@ export async function initializePlugins(): Promise<void> {
         return;
     }
 
-    const {data, error} = await store.dispatch(getPlugins());
+    const { data, error } = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
@@ -119,17 +119,17 @@ export function getPlugins() {
         try {
             plugins = await Client4.getWebappPlugins();
         } catch (error) {
-            return {error};
+            return { error };
         }
 
-        dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins});
+        dispatch({ type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins });
 
-        return {data: plugins};
+        return { data: plugins };
     };
 }
 
 // loadedPlugins tracks which plugins have been added as script tags to the page
-const loadedPlugins: {[key: string]: PluginManifest} = {};
+const loadedPlugins: { [key: string]: PluginManifest } = {};
 
 // describePlugin takes a manifest and spits out a string suitable for console.log messages.
 const describePlugin = (manifest: PluginManifest): string => (
@@ -215,7 +215,7 @@ export function removePlugin(manifest: PluginManifest): void {
     if (plugin && plugin.uninitialize) {
         plugin.uninitialize();
 
-    // Support the deprecated deinitialize callback from the plugins beta.
+        // Support the deprecated deinitialize callback from the plugins beta.
     } else if (plugin && plugin.deinitialize) {
         plugin.deinitialize();
     }
@@ -238,15 +238,15 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const oldManifests = store.getState().plugins.plugins;
+    const oldManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
 
-    const {error} = await store.dispatch(getPlugins());
+    const { error } = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
     }
 
-    const newManifests = store.getState().plugins.plugins;
+    const newManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
 
     // Get new plugins and update existing plugins if version changed
     Object.values(newManifests).forEach((newManifest: PluginManifest) => {

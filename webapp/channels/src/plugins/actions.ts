@@ -1,23 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {hideRHSPlugin as hideRHSPluginAction} from 'actions/views/rhs';
-import {getPluggableId} from 'selectors/rhs';
-import {ActionTypes} from 'utils/constants';
+import { hideRHSPlugin as hideRHSPluginAction } from 'actions/views/rhs';
+import { getPluggableId } from 'selectors/rhs';
+import { ActionTypes } from 'utils/constants';
 
-import type {PluginManifest} from '@mattermost/types/plugins';
-import type {GlobalState} from '@mattermost/types/store';
-import type {ActionFunc} from '@mattermost/types/actions';
+import type { PluginManifest } from 'plugins/export';
+import type { GlobalState } from 'types/store';
+import type { ActionFunc } from 'mattermost-redux/types/actions';
 
-export const removeWebappPlugin = (manifest: PluginManifest): ActionFunc => {
-    return (dispatch) => {
+export const removeWebappPlugin = (manifest: PluginManifest): ActionFunc<boolean, GlobalState> => {
+    return (dispatch,) => {
         dispatch(hideRHSPlugin(manifest.id));
-        dispatch({type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: manifest});
+        dispatch({ type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: manifest });
+        return { data: true };
     };
 };
 
 // hideRHSPlugin closes the RHS if currently showing this plugin.
-const hideRHSPlugin = (manifestId: string): ActionFunc => {
+const hideRHSPlugin = (manifestId: string): ActionFunc<boolean, GlobalState> => {
     return (dispatch, getState) => {
         const state = getState();
         const rhsPlugins = state.plugins.components.RightHandSidebarComponent || [];
@@ -28,5 +29,6 @@ const hideRHSPlugin = (manifestId: string): ActionFunc => {
         if (pluginComponent) {
             dispatch(hideRHSPluginAction(pluggableId));
         }
+        return { data: true };
     };
 };
