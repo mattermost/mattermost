@@ -88,6 +88,6 @@ describe('components/new_search/SearchHint', () => {
     test('Shows the filter reset message when instructed', () => {
         const props = {...baseProps, showFilterHaveBeenReset: true};
         renderWithContext(<SearchHint {...props}/>);
-        expect(screen.getByText('Your filters were reset because your chose a different team')).toBeInTheDocument();
+        expect(screen.getByText('Your filters were reset because you chose a different team')).toBeInTheDocument();
     });
 });
