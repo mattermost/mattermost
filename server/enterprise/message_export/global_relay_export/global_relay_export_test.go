@@ -56,6 +56,9 @@ func TestGlobalRelayExport(t *testing.T) {
 	grExportTests := []struct {
 		name             string
 		cmhs             map[string][]*model.ChannelMemberHistoryResult
+		metadata         map[string]*shared.MetadataChannel
+		startTime        int64
+		endTime          int64
 		posts            []*model.MessageExport
 		attachments      map[string][]*model.FileInfo
 		expectedHeaders  []string
@@ -90,6 +93,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -248,6 +267,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
@@ -432,6 +467,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
@@ -616,6 +667,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
@@ -800,6 +867,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -956,6 +1039,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -1112,6 +1211,22 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -1281,21 +1396,19 @@ func TestGlobalRelayExport(t *testing.T) {
 				}
 			}
 
-			if len(tt.cmhs) > 0 {
-				for channelId, cmhs := range tt.cmhs {
-					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100000), []string{channelId}).Return(cmhs, nil)
-				}
-			}
-
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
 			results, err := GlobalRelayExport(rctx, shared.ExportParams{
-				ExportType:            model.ComplianceExportTypeGlobalrelayZip,
-				Posts:                 tt.posts,
-				BatchPath:             exportFileName,
-				Db:                    shared.NewMessageExportStore(mockStore),
-				FileAttachmentBackend: fileBackend,
-				ExportBackend:         exportBackend,
-				Templates:             templatesContainer,
+				ExportType:             model.ComplianceExportTypeGlobalrelayZip,
+				ChannelMetadata:        tt.metadata,
+				Posts:                  tt.posts,
+				ChannelMemberHistories: tt.cmhs,
+				BatchPath:              exportFileName,
+				BatchStartTime:         tt.startTime,
+				BatchEndTime:           tt.endTime,
+				Db:                     shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend:  fileBackend,
+				ExportBackend:          exportBackend,
+				Templates:              templatesContainer,
 			})
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedWarnings, results.NumWarnings)
@@ -1314,19 +1427,19 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				t.Run("headers", func(t *testing.T) {
 					for _, expectedHeader := range tt.expectedHeaders {
-						assert.Contains(t, string(data), expectedHeader)
+						assert.Contains(t, string(data), expectedHeader, "expected: %s", expectedHeader)
 					}
 				})
 
 				t.Run("text-version", func(t *testing.T) {
 					for _, expectedText := range tt.expectedTexts {
-						assert.Contains(t, string(data), expectedText)
+						assert.Contains(t, string(data), expectedText, "expected: %s", expectedText)
 					}
 				})
 
 				t.Run("html-version", func(t *testing.T) {
 					for _, expectedHTML := range tt.expectedHTMLs {
-						assert.Contains(t, string(data), expectedHTML)
+						assert.Contains(t, string(data), expectedHTML, "\nexpected:\n %s\n\nactual:\n %s\n", expectedHTML, string(data))
 					}
 				})
 			}

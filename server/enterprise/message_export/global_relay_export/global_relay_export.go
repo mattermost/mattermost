@@ -72,32 +72,47 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (results shared.RunExportResults, err error) {
+func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
+	results := shared.RunExportResults{}
+	var attachmentsRemovedPostIDs []string
+	allExports := make(map[string][]*ChannelExport)
+
 	tmpFile, err := os.CreateTemp("", "")
 	if err != nil {
 		return results, fmt.Errorf("unable to open the temporary export file: %w", err)
 	}
 	defer file.DeleteTemp(rctx.Logger(), tmpFile)
 
-	var attachmentsRemovedPostIDs []string
-	allExports := make(map[string][]*ChannelExport)
-
 	zipFile := zip.NewWriter(tmpFile)
 
+	// postAuthorsByChannel is a map so that we don't store duplicate authors
 	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 	metadata := shared.Metadata{
-		Channels:         map[string]*shared.MetadataChannel{},
+		Channels:         p.ChannelMetadata,
 		MessagesCount:    0,
 		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
+		StartTime:        p.BatchStartTime,
+		EndTime:          p.BatchEndTime,
 	}
+	channelsInThisBatch := make(map[string]bool)
 
 	for _, post := range p.Posts {
+		channelId := *post.ChannelId
+		channelsInThisBatch[channelId] = true
+
+		var attachments []*model.FileInfo
+		attachments, err = shared.GetPostAttachments(p.Db, post)
+		if err != nil {
+			return results, err
+		}
+
+		if err = metadata.UpdateCounts(channelId, 1, len(attachments)); err != nil {
+			return results, err
+		}
+
 		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
 			postAuthorsByChannel[*post.ChannelId] = make(map[string]shared.ChannelMember)
 		}
-
 		postAuthorsByChannel[*post.ChannelId][*post.UserId] = shared.ChannelMember{
 			UserId:   *post.UserId,
 			Username: *post.Username,
@@ -105,24 +120,21 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (results shared.
 			Email:    *post.UserEmail,
 		}
 
-		var attachments []*model.FileInfo
-		if len(post.PostFileIds) > 0 {
-			attachments, err = p.Db.FileInfo().GetForPost(*post.PostId, true, true, false)
-			if err != nil {
-				return results, fmt.Errorf("failed to get file info for a post: %w", err)
-			}
-		}
-
 		attachmentsRemoved := addToExports(rctx, attachments, allExports, post)
 		attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, attachmentsRemoved...)
-
-		metadata.Update(post, len(attachments))
 	}
 
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
+			channelId := channelExport.ChannelId
 			var participants []ParticipantRow
-			participants, err = getParticipants(p.Db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
+			participants, err = getParticipants(
+				p.BatchStartTime,
+				p.BatchEndTime,
+				p.ChannelMemberHistories[channelId],
+				postAuthorsByChannel[channelId],
+				channelExport,
+			)
 			if err != nil {
 				return results, err
 			}
@@ -232,15 +244,11 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 	return attachmentsRemovedPostIDs
 }
 
-func getParticipants(db shared.MessageExportStore, channelExport *ChannelExport,
-	postAuthors map[string]shared.ChannelMember) ([]ParticipantRow, error) {
+func getParticipants(startTime int64, endTime int64, channelMembersHistory []*model.ChannelMemberHistoryResult,
+	postAuthors map[string]shared.ChannelMember, channelExport *ChannelExport) ([]ParticipantRow, error) {
 	participantsMap := map[string]ParticipantRow{}
-	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, []string{channelExport.ChannelId})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users in channel during specified time period: %w", err)
-	}
 
-	joins, leaves := shared.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, postAuthors)
+	joins, leaves := shared.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
 
 	for _, join := range joins {
 		userType := "user"
@@ -254,7 +262,7 @@ func getParticipants(db shared.MessageExportStore, channelExport *ChannelExport,
 				UserType:     userType,
 				Email:        join.Email,
 				JoinTime:     join.Datetime,
-				LeaveTime:    channelExport.EndTime,
+				LeaveTime:    endTime,
 				MessagesSent: channelExport.numUserMessages[join.UserId],
 			}
 		}

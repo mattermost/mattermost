@@ -366,7 +366,7 @@ func TestGetPostAttachments(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	files, err := getPostAttachments(shared.NewMessageExportStore(mockStore), post)
+	files, err := shared.GetPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.NoError(t, err)
 	assert.Empty(t, files)
 
@@ -374,7 +374,7 @@ func TestGetPostAttachments(t *testing.T) {
 
 	mockStore.FileInfoStore.On("GetForPost", *post.PostId, true, true, false).Return([]*model.FileInfo{{Name: "test"}, {Name: "test2"}}, nil)
 
-	files, err = getPostAttachments(shared.NewMessageExportStore(mockStore), post)
+	files, err = shared.GetPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.NoError(t, err)
 	assert.Len(t, files, 2)
 
@@ -382,7 +382,7 @@ func TestGetPostAttachments(t *testing.T) {
 
 	mockStore.FileInfoStore.On("GetForPost", *post.PostId, true, true, false).Return(nil, model.NewAppError("Test", "test", nil, "", 400))
 
-	files, err = getPostAttachments(shared.NewMessageExportStore(mockStore), post)
+	files, err = shared.GetPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.Error(t, err)
 	assert.Nil(t, files)
 }
@@ -989,11 +989,9 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
 			results, err := CsvExport(rctx, shared.ExportParams{
-				ExportType:             "",
 				ChannelMetadata:        tt.metadata,
 				Posts:                  tt.posts,
 				ChannelMemberHistories: tt.cmhs,
-				JobStartTime:           0,
 				BatchPath:              exportFileName,
 				BatchStartTime:         tt.startTime,
 				BatchEndTime:           tt.endTime,
