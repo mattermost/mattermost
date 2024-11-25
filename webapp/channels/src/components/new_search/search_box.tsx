@@ -14,14 +14,16 @@ import SearchBoxHints from './search_box_hints';
 import SearchInput from './search_box_input';
 import SearchSuggestions from './search_box_suggestions';
 import SearchTypeSelector from './search_box_type_selector';
+import SelectTeam from './select_team';
 
 const {KeyCodes} = Constants;
 
 type Props = {
     onClose: () => void;
-    onSearch: (searchType: string, searchTerms: string) => void;
+    onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     initialSearchTerms: string;
     initialSearchType: string;
+    initialSearchTeam: string;
 };
 
 const SearchBoxContainer = styled.div`
@@ -60,16 +62,20 @@ const CloseIcon = styled.button`
 
 const SearchBox = forwardRef(
     (
-        {onClose, onSearch, initialSearchTerms, initialSearchType}: Props,
+        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam}: Props,
         ref: React.Ref<HTMLDivElement>,
     ): JSX.Element => {
         const intl = useIntl();
         const [caretPosition, setCaretPosition] = useState<number>(0);
         const [searchTerms, setSearchTerms] = useState<string>(initialSearchTerms);
+        const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const [searchType, setSearchType] = useState<string>(initialSearchType || 'messages');
         const [selectedOption, setSelectedOption] = useState<number>(-1);
 
         const inputRef = useRef<HTMLInputElement | null>(null);
+
+        const [showFilterHaveBeenReset, setShowFilterHaveBeenReset] = useState(false);
+        const filterResetTimeout = useRef<NodeJS.Timeout>();
 
         const getCaretPosition = useCallback(() => {
             return inputRef.current?.selectionEnd || 0;
@@ -124,6 +130,7 @@ const SearchBox = forwardRef(
         const [providerResults, suggestionsHeader] = useSearchSuggestions(
             searchType,
             searchTerms,
+            searchTeam,
             caretPosition,
             getCaretPosition,
             setSelectedOption,
@@ -187,7 +194,7 @@ const SearchBox = forwardRef(
                     e.stopPropagation();
                     e.preventDefault();
                     if (!providerResults || providerResults?.items.length === 0 || selectedOption === -1) {
-                        onSearch(searchType, searchTerms);
+                        onSearch(searchType, searchTeam, searchTerms);
                     } else {
                         const matchedPretext = providerResults?.matchedPretext;
                         const value = providerResults?.terms[selectedOption];
@@ -196,8 +203,27 @@ const SearchBox = forwardRef(
                     }
                 }
             },
-            [providerResults, onClose, selectedOption, onSearch, searchType, searchTerms, updateSearchValue],
+            [providerResults, onClose, selectedOption, onSearch, searchType, searchTeam, searchTerms, updateSearchValue],
         );
+
+        const changeSearchTeam = (selectedTeam: string) => {
+            const newTerms = searchTerms.
+                replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
+                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
+
+            if (newTerms !== searchTerms) {
+                clearTimeout(filterResetTimeout.current);
+
+                setShowFilterHaveBeenReset(true);
+                filterResetTimeout.current = setTimeout(() => {
+                    setShowFilterHaveBeenReset(false);
+                }, 2500);
+            }
+
+            setSearchTerms(newTerms);
+            setSearchTeam(selectedTeam);
+            inputRef.current?.focus();
+        };
 
         const closeHandler = useCallback(
             (e: React.MouseEvent) => {
@@ -230,10 +256,18 @@ const SearchBox = forwardRef(
                 >
                     <i className='icon icon-close'/>
                 </CloseIcon>
-                <SearchTypeSelector
-                    searchType={searchType}
-                    setSearchType={setSearchType}
-                />
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <SearchTypeSelector
+                        searchType={searchType}
+                        setSearchType={setSearchType}
+                    />
+                    <div style={{margin: '20px 65px 0 0'}}>
+                        <SelectTeam
+                            value={searchTeam}
+                            onChange={changeSearchTeam}
+                        />
+                    </div>
+                </div>
                 <SearchInput
                     ref={inputRef}
                     searchTerms={searchTerms}
@@ -244,6 +278,7 @@ const SearchBox = forwardRef(
                 />
                 <SearchSuggestions
                     searchType={searchType}
+                    searchTeam={searchTeam}
                     searchTerms={searchTerms}
                     suggestionsHeader={suggestionsHeader}
                     providerResults={providerResults}
@@ -254,10 +289,12 @@ const SearchBox = forwardRef(
                 />
                 <SearchBoxHints
                     searchTerms={searchTerms}
+                    searchTeam={searchTeam}
                     setSearchTerms={addSearchHint}
                     searchType={searchType}
                     providerResults={providerResults}
                     selectedOption={selectedOption}
+                    showFilterHaveBeenReset={showFilterHaveBeenReset}
                     focus={focus}
                 />
             </SearchBoxContainer>

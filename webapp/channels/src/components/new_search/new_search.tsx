@@ -8,9 +8,9 @@ import styled from 'styled-components';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
-import {updateSearchTerms, showSearchResults, updateSearchType} from 'actions/views/rhs';
+import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
-import {getSearchTerms, getSearchType} from 'selectors/rhs';
+import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
 
@@ -96,6 +96,7 @@ const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
+    const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
 
     const dispatch = useDispatch();
@@ -145,6 +146,11 @@ const NewSearch = (): JSX.Element => {
         const handleClick = (e: MouseEvent) => {
             if (searchBoxRef.current) {
                 if (e.target !== searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+                    // allow click on team selector menu
+                    if (isTargetTeamSelectorMenu(e)) {
+                        return;
+                    }
+
                     setFocused(false);
                     setCurrentChannel('');
                 }
@@ -181,9 +187,10 @@ const NewSearch = (): JSX.Element => {
     );
 
     const runSearch = useCallback(
-        (searchType: string, searchTerms: string) => {
+        (searchType: string, searchTeam: string, searchTerms: string) => {
             dispatch(updateSearchType(searchType));
             dispatch(updateSearchTerms(searchTerms));
+            dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
                 dispatch(showSearchResults(false));
@@ -270,11 +277,22 @@ const NewSearch = (): JSX.Element => {
                         onSearch={runSearch}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                         initialSearchType={searchType}
+                        initialSearchTeam={searchTeam}
                     />
                 </PopoverStyled>
             )}
         </NewSearchContainer>
     );
 };
+
+// The team selector dropdown is in fact a small modal rendered outside the search box
+// this allows to keep the searchbox open when the user interacts with the team selector
+function isTargetTeamSelectorMenu(event: MouseEvent) {
+    if (!document.getElementsByClassName('MuiModal-root')[0]) {
+        return false;
+    }
+
+    return document.getElementsByClassName('MuiModal-root')[0].contains(event.target as Node);
+}
 
 export default NewSearch;

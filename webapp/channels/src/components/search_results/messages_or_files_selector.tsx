@@ -5,10 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-
 import {getSearchTeam} from 'selectors/rhs';
 
+import SelectTeam from 'components/new_search/select_team';
 import type {SearchFilterType} from 'components/search/types';
 
 import Constants from 'utils/constants';
@@ -36,17 +35,7 @@ type Props = {
 };
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
-    const teams = useSelector((state: GlobalState) => getMyTeams(state));
     const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
-
-    const options = [{value: '', label: 'All teams', selected: searchTeam === ''}];
-    for (const team of teams) {
-        options.push({value: team.id, label: team.display_name, selected: searchTeam === team.id});
-    }
-
-    const onTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        props.onTeamChange(e.target.value);
-    };
 
     return (
         <div className='MessagesOrFilesSelector'>
@@ -78,19 +67,10 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             </div>
             {props.crossTeamSearchEnabled && (
                 <div className='team-selector-container'>
-                    <select
+                    <SelectTeam
                         value={searchTeam}
-                        onChange={onTeamChange}
-                    >
-                        {options.map((option) => (
-                            <option
-                                key={option.value}
-                                value={option.value}
-                            >
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={props.onTeamChange}
+                    />
                 </div>
             )}
             {props.selected === 'files' &&

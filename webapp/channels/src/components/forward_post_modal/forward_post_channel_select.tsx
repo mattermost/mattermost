@@ -287,7 +287,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
                 }
             };
 
-            provider.handlePretextChanged(inputValue, handleResults);
+            provider.handlePretextChanged(inputValue, '', handleResults);
         });
     };
 

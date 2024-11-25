@@ -65,21 +65,21 @@ export const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionP
 SearchUserSuggestion.displayName = 'SearchUserSuggestion';
 
 export default class SearchUserProvider extends Provider {
-    private autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
-    constructor(userSearchFunc: (username: string) => Promise<UserAutocomplete>) {
+    private autocompleteUsersInTeam: (username: string, teamId: string) => Promise<UserAutocomplete>;
+    constructor(userSearchFunc: (username: string, teamId: string) => Promise<UserAutocomplete>) {
         super();
         this.autocompleteUsersInTeam = userSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
+    handlePretextChanged(pretext: string, teamId: string, resultsCallback: ResultsCallback<UserProfile>) {
         const captured = (/\bfrom:\s*(\S*)$/i).exec(pretext.toLowerCase());
 
-        this.doAutocomplete(captured, resultsCallback);
+        this.doAutocomplete(captured, teamId, resultsCallback);
 
         return Boolean(captured);
     }
 
-    async doAutocomplete(captured: RegExpExecArray | null, resultsCallback: ResultsCallback<UserProfile>) {
+    async doAutocomplete(captured: RegExpExecArray | null, teamId: string, resultsCallback: ResultsCallback<UserProfile>) {
         if (!captured) {
             return;
         }
@@ -88,7 +88,7 @@ export default class SearchUserProvider extends Provider {
 
         this.startNewRequest(usernamePrefix);
 
-        const data = await this.autocompleteUsersInTeam(usernamePrefix);
+        const data = await this.autocompleteUsersInTeam(usernamePrefix, teamId);
 
         if (this.shouldCancelDispatch(usernamePrefix)) {
             return;

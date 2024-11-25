@@ -148,7 +148,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         getState.mockImplementation(store.getState);
 
         const searchText = 'some';
-        searchProvider.handlePretextChanged(searchText, resultsCallback);
+        searchProvider.handlePretextChanged(searchText, '', resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         expect(args.items[0].channel.id).toEqual('somePublicMemberChannelId');
@@ -179,7 +179,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         getState.mockImplementation(store.getState);
 
         const searchText = 'some';
-        searchProvider.handlePretextChanged(searchText, resultsCallback);
+        searchProvider.handlePretextChanged(searchText, '', resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
@@ -211,7 +211,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         getState.mockImplementation(store.getState);
 
         const searchText = 'some';
-        searchProvider.handlePretextChanged(searchText, resultsCallback);
+        searchProvider.handlePretextChanged(searchText, '', resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
@@ -244,7 +244,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         getState.mockImplementation(store.getState);
 
         const searchText = 'some';
-        searchProvider.handlePretextChanged(searchText, resultsCallback);
+        searchProvider.handlePretextChanged(searchText, '', resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 
@@ -275,7 +275,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
         getState.mockImplementation(store.getState);
 
         const searchText = 'not matching text';
-        searchProvider.handlePretextChanged(searchText, resultsCallback);
+        searchProvider.handlePretextChanged(searchText, '', resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
 

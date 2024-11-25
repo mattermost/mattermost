@@ -90,7 +90,7 @@ export default class ChannelMentionProvider extends Provider {
         this.delayChannelAutocomplete = props.delayChannelAutocomplete;
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<WrappedChannel>) {
+    handlePretextChanged(pretext: string, _: string, resultCallback: ResultsCallback<WrappedChannel>) {
         this.resetRequest();
 
         const captured = (/\B(~([^~\r\n]*))$/i).exec(pretext.toLowerCase());

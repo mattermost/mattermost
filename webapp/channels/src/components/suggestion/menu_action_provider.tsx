@@ -35,7 +35,7 @@ export default class MenuActionProvider extends Provider {
         this.options = options;
     }
 
-    handlePretextChanged(prefix: string, resultsCallback: ResultsCallback<MenuAction>) {
+    handlePretextChanged(prefix: string, _: string, resultsCallback: ResultsCallback<MenuAction>) {
         if (prefix.length === 0) {
             this.displayAllOptions(resultsCallback);
             return true;

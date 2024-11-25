@@ -15,8 +15,10 @@ describe('components/new_search/SearchHint', () => {
         onSelectFilter: jest.fn(),
         searchType: 'messages',
         searchTerms: '',
+        searchTeam: 'teamId',
         hasSelectedOption: false,
         isDate: false,
+        showFilterHaveBeenReset: false,
     };
 
     test('should have the right hint options on search messages empty string', () => {

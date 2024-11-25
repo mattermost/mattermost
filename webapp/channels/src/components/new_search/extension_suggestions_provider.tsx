@@ -29,7 +29,7 @@ Constants.SVG_TYPES.forEach((extension) => globalExtensions.push({label: extensi
 globalExtensions.sort((a, b) => a.label.localeCompare(b.label));
 
 export class SearchFileExtensionProvider extends Provider {
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<ExtensionItem>) {
+    handlePretextChanged(pretext: string, _: string, resultsCallback: ResultsCallback<ExtensionItem>) {
         const captured = (/\b(?:ext):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const matchedPretext = captured[1];

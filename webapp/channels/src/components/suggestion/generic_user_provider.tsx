@@ -63,7 +63,7 @@ export default class GenericUserProvider extends Provider {
         this.autocompleteUsers = searchUsersFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<UserProfile>) {
+    handlePretextChanged(pretext: string, _: string, resultsCallback: ResultsCallback<UserProfile>) {
         const normalizedPretext = pretext.toLowerCase();
         this.startNewRequest(normalizedPretext);
 

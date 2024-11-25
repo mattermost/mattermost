@@ -31,7 +31,7 @@ function itemToTerm(isAtSearch: boolean, item: { type: string; display_name: str
     return item.name;
 }
 
-type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
+type SearchChannelAutocomplete = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
 export default class SearchChannelProvider extends Provider {
     autocompleteChannelsForSearch: SearchChannelAutocomplete;
@@ -41,7 +41,7 @@ export default class SearchChannelProvider extends Provider {
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
+    handlePretextChanged(pretext: string, teamId: string, resultsCallback: ResultsCallback<Channel>) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             let channelPrefix = captured[1];
@@ -57,6 +57,7 @@ export default class SearchChannelProvider extends Provider {
 
             this.autocompleteChannelsForSearch(
                 channelPrefix,
+                teamId,
                 (data: Channel[]) => {
                     if (this.shouldCancelDispatch(channelPrefix)) {
                         return;

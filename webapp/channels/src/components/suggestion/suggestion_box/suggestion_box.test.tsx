@@ -39,7 +39,7 @@ class TestProvider extends Provider {
         this.repeatResults = repeatResults;
     }
 
-    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<string>) {
+    handlePretextChanged(pretext: string, _: string, resultCallback: ResultsCallback<string>) {
         if (pretext.trim().length === 0) {
             return false;
         }
