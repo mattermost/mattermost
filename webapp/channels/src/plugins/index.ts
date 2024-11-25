@@ -3,36 +3,29 @@
 
 import regeneratorRuntime from 'regenerator-runtime';
 
-import { Client4 } from 'mattermost-redux/client';
-import { Preferences } from 'mattermost-redux/constants';
-import { getConfig, isPerformanceDebuggingEnabled } from 'mattermost-redux/selectors/entities/general';
-import { getBool } from 'mattermost-redux/selectors/entities/preferences';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
-import { unregisterAdminConsolePlugin } from 'actions/admin_actions';
-import { trackPluginInitialization } from 'actions/telemetry_actions';
-import { unregisterPluginTranslationsSource } from 'actions/views/root';
-import { unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler } from 'actions/websocket_actions';
+import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
+import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+
+import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
+import {trackPluginInitialization} from 'actions/telemetry_actions';
+import {unregisterPluginTranslationsSource} from 'actions/views/root';
+import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
 import PluginRegistry from 'plugins/registry';
-import { ActionTypes } from 'utils/constants';
-import { getSiteURL } from 'utils/url';
+import {ActionTypes} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
-import { removeWebappPlugin } from './actions';
+import {removeWebappPlugin} from './actions';
 
 // Including the fullscreen modal css to make it available to the plugins
 // (without lazy loading). This should be removed in the future whenever we
 // have all plugins migrated to common components that can be reused there.
 import 'components/widgets/modals/full_screen_modal.scss';
-
-// Types
-interface PluginManifest {
-    id: string;
-    version: string;
-    webapp: {
-        bundle_path: string;
-    };
-}
 
 interface Plugin {
     initialize?: (registry: PluginRegistry, store: any) => void;
@@ -93,7 +86,7 @@ export async function initializePlugins(): Promise<void> {
         return;
     }
 
-    const { data, error } = await store.dispatch(getPlugins());
+    const {data, error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
@@ -119,12 +112,12 @@ export function getPlugins() {
         try {
             plugins = await Client4.getWebappPlugins();
         } catch (error) {
-            return { error };
+            return {error};
         }
 
-        dispatch({ type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins });
+        dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins});
 
-        return { data: plugins };
+        return {data: plugins};
     };
 }
 
@@ -146,7 +139,7 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
 
         // Don't load it again if previously loaded
         const oldManifest = loadedPlugins[manifest.id];
-        if (oldManifest && oldManifest.webapp.bundle_path === manifest.webapp.bundle_path) {
+        if (oldManifest && oldManifest.webapp?.bundle_path === manifest.webapp?.bundle_path) {
             resolve();
             return;
         }
@@ -167,8 +160,8 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
         }
 
         // Backwards compatibility for old plugins
-        let bundlePath = manifest.webapp.bundle_path;
-        if (bundlePath.includes('/static/') && !bundlePath.includes('/static/plugins/')) {
+        let bundlePath = manifest.webapp?.bundle_path;
+        if (bundlePath && bundlePath.includes('/static/') && !bundlePath.includes('/static/plugins/')) {
             bundlePath = bundlePath.replace('/static/', '/static/plugins/');
         }
 
@@ -240,7 +233,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
 
     const oldManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
 
-    const { error } = await store.dispatch(getPlugins());
+    const {error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
