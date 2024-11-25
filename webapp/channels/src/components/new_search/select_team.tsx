@@ -9,9 +9,7 @@ import {useSelector} from 'react-redux';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import * as Menu from 'components/menu';
-
 import './select_team.scss';
-import {MenuItemStyled} from 'components/menu/menu_item';
 
 interface Props {
     value: string;
