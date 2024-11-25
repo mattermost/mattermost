@@ -201,7 +201,7 @@
   "add_outgoing_oauth_connection.validated_connection": "З'єднання підтверджено",
   "add_outgoing_oauth_connection.validating": "Перевірка...",
   "add_outgoing_oauth_connection.validation_error": "З'єднання не підтверджено. Будь ласка, перевірте журнали сервера для отримання детальної інформації або <link>спробуйте ще раз</link>.",
-  "add_outgoing_webhook.callbackUrls": "URL зворотного виклику (по одному на рядок)",
+  "add_outgoing_webhook.callbackUrls": "URL-адреси зворотного виклику (по одній на рядок)",
   "add_outgoing_webhook.callbackUrls.help": "URL, на який будуть відправлятися повідомлення. Якщо URL-адреса є приватним, додайте його як {link}.",
   "add_outgoing_webhook.callbackUrls.helpLinkText": "надійне внутрішнє з'єднання",
   "add_outgoing_webhook.callbackUrlsRequired": "Потрібна одна або декілька URL-адрес зворотного виклику",
