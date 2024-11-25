@@ -60,6 +60,16 @@ const CloseIcon = styled.button`
     z-index: 1;
 `;
 
+const SearchBoxHeader = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+`
+
+const SearchTeamSelector = styled.div`
+    margin: 20px 65px 0 0;
+`
+
 const SearchBox = forwardRef(
     (
         {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam}: Props,
@@ -256,18 +266,18 @@ const SearchBox = forwardRef(
                 >
                     <i className='icon icon-close'/>
                 </CloseIcon>
-                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                <SearchBoxHeader>
                     <SearchTypeSelector
                         searchType={searchType}
                         setSearchType={setSearchType}
                     />
-                    <div style={{margin: '20px 65px 0 0'}}>
+                    <SearchTeamSelector>
                         <SelectTeam
                             value={searchTeam}
                             onChange={changeSearchTeam}
                         />
-                    </div>
-                </div>
+                    </SearchTeamSelector>
+                </SearchBoxHeader>
                 <SearchInput
                     ref={inputRef}
                     searchTerms={searchTerms}
