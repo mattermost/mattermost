@@ -556,7 +556,7 @@
   "admin.compliance.enableDailyTitle": "Aktivera Daglig rapport:",
   "admin.compliance.enableDesc": "När aktiverad tillåter Mattermost efterlevnadsrapportering från sidan <strong>Efterlevnad och Övervakning</strong>. Se <link>dokumentationen</link> för mer information.",
   "admin.compliance.enableTitle": "Aktivera efterlevnadsrapport:",
-  "admin.compliance.newComplianceExportBanner": "Denna funktion är ersatt av en ny funktion för [Efterlevnadsrapport]({siteURL}/admin_console/compliance/export) och kommer tas bort i kommande versioner. Vi rekommenderar att migrera till det nya systemet.",
+  "admin.compliance.newComplianceExportBanner": "Denna funktion är ersatt av en ny funktion för <link>Efterlevnadsrapport</link> och kommer tas bort i kommande versioner. Vi rekommenderar att migrera till det nya systemet.",
   "admin.complianceExport.createJob.help": "Skapar ett jobb för efterlevnadsexport omedelbart.",
   "admin.complianceExport.createJob.title": "Kör export av efterlevnadsrapport nu",
   "admin.complianceExport.exportFormat.actiance": "Actiance XML",
