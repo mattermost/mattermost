@@ -995,7 +995,11 @@ func replacePlaceholders(schemaJSON []byte, requestJSON map[string]interface{}) 
 		// Get the value from the request JSON
 		value, err := getJSONValue(requestJSON, keyPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get value for key path '%s': %w", keyPath, err)
+			value = fmt.Sprintf("(%s)<INVALID KEY PATH>", keyPath)
+		}
+
+		if value == nil {
+			value = fmt.Sprintf("(%s)<NULL>", keyPath)
 		}
 
 		// Replace the placeholder with the value

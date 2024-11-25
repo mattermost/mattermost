@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { IncomingWebhook, IncomingWebhookRequest } from '@mattermost/types/integrations';
 import useListenForWebhookPayload from 'components/common/hooks/useListenForWebhookPayload';
 import Loading_spinner from 'components/widgets/loading/loading_spinner';
-import ReactJson from 'react-json-view';
 import { JsonEditor, IconCopy, NodeData, IconOk } from 'json-edit-react';
 import classNames from 'classnames';
 
 import './webhook_schema_editor.scss';
-import { Button } from 'react-bootstrap';
 import { Client4 } from 'mattermost-redux/client';
+import Spinner_button from 'components/spinner_button';
 
 type Props = {
     initialHook: IncomingWebhook;
@@ -45,9 +44,7 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
     const [resultingSchema, setResultingSchema] = useState<IncomingWebhookRequest>(
         initialHook.webhook_schema_translation || createEmptyIncomingWebhookRequest()
     );
-
-
-
+    const [copilotSuggestionLoading, setCopilotSuggestionLoading] = useState(false);
 
     useEffect(() => {
         onSchemaUpdate(resultingSchema);
@@ -74,7 +71,7 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
                         OR
                     </div>
                     <div>
-                        <Button className="btn btn-primary" onClick={handleCopilotSuggestionClick}>Get Copilot Suggestion</Button>
+                        <Spinner_button spinning={copilotSuggestionLoading} spinningText={'Generating...'} className="btn btn-primary" onClick={handleCopilotSuggestionClick}>Get Copilot Suggestion</Spinner_button>
                     </div>
                 </div>
             case 'error':
@@ -85,8 +82,9 @@ export default function WebhookSchemaEditor({ initialHook, onSchemaUpdate }: Pro
     };
 
     const handleCopilotSuggestionClick = async () => {
+        setCopilotSuggestionLoading(true);
         const response = await Client4.fetchWebhookSchemaSuggestionFromCopilot(webhookListener.payload!);
-        console.log(response);
+        setCopilotSuggestionLoading(false);
         setResultingSchema(JSON.parse(response));
     }
 
