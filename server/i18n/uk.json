@@ -2781,7 +2781,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
-    "translation": "Ім'я користувача задовге."
+    "translation": "Ім'я користувача занадто довге."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -2789,7 +2789,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
-    "translation": "Нік користувача надто довгий."
+    "translation": "Псевдонім користувача надто довгий."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
@@ -2905,7 +2905,7 @@
   },
   {
     "id": "app.plugin.install.app_error",
-    "translation": "Не вдається встановити плагін."
+    "translation": "Не вдалося встановити плагін."
   },
   {
     "id": "app.plugin.install_id.app_error",
@@ -2917,7 +2917,7 @@
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Ідентифікатор плагіна повинен містити принаймні {{.Min}} символи, не більше {{.Max}} символів і відповідати {{.Regex}}."
+    "translation": "Ідентифікатор плагіна має містити щонайменше {{.Min}} символів, щонайбільше {{.Max}} символів і відповідати {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3101,23 +3101,23 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Пошук Elasticsearch не включений на цьому сервері"
+    "translation": "Пошук за допомогою Elasticsearch на цьому сервері не ввімкнено"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "Не вдалося індексувати публікацію"
+    "translation": "Не вдалося проіндексувати допис"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
+    "translation": "Індексатор Elasticsearch не зміг розібрати кінцевий час"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Працівник індексації Elasticsearch не зміг розібрати початковий час"
+    "translation": "Індексатор Elasticsearch не зміг розібрати час запуску"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Еластичний пошук не запускається"
+    "translation": "Elasticsearch не запущено"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3125,19 +3125,19 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Пошук на сайті Elasticsearch вимкнено на цьому сервері"
+    "translation": "На цьому сервері пошук за допомогою Elasticsearch вимкнено"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Не вдалося проаналізувати відповідності результатів пошуку"
+    "translation": "Не вдалося розібрати збіги результатів пошуку"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Пошук не вдалося завершити"
+    "translation": "Не вдалося завершити пошук"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Не вдається розшифрувати результати пошуку"
+    "translation": "Не вдалося розшифрувати результати пошуку"
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -4953,27 +4953,27 @@
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Не вдається розшифрувати результати пошуку"
+    "translation": "Не вдалося розшифрувати результати пошуку"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Пошук не вдалося завершити"
+    "translation": "Не вдалося завершити пошук"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Не вдається розшифрувати результати пошуку"
+    "translation": "Не вдалося розшифрувати результати пошуку"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Пошук не вдалося завершити"
+    "translation": "Не вдалося завершити пошук"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Пошук на сайті Elasticsearch вимкнено на цьому сервері"
+    "translation": "На цьому сервері пошук за допомогою Elasticsearch вимкнено"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не вдалося отримати індекси Elasticsearch"
+    "translation": "Не вдалося оновити індекси Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -4981,7 +4981,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Не вдалося індексувати публікацію"
+    "translation": "Не вдалося проіндексувати користувача"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -4989,7 +4989,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Не вдалося видалити публікацію"
+    "translation": "Не вдалося видалити користувача"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5173,11 +5173,11 @@
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
-    "translation": "Під час виходу з каналу сталася помилка."
+    "translation": "Виникла помилка під час збереження файлу."
   },
   {
     "id": "app.plugin.write_file.read.app_error",
-    "translation": "Під час виходу з каналу сталася помилка."
+    "translation": "Виникла помилка під час читання файлу."
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
@@ -5205,7 +5205,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Не вдається перезапустити плагін після оновлення."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -5245,11 +5245,11 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed."
+    "translation": "Версію плагіна не вдалося проаналізувати."
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "Failed to install marketplace plugin."
+    "translation": "Не вдалося встановити плагін з магазину плагінів."
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
@@ -5849,7 +5849,7 @@
   },
   {
     "id": "app.oauth.save_app.save.app_error",
-    "translation": "Не вдається зберегти додаток."
+    "translation": "Не вдалося зберегти додаток."
   },
   {
     "id": "app.oauth.save_app.existing.app_error",
@@ -5965,19 +5965,19 @@
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
-    "translation": "Не вдалося видалити публікацію"
+    "translation": "Не вдалося видалити повідомлення користувача"
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Не вдалося видалити публікацію"
+    "translation": "Не вдалося видалити дописи в каналі"
   },
   {
     "id": "bleveengine.delete_user_posts.error",
-    "translation": "Не вдалося видалити публікацію"
+    "translation": "Не вдалося видалити повідомлення користувача"
   },
   {
     "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Не вдалося видалити публікацію"
+    "translation": "Не вдалося видалити дописи в каналі"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6217,7 +6217,7 @@
   },
   {
     "id": "app.plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys."
+    "translation": "Не вдалось перерахувати всі ключі плагіна."
   },
   {
     "id": "app.plugin_store.get.app_error",
@@ -9705,7 +9705,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
-    "translation": "Пошук не вдалося завершити"
+    "translation": "Не вдалося завершити пошук"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
