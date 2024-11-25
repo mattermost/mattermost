@@ -84,14 +84,14 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 		StartTime:        p.BatchStartTime,
 		EndTime:          p.BatchEndTime,
 	}
-
 	channelsInThisBatch := make(map[string]bool)
+
 	for _, post := range p.Posts {
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(p.Db, post)
+		attachments, err = shared.GetPostAttachments(p.Db, post)
 		if err != nil {
 			return results, err
 		}
@@ -156,7 +156,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 		}
 
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(p.Db, post)
+		attachments, err = shared.GetPostAttachments(p.Db, post)
 		if err != nil {
 			return results, err
 		}
@@ -173,7 +173,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	var missingFiles []string
 	for _, post := range p.Posts {
 		var attachments []*model.FileInfo
-		attachments, err = getPostAttachments(p.Db, post)
+		attachments, err = shared.GetPostAttachments(p.Db, post)
 		if err != nil {
 			return results, err
 		}
@@ -353,19 +353,6 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 		return *joinLeavePosts[i].PostCreateAt < *joinLeavePosts[j].PostCreateAt
 	})
 	return joinLeavePosts, nil
-}
-
-func getPostAttachments(db shared.MessageExportStore, post *model.MessageExport) ([]*model.FileInfo, error) {
-	// if the post included any files, we need to add special elements to the export.
-	if len(post.PostFileIds) == 0 {
-		return []*model.FileInfo{}, nil
-	}
-
-	attachments, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get file info for a post: %w", err)
-	}
-	return attachments, nil
 }
 
 func postToRow(post *model.MessageExport, createTime *int64, message string) []string {
