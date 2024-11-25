@@ -129,20 +129,7 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
-type Params struct {
-	ChannelMetadata        map[string]*shared.MetadataChannel
-	Posts                  []*model.MessageExport
-	ChannelMemberHistories map[string][]*model.ChannelMemberHistoryResult
-	JobStartTime           int64
-	BatchPath              string
-	BatchStartTime         int64
-	BatchEndTime           int64
-	Db                     shared.MessageExportStore
-	FileAttachmentBackend  filestore.FileBackend
-	ExportBackend          filestore.FileBackend
-}
-
-func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error) {
+func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	start := time.Now()
 
 	// postAuthorsByChannel is a map so that we don't store duplicate authors
@@ -160,12 +147,6 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	results := shared.RunExportResults{}
 
 	for i, post := range p.Posts {
-		if post == nil {
-			results.IgnoredPosts++
-			rctx.Logger().Warn("ignored a nil post reference in the list")
-			continue
-		}
-
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
@@ -180,7 +161,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 		postExport, results = getPostExport(p.Posts, i, results)
 		elementsByChannel[channelId] = append(elementsByChannel[channelId], postExport)
 
-		startUploads, stopUploads, uploadedFiles, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
+		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
 		if err != nil {
 			return results, err
 		}
@@ -198,10 +179,10 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 			postAuthorsByChannel[channelId] = make(map[string]shared.ChannelMember)
 		}
 		postAuthorsByChannel[channelId][*post.UserId] = shared.ChannelMember{
-			Email:    *post.UserEmail,
 			UserId:   *post.UserId,
-			IsBot:    post.IsBot,
+			Email:    *post.UserEmail,
 			Username: *post.Username,
+			IsBot:    post.IsBot,
 		}
 	}
 
@@ -209,7 +190,7 @@ func ActianceExport(rctx request.CTX, p Params) (shared.RunExportResults, error)
 	// user activity between this batch's startTime-endTime. If so, add it to the channelsInThisBatch.
 	for id := range p.ChannelMetadata {
 		if !channelsInThisBatch[id] {
-			if channelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
+			if shared.ChannelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
 				channelsInThisBatch[id] = true
 			}
 		}
@@ -293,16 +274,6 @@ func isDeletedMsg(post *model.MessageExport) bool {
 		}
 
 		if _, ok := props[model.PostPropsDeleteBy]; ok {
-			return true
-		}
-	}
-	return false
-}
-
-func channelHasActivity(cmhs []*model.ChannelMemberHistoryResult, startTime int64, endTime int64) bool {
-	for _, cmh := range cmhs {
-		if (cmh.JoinTime >= startTime && cmh.JoinTime <= endTime) ||
-			(cmh.LeaveTime != nil && *cmh.LeaveTime >= startTime && *cmh.LeaveTime <= endTime) {
 			return true
 		}
 	}
@@ -410,23 +381,22 @@ func deleteFileToExportEntry(post *model.MessageExport, message string) PostExpo
 	}
 }
 
-func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExportStore) ([]any, []any, []*model.FileInfo, []any, error) {
+// postToAttachmentsEntries returns every fileInfo as uploadedFiles. It also adds each file into the lists:
+//
+//	startUploads, stopUploads, and deleteFileMessages (for ActianceExport).
+func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExportStore) (
+	uploadedFiles []*model.FileInfo, startUploads []any, stopUploads []any, deleteFileMessages []any, err error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
-		return nil, nil, nil, nil, nil
+		return
 	}
 
-	fileInfos, err := db.FileInfo().GetForPost(*post.PostId, true, true, false)
+	uploadedFiles, err = db.FileInfo().GetForPost(*post.PostId, true, true, false)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return
 	}
 
-	var startUploads []any
-	var stopUploads []any
-	var deleteFileMessages []any
-
-	var uploadedFiles []*model.FileInfo
-	for _, fileInfo := range fileInfos {
+	for _, fileInfo := range uploadedFiles {
 		// insert a record of the file upload into the export file
 		// path to exported file is relative to the fileAttachmentFilestore root,
 		// which could be different from the exportFilestore root
@@ -448,10 +418,8 @@ func postToAttachmentsEntries(post *model.MessageExport, db shared.MessageExport
 		if fileInfo.DeleteAt > 0 && post.PostDeleteAt != nil {
 			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, "delete "+fileInfo.Path))
 		}
-
-		uploadedFiles = append(uploadedFiles, fileInfo)
 	}
-	return startUploads, stopUploads, uploadedFiles, deleteFileMessages, nil
+	return
 }
 
 func buildChannelExport(startTime int64, endTime int64, channel *shared.MetadataChannel,

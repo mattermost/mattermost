@@ -1288,7 +1288,7 @@ func TestGlobalRelayExport(t *testing.T) {
 			}
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
-			results, err := GlobalRelayExport(rctx, Params{
+			results, err := GlobalRelayExport(rctx, shared.ExportParams{
 				ExportType:            model.ComplianceExportTypeGlobalrelayZip,
 				Posts:                 tt.posts,
 				BatchPath:             exportFileName,

@@ -6,7 +6,6 @@ package csv_export
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
 	"io"
 	"os"
 	"path"
@@ -392,38 +391,38 @@ func TestGetJoinLeavePosts(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	channels := map[string]*shared.MetadataChannel{"bad-request": {StartTime: 1, EndTime: 2, ChannelId: "bad-request"}}
-
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), []string{"bad-request"}).Return(nil, errors.New("test"))
-
-	_, err := getJoinLeavePosts(channels, nil, shared.NewMessageExportStore(mockStore))
-	assert.Error(t, err)
-
-	channels = map[string]*shared.MetadataChannel{
+	channels := map[string]*shared.MetadataChannel{
 		"good-request-1": {StartTime: 1, EndTime: 7, ChannelId: "good-request-1", TeamId: model.NewPointer("test1"), TeamName: model.NewPointer("test1"), TeamDisplayName: model.NewPointer("test1"), ChannelName: "test1", ChannelDisplayName: "test1", ChannelType: "O"},
 		"good-request-2": {StartTime: 2, EndTime: 7, ChannelId: "good-request-2", TeamId: model.NewPointer("test2"), TeamName: model.NewPointer("test2"), TeamDisplayName: model.NewPointer("test2"), ChannelName: "test2", ChannelDisplayName: "test2", ChannelType: "P"},
 	}
 
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-1"].StartTime, channels["good-request-1"].EndTime, []string{"good-request-1"}).Return(
-		[]*model.ChannelMemberHistoryResult{
+	// This would have been retrieved during CalculateChannelExports
+	channelMemberHistories := map[string][]*model.ChannelMemberHistoryResult{
+		"good-request-1": {
 			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
 			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
 			{JoinTime: 3, UserId: "test3", UserEmail: "test3", Username: "test3"},
 		},
-		nil,
-	)
-
-	mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", channels["good-request-2"].StartTime, channels["good-request-2"].EndTime, []string{"good-request-2"}).Return(
-		[]*model.ChannelMemberHistoryResult{
+		"good-request-2": {
 			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
 			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
 			{JoinTime: 6, UserId: "test6", UserEmail: "test6", Username: "test6"},
 		},
-		nil,
-	)
+	}
 
-	messages, err := getJoinLeavePosts(channels, nil, shared.NewMessageExportStore(mockStore))
-	assert.NoError(t, err)
+	var messages []*model.MessageExport
+	for _, id := range []string{"good-request-1", "good-request-2"} {
+		joinLeaves, err2 := getJoinLeavePosts(
+			1,
+			7,
+			channels[id],
+			channelMemberHistories[id],
+			nil,
+		)
+		require.NoError(t, err2)
+		messages = append(messages, joinLeaves...)
+	}
+
 	assert.Len(t, messages, 8)
 	chanTypeOpen := model.ChannelTypeOpen
 	chanTypePr := model.ChannelTypePrivate
@@ -654,6 +653,9 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 	csvExportTests := []struct {
 		name             string
 		cmhs             map[string][]*model.ChannelMemberHistoryResult
+		metadata         map[string]*shared.MetadataChannel
+		startTime        int64
+		endTime          int64
 		posts            []*model.MessageExport
 		attachments      map[string][]*model.FileInfo
 		expectedPosts    string
@@ -666,7 +668,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			posts:            []*model.MessageExport{},
 			attachments:      map[string][]*model.FileInfo{},
 			expectedPosts:    header,
-			expectedMetadata: "{\n  \"Channels\": {},\n  \"MessagesCount\": 0,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 0,\n  \"EndTime\": 0\n}",
+			expectedMetadata: "{\n  \"Channels\": null,\n  \"MessagesCount\": 0,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 0,\n  \"EndTime\": 0\n}",
 			expectedFiles:    2,
 		},
 		{
@@ -684,6 +686,22 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -763,6 +781,22 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
@@ -828,6 +862,22 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					},
 				},
 			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100,
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
@@ -937,16 +987,23 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				}
 			}
 
-			if len(tt.cmhs) > 0 {
-				for channelId, cmhs := range tt.cmhs {
-					mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(100), []string{channelId}).Return(cmhs, nil)
-				}
-			}
-
 			exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-			warningCount, err := CsvExport(rctx, tt.posts, shared.NewMessageExportStore(mockStore), exportBackend, attachmentBackend, exportFileName)
+			results, err := CsvExport(rctx, shared.ExportParams{
+				ExportType:             "",
+				ChannelMetadata:        tt.metadata,
+				Posts:                  tt.posts,
+				ChannelMemberHistories: tt.cmhs,
+				JobStartTime:           0,
+				BatchPath:              exportFileName,
+				BatchStartTime:         tt.startTime,
+				BatchEndTime:           tt.endTime,
+				Config:                 nil,
+				Db:                     shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend:  attachmentBackend,
+				ExportBackend:          exportBackend,
+			})
 			assert.NoError(t, err)
-			assert.Equal(t, 0, warningCount)
+			assert.Equal(t, 0, results.NumWarnings)
 
 			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
@@ -995,6 +1052,20 @@ func TestWriteExportWarnings(t *testing.T) {
 			{
 				JoinTime: 400, UserId: "test3", UserEmail: "test3", Username: "test3",
 			},
+		},
+	}
+	metadata := map[string]*shared.MetadataChannel{
+		"channel-id": {
+			TeamId:             model.NewPointer("team-id"),
+			TeamName:           model.NewPointer("team-name"),
+			TeamDisplayName:    model.NewPointer("team-display-name"),
+			ChannelId:          "channel-id",
+			ChannelName:        "channel-name",
+			ChannelDisplayName: "channel-display-name",
+			ChannelType:        chanTypeDirect,
+			RoomId:             "direct - channel-id",
+			StartTime:          1,
+			EndTime:            100,
 		},
 	}
 
@@ -1078,14 +1149,22 @@ func TestWriteExportWarnings(t *testing.T) {
 		})
 	}
 
-	for channelId, cmhs := range cmhs {
-		mockStore.ChannelMemberHistoryStore.On("GetUsersInChannelDuring", int64(1), int64(2), []string{channelId}).Return(cmhs, nil)
-	}
-
 	exportFileName := path.Join("export", "jobName", "jobName-batch001-csv.zip")
-	warningCount, err := CsvExport(rctx, posts, shared.NewMessageExportStore(mockStore), fileBackend, fileBackend, exportFileName)
+	results, err := CsvExport(rctx, shared.ExportParams{
+		ExportType:             "",
+		ChannelMetadata:        metadata,
+		Posts:                  posts,
+		ChannelMemberHistories: cmhs,
+		BatchPath:              exportFileName,
+		BatchStartTime:         1,
+		BatchEndTime:           100,
+		Config:                 nil,
+		Db:                     shared.NewMessageExportStore(mockStore),
+		FileAttachmentBackend:  fileBackend,
+		ExportBackend:          fileBackend,
+	})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, warningCount)
+	assert.Equal(t, 2, results.NumWarnings)
 
 	zipBytes, err := fileBackend.ReadFile(exportFileName)
 	assert.NoError(t, err)

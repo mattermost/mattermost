@@ -72,18 +72,7 @@ type Message struct {
 	PreviewsPost   string
 }
 
-type Params struct {
-	ExportType            string
-	Posts                 []*model.MessageExport
-	BatchPath             string
-	Config                *model.Config
-	Db                    shared.MessageExportStore
-	FileAttachmentBackend filestore.FileBackend
-	ExportBackend         filestore.FileBackend
-	Templates             *templates.Container
-}
-
-func GlobalRelayExport(rctx request.CTX, p Params) (results shared.RunExportResults, err error) {
+func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (results shared.RunExportResults, err error) {
 	tmpFile, err := os.CreateTemp("", "")
 	if err != nil {
 		return results, fmt.Errorf("unable to open the temporary export file: %w", err)
