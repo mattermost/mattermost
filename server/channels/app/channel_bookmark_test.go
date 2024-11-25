@@ -371,7 +371,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	}()
 
 	bookmark2 := &model.ChannelBookmark{
