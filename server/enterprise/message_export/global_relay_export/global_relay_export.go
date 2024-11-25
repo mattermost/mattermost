@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"mime"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -70,12 +72,28 @@ type Message struct {
 	PreviewsPost   string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db shared.MessageExportStore, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int, error) {
-	var warningCount int
+type Params struct {
+	ExportType            string
+	Posts                 []*model.MessageExport
+	BatchPath             string
+	Config                *model.Config
+	Db                    shared.MessageExportStore
+	FileAttachmentBackend filestore.FileBackend
+	ExportBackend         filestore.FileBackend
+	Templates             *templates.Container
+}
+
+func GlobalRelayExport(rctx request.CTX, p Params) (results shared.RunExportResults, err error) {
+	tmpFile, err := os.CreateTemp("", "")
+	if err != nil {
+		return results, fmt.Errorf("unable to open the temporary export file: %w", err)
+	}
+	defer file.DeleteTemp(rctx.Logger(), tmpFile)
+
 	var attachmentsRemovedPostIDs []string
 	allExports := make(map[string][]*ChannelExport)
 
-	zipFile := zip.NewWriter(dest)
+	zipFile := zip.NewWriter(tmpFile)
 
 	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
 	metadata := shared.Metadata{
@@ -86,7 +104,7 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db shared
 		EndTime:          0,
 	}
 
-	for _, post := range posts {
+	for _, post := range p.Posts {
 		if _, ok := postAuthorsByChannel[*post.ChannelId]; !ok {
 			postAuthorsByChannel[*post.ChannelId] = make(map[string]shared.ChannelMember)
 		}
@@ -100,10 +118,9 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db shared
 
 		var attachments []*model.FileInfo
 		if len(post.PostFileIds) > 0 {
-			var err error
-			attachments, err = db.FileInfo().GetForPost(*post.PostId, true, true, false)
+			attachments, err = p.Db.FileInfo().GetForPost(*post.PostId, true, true, false)
 			if err != nil {
-				return nil, warningCount, fmt.Errorf("failed to get file info for a post: %w", err)
+				return results, fmt.Errorf("failed to get file info for a post: %w", err)
 			}
 		}
 
@@ -115,30 +132,57 @@ func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db shared
 
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
-			participants, err := getParticipants(db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
+			var participants []ParticipantRow
+			participants, err = getParticipants(p.Db, channelExport, postAuthorsByChannel[channelExport.ChannelId])
 			if err != nil {
-				return nil, warningCount, err
+				return results, err
 			}
 			channelExport.Participants = participants
 			channelExport.ExportedOn = time.Now().Unix() * 1000
 
-			channelExportFile, err := zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
+			var channelExportFile io.Writer
+			channelExportFile, err = zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
 			if err != nil {
-				return nil, warningCount, fmt.Errorf("unable to create the eml file: %w", err)
+				return results, fmt.Errorf("unable to create the eml file: %w", err)
 			}
 
-			if warningCount, err = generateEmail(rctx, fileAttachmentBackend, channelExport, templates, channelExportFile); err != nil {
-				return nil, warningCount, err
+			if results.NumWarnings, err = generateEmail(rctx, p.FileAttachmentBackend, channelExport, p.Templates, channelExportFile); err != nil {
+				return results, err
 			}
 		}
 	}
 
-	err := zipFile.Close()
+	err = zipFile.Close()
 	if err != nil {
-		return nil, warningCount, fmt.Errorf("unable to close the zip file: %w", err)
+		return results, fmt.Errorf("unable to close the zip file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
 	}
 
-	return attachmentsRemovedPostIDs, warningCount, nil
+	_, err = tmpFile.Seek(0, 0)
+	if err != nil {
+		return results, fmt.Errorf("unable to re-read the Global Relay temporary export file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
+	}
+
+	if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
+		// Try to disable the write timeout for the potentially big export file.
+		_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, tmpFile, p.BatchPath)
+		if err != nil {
+			return results, fmt.Errorf("unable to write the global relay file, using tmpFile.Name: %v, batchPath: %v, err: %w", tmpFile.Name(), p.BatchPath, err)
+		}
+	} else {
+		err = Deliver(tmpFile, p.Config)
+		if err != nil {
+			return results, fmt.Errorf("unable to deliver tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
+		}
+	}
+
+	if len(attachmentsRemovedPostIDs) > 0 {
+		rctx.Logger().Warn("Global Relay Attachments Removed because they were too large to send to Global Relay",
+			mlog.Int("number_of_attachments_removed", len(attachmentsRemovedPostIDs)))
+		rctx.Logger().Warn("List of posts which had attachments removed",
+			mlog.Array("post_ids", attachmentsRemovedPostIDs))
+	}
+
+	return results, nil
 }
 
 func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[string][]*ChannelExport, post *model.MessageExport) []string {

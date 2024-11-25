@@ -6,17 +6,8 @@ package message_export
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
 	"strconv"
 	"time"
-
-	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
-
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -24,6 +15,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/csv_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 )
 
@@ -198,48 +192,20 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 
 	case model.ComplianceExportTypeGlobalrelay, model.ComplianceExportTypeGlobalrelayZip:
 		rctx.Logger().Debug("Exporting GlobalRelay")
-		f, err := os.CreateTemp("", "")
-		if err != nil {
-			return results, fmt.Errorf("unable to open the temporary export file: %w", err)
-		}
-		defer file.DeleteTemp(rctx.Logger(), f)
+		return global_relay_export.GlobalRelayExport(rctx, global_relay_export.Params{
+			ExportType:            p.ExportType,
+			Posts:                 p.PostsToExport,
+			BatchPath:             p.BatchPath,
+			Config:                b.Config,
+			Db:                    b.Store,
+			FileAttachmentBackend: b.FileAttachmentBackend,
+			ExportBackend:         b.ExportBackend,
+			Templates:             b.HtmlTemplates,
+		})
 
-		var attachmentsRemovedPostIDs []string
-		attachmentsRemovedPostIDs, results.NumWarnings, err = global_relay_export.GlobalRelayExport(rctx, p.PostsToExport, b.Store, b.FileAttachmentBackend, f, b.HtmlTemplates)
-		if err != nil {
-			return results, err
-		}
-
-		_, err = f.Seek(0, 0)
-		if err != nil {
-			return results, fmt.Errorf("unable to re-read the Global Relay temporary export file: %w", err)
-		}
-
-		if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
-			// Try to disable the write timeout for the potentially big export file.
-			_, err = filestore.TryWriteFileContext(rctx.Context(), b.FileAttachmentBackend, f, p.BatchPath)
-			if err != nil {
-				return results, fmt.Errorf("unable to write the global relay file: %w", err)
-			}
-		} else {
-			err = global_relay_export.Deliver(f, b.Config)
-			if err != nil {
-				return results, err
-			}
-		}
-
-		if len(attachmentsRemovedPostIDs) > 0 {
-			rctx.Logger().Warn("Global Relay Attachments Removed because they were too large to send to Global Relay",
-				mlog.Int("number_of_attachments_removed", len(attachmentsRemovedPostIDs)))
-			rctx.Logger().Warn("List of posts which had attachments removed",
-				mlog.Array("post_ids", attachmentsRemovedPostIDs))
-			return results, nil
-		}
 	default:
 		return results, errors.New("Unknown output format: " + p.ExportType)
 	}
-
-	return results, nil
 }
 
 func preparePosts(rctx request.CTX, postsToExport []*model.MessageExport) {
