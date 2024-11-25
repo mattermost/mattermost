@@ -104,10 +104,11 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	return nil
 }
 
-func (a *App) DoEmojisPermissionsMigration() {
+func (a *App) DoEmojisPermissionsMigration() error {
 	if err := a.Srv().doEmojisPermissionsMigration(); err != nil {
-		mlog.Error("Failed to complete emojis permissions migration", mlog.Err(err))
+		return fmt.Errorf("Failed to complete emojis permissions migration: %w", err)
 	}
+	return nil
 }
 
 func (s *Server) doEmojisPermissionsMigration() error {

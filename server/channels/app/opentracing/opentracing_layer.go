@@ -4028,7 +4028,7 @@ func (a *OpenTracingAppLayer) DoCommandRequest(rctx request.CTX, cmd *model.Comm
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
+func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoEmojisPermissionsMigration")
 
@@ -4040,7 +4040,14 @@ func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoEmojisPermissionsMigration()
+	resultVar0 := a.app.DoEmojisPermissionsMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
