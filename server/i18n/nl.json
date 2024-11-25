@@ -4744,11 +4744,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 126+"
+    "translation": "Versie 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 126+"
+    "translation": "Versie 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8819,7 +8819,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Je kan niet bevestigen in een gearchiveerd kanaal."
+    "translation": "Je kan geen bevestig bewaren in een gearchiveerd kanaal."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -10219,7 +10219,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Fout bij het kopiëren van de licentie."
+    "translation": "Fout bij het kopiëren van de licentie naar de buffer."
   },
   {
     "id": "api.remote_cluster.create_invite_error",
@@ -10240,5 +10240,113 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "Ongeldig token."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "ongeldig_verzoek: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Functie voor geplande berichten is uitgeschakeld"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Voor de functie Geplande berichten is een licentie nodig"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Kan de bot niet bijwerken."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Je hebt geen toestemming om deze resource te verwijderen."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Fout bij het verwijderen van de gepland bericht uit de database."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Geplande post bestaat niet."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Kan de eigenaar van de bot niet vinden"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaande gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Fout opgetreden bij het ophalen van geplande berichten."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Regel met importgegevens heeft type \"bot\" maar het botobject is null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot eigenaar ontbreekt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Kan geen bericht plannen in een gearchiveerd kanaal."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Er is een fout opgetreden bij het opslaan van het gepland bericht."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Gepland bericht bestaat niet."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaand gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Het is niet gelukt om bijgewerkte geplande berichten op te slaan in de database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Je hebt geen toestemming om deze resourcebij te werken."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Kan geen leeg bericht plannen. Geplande berichten moeten minstens een bericht of bestandsbijlagen hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Geplande berichten moeten een ID hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Fout verwerkt op het moment."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Ongeldig gepland op tijdstip."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Het bericht kan niet worden aangemaakt"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kan de systeembot niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kan de systeembot geen privé-bericht sturen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kan de gebruiker niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Als je deze testmelding hebt ontvangen, dan werkt het!"
   }
 ]

@@ -4,6 +4,7 @@
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
@@ -29,7 +30,7 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
             message = (
                 <CommentedOnFilesMessage parentPostId={post.id}/>
             );
-        } else if (post.props?.attachments?.length > 0) {
+        } else if (isMessageAttachmentArray(post.props?.attachments) && post.props.attachments.length > 0) {
             const attachment = post.props.attachments[0];
             const webhookMessage = attachment.pretext || attachment.title || attachment.text || attachment.fallback || '';
             message = Utils.replaceHtmlEntities(webhookMessage);
