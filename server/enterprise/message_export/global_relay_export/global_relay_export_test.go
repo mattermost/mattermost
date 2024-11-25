@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -49,9 +50,10 @@ func TestGlobalRelayExport(t *testing.T) {
 
 	fileBackend, err := filestore.NewFileBackend(config)
 	assert.NoError(t, err)
+	exportBackend := fileBackend
 
 	chanTypeDirect := model.ChannelTypeDirect
-	csvExportTests := []struct {
+	grExportTests := []struct {
 		name             string
 		cmhs             map[string][]*model.ChannelMemberHistoryResult
 		posts            []*model.MessageExport
@@ -1256,7 +1258,7 @@ func TestGlobalRelayExport(t *testing.T) {
 		},
 	}
 
-	for _, tt := range csvExportTests {
+	for _, tt := range grExportTests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
@@ -1285,25 +1287,26 @@ func TestGlobalRelayExport(t *testing.T) {
 				}
 			}
 
-			dest, err := os.CreateTemp("", "")
+			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
+			results, err := GlobalRelayExport(rctx, Params{
+				ExportType:            model.ComplianceExportTypeGlobalrelayZip,
+				Posts:                 tt.posts,
+				BatchPath:             exportFileName,
+				Db:                    shared.NewMessageExportStore(mockStore),
+				FileAttachmentBackend: fileBackend,
+				ExportBackend:         exportBackend,
+				Templates:             templatesContainer,
+			})
 			assert.NoError(t, err)
-			defer os.Remove(dest.Name())
+			assert.Equal(t, tt.expectedWarnings, results.NumWarnings)
 
-			_, warningCount, err := GlobalRelayExport(rctx, tt.posts, shared.NewMessageExportStore(mockStore), fileBackend, dest, templatesContainer)
+			zipBytes, err := exportBackend.ReadFile(exportFileName)
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedWarnings, warningCount)
-
-			_, err = dest.Seek(0, 0)
-			assert.NoError(t, err)
-
-			destInfo, err := dest.Stat()
-			assert.NoError(t, err)
-
-			zipFile, err := zip.NewReader(dest, destInfo.Size())
+			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 			assert.NoError(t, err)
 
 			if tt.expectedFiles > 0 {
-				firstFile, err := zipFile.File[0].Open()
+				firstFile, err := zipReader.File[0].Open()
 				assert.NoError(t, err)
 
 				data, err := io.ReadAll(firstFile)
