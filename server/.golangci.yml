@@ -100,7 +100,6 @@ issues:
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
-        channels/app/platform/link_cache.go|\
         channels/app/platform/log.go|\
         channels/app/platform/metrics.go|\
         channels/app/platform/searchengine.go|\
