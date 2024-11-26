@@ -10,12 +10,11 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -40,17 +39,15 @@ type RootNode struct {
 // The Conversation element indicates an ad hoc IM conversation or a group chat room.
 // The messages from a persistent chat room are exported once a day so that a Conversation entry contains the messages posted to a chat room from 12:00:00 AM to 11:59:59 PM
 type ChannelExport struct {
-	XMLName      xml.Name     `xml:"Conversation"`
-	Perspective  string       `xml:"Perspective,attr"` // the value of this attribute doesn't seem to matter. Using the channel name makes the export more human readable
-	ChannelId    string       `xml:"-"`                // the unique id of the channel
-	RoomId       string       `xml:"RoomID"`
-	StartTime    int64        `xml:"StartTimeUTC"` // utc timestamp (seconds), start of export period or create time of channel, whichever is greater. Example: 1366611728.
-	JoinEvents   []JoinExport // start with a list of all users who were present in the channel during the export period
-	Elements     []any
-	UploadStarts []*FileUploadStartExport
-	UploadStops  []*FileUploadStopExport
-	LeaveEvents  []LeaveExport // finish with a list of all users who were present in the channel during the export period
-	EndTime      int64         `xml:"EndTimeUTC"` // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
+	XMLName     xml.Name     `xml:"Conversation"`
+	Perspective string       `xml:"Perspective,attr"` // the value of this attribute doesn't seem to matter. Using the channel name makes the export more human readable
+	ChannelId   string       `xml:"-"`                // the unique id of the channel
+	RoomId      string       `xml:"RoomID"`
+	StartTime   int64        `xml:"StartTimeUTC"` // utc timestamp (seconds), start of export period or create time of channel, whichever is greater. Example: 1366611728.
+	JoinEvents  []JoinExport // start with a list of all users who were present in the channel during the export period
+	Elements    []Sortable
+	LeaveEvents []LeaveExport // finish with a list of all users who were present in the channel during the export period
+	EndTime     int64         `xml:"EndTimeUTC"` // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
 }
 
 // The ParticipantEntered element indicates each user who participates in a conversation.
@@ -73,13 +70,17 @@ type LeaveExport struct {
 	CorporateEmailID string   `xml:"CorporateEmailID"`
 }
 
+type Sortable interface {
+	SortVal() (int64, string)
+}
+
 // The Message element indicates the message sent by a user
 type PostExport struct {
-	XMLName   xml.Name       `xml:"Message"`
-	MessageId string         `xml:"MessageId"`   // the message id in the db
-	UserEmail string         `xml:"LoginName"`   // the email of the person that sent the post
-	UserType  exportUserType `xml:"UserType"`    // the type of the person that sent the post: "user" or "bot"
-	CreateAt  int64          `xml:"DateTimeUTC"` // utc timestamp (unix milliseconds), the post's createAt
+	XMLName   xml.Name        `xml:"Message"`
+	MessageId string          `xml:"MessageId"`   // the message id in the db
+	UserEmail string          `xml:"LoginName"`   // the email of the person that sent the post
+	UserType  shared.UserType `xml:"UserType"`    // the type of the person that sent the post: "user" or "bot"
+	CreateAt  int64           `xml:"DateTimeUTC"` // utc timestamp (unix milliseconds), the post's createAt
 
 	// Allows us to differentiate between:
 	// - "EditedOriginalMsg": the newly created message (new Id), which holds the pre-edited message contents. The
@@ -103,6 +104,14 @@ type PostExport struct {
 	PreviewsPost string `xml:"PreviewsPost,omitempty"` // the post id of the post that is previewed by the permalink preview feature
 }
 
+func (p PostExport) SortVal() (int64, string) {
+	// updated messages are sorted by UpdateAt
+	if p.UpdatedType != "" {
+		return p.UpdateAt, p.MessageId
+	}
+	return p.CreateAt, p.MessageId
+}
+
 // The FileTransferStarted element indicates the beginning of a file transfer in a conversation
 type FileUploadStartExport struct {
 	XMLName         xml.Name `xml:"FileTransferStarted"`
@@ -110,6 +119,11 @@ type FileUploadStartExport struct {
 	UploadStartTime int64    `xml:"DateTimeUTC"`  // utc timestamp (seconds), time at which the user started the upload. Example: 1366611728
 	Filename        string   `xml:"UserFileName"` // the name of the file that was uploaded
 	FilePath        string   `xml:"FileName"`     // the path to the file, as stored on the server
+}
+
+func (f FileUploadStartExport) SortVal() (int64, string) {
+	// file messages should come after the message they were with
+	return f.UploadStartTime, strings.Repeat("z", 26)
 }
 
 // The FileTransferEnded element indicates the end of a file transfer in a conversation
@@ -122,85 +136,112 @@ type FileUploadStopExport struct {
 	Status         string   `xml:"Status"`       // set to either "Completed" or "Failed" depending on the outcome of the upload operation
 }
 
+func (f FileUploadStopExport) SortVal() (int64, string) {
+	// file messages should come after the message they were with
+	return f.UploadStopTime, strings.Repeat("z", 26)
+}
+
 func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	start := time.Now()
 
-	// postAuthorsByChannel is a map so that we don't store duplicate authors
-	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
-	metadata := shared.Metadata{
-		Channels:         p.ChannelMetadata,
-		MessagesCount:    0,
-		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
-	}
-	elementsByChannel := make(map[string][]any)
-	allUploadedFiles := make([]*model.FileInfo, 0)
-	channelsInThisBatch := make(map[string]bool)
-	results := shared.RunExportResults{}
-
-	for i, post := range p.Posts {
-		channelId := *post.ChannelId
-		channelsInThisBatch[channelId] = true
-
-		// Was the post deleted (not an edited post), and originally posted during the current job window?
-		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
-		// before now because of the way we export posts (by updateAt).
-		if common_export.IsDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
-			results.CreatedPosts++
-			elementsByChannel[channelId] = append(elementsByChannel[channelId], createdPostToExportEntry(post))
-		}
-		var postExport PostExport
-		postExport, results = getPostExport(p.Posts, i, results)
-		elementsByChannel[channelId] = append(elementsByChannel[channelId], postExport)
-
-		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
-		if err != nil {
-			return results, err
-		}
-		elementsByChannel[channelId] = append(elementsByChannel[channelId], startUploads...)
-		elementsByChannel[channelId] = append(elementsByChannel[channelId], stopUploads...)
-		elementsByChannel[channelId] = append(elementsByChannel[channelId], deleteFileMessages...)
-
-		allUploadedFiles = append(allUploadedFiles, uploadedFiles...)
-
-		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
-			return results, err
-		}
-
-		if _, ok := postAuthorsByChannel[channelId]; !ok {
-			postAuthorsByChannel[channelId] = make(map[string]shared.ChannelMember)
-		}
-		postAuthorsByChannel[channelId][*post.UserId] = shared.ChannelMember{
-			UserId:   *post.UserId,
-			Email:    *post.UserEmail,
-			Username: *post.Username,
-			IsBot:    post.IsBot,
-		}
-	}
-
-	// If the channel is not in channelsInThisBatch (i.e. if it didn't have a post), we need to check if it had
-	// user activity between this batch's startTime-endTime. If so, add it to the channelsInThisBatch.
-	for id := range p.ChannelMetadata {
-		if !channelsInThisBatch[id] {
-			if shared.ChannelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
-				channelsInThisBatch[id] = true
-			}
-		}
-	}
-
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	channelExports := make([]ChannelExport, 0, len(channelsInThisBatch))
-	for id := range channelsInThisBatch {
-		channelExport := buildChannelExport(
-			p.BatchStartTime,
-			p.BatchEndTime,
-			metadata.Channels[id],
-			p.ChannelMemberHistories[id],
-			postAuthorsByChannel[id],
-		)
-		channelExport.Elements = elementsByChannel[id]
-		channelExports = append(channelExports, *channelExport)
+	genericChannelExports, results, err := shared.GetGenericExportData(p)
+	if err != nil {
+		return results, err
+	}
+	var allUploadedFiles []*model.FileInfo
+
+	// Convert the generic shared.ChannelExports to the Actiance-specific ChannelExports data.
+	channelExports := make([]ChannelExport, 0, len(genericChannelExports))
+	for _, channel := range genericChannelExports {
+		joinEvents := make([]JoinExport, 0, len(channel.JoinEvents))
+		leaveEvents := make([]LeaveExport, 0, len(channel.LeaveEvents))
+
+		for _, j := range channel.JoinEvents {
+			joinEvents = append(joinEvents, JoinExport{
+				UserEmail:        j.UserEmail,
+				UserType:         string(j.UserType),
+				JoinTime:         j.JoinTime,
+				CorporateEmailID: j.UserEmail,
+			})
+		}
+		for _, l := range channel.LeaveEvents {
+			leaveEvents = append(leaveEvents, LeaveExport{
+				UserEmail:        l.UserEmail,
+				UserType:         string(l.UserType),
+				LeaveTime:        l.LeaveTime,
+				CorporateEmailID: l.UserEmail,
+			})
+		}
+
+		elements := make([]Sortable, 0, len(channel.Posts)+len(channel.DeletedFiles)+len(channel.UploadStarts)+len(channel.UploadStops))
+		for _, p := range channel.Posts {
+			elements = append(elements, PostExport{
+				MessageId:      p.MessageId,
+				UserEmail:      p.UserEmail,
+				UserType:       p.UserType,
+				CreateAt:       p.CreateAt,
+				UpdatedType:    p.UpdatedType,
+				UpdateAt:       p.UpdateAt,
+				EditedNewMsgId: p.EditedNewMsgId,
+				Message:        p.Message,
+				PreviewsPost:   p.PreviewsPost,
+			})
+		}
+		for _, p := range channel.DeletedFiles {
+			elements = append(elements, PostExport{
+				MessageId:      p.MessageId,
+				UserEmail:      p.UserEmail,
+				UserType:       p.UserType,
+				CreateAt:       p.CreateAt,
+				UpdatedType:    p.UpdatedType,
+				UpdateAt:       p.UpdateAt,
+				EditedNewMsgId: p.EditedNewMsgId,
+				Message:        p.Message,
+				PreviewsPost:   p.PreviewsPost,
+			})
+		}
+		for _, u := range channel.UploadStarts {
+			elements = append(elements, FileUploadStartExport{
+				UserEmail:       u.UserEmail,
+				UploadStartTime: u.UploadStartTime,
+				Filename:        u.Filename,
+				FilePath:        u.FilePath,
+			})
+		}
+		for _, u := range channel.UploadStops {
+			elements = append(elements, FileUploadStopExport{
+				UserEmail:      u.UserEmail,
+				UploadStopTime: u.UploadStopTime,
+				Filename:       u.Filename,
+				FilePath:       u.FilePath,
+				Status:         u.Status,
+			})
+		}
+
+		// We need to sort all the elements by (updateAt, messageId) because they were added by type above.
+		slices.SortStableFunc(elements, func(a, b Sortable) int {
+			aTimestamp, aId := a.SortVal()
+			bTimestamp, bId := b.SortVal()
+			if aTimestamp == bTimestamp {
+				return strings.Compare(aId, bId)
+			}
+			return int(aTimestamp - bTimestamp)
+		})
+
+		channelExports = append(channelExports, ChannelExport{
+			Perspective: channel.DisplayName,
+			ChannelId:   channel.ChannelId,
+			RoomId: fmt.Sprintf("%v - %v - %v", shared.ChannelTypeDisplayName(channel.ChannelType),
+				channel.ChannelName, channel.ChannelId),
+			StartTime:   channel.StartTime,
+			JoinEvents:  joinEvents,
+			Elements:    elements,
+			LeaveEvents: leaveEvents,
+			EndTime:     channel.EndTime,
+		})
+
+		allUploadedFiles = append(allUploadedFiles, channel.Files...)
 	}
 
 	export := &RootNode{
@@ -210,9 +251,8 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 
 	results.ProcessingPostsMs = time.Since(start).Milliseconds()
 
-	var err error
 	results.WriteExportResult, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)
-	results.NumChannels = len(channelsInThisBatch)
+	results.NumChannels = len(channelExports)
 	return results, err
 }
 
