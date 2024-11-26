@@ -15,7 +15,9 @@ import (
 )
 
 func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
-	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
+	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
+		ps.logger.Error("Set status cache with default expiry failed", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
