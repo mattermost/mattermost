@@ -29,7 +29,7 @@ Options
 
   -h, --help              help for export
       --remove-defaults   remove default values from the exported configuration
-      --remove-masked     remove masked values from the exported configuration
+      --remove-masked     remove masked values from the exported configuration (default true)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
