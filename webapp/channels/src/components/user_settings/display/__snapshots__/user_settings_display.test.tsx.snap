@@ -313,6 +313,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -660,6 +672,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -1019,6 +1043,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -1372,6 +1408,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -1652,6 +1700,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
@@ -1908,6 +1968,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -2261,6 +2333,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -2638,6 +2722,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -2912,6 +3008,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={true}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3198,6 +3306,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -3472,6 +3592,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
@@ -3770,6 +3902,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -4050,6 +4194,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={false}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
@@ -4300,6 +4456,18 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           />
         }
         updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Connect(RenderEmoticonsAsEmoji)
+        active={false}
+        areAllSectionsInactive={true}
+        renderOnOffLabel={[Function]}
+        updateSection={[Function]}
+        userId="user_id"
       />
       <div
         className="divider-dark"
