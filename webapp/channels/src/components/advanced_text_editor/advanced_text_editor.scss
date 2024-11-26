@@ -10,6 +10,7 @@
     border-radius: 4px;
     margin: 0 24px 24px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
+
     .btn {
         margin: 10px
     }
@@ -63,6 +64,12 @@
 
         &.textbox-preview-area {
             height: auto;
+            padding-right: 20px;
+            white-space: normal;
+
+            blockquote:before {
+                top: 9px;
+            }
         }
     }
 
@@ -134,7 +141,7 @@
             visibility: hidden;
         }
 
-        & + input {
+        &+input {
             position: absolute;
             top: 0;
             right: 0;

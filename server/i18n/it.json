@@ -2296,10 +2296,6 @@
     "translation": "Almeno una tra trigger_words o channel_id deve essere configurata."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Impossibile decodificare la richiesta multipart del webhook in ingresso."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Impossibile aggiornare webook tra gruppi."
   },
