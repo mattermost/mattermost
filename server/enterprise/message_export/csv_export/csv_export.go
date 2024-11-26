@@ -16,8 +16,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
-
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -150,7 +148,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 			return results, fmt.Errorf("unable to export a post: %w", err)
 		}
 
-		if common_export.IsDeletedMsg(post) {
+		if shared.IsDeletedMsg(post) {
 			if err = csvWriter.Write(postToRow(post, postType, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
 				return results, fmt.Errorf("unable to export a post: %w", err)
 			}
@@ -404,7 +402,7 @@ func attachmentToRow(post *model.MessageExport, attachment *model.FileInfo) []st
 	message := strings.TrimSpace(fmt.Sprintf("%s (files/%s/%s-%s)", attachment.Name, *post.PostId, attachment.Id, path.Base(attachment.Path)))
 	createAt := post.PostCreateAt
 	postType := "attachment"
-	if common_export.IsDeletedMsg(post) {
+	if shared.IsDeletedMsg(post) {
 		createAt = model.NewPointer(attachment.DeleteAt)
 		postType = "deleted attachment"
 	}
