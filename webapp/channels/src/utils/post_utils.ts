@@ -10,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
+import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -59,7 +60,7 @@ export function fromAutoResponder(post: Post): boolean {
 }
 
 export function isFromWebhook(post: Post): boolean {
-    return post.props && post.props.from_webhook === 'true';
+    return post.props?.from_webhook === 'true';
 }
 
 export function isFromBot(post: Post): boolean {
@@ -545,7 +546,7 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
     }
 
     let attachmentCount = 0;
-    if (post.props && post.props.attachments) {
+    if (isMessageAttachmentArray(post.props?.attachments)) {
         attachmentCount += post.props.attachments.length;
     }
     if (post.file_ids) {
