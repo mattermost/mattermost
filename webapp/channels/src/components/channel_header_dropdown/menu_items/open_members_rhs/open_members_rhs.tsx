@@ -3,10 +3,10 @@
 
 import React from 'react';
 
+import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Menu from 'components/widgets/menu/menu';
-import { AccountOutlineIcon } from '@mattermost/compass-icons/components';
 
 type Action = {
     showChannelMembers: (channelId: string, editMembers: boolean) => void;
@@ -47,7 +47,7 @@ const ToggleChannelMembersRHS = ({
             id={id}
             onClick={openRHSIfNotOpen}
             text={text}
-            icon={<AccountOutlineIcon color='#808080' />}
+            icon={<AccountOutlineIcon color='#808080'/>}
         />
     );
 };

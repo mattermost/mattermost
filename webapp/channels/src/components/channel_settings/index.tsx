@@ -1,24 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import Menu from 'components/widgets/menu/menu';
-import Constants, { ModalIdentifiers } from 'utils/constants';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {CogOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+
+import {Permissions} from 'mattermost-redux/constants';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
+
+import {openModal} from 'actions/views/modals'; // Update with the actual path
+
+import ConvertChannelModal from 'components/convert_channel_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import RenameChannelModal from 'components/rename_channel_modal';
-import ConvertChannelModal from 'components/convert_channel_modal';
-import type { Channel } from '@mattermost/types/channels';
-import { Permissions } from 'mattermost-redux/constants';
-import { CogOutlineIcon } from '@mattermost/compass-icons/components';
-import { localizeMessage } from 'mattermost-redux/utils/i18n_utils';
-import type { Menu as ChannelMenu } from 'types/store/plugins';
-import { openModal } from 'actions/views/modals'; // Update with the actual path
-import { GlobalState } from 'types/store';
-import { haveIChannelPermission } from 'mattermost-redux/selectors/entities/roles';
-import { useSelect } from '@mui/base';
-import { useEffect } from 'react';
-import { isVisible } from '@testing-library/user-event/dist/utils';
-import { FormattedMessage } from 'react-intl';
+import Menu from 'components/widgets/menu/menu';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+import type {Menu as ChannelMenu} from 'types/store/plugins';
+
 type Props = {
     channel: Channel;
     isArchived: boolean;
@@ -30,8 +35,8 @@ const hasPermission = (channel: Channel, permission: string, state: GlobalState)
         return false;
     }
     return haveIChannelPermission(state, channel.team_id, channel.id, permission);
-}
-export const ChannelActionsMenu: React.FC<Props> = ({ channel, isArchived, isReadonly, isDefault }) => {
+};
+export const ChannelActionsMenu: React.FC<Props> = ({channel, isArchived, isReadonly, isDefault}) => {
     const dispatch = useDispatch();
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const hasPrivateChannelPermission = useSelector((state: GlobalState) => {
@@ -46,37 +51,37 @@ export const ChannelActionsMenu: React.FC<Props> = ({ channel, isArchived, isRea
     const channelActionsSubMenu: ChannelMenu[] = [
         {
             id: 'channelEditHeader',
-            text: localizeMessage({id:'channel_header.setHeader', defaultMessage:'Edit Channel Header'}),
+            text: localizeMessage({id: 'channel_header.setHeader', defaultMessage: 'Edit Channel Header'}),
             filter: () => channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isReadonly && ((hasPrivateChannelPermission && isPrivate) || (!isPrivate && hasPublicChannelPermission)),
             action: () => dispatch(openModal({
                 modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
                 dialogType: EditChannelHeaderModal,
-                dialogProps: { channel },
+                dialogProps: {channel},
             })),
         },
         {
             id: 'channelEditPurpose',
-            text: localizeMessage({id:'channel_header.setPurpose', defaultMessage:'Edit Channel Purpose'}),
+            text: localizeMessage({id: 'channel_header.setPurpose', defaultMessage: 'Edit Channel Purpose'}),
             filter: () => !isArchived && !isReadonly && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && ((hasPrivateChannelPermission && isPrivate) || (!isPrivate && hasPublicChannelPermission)),
             action: () => dispatch(openModal({
                 modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
                 dialogType: EditChannelPurposeModal,
-                dialogProps: { channel },
+                dialogProps: {channel},
             })),
         },
         {
             id: 'channelRename',
-            text: localizeMessage({id:'channel_header.rename', defaultMessage:'Rename Channel'}),
+            text: localizeMessage({id: 'channel_header.rename', defaultMessage: 'Rename Channel'}),
             filter: () => !isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && ((hasPrivateChannelPermission && isPrivate) || (!isPrivate && hasPublicChannelPermission)),
             action: () => dispatch(openModal({
                 modalId: ModalIdentifiers.RENAME_CHANNEL,
                 dialogType: RenameChannelModal,
-                dialogProps: { channel },
+                dialogProps: {channel},
             })),
         },
         {
             id: 'channelConvertToPrivate',
-            text: localizeMessage({id:'channel_header.convert', defaultMessage:'Convert to Private Channel'}),
+            text: localizeMessage({id: 'channel_header.convert', defaultMessage: 'Convert to Private Channel'}),
             filter: () => !isArchived && !isDefault && channel.type === Constants.OPEN_CHANNEL && privateChannelConversion,
             action: () => dispatch(openModal({
                 modalId: ModalIdentifiers.CONVERT_CHANNEL,
@@ -88,25 +93,27 @@ export const ChannelActionsMenu: React.FC<Props> = ({ channel, isArchived, isRea
             })),
         },
     ];
-    const menuItems: ChannelMenu[] = channelActionsSubMenu
-        .filter(item=>item.filter?item.filter():false)
-        .map(item => ({
+    const menuItems: ChannelMenu[] = channelActionsSubMenu.
+        filter((item) => (item.filter ? item.filter() : false)).
+        map((item) => ({
             id: item.id,
             text: item.text,
             action: item.action,
         }));
     return (
         <Menu.ItemSubMenu
-            id="channelActions"
-            text={localizeMessage({id:'sidebar_left.sidebar_channel_menu.settings', defaultMessage:'Channel Settings'})}
-            subMenuClass="channel-actions-submenu"
-            subMenu={channelActionsSubMenu}
+            id='channelActions'
+            text={localizeMessage({id: 'sidebar_left.sidebar_channel_menu.settings', defaultMessage: 'Channel Settings'})}
+            subMenuClass='channel-actions-submenu'
+            subMenu={menuItems}
             icon={
-                <span style={{ fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2' }}>
-                    <CogOutlineIcon color='#808080' size={18} />
-                </span>
-            }
-            direction="right"
+                <span style={{fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2'}}>
+                    <CogOutlineIcon
+                        color='#808080'
+                        size={18}
+                    />
+                </span>}
+            direction='right'
         />
     );
 };

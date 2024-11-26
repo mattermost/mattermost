@@ -4,13 +4,13 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import Menu from 'components/widgets/menu/menu';
 
 import {Constants, NotificationLevels} from 'utils/constants';
-import { BellOffOutlineIcon } from '@mattermost/compass-icons/components';
 
 export type Actions = {
     updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): void;
@@ -62,8 +62,8 @@ export default function MenuItemToggleMuteChannel({
     let text;
     if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
         text = isMuted ?
-            'Unmute' :
-            'Mute';
+            intl.formatMessage({id: 'channel_header.unmuteConversation', defaultMessage: 'Unmute'}) :
+            intl.formatMessage({id: 'channel_header.muteConversation', defaultMessage: 'Mute'});
     } else {
         text = isMuted ?
             intl.formatMessage({id: 'channel_header.unmute', defaultMessage: 'Unmute Channel'}) :
@@ -75,7 +75,7 @@ export default function MenuItemToggleMuteChannel({
             id={id}
             onClick={handleClick}
             text={text}
-            icon={<BellOffOutlineIcon color='#808080' />}
+            icon={<BellOffOutlineIcon color='#808080'/>}
         />
     );
 }

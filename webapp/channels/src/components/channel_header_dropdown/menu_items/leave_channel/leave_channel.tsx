@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {LogoutVariantIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
@@ -12,7 +13,6 @@ import Menu from 'components/widgets/menu/menu';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {PropsFromRedux} from './index';
-import { LogoutVariantIcon } from '@mattermost/compass-icons/components';
 
 type Props = PropsFromRedux & {
 
