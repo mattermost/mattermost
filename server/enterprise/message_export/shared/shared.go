@@ -4,6 +4,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"strconv"
@@ -523,7 +524,7 @@ func GetJoinsAndLeavesForChannel(startTime int64, endTime int64, channelMembersH
 	return joins, leaves
 }
 
-// GetPostAttachments: if the post included any files, we need to add special elements to the export.
+// GetPostAttachments if the post included any files, we need to add special elements to the export.
 func GetPostAttachments(db MessageExportStore, post *model.MessageExport) ([]*model.FileInfo, error) {
 	if len(post.PostFileIds) == 0 {
 		return []*model.FileInfo{}, nil
@@ -586,4 +587,19 @@ func GetFileAttachmentBackend(rctx request.CTX, config *model.Config) (filestore
 		return nil, err
 	}
 	return backend, nil
+}
+
+func IsDeletedMsg(post *model.MessageExport) bool {
+	if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
+		props := map[string]any{}
+		err := json.Unmarshal([]byte(*post.PostProps), &props)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := props[model.PostPropsDeleteBy]; ok {
+			return true
+		}
+	}
+	return false
 }
