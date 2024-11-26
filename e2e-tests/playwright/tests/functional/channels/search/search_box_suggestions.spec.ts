@@ -18,14 +18,17 @@ test('Search box suggestion must be case insensitive', async ({
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
+    // # Open the search UI
     await channelsPage.globalHeader.openSearch();
 
     const searchInput = await page.getByPlaceholder('Search messages');
 
+    // * it's working when using lowercase
     await searchInput.fill('In:off');
     await searchInput.press('Enter');
     await expect(searchInput).toHaveValue('In:off-topic ');
 
+    // * it's working when using uppercase
     await searchInput.clear();
     await searchInput.fill('In:Off');
     await searchInput.press('Enter');
