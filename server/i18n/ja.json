@@ -2290,10 +2290,6 @@
     "translation": "trigger_wordsまたはchannel_idを設定してください。"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "内向きのウェブフックのマルチパートペイロードをデコードできませんでした。"
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "他チームのウェブフックは更新できません。"
   },
@@ -3059,31 +3055,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理を作成できませんでした"
+    "translation": "{{.Backend}} Aggregatorのワーカーがインデックス付与処理を作成できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch Aggregatorのワーカーがインデックスを削除できませんでした"
+    "translation": "{{.Backend}} Aggregatorのワーカーがインデックスを削除できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch Aggregatorのワーカーがインデックスを取得できませんでした"
+    "translation": "{{.Backend}} Aggregatorのワーカーがインデックスを取得できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理失敗ために失敗しました"
+    "translation": "{{.Backend}} Aggregatorのワーカーがインデックス付与処理に失敗したため処理できませんでした"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Elasticsearchクライアントを設定できませんでした"
+    "translation": "{{.Backend}}クライアントを設定できませんでした"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Elasticsearchのインデックスを削除できませんでした"
+    "translation": "{{.Backend}}のインデックスを削除できませんでした"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Elasticsearchのインデックスを取得できませんでした"
+    "translation": "{{.Backend}}のインデックスを取得できませんでした"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4987,15 +4983,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "ユーザーのElasticsearchテンプレートを作成できませんでした"
+    "translation": "ユーザーの{{.Backend}}テンプレートを作成できませんでした"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "投稿のElasticsearchテンプレートを作成できませんでした"
+    "translation": "投稿の{{.Backend}}テンプレートを作成できませんでした"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "チャンネルのElasticsearchテンプレートを作成できませんでした"
+    "translation": "チャンネルの{{.Backend}}テンプレートを作成できませんでした"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -7423,7 +7419,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "ファイルに対するElasticsearchテンプレートを作成できませんでした"
+    "translation": "ファイルに対する{{.Backend}}テンプレートを作成できませんでした"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8939,19 +8935,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Elasticsearch用のクライアントキーファイルを開くことができませんでした"
+    "translation": "{{.Backend}}用のクライアントキーファイルを開くことができませんでした"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Elasticsearchのクライアント証明書ファイルを開くことができませんでした"
+    "translation": "{{.Backend}}のクライアント証明書ファイルを開くことができませんでした"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Elasticsearchのクライアント証明書のデコードに失敗しました"
+    "translation": "{{.Backend}} のクライアント証明書のデコードに失敗しました"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "ElasticsearchのCAファイルを開くことができませんでした"
+    "translation": "{{.Backend}} のCAファイルを開くことができませんでした"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10220,5 +10216,185 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "不正なtokenです。"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request：不正なリクエストです。"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "スケジュール済みの投稿機能はライセンスが必要です"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "スケジュール済みの投稿機能が無効化されています"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Botを更新できませんでした。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "データベースからスケジュール済みの投稿を削除できませんでした。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "このリソースを削除する権限がありません。"
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "スケジュール済みの投稿が存在しません。"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "既存のスケジュール済み投稿をデータベースから取得できませんでした。"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "スケジュール済み投稿の取得時にエラーが発生しました。"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Botのオーナーが見つかりませんでした"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "インポートデータに \"bot\" 種別の行がありますが、Botオブジェクトがnullです"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Botのオーナーが見つかりません"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "アーカイブ済みチャンネルでスケジュール済み投稿は作成できません。"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "スケジュール済み投稿の保存時にエラーが発生しました。"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "データベースから既存のスケジュール済みの投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "更新後のスケジュール済みの投稿をデータベースに保存できませんでした。"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "このリソースを更新する権限がありません。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "ProcessedAt の時刻が不正です。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "ScheduledAtの時刻が不正です。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "空の投稿はスケジュールできません。スケジュール済みの投稿は少なくとも一つのメッセージかファイル添付を持つ必要があります。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "スケジュール済みの投稿はIDが必要です。"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "投稿を作成できません"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "System Botを取得できません"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "このテスト通知を受け取れた場合、通知は動作しています!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "System Botのダイレクトメッセージを取得できません"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "ユーザーを取得できません"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "スケジュール済みの投稿が存在しません。"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "GIFデータの開始点が見つかりませんでした。"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "チャンネルはアーカイブ済みです"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "チャンネルが見つかりません"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "不正な投稿内容です"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "チャンネルのメンバーではありません"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "チャンネルへの投稿が許可されていません"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "スレッドは削除済みです"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "メッセージを送信できません"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "不明なエラー"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "ユーザーアカウントが削除済みです"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "other": "- {{.ChannelName}} チャンネル内の {{.Count}}。 理由: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "ユーザーが存在しません"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "other": "スケジュール済みの投稿 {{.Count}} 件を送信できませんでした。"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "ユーザーのスケジュール済みの投稿を削除できませんでした。"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "非公開チャンネル"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "不明なチャンネル"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "{{.Value}} は不正なストレージクラスです。"
   }
 ]

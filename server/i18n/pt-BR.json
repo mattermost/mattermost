@@ -2300,10 +2300,6 @@
     "translation": "Ou trigger_words ou channel_id precisa ser definido."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Não foi possível decodificar a carga multiparte do webhook de entrada."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Não é possível atualizar os webhook entre as equipes."
   },
@@ -7797,7 +7793,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Convite aceito | Online | Último ping |"
+    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Time Padrão | Convite aceito | Online | Último ping | Excluído |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8338,5 +8334,613 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Você pode fazer o download do seu arquivo aqui: {{.Link}}.\nEste link expirará em {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Não foi possível recuperar a lista de exportação."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "link de exportação"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Você não tem permissões suficientes para executar esse comando."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Este canal é gerenciado por grupos.  Este usuário não faz parte de um grupo sincronizado com este canal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Você pode adicionar {{.FirstUser}} e {{.Others}} outras pessoas a esse canal quando elas forem membros da equipe **{{.Team}}**."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "O comando de marketplace não é compatível com seu dispositivo."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Abra o Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Não foi possível confirmar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Não é possível convidar o externo porque o canal {{.ChannelID}} não é compartilhado."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Falha ao recarregar a configuração."
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ocorreu um erro ao buscar o endereço IP do cliente"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Não é possível obter essa quantidade de emojis por nome. Somente {{.MaxNames}} emojis podem ser solicitados de uma vez."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Erro ao tentar recuperar a configuração completa do primeiro administrador da loja."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Erro: nenhum nome de organização foi fornecido para o onboarding auto-hospedado."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "As configurações de armazenamento de arquivos têm valores não definidos."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Os parâmetros OnlyThreads e OnlyTotals para getThreadsForUser são mutuamente exclusivos"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao aplicar os filtros IP"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "As configurações do Elasticsearch têm valores não definidos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Confira abaixo um resumo de suas novas mensagens."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Certifique-se de que seu bucket do Amazon S3 está disponível e verifique as permissões do bucket."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Não foi possível obter a URL do site da instância"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ocorreu um erro durante a validação das credenciais de conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Não foi possível recuperar as credenciais com a configuração de conexão especificada."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Não é possível buscar o início do arquivo."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Não é possível convidar o remoto para o canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Conexão segura | URL do site | Somente leitura | Convite aceito | Online | Última sincronização |"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Falha ao atualizar as traduções do servidor."
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "A Filtragem de IP não está disponível neste servidor"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ocorreu um erro ao excluir a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Ocorreu um erro ao listar as conexões OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ocorreu um erro ao atualizar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "erro na contagem de grupos"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "o recurso de grupos personalizados está desativado"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id deve estar em branco para o grupo personalizado"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "não licenciado para grupos personalizados"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference deve ser 'true' para grupos personalizados"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Falha ao atualizar o status personalizado. Não existe um emoji com o nome fornecido."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Não é possível salvar o rascunho no canal excluído"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "O recurso Rascunhos está desativado."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Erro ao tentar salvar a configuração completa do primeiro administrador na loja."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "O upload via mmctl para uma instância do Cloud não é suportado. Verifique a documentação aqui: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "O tamanho da página é inválido ou muito grande."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Não é possível ocultar usuários ativos e inativos simultaneamente."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "O ID de equipe fornecido é inválido ."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "O Mattermost é uma plataforma de código aberto para comunicação segura, colaboração e orquestração de trabalho entre ferramentas e equipes.\nO Mattermost contém duas ferramentas principais:\n\n**Canais** - Mantenha-se conectado com sua equipe por meio de mensagens individuais e em grupo.\n**[Playbooks](/playbooks)** - Crie e configure processos reprodutíveis para que você alcance resultados específicos e previsíveis.\n\n[Veja a documentação e os guias]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "O driver de armazenamento de arquivos não é compatível com a geração de links."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nenhum arquivo de exportação foi encontrado."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|arquivo zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Não é possível gerar o URL pré-assinado."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} e {{.Others}} outros já estão no canal."
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao buscar os filtros IP"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ocorreu um erro ao criar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "As conexões OAuth de saída não estão disponíveis neste servidor."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Falha ao atualizar o status personalizado. Adicione emoji ou status de texto ou ambos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Não foi possível conectar-se ao S3. Verifique os parâmetros de autorização de conexão do Amazon S3 e as configurações de autenticação."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "O preenchimento automático nos canais não pode ser ativado porque o esquema do índice de canais está desatualizado. Recomenda-se que você gere novamente o índice do canal. Consulte o registro de alterações do Mattermost para obter mais informações"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Não foi possível encontrar o arquivo solicitado."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Não é possível processar a solicitação. O corpo da solicitação é muito grande."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} e {{.Others}} adicionados ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "O tamanho do plugin carregado excede o limite. Esse limite pode ser alterado no Console do sistema em Armazenamento de arquivos > Tamanho máximo do arquivo"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Falha ao carregar o arquivo. O canal de upload não é compartilhado com o remoto."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Falha ao gravar os registros no buffer"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Não foi possível encontrar o usuário."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Solicitação inválida."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "O recurso de publicações agendadas está desativado"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "O recurso de publicações agendadas requer uma licença"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para participar de {{ .ChannelsLen }} canais na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Atualização de membro da equipe inválida: um convidado não pode ser definido para uma única equipe; um administrador do sistema deve promover ou rebaixar usuários para/de convidados."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Não é possível gerar o código de convite para um cluster confirmado"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Contas de convidado estão desativadas"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Sua licença não suporta contas de convidado"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Seu espaço de trabalho está pronto para ser usado!"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Lembrete"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Sua licença precisa de renovação"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Sua assinatura do Mattermost precisaa ser renovada"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "O cluster remoto não foi excluído"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Cluster remoto não encontrado"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Não foi possível criptografar o convite do cluster remoto usando a senha fornecida"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Não foi possível aceitar o convite do cluster remoto"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Não foi possível decodificar a string base64"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "endpoint da API requer uma licença"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Não foi possível verificar se uma avaliação pode ser iniciada"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Falha ao aplicar a nova licença de avaliação. Você já aplicou uma licença de avaliação a esta instância do Mattermost anteriormente. Se desejar estender seu período de avaliação, [entre em contato com nossa equipe de vendas](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Não foi possível processar a solicitação devido a limitações de países embargados. [Saiba mais em nossa documentação](https://mattermost.com/pl/limitations-for-embargoed-countries) ou entre em contato com legal@mattermost.com para perguntas sobre limitações de exportação."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Se você não for redirecionado automaticamente, clique no <a href='{{.Link}}'>link</a>"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ocorreu um erro ao analisar payload."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "O usuário não tem permissão para criar publicações prioritárias ou notificações persistentes."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Falha na validação da notificação persistente."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Token de e-mail inválido"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal indisponível para registro auto-hospedado."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "O Servidor CWS não está disponível."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "O Servidor CWS falhou ao assinar o newsletter."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Erro ao enviar o e-mail"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "O SMTP não está configurado no console do sistema"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Atualização de membro da equipe inválida: um convidado não pode ser membro da equipe ou administrador da equipe; promova-o como usuário primeiro."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} alterou as configurações de filtragem de IP para seu espaço de trabalho na URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Alterações nos Filtros de IP do seu Workspace"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Falha ao desempacotar (unmarshal)."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "não é um usuário ldap"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Não é possível excluir a publicação, ServiceSettings.EnableAPIPostDeletion não está ativado."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Não foi possível descriptografar o convite do cluster remoto usando a senha fornecida"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} não foi notificado por essa menção porque não é membro dessa equipe."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} não foram notificados por essa menção porque não são membros dessa equipe."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "A movimentação do tópico de discussão está desativada"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Responder em {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Responder em uma Mensagem Direta"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Não é possível obter tantas funções por nome. Somente {{.MaxNames}} funções podem ser solicitadas de uma vez."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Falha ao enviar licença para e-mails de renovação"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Corpo da solicitação inválido."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} convidou você para participar dos canais {{ .ChannelsLen }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Entre em contato com o suporte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Faça login no portal do cliente para redefinir a filtragem de IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Envie um e-mail para {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Não foi possível fazer o upload do arquivo. O arquivo é muito grande."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, sua assinatura está definida para expirar em {{.Days}} dias. Esperamos que você esteja experimentando a colaboração em equipe flexível e segura que o Mattermost permite. Renove em breve para garantir que sua equipe continue aproveitando esses benefícios."
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Você está tendo problemas para acessar seu workspace?"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "A publicação de notificações persistentes permite um máximo de {{.MaxRecipients}} destinatários."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Você não tem permissão para mover este tópico."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Somente as publicações raiz podem ter prioridade."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "O número de Post IDs recebidos excedeu o tamanho máximo de {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "As publicações de notificações persistentes devem ter a prioridade Urgente."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " respondeu a um tópico."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "A publicação de notificação persistente deve ter no mínimo um destinatário."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Filtro de logs inválido"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} convidou você para participar do canal {{ .ChannelName }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para participar do canal {{ .ChannelName }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Revisar alterações"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Mudanças na filtragem de IP para seu workspace"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Entre em contato com o departamento de vendas."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " respondeu a um tópico que você está seguindo."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "As interações com o Portal do Cliente Mattermost foram desativadas pelo administrador do sistema."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Compartilhe este link para convidar membros a participar do {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "aplicativos para celular e desktop"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Falha ao copiar o conteúdo do arquivo de licença para o buffer"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Não foi possível criar um convite para o cluster remoto"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Status inválido definido"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Você não tem permissão para gerenciar esse tipo de trabalho"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "E-mail comercial inválido para avaliação"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Não foi possível desconvidar o remoto para o canal"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Não foi possível buscar os remotos do canal compartilhado"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Não foi possível determinar se o canal é compartilhado com o remoto"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Não foi possível convidar o remoto para o canal"
   }
 ]
