@@ -13,11 +13,6 @@ import (
 	"path"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
@@ -251,13 +246,11 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <CorporateEmailID>test3@email</CorporateEmailID>\n",
 				"    </ParticipantEntered>\n",
 				"    <Message>\n",
-				"      <MessageId>post-original-id</MessageId>\n",
+				"      <MessageId>post-id2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
-				"      <UpdatedType>EditedNewMsg</UpdatedType>\n",
-				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
-				"      <Content>edited message</Content>\n",
+				"      <Content>message2</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
 				"      <MessageId>post-id</MessageId>\n",
@@ -270,11 +263,13 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <Content>original message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
-				"      <MessageId>post-id2</MessageId>\n",
+				"      <MessageId>post-original-id</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
 				"      <DateTimeUTC>1</DateTimeUTC>\n",
-				"      <Content>message2</Content>\n",
+				"      <UpdatedType>EditedNewMsg</UpdatedType>\n",
+				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
+				"      <Content>edited message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
 				"      <MessageId>post-id2</MessageId>\n",
@@ -740,6 +735,13 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <Content>message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
+				"      <MessageId>post-id3</MessageId>\n",
+				"      <LoginName>test@test.com</LoginName>\n",
+				"      <UserType>user</UserType>\n",
+				"      <DateTimeUTC>1</DateTimeUTC>\n",
+				"      <Content>message</Content>\n",
+				"    </Message>\n",
+				"    <Message>\n",
 				"      <MessageId>post-id2</MessageId>\n",
 				"      <LoginName>test@test.com</LoginName>\n",
 				"      <UserType>user</UserType>\n",
@@ -747,13 +749,6 @@ func runTestActianceExport(t *testing.T, exportBackend filestore.FileBackend, at
 				"      <UpdatedType>UpdatedNoMsgChange</UpdatedType>\n",
 				"      <UpdatedDateTimeUTC>2</UpdatedDateTimeUTC>\n",
 				"      <Content>edit message</Content>\n",
-				"    </Message>\n",
-				"    <Message>\n",
-				"      <MessageId>post-id3</MessageId>\n",
-				"      <LoginName>test@test.com</LoginName>\n",
-				"      <UserType>user</UserType>\n",
-				"      <DateTimeUTC>1</DateTimeUTC>\n",
-				"      <Content>message</Content>\n",
 				"    </Message>\n",
 				"    <Message>\n",
 				"      <MessageId>post-id3</MessageId>\n",
