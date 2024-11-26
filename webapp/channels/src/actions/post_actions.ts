@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
@@ -27,6 +29,7 @@ import type {
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
+import {setGlobalItem} from 'actions/storage';
 import * as StorageActions from 'actions/storage';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
 import {removeDraft} from 'actions/views/drafts';
@@ -332,18 +335,19 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
         const channel = getChannel(state, post.channel_id);
         const teamId = channel?.team_id || '';
 
-        const canEditNow = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
+        const canEdit = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 
-        // Only show the modal if we can edit the post now, but allow it to be hidden at any time
-
-        if (canEditNow) {
-            dispatch({
-                type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, isRHS, show: true},
-            });
+        if (canEdit) {
+            dispatch(batchActions([
+                {
+                    type: ActionTypes.TOGGLE_EDITING_POST,
+                    data: {postId, refocusId, isRHS, show: true},
+                },
+                setGlobalItem(StoragePrefixes.EDIT_DRAFT + postId, post),
+            ]));
         }
 
-        return {data: canEditNow};
+        return {data: canEdit};
     };
 }
 

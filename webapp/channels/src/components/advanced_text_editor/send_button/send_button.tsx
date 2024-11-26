@@ -88,15 +88,13 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     />
                 </button>
             </WithTooltip>
-
-            {
-                isScheduledPostEnabled &&
+            {isScheduledPostEnabled && (
                 <SendPostOptions
                     disabled={disabled}
                     onSelect={handleSubmit}
                     channelId={channelId}
                 />
-            }
+            )}
         </div>
     );
 };

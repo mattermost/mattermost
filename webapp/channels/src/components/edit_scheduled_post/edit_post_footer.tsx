@@ -5,9 +5,12 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {isSendOnCtrlEnter} from 'selectors/preferences';
+import {Preferences} from 'mattermost-redux/constants';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isMac} from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     onSave: () => void;
@@ -15,7 +18,7 @@ type Props = {
 }
 
 const EditPostFooter = ({onSave, onCancel}: Props) => {
-    const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
+    const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
 
     return (
@@ -42,7 +45,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
                 id='edit_post.helper_text'
                 defaultMessage='<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel'
                 values={{
-                    key: sendOnCtrlEnter ? ctrlSendKey : '',
+                    key: ctrlSend ? ctrlSendKey : '',
                     strong: (x: string) => <strong>{x}</strong>,
                 }}
             />

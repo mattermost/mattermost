@@ -5,23 +5,31 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {isSendOnCtrlEnter} from 'selectors/preferences';
+import {Preferences} from 'mattermost-redux/constants';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isMac} from 'utils/user_agent';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
+    isInEditMode: boolean;
     onSave: () => void;
     onCancel: () => void;
 }
 
-const EditPostFooter = ({onSave, onCancel}: Props) => {
-    const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
+const FooterEditPost = (props: Props) => {
+    const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
+
+    if (!props.isInEditMode) {
+        return null;
+    }
 
     return (
         <div className='post-body__footer'>
             <button
-                onClick={onSave}
+                onClick={props.onSave}
                 className='save'
             >
                 <FormattedMessage
@@ -30,7 +38,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
                 />
             </button>
             <button
-                onClick={onCancel}
+                onClick={props.onCancel}
                 className='cancel'
             >
                 <FormattedMessage
@@ -42,7 +50,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
                 id='edit_post.helper_text'
                 defaultMessage='<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel'
                 values={{
-                    key: sendOnCtrlEnter ? ctrlSendKey : '',
+                    key: ctrlSend ? ctrlSendKey : '',
                     strong: (x: string) => <strong>{x}</strong>,
                 }}
             />
@@ -50,4 +58,4 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
     );
 };
 
-export default memo(EditPostFooter);
+export default memo(FooterEditPost);

@@ -19,6 +19,7 @@ interface Props {
     channelId: Channel['id'];
     postId: Post['id'];
     noArgumentHandleSubmit: () => void;
+    isInEditMode: boolean;
 }
 
 export default function Footer({
@@ -28,7 +29,12 @@ export default function Footer({
     channelId,
     postId,
     noArgumentHandleSubmit,
+    isInEditMode,
 }: Props) {
+    if (isInEditMode) {
+        return null;
+    }
+
     return (
         <div
             id='postCreateFooter'

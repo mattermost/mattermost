@@ -18,10 +18,11 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
+import {unsetEditingPost} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
-import {makeGetDraft} from 'selectors/rhs';
+import {makeGetDraft} from 'selectors/drafts';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -49,6 +50,7 @@ import type {PostDraft} from 'types/store/draft';
 
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import Footer from './footer';
+import FooterEditPost from './footer_edit_post';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import SendButton from './send_button';
@@ -114,7 +116,7 @@ const AdvancedTextEditor = ({
     const channelDisplayName = channel?.display_name || '';
     const channelType = channel?.type || '';
     const isChannelShared = channel?.shared;
-    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
+    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId, isInEditMode));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
@@ -275,6 +277,7 @@ const AdvancedTextEditor = ({
         prioritySubmitCheck,
         undefined,
         afterSubmit,
+        isInEditMode,
     );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -296,6 +299,11 @@ const AdvancedTextEditor = ({
     );
 
     const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
+
+    const onFormSubmit = useCallback((e: React.FormEvent) => {
+        e.preventDefault();
+        handleSubmit();
+    }, [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -368,6 +376,10 @@ const AdvancedTextEditor = ({
     const handleMouseUpKeyUp = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
         setCaretPosition((e.target as TextboxElement).selectionStart || 0);
     }, []);
+
+    const handleCancelEdit = useCallback(() => {
+        dispatch(unsetEditingPost());
+    }, [dispatch]);
 
     const prefillMessage = useCallback((message: string, shouldFocus?: boolean) => {
         handleDraftChange({
@@ -574,7 +586,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={noArgumentHandleSubmit}
+            onSubmit={onFormSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -585,6 +597,7 @@ const AdvancedTextEditor = ({
                 teammateDisplayName={teammateDisplayName}
                 location={location}
                 postId={postId}
+                isInEditMode={isInEditMode}
             />
             <div
                 className={classNames('AdvancedTextEditor', {
@@ -685,6 +698,11 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
+            <FooterEditPost
+                onSave={noArgumentHandleSubmit}
+                onCancel={handleCancelEdit}
+                isInEditMode={isInEditMode}
+            />
             <Footer
                 postError={postError}
                 errorClass={errorClass}
@@ -692,6 +710,7 @@ const AdvancedTextEditor = ({
                 channelId={channelId}
                 postId={postId}
                 noArgumentHandleSubmit={noArgumentHandleSubmit}
+                isInEditMode={isInEditMode}
             />
         </form>
     );

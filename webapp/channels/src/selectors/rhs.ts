@@ -8,7 +8,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {getGlobalItem, makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -149,43 +149,6 @@ export function getIsSearchingPinnedPost(state: GlobalState): boolean {
 
 export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
-}
-
-export function makeGetDraft() {
-    const DEFAULT_DRAFT = Object.freeze({
-        message: '',
-        fileInfos: [],
-        uploadsInProgress: [],
-        createAt: 0,
-        updateAt: 0,
-        channelId: '',
-        rootId: '',
-    });
-
-    return (state: GlobalState, channelId: string, rootId = ''): PostDraft => {
-        const prefixStorageKey = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
-        const suffixStorageKey = rootId || channelId;
-        const storageKey = `${prefixStorageKey}${suffixStorageKey}`;
-
-        const retrievedDraft = getGlobalItem(state, storageKey, DEFAULT_DRAFT);
-
-        // Check if the draft has the required values in its properties
-        const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
-
-        // Check if draft's channelId or rootId mismatches with the passed one
-        const isDraftMismatched = retrievedDraft.channelId !== channelId || retrievedDraft.rootId !== rootId;
-
-        if (isDraftWithRequiredValues && !isDraftMismatched) {
-            return retrievedDraft;
-        }
-
-        return {
-            ...DEFAULT_DRAFT,
-            ...retrievedDraft,
-            channelId,
-            rootId,
-        };
-    };
 }
 
 export function makeGetChannelDraft() {

@@ -367,7 +367,7 @@ async function initializeModuleFederation() {
 if (DEV) {
     // Development mode configuration
     config.mode = 'development';
-    config.devtool = 'eval-cheap-module-source-map';
+    config.devtool = 'source-map';
 } else {
     // Production mode configuration
     config.mode = 'production';
