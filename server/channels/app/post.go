@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -458,16 +459,18 @@ func (a *App) addPostPreviewProp(rctx request.CTX, post *model.Post) (*model.Pos
 }
 
 func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppError {
-	var attachedIds []string
-	for _, fileID := range post.FileIds {
-		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId)
-		if err != nil {
-			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
-			continue
-		}
+	//var attachedIds []string
+	//for _, fileID := range post.FileIds {
+	//	err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId)
+	//	if err != nil {
+	//		rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
+	//		continue
+	//	}
+	//
+	//	attachedIds = append(attachedIds, fileID)
+	//}
 
-		attachedIds = append(attachedIds, fileID)
-	}
+	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, post.FileIds)
 
 	if len(post.FileIds) != len(attachedIds) {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
@@ -479,6 +482,20 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppEr
 	}
 
 	return nil
+}
+
+func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID string, fileIDs []string) []string {
+	var attachedIds []string
+	for _, fileID := range fileIDs {
+		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, postID, channelID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", postID), mlog.Err(err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileID)
+	}
+	return attachedIds
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -728,9 +745,12 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	if !safeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
-		newPost.FileIds = receivedUpdatedPost.FileIds
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
+		appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost)
+		if appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -814,8 +834,19 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	return rpost, nil
 }
 
-func (a *App) processPostFileChanges(rctx request.CTX, newPost, receivedUpdatedPost *model.Post) *model.AppError {
-	
+func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.Post) *model.AppError {
+	newFileIDs := model.RemoveDuplicateStrings(newPost.FileIds)
+	oldFileIDs := model.RemoveDuplicateStrings(oldPost.FileIds)
+
+	addedFiles, _, unchangedFiles := utils.FindExclusives(newFileIDs, oldFileIDs)
+	// TODO handle removed files here
+
+	attachedFileIDs := a.attachFileIDsToPost(rctx, newPost.Id, newPost.ChannelId, newPost.UserId, addedFiles)
+	if len(addedFiles) != len(attachedFileIDs) {
+		// if not all files could be attached, the final list of files
+		// is those that could be attached + the existing, unchanged files
+		newPost.FileIds = append(addedFiles, unchangedFiles...)
+	}
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
@@ -1854,7 +1885,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		user,
 		map[string]string{},
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true,                                      // Assume channel mentions are always allowed for simplicity
+		true, // Assume channel mentions are always allowed for simplicity
 	)
 
 	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
@@ -1939,7 +1970,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		user,
 		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
-		true,                                      // Assume channel mentions are always allowed for simplicity
+		true, // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.CommentsNotifyProp]
 	checkForCommentMentions := commentMentions == model.CommentsNotifyRoot || commentMentions == model.CommentsNotifyAny

@@ -3,10 +3,11 @@
 
 package utils
 
-// FindExclusives returns two arrays:
+// FindExclusives returns three arrays:
 // 1. Items exclusive to arr1
 // 2. Items exclusive to arr2
-func FindExclusives[T comparable](arr1, arr2 []T) ([]T, []T) {
+// 3. Items common to both arr1 and arr2
+func FindExclusives[T comparable](arr1, arr2 []T) ([]T, []T, []T) {
 	elementMap := make(map[T]int)
 
 	// Populate the map with counts from arr1
@@ -16,9 +17,11 @@ func FindExclusives[T comparable](arr1, arr2 []T) ([]T, []T) {
 
 	// Process arr2 and adjust counts
 	var exclusiveToArr2 []T
+	var commonElements []T
 	for _, elem := range arr2 {
 		if elementMap[elem] > 0 {
-			elementMap[elem]-- // Common element
+			elementMap[elem]--                            // Common element
+			commonElements = append(commonElements, elem) // Track common elements
 		} else {
 			exclusiveToArr2 = append(exclusiveToArr2, elem) // Exclusive to arr2
 		}
@@ -32,5 +35,5 @@ func FindExclusives[T comparable](arr1, arr2 []T) ([]T, []T) {
 		}
 	}
 
-	return exclusiveToArr1, exclusiveToArr2
+	return exclusiveToArr1, exclusiveToArr2, commonElements
 }
