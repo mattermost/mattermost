@@ -339,19 +339,21 @@
           description: |
             Remove masked values from the exported configuration.
 
-            __Minimum server version__: 10.2.0
+            __Minimum server version__: 10.3.0
           required: false
           schema:
             type: boolean
+            default: false
         - name: remove_defaults
           in: query
           description: |
             Remove default values from the exported configuration.
 
-            __Minimum server version__: 10.2.0
+            __Minimum server version__: 10.3.0
           required: false
           schema:
             type: string
+            default: false
       responses:
         "200":
           description: Configuration retrieval successful

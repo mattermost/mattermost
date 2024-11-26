@@ -137,7 +137,7 @@ func init() {
 	ConfigSubpathCmd.Flags().StringP("path", "p", "", "path to update the assets with")
 	_ = ConfigSubpathCmd.MarkFlagRequired("path")
 
-	ConfigExportCmd.Flags().Bool("remove-masked", false, "remove masked values from the exported configuration")
+	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
 	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
 
 	ConfigCmd.AddCommand(
