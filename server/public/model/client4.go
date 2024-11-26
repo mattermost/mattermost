@@ -4415,7 +4415,12 @@ func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, para
 	if err != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/files/search", string(js))
+
+	route := c.teamRoute(teamId) + "/files/search"
+	if teamId == "" {
+		route = c.filesRoute() + "/search"
+	}
+	r, err := c.DoAPIPost(ctx, route, string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4426,6 +4431,15 @@ func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, para
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// SearchFilesAcrossTeams returns any posts with matching terms string.
+func (c *Client4) SearchFilesAcrossTeams(ctx context.Context, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchFilesWithParams(ctx, "", &params)
 }
 
 // SearchPosts returns any posts with matching terms string.
