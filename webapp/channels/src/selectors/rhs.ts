@@ -152,7 +152,7 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
 }
 
 export function makeGetDraft() {
-    let defaultDraft = {
+    const DEFAULT_DRAFT = Object.freeze({
         message: '',
         fileInfos: [],
         uploadsInProgress: [],
@@ -160,41 +160,31 @@ export function makeGetDraft() {
         updateAt: 0,
         channelId: '',
         rootId: '',
-    };
+    });
+
     return (state: GlobalState, channelId: string, rootId = ''): PostDraft => {
-        if (defaultDraft.channelId !== channelId || defaultDraft.rootId !== rootId) {
-            defaultDraft = {
-                message: '',
-                fileInfos: [],
-                uploadsInProgress: [],
-                createAt: 0,
-                updateAt: 0,
-                channelId,
-                rootId,
-            };
-        }
-        const prefix = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
-        const suffix = rootId || channelId;
-        const draft = getGlobalItem(state, `${prefix}${suffix}`, defaultDraft);
+        const prefixStorageKey = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
+        const suffixStorageKey = rootId || channelId;
+        const storageKey = `${prefixStorageKey}${suffixStorageKey}`;
 
-        let toReturn = defaultDraft;
-        if (
-            typeof draft.message !== 'undefined' &&
-            typeof draft.uploadsInProgress !== 'undefined' &&
-            typeof draft.fileInfos !== 'undefined'
-        ) {
-            toReturn = draft;
+        const retrievedDraft = getGlobalItem(state, storageKey, DEFAULT_DRAFT);
+
+        // Check if the draft has the required values in its properties
+        const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
+
+        // Check if draft's channelId or rootId mismatches with the passed one
+        const isDraftMismatched = retrievedDraft.channelId !== channelId || retrievedDraft.rootId !== rootId;
+
+        if (isDraftWithRequiredValues && !isDraftMismatched) {
+            return retrievedDraft;
         }
 
-        if (draft.rootId !== rootId || draft.channelId !== channelId) {
-            toReturn = {
-                ...draft,
-                rootId,
-                channelId,
-            };
-        }
-
-        return toReturn;
+        return {
+            ...DEFAULT_DRAFT,
+            ...retrievedDraft,
+            channelId,
+            rootId,
+        };
     };
 }
 

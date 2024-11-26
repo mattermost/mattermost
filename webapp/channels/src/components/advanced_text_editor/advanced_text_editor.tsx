@@ -29,8 +29,6 @@ import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
-import MessageSubmitError from 'components/message_submit_error';
-import MsgTyping from 'components/msg_typing';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -50,6 +48,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import DoNotDisturbWarning from './do_not_disturb_warning';
+import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import SendButton from './send_button';
@@ -83,6 +82,7 @@ type Props = {
     postId: string;
     isThreadView?: boolean;
     placeholder?: string;
+    isInEditMode?: boolean;
 
     /**
      * Used by plugins to act after the post is made
@@ -96,6 +96,7 @@ const AdvancedTextEditor = ({
     postId,
     isThreadView = false,
     placeholder,
+    isInEditMode = false,
     afterSubmit,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -457,7 +458,7 @@ const AdvancedTextEditor = ({
     }, [channelId, postId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
-    const sendButton = readOnlyChannel ? null : (
+    const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
@@ -684,28 +685,14 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
-            <div
-                id='postCreateFooter'
-                role='form'
-                className='AdvancedTextEditor__footer'
-            >
-                {postError && (
-                    <label className={classNames('post-error', {errorClass})}>
-                        {postError}
-                    </label>
-                )}
-                {serverError && (
-                    <MessageSubmitError
-                        error={serverError}
-                        submittedMessage={serverError.submittedMessage}
-                        handleSubmit={noArgumentHandleSubmit}
-                    />
-                )}
-                <MsgTyping
-                    channelId={channelId}
-                    postId={postId}
-                />
-            </div>
+            <Footer
+                postError={postError}
+                errorClass={errorClass}
+                serverError={serverError}
+                channelId={channelId}
+                postId={postId}
+                noArgumentHandleSubmit={noArgumentHandleSubmit}
+            />
         </form>
     );
 };

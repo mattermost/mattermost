@@ -19,6 +19,7 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
 
+import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import DeletePostModal from 'components/delete_post_modal';
 import DeleteScheduledPostModal
     from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
@@ -26,7 +27,7 @@ import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
-import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {AppEvents, Constants, Locations, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -607,6 +608,23 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     if (editingPost.post) {
         rootId = editingPost.post.root_id || editingPost.post.id;
     }
+
+    return (
+        <div
+            className='post-create__container'
+            data-testid='comment-create'
+        >
+            <AdvancedTextEditor
+                location={Locations.RHS_COMMENT}
+                channelId={channelId}
+                postId={rootId}
+                isThreadView={false}
+                isInEditMode={true}
+                placeholder={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}
+                // afterSubmit={afterSubmit}
+            />
+        </div>
+    );
 
     return (
         <div
