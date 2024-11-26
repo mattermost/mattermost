@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .Plugins__marketplace {
     margin-top: 24px;
@@ -52,4 +52,4 @@
     }
 }
 
-@include simple-in-and-out("Plugins");
+@include mixins.simple-in-and-out("Plugins");
