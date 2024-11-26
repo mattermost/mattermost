@@ -88,7 +88,7 @@ func (r *PerformanceReport) IsValid() error {
 
 	reportVersion, err := semver.ParseTolerant(r.Version)
 	if err != nil {
-		return fmt.Errorf("could not parse semver version: %s, %v", r.Version, err)
+		return fmt.Errorf("could not parse semver version: %s, %w", r.Version, err)
 	}
 
 	if reportVersion.Major != performanceReportVersion.Major || reportVersion.Minor > performanceReportVersion.Minor {
