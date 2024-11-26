@@ -1099,7 +1099,9 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
                 if (attachment.fields) {
                     for (const field of attachment.fields) {
-                        findNeededUsernamesAndGroups(String(field.value));
+                        if (typeof field.value === 'string') {
+                            findNeededUsernamesAndGroups(field.value);
+                        }
                     }
                 }
             }
