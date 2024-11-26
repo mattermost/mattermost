@@ -12,9 +12,10 @@ const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 type Props = {
     onExited: () => void;
+    canInviteUsers: boolean;
 }
 
-const TeamSettingsModal = ({onExited}: Props) => {
+const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
@@ -49,8 +50,10 @@ const TeamSettingsModal = ({onExited}: Props) => {
 
     const tabs = [
         {name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})},
-        {name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})},
     ];
+    if (canInviteUsers) {
+        tabs.push({name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})});
+    }
 
     return (
         <Modal
