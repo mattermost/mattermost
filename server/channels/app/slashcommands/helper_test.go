@@ -184,29 +184,17 @@ var userCache struct {
 }
 
 func (th *TestHelper) initBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.createUser()
-		_, err := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		require.Nil(th.t, err)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
-		th.BasicUser = th.createUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.SystemAdminUser = th.createUser()
+	_, err := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(th.t, err)
+	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
-		th.BasicUser2 = th.createUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	require.NoError(th.t, err)
+	th.BasicUser = th.createUser()
+	th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+
+	th.BasicUser2 = th.createUser()
+	th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
 
 	th.BasicTeam = th.createTeam()
 
@@ -214,6 +202,7 @@ func (th *TestHelper) initBasic() *TestHelper {
 	th.linkUserToTeam(th.BasicUser2, th.BasicTeam)
 	th.BasicChannel = th.CreateChannel(th.BasicTeam)
 	th.BasicPost = th.createPost(th.BasicChannel)
+
 	return th
 }
 
