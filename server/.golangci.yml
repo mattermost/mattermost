@@ -100,14 +100,10 @@ issues:
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
-        channels/app/platform/link_cache.go|\
-        channels/app/platform/log.go|\
-        channels/app/platform/metrics.go|\
         channels/app/platform/searchengine.go|\
         channels/app/platform/service.go|\
         channels/app/platform/service_test.go|\
         channels/app/platform/session.go|\
-        channels/app/platform/session_test.go|\
         channels/app/platform/status.go|\
         channels/app/platform/web_broadcast_hook.go|\
         channels/app/platform/web_conn.go|\
