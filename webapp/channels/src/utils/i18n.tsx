@@ -9,7 +9,7 @@ import store from 'stores/redux_store';
 
 const cache = createIntlCache();
 
-// getIntl returns a memoized instance of IntlShape for the current locale.
+// getIntl returns an instance of IntlShape for the current locale.
 // Prefer `useIntl` and `FormattedMessage` and only use this selectively when
 // outside of React components.
 export function getIntl(): IntlShape {
