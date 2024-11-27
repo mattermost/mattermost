@@ -44,6 +44,8 @@ func StoreOverride(override any) Option {
 	}
 }
 
+// StoreOverrideWithCache is a test option to construct the app with the store layer
+// wrapped on top of the store that is passed.
 func StoreOverrideWithCache(override store.Store) Option {
 	return func(ps *PlatformService) error {
 		ps.newStore = func() (store.Store, error) {
@@ -51,6 +53,9 @@ func StoreOverrideWithCache(override store.Store) Option {
 			if err != nil {
 				return nil, err
 			}
+			// Clearing all the caches because the in-mem data
+			// is persisted in case of Redis.
+			lcl.Invalidate()
 			return lcl, nil
 		}
 
