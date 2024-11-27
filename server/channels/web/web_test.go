@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -86,7 +85,12 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	_, _, err := memoryStore.Set(newConfig)
 	require.NoError(tb, err)
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(mainHelper.Store))
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		options = append(options, app.StoreOverrideWithCache(mainHelper.Store))
+	} else {
+		options = append(options, app.StoreOverride(mainHelper.Store))
+	}
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
@@ -98,15 +102,9 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	require.NoError(tb, err)
-
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		var st localcachelayer.LocalCacheStore
-		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider(), testLogger)
-		require.NoError(tb, err)
-		s.SetStore(st)
-	}
+	if err != nil {
+		panic(err)
+  }
 
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
