@@ -4503,7 +4503,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Вы получили следующие запросы на установку приложений:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> или посетите <marketplaceLink>Marketplace</marketplaceLink> для просмотра всех плагинов.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "запросил установку приложения {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} теперь установлен.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Установите приложения или посетите <marketplaceLink>Marketplace</marketplaceLink> для просмотра всех плагинов.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "и",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} участники",
