@@ -2661,15 +2661,15 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Неприпустимий опис ролі."
+    "translation": "Недійсний опис ролі."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Неприпустиме ім'я для відображення ролі."
+    "translation": "Недійсна відображувана назва ролі."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Неприпустимий дозвіл ролі."
+    "translation": "Недійсний дозвіл на роль."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
@@ -2677,11 +2677,11 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "Неприпустимий опис схеми."
+    "translation": "Недійсний опис схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "Неприпустиме ім'я для відображення схеми."
+    "translation": "Недійсне ім'я для відображення схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
@@ -4613,11 +4613,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не вдалось знайти команду."
+    "translation": "Не вдалося знайти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Не вдається розібрати вхідні дані."
+    "translation": "Не вдалося розібрати вхідні дані для вебхуку {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4629,7 +4629,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Цей вебхук не дозволено публікувати на запитуваному каналі."
+    "translation": "Цей вебхук не має дозволу на публікацію в запитуваному каналі {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4645,7 +4645,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Невідповідні дозволи на канали."
+    "translation": "Користувач {{.user}} не має відповідних прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4657,7 +4657,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не вдалося знайти користувача."
+    "translation": "Не вдалося знайти користувача {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -5373,11 +5373,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Виникла помилка при пошуку каналу."
+    "translation": "Ми зіткнулися з помилкою при пошуку каналу {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не вдалося знайти існуючий канал."
+    "translation": "Не вдалося знайти існуючий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -10410,5 +10410,29 @@
       "many": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
       "one": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}"
     }
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Не вдалося скинути позицію читання на початок пакета плагіна."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Не вдалося обробити команду вебхуку {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Не вдалося декодувати корисне навантаження медіатипу {{.media_type}} для вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Не вдалося обробити корисне навантаження медіатипу {{.media_type}} для вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Не вдалося розпарсити медіа вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не вдалося кешувати допис після усунення дублікатів клієнта, що повторював один і той самий запит."
   }
 ]
