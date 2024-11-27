@@ -7485,11 +7485,11 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 
 }
 
-func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
+func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamID *string) ([]*model.PostForExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels)
+		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels, teamID)
 		if err == nil {
 			return result, nil
 		}
