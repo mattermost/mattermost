@@ -226,7 +226,9 @@ func (srv *JobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {
 	}
 
 	sb := &strings.Builder{}
-	pprof.Lookup("goroutine").WriteTo(sb, 2)
+	if  err := pprof.Lookup("goroutine").WriteTo(sb, 2); err != nil {
+		logger.Error("Error writing goroutine stack trace", mlog.Err(err))
+	}
 	logger.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
 
 	rerr, ok := r.(error)
