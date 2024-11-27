@@ -41,7 +41,7 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
         defaultMessage: 'Notifications for this Mattermost server are blocked. To receive notifications, please enable them manually.',
     }) : intl.formatMessage({
         id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message',
-        defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for this server and the Mattermost application.',
+        defaultMessage: "You're missing important message and call notifications from Mattermost. To start receiving them, please enable them manually.",
     });
 
     return (

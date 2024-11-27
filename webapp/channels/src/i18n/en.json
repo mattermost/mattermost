@@ -5736,7 +5736,7 @@
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.message": "You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.title": "Browser notification permission was denied",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton": "Check permission",
-  "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message": "You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for this server and the Mattermost application.",
+  "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.message": "You're missing important message and call notifications from Mattermost. To start receiving them, please enable them manually.",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.messageDenied": "Notifications for this Mattermost server are blocked. To receive notifications, please enable them manually.",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.title": "Desktop notifications permission required",
   "user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.titleDenied": "Desktop notifications permission was denied",
