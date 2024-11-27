@@ -2653,11 +2653,11 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Відсутня необхідна відповідь властивість: Повідомлення."
+    "translation": "Відсутня обов'язкова властивість Reply: Повідомлення."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Відсутня необхідна відповідь властивість: користувач."
+    "translation": "Відсутня обов'язкова властивість Reply: Користувач."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -2689,15 +2689,15 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Необхідний обсяг схем ."
+    "translation": "Необхідно вказати область схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Невідома схема масштабу."
+    "translation": "Невідомий обсяг схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "Неправильні ролі були передбачені для схеми з таким обсягом."
+    "translation": "Для схеми з цією областю надано неправильні ролі."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2729,11 +2729,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Неприпустиме ім'я схеми для команди."
+    "translation": "Невірна назва схеми для команди."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": "Тип команди недійсний."
+    "translation": "Тип команди не є дійсним."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
@@ -2769,11 +2769,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": "Електронна адреса користувача має недійсну довжину."
+    "translation": "Електронна пошта користувача має неприпустиму довжину."
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Відсутня необхідна властивість користувача: email."
+    "translation": "Пропущено обов'язкову властивість користувача: email."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -3001,43 +3001,43 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Невідомий вихідний формат {{.ExportType}}"
+    "translation": "Невідомий формат виводу {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Неможливо скопіювати вкладення у файл zip."
+    "translation": "Не вдалося скопіювати вкладення в zip-файл."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Неможливо додати вкладення до експорту CSV."
+    "translation": "Не вдалося додати вкладення до CSV-експорту."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Неможливо створити тимчасовий файл експорту CSV."
+    "translation": "Не вдалося створити тимчасовий файл експорту CSV."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Неможливо додати заголовок до експорту CSV."
+    "translation": "Не вдалося додати заголовок до експорту CSV."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Неможливо додати метадані до архіву."
+    "translation": "Не вдалося додати файл метаданих до zip-файлу."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Неможливо перетворити метадані в json."
+    "translation": "Не вдається конвертувати метадані в json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Неможливо експортувати публікацію."
+    "translation": "Не вдалось експортувати допис."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Неможливо створити файл експорту ZIP."
+    "translation": "Не вдалося створити файл експорту у форматі zip."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Завантажений файл був видалений з експорту Global Relay, оскільки він був надто великим для відправлення."
+    "translation": "Завантажений файл було вилучено з експорту Global Relay, оскільки він був занадто великим для надсилання."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
@@ -3045,7 +3045,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Неможливо повторно прочитати файл тимчасового експорту Global Relay."
+    "translation": "Не вдалося перечитати тимчасовий файл експорту Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3053,7 +3053,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Неможливо завантажити шаблони експорту. Будь ласка спробуйте ще раз."
+    "translation": "Не вдалося завантажити шаблони експорту. Спробуйте ще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3141,7 +3141,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch відключений."
+    "translation": "Elasticsearch вимкнений."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3149,7 +3149,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінено. Будь ласка, повторно введіть пароль Elasticsearch, щоб перевірити з'єднання."
+    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінилися. Будь ласка, введіть пароль Elasticsearch ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3157,15 +3157,15 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Неможливо створити користувача LDAP."
+    "translation": "Не вдалося створити користувача LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "AD / LDAP відключений або ліцензія не підтримує AD / LDAP."
+    "translation": "AD/LDAP вимкнено або ліцензія не підтримує AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Неможливо зробити прив'язку до сервера AD / LDAP. Перевірте ім'я користувача BindUsername і пароль BindPassword."
+    "translation": "Не вдалося підключитися до сервера AD/LDAP. Перевірте BindUsername та BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -3189,7 +3189,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Ваш обліковий запис AD/LDAP не має дозволу на використання цього сервера Mattermost. Будь ласка, зверніться до системного адміністратора, щоб перевірити фільтр користувачів AD/LDAP."
+    "translation": "Ваш обліковий запис AD/LDAP не має дозволу на використання цього сервера Mattermost. Попросіть вашого системного адміністратора перевірити фільтр користувачів AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -3205,11 +3205,11 @@
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "помилка заповнення синхронізації"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Не вдалося знайти користувачів в AD/LDAP. Перевірте, чи сервер Mattermost може підключитися до вашого сервера AD/LDAP і повторіть спробу."
+    "translation": "Не вдалося здійснити пошук користувачів в AD/LDAP. Перевірте, чи може сервер Mattermost підключитися до вашого сервера AD/LDAP, і повторіть спробу."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3217,63 +3217,63 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "помилка при отриманні групи ldap"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "помилка при отриманні ldap груп"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "помилка при отриманні членів групи"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "не знайдено груп з відповідним uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "помилка при отриманні груп для користувача"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Неможливо додати вкладення до експорту CSV."
+    "translation": "Не вдалося додати вкладення до експорту Global Relay."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Неможливо створити файл zip."
+    "translation": "Не вдалось закрити zip-файл."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Неможливо створити файл eml."
+    "translation": "Не вдалося створити файл eml."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Не вдається генерувати дані файлу eml."
+    "translation": "Не вдається згенерувати дані eml-файлу."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не вдається доставити електронний лист до Global Relay."
+    "translation": "Не вдалося доставити електронний лист до Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Неможливо встановити адресу електронної пошти."
+    "translation": "Не вдалося встановити адресу відправника електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Неможливо встановити повідомлення електронної пошти."
+    "translation": "Не вдалося встановити повідомлення електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не вдається записати повідомлення електронної пошти."
+    "translation": "Не вдалося написати повідомлення електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Не вдається прочитати інформацію електронної пошти."
+    "translation": "Не вдалося прочитати інформацію електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Не вдається встановити email для адреси."
+    "translation": "Не вдалося встановити адресу отримувача електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
@@ -3289,7 +3289,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Неможливо перенести користувачів AD/LDAP із зазначеним полем. Виявлено дублювання записів. Будь ласка, видаліть всі дублікати і спробуйте ще раз."
+    "translation": "Не вдалося перенести користувачів AD/LDAP із зазначеним полем. Виявлено дублікат запису. Будь ласка, видаліть всі дублікати і спробуйте ще раз."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -3301,31 +3301,31 @@
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "Користувач не знайдений в файлі користувачів."
+    "translation": "Користувача не знайдено у файлі користувачів."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Ім'я користувача, яке вже використовувалося іншим користувачем Mattermost."
+    "translation": "Ім'я користувача вже використовується іншим користувачем Mattermost."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через некоректне атрибута. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки один з атрибутів є некоректним. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Сталася помилка при ініціюванні запиту постачальнику послуг ідентифікації. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Сталася помилка під час ініціації запиту до постачальника ідентифікації. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через відключеного шифрування. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Не вдалося виконати вхід за допомогою SAML, оскільки шифрування не ввімкнено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через те, що ні виявлено приватний ключ постачальника служби. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки приватний ключ постачальника послуг не знайдено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася, так як відповідь постачальника облікових записів не зашифровані. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки відповідь постачальника ідентифікації не зашифрована. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -3333,7 +3333,7 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Виникла помилка по час розбору відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Сталася помилка під час розбору відповіді від постачальника ідентифікації. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3341,7 +3341,7 @@
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "Сталася помилка при побудові метаданих постачальника послуг."
+    "translation": "Виникла помилка під час створення метаданих постачальника послуг."
   },
   {
     "id": "ent.saml.service_disable.app_error",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Не вдається розшифрувати base64 для ідентифікатора тригера для інтерактивного діалогу."
+    "translation": "Не вдалося декодувати base64 для ідентифікатора тригера для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3357,15 +3357,15 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Тригер ID не містить необхідних даних для інтерактивного діалогу."
+    "translation": "Ідентифікатор тригера не містить необхідних даних для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Не вдалося декодувати підпис бази64 під час запуску інтерактивного діалогу."
+    "translation": "Не вдалося декодувати підпис base64 для ID тригера інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Не вдалося перевірити підпис під час ідентифікатора тригера для інтерактивного діалогу."
+    "translation": "Не вдалося перевірити підпис ідентифікатора тригера для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
@@ -3401,7 +3401,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Багатофункціональна аутентифікація потрібна на цьому сервері."
+    "translation": "Багатофакторна автентифікація вимкнена на цьому сервері."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -3409,11 +3409,11 @@
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Не вдалося перемістити через недійсні дані про перебіг."
+    "translation": "Міграція не відбулася через невірні дані про прогрес."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Неможливо запустити роботу міграції через невідомий ключ міграції."
+    "translation": "Неможливо запустити завдання міграції через невідомий ключ міграції."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4909,19 +4909,19 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Назви каналів не можуть бути в шістнадцятковому форматі. Будь ласка, введіть іншу назву каналу."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Не вдалося декодувати підпис бази64 під час запуску інтерактивного діалогу."
+    "translation": "Не вдалося декодувати підпис base64 для ID тригера інтерактивного діалогу."
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "Непідтримуваний синхронізований тип '{{.Value}}'."
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+    "translation": "Групу не можна асоціювати з каналом, поки вона не буде спочатку асоційована з батьківською командою, синхронізованою з групою."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
@@ -4937,15 +4937,15 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Your license does not support ID Loaded Push Notifications."
+    "translation": "Ваша ліцензія не підтримує push-повідомлення з завантаженням за ідентифікатором."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Не вдалося обробити версію сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Не вдалося отримати версію сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4973,7 +4973,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed"
+    "translation": "Спроба індексації нового пакету, коли всі сутності вже завершені"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -5005,7 +5005,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "Неможливо створити файл eml."
+    "translation": "Не вдалося створити файл попередження."
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
@@ -5269,19 +5269,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Невірне налаштування відображення розділу непрочитаних повідомлень для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Неправильне налаштування форматування публікації для Користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Невірне налаштування попереднього перегляду Markdown для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Невірне налаштування інтервалу пакетної обробки електронної пошти для користувача"
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
@@ -6241,27 +6241,27 @@
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
+    "translation": "Не вдалося виконати вхід через SAML з порожньою адресою електронної пошти."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зверніться до свого адміністратора."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    "translation": "Цей обліковий запис не використовує SAML-аутентифікацію. Будь ласка, увійдіть, використовуючи електронну пошту та пароль."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зверніться до свого адміністратора."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    "translation": "Цей обліковий запис не використовує автентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту та пароль."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
+    "translation": "Досягнуто тайм-ауту завдання синхронізації AD/LDAP."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
