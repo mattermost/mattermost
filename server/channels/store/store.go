@@ -161,6 +161,7 @@ type TeamStore interface {
 	ClearAllCustomRoleAssignments() error
 	AnalyticsGetTeamCountForScheme(schemeID string) (int64, error)
 	GetAllForExportAfter(limit int, afterID string) ([]*model.TeamForExport, error)
+	GetForExport(teamID string) (*model.TeamForExport, error)
 	GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error)
 	UserBelongsToTeams(userID string, teamIds []string) (bool, error)
 	GetUserTeamIds(userID string, allowFromCache bool) ([]string, error)

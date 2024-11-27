@@ -11766,6 +11766,27 @@ func (s *RetryLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUs
 
 }
 
+func (s *RetryLayerTeamStore) GetForExport(teamID string) (*model.TeamForExport, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetForExport(teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 
 	tries := 0
