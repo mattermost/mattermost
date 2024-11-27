@@ -65,7 +65,7 @@ type ChannelExport struct {
 	ChannelName  string
 	DisplayName  string
 	StartTime    int64 // utc timestamp (milliseconds), start of export period or create time of channel, whichever is greater.
-	EndTime      int64 `xml:"EndTimeUTC"` // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
+	EndTime      int64 // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
 	Posts        []PostExport
 	Files        []*model.FileInfo
 	DeletedFiles []PostExport
@@ -287,10 +287,8 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 		})
 		if value, ok := stillJoined[join.Email]; !ok {
 			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType}
-		} else {
-			if join.Datetime > value.time {
-				stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType}
-			}
+		} else if join.Datetime > value.time {
+			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType}
 		}
 	}
 	for _, leave := range leaves {

@@ -30,7 +30,7 @@ func Test_getPostExport(t *testing.T) {
 
 	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
 	for i := 0; i < 10; i++ {
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 		start := model.GetMillis()
 
 		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
@@ -51,7 +51,7 @@ func Test_getPostExport(t *testing.T) {
 		posts = append(posts, originalPost)
 
 		// If we don't sleep, the two messages might not have different CreateAt and UpdateAts
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 
 		// 1 - edited post
 		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
