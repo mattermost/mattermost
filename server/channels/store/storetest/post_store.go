@@ -4362,11 +4362,19 @@ func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
 
 func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
-	t1.DisplayName = "Name"
+	t1.DisplayName = "Name1"
 	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	_, err := ss.Team().Save(&t1)
+	require.NoError(t, err)
+
+	t2 := model.Team{}
+	t2.DisplayName = "Name2"
+	t2.Name = NewTestID()
+	t2.Email = MakeEmail()
+	t2.Type = model.TeamOpen
+	_, err = ss.Team().Save(&t2)
 	require.NoError(t, err)
 
 	c1 := model.Channel{}
@@ -4383,6 +4391,14 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	c2.Name = NewTestID()
 	c2.Type = model.ChannelTypeOpen
 	_, nErr = ss.Channel().Save(rctx, &c2, -1)
+	require.NoError(t, nErr)
+
+	c3 := model.Channel{}
+	c3.TeamId = t2.Id
+	c3.DisplayName = "Channel3"
+	c3.Name = NewTestID()
+	c3.Type = model.ChannelTypeOpen
+	_, nErr = ss.Channel().Save(rctx, &c3, -1)
 	require.NoError(t, nErr)
 
 	u1 := model.User{}
@@ -4407,34 +4423,48 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	p2.CreateAt = 1000
 	p2, nErr = ss.Post().Save(rctx, p2)
 	require.NoError(t, nErr)
+
+	p3 := &model.Post{}
+	p3.ChannelId = c3.Id
+	p3.UserId = u1.Id
+	p3.Message = NewTestID()
+	p3.CreateAt = 1000
+	p3, nErr = ss.Post().Save(rctx, p3)
+	require.NoError(t, nErr)
+
 	nErr = ss.Channel().Delete(c2.Id, model.GetMillis())
 	require.NoError(t, nErr)
 
 	t.Run("without archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, nil)
 		assert.NoError(t, err)
 
-		found := false
+		foundTeam1 := false
+		foundTeam2 := false
 		foundArchived := false
 		for _, p := range posts {
 			if p.Id == p1.Id {
-				found = true
+				foundTeam1 = true
 				assert.Equal(t, p.Id, p1.Id)
 				assert.Equal(t, p.Message, p1.Message)
 				assert.Equal(t, p.Username, u1.Username)
 				assert.Equal(t, p.TeamName, t1.Name)
 				assert.Equal(t, p.ChannelName, c1.Name)
 			}
+			if p.Id == p3.Id {
+				foundTeam2 = true
+			}
 			if p.Id == p2.Id {
 				foundArchived = true
 			}
 		}
-		assert.True(t, found)
+		assert.True(t, foundTeam1)
+		assert.True(t, foundTeam2)
 		assert.False(t, foundArchived, "posts from archived channel should not be returned")
 	})
 
 	t.Run("with archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, nil)
 		assert.NoError(t, err)
 
 		found := false
@@ -4462,7 +4492,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}))
 		require.NoError(t, err)
 
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, nil)
 		assert.NoError(t, err)
 
 		for _, p := range posts {
@@ -4471,6 +4501,24 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 				assert.Equal(t, model.StringArray([]string{u1.Username}), p.FlaggedBy)
 			}
 		}
+	})
+
+	t.Run("restricted to a team", func(t *testing.T) {
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, &t1.Id)
+		assert.NoError(t, err)
+
+		foundTeam1 := false
+		foundTeam2 := false
+		for _, p := range posts {
+			if p.Id == p1.Id {
+				foundTeam1 = true
+			}
+			if p.Id == p3.Id {
+				foundTeam2 = true
+			}
+		}
+		assert.True(t, foundTeam1)
+		assert.False(t, foundTeam2)
 	})
 }
 
