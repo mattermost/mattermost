@@ -103,6 +103,7 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
+	ExportCreateCmd.Flags().String("team-id", "", "Identifier of the team to restrict the export to.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -152,6 +153,11 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	includeProfilePictures, _ := command.Flags().GetBool("include-profile-pictures")
 	if includeProfilePictures {
 		data["include_profile_pictures"] = "true"
+	}
+
+	teamId, err := command.Flags().GetString("team-id")
+	if err != nil && teamId != "" {
+		data["team_id"] = teamId
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
