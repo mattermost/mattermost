@@ -9,266 +9,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
-	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
-	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
-
-func TestCreatePluginsFile(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	// Happy path where we have a plugins file with no err
-	fileData, err := th.App.createPluginsFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "plugins.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
-
-	// Turn off plugins so we can get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
-	})
-
-	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, err = th.App.createPluginsFile(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
-}
-
-func TestGenerateSupportPacketYaml(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	t.Setenv(envVarInstallType, "docker")
-
-	licenseUsers := 100
-	license := model.NewTestLicense("ldap")
-	license.Features.Users = model.NewPointer(licenseUsers)
-	th.App.Srv().SetLicense(license)
-
-	generateSupportPacket := func(t *testing.T) *model.SupportPacket {
-		t.Helper()
-
-		fileData, err := th.App.generateSupportPacketYaml(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "support_packet.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-		assert.NoError(t, err)
-
-		var packet model.SupportPacket
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-		return &packet
-	}
-
-	t.Run("Happy path", func(t *testing.T) {
-		// Happy path where we have a Support Packet yaml file without any warnings
-		sp := generateSupportPacket(t)
-
-		assert.Equal(t, 1, sp.Version)
-
-		/* License */
-		assert.Equal(t, "My awesome Company", sp.License.Company)
-		assert.Equal(t, licenseUsers, sp.License.Users)
-		assert.Equal(t, false, sp.License.IsTrial)
-		assert.Equal(t, false, sp.License.IsGovSKU)
-
-		/* Server information */
-		assert.NotEmpty(t, sp.Server.OS)
-		assert.NotEmpty(t, sp.Server.Architecture)
-		assert.Equal(t, model.CurrentVersion, sp.Server.Version)
-		// BuildHash is not present in tests
-		assert.Equal(t, "docker", sp.Server.InstallationType)
-
-		/* Config */
-		assert.Equal(t, "memory://", sp.Config.Source)
-
-		/* DB */
-		assert.NotEmpty(t, sp.Database.Type)
-		assert.NotEmpty(t, sp.Database.Version)
-		assert.NotEmpty(t, sp.Database.SchemaVersion)
-		assert.NotZero(t, sp.Database.MasterConnectios)
-		assert.Zero(t, sp.Database.ReplicaConnectios)
-		assert.Zero(t, sp.Database.SearchConnections)
-
-		/* File store */
-		assert.Equal(t, "OK", sp.FileStore.Status)
-		assert.Empty(t, sp.FileStore.Error)
-		assert.Equal(t, "local", sp.FileStore.Driver)
-
-		/* Websockets */
-		assert.Zero(t, sp.Websocket.Connections)
-
-		/* Cluster */
-		assert.Empty(t, sp.Cluster.ID)
-		assert.Zero(t, sp.Cluster.NumberOfNodes)
-
-		/* LDAP */
-		assert.Empty(t, sp.LDAP.Status)
-		assert.Empty(t, sp.LDAP.Error)
-		assert.Empty(t, sp.LDAP.ServerName)
-		assert.Empty(t, sp.LDAP.ServerVersion)
-
-		/* Elastic Search */
-		assert.Empty(t, sp.ElasticSearch.ServerVersion)
-		assert.Empty(t, sp.ElasticSearch.ServerPlugins)
-
-		/* Server stats */
-		assert.Equal(t, int64(3), sp.Stats.RegisteredUsers) // from InitBasic()
-		assert.Equal(t, int64(3), sp.Stats.ActiveUsers)     // from InitBasic()
-		assert.Equal(t, int64(0), sp.Stats.DailyActiveUsers)
-		assert.Equal(t, int64(0), sp.Stats.MonthlyActiveUsers)
-		assert.Equal(t, int64(0), sp.Stats.DeactivatedUsers)
-		assert.Equal(t, int64(0), sp.Stats.Guests)
-		assert.Equal(t, int64(0), sp.Stats.BotAccounts)
-		assert.Equal(t, int64(5), sp.Stats.Posts)    // from InitBasic()
-		assert.Equal(t, int64(3), sp.Stats.Channels) // from InitBasic()
-		assert.Equal(t, int64(1), sp.Stats.Teams)    // from InitBasic()
-		assert.Equal(t, int64(0), sp.Stats.SlashCommands)
-		assert.Equal(t, int64(0), sp.Stats.IncomingWebhooks)
-		assert.Equal(t, int64(0), sp.Stats.OutgoingWebhooks)
-	})
-
-	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
-		})
-
-		for i := 0; i < 5; i++ {
-			p := th.CreatePost(th.BasicChannel)
-			require.NotNil(t, p)
-		}
-
-		// InitBasic() already creats 5 posts
-		packet := generateSupportPacket(t)
-		assert.Equal(t, int64(10), packet.Stats.Posts)
-	})
-
-	t.Run("filestore fails", func(t *testing.T) {
-		fb := &fmocks.FileBackend{}
-		platform.SetFileStore(fb)(th.Server.Platform())
-		fb.On("DriverName").Return("mock")
-		fb.On("TestConnection").Return(errors.New("all broken"))
-
-		packet := generateSupportPacket(t)
-
-		assert.Equal(t, "FAIL", packet.FileStore.Status)
-		assert.Equal(t, "all broken", packet.FileStore.Error)
-		assert.Equal(t, "mock", packet.FileStore.Driver)
-	})
-
-	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
-		ldapMock := &emocks.LdapInterface{}
-		th.App.Channels().Ldap = ldapMock
-
-		packet := generateSupportPacket(t)
-
-		assert.Equal(t, "", packet.LDAP.ServerName)
-		assert.Equal(t, "", packet.LDAP.ServerVersion)
-	})
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.LdapSettings.EnableSync = model.NewPointer(true)
-	})
-
-	t.Run("no LDAP vendor info found", func(t *testing.T) {
-		ldapMock := &emocks.LdapInterface{}
-		ldapMock.On(
-			"GetVendorNameAndVendorVersion",
-			mock.AnythingOfType("*request.Context"),
-		).Return("", "", nil)
-		ldapMock.On(
-			"RunTest",
-			mock.AnythingOfType("*request.Context"),
-		).Return(nil)
-		th.App.Channels().Ldap = ldapMock
-
-		packet := generateSupportPacket(t)
-
-		assert.Equal(t, "OK", packet.LDAP.Status)
-		assert.Empty(t, packet.LDAP.Error)
-		assert.Equal(t, "unknown", packet.LDAP.ServerName)
-		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
-	})
-
-	t.Run("found LDAP vendor info", func(t *testing.T) {
-		ldapMock := &emocks.LdapInterface{}
-		ldapMock.On(
-			"GetVendorNameAndVendorVersion",
-			mock.AnythingOfType("*request.Context"),
-		).Return("some vendor", "v1.0.0", nil)
-		ldapMock.On(
-			"RunTest",
-			mock.AnythingOfType("*request.Context"),
-		).Return(nil)
-		th.App.Channels().Ldap = ldapMock
-
-		packet := generateSupportPacket(t)
-
-		assert.Equal(t, "OK", packet.LDAP.Status)
-		assert.Empty(t, packet.LDAP.Error)
-		assert.Equal(t, "some vendor", packet.LDAP.ServerName)
-		assert.Equal(t, "v1.0.0", packet.LDAP.ServerVersion)
-	})
-
-	t.Run("LDAP test fails", func(t *testing.T) {
-		ldapMock := &emocks.LdapInterface{}
-		ldapMock.On(
-			"GetVendorNameAndVendorVersion",
-			mock.AnythingOfType("*request.Context"),
-		).Return("some vendor", "v1.0.0", nil)
-		ldapMock.On(
-			"RunTest",
-			mock.AnythingOfType("*request.Context"),
-		).Return(model.NewAppError("", "some error", nil, "", 0))
-		th.App.Channels().Ldap = ldapMock
-
-		packet := generateSupportPacket(t)
-
-		assert.Equal(t, "FAIL", packet.LDAP.Status)
-		assert.Equal(t, "some error", packet.LDAP.Error)
-		assert.Equal(t, "unknown", packet.LDAP.ServerName)
-		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
-	})
-}
-
-func TestGenerateSupportPacketJobListYaml(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	generateJobList := func(t *testing.T) *model.SupportPacketJobList {
-		t.Helper()
-
-		fileData, err := th.App.generateSupportPacketJobListYaml(th.Context)
-		require.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "jobs.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		var jobs model.SupportPacketJobList
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &jobs))
-		return &jobs
-	}
-
-	t.Run("no jobs run yet", func(t *testing.T) {
-		jobs := generateJobList(t)
-
-		assert.Empty(t, jobs.LDAPSyncJobs)
-		assert.Empty(t, jobs.DataRetentionJobs)
-		assert.Empty(t, jobs.MessageExportJobs)
-		assert.Empty(t, jobs.ElasticPostIndexingJobs)
-		assert.Empty(t, jobs.ElasticPostAggregationJobs)
-		assert.Empty(t, jobs.BlevePostIndexingJobs)
-		assert.Empty(t, jobs.MigrationJobs)
-	})
-}
 
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
@@ -305,10 +52,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 		var rFileNames []string
 		testFiles := []string{
 			"metadata.yaml",
-			"support_packet.yaml",
+			"stats.yaml",
 			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
+			"diagnostics.yaml",
 			"mattermost.log",
 			"notifications.log",
 			"cpu.prof",
@@ -331,10 +79,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 		testFiles := []string{
 			"metadata.yaml",
-			"support_packet.yaml",
+			"stats.yaml",
 			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
+			"diagnostics.yaml",
 			"cpu.prof",
 			"heap.prof",
 			"goroutines",
@@ -362,10 +111,11 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 		testFiles := []string{
 			"metadata.yaml",
-			"support_packet.yaml",
+			"stats.yaml",
 			"jobs.yaml",
 			"plugins.json",
 			"sanitized_config.json",
+			"diagnostics.yaml",
 			"cpu.prof",
 			"heap.prof",
 			"warning.txt",
@@ -420,28 +170,140 @@ func TestGenerateSupportPacket(t *testing.T) {
 			rFileNames = append(rFileNames, fileData.Filename)
 		}
 		assert.Contains(t, rFileNames, "warning.txt")
-		assert.Contains(t, rFileNames, "support_packet.yaml")
+		assert.Contains(t, rFileNames, "stats.yaml")
 	})
 }
 
-func TestCreateSanitizedConfigFile(t *testing.T) {
+func TestGetPluginsFile(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Happy path where we have a plugins file with no err
+	fileData, err := th.App.getPluginsFile(th.Context)
+	require.NotNil(t, fileData)
+	assert.Equal(t, "plugins.json", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.NoError(t, err)
+
+	// Turn off plugins so we can get an error
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = false
+	})
+
+	// Plugins off in settings so no fileData and we get a warning instead
+	fileData, err = th.App.getPluginsFile(th.Context)
+	assert.Nil(t, fileData)
+	assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
+}
+
+func TestGetSupportPacketStats(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Setenv(envVarInstallType, "docker")
+
+	licenseUsers := 100
+	license := model.NewTestLicense("ldap")
+	license.Features.Users = model.NewPointer(licenseUsers)
+	th.App.Srv().SetLicense(license)
+
+	generateSupportPacket := func(t *testing.T) *model.SupportPacketStats {
+		t.Helper()
+
+		fileData, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "stats.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+		assert.NoError(t, err)
+
+		var packet model.SupportPacketStats
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		return &packet
+	}
+
+	t.Run("Happy path", func(t *testing.T) {
+		sp := generateSupportPacket(t)
+
+		assert.Equal(t, int64(3), sp.RegisteredUsers) // from InitBasic()
+		assert.Equal(t, int64(3), sp.ActiveUsers)     // from InitBasic()
+		assert.Equal(t, int64(0), sp.DailyActiveUsers)
+		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
+		assert.Equal(t, int64(0), sp.DeactivatedUsers)
+		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.BotAccounts)
+		assert.Equal(t, int64(5), sp.Posts)    // from InitBasic()
+		assert.Equal(t, int64(3), sp.Channels) // from InitBasic()
+		assert.Equal(t, int64(1), sp.Teams)    // from InitBasic()
+		assert.Equal(t, int64(0), sp.SlashCommands)
+		assert.Equal(t, int64(0), sp.IncomingWebhooks)
+		assert.Equal(t, int64(0), sp.OutgoingWebhooks)
+	})
+
+	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
+		})
+
+		for i := 0; i < 5; i++ {
+			p := th.CreatePost(th.BasicChannel)
+			require.NotNil(t, p)
+		}
+
+		// InitBasic() already creats 5 posts
+		packet := generateSupportPacket(t)
+		assert.Equal(t, int64(10), packet.Posts)
+	})
+}
+
+func TestGetSupportPacketJobList(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	getJobList := func(t *testing.T) *model.SupportPacketJobList {
+		t.Helper()
+
+		fileData, err := th.App.getSupportPacketJobList(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "jobs.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		var jobs model.SupportPacketJobList
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &jobs))
+		return &jobs
+	}
+
+	t.Run("no jobs run yet", func(t *testing.T) {
+		jobs := getJobList(t)
+
+		assert.Empty(t, jobs.LDAPSyncJobs)
+		assert.Empty(t, jobs.DataRetentionJobs)
+		assert.Empty(t, jobs.MessageExportJobs)
+		assert.Empty(t, jobs.ElasticPostIndexingJobs)
+		assert.Empty(t, jobs.ElasticPostAggregationJobs)
+		assert.Empty(t, jobs.BlevePostIndexingJobs)
+		assert.Empty(t, jobs.MigrationJobs)
+	})
+}
+
+func TestGetSanitizedConfigFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
 	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.App.createSanitizedConfigFile(th.Context)
+	fileData, err := th.App.getSanitizedConfigFile(th.Context)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.NoError(t, err)
 }
 
-func TestCreateSupportPacketMetadata(t *testing.T) {
+func TestGetSupportPacketMetadata(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("Happy path", func(t *testing.T) {
-		fileData, err := th.App.createSupportPacketMetadata(th.Context)
+		fileData, err := th.App.getSupportPacketMetadata(th.Context)
 		require.NoError(t, err)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "metadata.yaml", fileData.Filename)

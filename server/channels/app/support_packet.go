@@ -5,8 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"os"
-	"runtime"
 	"slices"
 	"sync"
 
@@ -25,40 +23,36 @@ const (
 	unknownDataPoint  = "unknown"
 )
 
-func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
-	// A array of the functions that we can iterate through since they all have the same return value
+func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
-		"metadata":       a.createSupportPacketMetadata,
-		"support packet": a.generateSupportPacketYaml,
-		"jobs":           a.generateSupportPacketJobListYaml,
-		"plugins":        a.createPluginsFile,
-		"config":         a.createSanitizedConfigFile,
-		"cpu profile":    a.Srv().Platform().CreateCPUProfile,
-		"heap profile":   a.Srv().Platform().CreateHeapProfile,
-		"goroutines":     a.Srv().Platform().CreateGoroutineProfile,
+		"metadata": a.getSupportPacketMetadata,
+		"stats":    a.getSupportPacketStats,
+		"jobs":     a.getSupportPacketJobList,
+		"plugins":  a.getPluginsFile,
+		"config":   a.getSanitizedConfigFile,
 	}
 
-	if options.IncludeLogs {
-		functions["mattermost log"] = a.Srv().Platform().GetLogFile
-		functions["notification log"] = a.Srv().Platform().GetNotificationLogFile
-	}
-
-	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
-	var warnings *multierror.Error
-	// Creating an array of files that we are going to be adding to our zip file
-	var fileDatas []model.FileData
-	var wg sync.WaitGroup
-	var mut sync.Mutex // Protects warnings and fileDatas
+	var (
+		// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+		warnings *multierror.Error
+		// Creating an array of files that we are going to be adding to our zip file
+		fileDatas []model.FileData
+		wg        sync.WaitGroup
+		mut       sync.Mutex // Protects warnings and fileDatas
+	)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
 		for name, fn := range functions {
-			fileData, err := fn(c)
+			fileData, err := fn(rctx)
 			mut.Lock()
 			if err != nil {
-				c.Logger().Error("Failed to generate file for Support Packet", mlog.String("file", name), mlog.Err(err))
+				rctx.Logger().Error("Failed to generate file for Support Packet",
+					mlog.String("file", name),
+					mlog.Err(err),
+				)
 				warnings = multierror.Append(warnings, err)
 			}
 
@@ -67,6 +61,17 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 			}
 			mut.Unlock()
 		}
+
+		// Generate platform support packet
+		mut.Lock()
+		files, err := a.Srv().Platform().GenerateSupportPacket(rctx, options)
+		if err != nil {
+			warnings = multierror.Append(warnings, err)
+		}
+		if files != nil {
+			fileDatas = append(fileDatas, files...)
+		}
+		mut.Unlock()
 	}()
 
 	// Run the cluster generation in a separate goroutine as CPU profile generation and file upload can take a long time
@@ -75,10 +80,10 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		go func() {
 			defer wg.Done()
 
-			files, err := cluster.GenerateSupportPacket(c, options)
+			files, err := cluster.GenerateSupportPacket(rctx, options)
 			mut.Lock()
 			if err != nil {
-				c.Logger().Error("Failed to generate Support Packet from cluster nodes", mlog.Err(err))
+				rctx.Logger().Error("Failed to generate Support Packet from cluster nodes", mlog.Err(err))
 				warnings = multierror.Append(warnings, err)
 			}
 
@@ -91,7 +96,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 
 	wg.Wait()
 
-	pluginContext := pluginContext(c)
+	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		// If the plugin defined the support_packet prop it means there is a UI element to include it in the support packet.
 		// Check if the plugin is in the list of plugins to include in the Support Packet.
@@ -104,7 +109,7 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 		// Otherwise, just call the hook as the plugin decided to always include it in the Support Packet.
 		pluginData, err := hooks.GenerateSupportData(pluginContext)
 		if err != nil {
-			c.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.String("plugin", manifest.Id), mlog.Err(err))
+			rctx.Logger().Warn("Failed to generate plugin file for Support Packet", mlog.String("plugin", manifest.Id), mlog.Err(err))
 			warnings = multierror.Append(warnings, err)
 			return true
 		}
@@ -127,142 +132,49 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
 	var (
-		rErr *multierror.Error
-		err  error
-		sp   model.SupportPacket
+		rErr  *multierror.Error
+		err   error
+		stats model.SupportPacketStats
 	)
 
-	sp.Version = model.CurrentSupportPacketVersion
-
-	/* License */
-	if license := a.Srv().License(); license != nil {
-		sp.License.Company = license.Customer.Company
-		sp.License.Users = model.SafeDereference(license.Features.Users)
-		sp.License.IsTrial = license.IsTrial
-		sp.License.IsGovSKU = license.IsGovSku
-	}
-
-	/* Server */
-	sp.Server.OS = runtime.GOOS
-	sp.Server.Architecture = runtime.GOARCH
-	sp.Server.Version = model.CurrentVersion
-	sp.Server.BuildHash = model.BuildHash
-	installationType := os.Getenv(envVarInstallType)
-	if installationType == "" {
-		installationType = unknownDataPoint
-	}
-	sp.Server.InstallationType = installationType
-
-	/* Config */
-	sp.Config.Source = a.Srv().Platform().DescribeConfig()
-
-	/* DB */
-	sp.Database.Type, sp.Database.SchemaVersion = a.Srv().DatabaseTypeAndSchemaVersion()
-	databaseVersion, err := a.Srv().Store().GetDbVersion(false)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting DB version"))
-	} else {
-		sp.Database.Version = databaseVersion
-	}
-	sp.Database.MasterConnectios = a.Srv().Store().TotalMasterDbConnections()
-	sp.Database.ReplicaConnectios = a.Srv().Store().TotalReadDbConnections()
-	sp.Database.SearchConnections = a.Srv().Store().TotalSearchDbConnections()
-
-	/* File store */
-	sp.FileStore.Status = model.StatusOk
-	err = a.Srv().Platform().FileBackend().TestConnection()
-	if err != nil {
-		sp.FileStore.Status = model.StatusFail
-		sp.FileStore.Error = err.Error()
-	}
-	sp.FileStore.Driver = a.Srv().Platform().FileBackend().DriverName()
-
-	/* Websockets */
-	sp.Websocket.Connections = a.TotalWebsocketConnections()
-
-	/* Cluster */
-
-	if cluster := a.Cluster(); cluster != nil {
-		sp.Cluster.ID = cluster.GetClusterId()
-		clusterInfo := cluster.GetClusterInfos()
-		sp.Cluster.NumberOfNodes = len(clusterInfo)
-	}
-
-	/* LDAP */
-
-	if ldap := a.Ldap(); ldap != nil && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		sp.LDAP.Status = model.StatusOk
-		appErr := ldap.RunTest(c)
-		if appErr != nil {
-			sp.LDAP.Status = model.StatusFail
-			sp.LDAP.Error = appErr.Error()
-		}
-
-		severName, serverVersion := unknownDataPoint, unknownDataPoint
-		// Only if the LDAP test was successful, try to get the LDAP server info
-		if sp.LDAP.Status == model.StatusOk {
-			severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(c)
-			if err != nil {
-				rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
-			}
-
-			if severName == "" {
-				severName = unknownDataPoint
-			}
-			if serverVersion == "" {
-				serverVersion = unknownDataPoint
-			}
-		}
-		sp.LDAP.ServerName = severName
-		sp.LDAP.ServerVersion = serverVersion
-	}
-
-	/* Elastic Search */
-	if se := a.Srv().Platform().SearchEngine.ElasticsearchEngine; se != nil {
-		sp.ElasticSearch.ServerVersion = se.GetFullVersion()
-		sp.ElasticSearch.ServerPlugins = se.GetPlugins()
-	}
-
-	/* Server stats */
-
-	sp.Stats.RegisteredUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
+	stats.RegisteredUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get registered user count"))
 	}
 
-	sp.Stats.ActiveUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{})
+	stats.ActiveUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get active user count"))
 	}
 
-	sp.Stats.DailyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	stats.DailyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get daily active user count"))
 	}
 
-	sp.Stats.MonthlyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	stats.MonthlyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get monthly active user count"))
 	}
 
-	sp.Stats.DeactivatedUsers, err = a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
+	stats.DeactivatedUsers, err = a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get deactivated user count"))
 	}
 
-	sp.Stats.Guests, err = a.Srv().Store().User().AnalyticsGetGuestCount()
+	stats.Guests, err = a.Srv().Store().User().AnalyticsGetGuestCount()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get guest count"))
 	}
 
-	sp.Stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
+	stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get bot acount count"))
 	}
 
-	sp.Stats.Posts, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	stats.Posts, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get post count"))
 	}
@@ -275,41 +187,41 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get private channels count"))
 	}
-	sp.Stats.Channels = openChannels + privateChannels
+	stats.Channels = openChannels + privateChannels
 
-	sp.Stats.Teams, err = a.Srv().Store().Team().AnalyticsTeamCount(nil)
+	stats.Teams, err = a.Srv().Store().Team().AnalyticsTeamCount(nil)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get team count"))
 	}
 
-	sp.Stats.SlashCommands, err = a.Srv().Store().Command().AnalyticsCommandCount("")
+	stats.SlashCommands, err = a.Srv().Store().Command().AnalyticsCommandCount("")
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get command count"))
 	}
 
-	sp.Stats.IncomingWebhooks, err = a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
+	stats.IncomingWebhooks, err = a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get incoming webhook count"))
 	}
 
-	sp.Stats.OutgoingWebhooks, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
+	stats.OutgoingWebhooks, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get  outgoing webhook count"))
 	}
 
-	b, err := yaml.Marshal(&sp)
+	b, err := yaml.Marshal(&stats)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
 
 	fileData := &model.FileData{
-		Filename: "support_packet.yaml",
+		Filename: "stats.yaml",
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (a *App) generateSupportPacketJobListYaml(c request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error) {
 	const numberOfJobsRuns = 5
 
 	var (
@@ -318,31 +230,31 @@ func (a *App) generateSupportPacketJobListYaml(c request.CTX) (*model.FileData, 
 		jobs model.SupportPacketJobList
 	)
 
-	jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeLdapSync, 0, numberOfJobsRuns)
+	jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeLdapSync, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
-	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, numberOfJobsRuns)
+	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeDataRetention, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
 	}
-	jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMessageExport, 0, numberOfJobsRuns)
+	jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMessageExport, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
 	}
-	jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostIndexing, 0, numberOfJobsRuns)
+	jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostIndexing, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
-	jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, numberOfJobsRuns)
+	jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostAggregation, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
+	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeBlevePostIndexing, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
 	}
-	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeMigrations, 0, numberOfJobsRuns)
+	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
 	}
@@ -359,7 +271,7 @@ func (a *App) generateSupportPacketJobListYaml(c request.CTX) (*model.FileData, 
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err != nil {
@@ -373,7 +285,7 @@ func (a *App) createSanitizedConfigFile(_ request.CTX) (*model.FileData, error) 
 	return fileData, nil
 }
 
-func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
+func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -392,7 +304,7 @@ func (a *App) createPluginsFile(_ request.CTX) (*model.FileData, error) {
 	return fileData, nil
 }
 
-func (a *App) createSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
 	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.TelemetryId(), a.License(), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate Packet metadata")
