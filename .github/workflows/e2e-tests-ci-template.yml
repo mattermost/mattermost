@@ -390,6 +390,7 @@ jobs:
       - name: ci/download-artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
+          pattern: e2e-test-results-${{ inputs.TEST }}-*
           path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
