@@ -90,24 +90,21 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&newConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
+	errCfg := testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, errCfg)
+
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
+
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
 		var st localcachelayer.LocalCacheStore
 		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider(), testLogger)
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(tb, err)
 		s.SetStore(st)
 	}
 
@@ -115,9 +112,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = "localhost:0" })
 	serverErr := s.Start()
-	if serverErr != nil {
-		panic(serverErr)
-	}
+	require.NoError(tb, serverErr)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
