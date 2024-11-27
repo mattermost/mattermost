@@ -2300,10 +2300,6 @@
     "translation": "Должны быть заданы trigger_words или channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не удалось декодировать многочастную полезную нагрузку входящего вебхука."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не удалось обновить вебхук в разных командах."
   },
