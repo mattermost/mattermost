@@ -27,7 +27,6 @@ import AppBar from 'components/app_bar/app_bar';
 import {makeAsyncComponent} from 'components/async_load';
 import CloudEffects from 'components/cloud_effects';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -410,9 +409,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.mounted = true;
 
         this.initiateMeRequests();
-
-        // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
-        this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
         measurePageLoadTelemetry();
         trackSelectorMetrics();
