@@ -25,13 +25,19 @@ describe('components/AboutBuildModal', () => {
 
     let config: Partial<ClientConfig> = {};
     let license: ClientLicense = {};
-    let socketStatus = {};
+    let socketStatus = {
+        connected: false,
+        serverHostname: '',
+    };
 
     afterEach(() => {
         global.Date = RealDate;
         config = {};
         license = {};
-        socketStatus = {};
+        socketStatus = {
+            connected: false,
+            serverHostname: '',
+        };
     });
 
     beforeEach(() => {
@@ -106,7 +112,6 @@ describe('components/AboutBuildModal', () => {
             <AboutBuildModalCloud
                 config={config}
                 license={license}
-                socketStatus={socketStatus}
                 show={true}
                 onExited={jest.fn()}
                 doHide={jest.fn()}
