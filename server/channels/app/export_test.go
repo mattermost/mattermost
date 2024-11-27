@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -157,7 +156,7 @@ func TestCopyEmojiImages(t *testing.T) {
 	os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
 	defer os.RemoveAll(filePath)
 
-	copyError := th.App.copyEmojiImages(request.CTX, emoji.Id, emojiImagePath, pathToDir)
+	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
 	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
