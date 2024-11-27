@@ -13,7 +13,7 @@ const (
 	SupportPacketErrorFile      = "warning.txt"
 )
 
-type SupportPacket struct {
+type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
 	License struct {
@@ -70,22 +70,22 @@ type SupportPacket struct {
 		ServerVersion string   `yaml:"server_version,omitempty"`
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 	} `yaml:"elastic"`
+}
 
-	Stats struct {
-		RegisteredUsers    int64 `yaml:"registered_users"`
-		ActiveUsers        int64 `yaml:"active_users"`
-		DailyActiveUsers   int64 `yaml:"daily_active_users"`
-		MonthlyActiveUsers int64 `yaml:"monthly_active_users"`
-		DeactivatedUsers   int64 `yaml:"deactivated_users"`
-		Guests             int64 `yaml:"guests"`
-		BotAccounts        int64 `yaml:"bot_accounts"`
-		Posts              int64 `yaml:"posts"`
-		Channels           int64 `yaml:"channels"`
-		Teams              int64 `yaml:"teams"`
-		SlashCommands      int64 `yaml:"slash_commands"`
-		IncomingWebhooks   int64 `yaml:"incoming_webhooks"`
-		OutgoingWebhooks   int64 `yaml:"outgoing_webhooks"`
-	}
+type SupportPacketStats struct {
+	RegisteredUsers    int64 `yaml:"registered_users"`
+	ActiveUsers        int64 `yaml:"active_users"`
+	DailyActiveUsers   int64 `yaml:"daily_active_users"`
+	MonthlyActiveUsers int64 `yaml:"monthly_active_users"`
+	DeactivatedUsers   int64 `yaml:"deactivated_users"`
+	Guests             int64 `yaml:"guests"`
+	BotAccounts        int64 `yaml:"bot_accounts"`
+	Posts              int64 `yaml:"posts"`
+	Channels           int64 `yaml:"channels"`
+	Teams              int64 `yaml:"teams"`
+	SlashCommands      int64 `yaml:"slash_commands"`
+	IncomingWebhooks   int64 `yaml:"incoming_webhooks"`
+	OutgoingWebhooks   int64 `yaml:"outgoing_webhooks"`
 }
 
 // SupportPacketJobList contains the list of latest run enterprise job runs.

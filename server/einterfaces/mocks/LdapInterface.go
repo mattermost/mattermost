@@ -328,41 +328,6 @@ func (_m *LdapInterface) GetUserAttributes(rctx request.CTX, id string, attribut
 	return r0, r1
 }
 
-// GetVendorNameAndVendorVersion provides a mock function with given fields: rctx
-func (_m *LdapInterface) GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error) {
-	ret := _m.Called(rctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetVendorNameAndVendorVersion")
-	}
-
-	var r0 string
-	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(request.CTX) (string, string, error)); ok {
-		return rf(rctx)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX) string); ok {
-		r0 = rf(rctx)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX) string); ok {
-		r1 = rf(rctx)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	if rf, ok := ret.Get(2).(func(request.CTX) error); ok {
-		r2 = rf(rctx)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // MigrateIDAttribute provides a mock function with given fields: c, toAttribute
 func (_m *LdapInterface) MigrateIDAttribute(c request.CTX, toAttribute string) error {
 	ret := _m.Called(c, toAttribute)
@@ -376,26 +341,6 @@ func (_m *LdapInterface) MigrateIDAttribute(c request.CTX, toAttribute string) e
 		r0 = rf(c, toAttribute)
 	} else {
 		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// RunTest provides a mock function with given fields: rctx
-func (_m *LdapInterface) RunTest(rctx request.CTX) *model.AppError {
-	ret := _m.Called(rctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RunTest")
-	}
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
-		r0 = rf(rctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
 	}
 
 	return r0

@@ -4903,7 +4903,7 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
+func (a *OpenTracingAppLayer) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
 
@@ -4915,7 +4915,7 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *mode
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GenerateSupportPacket(c, options)
+	resultVar0 := a.app.GenerateSupportPacket(rctx, options)
 
 	return resultVar0
 }
@@ -12537,6 +12537,23 @@ func (a *OpenTracingAppLayer) JoinUserToTeam(c request.CTX, team *model.Team, us
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LdapDiagnostic")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.LdapDiagnostic()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {

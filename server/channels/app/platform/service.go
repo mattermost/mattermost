@@ -9,6 +9,7 @@ import (
 	"hash/maphash"
 	"net/http"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -87,6 +88,8 @@ type PlatformService struct {
 	SearchEngine            *searchengine.Broker
 	searchConfigListenerId  string
 	searchLicenseListenerId string
+
+	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -455,6 +458,10 @@ func (ps *PlatformService) initEnterprise() {
 		ps.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(ps))
 	}
 
+	if ldapDiagnosticInterface != nil {
+		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
+	}
+
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
 	}
@@ -553,4 +560,18 @@ func (ps *PlatformService) FileBackend() filestore.FileBackend {
 
 func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 	return ps.exportFilestore
+}
+
+func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return ps.ldapDiagnostic
+}
+
+// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
+	schemaVersion, err := ps.Store.GetDBSchemaVersion()
+	if err != nil {
+		return "", "", err
+	}
+
+	return model.SafeDereference(ps.Config().SqlSettings.DriverName), strconv.Itoa(schemaVersion), nil
 }

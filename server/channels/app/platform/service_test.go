@@ -7,11 +7,13 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -195,4 +197,34 @@ func TestSetTelemetryId(t *testing.T) {
 		clientConfig = th.Service.LimitedClientConfig()
 		require.Equal(t, clientConfig["DiagnosticId"], id)
 	})
+}
+
+func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	// sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+
+	// if sqlDrivernameEnvironment != "" {
+	// 	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
+	// } else {
+	// 	defer os.Unsetenv("MM_SQLSETTINGS_DRIVERNAME")
+	// }
+
+	t.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
+
+	th := Setup(t)
+	defer th.TearDown()
+
+	databaseType, mattermostVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
+	require.NoError(t, err)
+	assert.Equal(t, "postgres", databaseType)
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
+
+	t.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	databaseType, mattermostVersion, err = th2.Service.DatabaseTypeAndSchemaVersion()
+	require.NoError(t, err)
+	assert.Equal(t, "mysql", databaseType)
+	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 }
