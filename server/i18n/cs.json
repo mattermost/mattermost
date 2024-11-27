@@ -1772,10 +1772,6 @@
     "translation": "Nepovedlo se aktualizovat webhooky napříč teamy."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nelze dekódovat multipart payload příchozího webhooku."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Musí být nastaven buď trigger_words nebo channel_id."
   },

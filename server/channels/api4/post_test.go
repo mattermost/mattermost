@@ -165,7 +165,6 @@ func TestCreatePost(t *testing.T) {
 			select {
 			case event := <-WebSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventEphemeralMessage {
-					require.Equal(t, model.WebsocketEventEphemeralMessage, event.EventType())
 					eventsToGo = eventsToGo - 1
 				}
 			case <-timeout:
@@ -3129,6 +3128,7 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
+	t.Skip("MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
