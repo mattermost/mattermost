@@ -90,6 +90,7 @@ func TestAddUserToTeam(t *testing.T) {
 			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
+
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err, "Should add user to the team")
 	})
@@ -105,6 +106,7 @@ func TestAddUserToTeam(t *testing.T) {
 			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.Nil(t, appErr)
 		}()
+
 		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err, "Should have allowed whitelisted user")
 	})
@@ -121,6 +123,7 @@ func TestAddUserToTeam(t *testing.T) {
 			appErr := th.App.PermanentDeleteUser(th.Context, &user)
 			require.NotNil(t, appErr)
 		}()
+
 		_, _, err = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
@@ -275,6 +278,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			appErr := th.App.DeleteToken(token)
 			require.Nil(t, appErr)
 		}()
+
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
 		require.NotNil(t, err, "Should fail on bad team id")
 	})
@@ -672,11 +676,6 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	})
 	require.Nil(t, err, "Should create a team")
 
-	defer func() {
-		appErr := th.App.PermanentDeleteTeam(th.Context, team)
-		require.NotNil(t, appErr)
-	}()
-
 	command, err := th.App.CreateCommand(&model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team.Id,
@@ -685,18 +684,17 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		Method:    model.CommandMethodPost,
 	})
 	require.Nil(t, err, "Should create a command")
-	defer func() {
-		appErr := th.App.DeleteCommand(command.Id)
-		require.Nil(t, appErr)
-
-		command, appErr = th.App.GetCommand(command.Id)
-		require.Nil(t, command, "command was deleted")
-		require.NotNil(t, appErr, "should return an error")
-	}()
 
 	command, err = th.App.GetCommand(command.Id)
 	require.NotNil(t, command, "command should not be nil")
 	require.Nil(t, err, "unable to get new command")
+
+	err = th.App.PermanentDeleteTeam(th.Context, team)
+	require.Nil(t, err)
+
+	command, appErr := th.App.GetCommand(command.Id)
+	require.Nil(t, command, "command was deleted")
+	require.NotNil(t, appErr, "unable to get command")
 
 	// Test deleting a team with no channels.
 	team = th.CreateTeam()
