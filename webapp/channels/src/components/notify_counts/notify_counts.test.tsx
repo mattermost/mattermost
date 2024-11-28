@@ -10,11 +10,18 @@ import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
-        renderWithContext(
+        const {container} = renderWithContext(
             <NotifyCounts
                 unreadMentionCount={22}
                 isUnread={true}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {},
+                    },
+                },
+            }
         );
 
         expect(screen.getByText('22')).toBeInTheDocument();
@@ -22,11 +29,18 @@ describe('components/notify_counts', () => {
     });
 
     test('should show unread messages', () => {
-        renderWithContext(
+        const {container} = renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={true}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {},
+                    },
+                },
+            }
         );
 
         expect(screen.getByText('•')).toBeInTheDocument();
@@ -34,11 +48,18 @@ describe('components/notify_counts', () => {
     });
 
     test('should not show unread indicator', () => {
-        renderWithContext(
+        const {container} = renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={false}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {},
+                    },
+                },
+            }
         );
 
         expect(screen.queryByText('•')).not.toBeInTheDocument();
