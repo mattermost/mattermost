@@ -15,7 +15,22 @@ import type {OptionValue} from '../types';
 
 describe('ListItem', () => {
     const mockStore = configureStore();
-    const store = mockStore({});
+    const store = mockStore({
+        entities: {
+            users: {
+                currentUserId: 'current_user_id',
+                profiles: {
+                    user_id_1: {
+                        id: 'user_id_1',
+                        username: 'username1',
+                        first_name: '',
+                        last_name: '',
+                        nickname: '',
+                    },
+                },
+            },
+        },
+    });
 
     const baseProps: Props = {
         isMobileView: false,
