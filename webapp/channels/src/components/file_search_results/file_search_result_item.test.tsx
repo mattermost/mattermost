@@ -38,7 +38,12 @@ describe('components/file_search_result/FileSearchResultItem', () => {
     };
 
     test('should match component state with given props', () => {
-        renderWithContext(<FileSearchResultItem {...baseProps}/>, initialState);
+        renderWithContext(<FileSearchResultItem {...baseProps}/>, initialState, {
+            intlMessages: {
+                'file_search_result_item.more_actions': 'More Actions',
+                'file_search_result_item.download': 'Download'
+            }
+        });
 
         expect(screen.getByTestId('search-item-container')).toBeInTheDocument();
         expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
@@ -92,7 +97,8 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             intlMessages: {
                 'file_search_result_item.more_actions': 'More Actions',
                 'file_search_result_item.open_in_channel': 'Open in channel',
-                'file_search_result_item.copy_link': 'Copy link'
+                'file_search_result_item.copy_link': 'Copy link',
+                'file_search_result_item.download': 'Download'
             }
         });
 
