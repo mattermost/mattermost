@@ -147,7 +147,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     {this.props.fileInfo.post_id && (
                         <WithTooltip
                             id='file-name__tooltip'
-                            title={localizeMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                            title={localizeMessage('file_search_result_item.more_actions', 'More Actions')}
                             placement={'top'}
                         >
                             <MenuWrapper
@@ -157,6 +157,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                 <a
                                     href='#'
                                     className='action-icon dots-icon'
+                                    aria-label='More Actions'
                                 >
                                     <i className='icon icon-dots-vertical'/>
                                 </a>
@@ -181,13 +182,14 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     )}
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
+                        title={localizeMessage('file_search_result_item.download', 'Download')}
                         placement={'top'}
                     >
                         <a
                             className='action-icon download-icon'
                             href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
+                            aria-label='Download'
                         >
                             <i className='icon icon-download-outline'/>
                         </a>

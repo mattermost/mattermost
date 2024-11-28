@@ -56,7 +56,7 @@ describe('components/file_search_result/FileSearchResultItem', () => {
 
         const channelName = screen.getByText('test');
         expect(channelName).toBeInTheDocument();
-        expect(channelName).toHaveClass('Tag__text');
+        expect(channelName).toHaveClass('TagText-bWgUzx');
     });
 
     test('should render with DM channel type', () => {
