@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
 import {EditChannelHeaderModal} from 'components/edit_channel_header_modal/edit_channel_header_modal';
-import type {EditChannelHeaderModal as EditChannelHeaderModalClass} from 'components/edit_channel_header_modal/edit_channel_header_modal';
-import Textbox from 'components/textbox';
 
-import {type MockIntl} from 'tests/helpers/intl-test-helper';
-import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
+import {renderWithIntl} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -58,234 +56,164 @@ describe('components/EditChannelHeaderModal', () => {
         } as MockIntl,
     };
 
-    test('should match snapshot, init', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('should render the modal correctly', () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        expect(screen.getByText('Edit Header for Fake Channel')).toBeInTheDocument();
+        expect(screen.getByText('Edit the text appearing next to the channel name in the header.')).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Cancel'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
     });
-    test('edit direct message channel', () => {
+
+    test('should render direct message header correctly', () => {
         const dmChannel: Channel = {
             ...channel,
             type: Constants.DM_CHANNEL as ChannelType,
         };
 
-        const wrapper = shallow(
+        renderWithIntl(
             <EditChannelHeaderModal
                 {...baseProps}
                 channel={dmChannel}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
     });
 
-    test('submitted', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        wrapper.setState({saving: true});
-
-        expect(wrapper).toMatchSnapshot();
+    test('should disable save button when saving', () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        userEvent.click(saveButton);
+        
+        expect(saveButton).toBeDisabled();
     });
 
-    test('error with intl message', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
+    test('should show error message for invalid header length', () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'a'.repeat(1025));
 
-        wrapper.setState({serverError: {...serverError, server_error_id: 'model.channel.is_valid.header.app_error'}});
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('The text entered exceeds the character limit. The channel header is limited to 1024 characters.')).toBeInTheDocument();
     });
 
-    test('error without intl message', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        wrapper.setState({serverError});
-        expect(wrapper).toMatchSnapshot();
+    test('should show generic error message', () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'new header');
+        
+        baseProps.actions.patchChannel.mockResolvedValueOnce({error: serverError});
+        
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        
+        expect(screen.getByText('some error')).toBeInTheDocument();
     });
 
     describe('handleSave', () => {
-        test('on no change, should hide the modal without trying to patch a channel', async () => {
-            const wrapper = shallow(
-                <EditChannelHeaderModal {...baseProps}/>,
-            );
-
-            const instance = wrapper.instance() as EditChannelHeaderModalClass;
-
-            await instance.handleSave();
-
-            expect(wrapper.state('show')).toBe(false);
-
-            expect(baseProps.actions.patchChannel).not.toHaveBeenCalled();
+        test('should not patch channel when header is unchanged', async () => {
+            renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+            
+            userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            
+            await waitFor(() => {
+                expect(baseProps.actions.patchChannel).not.toHaveBeenCalled();
+            });
+            expect(baseProps.onExited).toHaveBeenCalled();
         });
 
-        test('on error, should not close modal and set server error state', async () => {
+        test('should show error and keep modal open on failed patch', async () => {
             baseProps.actions.patchChannel.mockResolvedValueOnce({error: serverError});
-
-            const wrapper = shallow(
-                <EditChannelHeaderModal {...baseProps}/>,
-            );
-
-            const instance = wrapper.instance() as EditChannelHeaderModalClass;
-
-            wrapper.setState({header: 'New header'});
-
-            await instance.handleSave();
-
-            expect(wrapper.state('show')).toBe(true);
-            expect(wrapper.state('serverError')).toBe(serverError);
-
-            expect(baseProps.actions.patchChannel).toHaveBeenCalled();
+            
+            renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+            
+            const textbox = screen.getByRole('textbox');
+            userEvent.type(textbox, 'New header');
+            userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            
+            await waitFor(() => {
+                expect(screen.getByText('some error')).toBeInTheDocument();
+            });
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
 
-        test('on success, should close modal', async () => {
-            const wrapper = shallow(
-                <EditChannelHeaderModal {...baseProps}/>,
-            );
-
-            const instance = wrapper.instance() as EditChannelHeaderModalClass;
-
-            wrapper.setState({header: 'New header'});
-
-            await instance.handleSave();
-
-            expect(wrapper.state('show')).toBe(false);
-
-            expect(baseProps.actions.patchChannel).toHaveBeenCalled();
+        test('should close modal on successful patch', async () => {
+            renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+            
+            const textbox = screen.getByRole('textbox');
+            userEvent.type(textbox, 'New header');
+            userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
         });
     });
 
-    test('change header', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        wrapper.find(Textbox).simulate('change', {target: {value: 'header'}});
-
-        expect(
-            wrapper.state('header'),
-        ).toBe('header');
+    test('should update header text when typing', () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'New header text');
+        
+        expect(textbox).toHaveValue('New header text');
     });
 
-    test('patch on save button click', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        const newHeader = 'New channel header';
-        wrapper.setState({header: newHeader});
-        wrapper.find('.save-button').simulate('click');
-
-        expect(baseProps.actions.patchChannel).toBeCalledWith('fake-id', {header: newHeader});
+    test('should patch channel on save button click', async () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'New channel header');
+        userEvent.click(screen.getByRole('button', {name: 'Save'}));
+        
+        await waitFor(() => {
+            expect(baseProps.actions.patchChannel).toHaveBeenCalledWith('fake-id', {header: 'New channel header'});
+        });
     });
 
-    test('patch on enter keypress event with ctrl', () => {
-        const wrapper = shallow(
+    test('should patch channel on ctrl+enter', async () => {
+        renderWithIntl(
             <EditChannelHeaderModal
                 {...baseProps}
                 ctrlSend={true}
             />,
         );
-
-        const newHeader = 'New channel header';
-        wrapper.setState({header: newHeader});
-        wrapper.find(Textbox).simulate('keypress', {
-            preventDefault: jest.fn(),
-            key: KeyCodes.ENTER[0],
-            which: KeyCodes.ENTER[1],
-            shiftKey: false,
-            altKey: false,
-            ctrlKey: true,
-        });
-
-        expect(baseProps.actions.patchChannel).toBeCalledWith('fake-id', {header: newHeader});
-    });
-
-    test('patch on enter keypress', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        const newHeader = 'New channel header';
-        wrapper.setState({header: newHeader});
-        wrapper.find(Textbox).simulate('keypress', {
-            preventDefault: jest.fn(),
-            key: KeyCodes.ENTER[0],
-            which: KeyCodes.ENTER[1],
-            shiftKey: false,
-            altKey: false,
-            ctrlKey: false,
-        });
-
-        expect(baseProps.actions.patchChannel).toBeCalledWith('fake-id', {header: newHeader});
-    });
-
-    test('patch on enter keydown', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal
-                {...baseProps}
-                ctrlSend={true}
-            />,
-        );
-
-        const newHeader = 'New channel header';
-        wrapper.setState({header: newHeader});
-        wrapper.find(Textbox).simulate('keydown', {
-            preventDefault: jest.fn(),
-            key: KeyCodes.ENTER[0],
-            keyCode: KeyCodes.ENTER[1],
-            which: KeyCodes.ENTER[1],
-            shiftKey: false,
-            altKey: false,
-            ctrlKey: true,
-        });
-
-        expect(baseProps.actions.patchChannel).toBeCalledWith('fake-id', {header: newHeader});
-    });
-
-    test('should show error only for invalid length', () => {
-        const wrapper = shallow(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-
-        wrapper.find(Textbox).simulate('change', {target: {value: `The standard Lorem Ipsum passage, used since the 1500s
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         
-        Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC
-        "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'New channel header');
+        userEvent.keyboard('{Control>}{Enter}{/Control}');
         
-        1914 translation by H. Rackham
-        "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?"
-        
-        Section 1.10.33 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC
-        "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat."`}});
-
-        expect(
-            wrapper.state('serverError'),
-        ).toStrictEqual({message: 'Invalid header length', server_error_id: 'model.channel.is_valid.header.app_error'});
-
-        wrapper.find(Textbox).simulate('change', {target: {value: 'valid header'}});
-
-        expect(
-            wrapper.state('serverError'),
-        ).toBeNull();
+        await waitFor(() => {
+            expect(baseProps.actions.patchChannel).toHaveBeenCalledWith('fake-id', {header: 'New channel header'});
+        });
     });
 
-    testComponentForLineBreak(
-        (value: string) => (
-            <EditChannelHeaderModal
-                {...baseProps}
-                channel={{
-                    ...baseProps.channel,
-                    header: value,
-                }}
-            />
-        ),
-        (instance: React.Component<any, any>) => instance.state.header,
-        false,
-    );
+    test('should patch channel on enter when ctrlSend is false', async () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'New channel header');
+        userEvent.keyboard('{Enter}');
+        
+        await waitFor(() => {
+            expect(baseProps.actions.patchChannel).toHaveBeenCalledWith('fake-id', {header: 'New channel header'});
+        });
+    });
+
+    test('should show and clear error for invalid header length', async () => {
+        renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+        
+        const textbox = screen.getByRole('textbox');
+        userEvent.type(textbox, 'a'.repeat(1025));
+        
+        expect(screen.getByText('The text entered exceeds the character limit. The channel header is limited to 1024 characters.')).toBeInTheDocument();
+        
+        userEvent.clear(textbox);
+        userEvent.type(textbox, 'valid header');
+        
+        expect(screen.queryByText('The text entered exceeds the character limit. The channel header is limited to 1024 characters.')).not.toBeInTheDocument();
+    });
 });
