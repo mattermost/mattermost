@@ -115,19 +115,16 @@ export function makeGetDraft() {
         rootId: '',
     });
 
-    return (state: GlobalState, channelId: string, rootId = '', isInEditMode = false): PostDraft => {
-        let prefixStorageKey;
-        if (isInEditMode) {
-            prefixStorageKey = StoragePrefixes.EDIT_DRAFT;
-        } else if (rootId) {
+    return (state: GlobalState, channelId: string, rootId = '', storageKey = ''): PostDraft => {
+        let prefixStorageKey = StoragePrefixes.DRAFT;
+        let suffixStorageKey = channelId;
+        if (rootId) {
             prefixStorageKey = StoragePrefixes.COMMENT_DRAFT;
-        } else {
-            prefixStorageKey = StoragePrefixes.DRAFT;
+            suffixStorageKey = rootId;
         }
-        const suffixStorageKey = rootId || channelId;
-        const storageKey = `${prefixStorageKey}${suffixStorageKey}`;
+        const key = storageKey || `${prefixStorageKey}${suffixStorageKey}`;
 
-        const retrievedDraft = getGlobalItem(state, storageKey, DEFAULT_DRAFT);
+        const retrievedDraft = getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
 
         // Check if the draft has the required values in its properties
         const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';

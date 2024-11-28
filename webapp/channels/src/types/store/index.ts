@@ -4,6 +4,7 @@
 import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
 import type {PluginsState} from './plugins';
+import type {StorageState} from './storage';
 import type {ViewsState} from './views';
 
 export type DraggingState = {
@@ -14,9 +15,6 @@ export type DraggingState = {
 
 export type GlobalState = BaseGlobalState & {
     plugins: PluginsState;
-    storage: {
-        storage: Record<string, any>;
-        initialized: boolean;
-    };
+    storage: StorageState;
     views: ViewsState;
 };

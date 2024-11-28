@@ -18,7 +18,6 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
-import {unsetEditingPost} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -49,8 +48,8 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import DoNotDisturbWarning from './do_not_disturb_warning';
+import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
-import FooterEditPost from './footer_edit_post';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import SendButton from './send_button';
@@ -87,6 +86,12 @@ type Props = {
     isInEditMode?: boolean;
 
     /**
+     * Key to store the draft in the storage
+     * If not provided, draft key will be computed based on the post
+     */
+    storageKey?: string;
+
+    /**
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
@@ -100,6 +105,7 @@ const AdvancedTextEditor = ({
     placeholder,
     isInEditMode = false,
     afterSubmit,
+    storageKey,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -116,7 +122,7 @@ const AdvancedTextEditor = ({
     const channelDisplayName = channel?.display_name || '';
     const channelType = channel?.type || '';
     const isChannelShared = channel?.shared;
-    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId, isInEditMode));
+    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
@@ -192,10 +198,13 @@ const AdvancedTextEditor = ({
         setDraft(draftToChange);
 
         const saveDraft = () => {
-            let key = `${StoragePrefixes.DRAFT}${draftToChange.channelId}`;
+            let prefix = StoragePrefixes.DRAFT;
+            let suffix = draftToChange.channelId;
             if (draftToChange.rootId) {
-                key = `${StoragePrefixes.COMMENT_DRAFT}${draftToChange.rootId}`;
+                prefix = StoragePrefixes.COMMENT_DRAFT;
+                suffix = draftToChange.rootId;
             }
+            const key = storageKey || `${prefix}${suffix}`;
 
             if (isDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
@@ -251,7 +260,19 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
-    const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, isDisabled, textboxRef, handleDraftChange, focusTextbox, setServerError);
+    const [attachmentPreview, fileUploadJSX] = useUploadFiles(
+        draft,
+        postId,
+        channelId,
+        isThreadView,
+        storedDrafts,
+        isDisabled,
+        textboxRef,
+        handleDraftChange,
+        focusTextbox,
+        setServerError,
+        isInEditMode,
+    );
     const {
         emojiPicker,
         enableEmojiPicker,
@@ -277,6 +298,7 @@ const AdvancedTextEditor = ({
         prioritySubmitCheck,
         undefined,
         afterSubmit,
+        undefined,
         isInEditMode,
     );
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
@@ -299,11 +321,6 @@ const AdvancedTextEditor = ({
     );
 
     const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
-
-    const onFormSubmit = useCallback((e: React.FormEvent) => {
-        e.preventDefault();
-        handleSubmit();
-    }, [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -376,10 +393,6 @@ const AdvancedTextEditor = ({
     const handleMouseUpKeyUp = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
         setCaretPosition((e.target as TextboxElement).selectionStart || 0);
     }, []);
-
-    const handleCancelEdit = useCallback(() => {
-        dispatch(unsetEditingPost());
-    }, [dispatch]);
 
     const prefillMessage = useCallback((message: string, shouldFocus?: boolean) => {
         handleDraftChange({
@@ -586,7 +599,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={onFormSubmit}
+            onSubmit={(e) => {e.preventDefault();}}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
@@ -698,9 +711,8 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
-            <FooterEditPost
+            <EditPostFooter
                 onSave={noArgumentHandleSubmit}
-                onCancel={handleCancelEdit}
                 isInEditMode={isInEditMode}
             />
             <Footer

@@ -1,26 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {Preferences} from 'mattermost-redux/constants';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {unsetEditingPost} from 'actions/post_actions';
+import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {isMac} from 'utils/user_agent';
-
-import type {GlobalState} from 'types/store';
 
 type Props = {
     isInEditMode: boolean;
     onSave: () => void;
-    onCancel: () => void;
 }
 
-const FooterEditPost = (props: Props) => {
-    const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
+export default function EditPostFooter(props: Props) {
+    const dispatch = useDispatch();
+
+    const sendOnCtrlEnter = useSelector(isSendOnCtrlEnter);
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
+
+    function handleCancel() {
+        dispatch(unsetEditingPost());
+    }
 
     if (!props.isInEditMode) {
         return null;
@@ -38,7 +41,7 @@ const FooterEditPost = (props: Props) => {
                 />
             </button>
             <button
-                onClick={props.onCancel}
+                onClick={handleCancel}
                 className='cancel'
             >
                 <FormattedMessage
@@ -50,12 +53,10 @@ const FooterEditPost = (props: Props) => {
                 id='edit_post.helper_text'
                 defaultMessage='<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel'
                 values={{
-                    key: ctrlSend ? ctrlSendKey : '',
+                    key: sendOnCtrlEnter ? ctrlSendKey : '',
                     strong: (x: string) => <strong>{x}</strong>,
                 }}
             />
         </div>
     );
-};
-
-export default memo(FooterEditPost);
+}

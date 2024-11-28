@@ -21,6 +21,7 @@ import {scrollPostListToBottom} from 'actions/views/channel';
 import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
+import {editPost} from 'actions/views/posts';
 
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -71,6 +72,8 @@ const useSubmit = (
         string | null,
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
+
+    console.log('isInEditMode', isInEditMode);
 
     const dispatch = useDispatch();
 
@@ -168,10 +171,17 @@ const useSubmit = (
             keepDraft: createPostOptions?.keepDraft,
         };
 
+        console.log('isInEditMode', isInEditMode);
+
         try {
-            const res = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
-            if (res.error) {
-                throw res.error;
+            let response;
+            if (isInEditMode) {
+                response = await dispatch(editPost(submittingDraft));
+            } else {
+                response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+            }
+            if (response?.error) {
+                throw response.error;
             }
 
             setServerError(null);

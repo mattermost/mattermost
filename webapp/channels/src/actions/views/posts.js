@@ -22,6 +22,7 @@ import {runMessageWillBePostedHooks} from '../hooks';
 
 export function editPost(post) {
     return async (dispatch) => {
+        console.log('editPost', post);
         const result = await dispatch(PostActions.editPost(post));
 
         // Send to error bar if it's an edit post error about time limit.

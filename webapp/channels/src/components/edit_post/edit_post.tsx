@@ -9,7 +9,7 @@ import {getEditingPostDetailsAndPost} from 'selectors/posts';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 
-import {Locations} from 'utils/constants';
+import {Locations, StoragePrefixes} from 'utils/constants';
 
 import './edit_post.scss';
 
@@ -18,18 +18,24 @@ export default function EditPost() {
 
     const editingPostDetailsAndPost = useSelector(getEditingPostDetailsAndPost);
 
+    if (!editingPostDetailsAndPost.show) {
+        return null;
+    }
+
     const channelId = editingPostDetailsAndPost.post.channel_id;
     const location = editingPostDetailsAndPost.isRHS ? Locations.RHS_COMMENT : Locations.CENTER;
-    const postId = editingPostDetailsAndPost.post.root_id || editingPostDetailsAndPost.post.id;
+    const rootId = editingPostDetailsAndPost.post.root_id || '';
+    const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostDetailsAndPost.post.id}`;
 
     return (
         <div className='post-edit__container'>
             <AdvancedTextEditor
                 location={location}
                 channelId={channelId}
-                postId={postId}
+                postId={rootId}
                 isThreadView={false}
                 isInEditMode={true}
+                storageKey={storageKey}
                 placeholder={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}
 
                 // afterSubmit={afterSubmit}

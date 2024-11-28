@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {FileInfo} from '@mattermost/types/files';
@@ -54,6 +55,8 @@ import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+import type {StorageItem} from 'types/store/storage';
 
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
@@ -320,7 +323,7 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean, GlobalState>
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -338,13 +341,28 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
         const canEdit = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 
         if (canEdit) {
-            dispatch(batchActions([
-                {
-                    type: ActionTypes.TOGGLE_EDITING_POST,
-                    data: {postId, refocusId, isRHS, show: true},
-                },
-                setGlobalItem(StoragePrefixes.EDIT_DRAFT + postId, post),
-            ]));
+            const storageKey = `${StoragePrefixes.EDIT_DRAFT}${post.id}`;
+
+            const actions: AnyAction[] = [{
+                type: ActionTypes.TOGGLE_EDITING_POST,
+                data: {postId, refocusId, isRHS, show: true},
+            }];
+
+            // We need to see if post's draft is already in store, if it is, we don't need to set it again
+            const editDraftInStore = getGlobalItem(state, storageKey, null) as StorageItem<PostDraft>['value'] | null;
+
+            if (
+                !editDraftInStore ||
+                (editDraftInStore &&
+                    editDraftInStore?.message?.length === 0 &&
+                    editDraftInStore?.fileInfos?.length === 0 &&
+                    editDraftInStore?.uploadsInProgress?.length === 0
+                )
+            ) {
+                actions.push(setGlobalItem(storageKey, post));
+            }
+
+            dispatch(batchActions(actions));
         }
 
         return {data: canEdit};

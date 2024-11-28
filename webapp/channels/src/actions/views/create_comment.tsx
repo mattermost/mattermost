@@ -201,7 +201,7 @@ export function onSubmit(
     };
 }
 
-export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean> {
+export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
 
