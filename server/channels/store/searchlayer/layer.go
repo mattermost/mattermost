@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -113,23 +114,16 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 
 func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
 	var (
-		page     int
 		perPage  = 100
 		channels []*model.Channel
 	)
 
-	for {
-		cs, err := s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
-		if err != nil {
-			rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
-			return
-		}
-
-		channels = append(channels, cs...)
-
-		if len(channels) < perPage {
-			break
-		}
+	channels, err := utils.Pager(func(page int) ([]*model.Channel, error) {
+		return s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
+	}, perPage)
+	if err != nil {
+		rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+		return
 	}
 
 	for _, channel := range channels {
