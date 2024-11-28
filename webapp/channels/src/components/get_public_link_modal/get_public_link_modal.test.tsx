@@ -51,7 +51,7 @@ describe('components/GetPublicLinkModal', () => {
 
         baseProps.actions.getFilePublicLink.mockClear();
         
-        await userEvent.click(screen.getByTestId('linkModalCloseButton'));
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
         
         expect(baseProps.actions.getFilePublicLink).not.toHaveBeenCalled();
     });
@@ -59,7 +59,7 @@ describe('components/GetPublicLinkModal', () => {
     test('should hide modal on close', async () => {
         renderWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
-        await userEvent.click(screen.getByTestId('linkModalCloseButton'));
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
