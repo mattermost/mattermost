@@ -132,6 +132,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     <button
                         id='linkModalCloseButton'
                         type='button'
+                        data-testid='linkModalCloseButton'
                         className='btn btn-tertiary'
                         onClick={this.onHide}
                     >

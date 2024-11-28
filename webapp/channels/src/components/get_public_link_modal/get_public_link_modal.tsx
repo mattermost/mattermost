@@ -36,9 +36,6 @@ const GetPublicLinkModal = ({
             title={intl.formatMessage({id: 'get_public_link_modal.title', defaultMessage: 'Copy Public Link'})}
             helpText={intl.formatMessage({id: 'get_public_link_modal.help', defaultMessage: 'The link below allows anyone to see this file without being registered on this server.'})}
             link={link}
-            closeButtonProps={{
-                'data-testid': 'linkModalCloseButton',
-            }}
         />
     );
 };
