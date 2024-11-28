@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import LDAPToEmail from './ldap_to_email';
 
 describe('components/claim/components/ldap_to_email.jsx', () => {
     const requiredProps = {
-        email: '',
+        email: 'test@example.com',
         passwordConfig: {
             minimumLength: 5,
             requireLowercase: true,
@@ -19,18 +21,23 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
         switchLdapToEmail: jest.fn(() => Promise.resolve({data: {follow_link: '/login'}})),
     };
 
-    test('submit() should have called switchLdapToEmail', async () => {
-        const loginId = '';
-        const password = 'psw';
-        const token = 'abcd1234';
-        const ldapPasswordParam = 'ldapPsw';
+    test('should render form fields correctly', () => {
+        renderWithIntl(<LDAPToEmail {...requiredProps}/>);
 
-        const wrapper = shallow(<LDAPToEmail {...requiredProps}/>);
+        // Check for form elements
+        expect(screen.getByText('Switch AD/LDAP Account to Email/Password')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('AD/LDAP Password')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Switch account to email/password'})).toBeInTheDocument();
+    });
 
-        wrapper.find('LoginMfa').simulate('submit', {loginId, password, token, ldapPasswordParam});
+    test('should show validation errors for empty fields', async () => {
+        renderWithIntl(<LDAPToEmail {...requiredProps}/>);
 
-        expect(requiredProps.switchLdapToEmail).toHaveBeenCalledTimes(1);
-        expect(requiredProps.switchLdapToEmail).
-            toHaveBeenCalledWith(ldapPasswordParam, requiredProps.email, password, token);
+        const submitButton = screen.getByRole('button', {name: 'Switch account to email/password'});
+        submitButton.click();
+
+        expect(await screen.findByText('Please enter your AD/LDAP password.')).toBeInTheDocument();
     });
 });
