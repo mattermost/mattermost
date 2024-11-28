@@ -22,7 +22,10 @@ const FileUploadOverlay = (props: Props) => {
     }
 
     return (
-        <div className={overlayClass}>
+        <div 
+            className={overlayClass}
+            data-testid='fileUploadOverlay'
+        >
             <div className='overlay__indent'>
                 <div className='overlay__circle'>
                     <img
