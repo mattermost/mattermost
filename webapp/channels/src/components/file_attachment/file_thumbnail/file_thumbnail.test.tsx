@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {render, screen} from '@testing-library/react';
 
 import FileThumbnail from './file_thumbnail';
 
@@ -29,11 +29,13 @@ describe('FileThumbnail', () => {
     };
 
     test('should render a small image', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const image = container.querySelector('.post-image.small');
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveStyle({backgroundImage: `url(api/v4/files/${fileInfo.id}/thumbnail)`});
     });
 
     test('should render a normal-sized image', () => {
@@ -46,11 +48,13 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const image = container.querySelector('.post-image.normal');
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveStyle({backgroundImage: `url(api/v4/files/${fileInfo.id}/thumbnail)`});
     });
 
     test('should render an svg when svg previews are enabled', () => {
@@ -63,12 +67,12 @@ describe('FileThumbnail', () => {
             enableSVGs: true,
         };
 
-        const wrapper = shallow(
-            <FileThumbnail {...props}/>,
-        );
+        render(<FileThumbnail {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('img').exists()).toBe(true);
+        const image = screen.getByRole('img', {name: 'file thumbnail image'});
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveClass('post-image', 'normal');
+        expect(image).toHaveAttribute('src', `api/v4/files/${fileInfo.id}`);
     });
 
     test('should render an icon for an SVG when SVG previews are disabled', () => {
@@ -81,12 +85,13 @@ describe('FileThumbnail', () => {
             enableSVGs: false,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        const icon = container.querySelector('.file-icon');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveClass('svg');
     });
 
     test('should render an icon for a PDF', () => {
@@ -98,11 +103,12 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <FileThumbnail {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        const icon = container.querySelector('.file-icon');
+        expect(icon).toBeInTheDocument();
+        expect(icon).toHaveClass('pdf');
     });
 });
