@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
 
+import {renderWithIntl} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderMobile from './channel_header_mobile';
@@ -40,15 +41,14 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         isFavoriteChannel: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...baseProps}/>,
-        );
+    test('should render channel header mobile component', () => {
+        renderWithIntl(<ChannelHeaderMobile {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Navbar Toggle'})).toBeInTheDocument();
     });
 
-    test('should match snapshot, for default channel', () => {
+    test('should render default channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -59,14 +59,13 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...props}/>,
-        );
+        renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('Town Square')).toBeInTheDocument();
     });
 
-    test('should match snapshot, if DM channel', () => {
+    test('should render DM channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -77,12 +76,13 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
+        renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('display_name')).toBeInTheDocument();
     });
 
-    test('should match snapshot, for private channel', () => {
+    test('should render private channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -92,8 +92,9 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
+        renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('display_name')).toBeInTheDocument();
     });
 });
