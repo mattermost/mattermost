@@ -141,8 +141,11 @@ function PostPriorityPicker({
                     defaultMessage: 'Message priority',
                 })}
             </Header>
-            <div role='application'>
-                <Menu className='Menu'>
+            <div>
+                <Menu
+                    className='Menu'
+                    role='menu'
+                >
                     <MenuGroup>
                         <MenuItem
                             id='menu-item-priority-standard'
