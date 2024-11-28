@@ -63,6 +63,7 @@ describe('components/GetPublicLinkModal', () => {
         const closeButton = await waitFor(() => screen.getByTestId('linkModalCloseButton'))
         userEvent.click(closeButton);
 
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        // Use getAllByRole to check that no modals are present
+        expect(screen.queryAllByRole('dialog')).toHaveLength(0);
     });
 });
