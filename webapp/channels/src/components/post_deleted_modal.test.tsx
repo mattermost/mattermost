@@ -27,17 +27,13 @@ describe('components/PostDeletedModal', () => {
     });
 
     test('should call onExited when clicking OK button', async () => {
-        const {container} = renderWithIntl(<PostDeletedModal {...baseProps}/>);
+        renderWithIntl(<PostDeletedModal {...baseProps}/>);
 
         // Click OK button
         await userEvent.click(screen.getByTestId('postDeletedModalOkButton'));
         
-        // Wait for modal to fade out
-        await screen.findByRole('dialog', {hidden: true});
-        
-        // Remove the modal from the document to trigger onExited
-        container.querySelector('.modal-backdrop')?.remove();
-        container.querySelector('.modal')?.remove();
+        // Wait for animation to complete (Bootstrap modal uses 300ms transition)
+        await new Promise((resolve) => setTimeout(resolve, 350));
         
         // Verify onExited was called
         expect(baseProps.onExited).toHaveBeenCalled();
