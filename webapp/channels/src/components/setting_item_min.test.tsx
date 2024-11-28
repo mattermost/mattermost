@@ -55,7 +55,7 @@ describe('components/SettingItemMin', () => {
     test('should not call updateSection when disabled', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection, isDisabled: true};
-        render(<SettingItemMin {...props}/>);
+        renderWithContext(<SettingItemMin {...props}/>);
 
         const title = screen.getByText('title');
         await userEvent.click(title);
