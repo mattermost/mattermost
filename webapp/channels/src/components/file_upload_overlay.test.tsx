@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
