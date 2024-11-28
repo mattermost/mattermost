@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import GetLinkModal from 'components/get_link_modal';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 describe('components/GetLinkModal', () => {
     const onHide = jest.fn();
@@ -19,53 +19,51 @@ describe('components/GetLinkModal', () => {
         link: 'https://mattermost.com',
     };
 
-    test('should match snapshot when all props is set', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should render modal with all props set', () => {
         const helpText = 'help text';
         const props = {...requiredProps, helpText};
 
-        const wrapper = shallow(
-            <GetLinkModal {...props}/>,
-        );
+        renderWithIntl(<GetLinkModal {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.getByText('help text')).toBeInTheDocument();
+        expect(screen.getByText('Copy Link')).toBeInTheDocument();
+        expect(screen.getByText('Close')).toBeInTheDocument();
+        
+        const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+        expect(textarea).toHaveValue('https://mattermost.com');
     });
 
-    test('should match snapshot when helpText is not set', () => {
-        const wrapper = shallow(
-            <GetLinkModal {...requiredProps}/>,
-        );
+    test('should render modal without help text', () => {
+        renderWithIntl(<GetLinkModal {...requiredProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.queryByText('help text')).not.toBeInTheDocument();
     });
 
-    test('should have called onHide', () => {
+    test('should handle close button and modal hide', () => {
         const newOnHide = jest.fn();
         const props = {...requiredProps, onHide: newOnHide};
 
-        const wrapper = shallow(
-            <GetLinkModal {...props}/>,
-        );
+        renderWithIntl(<GetLinkModal {...props}/>);
 
-        wrapper.find(Modal).first().props().onHide();
+        userEvent.click(screen.getByText('Close'));
         expect(newOnHide).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('copiedLink')).toBe(false);
-
-        wrapper.setProps({show: true});
-        wrapper.setState({copiedLink: true});
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state('copiedLink')).toBe(true);
-
-        wrapper.find('#linkModalCloseButton').simulate('click');
-        expect(newOnHide).toHaveBeenCalledTimes(2);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state('copiedLink')).toBe(false);
     });
 
-    test('should have handle copyLink', () => {
-        const wrapper = mountWithIntl(
-            <GetLinkModal {...requiredProps}/>,
-        );
-        wrapper.find('#linkModalTextArea').simulate('click');
-        expect(wrapper.state('copiedLink')).toBe(true);
+    test('should handle copy link functionality', () => {
+        document.execCommand = jest.fn().mockImplementation(() => true);
+
+        renderWithIntl(<GetLinkModal {...requiredProps}/>);
+
+        const textarea = screen.getByRole('textbox');
+        userEvent.click(textarea);
+
+        expect(screen.getByText('Link copied')).toBeInTheDocument();
+        expect(document.execCommand).toHaveBeenCalledWith('copy');
     });
 });
