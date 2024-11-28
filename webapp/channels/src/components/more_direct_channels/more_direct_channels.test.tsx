@@ -82,12 +82,12 @@ describe('components/MoreDirectChannels', () => {
         renderWithContext(<MoreDirectChannels {...props}/>);
         
         expect(screen.getByText('Direct Messages')).toBeInTheDocument();
-        expect(screen.getByRole('dialog')).toHaveClass('more-modal more-direct-channels');
+        expect(screen.getAllByRole('dialog')[1]).toHaveClass('a11y__modal more-modal more-direct-channels');
     });
 
     test('should call for modal data on mount', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
 
         await waitFor(() => {
             expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
@@ -118,7 +118,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should call actions.setModalSearchTerm on close', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
 
         const closeButton = screen.getByLabelText('Close');
         await userEvent.click(closeButton);
@@ -129,7 +129,7 @@ describe('components/MoreDirectChannels', () => {
     test('should handle search with debounce', async () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
 
         const searchInput = screen.getByPlaceholderText('Search users');
         await userEvent.type(searchInput, 'user_search');
@@ -143,7 +143,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should not open a DM if no users selected', async () => {
         const props = {...baseProps, currentChannelMembers: []};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
 
         const goButton = screen.getByText('Go');
         await userEvent.click(goButton);
@@ -157,7 +157,7 @@ describe('components/MoreDirectChannels', () => {
             id: 'user_id_1',
         };
         const props = {...baseProps, currentChannelMembers: [user]};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
 
         const goButton = screen.getByText('Go');
         await userEvent.click(goButton);
@@ -214,7 +214,7 @@ describe('components/MoreDirectChannels', () => {
         const currentChannelMembers: UserProfile[] = [];
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
         
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
         
         // Verify only non-deleted users are shown in the list
         expect(screen.queryByText('deleted_user_1')).not.toBeInTheDocument();
