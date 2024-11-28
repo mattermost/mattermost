@@ -4,13 +4,13 @@
 import React from 'react';
 import {screen} from '@testing-library/react';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={22}
                 isUnread={true}
@@ -22,7 +22,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should show unread messages', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={true}
@@ -34,7 +34,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should not show unread indicator', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={false}
