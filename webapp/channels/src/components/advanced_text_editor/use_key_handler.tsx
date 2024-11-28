@@ -38,6 +38,7 @@ const useKeyHandler = (
     isValidPersistentNotifications: boolean,
     location: string,
     textboxRef: React.RefObject<TextboxClass>,
+    showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
@@ -257,7 +258,7 @@ const useKeyHandler = (
                 e.stopPropagation();
                 e.preventDefault();
                 toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac()) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac() && showFormattingBar) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleShowPreview();

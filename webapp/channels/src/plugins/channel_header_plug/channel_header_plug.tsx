@@ -346,7 +346,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 />
                             }
                         >
-                            <React.Fragment>
+                            <>
                                 <PluginChannelHeaderIcon
                                     id='pluginChannelHeaderIcon'
                                     className='icon icon--standard icon__pluginChannelHeader'
@@ -358,7 +358,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 >
                                     {items.length}
                                 </span>
-                            </React.Fragment>
+                            </>
                         </WithTooltip>
                     </CustomToggle>
                     <CustomMenu

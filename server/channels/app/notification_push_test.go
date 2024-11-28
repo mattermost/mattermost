@@ -1103,6 +1103,39 @@ func TestSendPushNotifications(t *testing.T) {
 	})
 }
 
+func TestShouldSendPushNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	t.Run("should return true if forced", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		assert.True(t, result)
+	})
+
+	t.Run("should return false if force undefined", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		assert.False(t, result)
+	})
+}
+
 // testPushNotificationHandler is an HTTP handler to record push notifications
 // being sent from the client.
 // It records the number of requests sent to it, and stores all the requests

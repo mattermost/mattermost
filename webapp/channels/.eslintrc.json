@@ -32,7 +32,8 @@
     "react/style-prop-object": [2, {
       "allow": ["Timestamp"]
     }],
-    "formatjs/no-multiple-whitespaces": 2
+    "formatjs/no-multiple-whitespaces": 2,
+    "react/jsx-fragments": ["error", "syntax"]
   },
   "overrides": [
     {
