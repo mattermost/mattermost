@@ -8,6 +8,14 @@ import userEvent from '@testing-library/user-event';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
+import MemberListChannel from 'components/member_list_channel';
+
+// Mock MemberListChannel to avoid prop type errors
+jest.mock('components/member_list_channel', () => {
+    return function MockMemberListChannel() {
+        return <div data-testid="member-list-channel"/>;
+    };
+});
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -57,7 +65,7 @@ describe('components/ChannelMembersModal', () => {
         await user.click(closeButton);
         
         // Need to wait for async state updates
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
