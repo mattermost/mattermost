@@ -121,14 +121,20 @@ describe('components/EditChannelHeaderModal', () => {
 
     describe('handleSave', () => {
         test('should not patch channel when header is unchanged', async () => {
-            renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
+            const onExited = jest.fn();
+            renderWithIntl(
+                <EditChannelHeaderModal
+                    {...baseProps}
+                    onExited={onExited}
+                />,
+            );
             
             userEvent.click(screen.getByRole('button', {name: 'Save'}));
             
             await waitFor(() => {
                 expect(baseProps.actions.patchChannel).not.toHaveBeenCalled();
+                expect(onExited).toHaveBeenCalled();
             });
-            expect(baseProps.onExited).toHaveBeenCalled();
         });
 
         test('should show error and keep modal open on failed patch', async () => {
