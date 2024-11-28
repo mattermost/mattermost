@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, render} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import SettingItemMin from './setting_item_min';
 
 describe('components/SettingItemMin', () => {
@@ -17,7 +18,7 @@ describe('components/SettingItemMin', () => {
     };
 
     test('should render component correctly', () => {
-        renderWithIntl(<SettingItemMin {...baseProps}/>);
+        renderWithContext(<SettingItemMin {...baseProps}/>);
 
         expect(screen.getByText('title')).toBeInTheDocument();
         expect(screen.getByText('describe')).toBeInTheDocument();
@@ -26,7 +27,7 @@ describe('components/SettingItemMin', () => {
 
     test('should render disabled state correctly', () => {
         const props = {...baseProps, isDisabled: true};
-        renderWithIntl(<SettingItemMin {...props}/>);
+        renderWithContext(<SettingItemMin {...props}/>);
 
         expect(screen.getByText('title')).toBeInTheDocument();
         expect(screen.getByText('describe')).toBeInTheDocument();
@@ -36,7 +37,7 @@ describe('components/SettingItemMin', () => {
     test('should call updateSection on click when enabled', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection};
-        renderWithIntl(<SettingItemMin {...props}/>);
+        renderWithContext(<SettingItemMin {...props}/>);
 
         await userEvent.click(screen.getByText('Edit'));
         expect(updateSection).toHaveBeenCalledWith('section');
@@ -45,7 +46,7 @@ describe('components/SettingItemMin', () => {
     test('should call updateSection with empty string when section is empty', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection, section: ''};
-        render(<SettingItemMin {...props}/>);
+        renderWithContext(<SettingItemMin {...props}/>);
 
         await userEvent.click(screen.getByText('Edit'));
         expect(updateSection).toHaveBeenCalledWith('');
