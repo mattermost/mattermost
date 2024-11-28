@@ -15,7 +15,7 @@ describe('components/timestamp/SemanticTime', () => {
             />,
         );
         
-        const timeElement = screen.getByRole('time');
+        const timeElement = screen.getByText('');
         expect(timeElement).toHaveAttribute('datetime', '2020-06-05T10:20:30.000');
     });
 
