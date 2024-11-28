@@ -28,6 +28,19 @@ describe('ListItem', () => {
                         nickname: '',
                     },
                 },
+                statuses: {
+                    user_id_1: 'online',
+                },
+            },
+            general: {
+                config: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            teams: {
+                currentTeamId: '',
+                teams: {},
             },
         },
     });
