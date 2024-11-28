@@ -2296,10 +2296,6 @@
     "translation": "Trebuie să fie setate fie trigger_words, fie channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nu s-a putut decoda încărcătura utilă multiplă a hubului de intrare."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nu se poate actualiza webhook între echipe."
   },

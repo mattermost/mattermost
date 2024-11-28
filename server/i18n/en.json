@@ -2521,6 +2521,10 @@
     "translation": "Error creating post."
   },
   {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Failed to cache post after deduplicating a client repeating the same request."
+  },
+  {
     "id": "api.post.deduplicate_create_post.failed_to_get",
     "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
   },
@@ -4379,10 +4383,6 @@
     "translation": "Either trigger_words or channel_id must be set."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
   },
@@ -4576,11 +4576,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Unable to find the existing channel."
+    "translation": "Unable to find the existing channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "We encountered an error finding the channel."
+    "translation": "We encountered an error finding the channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all.app_error",
@@ -6153,6 +6153,10 @@
   {
     "id": "app.plugin.restart.app_error",
     "translation": "Unable to restart plugin on upgrade."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -10266,11 +10270,15 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command."
+    "translation": "Couldn't find the command {{.command_id}}."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Failed to handle command webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data."
+    "translation": "Unable to parse incoming data for webhook {{.hook_id}}."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
@@ -10378,15 +10386,27 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel."
+    "translation": "This webhook is not permitted to post to the requested channel {{.channel_id}}"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Failed to decode the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Failed to handle the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
     "id": "web.incoming_webhook.invalid.app_error",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Failed to parse media incoming webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -10394,7 +10414,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Inappropriate channel permissions."
+    "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -10406,6 +10426,6 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user."
+    "translation": "Couldn't find the user {{.user}}"
   }
 ]
