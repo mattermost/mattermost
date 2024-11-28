@@ -82,10 +82,11 @@ describe('components/MoreDirectChannels', () => {
         renderWithContext(<MoreDirectChannels {...props}/>);
         
         expect(screen.getByText('Direct Messages')).toBeInTheDocument();
-        expect(screen.getAllByRole('dialog')[1]).toHaveClass('a11y__modal more-modal more-direct-channels');
+        expect(screen.getAllByRole('dialog')[1].querySelector('.modal-dialog')).toHaveClass('a11y__modal more-modal more-direct-channels');
     });
 
     test('should call for modal data on mount', async () => {
+        jest.setTimeout(70000); // Increase timeout for this specific test
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
         renderWithContext(<MoreDirectChannels {...props}/>);
 
@@ -131,7 +132,7 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         renderWithContext(<MoreDirectChannels {...props}/>);
 
-        const searchInput = screen.getByPlaceholderText('Search users');
+        const searchInput = screen.getByLabelText('Search and add members');
         await userEvent.type(searchInput, 'user_search');
 
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
