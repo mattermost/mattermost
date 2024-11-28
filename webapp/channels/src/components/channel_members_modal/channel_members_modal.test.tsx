@@ -64,9 +64,11 @@ describe('components/ChannelMembersModal', () => {
         const closeButton = screen.getByLabelText('Close');
         await user.click(closeButton);
         
-        // Need to wait for async state updates
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Need to wait for modal animation and state updates
+        await new Promise(resolve => setTimeout(resolve, 500));
 
+        const modal = screen.queryByRole('dialog');
+        expect(modal).not.toBeInTheDocument();
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
