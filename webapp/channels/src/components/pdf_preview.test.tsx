@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {PDFDocumentProxy, PDFPageProxy} from 'pdfjs-dist';
+import {screen, render} from '@testing-library/react';
+import type {PDFDocumentProxy} from 'pdfjs-dist';
 import React from 'react';
 
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
 
 import {TestHelper} from 'utils/test_helper';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 jest.mock('pdfjs-dist', () => ({
     getDocument: () => Promise.resolve({
@@ -20,7 +21,7 @@ jest.mock('pdfjs-dist', () => ({
     }),
 }));
 
-describe('component/PDFPreview', () => {
+describe('components/PDFPreview', () => {
     const requiredProps: Props = {
         fileInfo: TestHelper.getFileInfoMock({extension: 'pdf'}),
         fileUrl: 'https://pre-release.mattermost.com/api/v4/files/ips59w4w9jnfbrs3o94m1dbdie',
@@ -28,51 +29,46 @@ describe('component/PDFPreview', () => {
         handleBgClose: jest.fn(),
     };
 
-    test('should match snapshot, loading', () => {
-        const wrapper = shallow(
-            <PDFPreview {...requiredProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+    test('should show loading spinner initially', () => {
+        renderWithIntl(<PDFPreview {...requiredProps}/>);
+        
+        expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
+        expect(screen.getByTitle('Loading Icon')).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
     });
 
-    test('should match snapshot, not successful', () => {
-        const wrapper = shallow(
-            <PDFPreview {...requiredProps}/>,
-        );
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+    test('should show file info preview when load fails', async () => {
+        // Mock the PDF loading to fail
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        (pdfjsLib.getDocument as jest.Mock).mockRejectedValueOnce('error');
+
+        renderWithIntl(<PDFPreview {...requiredProps}/>);
+
+        // Wait for loading to finish
+        expect(await screen.findByText(requiredProps.fileInfo.name)).toBeInTheDocument();
     });
 
-    test('should update state with new value from props when prop changes', () => {
-        const wrapper = shallow<PDFPreview>(
-            <PDFPreview {...requiredProps}/>,
-        );
-        const newFileUrl = 'https://some-new-url';
+    test('should update PDF preview when URL changes', async () => {
+        const {rerender} = renderWithIntl(<PDFPreview {...requiredProps}/>);
 
-        wrapper.setProps({fileUrl: newFileUrl});
-        const {prevFileUrl} = wrapper.instance().state;
-        expect(prevFileUrl).toEqual(newFileUrl);
+        const newProps = {
+            ...requiredProps,
+            fileUrl: 'https://some-new-url',
+        };
+
+        rerender(<PDFPreview {...newProps}/>);
+
+        // Should show loading state again
+        expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
     });
 
-    test('should return correct state when onDocumentLoad is called', () => {
-        const wrapper = shallow<PDFPreview>(
-            <PDFPreview {...requiredProps}/>,
-        );
+    test('should render PDF pages when document loads successfully', async () => {
+        renderWithIntl(<PDFPreview {...requiredProps}/>);
 
-        let pdf = {numPages: 0} as PDFDocumentProxy;
-        wrapper.instance().onDocumentLoad(pdf);
-        expect(wrapper.state('pdf')).toEqual(pdf);
-        expect(wrapper.state('numPages')).toEqual(pdf.numPages);
+        // Initial loading state
+        expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
 
-        pdf = {
-            numPages: 100,
-            getPage: async (i) => {
-                const page = {pageNumber: i} as PDFPageProxy;
-                return Promise.resolve(page);
-            },
-        } as PDFDocumentProxy;
-        wrapper.instance().onDocumentLoad(pdf);
-        expect(wrapper.state('pdf')).toEqual(pdf);
-        expect(wrapper.state('numPages')).toEqual(pdf.numPages);
+        // Wait for canvas elements to be rendered (3 pages from mock)
+        const canvases = await screen.findAllByRole('img');
+        expect(canvases).toHaveLength(3);
     });
 });
