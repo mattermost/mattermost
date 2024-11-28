@@ -262,7 +262,7 @@ func TestPostToRow(t *testing.T) {
 			if postType == "" {
 				postType = "message"
 			}
-			assert.Equal(t, tt.out, PostToRow(tt.in, postType, tt.in.PostCreateAt, *tt.in.PostMessage))
+			assert.Equal(t, tt.out, postToRow(tt.in, postType, tt.in.PostCreateAt, *tt.in.PostMessage))
 		})
 	}
 }

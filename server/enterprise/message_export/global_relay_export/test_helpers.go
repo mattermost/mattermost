@@ -13,6 +13,7 @@ import (
 )
 
 func AssertHeaderContains(t *testing.T, msg string, expected map[string]string) {
+	t.Helper()
 	m, err := mail.ReadMessage(strings.NewReader(msg))
 	require.NoError(t, err)
 	header := m.Header

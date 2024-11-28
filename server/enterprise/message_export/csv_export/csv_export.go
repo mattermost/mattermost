@@ -146,12 +146,12 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 		if postType == "" {
 			postType = "message"
 		}
-		if err = csvWriter.Write(PostToRow(post, postType, post.PostCreateAt, *post.PostMessage)); err != nil {
+		if err = csvWriter.Write(postToRow(post, postType, post.PostCreateAt, *post.PostMessage)); err != nil {
 			return results, fmt.Errorf("unable to export a post: %w", err)
 		}
 
 		if common_export.IsDeletedMsg(post) {
-			if err = csvWriter.Write(PostToRow(post, postType, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
+			if err = csvWriter.Write(postToRow(post, postType, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
 				return results, fmt.Errorf("unable to export a post: %w", err)
 			}
 		}
@@ -355,7 +355,7 @@ func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataC
 	return joinLeavePosts, nil
 }
 
-func PostToRow(post *model.MessageExport, postType string, createTime *int64, message string) []string {
+func postToRow(post *model.MessageExport, postType string, createTime *int64, message string) []string {
 	// createTime should always be createTime, even for deleted posts? Check actiance. MM-61718
 	teamId := ""
 	teamName := ""
@@ -409,5 +409,5 @@ func attachmentToRow(post *model.MessageExport, attachment *model.FileInfo) []st
 		postType = "deleted attachment"
 	}
 
-	return PostToRow(post, postType, createAt, message)
+	return postToRow(post, postType, createAt, message)
 }
