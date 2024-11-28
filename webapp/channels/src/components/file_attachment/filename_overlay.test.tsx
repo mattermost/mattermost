@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 
 describe('components/file_attachment/FilenameOverlay', () => {
-    function emptyFunction() {} //eslint-disable-line no-empty-function
     const fileInfo = {
         id: 'thumbnail_id',
         name: 'test_filename',
@@ -28,53 +28,63 @@ describe('components/file_attachment/FilenameOverlay', () => {
 
     const baseProps = {
         fileInfo,
-        handleImageClick: emptyFunction,
+        handleImageClick: jest.fn(),
         compactDisplay: false,
         canDownload: true,
     };
 
-    test('should match snapshot, standard display', () => {
-        const wrapper = shallow(
-            <FilenameOverlay {...baseProps}/>,
-        );
+    test('should render filename in standard display mode', () => {
+        render(<FilenameOverlay {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        const downloadLink = screen.getByRole('link', {name: /download/i});
+        expect(downloadLink).toBeInTheDocument();
+        expect(downloadLink).toHaveAttribute('href', `/api/v4/files/${fileInfo.id}?download=1`);
+        expect(downloadLink).toHaveTextContent('test_filename');
     });
 
-    test('should match snapshot, compact display', () => {
+    test('should handle click in compact display mode', async () => {
         const handleImageClick = jest.fn();
         const props = {...baseProps, compactDisplay: true, handleImageClick};
-        const wrapper = shallow(
-            <FilenameOverlay {...props}/>,
-        );
+        
+        render(<FilenameOverlay {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(AttachmentIcon).exists()).toBe(true);
+        const link = screen.getByRole('link', {name: /test_filename/i});
+        expect(link).toBeInTheDocument();
+        
+        const attachmentIcon = screen.getByTestId('AttachmentIcon');
+        expect(attachmentIcon).toBeInTheDocument();
 
-        wrapper.find('a').first().simulate('click');
+        await userEvent.click(link);
         expect(handleImageClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot, with Download icon as children', () => {
+    test('should render with Download icon as children', () => {
         const props = {...baseProps, canDownload: true};
-        const wrapper = shallow(
+        
+        render(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(AttachmentIcon).exists()).toBe(true);
+        const downloadLink = screen.getByRole('link', {name: /download/i});
+        expect(downloadLink).toBeInTheDocument();
+        
+        const attachmentIcon = screen.getByTestId('AttachmentIcon');
+        expect(attachmentIcon).toBeInTheDocument();
     });
 
-    test('should match snapshot, standard but not downloadable', () => {
+    test('should render as text when not downloadable', () => {
         const props = {...baseProps, canDownload: false};
-        const wrapper = shallow(
+        
+        render(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const filename = screen.getByText('test_filename');
+        expect(filename).toBeInTheDocument();
+        expect(filename).toHaveClass('post-image__name');
     });
 });
