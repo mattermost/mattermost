@@ -11,10 +11,12 @@ import NotifyCounts from './';
 describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
         renderWithContext(
-            <NotifyCounts
-                unreadMentionCount={22}
-                isUnread={true}
-            />,
+            <div>
+                <NotifyCounts
+                    unreadMentionCount={22}
+                    isUnread={true}
+                />
+            </div>,
             {
                 entities: {
                     general: {
@@ -30,10 +32,12 @@ describe('components/notify_counts', () => {
 
     test('should show unread messages', () => {
         renderWithContext(
-            <NotifyCounts
-                unreadMentionCount={0}
-                isUnread={true}
-            />,
+            <div>
+                <NotifyCounts
+                    unreadMentionCount={0}
+                    isUnread={true}
+                />
+            </div>,
             {
                 entities: {
                     general: {
@@ -49,10 +53,12 @@ describe('components/notify_counts', () => {
 
     test('should not show unread indicator', () => {
         renderWithContext(
-            <NotifyCounts
-                unreadMentionCount={0}
-                isUnread={false}
-            />,
+            <div>
+                <NotifyCounts
+                    unreadMentionCount={0}
+                    isUnread={false}
+                />
+            </div>,
             {
                 entities: {
                     general: {
