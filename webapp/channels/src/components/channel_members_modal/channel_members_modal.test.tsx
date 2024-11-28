@@ -11,7 +11,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl} from 'tests/react_testing_utils.tsx';
 
 import ChannelMembersModal from './channel_members_modal';
 
@@ -50,7 +50,7 @@ describe('components/ChannelMembersModal', () => {
     });
 
     test('should handle modal close', async () => {
-        const user = userEvent.setup();
+        const user = userEvent;
         renderWithIntl(<ChannelMembersModal {...baseProps}/>);
 
         const closeButton = screen.getByLabelText('Close');
@@ -60,7 +60,7 @@ describe('components/ChannelMembersModal', () => {
     });
 
     test('should handle add new members', async () => {
-        const user = userEvent.setup();
+        const user = userEvent;
         renderWithIntl(<ChannelMembersModal {...baseProps}/>);
 
         const addMembersButton = screen.getByText('Add Members');
