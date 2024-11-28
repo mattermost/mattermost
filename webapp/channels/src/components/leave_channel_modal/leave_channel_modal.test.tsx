@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import LeaveChannelModal from './leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
@@ -74,7 +74,7 @@ describe('components/LeaveChannelModal', () => {
             },
         };
 
-        renderWithIntl(<LeaveChannelModal {...props}/>);
+        renderWithIntlAndStore(<LeaveChannelModal {...props}/>, {});
 
         expect(screen.getByText('Leave the channel')).toBeInTheDocument();
         expect(screen.getByText('Are you sure you wish to leave the channel?')).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('components/LeaveChannelModal', () => {
             callback: jest.fn(),
         };
 
-        renderWithIntl(<LeaveChannelModal {...props}/>);
+        renderWithIntlAndStore(<LeaveChannelModal {...props}/>, {});
 
         const confirmButton = screen.getByRole('button', {name: /yes/i});
         await user.click(confirmButton);
