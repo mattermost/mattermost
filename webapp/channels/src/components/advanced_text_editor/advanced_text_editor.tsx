@@ -318,6 +318,7 @@ const AdvancedTextEditor = ({
         handleShowPreview,
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
+        isInEditMode,
     );
 
     const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
@@ -454,7 +455,9 @@ const AdvancedTextEditor = ({
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
-        const callback = () => handleDraftChange(draft, {instant: true, show: true});
+        const callback = () => {
+            handleDraftChange(draft, {instant: true, show: true});
+        };
         window.addEventListener('beforeunload', callback);
         return () => {
             window.removeEventListener('beforeunload', callback);
@@ -599,7 +602,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={(e) => {e.preventDefault();}}
+            onSubmit={noArgumentHandleSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>

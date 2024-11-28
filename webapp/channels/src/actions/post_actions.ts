@@ -340,41 +340,56 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
 
         const canEdit = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 
-        if (canEdit) {
-            const storageKey = `${StoragePrefixes.EDIT_DRAFT}${post.id}`;
+        if (!canEdit) {
+            return {data: false};
+        }
 
-            const actions: AnyAction[] = [{
-                type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, isRHS, show: true},
-            }];
+        const storageKey = `${StoragePrefixes.EDIT_DRAFT}${post.id}`;
 
-            // We need to see if post's draft is already in store, if it is, we don't need to set it again
-            const editDraftInStore = getGlobalItem(state, storageKey, null) as StorageItem<PostDraft>['value'] | null;
+        const actions: AnyAction[] = [{
+            type: ActionTypes.TOGGLE_EDITING_POST,
+            data: {postId, refocusId, isRHS, show: true},
+        }];
 
-            if (
-                !editDraftInStore ||
+        // We need to see if post's draft is already in store, if it is, we don't need to set it again
+        const editDraftInStore = getGlobalItem(state, storageKey, null) as StorageItem<PostDraft>['value'] | null;
+
+        if (
+            !editDraftInStore ||
                 (editDraftInStore &&
                     editDraftInStore?.message?.length === 0 &&
                     editDraftInStore?.fileInfos?.length === 0 &&
                     editDraftInStore?.uploadsInProgress?.length === 0
                 )
-            ) {
-                actions.push(setGlobalItem(storageKey, post));
-            }
-
-            dispatch(batchActions(actions));
+        ) {
+            actions.push(setGlobalItem(storageKey, post));
         }
 
-        return {data: canEdit};
+        dispatch(batchActions(actions));
+
+        return {data: true};
     };
 }
 
-export function unsetEditingPost() {
-    return {
-        type: ActionTypes.TOGGLE_EDITING_POST,
-        data: {
-            show: false,
-        },
+export function unsetEditingPost(): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
+        const editingPostId = getState().views.posts.editingPost.postId;
+
+        const actions: AnyAction[] = [{
+            type: ActionTypes.TOGGLE_EDITING_POST,
+            data: {
+                show: false,
+            },
+        }];
+
+        if (editingPostId) {
+            const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostId}`;
+            actions.push(StorageActions.removeGlobalItem(storageKey));
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data: true};
     };
 }
 

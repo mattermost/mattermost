@@ -73,8 +73,6 @@ const useSubmit = (
     ] => {
     const getGroupMentions = useGroups(channelId, draft.message);
 
-    console.log('isInEditMode', isInEditMode);
-
     const dispatch = useDispatch();
 
     const isDraftSubmitting = useRef(false);
@@ -170,8 +168,6 @@ const useSubmit = (
             afterOptimisticSubmit,
             keepDraft: createPostOptions?.keepDraft,
         };
-
-        console.log('isInEditMode', isInEditMode);
 
         try {
             let response;
