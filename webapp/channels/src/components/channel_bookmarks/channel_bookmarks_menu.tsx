@@ -139,6 +139,7 @@ export const useBookmarkAddActions = (channelId: string) => {
     const handleCreateFile = useCallback(() => {
         const input: HTMLInputElement = document.createElement('input');
         input.type = 'file';
+        input.id = 'bookmark-create-file-input';
         input.hidden = true;
 
         input.addEventListener('change', () => {
