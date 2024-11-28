@@ -88,7 +88,13 @@ describe('components/file_search_result/FileSearchResultItem', () => {
     });
 
     test('should handle menu actions correctly', () => {
-        renderWithContext(<FileSearchResultItem {...baseProps}/>, initialState);
+        renderWithContext(<FileSearchResultItem {...baseProps}/>, initialState, {
+            intlMessages: {
+                'file_search_result_item.more_actions': 'More Actions',
+                'file_search_result_item.open_in_channel': 'Open in channel',
+                'file_search_result_item.copy_link': 'Copy link'
+            }
+        });
 
         const moreActionsButton = screen.getByLabelText('More Actions');
         userEvent.click(moreActionsButton);

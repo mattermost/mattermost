@@ -154,13 +154,13 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                 onToggle={this.keepOpen}
                                 stopPropagationOnToggle={true}
                             >
-                                <a
-                                    href='#'
+                                <button
+                                    type='button'
                                     className='action-icon dots-icon'
-                                    aria-label='More Actions'
+                                    aria-label={localizeMessage('file_search_result_item.more_actions', 'More Actions')}
                                 >
                                     <i className='icon icon-dots-vertical'/>
-                                </a>
+                                </button>
                                 <Menu
                                     ariaLabel={'file menu'}
                                     openLeft={true}
