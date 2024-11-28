@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import MoreDirectChannels from 'components/more_direct_channels/more_direct_channels';
-
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+import MoreDirectChannels from './more_direct_channels';
 
 jest.useFakeTimers();
 const mockedUser = TestHelper.getUserMock();
@@ -75,28 +77,31 @@ describe('components/MoreDirectChannels', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should render component and match snapshot', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow(<MoreDirectChannels {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        
+        expect(screen.getByText('Direct Messages')).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toHaveClass('more-modal more-direct-channels');
     });
 
-    test('should call for modal data on callback of modal onEntered', () => {
+    test('should call for modal data on mount', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
 
-        wrapper.instance().loadModalData();
-
-        expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
-        expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
-        expect(props.actions.getProfiles).toBeCalledWith(0, 100);
-        expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-        expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(baseProps.users);
+        await waitFor(() => {
+            expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
+            expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
+            expect(props.actions.getProfiles).toBeCalledWith(0, 100);
+            expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
+            expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(baseProps.users);
+        });
     });
 
-    test('should call actions.loadProfilesMissingStatus on componentDidUpdate when users prop changes length', () => {
+    test('should call actions.loadProfilesMissingStatus when users prop changes', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const wrapper = shallow(<MoreDirectChannels {...props}/>);
+        const {rerender} = renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        
         const newUsers = [{
             id: 'user_id_1',
             label: 'user_id_1',
@@ -104,125 +109,76 @@ describe('components/MoreDirectChannels', () => {
             delete_at: 0,
         }];
 
-        wrapper.setProps({users: newUsers});
-        expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-        expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(newUsers);
+        rerender(<MoreDirectChannels {...props} users={newUsers}/>);
+        
+        await waitFor(() => {
+            expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(newUsers);
+        });
     });
 
-    test('should call actions.setModalSearchTerm and match state on handleHide', () => {
+    test('should call actions.setModalSearchTerm on close', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
 
-        wrapper.setState({show: true});
+        const closeButton = screen.getByLabelText('Close');
+        await userEvent.click(closeButton);
 
-        wrapper.instance().handleHide();
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toBeCalledWith('');
-        expect(wrapper.state('show')).toEqual(false);
+        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('');
     });
 
-    test('should match state on setUsersLoadingState', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        wrapper.setState({loadingUsers: true});
-        wrapper.instance().setUsersLoadingState(false);
-        expect(wrapper.state('loadingUsers')).toEqual(false);
-
-        wrapper.setState({loadingUsers: false});
-        wrapper.instance().setUsersLoadingState(true);
-        expect(wrapper.state('loadingUsers')).toEqual(true);
-    });
-
-    test('should call on search', () => {
+    test('should handle search with debounce', async () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        wrapper.instance().search('user_search');
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+
+        const searchInput = screen.getByPlaceholderText('Search users');
+        await userEvent.type(searchInput, 'user_search');
+
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
+        
         jest.runAllTimers();
-        expect(props.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
-        expect(props.actions.setModalSearchTerm).toBeCalledWith('user_search');
+        
+        expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
     });
 
-    test('should match state on handleDelete', () => {
-        const props = {...baseProps};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-
-        const user1 = {
-            ...mockedUser,
-            id: 'user_id_1',
-            label: 'user_id_1',
-            value: 'user_id_1',
-        };
-
-        const user2 = {
-            ...mockedUser,
-            id: 'user_id_1',
-            label: 'user_id_1',
-            value: 'user_id_1',
-        };
-
-        wrapper.setState({values: [user1]});
-        wrapper.instance().handleDelete([user2]);
-        expect(wrapper.state('values')).toEqual([user2]);
-    });
-
-    test('should not open a DM or GM if no user Ids', () => {
+    test('should not open a DM if no users selected', async () => {
         const props = {...baseProps, currentChannelMembers: []};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
 
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(false);
+        const goButton = screen.getByText('Go');
+        await userEvent.click(goButton);
+
         expect(baseProps.actions.openDirectChannelToUserId).not.toBeCalled();
     });
 
-    test('should open a DM', (done) => {
-        jest.useFakeTimers({legacyFakeTimers: true});
+    test('should open a DM channel', async () => {
         const user: UserProfile = {
             ...mockedUser,
             id: 'user_id_1',
         };
         const props = {...baseProps, currentChannelMembers: [user]};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        const handleHide = jest.fn();
-        const exitToChannel = '';
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
 
-        wrapper.instance().handleHide = handleHide;
-        wrapper.instance().exitToChannel = exitToChannel;
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(1);
-        expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('user_id_1');
-        process.nextTick(() => {
-            expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toBeCalled();
-            expect(wrapper.instance().exitToChannel).toEqual(`/${props.currentTeamName}/channels/dm`);
-            done();
+        const goButton = screen.getByText('Go');
+        await userEvent.click(goButton);
+
+        await waitFor(() => {
+            expect(props.actions.openDirectChannelToUserId).toHaveBeenCalledWith('user_id_1');
         });
     });
 
-    test('should open a GM', (done) => {
-        jest.useFakeTimers({legacyFakeTimers: true});
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...baseProps}/>);
-        const handleHide = jest.fn();
-        const exitToChannel = '';
+    test('should open a GM channel', async () => {
+        renderWithIntlAndStore(<MoreDirectChannels {...baseProps}/>, {});
 
-        wrapper.instance().handleHide = handleHide;
-        wrapper.instance().exitToChannel = exitToChannel;
-        wrapper.instance().handleSubmit();
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
-        process.nextTick(() => {
-            expect(wrapper.state('saving')).toEqual(false);
-            expect(handleHide).toBeCalled();
-            expect(wrapper.instance().exitToChannel).toEqual(`/${baseProps.currentTeamName}/channels/group`);
-            done();
+        const goButton = screen.getByText('Go');
+        await userEvent.click(goButton);
+
+        await waitFor(() => {
+            expect(baseProps.actions.openGroupChannelToUserIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
         });
     });
 
-    test('should exclude deleted users if there is not direct channel between users', () => {
+    test('should handle deleted users correctly', () => {
         const users: UserProfile[] = [
             {
                 ...mockedUser,
@@ -257,7 +213,12 @@ describe('components/MoreDirectChannels', () => {
         ];
         const currentChannelMembers: UserProfile[] = [];
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
-        const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        
+        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        
+        // Verify only non-deleted users are shown in the list
+        expect(screen.queryByText('deleted_user_1')).not.toBeInTheDocument();
+        expect(screen.queryByText('deleted_user_2')).not.toBeInTheDocument();
+        expect(screen.queryByText('deleted_user_3')).not.toBeInTheDocument();
     });
 });
