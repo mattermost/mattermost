@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -79,7 +79,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should render component and match snapshot', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        renderWithContext(<MoreDirectChannels {...props}/>);
         
         expect(screen.getByText('Direct Messages')).toBeInTheDocument();
         expect(screen.getByRole('dialog')).toHaveClass('more-modal more-direct-channels');
@@ -100,7 +100,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should call actions.loadProfilesMissingStatus when users prop changes', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const {rerender} = renderWithIntlAndStore(<MoreDirectChannels {...props}/>, {});
+        const {rerender} = renderWithContext(<MoreDirectChannels {...props}/>);
         
         const newUsers = [{
             id: 'user_id_1',
