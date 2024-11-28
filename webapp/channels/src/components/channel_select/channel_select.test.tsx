@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import ChannelSelect from 'components/channel_select/channel_select';
-
+import {renderWithIntl} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import ChannelSelect from './channel_select';
 
 describe('components/ChannelSelect', () => {
     const defaultProps = {
@@ -40,8 +41,51 @@ describe('components/ChannelSelect', () => {
         selectDm: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<ChannelSelect {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should render default placeholder text', () => {
+        renderWithIntl(<ChannelSelect {...defaultProps}/>);
+
+        const select = screen.getByRole('combobox');
+        expect(select).toBeInTheDocument();
+        expect(select).toHaveValue('testValue');
+        expect(screen.getByText('--- Select a channel ---')).toBeInTheDocument();
+    });
+
+    test('should show open channels when selectOpen is true', () => {
+        renderWithIntl(
+            <ChannelSelect
+                {...defaultProps}
+                selectOpen={true}
+            />,
+        );
+
+        expect(screen.getByText('Channel 1')).toBeInTheDocument();
+        expect(screen.queryByText('Channel 2')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel 3')).not.toBeInTheDocument();
+    });
+
+    test('should show private channels when selectPrivate is true', () => {
+        renderWithIntl(
+            <ChannelSelect
+                {...defaultProps}
+                selectPrivate={true}
+            />,
+        );
+
+        expect(screen.queryByText('Channel 1')).not.toBeInTheDocument();
+        expect(screen.getByText('Channel 2')).toBeInTheDocument();
+        expect(screen.queryByText('Channel 3')).not.toBeInTheDocument();
+    });
+
+    test('should show DM channels when selectDm is true', () => {
+        renderWithIntl(
+            <ChannelSelect
+                {...defaultProps}
+                selectDm={true}
+            />,
+        );
+
+        expect(screen.queryByText('Channel 1')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel 2')).not.toBeInTheDocument();
+        expect(screen.getByText('Channel 3')).toBeInTheDocument();
     });
 });
