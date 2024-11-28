@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import ChannelMembersModal from './channel_members_modal';
 
@@ -39,96 +41,51 @@ describe('components/ChannelMembersModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <ChannelMembersModal {...baseProps}/>,
-        );
+    test('should render channel members modal', () => {
+        renderWithIntl(<ChannelMembersModal {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(baseProps.channel.display_name)).toBeInTheDocument();
+        expect(screen.getByText('Members')).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toHaveAttribute('id', 'channelMembersModal');
     });
 
-    test('should match state when onHide is called', () => {
-        const wrapper = shallow<ChannelMembersModal>(
-            <ChannelMembersModal {...baseProps}/>,
-        );
+    test('should handle modal close', async () => {
+        const user = userEvent.setup();
+        renderWithIntl(<ChannelMembersModal {...baseProps}/>);
 
-        wrapper.setState({show: true});
-        wrapper.instance().handleHide();
-        expect(wrapper.state('show')).toEqual(false);
+        const closeButton = screen.getByLabelText('Close');
+        await user.click(closeButton);
+
+        expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
-    test('should have called props.actions.openModal and hide modal when onAddNewMembersButton is called', () => {
-        const wrapper = shallow<ChannelMembersModal>(
-            <ChannelMembersModal {...baseProps}/>,
-        );
+    test('should handle add new members', async () => {
+        const user = userEvent.setup();
+        renderWithIntl(<ChannelMembersModal {...baseProps}/>);
 
-        wrapper.instance().onAddNewMembersButton();
-        expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
+        const addMembersButton = screen.getByText('Add Members');
+        await user.click(addMembersButton);
 
-        expect(wrapper.state('show')).toBe(false);
-    });
-
-    test('should have state when Modal.onHide', () => {
-        const wrapper = shallow(
-            <ChannelMembersModal {...baseProps}/>,
-        );
-
-        wrapper.setState({show: true});
-        wrapper.find(Modal).first().props().onHide();
-        expect(wrapper.state('show')).toEqual(false);
-    });
-
-    test('should match snapshot with archived channel', () => {
-        const props = {...baseProps, channel: {...baseProps.channel, delete_at: 1234}};
-
-        const wrapper = shallow(
-            <ChannelMembersModal {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('renders the channel display name', () => {
-        const wrapper = shallow(
-            <ChannelMembersModal {...baseProps}/>,
-        );
-        expect(wrapper.find('.name').text()).toBe(baseProps.channel.display_name);
-    });
-
-    test('should show the invite modal link if the user can manage channel members', () => {
-        const newProps = {...baseProps, canManageChannelMembers: true};
-        const wrapper = shallow(
-            <ChannelMembersModal {...newProps}/>,
-        );
-        expect(wrapper.find('#showInviteModal').length).toBe(1);
-    });
-
-    test('should not show the invite modal link if the user can not manage channel members', () => {
-        const newProps = {...baseProps, canManageChannelMembers: false};
-        const wrapper = shallow(
-            <ChannelMembersModal {...newProps}/>,
-        );
-        expect(wrapper.find('#showInviteModal').length).toBe(0);
-    });
-
-    test('should call openModal with ChannelInviteModal when the add members link is clicked', () => {
-        const openModal = jest.fn();
-        const newProps = {
-            ...baseProps,
-            canManageChannelMembers: false,
-            actions: {
-                openModal,
-            },
-        };
-        const wrapper = shallow(
-            <ChannelMembersModal {...newProps}/>,
-        );
-        expect(openModal).not.toHaveBeenCalled();
-        (wrapper.instance() as ChannelMembersModal).onAddNewMembersButton();
-        expect(openModal).toHaveBeenCalledWith({
+        expect(baseProps.actions.openModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.CHANNEL_INVITE,
             dialogType: ChannelInviteModal,
-            dialogProps: {channel: newProps.channel},
+            dialogProps: {channel: baseProps.channel},
         });
+    });
+
+    test('should handle archived channel', () => {
+        const props = {...baseProps, channel: {...baseProps.channel, delete_at: 1234}};
+        renderWithIntl(<ChannelMembersModal {...props}/>);
+
+        expect(screen.queryByText('Add Members')).not.toBeInTheDocument();
+    });
+
+    test('should show/hide invite modal link based on permissions', () => {
+        const {rerender} = renderWithIntl(<ChannelMembersModal {...baseProps}/>);
+        expect(screen.getByText('Add Members')).toBeInTheDocument();
+
+        const newProps = {...baseProps, canManageChannelMembers: false};
+        rerender(<ChannelMembersModal {...newProps}/>);
+        expect(screen.queryByText('Add Members')).not.toBeInTheDocument();
     });
 });
