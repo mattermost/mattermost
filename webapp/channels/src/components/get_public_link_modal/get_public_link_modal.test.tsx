@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import {renderWithIntl} from 'tests/react_testing_utils';
@@ -50,16 +50,18 @@ describe('components/GetPublicLinkModal', () => {
         renderWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
         baseProps.actions.getFilePublicLink.mockClear();
-        
-        await userEvent.click(screen.getByTestId('linkModalCloseButton'));
-        
+
+        const closeButton = await waitFor(() => screen.getByTestId('linkModalCloseButton'))
+        userEvent.click(closeButton);
+
         expect(baseProps.actions.getFilePublicLink).not.toHaveBeenCalled();
     });
 
     test('should hide modal on close', async () => {
         renderWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
-        await userEvent.click(screen.getByTestId('linkModalCloseButton'));
+        const closeButton = await waitFor(() => screen.getByTestId('linkModalCloseButton'))
+        userEvent.click(closeButton);
 
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
