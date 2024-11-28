@@ -13,10 +13,6 @@ package utils
 //
 // The perPage parameter specifies the number of items to fetch per page.
 //
-// Pager returns a slice containing all fetched items and an error, if any.
-// If an error occurs during fetching, the function returns the items fetched
-// so far and the error.
-//
 // Example usage:
 //
 //	items, err := Pager(fetchFunc, 10)
