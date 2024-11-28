@@ -122,9 +122,11 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                 data-testid='search-item-container'
                 className='search-item__container'
             >
-                <button
+                <div
                     className={'FileSearchResultItem' + (this.state.keepOpen ? ' keep-open' : '')}
                     onClick={this.showPreview}
+                    role="button"
+                    tabIndex={0}
                 >
                     <FileThumbnail fileInfo={fileInfo}/>
                     <div className='fileData'>
@@ -157,7 +159,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                 <button
                                     type='button'
                                     className='action-icon dots-icon'
-                                    aria-label={localizeMessage('file_search_result_item.more_actions', 'More Actions')}
+                                    aria-label='More Actions'
                                 >
                                     <i className='icon icon-dots-vertical'/>
                                 </button>
@@ -194,7 +196,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             <i className='icon icon-download-outline'/>
                         </a>
                     </WithTooltip>
-                </button>
+                </div>
             </div>
         );
     }
