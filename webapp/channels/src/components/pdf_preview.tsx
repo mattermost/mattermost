@@ -262,6 +262,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
                 ref={this.container}
                 className='post-code'
                 onClick={this.props.handleBgClose}
+                data-testid='pdf-container'
             >
                 {pdfCanvases}
             </div>
