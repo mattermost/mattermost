@@ -2,16 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Provider} from 'react-redux';
 import {General} from 'mattermost-redux/constants';
 
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import configureStore from 'redux-mock-store';
 
 import ListItem from './list_item';
 import type {Props} from './list_item';
 import type {OptionValue} from '../types';
 
 describe('ListItem', () => {
+    const mockStore = configureStore();
+    const store = mockStore({});
+
     const baseProps: Props = {
         isMobileView: false,
         isSelected: false,
@@ -28,10 +33,12 @@ describe('ListItem', () => {
         } as OptionValue;
 
         render(
-            <ListItem
-                {...baseProps}
-                option={user}
-            />,
+            <Provider store={store}>
+                <ListItem
+                    {...baseProps}
+                    option={user}
+                />
+            </Provider>,
         );
 
         expect(screen.getByText('@username1')).toBeInTheDocument();
@@ -61,10 +68,12 @@ describe('ListItem', () => {
         } as OptionValue;
 
         render(
-            <ListItem
-                {...baseProps}
-                option={channel}
-            />,
+            <Provider store={store}>
+                <ListItem
+                    {...baseProps}
+                    option={channel}
+                />
+            </Provider>,
         );
 
         expect(screen.getByText('@user1, @user2, @user3')).toBeInTheDocument();
@@ -80,10 +89,12 @@ describe('ListItem', () => {
         } as OptionValue;
 
         render(
-            <ListItem
-                {...baseProps}
-                option={user}
-            />,
+            <Provider store={store}>
+                <ListItem
+                    {...baseProps}
+                    option={user}
+                />
+            </Provider>,
         );
 
         const row = screen.getByRole('button', {name: /add/i}).closest('div.more-modal__row')!;
