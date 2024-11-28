@@ -3861,7 +3861,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Bạn đã nhận được các yêu cầu cài đặt ứng dụng sau:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> hoặc truy cập <marketplaceLink>Marketplace</marketplaceLink> để xem tất cả các plugin.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "đã yêu cầu cài đặt ứng dụng {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} hiện đã được cài đặt.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Cài đặt ứng dụng hoặc truy cập <marketplaceLink>Marketplace</marketplaceLink> để xem tất cả các plugin.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "và",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} thành viên",
