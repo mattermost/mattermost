@@ -11,7 +11,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {renderWithIntl} from 'tests/react_testing_utils.tsx';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import ChannelMembersModal from './channel_members_modal';
 
