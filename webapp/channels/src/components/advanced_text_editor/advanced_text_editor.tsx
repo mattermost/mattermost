@@ -485,6 +485,11 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, postId]);
 
+    const handleHtmlFormSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        handleSubmitPostAndScheduledMessage();
+    }, [handleSubmitPostAndScheduledMessage]);
+
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
@@ -602,7 +607,7 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={noArgumentHandleSubmit}
+            onSubmit={handleHtmlFormSubmit}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
