@@ -46,7 +46,7 @@ describe('components/ChannelMembersModal', () => {
 
         expect(screen.getByText(baseProps.channel.display_name)).toBeInTheDocument();
         expect(screen.getByText('Members')).toBeInTheDocument();
-        expect(screen.getByRole('dialog')).toHaveAttribute('id', 'channelMembersModal');
+        expect(screen.getByRole('dialog', {name: /channel_display_name Members/})).toHaveAttribute('id', 'channelMembersModal');
     });
 
     test('should handle modal close', async () => {
@@ -55,6 +55,9 @@ describe('components/ChannelMembersModal', () => {
 
         const closeButton = screen.getByLabelText('Close');
         await user.click(closeButton);
+        
+        // Need to wait for async state updates
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
