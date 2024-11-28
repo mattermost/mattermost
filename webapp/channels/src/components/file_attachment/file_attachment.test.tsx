@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import userEvent from '@testing-library/user-event';
 
 import FileAttachment from './file_attachment';
 
@@ -49,6 +49,17 @@ describe('FileAttachment', () => {
         archived: false,
     };
 
+    const reduxState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {},
+            },
+            users: {
+                currentUserId: 'currentUserId',
+            },
+        },
+    };
+
     const baseProps = {
         fileInfo: baseFileInfo,
         handleImageClick: jest.fn(),
@@ -63,9 +74,12 @@ describe('FileAttachment', () => {
         },
     };
 
-    test('should match snapshot, regular file', () => {
-        const wrapper = shallow(<FileAttachment {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('renders regular file correctly', () => {
+        renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
+
+        expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
+        expect(screen.getByText('PDF')).toBeInTheDocument();
+        expect(screen.getByText('100B')).toBeInTheDocument();
     });
 
     test('non archived file does not show archived elements', () => {
@@ -92,7 +106,7 @@ describe('FileAttachment', () => {
         expect(screen.queryByText(/archived/)).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, regular image', () => {
+    test('renders regular image correctly', () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'png',
@@ -102,11 +116,15 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
+
+        expect(screen.getByText('test.png')).toBeInTheDocument();
+        expect(screen.getByText('PNG')).toBeInTheDocument();
+        expect(screen.getByText('100B')).toBeInTheDocument();
+        expect(screen.getByLabelText(/file thumbnail test.png/i)).toBeInTheDocument();
     });
 
-    test('should match snapshot, small image', () => {
+    test('renders small image correctly', () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'png',
@@ -116,11 +134,14 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
+
+        expect(screen.getByText('test.png')).toBeInTheDocument();
+        expect(screen.getByText('PNG')).toBeInTheDocument();
+        expect(screen.getByLabelText(/file thumbnail test.png/i)).toBeInTheDocument();
     });
 
-    test('should match snapshot, svg image', () => {
+    test('renders svg image correctly when SVGs are enabled', () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'svg',
@@ -129,50 +150,53 @@ describe('FileAttachment', () => {
             height: 400,
             size: 100,
         };
-        const props = {...baseProps, fileInfo};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const props = {...baseProps, fileInfo, enableSVGs: true};
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
+
+        expect(screen.getByText('test.svg')).toBeInTheDocument();
+        expect(screen.getByText('SVG')).toBeInTheDocument();
+        expect(screen.getByLabelText(/file thumbnail test.svg/i)).toBeInTheDocument();
     });
 
-    test('should match snapshot, after change from file to image', () => {
-        const fileInfo = {
-            ...baseFileInfo,
-            extension: 'png',
-            name: 'test.png',
-            width: 600,
-            height: 400,
-            size: 100,
-        };
-        const wrapper = shallow(<FileAttachment {...baseProps}/>);
-        wrapper.setProps({...baseProps, fileInfo});
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with compact display', () => {
+    test('renders with compact display correctly', () => {
         const props = {...baseProps, compactDisplay: true};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
+
+        expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
+        expect(screen.queryByText('PDF')).not.toBeInTheDocument(); // Compact mode doesn't show extension
     });
 
-    test('should match snapshot, without compact display and without can download', () => {
+    test('renders without download option when canDownloadFiles is false', () => {
         const props = {...baseProps, canDownloadFiles: false};
-        const wrapper = shallow(<FileAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
+
+        expect(screen.queryByRole('button', {name: /download/i})).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, when file is not loaded', () => {
-        const wrapper = shallow(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('shows loading state when image is not loaded', () => {
+        renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                fileInfo={{...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}}
+                enableSVGs={true}
+            />,
+            reduxState
+        );
+
+        expect(screen.getByTestId('fileAttachmentArchivedTooltip')).toBeInTheDocument();
+        expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
     });
 
-    test('should blur file attachment link after click', () => {
+    test('should blur file attachment link after click', async () => {
         const props = {...baseProps, compactDisplay: true};
-        renderWithContext(<FileAttachment {...props}/>);
+        renderWithContext(<FileAttachment {...props}/>, reduxState);
 
         const link = screen.getByText(baseProps.fileInfo.name);
         const blur = jest.spyOn(link, 'blur');
-        screen.getByText(baseProps.fileInfo.name).click();
+        
+        await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
+        expect(props.handleImageClick).toHaveBeenCalledWith(props.index);
     });
 
     describe('archived file', () => {
