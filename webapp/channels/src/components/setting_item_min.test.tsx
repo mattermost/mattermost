@@ -17,7 +17,7 @@ describe('components/SettingItemMin', () => {
     };
 
     test('should render component correctly', () => {
-        render(<SettingItemMin {...baseProps}/>);
+        renderWithIntl(<SettingItemMin {...baseProps}/>);
 
         expect(screen.getByText('title')).toBeInTheDocument();
         expect(screen.getByText('describe')).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe('components/SettingItemMin', () => {
 
     test('should render disabled state correctly', () => {
         const props = {...baseProps, isDisabled: true};
-        render(<SettingItemMin {...props}/>);
+        renderWithIntl(<SettingItemMin {...props}/>);
 
         expect(screen.getByText('title')).toBeInTheDocument();
         expect(screen.getByText('describe')).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('components/SettingItemMin', () => {
     test('should call updateSection on click when enabled', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection};
-        render(<SettingItemMin {...props}/>);
+        renderWithIntl(<SettingItemMin {...props}/>);
 
         await userEvent.click(screen.getByText('Edit'));
         expect(updateSection).toHaveBeenCalledWith('section');
