@@ -82,13 +82,16 @@ describe('components/EditChannelHeaderModal', () => {
         expect(screen.getByText('Edit Header')).toBeInTheDocument();
     });
 
-    test('should disable save button when saving', () => {
+    test('should disable save button when saving', async () => {
         renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
         
         const saveButton = screen.getByRole('button', {name: 'Save'});
+        userEvent.type(screen.getByRole('textbox'), 'new header');
         userEvent.click(saveButton);
         
-        expect(saveButton).toBeDisabled();
+        await waitFor(() => {
+            expect(saveButton).toBeDisabled();
+        });
     });
 
     test('should show error message for invalid header length', () => {
@@ -100,17 +103,20 @@ describe('components/EditChannelHeaderModal', () => {
         expect(screen.getByText('The text entered exceeds the character limit. The channel header is limited to 1024 characters.')).toBeInTheDocument();
     });
 
-    test('should show generic error message', () => {
+    test('should show generic error message', async () => {
         renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
         
         const textbox = screen.getByRole('textbox');
+        userEvent.clear(textbox);
         userEvent.type(textbox, 'new header');
         
         baseProps.actions.patchChannel.mockResolvedValueOnce({error: serverError});
         
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
         
-        expect(screen.getByText('some error')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('some error')).toBeInTheDocument();
+        });
     });
 
     describe('handleSave', () => {
@@ -137,7 +143,7 @@ describe('components/EditChannelHeaderModal', () => {
             await waitFor(() => {
                 expect(screen.getByText('some error')).toBeInTheDocument();
             });
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(screen.getAllByRole('dialog')[0]).toBeInTheDocument();
         });
 
         test('should close modal on successful patch', async () => {
@@ -157,6 +163,7 @@ describe('components/EditChannelHeaderModal', () => {
         renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
         
         const textbox = screen.getByRole('textbox');
+        userEvent.clear(textbox);
         userEvent.type(textbox, 'New header text');
         
         expect(textbox).toHaveValue('New header text');
@@ -166,6 +173,7 @@ describe('components/EditChannelHeaderModal', () => {
         renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
         
         const textbox = screen.getByRole('textbox');
+        userEvent.clear(textbox);
         userEvent.type(textbox, 'New channel header');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
         
@@ -183,6 +191,7 @@ describe('components/EditChannelHeaderModal', () => {
         );
         
         const textbox = screen.getByRole('textbox');
+        userEvent.clear(textbox);
         userEvent.type(textbox, 'New channel header');
         userEvent.keyboard('{Control>}{Enter}{/Control}');
         
@@ -195,6 +204,7 @@ describe('components/EditChannelHeaderModal', () => {
         renderWithIntl(<EditChannelHeaderModal {...baseProps}/>);
         
         const textbox = screen.getByRole('textbox');
+        userEvent.clear(textbox);
         userEvent.type(textbox, 'New channel header');
         userEvent.keyboard('{Enter}');
         
