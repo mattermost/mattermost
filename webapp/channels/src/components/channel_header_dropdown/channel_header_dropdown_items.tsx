@@ -10,6 +10,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
+import ChannelBookmarksSubmenu from 'components/channel_bookmarks_sub_menu';
 import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
@@ -238,6 +239,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                 </Menu.Group>
 
                 <Menu.Group divider={divider}>
+                    <ChannelBookmarksSubmenu channel={channel}/>
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}
