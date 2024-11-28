@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import {GenericModal} from '@mattermost/components';
 
 import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 import ProductNoticesModal from './product_notices_modal';
 
@@ -48,130 +50,166 @@ describe('ProductNoticesModal', () => {
         },
     };
 
-    test('Should match snapshot when there are no notices', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should render correctly with no notices', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    test('Should match snapshot for system admin notice', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should render correctly for system admin notice', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
-        expect(wrapper).toMatchSnapshot();
+        
+        expect(screen.getByText('for sysadmin')).toBeInTheDocument();
+        expect(screen.getByText(/your eyes only!/i)).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'test'})).toHaveAttribute('href', 'https://test.com');
     });
 
-    test('Match snapshot for user notice', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should render correctly for user notice', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
-        wrapper.setState({presentNoticeIndex: 1});
-        expect(wrapper).toMatchSnapshot();
+        
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        await userEvent.click(nextButton);
+        
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.getByText('descr')).toBeInTheDocument();
     });
 
-    test('Match snapshot for single notice', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should render correctly for single notice', async () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
+            },
+        };
+        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        await props.actions.getInProductNotices();
+        
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.getByText('descr')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /previous/i})).not.toBeInTheDocument();
+    });
+
+    test('should handle navigation between notices correctly', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
-        wrapper.setState({noticesData: [noticesData[1]]});
-        expect(wrapper).toMatchSnapshot();
+        
+        expect(screen.getByText('for sysadmin')).toBeInTheDocument();
+        
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        await userEvent.click(nextButton);
+        
+        expect(screen.getByText('title')).toBeInTheDocument();
+        
+        const prevButton = screen.getByRole('button', {name: /previous/i});
+        await userEvent.click(prevButton);
+        
+        expect(screen.getByText('for sysadmin')).toBeInTheDocument();
     });
 
-    test('Should change the state of presentNoticeIndex on click of next, previous button', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
-        await baseProps.actions.getInProductNotices();
-        expect(wrapper.state('presentNoticeIndex')).toBe(0);
-        wrapper.find(GenericModal).prop('handleConfirm')?.();
-        expect(wrapper.state('presentNoticeIndex')).toBe(1);
-        wrapper.find(GenericModal).prop('handleCancel')?.();
-        expect(wrapper.state('presentNoticeIndex')).toBe(0);
+    test('should not show previous button for single notice', async () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
+            },
+        };
+        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        await props.actions.getInProductNotices();
+        
+        expect(screen.queryByRole('button', {name: /previous/i})).not.toBeInTheDocument();
     });
 
-    test('Should not have previous button if there is only one notice', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
-        await baseProps.actions.getInProductNotices();
-        expect(wrapper.find(GenericModal).props().handleCancel).toEqual(undefined);
-    });
-
-    test('Should not have previous button if there is only one notice', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
-        await baseProps.actions.getInProductNotices(baseProps.currentTeamId, 'web', baseProps.version);
-        expect(wrapper.find(GenericModal).props().handleCancel).toEqual(undefined);
-    });
-
-    test('Should open url in a new window on click of handleConfirm for single notice', async () => {
+    test('should open url in new window when clicking action button for single notice', async () => {
         window.open = jest.fn();
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
-        await baseProps.actions.getInProductNotices();
-        wrapper.setState({noticesData: [noticesData[1]]});
-        wrapper.find(GenericModal).prop('handleConfirm')?.();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
+            },
+        };
+        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        await props.actions.getInProductNotices();
+        
+        const actionButton = screen.getByRole('button', {name: 'Download'});
+        await userEvent.click(actionButton);
+        
         expect(window.open).toHaveBeenCalledWith(noticesData[1].actionParam, '_blank');
     });
 
-    test('Should call for getInProductNotices and updateNoticesAsViewed on mount', async () => {
-        shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should call getInProductNotices and updateNoticesAsViewed on mount', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         await baseProps.actions.getInProductNotices();
         expect(baseProps.actions.updateNoticesAsViewed).toHaveBeenCalledWith([noticesData[0].id]);
     });
 
-    test('Should call for updateNoticesAsViewed on click of next button', async () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should call updateNoticesAsViewed when navigating to next notice', async () => {
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
-        wrapper.find(GenericModal).prop('handleConfirm')?.();
+        
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        await userEvent.click(nextButton);
+        
         expect(baseProps.actions.updateNoticesAsViewed).toHaveBeenCalledWith([noticesData[1].id]);
     });
 
-    test('Should clear state on onExited with a timer', async () => {
+    test('should clear modal content when closed', async () => {
         jest.useFakeTimers();
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
-        wrapper.find(GenericModal).prop('onExited')?.();
+        
+        const closeButton = screen.getByRole('button', {name: /close/i});
+        await userEvent.click(closeButton);
+        
         jest.runOnlyPendingTimers();
-        expect(wrapper.state('noticesData')).toEqual([]);
-        expect(wrapper.state('presentNoticeIndex')).toEqual(0);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    test('Should call for getInProductNotices if socket reconnects for the first time in a day', () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should fetch notices on socket reconnect if first time in a day', async () => {
+        const {rerender} = renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         Date.now = jest.fn().mockReturnValue(1599807605628);
-        wrapper.setProps({
-            socketStatus: {
-                ...baseProps.socketStatus,
-                connected: false,
-            },
-        });
+        
+        rerender(<ProductNoticesModal
+            {...baseProps}
+            socketStatus={{...baseProps.socketStatus, connected: false}}
+        />);
 
-        wrapper.setProps({
-            socketStatus: {
-                ...baseProps.socketStatus,
-                connected: true,
-            },
-        });
+        rerender(<ProductNoticesModal
+            {...baseProps}
+            socketStatus={{...baseProps.socketStatus, connected: true}}
+        />);
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(2);
     });
 
-    test('Should call for getInProductNotices with desktop as client if isDesktopApp returns true', () => {
-        (getDesktopVersion as any).mockReturnValue('4.5.0');
-        (isDesktopApp as any).mockReturnValue(true);
-        shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should use desktop client type when running in desktop app', () => {
+        (getDesktopVersion as jest.Mock).mockReturnValue('4.5.0');
+        (isDesktopApp as jest.Mock).mockReturnValue(true);
+        
+        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'desktop', '4.5.0');
     });
 
-    test('Should not call for getInProductNotices if socket reconnects on the same day', () => {
-        const wrapper = shallow(<ProductNoticesModal {...baseProps}/>);
+    test('should not fetch notices on socket reconnect if same day', async () => {
+        const {rerender} = renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
         Date.now = jest.fn().mockReturnValue(1599760196593);
-        wrapper.setProps({
-            socketStatus: {
-                ...baseProps.socketStatus,
-                connected: false,
-            },
-        });
+        
+        rerender(<ProductNoticesModal
+            {...baseProps}
+            socketStatus={{...baseProps.socketStatus, connected: false}}
+        />);
 
-        wrapper.setProps({
-            socketStatus: {
-                ...baseProps.socketStatus,
-                connected: true,
-            },
-        });
+        rerender(<ProductNoticesModal
+            {...baseProps}
+            socketStatus={{...baseProps.socketStatus, connected: true}}
+        />);
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(1);
     });
