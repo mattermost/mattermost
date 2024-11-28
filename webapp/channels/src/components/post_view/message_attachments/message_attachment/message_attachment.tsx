@@ -12,6 +12,7 @@ import type {
 import type {PostImage} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -101,7 +102,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (!attachment.thumb_url) {
             return;
         }
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.thumb_url])) {
+        if (!secureGetFromRecord(this.props.imagesMetadata, attachment.thumb_url)) {
             this.handleHeightReceived(height);
         }
     };
@@ -111,7 +112,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (!attachment.image_url) {
             return;
         }
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.image_url])) {
+        if (!secureGetFromRecord(this.props.imagesMetadata, attachment.image_url)) {
             this.handleHeightReceived(height);
         }
     };
@@ -369,7 +370,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     <ExternalImage
                         key={'attachment__author-icon'}
                         src={attachment.author_icon}
-                        imageMetadata={this.props.imagesMetadata && this.props.imagesMetadata[attachment.author_icon]}
+                        imageMetadata={secureGetFromRecord(this.props.imagesMetadata, attachment.author_icon)}
                     >
                         {(iconUrl) => (
                             <img
@@ -459,7 +460,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         let image;
         if (attachment.image_url) {
-            const imageMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.image_url];
+            const imageMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.image_url);
 
             image = (
                 <div className='attachment__image-container'>
@@ -485,7 +486,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (attachment.footer) {
             let footerIcon;
             if (attachment.footer_icon) {
-                const footerIconMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.footer_icon];
+                const footerIconMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.footer_icon);
 
                 footerIcon = (
                     <ExternalImage
@@ -515,7 +516,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         let thumb;
         if (attachment.thumb_url) {
-            const thumbMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.thumb_url];
+            const thumbMetadata = secureGetFromRecord(this.props.imagesMetadata, attachment.thumb_url);
 
             thumb = (
                 <div className='attachment__thumb-container'>
