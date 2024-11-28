@@ -1,62 +1,63 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import SettingItemMin from './setting_item_min';
 
 describe('components/SettingItemMin', () => {
     const baseProps = {
         title: 'title',
-        disableOpen: false,
+        isDisabled: false,
         section: 'section',
         updateSection: jest.fn(),
         describe: 'describe',
-        isMobileView: false,
-        actions: {
-            updateActiveSection: jest.fn(),
-        },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SettingItemMin {...baseProps}/>,
-        );
+    test('should render component correctly', () => {
+        render(<SettingItemMin {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.getByText('describe')).toBeInTheDocument();
+        expect(screen.getByText('Edit')).toBeInTheDocument();
     });
 
-    test('should match snapshot, on disableOpen to true', () => {
-        const props = {...baseProps, disableOpen: true};
-        const wrapper = shallow(
-            <SettingItemMin {...props}/>,
-        );
+    test('should render disabled state correctly', () => {
+        const props = {...baseProps, isDisabled: true};
+        render(<SettingItemMin {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('title')).toBeInTheDocument();
+        expect(screen.getByText('describe')).toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     });
 
-    test('should have called updateSection on handleClick with section', () => {
+    test('should call updateSection on click when enabled', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection};
-        const wrapper = shallow<SettingItemMin>(
-            <SettingItemMin {...props}/>,
-        );
+        render(<SettingItemMin {...props}/>);
 
-        wrapper.instance().handleClick({preventDefault: jest.fn()} as any);
-        expect(updateSection).toHaveBeenCalled();
+        await userEvent.click(screen.getByText('Edit'));
         expect(updateSection).toHaveBeenCalledWith('section');
     });
 
-    test('should have called updateSection on handleClick with empty string', () => {
+    test('should call updateSection with empty string when section is empty', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection, section: ''};
-        const wrapper = shallow<SettingItemMin>(
-            <SettingItemMin {...props}/>,
-        );
+        render(<SettingItemMin {...props}/>);
 
-        wrapper.instance().handleClick({preventDefault: jest.fn()} as any);
-        expect(updateSection).toHaveBeenCalled();
+        await userEvent.click(screen.getByText('Edit'));
         expect(updateSection).toHaveBeenCalledWith('');
+    });
+
+    test('should not call updateSection when disabled', async () => {
+        const updateSection = jest.fn();
+        const props = {...baseProps, updateSection, isDisabled: true};
+        render(<SettingItemMin {...props}/>);
+
+        const title = screen.getByText('title');
+        await userEvent.click(title);
+        expect(updateSection).not.toHaveBeenCalled();
     });
 });
