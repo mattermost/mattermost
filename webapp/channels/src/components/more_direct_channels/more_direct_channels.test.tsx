@@ -168,7 +168,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should open a GM channel', async () => {
-        renderWithIntlAndStore(<MoreDirectChannels {...baseProps}/>, {});
+        renderWithContext(<MoreDirectChannels {...baseProps}/>);
 
         const goButton = screen.getByText('Go');
         await userEvent.click(goButton);
