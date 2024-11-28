@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {Provider} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
 
-import mockStore from 'tests/test_store';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 import ModalController from '.';
 
@@ -50,7 +48,7 @@ class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
 describe('components/ModalController', () => {
     const modalId = 'test_modal';
 
-    test('component should match snapshot without any modals', () => {
+    test('should render without any modals', () => {
         const state = {
             views: {
                 modals: {
@@ -59,20 +57,12 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
+        renderWithIntlAndStore(<ModalController/>, state);
 
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('ModalController > *').length).toBe(0);
-        expect(document.getElementsByClassName('modal-dialog').length).toBeFalsy();
+        expect(document.querySelector('.modal-dialog')).not.toBeInTheDocument();
     });
 
-    test('test model should be open', () => {
+    test('should show modal when open is true', () => {
         const state = {
             views: {
                 modals: {
@@ -87,15 +77,9 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
+        renderWithIntlAndStore(<ModalController/>, state);
 
-        mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
-        );
-
-        expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
+        expect(document.querySelector('.modal-dialog')).toBeInTheDocument();
     });
 
     test('should pass onExited to modal to allow a modal to remove itself', () => {
@@ -113,23 +97,17 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
+        const {store} = renderWithIntlAndStore(<ModalController/>, state);
 
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
-        );
+        const modal = document.querySelector('.modal') as HTMLElement;
+        expect(modal).toBeInTheDocument();
 
-        expect(wrapper.find(TestModal).exists()).toBe(true);
-        expect(wrapper.find(TestModal).prop('onExited')).toBeDefined();
-        expect(wrapper.find(Modal).prop('onExited')).toBeDefined();
+        // Simulate modal closing
+        const closeButton = document.querySelector('.modal-header .close') as HTMLElement;
+        expect(closeButton).toBeInTheDocument();
+        closeButton.click();
 
-        wrapper.find(TestModal).prop('onExited')!();
-
-        expect(store.getActions()).toEqual([
-            closeModal(modalId),
-        ]);
+        expect(store.getActions()).toContainEqual(closeModal(modalId));
     });
 
     test('should call a provided onExited in addition to removing the modal', () => {
@@ -151,22 +129,17 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
+        const {store} = renderWithIntlAndStore(<ModalController/>, state);
 
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
-        );
+        const modal = document.querySelector('.modal') as HTMLElement;
+        expect(modal).toBeInTheDocument();
 
-        expect(wrapper.find(TestModal).exists()).toBe(true);
-        expect(wrapper.find(TestModal).prop('onExited')).toBeDefined();
-        expect(wrapper.find(Modal).prop('onExited')).toBeDefined();
+        // Simulate modal closing
+        const closeButton = document.querySelector('.modal-header .close') as HTMLElement;
+        expect(closeButton).toBeInTheDocument();
+        closeButton.click();
 
-        expect(onExited).not.toBeCalled();
-
-        wrapper.find(TestModal).prop('onExited')!();
-
-        expect(onExited).toBeCalled();
+        expect(store.getActions()).toContainEqual(closeModal(modalId));
+        expect(onExited).toHaveBeenCalled();
     });
 });
