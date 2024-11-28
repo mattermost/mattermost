@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-
 import {General} from 'mattermost-redux/constants';
+
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import ListItem from './list_item';
 import type {Props} from './list_item';
-
 import type {OptionValue} from '../types';
 
 describe('ListItem', () => {
@@ -20,24 +20,25 @@ describe('ListItem', () => {
         option: {} as OptionValue,
     };
 
-    test('should match snapshot when rendering user', () => {
+    test('should render user correctly', () => {
         const user = {
             id: 'user_id_1',
             username: 'username1',
             last_post_at: 0,
         } as OptionValue;
 
-        const wrapper = shallow(
+        render(
             <ListItem
                 {...baseProps}
                 option={user}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('@username1')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /add/i})).toBeInTheDocument();
     });
 
-    test('should match snapshot when rendering GroupChannel', () => {
+    test('should render GroupChannel correctly', () => {
         const channel = {
             id: 'channel_id_1',
             type: General.GM_CHANNEL,
@@ -59,13 +60,38 @@ describe('ListItem', () => {
             ],
         } as OptionValue;
 
-        const wrapper = shallow(
+        render(
             <ListItem
                 {...baseProps}
                 option={channel}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('@user1, @user2, @user3')).toBeInTheDocument();
+        expect(screen.getByText('3')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /add/i})).toBeInTheDocument();
+    });
+
+    test('should call add and select handlers', async () => {
+        const user = {
+            id: 'user_id_1', 
+            username: 'username1',
+            last_post_at: 0,
+        } as OptionValue;
+
+        render(
+            <ListItem
+                {...baseProps}
+                option={user}
+            />,
+        );
+
+        const row = screen.getByRole('button', {name: /add/i}).closest('div.more-modal__row')!;
+        
+        await userEvent.hover(row);
+        expect(baseProps.select).toHaveBeenCalledWith(user);
+
+        await userEvent.click(row);
+        expect(baseProps.add).toHaveBeenCalledWith(user);
     });
 });
