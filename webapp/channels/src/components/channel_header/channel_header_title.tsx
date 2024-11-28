@@ -103,8 +103,6 @@ const ChannelHeaderTitle = ({
                     size='sm'
                 />
                 <strong
-                    role='heading'
-                    aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
                 >
@@ -143,8 +141,6 @@ const ChannelHeaderTitle = ({
                                 title={channelTitle as string}
                             >
                                 <strong
-                                    role='heading'
-                                    aria-level={2}
                                     id='channelHeaderTitle'
                                     className='heading'
                                     ref={headerItemRef}
@@ -158,8 +154,6 @@ const ChannelHeaderTitle = ({
                             </WithTooltip>
                         ) : (
                             <strong
-                                role='heading'
-                                aria-level={2}
                                 id='channelHeaderTitle'
                                 className='heading'
                                 ref={headerItemRef}
