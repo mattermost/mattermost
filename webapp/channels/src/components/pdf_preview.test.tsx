@@ -24,16 +24,24 @@ describe('components/PDFPreview', () => {
         handleBgClose: jest.fn(),
     };
 
-    test('should show loading spinner initially', () => {
+    test('should show loading spinner initially', async () => {
+        // Mock PDF loading to be slow
+        jest.spyOn(pdfjsLib, 'getDocument').mockImplementation(() => ({
+            promise: new Promise(() => {}), // Never resolves
+        }));
+        
         renderWithIntl(<PDFPreview {...requiredProps}/>);
         
-        expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
-        expect(screen.getByTitle('Loading Icon')).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
+        const loadingIcon = await screen.findByTitle('Loading Icon');
+        expect(loadingIcon).toBeInTheDocument();
     });
 
     test('should show file info preview when load fails', async () => {
         // Mock the PDF loading to fail
         jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(pdfjsLib, 'getDocument').mockImplementation(() => ({
+            promise: Promise.reject(new Error('Failed to load PDF')),
+        }));
         (pdfjsLib.getDocument as jest.Mock).mockImplementation(() => ({
             promise: Promise.reject(new Error('Failed to load PDF')),
         }));

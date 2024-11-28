@@ -224,7 +224,7 @@ export default class PDFPreview extends React.PureComponent<Props, State> {
                     ref={this.container}
                     className='view-image__loading'
                 >
-                    <LoadingSpinner/>
+                    <LoadingSpinner title='Loading Icon'/>
                 </div>
             );
         }
