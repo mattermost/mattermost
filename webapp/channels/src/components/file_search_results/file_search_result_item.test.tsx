@@ -16,7 +16,9 @@ import FileSearchResultItem from './file_search_result_item';
 describe('components/file_search_result/FileSearchResultItem', () => {
     const baseProps = {
         channelId: 'channel_id',
-        fileInfo: TestHelper.getFileInfoMock({}),
+        fileInfo: TestHelper.getFileInfoMock({
+            post_id: 'post_id_1'
+        }),
         channelDisplayName: '',
         channelType: Constants.OPEN_CHANNEL as ChannelType,
         teamName: 'test-team-name',
