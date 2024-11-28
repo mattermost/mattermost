@@ -4,13 +4,13 @@
 import React from 'react';
 import {screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import FileUploadOverlay from './file_upload_overlay';
 
 describe('components/FileUploadOverlay', () => {
     test('should render correctly with no overlay type', () => {
-        renderWithIntl(
+        renderWithContext(
             <FileUploadOverlay
                 overlayType=''
             />,
@@ -29,7 +29,7 @@ describe('components/FileUploadOverlay', () => {
     });
 
     test('should render correctly with right overlay type', () => {
-        renderWithIntl(
+        renderWithContext(
             <FileUploadOverlay
                 overlayType='right'
             />,
@@ -41,7 +41,7 @@ describe('components/FileUploadOverlay', () => {
     });
 
     test('should render correctly with center overlay type', () => {
-        renderWithIntl(
+        renderWithContext(
             <FileUploadOverlay
                 overlayType='center'
             />,
