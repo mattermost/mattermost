@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ShallowWrapper} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import FileSearchResultItem from './file_search_result_item';
 
@@ -25,52 +25,47 @@ describe('components/file_search_result/FileSearchResultItem', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...baseProps}/>,
-        );
+    test('should render file search result item correctly', () => {
+        renderWithIntl(<FileSearchResultItem {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByTestId('search-item-container')).toBeInTheDocument();
+        expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
+        expect(screen.getByLabelText('Download')).toBeInTheDocument();
+        expect(screen.getByLabelText('More Actions')).toBeInTheDocument();
     });
 
-    test('should match snapshot with channel name', () => {
+    test('should render with channel name', () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
-        );
+        renderWithIntl(<FileSearchResultItem {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('test')).toBeInTheDocument();
     });
 
-    test('should match snapshot with DM', () => {
+    test('should render with DM channel type', () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
             channelType: Constants.DM_CHANNEL as ChannelType,
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
-        );
+        renderWithIntl(<FileSearchResultItem {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Direct Message')).toBeInTheDocument();
     });
 
-    test('should match snapshot with GM', () => {
+    test('should render with GM channel type', () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
             channelType: Constants.GM_CHANNEL as ChannelType,
         };
 
-        const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
-        );
+        renderWithIntl(<FileSearchResultItem {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Group Message')).toBeInTheDocument();
     });
 });
