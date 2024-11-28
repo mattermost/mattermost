@@ -32,10 +32,9 @@ describe('components/PostDeletedModal', () => {
         // Click OK button
         await userEvent.click(screen.getByTestId('postDeletedModalOkButton'));
         
-        // Wait for animation to complete (Bootstrap modal uses 300ms transition)
-        await new Promise((resolve) => setTimeout(resolve, 350));
-        
-        // Verify onExited was called
-        expect(baseProps.onExited).toHaveBeenCalled();
+        // Wait for onExited to be called after animation
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
     });
 });
