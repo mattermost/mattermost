@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, render} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import {renderWithIntl} from 'tests/react_testing_utils';
 import LeaveChannelModal from './leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
@@ -64,7 +65,7 @@ describe('components/LeaveChannelModal', () => {
         },
     };
 
-    test('should match snapshot, init', () => {
+    test('should match component state with given props', () => {
         const props = {
             channel: channels['town-square'],
             onExited: jest.fn(),
@@ -73,15 +74,20 @@ describe('components/LeaveChannelModal', () => {
             },
         };
 
-        const {container} = render(
-            <LeaveChannelModal {...props}/>,
-        );
+        renderWithIntl(<LeaveChannelModal {...props}/>);
 
-        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Leave the channel')).toBeInTheDocument();
+        expect(screen.getByText('Are you sure you wish to leave the channel?')).toBeInTheDocument();
+        
+        const confirmButton = screen.getByRole('button', {name: /yes/i});
+        const cancelButton = screen.getByRole('button', {name: /no/i});
+        
+        expect(confirmButton).toBeInTheDocument();
+        expect(cancelButton).toBeInTheDocument();
     });
 
     test('should fail to leave channel', async () => {
-        const user = userEvent.setup();
+        const user = userEvent;
         const props = {
             channel: channels['channel-1'],
             actions: {
@@ -97,7 +103,7 @@ describe('components/LeaveChannelModal', () => {
             callback: jest.fn(),
         };
 
-        render(<LeaveChannelModal {...props}/>);
+        renderWithIntl(<LeaveChannelModal {...props}/>);
 
         const confirmButton = screen.getByRole('button', {name: /yes/i});
         await user.click(confirmButton);
