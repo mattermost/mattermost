@@ -1,34 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import SpinnerButton from 'components/spinner_button';
 
 describe('components/SpinnerButton', () => {
-    test('should match snapshot with required props', () => {
-        const wrapper = shallow(
+    test('should render with required props', () => {
+        render(
             <SpinnerButton
                 spinning={false}
                 spinningText='Test'
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByRole('button')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toBeEnabled();
     });
 
-    test('should match snapshot with spinning', () => {
-        const wrapper = shallow(
+    test('should render with spinning state', () => {
+        render(
             <SpinnerButton
                 spinning={true}
                 spinningText='Test'
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByRole('button')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should match snapshot with children', () => {
-        const wrapper = shallow(
+    test('should render with children', () => {
+        render(
             <SpinnerButton
                 spinning={false}
                 spinningText='Test'
@@ -37,13 +43,16 @@ describe('components/SpinnerButton', () => {
                 <span id='child2'/>
             </SpinnerButton>,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByRole('button')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toContainElement(screen.getByTestId('child1'));
+        expect(screen.getByRole('button')).toContainElement(screen.getByTestId('child2'));
     });
 
-    test('should handle onClick', () => {
+    test('should handle onClick', async () => {
         const onClick = jest.fn();
 
-        const wrapper = mount(
+        render(
             <SpinnerButton
                 spinning={false}
                 onClick={onClick}
@@ -51,12 +60,12 @@ describe('components/SpinnerButton', () => {
             />,
         );
 
-        wrapper.find('button').simulate('click');
+        await userEvent.click(screen.getByRole('button'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should add properties to underlying button', () => {
-        const wrapper = mount(
+    test('should have correct button properties', () => {
+        render(
             <SpinnerButton
                 id='my-button-id'
                 className='btn btn-success'
@@ -65,12 +74,10 @@ describe('components/SpinnerButton', () => {
             />,
         );
 
-        const button = wrapper.find('button');
+        const button = screen.getByRole('button');
 
-        expect(button).not.toBeUndefined();
-        expect(button.type()).toEqual('button');
-        expect(button.props().id).toEqual('my-button-id');
-        expect(button.hasClass('btn')).toBeTruthy();
-        expect(button.hasClass('btn-success')).toBeTruthy();
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute('id', 'my-button-id');
+        expect(button).toHaveClass('btn', 'btn-success');
     });
 });
