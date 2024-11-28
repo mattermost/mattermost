@@ -76,8 +76,8 @@ describe('components/LeaveChannelModal', () => {
 
         renderWithContext(<LeaveChannelModal {...props}/>);
 
-        expect(screen.getByText('Leave the channel')).toBeInTheDocument();
-        expect(screen.getByText('Are you sure you wish to leave the channel?')).toBeInTheDocument();
+        expect(screen.getByText(/Leave Channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the channel/)).toBeInTheDocument();
         
         const confirmButton = screen.getByRole('button', {name: /yes/i});
         const cancelButton = screen.getByRole('button', {name: /no/i});
