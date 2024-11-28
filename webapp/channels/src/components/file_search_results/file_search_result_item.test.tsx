@@ -3,12 +3,13 @@
 
 import React from 'react';
 import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntlAndStore} from 'tests/react_testing_utils';
 
 import FileSearchResultItem from './file_search_result_item';
 
@@ -25,8 +26,19 @@ describe('components/file_search_result/FileSearchResultItem', () => {
         },
     };
 
-    test('should render file search result item correctly', () => {
-        renderWithIntl(<FileSearchResultItem {...baseProps}/>);
+    const initialState = {
+        entities: {
+            general: {
+                config: {},
+            },
+            preferences: {
+                myPreferences: {},
+            },
+        },
+    };
+
+    test('should match component state with given props', () => {
+        renderWithIntlAndStore(<FileSearchResultItem {...baseProps}/>, initialState);
 
         expect(screen.getByTestId('search-item-container')).toBeInTheDocument();
         expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
@@ -40,9 +52,11 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelDisplayName: 'test',
         };
 
-        renderWithIntl(<FileSearchResultItem {...props}/>);
+        renderWithIntlAndStore(<FileSearchResultItem {...props}/>, initialState);
 
-        expect(screen.getByText('test')).toBeInTheDocument();
+        const channelName = screen.getByText('test');
+        expect(channelName).toBeInTheDocument();
+        expect(channelName).toHaveClass('Tag__text');
     });
 
     test('should render with DM channel type', () => {
@@ -52,9 +66,11 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelType: Constants.DM_CHANNEL as ChannelType,
         };
 
-        renderWithIntl(<FileSearchResultItem {...props}/>);
+        renderWithIntlAndStore(<FileSearchResultItem {...props}/>, initialState);
 
-        expect(screen.getByText('Direct Message')).toBeInTheDocument();
+        const dmText = screen.getByText('Direct Message');
+        expect(dmText).toBeInTheDocument();
+        expect(dmText.closest('.Tag')).toBeInTheDocument();
     });
 
     test('should render with GM channel type', () => {
@@ -64,8 +80,23 @@ describe('components/file_search_result/FileSearchResultItem', () => {
             channelType: Constants.GM_CHANNEL as ChannelType,
         };
 
-        renderWithIntl(<FileSearchResultItem {...props}/>);
+        renderWithIntlAndStore(<FileSearchResultItem {...props}/>, initialState);
 
-        expect(screen.getByText('Group Message')).toBeInTheDocument();
+        const gmText = screen.getByText('Group Message');
+        expect(gmText).toBeInTheDocument();
+        expect(gmText.closest('.Tag')).toBeInTheDocument();
+    });
+
+    test('should handle menu actions correctly', () => {
+        renderWithIntlAndStore(<FileSearchResultItem {...baseProps}/>, initialState);
+
+        const moreActionsButton = screen.getByLabelText('More Actions');
+        userEvent.click(moreActionsButton);
+
+        const openInChannelOption = screen.getByText('Open in channel');
+        const copyLinkOption = screen.getByText('Copy link');
+
+        expect(openInChannelOption).toBeInTheDocument();
+        expect(copyLinkOption).toBeInTheDocument();
     });
 });
