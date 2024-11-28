@@ -60,10 +60,12 @@ describe('components/GetPublicLinkModal', () => {
     test('should hide modal on close', async () => {
         renderWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
-        const closeButton = await waitFor(() => screen.getByTestId('linkModalCloseButton'))
+        const closeButton = await waitFor(() => screen.getByTestId('linkModalCloseButton'));
         userEvent.click(closeButton);
 
-        // Use getAllByRole to check that no modals are present
-        expect(screen.queryAllByRole('dialog')).toHaveLength(0);
+        // Wait for all dialogs to disappear
+        await waitFor(() => {
+            expect(screen.queryAllByRole('dialog')).toHaveLength(0);
+        });
     });
 });
