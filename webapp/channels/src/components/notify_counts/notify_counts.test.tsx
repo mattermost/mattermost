@@ -10,7 +10,7 @@ import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={22}
                 isUnread={true}
@@ -29,7 +29,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should show unread messages', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={true}
@@ -48,7 +48,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should not show unread indicator', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <NotifyCounts
                 unreadMentionCount={0}
                 isUnread={false}
