@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -63,12 +63,11 @@ describe('components/ChannelMembersModal', () => {
 
         const closeButton = screen.getByLabelText('Close');
         await user.click(closeButton);
-        
-        // Need to wait for modal animation and state updates
-        await new Promise(resolve => setTimeout(resolve, 500));
 
-        const modal = screen.queryByRole('dialog');
-        expect(modal).not.toBeInTheDocument();
+        await waitFor(() => {
+            const modal = screen.queryByRole('dialog');
+            expect(modal).not.toBeInTheDocument();
+        });
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
