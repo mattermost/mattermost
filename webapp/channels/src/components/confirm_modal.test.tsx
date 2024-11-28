@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import ConfirmModal from './confirm_modal';
 
@@ -13,55 +14,49 @@ describe('ConfirmModal', () => {
         onCancel: jest.fn(),
     };
 
-    test('should pass checkbox state when confirm is pressed', () => {
+    test('should pass checkbox state when confirm is pressed', async () => {
         const props = {
             ...baseProps,
             showCheckbox: true,
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
+        render(<ConfirmModal {...props}/>);
 
-        expect(wrapper.state('checked')).toBe(false);
-        expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(false);
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true);
+        const checkbox = screen.getByRole('checkbox');
+        const confirmButton = screen.getByRole('button', {name: ''});
 
-        wrapper.find('#confirmModalButton').simulate('click');
-
+        expect(checkbox).not.toBeChecked();
+        
+        await userEvent.click(confirmButton);
         expect(props.onConfirm).toHaveBeenCalledWith(false);
 
-        wrapper.find('input[type="checkbox"]').simulate('change', {target: {checked: true}});
+        await userEvent.click(checkbox);
+        expect(checkbox).toBeChecked();
 
-        expect(wrapper.state('checked')).toBe(true);
-        expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(true);
-
-        wrapper.find('#confirmModalButton').simulate('click');
-
+        await userEvent.click(confirmButton);
         expect(props.onConfirm).toHaveBeenCalledWith(true);
     });
 
-    test('should pass checkbox state when cancel is pressed', () => {
+    test('should pass checkbox state when cancel is pressed', async () => {
         const props = {
             ...baseProps,
             showCheckbox: true,
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
+        render(<ConfirmModal {...props}/>);
 
-        expect(wrapper.state('checked')).toBe(false);
-        expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(false);
-        expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true);
+        const checkbox = screen.getByRole('checkbox');
+        const cancelButton = screen.getByTestId('cancel-button');
 
-        wrapper.find('#cancelModalButton').simulate('click');
+        expect(checkbox).not.toBeChecked();
 
+        await userEvent.click(cancelButton);
         expect(props.onCancel).toHaveBeenCalledWith(false);
 
-        wrapper.find('input[type="checkbox"]').simulate('change', {target: {checked: true}});
+        await userEvent.click(checkbox);
+        expect(checkbox).toBeChecked();
 
-        expect(wrapper.state('checked')).toBe(true);
-        expect(wrapper.find('input[type="checkbox"]').prop('checked')).toBe(true);
-
-        wrapper.find('#cancelModalButton').simulate('click');
-
+        await userEvent.click(cancelButton);
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
 });
