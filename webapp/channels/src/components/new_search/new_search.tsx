@@ -72,7 +72,7 @@ const CloseIcon = styled.div`
     transition: opacity 0.12s easy-out;
 `;
 
-const NewSearchContainer = styled.div`
+const NewSearchContainer = styled.button`
     display: flex;
     position: relative;
     align-items: center;
@@ -168,6 +168,10 @@ const NewSearch = (): JSX.Element => {
 
     const openSearchBoxOnKeyPress = useCallback(
         (e: React.KeyboardEvent) => {
+            if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') {
+                return;
+            }
+
             if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 return;
             }
