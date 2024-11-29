@@ -41,7 +41,22 @@ describe('components/multiselect/multiselect', () => {
     };
 
     test('should render multiselect component', () => {
-        renderWithIntl(<MultiSelect {...baseProps}/>);
+        const renderOption = (option: Value, isSelected: boolean, onAdd: (value: Value) => void) => (
+            <div
+                key={option.id}
+                data-testid={`option-${option.id}`}
+                onClick={() => onAdd(option)}
+            >
+                {option.label}
+            </div>
+        );
+
+        renderWithIntl(
+            <MultiSelect
+                {...baseProps}
+                optionRenderer={renderOption}
+            />,
+        );
         
         expect(screen.getByRole('textbox')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
@@ -57,35 +72,37 @@ describe('components/multiselect/multiselect', () => {
     });
 
     test('should handle option selection and navigation', async () => {
-        const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
-            return (
-                <div
-                    key={option.id}
-                    data-testid={`option-${option.id}`}
-                    onClick={() => onAdd(option)}
-                    onMouseMove={() => onMouseMove(option)}
-                >
-                    {option.label}
-                </div>
-            );
-        };
-
-        const renderValue = (props: {data: Value}) => {
-            return props.data.label;
-        };
+        const handleAdd = jest.fn();
+        const handleMouseMove = jest.fn();
+        
+        const renderOption = (option: Value, isSelected: boolean, onAdd: (value: Value) => void, onMouseMove: (value: Value) => void) => (
+            <div
+                key={option.id}
+                data-testid={`option-${option.id}`}
+                onClick={() => onAdd(option)}
+                onMouseMove={() => onMouseMove(option)}
+            >
+                {option.label}
+            </div>
+        );
 
         renderWithIntl(
             <MultiSelect
                 {...baseProps}
+                handleAdd={handleAdd}
                 optionRenderer={renderOption}
-                valueRenderer={renderValue}
             />,
         );
 
-        // Wait for initial render
-        await screen.findByTestId('option-0');
+        // Wait for initial render and verify options
+        const firstOption = await screen.findByTestId('option-0');
+        expect(firstOption).toBeInTheDocument();
 
-        // Verify first page options are rendered
+        // Test option click
+        await userEvent.click(firstOption);
+        expect(handleAdd).toHaveBeenCalledWith(users[0]);
+
+        // Verify all first page options are rendered
         users.slice(0, baseProps.perPage).forEach((user) => {
             expect(screen.getByTestId(`option-${user.id}`)).toBeInTheDocument();
         });
