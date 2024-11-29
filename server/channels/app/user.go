@@ -1273,6 +1273,8 @@ func (a *App) CheckProviderAttributes(c request.CTX, user *model.User, patch *mo
 	return conflictField
 }
 
+// PatchUser applies the given patch to a user and returns the patched user.
+// If asAdmin is true, the patch is applied with admin level permissions.
 func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1289,6 +1291,8 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
+// UpdateUserAuth updates a user's authentication data (AuthData and AuthService) and returns
+// the updated auth data. Invalidates all other sessions for the user.
 func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1350,6 +1354,8 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	return nil
 }
 
+// UpdateUser updates an existing user in the database. If sendNotifications is true, notifications
+// will be sent to users and the client will be informed through WebSocket events.
 func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
@@ -1476,6 +1482,8 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return newUser, nil
 }
 
+// UpdateUserActive updates the active status of a user. If active is true, the user is activated.
+// If active is false, the user is deactivated and all their sessions are revoked.
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
@@ -1507,6 +1515,8 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 	return nil
 }
 
+// UpdateMfa activates or deactivates multi-factor authentication for a user.
+// The token parameter is required when activating MFA. Sends an email notification to the user.
 func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError {
 	if activate {
 		if err := a.ActivateMfa(userID, token); err != nil {
