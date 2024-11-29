@@ -109,7 +109,7 @@ func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime in
 	}
 
 	channelIds := make([]string, 0)
-	if err := s.GetReplicaX().Select(&channelIds, query, args...); err != nil {
+	if err := s.GetReplica().Select(&channelIds, query, args...); err != nil {
 		return nil, err
 	}
 
