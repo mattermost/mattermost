@@ -4,6 +4,7 @@
 package common_export
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -237,4 +238,19 @@ func ChannelTypeDisplayName(channelType model.ChannelType) string {
 		model.ChannelTypeDirect:  "direct",
 		model.ChannelTypeGroup:   "group",
 	}[channelType]
+}
+
+func IsDeletedMsg(post *model.MessageExport) bool {
+	if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
+		props := map[string]any{}
+		err := json.Unmarshal([]byte(*post.PostProps), &props)
+		if err != nil {
+			return false
+		}
+
+		if _, ok := props[model.PostPropsDeleteBy]; ok {
+			return true
+		}
+	}
+	return false
 }

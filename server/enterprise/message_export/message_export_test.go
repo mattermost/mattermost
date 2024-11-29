@@ -6,7 +6,6 @@ package message_export
 import (
 	"archive/zip"
 	"bytes"
-	"context"
 	_ "embed"
 	"encoding/xml"
 	"fmt"
@@ -18,22 +17,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
-
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
-
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/api4"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
+
+//go:embed testdata/actianceXMLHeader.tmpl
+var actianceXMLHeader string
 
 //go:embed testdata/batch1ch2.tmpl
 var batch1ch2tmpl string
@@ -53,47 +51,112 @@ var batch3ch4tmpl string
 //go:embed testdata/e2eXml2.tmpl
 var e2eXml2 string
 
+//go:embed testdata/grE2E1Batch1Summary.tmpl
+var grE2E1Batch1Summary string
+
+//go:embed testdata/grE2E1Batch1.tmpl
+var grE2E1Batch1 string
+
+//go:embed testdata/grE2E1Batch2Summary.tmpl
+var grE2E1Batch2Summary string
+
+//go:embed testdata/grE2E1Batch2.tmpl
+var grE2E1Batch2 string
+
+//go:embed testdata/grE2E1Batch3Summary.tmpl
+var grE2E1Batch3Summary string
+
+//go:embed testdata/grE2E1Batch3.tmpl
+var grE2E1Batch3 string
+
+//go:embed testdata/csvE2E1Batch1.tmpl
+var csvE2E1Batch1 string
+
+//go:embed testdata/csvE2E1Batch2.tmpl
+var csvE2E1Batch2 string
+
+//go:embed testdata/csvE2E1Batch3.tmpl
+var csvE2E1Batch3 string
+
+//go:embed testdata/grE2E2Batch1Summary.tmpl
+var grE2E2Batch1Summary string
+
+//go:embed testdata/grE2E2Batch1.tmpl
+var grE2E2Batch1 string
+
+//go:embed testdata/csvE2E2Batch1.tmpl
+var csvE2E2Batch1 string
+
+//go:embed testdata/grE2E3Batch1SummaryPerm1.tmpl
+var grE2E3Batch1SummaryPerm1 string
+
+//go:embed testdata/grE2E3Batch1SummaryPerm2.tmpl
+var grE2E3Batch1SummaryPerm2 string
+
+//go:embed testdata/grE2E3Batch1SummaryPerm3.tmpl
+var grE2E3Batch1SummaryPerm3 string
+
+//go:embed testdata/grE2E3Batch1SummaryPerm4.tmpl
+var grE2E3Batch1SummaryPerm4 string
+
+//go:embed testdata/grE2E3Batch1Perm1.tmpl
+var grE2E3Batch1Perm1 string
+
+//go:embed testdata/grE2E3Batch1Perm2.tmpl
+var grE2E3Batch1Perm2 string
+
+//go:embed testdata/grE2E3Batch1Perm3.tmpl
+var grE2E3Batch1Perm3 string
+
+//go:embed testdata/grE2E3Batch1Perm4.tmpl
+var grE2E3Batch1Perm4 string
+
+//go:embed testdata/grE2E3Batch2SummaryPerm1.tmpl
+var grE2E3Batch2SummaryPerm1 string
+
+//go:embed testdata/grE2E3Batch2SummaryPerm2.tmpl
+var grE2E3Batch2SummaryPerm2 string
+
+//go:embed testdata/grE2E3Batch2Perm1.tmpl
+var grE2E3Batch2Perm1 string
+
+//go:embed testdata/grE2E3Batch2Perm2.tmpl
+var grE2E3Batch2Perm2 string
+
+//go:embed testdata/grE2E4Summary.tmpl
+var grE2E4Summary string
+
+//go:embed testdata/csvE2E3Batch1Perm1.tmpl
+var csvE2E3Batch1Perm1 string
+
+//go:embed testdata/csvE2E3Batch1Perm2.tmpl
+var csvE2E3Batch1Perm2 string
+
+//go:embed testdata/csvE2E3Batch1Perm3.tmpl
+var csvE2E3Batch1Perm3 string
+
+//go:embed testdata/csvE2E3Batch1Perm4.tmpl
+var csvE2E3Batch1Perm4 string
+
+//go:embed testdata/csvE2E3Batch2Perm1.tmpl
+var csvE2E3Batch2Perm1 string
+
+//go:embed testdata/csvE2E3Batch2Perm2.tmpl
+var csvE2E3Batch2Perm2 string
+
+//go:embed testdata/csvE2E4Batch1.tmpl
+var csvE2E4Batch1 string
+
+func conv(dateTime int64) string {
+	return global_relay_export.TimestampConvert(dateTime)
+}
+
 type MyReporter struct {
 	mock.Mock
 }
 
 func (mr *MyReporter) ReportProgressMessage(message string) {
 	mr.Called(message)
-}
-
-type ChannelExport struct {
-	XMLName     xml.Name                       `xml:"Conversation"`
-	Perspective string                         `xml:"Perspective,attr"`
-	ChannelId   string                         `xml:"-"`
-	RoomId      string                         `xml:"RoomID"`
-	StartTime   int64                          `xml:"StartTimeUTC"`
-	JoinEvents  []*actiance_export.JoinExport  `xml:"ParticipantEntered"`
-	Messages    []*actiance_export.PostExport  `xml:"Message"`
-	LeaveEvents []*actiance_export.LeaveExport `xml:"ParticipantLeft"`
-	EndTime     int64                          `xml:"EndTimeUTC"`
-}
-
-func getChannelExports(t *testing.T, r io.Reader) []*ChannelExport {
-	decoder := xml.NewDecoder(r)
-	var exportedChannels []*ChannelExport
-	for {
-		token, err := decoder.Token()
-		if token == nil || err != nil {
-			break
-		}
-		switch se := token.(type) {
-		case xml.StartElement:
-			if se.Name.Local == "Conversation" {
-				var a *ChannelExport
-				err = decoder.DecodeElement(&a, &se)
-				require.NoError(t, err)
-				exportedChannels = append(exportedChannels, a)
-			}
-		default:
-		}
-	}
-
-	return exportedChannels
 }
 
 func TestRunExportByType(t *testing.T) {
@@ -214,72 +277,6 @@ func testRunExportByType(t *testing.T, exportBackend filestore.FileBackend, expo
 		require.NoError(t, err)
 		require.Zero(t, res.NumWarnings)
 	})
-}
-
-func getMostRecentJobWithId(t *testing.T, th *api4.TestHelper, id string) *model.Job {
-	list, _, err := th.SystemAdminClient.GetJobsByType(context.Background(), "message_export", 0, 1)
-	require.NoError(t, err)
-	require.Len(t, list, 1)
-	require.Equal(t, id, list[0].Id)
-	return list[0]
-}
-
-func checkJobForStatus(t *testing.T, th *api4.TestHelper, id string, status string) {
-	doneChan := make(chan bool)
-	var job *model.Job
-	go func() {
-		defer close(doneChan)
-		for {
-			job = getMostRecentJobWithId(t, th, id)
-			if job.Status == status {
-				break
-			}
-			time.Sleep(1 * time.Second)
-		}
-		require.Equal(t, status, job.Status)
-	}()
-	select {
-	case <-doneChan:
-	case <-time.After(5 * time.Second):
-		require.True(t, false, "expected job's status to be %s, got %s", status, job.Status)
-	}
-}
-
-func runJobForTest(t *testing.T, th *api4.TestHelper, jobData map[string]string) *model.Job {
-	job, _, err := th.SystemAdminClient.CreateJob(context.Background(),
-		&model.Job{Type: "message_export", Data: jobData})
-	require.NoError(t, err)
-	// poll until completion
-	checkJobForStatus(t, th, job.Id, "success")
-	job = getMostRecentJobWithId(t, th, job.Id)
-	return job
-}
-
-func setup(t *testing.T) *api4.TestHelper {
-	jobs.DefaultWatcherPollingInterval = 100
-	th := api4.SetupEnterprise(t).InitBasic()
-	th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
-	messageExportImpl := MessageExportJobInterfaceImpl{th.App.Srv()}
-	th.App.Srv().Jobs.RegisterJobType(model.JobTypeMessageExport, messageExportImpl.MakeWorker(), messageExportImpl.MakeScheduler())
-
-	err := th.App.Srv().Jobs.StartWorkers()
-	require.NoError(t, err)
-
-	err = th.App.Srv().Jobs.StartSchedulers()
-	require.NoError(t, err)
-
-	return th
-}
-
-// jobDataInvariantsShouldBeEqual tests that the parts of the job.Data that shouldn't change, don't change.
-func jobDataInvariantsShouldBeEqual(t *testing.T, expected map[string]string, received map[string]string) {
-	require.Equal(t, expected[shared.JobDataExportType], received[shared.JobDataExportType])
-	require.Equal(t, expected[shared.JobDataBatchSize], received[shared.JobDataBatchSize])
-	require.Equal(t, expected[shared.JobDataChannelBatchSize], received[shared.JobDataChannelBatchSize])
-	require.Equal(t, expected[shared.JobDataChannelHistoryBatchSize], received[shared.JobDataChannelHistoryBatchSize])
-	require.Equal(t, expected[shared.JobDataExportDir], received[shared.JobDataExportDir])
-	require.Equal(t, expected[shared.JobDataJobEndTime], received[shared.JobDataJobEndTime])
-	require.Equal(t, expected[shared.JobDataJobStartTime], received[shared.JobDataJobStartTime])
 }
 
 func TestRunExportJobE2EByType(t *testing.T) {
@@ -458,18 +455,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
+		fileContents := openZipAndReadFile(t, exportBackend, batch001, attachmentPath001)
 
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		attachmentInZip, err := zipReader.Open(attachmentPath001)
-		require.NoError(t, err)
-		attachmentInZipContents, err := io.ReadAll(attachmentInZip)
-		require.NoError(t, err)
-
-		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
+		require.EqualValuesf(t, attachmentContent, fileContents, "file contents not equal")
 	})
 
 	t.Run("actiance -- multiple batches, using UntilUpdateAt", func(t *testing.T) {
@@ -564,302 +552,19 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					assert.NoError(t, err)
 				}()
 
-				// This tests (reading the files exported and testing the exported xml):
-				//  - job system exports the complete time from beginning to end; i.e., it doesn't use the post updateAt values as the bounds, it uses the start time and end time of the job.
-				//  - job system uses previous job's end time as the start for the next batch
-				//  - user joins and leaves before the first post in the first batch (but after the job start time)
-				//  - user joins and leaves before the first post in the second batch
-				//  - user joins and leaves before the first post in the last batch
-				//  - user joins and leaves after the last post in the last batch (but before the job end time)
-				//  - channel with no posts but user activity (one user joins and leaves after start of batch period but before first post)
-				//  - channel with no posts but user activity (one user leaves after last post but before end of batch period)
-				//  - worked, but making sure we test for it specifically in e2e:
-				//    - exports with multiple channels (this wasn't tested before)
-				//    - user joins before job start time and stays (should record user's original join time, not the start of the job)
-				//    - attachments are recorded with correct names in the xml and content in the files
-				//    - a post from a user who wasn't a member in the channel creates a record for the user entering the channel at the start of the batch and leaving at the end of the batch (to be discussed with end user, this seems wrong)
-
-				// Also tests the `BatchSize+1` logic in the worker, because we have 9 posts and batch size of 3.
-
-				th.App.UpdateConfig(func(cfg *model.Config) {
-					*cfg.MessageExportSettings.EnableExport = true
-					*cfg.MessageExportSettings.ExportFromTimestamp = 0
-					*cfg.MessageExportSettings.BatchSize = 3
-					*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
-					*cfg.FileSettings.DriverName = model.ImageDriverLocal
-					*cfg.FileSettings.Directory = attachmentDir
-
-					if exportDir != attachmentDir {
-						*cfg.FileSettings.DedicatedExportStore = true
-						*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
-						*cfg.FileSettings.ExportDirectory = exportDir
-					}
-				})
-
-				// Users:
-				users := make([]*model.User, 0)
-				user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user1",
-					Email:    "user1@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user2",
-					Email:    "user2@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user3",
-					Email:    "user3@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user4",
-					Email:    "user4@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user5",
-					Email:    "user5@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user6",
-					Email:    "user6@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user7",
-					Email:    "user7@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-				user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-					Username: "user8",
-					Email:    "user8@email",
-				})
-				require.NoError(t, err)
-				users = append(users, user)
-
-				channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-					DisplayName: "the Channel Two",
-					Name:        "channel_two_name",
-					Type:        model.ChannelTypePrivate,
-					TeamId:      th.BasicTeam.Id,
-					CreatorId:   th.BasicUser.Id,
-				}, 999)
-				require.NoError(t, err)
-
-				// channel3 will have only one user leaving during export time
-				channel3, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-					DisplayName: "the Channel Three",
-					Name:        "channel_three_name",
-					Type:        model.ChannelTypeOpen,
-					TeamId:      th.BasicTeam.Id,
-					CreatorId:   th.BasicUser.Id,
-				}, 999)
-				require.NoError(t, err)
-
-				// channel4 will have only one user joining during export time
-				channel4, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-					DisplayName: "the Channel Four",
-					Name:        "channel_four_name",
-					Type:        model.ChannelTypeOpen,
-					TeamId:      th.BasicTeam.Id,
-					CreatorId:   th.BasicUser.Id,
-				}, 999)
-				require.NoError(t, err)
-
-				start := model.GetMillis()
-
-				// Save 9 posts so that we have the following batches:
-				createUpdateTimes := []int64{
-					start + 10, start + 14, start + 20, // batch 1: start-20, posts start at 10
-					start + 23, start + 25, start + 30, // batch 2: 20-30, posts start at 23
-					start + 36, start + 37, start + 40, // batch 3: 30-40, posts start at 36
-				}
-
-				type joinLeave struct {
-					join  int64
-					leave int64
-				}
-				jl := []joinLeave{
-					{start - 5, 0},           // user 1 never leaves
-					{start + 7, start + 8},   // user 2 joins and leaves before first post (but after startTime)
-					{start + 11, start + 15}, // user 3 joins and leaves during first batch
-					{start + 21, start + 22}, // user 4 joins and leaves during second batch but before second batch's post
-					{start + 32, start + 35}, // user 5 joins and leaves during third batch but before third batch's post
-					{start + 55, start + 57}, // user 6 joins and leaves after the last batch's last post but before when export is run
-					{start - 100, start + 5}, // user 7 joins channel3 before start time and leaves before batch 1
-					{start + 59, 0},          // user 8 joins channel4 after batch 3 (but before end)
-				}
-
-				// user 1 joins before start time and stays (and posts)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[0].Id, channel2.Id, jl[0].join)
-				require.NoError(t, err)
-				// user 2 joins and leaves before first post (but after startTime)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[1].Id, channel2.Id, jl[1].join)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[1].Id, channel2.Id, jl[1].leave)
-				require.NoError(t, err)
-				// user 3 joins and leaves during first batch
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[2].Id, channel2.Id, jl[2].join)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[2].Id, channel2.Id, jl[2].leave)
-				require.NoError(t, err)
-				// user 4 joins and leaves during second batch but before second batch's post
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[3].Id, channel2.Id, jl[3].join)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[3].Id, channel2.Id, jl[3].leave)
-				// user 5 joins and leaves during third batch but before third batch's post
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[4].Id, channel2.Id, jl[4].join)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[4].Id, channel2.Id, jl[4].leave)
-				require.NoError(t, err)
-				// user 6 joins and leaves after the last batch's last post
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[5].Id, channel2.Id, jl[5].join)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[5].Id, channel2.Id, jl[5].leave)
-				require.NoError(t, err)
-
-				// user 7 joins channel3 before start time and leaves before batch 1
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[6].Id, channel3.Id, start-100)
-				require.NoError(t, err)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogLeaveEvent(users[6].Id, channel3.Id, start+5)
-				require.NoError(t, err)
-				// user 8 joins channel4 after batch 3 (but before end)
-				err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[7].Id, channel4.Id, start+59)
-				require.NoError(t, err)
-
-				count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-				require.NoError(t, err)
-				require.Equal(t, 0, int(count))
-
-				var attachments []*model.FileInfo
-				var contents []string
-				var posts []*model.Post
-				for i, updateAt := range createUpdateTimes {
-					post, err2 := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-						ChannelId: channel2.Id,
-						UserId:    users[0].Id,
-						Message:   fmt.Sprintf("message %d", i),
-						CreateAt:  updateAt,
-						UpdateAt:  updateAt,
-						FileIds:   []string{fmt.Sprintf("test%d", i)},
-					})
-					require.NoError(t, err2)
-					posts = append(posts, post)
-					time.Sleep(1 * time.Millisecond)
-
-					attachmentContent := fmt.Sprintf("Hello there %d", i)
-					attachmentPath := fmt.Sprintf("path/to/attachments/file_%d.txt", i)
-					_, err = attachmentBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath)
-					require.NoError(t, err)
-
-					info, err2 := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-						Id:        model.NewId(),
-						CreatorId: post.UserId,
-						PostId:    post.Id,
-						CreateAt:  updateAt,
-						UpdateAt:  updateAt,
-						Path:      attachmentPath,
-					})
-					require.NoError(t, err2)
-					attachments = append(attachments, info)
-					contents = append(contents, attachmentContent)
-				}
-
-				// Test that it's picking up a previous successful job
-				var previousJob *model.Job
-				previousJob, err = th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
-				require.Error(t, err)
-				require.Nil(t, previousJob)
-
-				_, err = th.App.Srv().Store().Job().Save(&model.Job{
-					Id:             "blah",
-					Type:           model.JobTypeMessageExport,
-					Priority:       0,
-					CreateAt:       0,
-					StartAt:        0,
-					LastActivityAt: 0,
-					Status:         model.JobStatusSuccess,
-					Progress:       100,
-					Data:           map[string]string{shared.JobDataBatchStartTime: strconv.Itoa(int(start))},
-				})
-				require.NoError(t, err)
-
-				previousJob, err = th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
-				require.NoError(t, err)
-				require.NotNilf(t, previousJob, "prevJob")
-
-				var prevUpdatedAt int64
-				if timestamp, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; prevExists {
-					prevUpdatedAt, err = strconv.ParseInt(timestamp, 10, 64)
-					require.NoError(t, err)
-				}
-				require.Equal(t, prevUpdatedAt, start)
-
-				// check number of messages to be exported
-				count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-				require.NoError(t, err)
-				require.Equal(t, 9, int(count))
-
-				// move past the last post time
-				time.Sleep(100 * time.Millisecond)
-
-				// Now run the exports
-				var job *model.Job
-				if tt.testStopping {
-					var jobData map[string]string
-					// manually create the job (which will start right away, so we need to wait for it below, after we use its id.
-					job, _, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: "message_export"})
-					require.NoError(t, err)
-
-					// Stop the export after the second batch by stopping the Worker.
-					batchCount := 0
-					testEndOfBatchCb = func(worker *MessageExportWorker) {
-						batchCount++
-						if batchCount == 2 {
-							job = getMostRecentJobWithId(t, th, job.Id)
-							jobData = job.Data
-
-							// let the job continue, but stop Worker, check we went back to Pending, then start the Worker.
-							go func() {
-								worker.Stop()
-								checkJobForStatus(t, th, job.Id, model.JobStatusPending)
-								worker.Run()
-								checkJobForStatus(t, th, job.Id, model.JobStatusInProgress)
-							}()
-						}
-					}
-
-					// Wait for the rest of the exports to finish
-					checkJobForStatus(t, th, job.Id, model.JobStatusSuccess)
-					job = getMostRecentJobWithId(t, th, job.Id)
-					testEndOfBatchCb = nil
-					jobDataInvariantsShouldBeEqual(t, jobData, job.Data)
-				} else {
-					job = runJobForTest(t, th, nil)
-				}
-
-				warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
-				require.NoError(t, err)
-				require.Equal(t, 0, warnings)
-
-				numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-				require.NoError(t, err)
-				require.Equal(t, 9, numExported)
-
-				jobExportDir := job.Data[shared.JobDataExportDir]
-				jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-				require.NoError(t, err)
+				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeActiance, attachmentDir,
+					exportDir, attachmentBackend, exportBackend, tt.testStopping)
+				channel2 := ret.channels[0]
+				channel3 := ret.channels[1]
+				channel4 := ret.channels[2]
+				start := ret.start
+				jl := ret.joinLeaves
+				posts := ret.posts
+				createUpdateTimes := ret.createUpdateTimes
+				attachments := ret.attachments
+				contents := ret.contents
+				jobEndTime := ret.jobEndTime
+				batches := ret.batches
 
 				// Expected data:
 				//  - batch1 has two channels, and we're not sure which will come first. What a pain.
@@ -872,12 +577,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 				batch1ch3 := fmt.Sprintf(batch1ch3tmpl, channel3.Id, start, jl[6].join, jl[6].leave, createUpdateTimes[2])
 
-				batch1Possibility1 := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-%s%s</FileDump>`, batch1ch2, batch1ch3)
-				batch1Possibility2 := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-%s%s</FileDump>`, batch1ch3, batch1ch2)
+				xmlHeader := strings.TrimSpace(actianceXMLHeader)
+				batch1Possibility1 := fmt.Sprintf(xmlHeader, batch1ch2, batch1ch3)
+				batch1Possibility2 := fmt.Sprintf(xmlHeader, batch1ch3, batch1ch2)
 
 				batch2xml := fmt.Sprintf(batch2xmptmpl, channel2.Id, createUpdateTimes[2], jl[0].join, jl[3].join,
 					posts[3].Id, createUpdateTimes[3], createUpdateTimes[3], createUpdateTimes[3],
@@ -895,51 +597,38 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 				batch3ch4 := fmt.Sprintf(batch3ch4tmpl, channel4.Id, createUpdateTimes[5], jl[7].join, jobEndTime, jobEndTime)
 
-				batch3Possibility1 := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-%s%s</FileDump>`, batch3ch2, batch3ch4)
+				batch3Possibility1 := fmt.Sprintf(xmlHeader, batch3ch2, batch3ch4)
 
-				batch3Possibility2 := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<FileDump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-%s%s</FileDump>`, batch3ch4, batch3ch2)
-
-				batch001 := shared.GetBatchPath(jobExportDir, prevUpdatedAt, createUpdateTimes[2], 1)
-				batch002 := shared.GetBatchPath(jobExportDir, createUpdateTimes[2], createUpdateTimes[5], 2)
-				batch003 := shared.GetBatchPath(jobExportDir, createUpdateTimes[5], jobEndTime, 3)
-				files, err := exportBackend.ListDirectory(jobExportDir)
-				require.NoError(t, err)
-				batches := []string{batch001, batch002, batch003}
-				require.ElementsMatch(t, batches, files)
+				batch3Possibility2 := fmt.Sprintf(xmlHeader, batch3ch4, batch3ch2)
 
 				for b, batchName := range batches {
-					zipBytes, err := exportBackend.ReadFile(batchName)
-					require.NoError(t, err)
-					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-					require.NoError(t, err)
-
-					actxml, err := zipReader.Open("actiance_export.xml")
-					require.NoError(t, err)
-					xmlContents, err := io.ReadAll(actxml)
-					require.NoError(t, err)
+					xmlContents := openZipAndReadFile(t, exportBackend, batchName, "actiance_export.xml")
 
 					// this is so clunky, sorry. but it's simple.
 					if b == 0 {
-						if string(xmlContents) != batch1Possibility1 && string(xmlContents) != batch1Possibility2 {
+						if xmlContents != batch1Possibility1 && xmlContents != batch1Possibility2 {
 							// to make some output
-							require.Equal(t, batch1Possibility1, string(xmlContents), "batch 1")
+							assert.Equal(t, batch1Possibility1, xmlContents, "batch 1 possibility 1")
+							assert.Equal(t, batch1Possibility2, xmlContents, "batch 1 possibility 2")
 						}
 					}
 
 					if b == 1 {
-						require.Equal(t, batch2xml, string(xmlContents), "batch 2")
+						require.Equal(t, batch2xml, xmlContents, "batch 2")
 					}
 
 					if b == 2 {
-						if string(xmlContents) != batch3Possibility1 && string(xmlContents) != batch3Possibility2 {
+						if xmlContents != batch3Possibility1 && xmlContents != batch3Possibility2 {
 							// to make some output
-							require.Equal(t, batch3Possibility1, string(xmlContents), "batch 3")
+							assert.Equal(t, batch3Possibility1, xmlContents, "batch 3 possibility 1")
+							assert.Equal(t, batch3Possibility2, xmlContents, "batch 3 possibility 2")
 						}
 					}
+
+					zipBytes, err := exportBackend.ReadFile(batchName)
+					require.NoError(t, err)
+					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+					require.NoError(t, err)
 
 					for i := 0; i < 3; i++ {
 						num := b*3 + i
@@ -947,7 +636,253 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 						require.NoError(t, err)
 						attachmentInZipContents, err := io.ReadAll(attachmentInZip)
 						require.NoError(t, err)
+						err = attachmentInZip.Close()
+						require.NoError(t, err)
 						require.EqualValuesf(t, contents[num], string(attachmentInZipContents), "file contents not equal")
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("GlobalRelay e2e 1", func(t *testing.T) {
+		tests := []struct {
+			name         string
+			testStopping bool
+		}{
+			{
+				name:         "full tests, no stopping",
+				testStopping: false,
+			},
+			{
+				name: "full tests, stopped and resumed",
+				// This uses the same output as the previous e2e test, but tests that the job can be stopped and
+				// resumed with no change to the directory, files, file contents, or job.Data that shouldn't change.
+				// We want to be confident that jobs can resume without data missing or added from the original run.
+				testStopping: true,
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				th := setup(t)
+				defer th.TearDown()
+				defer func() {
+					err := os.RemoveAll(exportDir)
+					assert.NoError(t, err)
+					err = os.RemoveAll(attachmentDir)
+					assert.NoError(t, err)
+				}()
+
+				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+					exportDir, attachmentBackend, exportBackend, tt.testStopping)
+				channel2 := ret.channels[0]
+				posts := ret.posts
+				batchTimes := ret.batchTimes
+				jobStartTime := ret.start
+				jl := ret.joinLeaves
+				batches := ret.batches
+				cu := ret.createUpdateTimes
+
+				for batchNum, batchName := range batches {
+					data := openZipAndReadFirstFile(t, exportBackend, batchName)
+					// clean some bad csrf if present
+					msg := global_relay_export.CleanTestOutput(data)
+
+					// Global relay needs to be updated to use Actiance logic. MM-61718
+					batchStartTime := batchTimes[batchNum].start
+					batchEndTime := batchTimes[batchNum].end
+					expectedBatchExport := []string{
+						// batch 1 Summary
+						fmt.Sprintf(grE2E1Batch1Summary,
+							// 1                   2            3                     4                 5
+							channel2.DisplayName, conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+							// 6              7                    8                9
+							conv(jl[1].join), conv(jl[1].leave), conv(jl[2].join), conv(jl[2].leave),
+							// 10                     11                       12
+							conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt)),
+
+						// batch 1
+						fmt.Sprintf(grE2E1Batch1,
+							// 1           2                   3                      4              5
+							conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime), conv(jl[1].join),
+							// 6                7                  8                  9           10
+							conv(jl[1].leave), conv(jl[2].join), conv(jl[2].leave), conv(cu[0]), conv(cu[1]),
+							// 11         12
+							conv(cu[2]), conv(jobStartTime)),
+
+						// batch 2 Summary
+						fmt.Sprintf(grE2E1Batch2Summary,
+							// 1                    2                    3                 4
+							conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+							// 5              6                    7                8
+							conv(jl[3].join), conv(jl[3].leave), conv(posts[3].CreateAt), conv(posts[4].CreateAt),
+							// 9
+							conv(posts[5].CreateAt)),
+
+						// batch 2
+						fmt.Sprintf(grE2E1Batch2,
+							// 1                      2                  3                 4
+							conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+							// 5               6                  7                  8      9
+							conv(jl[3].join), conv(jl[3].leave), conv(cu[3]), conv(cu[4]), conv(cu[5]),
+							// 10
+							conv(jobStartTime)),
+
+						// batch 3 Summary
+						fmt.Sprintf(grE2E1Batch3Summary,
+							// 1                    2                    3                 4
+							conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+							// 5              6                    7                8
+							conv(jl[4].join), conv(jl[4].leave), conv(jl[5].join), conv(jl[5].leave),
+							// 9                      10                       11
+							conv(posts[6].CreateAt), conv(posts[7].CreateAt), conv(posts[8].CreateAt)),
+
+						// batch 3
+						fmt.Sprintf(grE2E1Batch3,
+							// 1                      2                  3                 4
+							conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+							// 5               6                  7                  8
+							conv(jl[4].join), conv(jl[4].leave), conv(jl[5].join), conv(jl[5].leave),
+							// 9          10            11          12
+							conv(cu[6]), conv(cu[7]), conv(cu[8]), conv(jobStartTime)),
+					}
+
+					if batchNum == 0 {
+						global_relay_export.AssertHeaderContains(t, msg, map[string]string{
+							"Subject":                  "Mattermost Compliance Export: the Channel Two",
+							"From":                     "user1@email",
+							"X-Mattermost-ChannelName": "the Channel Two",
+							"To":                       "user1@email,user2@email,user3@email",
+							"X-Mattermost-ChannelID":   channel2.Id,
+							"X-Mattermost-ChannelType": "private",
+						})
+						assert.Contains(t, msg, expectedBatchExport[0], "batch 1")
+						assert.Contains(t, msg, expectedBatchExport[1], "batch 1")
+					}
+
+					if batchNum == 1 {
+						global_relay_export.AssertHeaderContains(t, msg, map[string]string{
+							"Subject":                  "Mattermost Compliance Export: the Channel Two",
+							"From":                     "user1@email",
+							"X-Mattermost-ChannelName": "the Channel Two",
+							"To":                       "user1@email,user4@email",
+							"X-Mattermost-ChannelID":   channel2.Id,
+							"X-Mattermost-ChannelType": "private",
+						})
+						assert.Contains(t, msg, expectedBatchExport[2], "batch 2")
+						assert.Contains(t, msg, expectedBatchExport[3], "batch 2")
+					}
+
+					if batchNum == 2 {
+						global_relay_export.AssertHeaderContains(t, msg, map[string]string{
+							"Subject":                  "Mattermost Compliance Export: the Channel Two",
+							"From":                     "user1@email",
+							"X-Mattermost-ChannelName": "the Channel Two",
+							"To":                       "user1@email,user5@email,user6@email",
+							"X-Mattermost-ChannelID":   channel2.Id,
+							"X-Mattermost-ChannelType": "private",
+						})
+						assert.Contains(t, msg, expectedBatchExport[4], "batch 3")
+						assert.Contains(t, msg, expectedBatchExport[5], "batch 3")
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("CSV e2e 1", func(t *testing.T) {
+		tests := []struct {
+			name         string
+			testStopping bool
+		}{
+			{
+				name:         "full tests, no stopping",
+				testStopping: false,
+			},
+			{
+				name: "full tests, stopped and resumed",
+				// This uses the same output as the previous e2e test, but tests that the job can be stopped and
+				// resumed with no change to the directory, files, file contents, or job.Data that shouldn't change.
+				// We want to be confident that jobs can resume without data missing or added from the original run.
+				testStopping: true,
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				th := setup(t)
+				defer th.TearDown()
+				defer func() {
+					err := os.RemoveAll(exportDir)
+					assert.NoError(t, err)
+					err = os.RemoveAll(attachmentDir)
+					assert.NoError(t, err)
+				}()
+
+				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+					exportDir, attachmentBackend, exportBackend, tt.testStopping)
+				jl := ret.joinLeaves
+				cu := ret.createUpdateTimes
+				posts := ret.posts
+				files := ret.attachments
+				users := ret.users
+				channels := ret.channels
+				teams := ret.teams
+				batches := ret.batches
+				//batchTimes := ret.batchTimes
+
+				expectedBatchExport := []string{
+					// batch 1
+					fmt.Sprintf(csvE2E1Batch1,
+						// 1           2              3                      4              5
+						teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, channels[1].Id,
+						// 6          7            8             9
+						users[0].Id, users[1].Id, users[2].Id, users[6].Id,
+						// 10         11           12           13           14           15
+						posts[0].Id, posts[1].Id, posts[2].Id, files[0].Id, files[1].Id, files[2].Id,
+						// 16   17           18          19     20          21     22
+						jl[0].join, jl[1].join, jl[1].leave, cu[0], jl[2].join, cu[1], jl[2].leave,
+						// 23            24       25
+						jl[6].join, jl[6].leave, cu[2]),
+
+					// batch 2
+					fmt.Sprintf(csvE2E1Batch2,
+						// 1           2              3                      4
+						teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id,
+						// 5          6            7            8            9
+						users[0].Id, users[3].Id, posts[3].Id, posts[4].Id, posts[5].Id,
+						// 10         11           12
+						files[3].Id, files[4].Id, files[5].Id,
+						// 13        14           15          16     17    18
+						jl[0].join, jl[3].join, jl[3].leave, cu[3], cu[4], cu[5]),
+
+					// batch 3
+					fmt.Sprintf(csvE2E1Batch3,
+						// 1           2              3                      4              5
+						teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, channels[2].Id,
+						// 6          7              8            9
+						users[0].Id, users[4].Id, users[5].Id, users[7].Id,
+						// 10         11           12
+						posts[6].Id, posts[7].Id, posts[8].Id,
+						// 13         14           15
+						files[6].Id, files[7].Id, files[8].Id,
+						// 16        17          18          19     20     21
+						jl[0].join, jl[4].join, jl[4].leave, cu[6], cu[7], cu[8],
+						// 22        23           24
+						jl[5].join, jl[5].leave, jl[7].join),
+				}
+
+				for batchNum, batchName := range batches {
+					export := openZipAndReadFirstFile(t, exportBackend, batchName)
+
+					exportLines := strings.Split(export, "\n")
+					expectedLines := strings.Split(expectedBatchExport[batchNum], "\n")
+
+					//assert.Equal(t, expectedBatchExport[batchNum], export, "batch %d", batchNum)
+
+					// the export is not always sorted when there are > 1 channels, so do this:
+					assert.Len(t, exportLines, len(expectedLines))
+					for _, l := range expectedLines {
+						assert.Contains(t, exportLines, l, "batch %d, batchName: %s", batchNum+1, batchName)
 					}
 				}
 			})
@@ -964,142 +899,15 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			assert.NoError(t, err)
 		}()
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.EnableExport = true
-			*cfg.MessageExportSettings.ExportFromTimestamp = 0
-			*cfg.MessageExportSettings.BatchSize = 3
-			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
-			*cfg.FileSettings.DriverName = model.ImageDriverLocal
-			*cfg.FileSettings.Directory = attachmentDir
-
-			if exportDir != attachmentDir {
-				*cfg.FileSettings.DedicatedExportStore = true
-				*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
-				*cfg.FileSettings.ExportDirectory = exportDir
-			}
-		})
-
-		// Users:
-		users := make([]*model.User, 0)
-		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
-			Username: "user1",
-			Email:    "user1@email",
-		})
-		require.NoError(t, err)
-		users = append(users, user)
-		user, err = th.App.Srv().Store().User().Save(th.Context, &model.User{
-			Username: "user2",
-			Email:    "user2@email",
-		})
-		require.NoError(t, err)
-		users = append(users, user)
-
-		channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-			DisplayName: "the Channel Two",
-			Name:        "channel_two_name",
-			Type:        model.ChannelTypePrivate,
-			TeamId:      th.BasicTeam.Id,
-			CreatorId:   th.BasicUser.Id,
-		}, 999)
-		require.NoError(t, err)
-
-		start := model.GetMillis()
-
-		createUpdateTimes := []int64{start + 10, start + 14}
-
-		type joinLeave struct {
-			join  int64
-			leave int64
-		}
-		jl := []joinLeave{
-			{start - 5, 0}, // user 1 never leaves
-		}
-
-		// user 1 joins before start time and stays (and posts)
-		err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[0].Id, channel2.Id, jl[0].join)
-		require.NoError(t, err)
-
-		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		var posts []*model.Post
-
-		// first post from user 1 (member)
-		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 1",
-			CreateAt:  createUpdateTimes[0],
-			UpdateAt:  createUpdateTimes[0],
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[1].Id,
-			Message:   "message 2",
-			CreateAt:  createUpdateTimes[1],
-			UpdateAt:  createUpdateTimes[1],
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// Test that it's picking up a previous successful job
-		var previousJob *model.Job
-		previousJob, err = th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
-		require.Error(t, err)
-		require.Nil(t, previousJob)
-
-		_, err = th.App.Srv().Store().Job().Save(&model.Job{
-			Id:             "blah",
-			Type:           model.JobTypeMessageExport,
-			Priority:       0,
-			CreateAt:       0,
-			StartAt:        0,
-			LastActivityAt: 0,
-			Status:         model.JobStatusSuccess,
-			Progress:       100,
-			Data:           map[string]string{shared.JobDataBatchStartTime: strconv.Itoa(int(start))},
-		})
-		require.NoError(t, err)
-
-		previousJob, err = th.App.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
-		require.NoError(t, err)
-		require.NotNilf(t, previousJob, "prevJob")
-
-		var prevUpdatedAt int64
-		if timestamp, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; prevExists {
-			prevUpdatedAt, err = strconv.ParseInt(timestamp, 10, 64)
-			require.NoError(t, err)
-		}
-		require.Equal(t, prevUpdatedAt, start)
-
-		// check number of messages to be exported
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 2, int(count))
-
-		// move past the last post time
-		time.Sleep(30 * time.Millisecond)
-
-		// Now run the exports
-		job := runJobForTest(t, th, nil)
-
-		warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
-		require.NoError(t, err)
-		require.Equal(t, 0, warnings)
-
-		numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
-		require.NoError(t, err)
-		require.Equal(t, 2, int(numExported))
-
-		jobExportDir := job.Data[shared.JobDataExportDir]
-		jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
+		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeActiance, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		channel2 := ret.channels[0]
+		start := ret.start
+		jl := ret.joinLeaves
+		posts := ret.posts
+		createUpdateTimes := ret.createUpdateTimes
+		jobEndTime := ret.jobEndTime
+		batches := ret.batches
 
 		// Expected data:
 		batch1xml := fmt.Sprintf(strings.TrimSpace(e2eXml2), channel2.Id, start, jl[0].join, start,
@@ -1107,254 +915,103 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			posts[1].Id, createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
 
-		batch001 := shared.GetBatchPath(jobExportDir, prevUpdatedAt, jobEndTime, 1)
-		files, err := exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches := []string{batch001}
-		require.ElementsMatch(t, batches, files)
+		xmlContents := openZipAndReadFile(t, exportBackend, batches[0], "actiance_export.xml")
 
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		require.Equal(t, batch1xml, xmlContents, "batch 1")
+	})
 
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
+	t.Run("GlobalRelay e2e 2 - post from user not in channel", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+		defer func() {
+			err := os.RemoveAll(exportDir)
+			assert.NoError(t, err)
+			err = os.RemoveAll(attachmentDir)
+			assert.NoError(t, err)
+		}()
 
-		require.Equal(t, batch1xml, string(xmlContents), "batch 1")
+		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		posts := ret.posts
+		batchTimes := ret.batchTimes
+		jobStartTime := ret.start
+		jl := ret.joinLeaves
+		batches := ret.batches
+		cu := ret.createUpdateTimes
+
+		// Global relay needs to be updated to use Actiance logic. MM-61718
+		batchStartTime := batchTimes[0].start
+		batchEndTime := batchTimes[0].end
+
+		expectedBatchExport := []string{
+			// batch 1 Summary
+			fmt.Sprintf(grE2E2Batch1Summary,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                    6                    7                       8
+				conv(batchStartTime), conv(batchEndTime), conv(posts[0].CreateAt), conv(posts[1].CreateAt)),
+
+			// batch 1
+			fmt.Sprintf(grE2E2Batch1,
+				// 1                   2                   3                      4              5
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime), conv(batchStartTime),
+				// 6                 7             8           9
+				conv(batchEndTime), conv(cu[0]), conv(cu[1]), conv(jobStartTime)),
+		}
+
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
+		// clean some bad csrf if present
+		msg := global_relay_export.CleanTestOutput(data)
+
+		require.Contains(t, msg, expectedBatchExport[0])
+		require.Contains(t, msg, expectedBatchExport[1])
+	})
+
+	t.Run("CSV e2e 2 - post from user not in channel", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+		defer func() {
+			err := os.RemoveAll(exportDir)
+			assert.NoError(t, err)
+			err = os.RemoveAll(attachmentDir)
+			assert.NoError(t, err)
+		}()
+
+		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		posts := ret.posts
+		jl := ret.joinLeaves
+		batches := ret.batches
+		batchTimes := ret.batchTimes
+		cu := ret.createUpdateTimes
+		users := ret.users
+		channels := ret.channels
+		teams := ret.teams
+		batchStartTime := batchTimes[0].start
+
+		expectedExport := fmt.Sprintf(csvE2E2Batch1,
+			// 1           2              3                      4              5
+			teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+			// 6          7              8           9          10              11      12
+			users[1].Id, posts[0].Id, posts[1].Id, jl[0].join, batchStartTime, cu[0], cu[1])
+
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
+		assert.Equal(t, expectedExport, export)
 	})
 
 	t.Run("actiance e2e 3 - test create, update, delete xml fields", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		// This tests (reading the files exported and testing the exported xml):
-		//  - post create at field is set
-		//  - post deleted fields are set
-		//  - post updated (not edited)
-		//  - post deleted with a deleted file
-		//  - post edited (new message created with original message, old message updated)
-		//  - post edited with 3 simultaneous posts in-between - forward
-		//  - post edited but falls on the batch boundary (originalId is in batch 1, newId is batch 2)
-
-		// Users:
-		users := make([]*model.User, 0)
-		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
-			Username: "user1",
-			Email:    "user1@email",
-		})
-		require.NoError(t, err)
-		users = append(users, user)
-
-		// only testing one channel
-		channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-			DisplayName: "the Channel Two",
-			Name:        "channel_two_name",
-			Type:        model.ChannelTypePrivate,
-			TeamId:      th.BasicTeam.Id,
-			CreatorId:   th.BasicUser.Id,
-		}, 999)
-		require.NoError(t, err)
-
-		start := model.GetMillis()
-
-		// user 1 joins before start time and stays (and posts)
-		user1JoinTime := start - 200
-		err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[0].Id, channel2.Id, user1JoinTime)
-		require.NoError(t, err)
-
-		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		var attachments []*model.FileInfo
-		var contents []string
-		var posts []*model.Post
-
-		// 0 - post create
-		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 0",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 1 - post deleted
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 1",
-		})
-		require.NoError(t, err)
-		message1DeleteAt := model.GetMillis()
-		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message1DeleteAt, users[0].Id)
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 2 - post updated not edited (e.g., reaction)
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 2",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-		_, err = th.App.Srv().Store().Reaction().Save(&model.Reaction{
-			UserId:    users[0].Id,
-			PostId:    post.Id,
-			EmojiName: "smile",
-			ChannelId: channel2.Id,
-		})
-		require.NoError(t, err)
-		updatedPost2, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
-		require.NoError(t, err)
-
-		// 3 - post deleted with a deleted file
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 3",
-			FileIds:   []string{"test3"},
-		})
-		require.NoError(t, err)
-		time.Sleep(1 * time.Millisecond)
-		message3DeletedAt := model.GetMillis()
-		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeletedAt, users[0].Id)
-		require.NoError(t, err)
-		deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// Message for deleted file -- NOT INCLUDED IN THE BATCH SIZE
-		attachmentContent := "Hello there message 3"
-		attachmentPath := "path/to/attachments/file_3.txt"
-		_, err = attachmentBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath)
-		require.NoError(t, err)
-		info, err2 := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-			Id:        model.NewId(),
-			CreatorId: post.UserId,
-			PostId:    post.Id,
-			CreateAt:  post.CreateAt,
-			UpdateAt:  post.UpdateAt,
-			Path:      attachmentPath,
-			DeleteAt:  post.UpdateAt,
-		})
-		require.NoError(t, err2)
-		attachments = append(attachments, info)
-		time.Sleep(1 * time.Millisecond)
-		contents = append(contents, attachmentContent)
-
-		// 4 - original post
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 4",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-		// 5 - post edited
-		post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
-			Id:        post.Id,
-			CreateAt:  post.CreateAt,
-			EditAt:    model.GetMillis(),
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "edited message 4",
-		}, post)
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 6 - post edited but falls on the batch boundary
-		// original post, but gets modified by the next edit
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 6",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 7 - new post with original message
-		// update returns "new" post, which is the old post modified
-		post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
-			Id:        post.Id,
-			CreateAt:  post.CreateAt,
-			EditAt:    model.GetMillis(),
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "edited message 6",
-		}, post)
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		require.Len(t, posts, 8)
-		// therefore, need a batch size of 7
-
-		// use the config fallback
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.EnableExport = true
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-			*cfg.MessageExportSettings.BatchSize = 7
-			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
-			*cfg.FileSettings.DriverName = model.ImageDriverLocal
-			*cfg.FileSettings.Directory = attachmentDir
-
-			if exportDir != attachmentDir {
-				*cfg.FileSettings.DedicatedExportStore = true
-				*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
-				*cfg.FileSettings.ExportDirectory = exportDir
-			}
-		})
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.EnableExport = true
-		})
-
-		// check number of messages to be exported
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 8, int(count))
-
-		// Now run the exports
-		job := runJobForTest(t, th, nil)
-
-		numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 8, numExported)
-
-		jobExportDir := job.Data[shared.JobDataExportDir]
-		jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		// using posts[7] because it's updateAt is what posts[6] is changed to (after the edit)
-		batch001 := shared.GetBatchPath(jobExportDir, start, posts[7].UpdateAt, 1)
-		batch002 := shared.GetBatchPath(jobExportDir, posts[7].UpdateAt, jobEndTime, 2)
-		files, err := exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches := []string{batch001, batch002}
-		require.ElementsMatch(t, batches, files)
+		ret, type3Ret := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		batches := ret.batches
+		posts := ret.posts
+		users := ret.users
+		attachments := ret.attachments
+		contents := ret.contents
 
 		for b, batchName := range batches {
-			zipBytes, err := exportBackend.ReadFile(batchName)
-			require.NoError(t, err)
-			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-			require.NoError(t, err)
-
-			actxml, err := zipReader.Open("actiance_export.xml")
-			require.NoError(t, err)
-			xmlContents, err := io.ReadAll(actxml)
-			require.NoError(t, err)
+			xmlContents := openZipAndReadFile(t, exportBackend, batchName, "actiance_export.xml")
 
 			// Because 7 and 8 fall on the boundary, they could be in either batch, so save them here
 			// and then test for one or the other in each batch.
@@ -1383,7 +1040,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			}
 
 			if b == 0 {
-				exportedChannels := getChannelExports(t, bytes.NewReader(xmlContents))
+				exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
 				require.Len(t, messages, 10) // batch size 7 + deleted msg1, deleted ms3, 1 deleted file msg
@@ -1416,7 +1073,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[1].CreateAt,
 					Message:     "delete " + posts[1].Message,
-					UpdateAt:    message1DeleteAt,
+					UpdateAt:    type3Ret.message1DeleteAt,
 					UpdatedType: shared.Deleted,
 				}, messages[2])
 
@@ -1428,7 +1085,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[2].CreateAt,
 					Message:     posts[2].Message,
-					UpdateAt:    updatedPost2.UpdateAt,
+					UpdateAt:    type3Ret.updatedPost2.UpdateAt,
 					UpdatedType: shared.UpdatedNoMsgChange,
 				}, messages[3])
 
@@ -1450,7 +1107,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[3].CreateAt,
 					Message:     "delete " + posts[3].Message,
-					UpdateAt:    message3DeletedAt,
+					UpdateAt:    type3Ret.message3DeleteAt,
 					UpdatedType: shared.Deleted,
 				}, messages[5])
 
@@ -1461,8 +1118,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserEmail:   users[0].Email,
 					UserType:    "user",
 					CreateAt:    posts[3].CreateAt,
-					Message:     "delete " + attachmentPath,
-					UpdateAt:    deletedPost3.DeleteAt,
+					Message:     "delete " + attachments[0].Path,
+					UpdateAt:    type3Ret.deletedPost3.DeleteAt,
 					UpdatedType: shared.FileDeleted,
 				}, messages[6])
 
@@ -1503,20 +1160,27 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}
 
 				// only batch one has files, but they're deleted
+				zipBytes, err := exportBackend.ReadFile(batchName)
+				require.NoError(t, err)
+				zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+				require.NoError(t, err)
+
 				attachmentInZip, err := zipReader.Open(attachments[0].Path)
 				require.NoError(t, err)
 				attachmentInZipContents, err := io.ReadAll(attachmentInZip)
+				require.NoError(t, err)
+				err = attachmentInZip.Close()
 				require.NoError(t, err)
 				require.EqualValuesf(t, contents[0], string(attachmentInZipContents), "file contents not equal")
 			}
 
 			if b == 1 {
-				exportedChannels := getChannelExports(t, bytes.NewReader(xmlContents))
+				exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
 				require.Len(t, messages, 1)
 
-				// check for either message 11 or message8
+				// check for either message 7 or message8
 				if messages[0].MessageId == message7.MessageId {
 					require.Equal(t, message7, messages[0])
 				} else {
@@ -1526,156 +1190,306 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		}
 	})
 
+	t.Run("GlobalRelay e2e 3 - test create, update, delete xml fields", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		ret, type3Ret := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		jl := ret.joinLeaves
+		posts := ret.posts
+		batchTimes := ret.batchTimes
+		jobStartTime := ret.start
+		batches := ret.batches
+
+		// Global relay needs to be updated to use Actiance logic. MM-61718
+		batchStartTime := batchTimes[0].start
+		batchEndTime := batchTimes[0].end
+
+		// The comments on 10, 11, 12 show the permutation -- this is needed because 10 & 11 have same UpdateAt,
+		// and 12 & 1 (in batch 2) have same UpdateAt
+		expectedBatch1Summaries := []string{
+			// batch 1 Summary -- Permutation 1
+			fmt.Sprintf(grE2E3Batch1SummaryPerm1,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                   10  original            11  edited
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				// 12 original
+				conv(posts[6].CreateAt)),
+
+			// batch 1 Summary -- Permutation 2
+			fmt.Sprintf(grE2E3Batch1SummaryPerm2,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                    10  edited              11  original
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				// 12 original
+				conv(posts[6].CreateAt)),
+
+			// batch 1 summary - Permutation 3
+			fmt.Sprintf(grE2E3Batch1SummaryPerm3,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                   10  original            11  edited
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				// 12 edited
+				conv(posts[6].CreateAt)),
+
+			// batch 1 Summary -- Permutation 4
+			fmt.Sprintf(grE2E3Batch1SummaryPerm4,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                    10  edited              11  original
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				// 12 edited
+				conv(posts[6].CreateAt)),
+		}
+
+		// The comments on 10, 11, 12 show the permutation -- this is needed because 10 & 11 have same UpdateAt,
+		// and 12 & 1 (in batch 2) have same UpdateAt
+		expectedBatch1 := []string{
+			// batch 1 -- Permutation 1
+			fmt.Sprintf(grE2E3Batch1Perm1,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                   10  original            11  edited
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				// 12 original            13
+				conv(posts[6].CreateAt), conv(jobStartTime)),
+
+			// batch 1 -- Permutation 2
+			fmt.Sprintf(grE2E3Batch1Perm2,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                    10  edited              11  original
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				// 12 original            13
+				conv(posts[6].CreateAt), conv(jobStartTime)),
+
+			// batch 1 - Permutation 3
+			fmt.Sprintf(grE2E3Batch1Perm3,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                   10  original            11  edited
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				// 12 edited              13
+				conv(posts[7].CreateAt), conv(jobStartTime)),
+
+			// batch 1 -- Permutation 4
+			fmt.Sprintf(grE2E3Batch1Perm4,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5                       6                         7                       8
+				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
+				// 9                                    10  edited              11  original
+				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				// 12 edited              13
+				conv(posts[7].CreateAt), conv(jobStartTime)),
+		}
+
+		batchStartTime = batchTimes[1].start
+		batchEndTime = batchTimes[1].end
+
+		expectedBatch2Summaries := []string{
+			// batch 2 Summary -- Permutation 1
+			fmt.Sprintf(grE2E3Batch2SummaryPerm1,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5  edited
+				conv(posts[7].CreateAt)),
+
+			// batch 2 Summary -- Permutation 2
+			fmt.Sprintf(grE2E3Batch2SummaryPerm2,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5  original
+				conv(posts[6].CreateAt)),
+		}
+
+		expectedBatch2 := []string{
+			// batch 2 Summary -- Permutation 1
+			fmt.Sprintf(grE2E3Batch2Perm1,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5  edited              6
+				conv(posts[7].CreateAt), conv(jobStartTime)),
+
+			// batch 2 Summary -- Permutation 2
+			fmt.Sprintf(grE2E3Batch2Perm2,
+				//  1                  2                    3                 4
+				conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+				// 5  original            6
+				conv(posts[6].CreateAt), conv(jobStartTime)),
+		}
+
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
+		// clean some bad csrf if present
+		msg := global_relay_export.CleanTestOutput(data)
+
+		matched := dataContainsOneOfExpected(msg, expectedBatch1Summaries)
+
+		assert.True(t, matched, "batch 1 summary didn't match one of the expected permutations")
+
+		matched = dataContainsOneOfExpected(msg, expectedBatch1)
+		assert.True(t, matched, "batch 1 body didn't match one of the expected permutations")
+
+		data = openZipAndReadFirstFile(t, exportBackend, batches[1])
+		// clean some bad csrf if present
+		msg = global_relay_export.CleanTestOutput(data)
+
+		matched = dataContainsOneOfExpected(msg, expectedBatch2Summaries)
+		assert.True(t, matched, "batch 2 summary didn't match one of the expected permutations")
+
+		matched = dataContainsOneOfExpected(msg, expectedBatch2)
+		assert.True(t, matched, "batch 2 body didn't match one of the expected permutations")
+	})
+
+	t.Run("CSV e2e 3 - test create, update, delete fields", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		ret, ret3 := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		jl := ret.joinLeaves
+		posts := ret.posts
+		//cu := ret.createUpdateTimes
+		//jobStartTime := ret.start
+		batches := ret.batches
+		users := ret.users
+		channels := ret.channels
+		teams := ret.teams
+		attachments := ret.attachments
+
+		// NOTE: the comments describe the order of the last three messages (21 22 23),
+		// eg in perm1: message 4, edited message 4, and message 6
+		expectedExports := []string{
+			// original, edited, "original" msg 6
+			fmt.Sprintf(csvE2E3Batch1Perm1,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6          7              8           9          10              11 edited
+				posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id, posts[5].Id,
+				// 12        13
+				posts[6].Id, attachments[0].Id,
+				// 14         15                  16                17                        18
+				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
+				// 19                     20                   21                  22               23
+				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
+				// 24 this is the editedBy for message 6
+				posts[7].Id),
+
+			// edited, original, original
+			fmt.Sprintf(csvE2E3Batch1Perm2,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6          7              8           9          10              11 edited
+				posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id, posts[5].Id,
+				// 12        13
+				posts[6].Id, attachments[0].Id,
+				// 14         15                  16                17                        18
+				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
+				// 19                     20                21                  22               23
+				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
+				// 24 this is the editedBy for message 6
+				posts[7].Id),
+
+			// original, edited, edited
+			fmt.Sprintf(csvE2E3Batch1Perm3,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6          7              8           9          10              11 edited
+				posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id, posts[5].Id,
+				// 12 id of edited msg6       13
+				posts[7].Id, attachments[0].Id,
+				// 14         15                  16                17                        18
+				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
+				// 19                     20                   21                  22               23
+				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+
+			// edited, original, edited
+			fmt.Sprintf(csvE2E3Batch1Perm4,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6          7              8           9          10              11 edited
+				posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id, posts[5].Id,
+				// 12 id of edited msg6      13
+				posts[7].Id, attachments[0].Id,
+				// 14         15                  16                17                        18
+				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
+				// 19                     20                  21                  22               23
+				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+		}
+
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
+
+		matched := false
+		for _, perm := range expectedExports {
+			if export == perm {
+				matched = true
+				break
+			}
+		}
+		assert.True(t, matched, "batch 1 didn't match one of the expected permutations")
+
+		expectedExports = []string{
+			// original message 6  (which says "message 6" in the message, and has new id -- which is post 6's id)
+			fmt.Sprintf(csvE2E3Batch2Perm1,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6
+				posts[6].Id,
+				// 7 this is the editedBy for message 6 -- editedBy is confusing (cause it's the original id), but it is what it is
+				posts[7].Id,
+				// 8                 9
+				posts[6].CreateAt, jl[0].join),
+
+			// edited message 6  (which says "edited message 6" in the message, and has original id)
+			fmt.Sprintf(csvE2E3Batch2Perm2,
+				// 1           2              3                      4              5
+				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+				// 6          7                  8
+				posts[7].Id, posts[6].CreateAt, jl[0].join),
+		}
+
+		export = openZipAndReadFirstFile(t, exportBackend, batches[1])
+
+		matched = false
+		for _, perm := range expectedExports {
+			if export == perm {
+				matched = true
+				break
+			}
+		}
+		assert.True(t, matched, "batch 2 didn't match one of the expected permutations")
+	})
+
 	t.Run("actiance e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		// Users:
-		users := make([]*model.User, 0)
-		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
-			Username: "user1",
-			Email:    "user1@email",
-		})
-		require.NoError(t, err)
-		users = append(users, user)
+		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		batch001 := ret.batches[0]
+		posts := ret.posts
+		users := ret.users
 
-		// only testing one channel
-		channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
-			DisplayName: "the Channel Two",
-			Name:        "channel_two_name",
-			Type:        model.ChannelTypePrivate,
-			TeamId:      th.BasicTeam.Id,
-			CreatorId:   th.BasicUser.Id,
-		}, 999)
-		require.NoError(t, err)
+		xmlContents := openZipAndReadFile(t, exportBackend, batch001, "actiance_export.xml")
 
-		// user 1 joins before start time and stays (and posts)
-		user1JoinTime := model.GetMillis() - 200
-		err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[0].Id, channel2.Id, user1JoinTime)
-		require.NoError(t, err)
-
-		// This tests (reading the files exported and testing the exported xml):
-		//  - post edited with 3 simultaneous posts in-between
-
-		time.Sleep(1 * time.Millisecond)
-		start := model.GetMillis()
-
-		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		var posts []*model.Post
-
-		// 0 - post edited with 3 simultaneous posts in-between - forward
-		// original post with edited message
-		originalPost, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 0",
-		})
-		require.NoError(t, err)
-		posts = append(posts, originalPost)
-		time.Sleep(1 * time.Millisecond)
-
-		// 1 - edited post
-		post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
-			Id:        originalPost.Id,
-			CreateAt:  originalPost.CreateAt,
-			EditAt:    model.GetMillis(),
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "edited message 0",
-		}, originalPost)
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		simultaneous := post.UpdateAt
-
-		// 2 - post 1 at same updateAt
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 2",
-			CreateAt:  simultaneous,
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 3 - post 2 at same updateAt
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 3",
-			CreateAt:  simultaneous,
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// 4 - post 3 in-between
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: channel2.Id,
-			UserId:    users[0].Id,
-			Message:   "message 4",
-			CreateAt:  simultaneous,
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		// Use the config fallback for simplicity
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.EnableExport = true
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-			*cfg.MessageExportSettings.BatchSize = 10
-			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
-			*cfg.FileSettings.DriverName = model.ImageDriverLocal
-			*cfg.FileSettings.Directory = attachmentDir
-
-			if exportDir != attachmentDir {
-				*cfg.FileSettings.DedicatedExportStore = true
-				*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
-				*cfg.FileSettings.ExportDirectory = exportDir
-			}
-		})
-
-		// check number of messages to be exported
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 5, int(count))
-
-		// Now run the exports
-		job := runJobForTest(t, th, nil)
-		// cleanup for next run
-		_, err = th.App.Srv().Store().Job().Delete(job.Id)
-		require.NoError(t, err)
-
-		numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 5, numExported)
-
-		jobExportDir := job.Data[shared.JobDataExportDir]
-		jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		batch001 := shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
-		files, err := exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches := []string{batch001}
-		require.ElementsMatch(t, batches, files)
-
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels := getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages := exportedChannels[0].Messages
 		require.Len(t, messages, 5)
@@ -1732,94 +1546,111 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			messages[0], messages[1], messages[2], messages[3], messages[4]})
 	})
 
+	t.Run("GlobalRelay e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		jl := ret.joinLeaves
+		posts := ret.posts
+		batchTimes := ret.batchTimes
+		//jobStartTime := ret.start
+		batches := ret.batches
+
+		// Global relay needs to be updated to use Actiance logic. MM-61718
+		batchStartTime := batchTimes[0].start
+		batchEndTime := batchTimes[0].end
+
+		// summaryHeader
+		allExpected := []string{fmt.Sprintf(grE2E4Summary,
+			//  1                  2                    3                 4
+			conv(batchStartTime), conv(batchEndTime), conv(jl[0].join), conv(batchEndTime),
+		)}
+
+		// summary body
+		allExpected = append(allExpected,
+			fmt.Sprintf("* %s @user1 user (user1@email): message 0", conv(posts[0].CreateAt)),
+			fmt.Sprintf("* %s @user1 user (user1@email): edited message 0", conv(posts[1].CreateAt)),
+			fmt.Sprintf("* %s @user1 user (user1@email): message 2", conv(posts[2].CreateAt)),
+			fmt.Sprintf("* %s @user1 user (user1@email): message 3", conv(posts[3].CreateAt)),
+			fmt.Sprintf("* %s @user1 user (user1@email): message 4", conv(posts[4].CreateAt)),
+		)
+
+		// first two are channel and participants, rest are messages
+		allExpected = append(allExpected,
+			fmt.Sprintf("<div class=3D\"summary-list\">\n    <ul>\n        <li><span class=3D\"bold\">Channel:&nbsp;</span>the Channel Two</li>\n        <li><span class=3D\"bold\">Started:&nbsp;</span>%s</li>\n        <li><span class=3D\"bold\">Ended:&nbsp;</span>%s</li>\n        <li><span class=3D\"bold\">Duration:&nbsp;</span>0 seconds</li>\n    </ul>\n</div>", conv(batchStartTime), conv(batchEndTime)),
+			fmt.Sprintf("<tr>\n    <td class=3D\"username\">@user1</td>\n    <td class=3D\"usertype\">user</td>\n    <td class=3D\"email\">user1@email</td>\n    <td class=3D\"joined\">%s</td>\n    <td class=3D\"left\">%s</td>\n    <td class=3D\"duration\">0 seconds</td>\n    <td class=3D\"messages\">5</td>\n</tr>\n", conv(jl[0].join), conv(batchEndTime)),
+			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">message 0</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n", conv(posts[0].CreateAt)),
+			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">edited message 0</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n", conv(posts[1].CreateAt)),
+			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">message 2</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n", conv(posts[2].CreateAt)),
+			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">message 3</span>\n    <span class=3D\"previews_post\"></span>\n</li>", conv(posts[3].CreateAt)),
+			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">message 4</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n", conv(posts[4].CreateAt)),
+		)
+
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
+		// clean some bad csrf if present
+		msg := global_relay_export.CleanTestOutput(data)
+
+		for _, expected := range allExpected {
+			assert.Contains(t, msg, expected, "expected exported msg to contain: \n%s\n\nExported msg:\n%s\n", expected, msg)
+			if !strings.Contains(msg, expected) {
+				break
+			}
+		}
+	})
+
+	t.Run("CSV e2e 4 - test edits with multiple simultaneous updates", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+			exportDir, attachmentBackend, exportBackend)
+		jl := ret.joinLeaves
+		posts := ret.posts
+		batches := ret.batches
+		users := ret.users
+		channels := ret.channels
+		teams := ret.teams
+
+		// fill out the lines using the template (easier to read than if it were an inline string)
+		tmpl := fmt.Sprintf(csvE2E4Batch1,
+			// 1           2              3                      4              5
+			teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
+			// 6          7              8           9          10
+			posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id,
+			// 11         12                13
+			jl[0].join, posts[0].CreateAt, posts[2].CreateAt)
+
+		allExpected := strings.Split(tmpl, "\n")
+
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
+
+		assert.Len(t, strings.Split(export, "\n"), len(allExpected)+1) // +1 for header line
+
+		for _, expected := range allExpected {
+			assert.Contains(t, export, expected, "expected export to contain: \n%s\n\nExport:\n%s\n", expected, export)
+			if !strings.Contains(export, expected) {
+				break
+			}
+		}
+	})
+
 	t.Run("actiance e2e 5 - test delete and update semantics", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
-		// This tests (reading the files exported and testing the exported xml):
-		//  - post deleted in current job: shows created post, then deleted post
-		//  - post deleted in current job but different batch: shows created post (in second batch), then deleted post
-		//  - post created in previous job, deleted in current job: shows only deleted post in current job
-		//    (and same for updated post)
+		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		posts := rets[0].posts
+		message0DeleteAt := ret5s[0].message0DeleteAt
+		zipBytes := ret5s[0].zipBytes[0]
 
-		// user 1 joins before start time and stays (and posts)
-		user1JoinTime := model.GetMillis() - 100
-		err := th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(th.BasicUser.Id, th.BasicChannel.Id, user1JoinTime)
-		require.NoError(t, err)
+		//
+		// Job 1
+		//
+		xmlContents := readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		// Job 1: post deleted in current job: shows created post, then deleted post
-		start := model.GetMillis()
-
-		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		var posts []*model.Post
-
-		// post create
-		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 0",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// post deleted
-		message0DeleteAt := model.GetMillis()
-		err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message0DeleteAt, th.BasicUser.Id)
-		require.NoError(t, err)
-
-		// use the config fallback
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.EnableExport = true
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-			*cfg.MessageExportSettings.BatchSize = 2
-			*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
-			*cfg.FileSettings.DriverName = model.ImageDriverLocal
-			*cfg.FileSettings.Directory = attachmentDir
-
-			if exportDir != attachmentDir {
-				*cfg.FileSettings.DedicatedExportStore = true
-				*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
-				*cfg.FileSettings.ExportDirectory = exportDir
-			}
-		})
-
-		// check number of messages to be exported -- will be 1 (because one message deleted)
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 1, int(count))
-
-		// Now run the exports
-		job := runJobForTest(t, th, nil)
-
-		numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 1, numExported)
-
-		jobExportDir := job.Data[shared.JobDataExportDir]
-		jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		batch001 := shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
-		files, err := exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches := []string{batch001}
-		require.ElementsMatch(t, batches, files)
-
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels := getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages := exportedChannels[0].Messages
 		require.Len(t, messages, 2) // 1 posted, 1 deleted
@@ -1846,90 +1677,17 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			UpdatedType: shared.Deleted,
 		}, messages[1])
 
-		// Cleanup for next job
-		err = os.RemoveAll(exportDir)
-		assert.NoError(t, err)
-		err = os.RemoveAll(attachmentDir)
-		assert.NoError(t, err)
-		_, err = th.App.Srv().Store().Job().Delete(job.Id)
-		assert.NoError(t, err)
+		//
+		// Job 2
+		//
+		posts = rets[1].posts
+		message0DeleteAt = ret5s[1].message0DeleteAt
+		zipBytes = ret5s[1].zipBytes[0]
+		zipBytes2 := ret5s[1].zipBytes[1]
 
-		// Job 2: post deleted in current job, shows up in second batch because it was deleted after the "second" post
-		time.Sleep(1 * time.Millisecond)
-		start = model.GetMillis()
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		posts = nil
-
-		// post create -- this will be the one deleted
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 0",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// post create -- this is the "second" post, but it will show up first because first post is deleted after
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 1",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// post deleted -- first post deleted
-		message0DeleteAt = model.GetMillis()
-		err = th.App.Srv().Store().Post().Delete(th.Context, posts[0].Id, message0DeleteAt, th.BasicUser.Id)
-		require.NoError(t, err)
-
-		// use the config fallback
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-			*cfg.MessageExportSettings.BatchSize = 1
-		})
-
-		// check number of messages to be exported
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 2, int(count))
-
-		// Now run the exports
-		job = runJobForTest(t, th, nil)
-
-		numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 2, numExported)
-
-		jobExportDir = job.Data[shared.JobDataExportDir]
-		jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		// use the message1 updateAt, because the message0's updateAt is now after
-		batch001 = shared.GetBatchPath(jobExportDir, start, posts[1].UpdateAt, 1)
-		batch002 := shared.GetBatchPath(jobExportDir, posts[1].UpdateAt, jobEndTime, 2)
-		files, err = exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches = []string{batch001, batch002}
-		require.ElementsMatch(t, batches, files)
-
-		zipBytes, err = exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels = getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 1) // 1 posted
@@ -1944,17 +1702,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			Message:   posts[1].Message,
 		}, messages[0])
 
-		zipBytes, err = exportBackend.ReadFile(batch002)
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents = readFileFromZip(t, zipBytes2, "actiance_export.xml")
 
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels = getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 2) // message0's create and delete messages
@@ -1981,79 +1731,15 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			UpdatedType: shared.Deleted,
 		}, messages[1])
 
-		// Cleanup for next job
-		err = os.RemoveAll(exportDir)
-		assert.NoError(t, err)
-		err = os.RemoveAll(attachmentDir)
-		assert.NoError(t, err)
-		_, err = th.App.Srv().Store().Job().Delete(job.Id)
-		assert.NoError(t, err)
+		//
+		// Job 3
+		//
+		posts = rets[2].posts
+		zipBytes = ret5s[2].zipBytes[0]
 
-		// Job 3: post created in previous job, deleted in current job: shows only deleted post in current job
-		time.Sleep(1 * time.Millisecond)
-		start = model.GetMillis()
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		posts = nil
-
-		// post create -- this will be the one deleted in second job
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 0",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// post create -- this will be the one updated in second job
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 1",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// use the config fallback
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-			*cfg.MessageExportSettings.BatchSize = 10
-		})
-
-		// run the job so that it gets exported.
-		// Now run the exports
-		job = runJobForTest(t, th, nil)
-
-		numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 2, numExported)
-
-		jobExportDir = job.Data[shared.JobDataExportDir]
-		jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		batch001 = shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
-		files, err = exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches = []string{batch001}
-		require.ElementsMatch(t, batches, files)
-
-		zipBytes, err = exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels = getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 2) // 2 posted
@@ -2078,85 +1764,17 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			Message:   posts[1].Message,
 		}, messages[1])
 
-		// Now, clean up outputs for next job
-		err = os.RemoveAll(exportDir)
-		assert.NoError(t, err)
-		err = os.RemoveAll(attachmentDir)
-		assert.NoError(t, err)
-		_, err = th.App.Srv().Store().Job().Delete(job.Id)
-		assert.NoError(t, err)
+		//
+		// Job 4
+		//
+		posts = rets[3].posts
+		updatedPost1 := ret5s[3].updatedPost1
+		message0DeleteAt = ret5s[3].message0DeleteAt
+		zipBytes = ret5s[3].zipBytes[0]
 
-		time.Sleep(1 * time.Millisecond)
-		start = model.GetMillis()
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 0, int(count))
-
-		// post create -- filler
-		post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "message 1",
-		})
-		require.NoError(t, err)
-		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
-
-		// post deleted -- first post deleted (the first one exported earlier)
-		message0DeleteAt = model.GetMillis()
-		err = th.App.Srv().Store().Post().Delete(th.Context, posts[0].Id, message0DeleteAt, th.BasicUser.Id)
-		require.NoError(t, err)
-
-		// post updated -- second post updated (the second one exported earlier)
-		_, err = th.App.Srv().Store().Reaction().Save(&model.Reaction{
-			UserId:    th.BasicUser.Id,
-			PostId:    posts[1].Id,
-			EmojiName: "smile",
-			ChannelId: th.BasicChannel.Id,
-		})
-		require.NoError(t, err)
-		updatedPost1, err := th.App.Srv().Store().Post().GetSingle(th.Context, posts[1].Id, false)
-		require.NoError(t, err)
-
-		// use the config fallback
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.MessageExportSettings.ExportFromTimestamp = start
-		})
-
-		// check number of messages to be exported
-		count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-		require.NoError(t, err)
-		require.Equal(t, 3, int(count)) // filler post, deleted post, and updated post
-
-		// Now run the exports
-		job = runJobForTest(t, th, nil)
-
-		numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-		require.NoError(t, err)
-		require.Equal(t, 3, numExported)
-
-		jobExportDir = job.Data[shared.JobDataExportDir]
-		jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
-		require.NoError(t, err)
-
-		batch001 = shared.GetBatchPath(jobExportDir, start, jobEndTime, 1)
-		files, err = exportBackend.ListDirectory(jobExportDir)
-		require.NoError(t, err)
-		batches = []string{batch001}
-		require.ElementsMatch(t, batches, files)
-
-		zipBytes, err = exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-
-		exportedChannels = getChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 3) //filler post, deleted post, and updated posts ONLY
@@ -2194,14 +1812,271 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			UpdateAt:    updatedPost1.UpdateAt,
 			UpdatedType: shared.UpdatedNoMsgChange,
 		}, messages[2])
+	})
 
-		// Cleanup for next job
-		err = os.RemoveAll(exportDir)
-		assert.NoError(t, err)
-		err = os.RemoveAll(attachmentDir)
-		assert.NoError(t, err)
-		_, err = th.App.Srv().Store().Job().Delete(job.Id)
-		assert.NoError(t, err)
+	t.Run("GlobalRelay e2e 5 - test delete and update semantics", func(t *testing.T) {
+		msgTmpl := "<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@%s</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(%s):</span>\n    <span class=3D\"message\">%s</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n"
+
+		assertContainsAllMsgs := func(msg string, allExpected []string) {
+			for _, expected := range allExpected {
+				assert.Contains(t, msg, expected, "expected exported msg to contain: \n%s\n\nExported msg:\n%s\n", expected, msg)
+				if !strings.Contains(msg, expected) {
+					break
+				}
+			}
+
+			numMessages := 0
+			for _, l := range strings.Split(msg, "\n") {
+				if strings.Contains(l, "<li class=3D\"message\">") {
+					numMessages += 1
+				}
+			}
+
+			assert.Equal(t, len(allExpected), numMessages)
+		}
+
+		th := setup(t)
+		defer th.TearDown()
+
+		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		posts := rets[0].posts
+		zipBytes := ret5s[0].zipBytes[0]
+
+		//
+		// Job 1
+		//
+		data := readFirstFileFromZip(t, zipBytes)
+		// clean some bad csrf if present
+		msg := global_relay_export.CleanTestOutput(data)
+
+		// post created
+		allExpected := []string{
+			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
+		}
+		assertContainsAllMsgs(msg, allExpected)
+
+		// NOTE: GlobalRelay does not record deleted posts (see actiance above) MM-61718
+
+		//
+		// Job 2
+		//
+		posts = rets[1].posts
+		zipBytes = ret5s[1].zipBytes[0]
+		zipBytes2 := ret5s[1].zipBytes[1]
+
+		data = readFirstFileFromZip(t, zipBytes)
+		// clean some bad csrf if present
+		msg = global_relay_export.CleanTestOutput(data)
+
+		// post created
+		allExpected = []string{
+			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
+		}
+		assertContainsAllMsgs(msg, allExpected)
+
+		data = readFirstFileFromZip(t, zipBytes2)
+		// clean some bad csrf if present
+		msg = global_relay_export.CleanTestOutput(data)
+
+		// should get message 0's create message (but not its delete message MM-61718)
+		allExpected = []string{
+			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
+		}
+		assertContainsAllMsgs(msg, allExpected)
+
+		//
+		// Job 3
+		//
+		posts = rets[2].posts
+		zipBytes = ret5s[2].zipBytes[0]
+
+		data = readFirstFileFromZip(t, zipBytes)
+		// clean some bad csrf if present
+		msg = global_relay_export.CleanTestOutput(data)
+
+		// post created
+		allExpected = []string{
+			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
+			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
+		}
+		assertContainsAllMsgs(msg, allExpected)
+
+		//
+		// Job 4
+		//
+		posts = rets[3].posts
+		updatedPost1 := ret5s[3].updatedPost1
+		zipBytes = ret5s[3].zipBytes[0]
+
+		data = readFirstFileFromZip(t, zipBytes)
+		// clean some bad csrf if present
+		msg = global_relay_export.CleanTestOutput(data)
+
+		// should get message 0's create message (but not its delete message MM-61718)
+		allExpected = []string{
+			fmt.Sprintf(msgTmpl, conv(posts[2].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[2].Message),
+
+			// not the post deleted MM-61718 (andnot its created post, because that was in the previous job)
+
+			// should be post updated ONLY, (not its created post, because that was in the previous job), but doesn't work yet: MM-61718
+			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
+			fmt.Sprintf(msgTmpl, conv(updatedPost1.CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
+		}
+		assertContainsAllMsgs(msg, allExpected)
+	})
+
+	t.Run("CSV e2e 5 - test delete and update semantics", func(t *testing.T) {
+		type msgDetailsToCheck struct {
+			createAt int64
+			postId   string
+			message  string
+		}
+
+		assertContainsAllMsgs := func(msg string, allExpected []msgDetailsToCheck, tag string) {
+			allLines := strings.Split(strings.Trim(msg, " \n"), "\n")
+			allLines = allLines[1:] // remove header
+			var msgLines []string
+			for _, l := range allLines {
+				if !strings.Contains(l, "previously-joined") {
+					msgLines = append(msgLines, l)
+				}
+			}
+
+			assert.Equal(t, len(allExpected), len(msgLines), tag)
+
+			for _, expected := range allExpected {
+				found := false
+				for _, msg := range msgLines {
+					if strings.HasPrefix(msg, fmt.Sprintf("%d", expected.createAt)) &&
+						strings.Contains(msg, expected.postId+",,,"+expected.message) {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "%s actual msg did not contain expected msg. msg: \n%s\nexpected msg details: %v\n", tag, msg, expected)
+			}
+		}
+
+		th := setup(t)
+		defer th.TearDown()
+
+		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeCsv, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		posts := rets[0].posts
+		message0DeleteAt := ret5s[0].message0DeleteAt
+		zipBytes := ret5s[0].zipBytes[0]
+
+		// NOTE: we know csv outputs correctly from above, so just test that the right post IDs are being exported
+
+		//
+		// Job 1
+		//
+		export := readFirstFileFromZip(t, zipBytes)
+
+		// post created, post deleted
+		assertContainsAllMsgs(export, []msgDetailsToCheck{
+			{
+				createAt: posts[0].CreateAt,
+				postId:   posts[0].Id,
+				message:  posts[0].Message,
+			},
+			{
+				createAt: message0DeleteAt,
+				postId:   posts[0].Id,
+				message:  "delete " + posts[0].Message,
+			},
+		}, "Job 1")
+
+		//
+		// Job 2
+		//
+		posts = rets[1].posts
+		message0DeleteAt = ret5s[1].message0DeleteAt
+		zipBytes = ret5s[1].zipBytes[0]
+		zipBytes2 := ret5s[1].zipBytes[1]
+
+		export = readFirstFileFromZip(t, zipBytes)
+
+		// post created
+		assertContainsAllMsgs(export, []msgDetailsToCheck{
+			{
+				createAt: posts[1].CreateAt,
+				postId:   posts[1].Id,
+				message:  posts[1].Message,
+			},
+		}, "Job 1")
+
+		export = readFirstFileFromZip(t, zipBytes2)
+
+		// post created
+		assertContainsAllMsgs(export, []msgDetailsToCheck{
+			{
+				createAt: posts[0].CreateAt,
+				postId:   posts[0].Id,
+				message:  posts[0].Message,
+			},
+			{
+				createAt: message0DeleteAt,
+				postId:   posts[0].Id,
+				message:  "delete " + posts[0].Message,
+			},
+		}, "Job 2")
+
+		// Job 3
+		//
+		posts = rets[2].posts
+		zipBytes = ret5s[2].zipBytes[0]
+
+		export = readFirstFileFromZip(t, zipBytes)
+
+		// 2 posts created
+		assertContainsAllMsgs(export, []msgDetailsToCheck{
+			{
+				createAt: posts[0].CreateAt,
+				postId:   posts[0].Id,
+				message:  posts[0].Message,
+			},
+			{
+				createAt: posts[1].CreateAt,
+				postId:   posts[1].Id,
+				message:  posts[1].Message,
+			},
+		}, "Job 3")
+
+		//
+		// Job 4
+		//
+		posts = rets[3].posts
+		message0DeleteAt = ret5s[3].message0DeleteAt
+		zipBytes = ret5s[3].zipBytes[0]
+
+		export = readFirstFileFromZip(t, zipBytes)
+
+		// post created
+		assertContainsAllMsgs(export, []msgDetailsToCheck{
+			{
+				createAt: posts[2].CreateAt,
+				postId:   posts[2].Id,
+				message:  posts[2].Message,
+			},
+			// post deleted ONLY (not its created post, because that was in the previous job)
+			// except that CSV doesn't have this logic, needs fix, MM-61718
+			{
+				createAt: posts[0].CreateAt,
+				postId:   posts[0].Id,
+				message:  posts[0].Message,
+			},
+			{
+				createAt: message0DeleteAt,
+				postId:   posts[0].Id,
+				message:  "delete " + posts[0].Message,
+			},
+			// post updated ONLY (not its created post, because that was in the previous job)
+			{
+				createAt: posts[1].CreateAt,
+				postId:   posts[1].Id,
+				message:  posts[1].Message,
+			},
+		}, "Job 4")
 	})
 
 	t.Run("csv -- multiple batches, 1 zip per batch, output to a single directory", func(t *testing.T) {
@@ -2299,7 +2174,58 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		require.NoError(t, err)
 		attachmentInZipContents, err := io.ReadAll(attachmentInZip)
 		require.NoError(t, err)
+		err = attachmentInZip.Close()
+		require.NoError(t, err)
 
 		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
 	})
+}
+
+func openZipAndReadFile(t *testing.T, backend filestore.FileBackend, path string, filename string) string {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+	return readFileFromZip(t, zipBytes, filename)
+}
+
+func readFileFromZip(t *testing.T, zipBytes []byte, filename string) string {
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	file, err := zipReader.Open(filename)
+	require.NoError(t, err)
+	contents, err := io.ReadAll(file)
+	require.NoError(t, err)
+	err = file.Close()
+	require.NoError(t, err)
+
+	return string(contents)
+}
+
+func openZipAndReadFirstFile(t *testing.T, backend filestore.FileBackend, path string) string {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+	return readFirstFileFromZip(t, zipBytes)
+}
+
+func readFirstFileFromZip(t *testing.T, zipBytes []byte) string {
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	firstFile, err := zipReader.File[0].Open()
+	require.NoError(t, err)
+	contents, err := io.ReadAll(firstFile)
+	require.NoError(t, err)
+	err = firstFile.Close()
+	require.NoError(t, err)
+
+	return string(contents)
+}
+
+func dataContainsOneOfExpected(data string, expected []string) bool {
+	for _, perm := range expected {
+		if strings.Contains(data, perm) {
+			return true
+		}
+	}
+	return false
 }
