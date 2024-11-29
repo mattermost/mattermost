@@ -2716,6 +2716,8 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	return nil
 }
 
+// PublishUserTyping publishes a user typing WebSocket event with the provided user ID, channel ID and optional parent post ID.
+// Returns an error if there was a problem publishing the event.
 func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
@@ -2801,6 +2803,9 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 	return user, nil
 }
 
+// GetThreadsForUser gets all threads followed by or participated in by a user for the given team.
+// Returns a Threads object containing thread and count information based on the GetUserThreadsOpts provided.
+// The options parameter can filter and customize the results.
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
@@ -2886,6 +2891,8 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	return &result, nil
 }
 
+// GetThreadMembershipForUser gets a user's membership information for a specific thread.
+// Returns the ThreadMembership if found, or an error if the membership does not exist or could not be retrieved.
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
 	threadMembership, nErr := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
 	if nErr != nil {
@@ -2900,6 +2907,9 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
+// GetThreadForUser gets thread information for a specific user based on their thread membership.
+// The extended parameter determines whether to return additional thread details.
+// Returns the ThreadResponse if found, or an error if the thread does not exist or could not be retrieved.
 func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
 	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.IsPostPriorityEnabled())
 	if nErr != nil {
@@ -2917,6 +2927,9 @@ func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extende
 	return thread, nil
 }
 
+// UpdateThreadsReadForUser marks all threads as read for a user in a specific team.
+// Publishes a WebSocket event to notify clients of the update.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
