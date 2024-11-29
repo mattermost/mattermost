@@ -860,6 +860,8 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	return nil
 }
 
+// DeactivateMfa deactivates multi-factor authentication for the user with the given ID.
+// Returns nil on success, or an error if MFA could not be deactivated.
 func (a *App) DeactivateMfa(userID string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
@@ -895,14 +897,20 @@ func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
 	return path, nil
 }
 
+// GetProfileImage gets the profile image for the given user. Returns the image data, whether it exists,
+// and any error that occurred while fetching the image.
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
 
+// GetDefaultProfileImage gets the default profile image for the given user.
+// Returns the image data and any error that occurred while generating the default image.
 func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
 	return a.ch.srv.GetDefaultProfileImage(user)
 }
 
+// UpdateDefaultProfileImage updates the user's profile image to the default image.
+// Returns an error if the default image could not be generated or saved.
 func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	img, appErr := a.GetDefaultProfileImage(user)
 	if appErr != nil {
@@ -923,6 +931,8 @@ func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.
 	return nil
 }
 
+// SetDefaultProfileImage sets the user's profile image to the default image and notifies other users of the change.
+// Returns an error if the default image could not be set or if notifications could not be sent.
 func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
 		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
