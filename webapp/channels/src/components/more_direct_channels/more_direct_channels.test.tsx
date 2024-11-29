@@ -140,7 +140,7 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const {getByPlaceholderText} = renderWithContext(<MoreDirectChannels {...props}/>);
 
-        const searchInput = getByPlaceholderText('Search and add members');
+        const searchInput = await waitFor(() => getByPlaceholderText('Search and add members'));
         userEvent.type(searchInput, 'user_search');
 
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
