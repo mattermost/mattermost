@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen} from '@testing-library/react';
+import {act, screen, waitFor} from '@testing-library/react';
 
 import {renderWithIntl, userEvent} from 'tests/react_testing_utils';
 
@@ -46,21 +46,28 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
         // Submit MFA form to trigger error and show main form
         const submitButton = screen.getByRole('button', {name: 'Submit'});
         const tokenInput = screen.getByLabelText('Enter MFA Token');
-        await userEvent.type(tokenInput, '123456');
-        await userEvent.click(submitButton);
+        
+        await act(async () => {
+            await userEvent.type(tokenInput, '123456');
+            await userEvent.click(submitButton);
+        });
 
         // Wait for error and check main form elements
-        expect(props.switchLdapToEmail).toHaveBeenCalledWith(
-            '', // ldapPassword
-            'test@example.com', // loginId
-            '', // password  
-            '123456' // token
-        );
+        await waitFor(() => {
+            expect(props.switchLdapToEmail).toHaveBeenCalledWith(
+                '', // ldapPassword
+                'test@example.com', // loginId
+                '', // password  
+                '123456' // token
+            );
+        });
 
         // Verify main form appears
-        expect(await screen.findByText('AD/LDAP Password:')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('AD/LDAP Password')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('AD/LDAP Password:')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('AD/LDAP Password')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
+        });
     });
 });
