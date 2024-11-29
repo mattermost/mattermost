@@ -170,6 +170,12 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
+                        user_id_2: {
+                            id: 'user_id_2',
+                            username: 'other_user',
+                            roles: '',
+                            display_name: 'Other User',
+                        },
                     },
                 },
                 preferences: {
@@ -239,7 +245,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByText('display_name')).toBeInTheDocument();
+        expect(screen.getByText('Other User')).toBeInTheDocument();
     });
 
     test('should render private channel header', () => {
