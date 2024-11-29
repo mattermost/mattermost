@@ -127,6 +127,13 @@ export default function TeamButton({
         }
     }
 
+    if (!isNotCreateTeamButton) {
+        ariaLabel = formatMessage({
+            id: 'team.button.create.ariaLabel',
+            defaultMessage: displayName,
+        });
+    }
+
     ariaLabel = ariaLabel.toLowerCase();
 
     const content = (
