@@ -52,7 +52,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
         const link = screen.getByRole('link', {name: /test_filename/i});
         expect(link).toBeInTheDocument();
         
-        const attachmentIcon = screen.getByTestId('AttachmentIcon');
+        const attachmentIcon = screen.getByRole('img', {name: 'Attachment Icon'});
         expect(attachmentIcon).toBeInTheDocument();
 
         await userEvent.click(link);
@@ -71,14 +71,14 @@ describe('components/file_attachment/FilenameOverlay', () => {
         const downloadLink = screen.getByRole('link', {name: /download/i});
         expect(downloadLink).toBeInTheDocument();
         
-        const attachmentIcon = screen.getByTestId('AttachmentIcon');
+        const attachmentIcon = screen.getByRole('img', {name: 'Attachment Icon'});
         expect(attachmentIcon).toBeInTheDocument();
     });
 
     test('should render as text when not downloadable', () => {
         const props = {...baseProps, canDownload: false};
         
-        render(
+        renderWithIntl(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,
