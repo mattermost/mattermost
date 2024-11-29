@@ -859,9 +859,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	// Updating the file_ids of a post is not a supported operation and will be ignored
-	post.FileIds = originalPost.FileIds
-
 	if c.AppContext.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
