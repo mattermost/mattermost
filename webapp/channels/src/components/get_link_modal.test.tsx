@@ -32,7 +32,7 @@ describe('components/GetLinkModal', () => {
         expect(screen.getByText('title')).toBeInTheDocument();
         expect(screen.getByText('help text')).toBeInTheDocument();
         expect(screen.getByText('Copy Link')).toBeInTheDocument();
-        expect(screen.getByText('Close')).toBeInTheDocument();
+        expect(screen.getByTestId('linkModalCloseButton')).toBeInTheDocument();
         
         const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
         expect(textarea).toHaveValue('https://mattermost.com');
@@ -51,12 +51,16 @@ describe('components/GetLinkModal', () => {
 
         renderWithIntl(<GetLinkModal {...props}/>);
 
-        userEvent.click(screen.getByText('Close'));
+        userEvent.click(screen.getByTestId('linkModalCloseButton'));
         expect(newOnHide).toHaveBeenCalledTimes(1);
     });
 
     test('should handle copy link functionality', () => {
-        document.execCommand = jest.fn().mockImplementation(() => true);
+        const execCommandMock = jest.fn().mockImplementation(() => true);
+        Object.defineProperty(document, 'execCommand', {
+            value: execCommandMock,
+            writable: true,
+        });
 
         renderWithIntl(<GetLinkModal {...requiredProps}/>);
 
@@ -64,6 +68,6 @@ describe('components/GetLinkModal', () => {
         userEvent.click(textarea);
 
         expect(screen.getByText('Link copied')).toBeInTheDocument();
-        expect(document.execCommand).toHaveBeenCalledWith('copy');
+        expect(execCommandMock).toHaveBeenCalledWith('copy');
     });
 });
