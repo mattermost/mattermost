@@ -56,7 +56,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should render correctly for system admin notice', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
         
         expect(screen.getByText('for sysadmin')).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should render correctly for user notice', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
         
         const nextButton = screen.getByRole('button', {name: /next/i});
@@ -83,7 +83,7 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        renderWithContext(<ProductNoticesModal {...props}/>);
         await props.actions.getInProductNotices();
         
         expect(screen.getByText('title')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should handle navigation between notices correctly', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
         
         expect(screen.getByText('for sysadmin')).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        renderWithContext(<ProductNoticesModal {...props}/>);
         await props.actions.getInProductNotices();
         
         expect(screen.queryByRole('button', {name: /previous/i})).not.toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        renderWithIntlAndStore(<ProductNoticesModal {...props}/>);
+        renderWithContext(<ProductNoticesModal {...props}/>);
         await props.actions.getInProductNotices();
         
         const actionButton = screen.getByRole('button', {name: 'Download'});
@@ -141,7 +141,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should call getInProductNotices and updateNoticesAsViewed on mount', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         await baseProps.actions.getInProductNotices();
@@ -149,7 +149,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should call updateNoticesAsViewed when navigating to next notice', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
         
         const nextButton = screen.getByRole('button', {name: /next/i});
@@ -160,7 +160,7 @@ describe('ProductNoticesModal', () => {
 
     test('should clear modal content when closed', async () => {
         jest.useFakeTimers();
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await baseProps.actions.getInProductNotices();
         
         const closeButton = screen.getByRole('button', {name: /close/i});
@@ -192,13 +192,13 @@ describe('ProductNoticesModal', () => {
         (getDesktopVersion as jest.Mock).mockReturnValue('4.5.0');
         (isDesktopApp as jest.Mock).mockReturnValue(true);
         
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'desktop', '4.5.0');
     });
 
     test('should not fetch notices on socket reconnect if same day', async () => {
-        const {rerender} = renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        const {rerender} = renderWithContext(<ProductNoticesModal {...baseProps}/>);
         Date.now = jest.fn().mockReturnValue(1599760196593);
         
         rerender(<ProductNoticesModal
