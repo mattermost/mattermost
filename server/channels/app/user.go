@@ -625,6 +625,8 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
+// GetUsersInChannelByAdmin returns a list of users in the specified channel ordered by their admin status.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannelByAdmin(options)
 	if err != nil {
@@ -634,6 +636,8 @@ func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.
 	return users, nil
 }
 
+// GetUsersInChannelMap returns a map of users in the specified channel where the map key is the user ID.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -650,6 +654,8 @@ func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) 
 	return userMap, nil
 }
 
+// GetUsersInChannelPage returns a page of users in the specified channel.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -658,6 +664,8 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInChannelPageByStatus returns a page of users in the specified channel ordered by their status.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByStatus(options)
 	if err != nil {
@@ -666,6 +674,8 @@ func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdm
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInChannelPageByAdmin returns a page of users in the specified channel ordered by their admin status.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByAdmin(options)
 	if err != nil {
