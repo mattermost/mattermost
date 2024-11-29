@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/functions";
 
 .modal {
     .channel-switcher,
@@ -55,7 +55,7 @@
 
             &:focus {
                 padding: 0 33px;
-                border: 1px solid v(button-bg);
+                border: 1px solid functions.v(button-bg);
             }
         }
 

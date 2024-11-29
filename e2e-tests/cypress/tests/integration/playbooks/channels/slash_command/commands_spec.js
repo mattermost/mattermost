@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 import {switchToChannel} from '../../../channels/mark_as_unread/helpers';

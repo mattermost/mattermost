@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/mixins";
+@use "utils/variables";
 
 html,
 body {
@@ -8,7 +9,7 @@ body {
 body {
     position: relative;
     width: 100%;
-    background: $bg--gray;
+    background: variables.$bg--gray;
 
     &.sticky {
         .container-fluid {
@@ -29,7 +30,7 @@ body {
 }
 
 .sticky {
-    background: $white;
+    background: variables.$white;
 
     > .channel-view {
         overflow: auto;
@@ -73,14 +74,14 @@ body {
 }
 
 .container-fluid {
-    @include pie-clearfix;
+    @include mixins.pie-clearfix;
 
     position: relative;
     height: 100%;
 }
 
 .channel-view {
-    @include clearfix;
+    @include mixins.clearfix;
 
     position: relative;
     height: 100%;
@@ -102,7 +103,7 @@ body.admin-onboarding #root {
 .app__body {
     #root.channel-view {
         &:has(.backstage-body) {
-            background-color: $bg--gray;
+            background-color: variables.$bg--gray;
         }
     }
 }

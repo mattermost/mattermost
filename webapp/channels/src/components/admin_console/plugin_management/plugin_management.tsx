@@ -21,9 +21,9 @@ import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import AdminSettings from '../admin_settings';
-import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
+import OLDAdminSettings from '../old_admin_settings';
+import type {BaseProps, BaseState} from '../old_admin_settings';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 
@@ -495,7 +495,7 @@ type State = BaseState & {
     requirePluginSignature: boolean;
     removing: string | null;
 }
-class PluginManagement extends AdminSettings<Props, State> {
+class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
         super(props);
@@ -927,8 +927,8 @@ class PluginManagement extends AdminSettings<Props, State> {
     renderSettings = () => {
         const {enableUploads} = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
-        let serverError = <React.Fragment/>;
-        let lastMessage = <React.Fragment/>;
+        let serverError = <></>;
+        let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
         const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);

@@ -26,6 +26,7 @@ import {
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -687,7 +688,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
 
             if (allUserIds && allUserIds.length > 0) {
                 const profilesById = allUserIds.
-                    filter((userId) => allProfilesById[userId]).
+                    filter((userId) => secureGetFromRecord(allProfilesById, userId)).
                     map((userId) => allProfilesById[userId]);
 
                 if (profilesById && profilesById.length > 0) {
@@ -697,7 +698,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
 
             if (allUsernames && allUsernames.length > 0) {
                 const profilesByUsername = allUsernames.
-                    filter((username) => allProfilesByUsername[username]).
+                    filter((username) => secureGetFromRecord(allProfilesByUsername, username)).
                     map((username) => allProfilesByUsername[username]);
 
                 if (profilesByUsername && profilesByUsername.length > 0) {

@@ -9,8 +9,6 @@
 // Stage: @prod
 // Group: @playbooks
 
-/* eslint-disable no-only-tests/no-only-tests */
-
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 // assumes that E20 license is uploaded

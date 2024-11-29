@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .marketplace-modal {
     width: 832px;
@@ -145,14 +145,14 @@
 
                 .plugin-configure,
                 .app-installed {
-                    @include secondary-button;
-                    @include button-medium;
+                    @include mixins.secondary-button;
+                    @include mixins.button-medium;
                 }
 
                 .plugin-install,
                 .app-install {
-                    @include primary-button;
-                    @include button-medium;
+                    @include mixins.primary-button;
+                    @include mixins.button-medium;
                 }
 
                 a {
@@ -177,7 +177,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            background-color: $white;
+            background-color: variables.$white;
 
             svg,
             img {
@@ -242,7 +242,7 @@
             display: flex;
             align-items: center;
             padding: 10px 15px;
-            border-bottom: 1px solid $light-gray;
+            border-bottom: 1px solid variables.$light-gray;
 
             &.clickable {
                 cursor: pointer;
@@ -273,8 +273,8 @@
         }
 
         &__action {
-            @include primary-button;
-            @include button-medium;
+            @include mixins.primary-button;
+            @include mixins.button-medium;
 
             margin-top: 30px;
         }

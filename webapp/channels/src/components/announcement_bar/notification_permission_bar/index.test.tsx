@@ -51,7 +51,7 @@ describe('NotificationPermissionBar', () => {
         expect(container).toMatchSnapshot();
 
         expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
-        expect(screen.getByText('Enable notifications')).toBeInTheDocument();
+        expect(screen.getByText('Manage notification preferences')).toBeInTheDocument();
     });
 
     test('should call requestNotificationPermission and hide the bar when the button is clicked in NotificationPermissionNeverGrantedBar', async () => {
@@ -64,7 +64,7 @@ describe('NotificationPermissionBar', () => {
         expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
 
         await waitFor(async () => {
-            userEvent.click(screen.getByText('Enable notifications'));
+            userEvent.click(screen.getByText('Manage notification preferences'));
         });
 
         expect(utilsNotifications.requestNotificationPermission).toHaveBeenCalled();

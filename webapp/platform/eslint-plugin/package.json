@@ -30,5 +30,8 @@
     "eslint-plugin-react-hooks": {
       "optional": true
     }
+  },
+  "scripts": {
+    "clean": "rm -rf node_modules"
   }
 }

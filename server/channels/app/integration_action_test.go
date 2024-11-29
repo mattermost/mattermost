@@ -582,9 +582,11 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			Errors: map[string]string{"name1": "some error"},
 		}
 
-		b, _ := json.Marshal(resp)
+		b, err := json.Marshal(resp)
+		require.NoError(t, err)
 
-		w.Write(b)
+		_, err = w.Write(b)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 

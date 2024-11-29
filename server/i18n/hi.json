@@ -2276,10 +2276,6 @@
     "translation": "सभी टीमों में वेबहुक अपडेट करने में असमर्थ।"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "आने वाले वेबहुक के मल्टीपार्ट पेलोड को डिकोड नहीं कर सका।"
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "या तो trigger_words या channel_id सेट होना चाहिए।"
   },

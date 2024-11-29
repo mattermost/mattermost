@@ -6,10 +6,7 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
-
-/* eslint-disable no-only-tests/no-only-tests */
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 

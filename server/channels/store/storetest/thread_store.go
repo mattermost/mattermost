@@ -916,6 +916,13 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		ChannelId: gm1.Id,
 		UserId:    user1ID,
 		Message:   model.NewRandomString(10),
+		Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewPointer(model.PostPriorityUrgent),
+				RequestedAck:            model.NewPointer(false),
+				PersistentNotifications: model.NewPointer(false),
+			},
+		},
 	})
 	require.NoError(t, err)
 
@@ -1077,6 +1084,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				gm1post1,
 			}},
+			{"team1, user1, exclude direct", user1ID, team1.Id, model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post3,
+			}},
 		}
 
 		for _, testCase := range testCases {
@@ -1098,12 +1108,13 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			ExpectedThreads []*model.Post
 		}{
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
-				team1channel1post3,
+				team1channel1post3, gm1post1,
 			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
-				team1channel1post3,
+				team1channel1post3, gm1post1,
 			}},
-			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{gm1post1}},
+			{"team1, user1, exclude direct", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{team1channel1post3}},
 		}
 
 		for _, testCase := range testCases {
@@ -1183,6 +1194,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team2channel1post1, dm1post1, gm1post1,
 			}},
+			{"team2, user1, exclude direct", user1ID, team2.Id, model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team2channel1post1,
+			}},
 			{"team2, user1, unread", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true}, []*model.Post{
 				gm1post1, // (no unread in team2)
 			}},
@@ -1191,6 +1205,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			}},
 			{"team2, user1, unread + deleted", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}, []*model.Post{
 				team2channel1post2deleted, gm1post1,
+			}},
+			{"team2, user1, unread + deleted + exclude direct", user1ID, team2.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true, ExcludeDirect: true}, []*model.Post{
+				team2channel1post2deleted,
 			}},
 		}
 

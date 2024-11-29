@@ -959,7 +959,8 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 100, "")
 		require.NoError(t, err)
-		require.Len(t, channels, numInitialChannelsForTeam+2)
+		// Local admin should see private archived channels
+		require.Len(t, channels, numInitialChannelsForTeam+4)
 	})
 
 	channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 1, "")

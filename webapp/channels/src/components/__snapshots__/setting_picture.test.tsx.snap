@@ -376,7 +376,6 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             className="img-preview__image"
           >
             <div
-              alt="profile image preview"
               className="profile-img-preview"
               style={
                 Object {
@@ -626,7 +625,6 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             className="img-preview__image"
           >
             <div
-              alt="team image preview"
               className="team-img-preview"
               style={
                 Object {

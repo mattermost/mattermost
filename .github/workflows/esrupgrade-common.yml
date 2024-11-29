@@ -23,7 +23,7 @@ env:
   DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
 jobs:
   esr-upgrade-server:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Checkout mattermost project
@@ -94,7 +94,7 @@ jobs:
           name: upgraded-dump-server
           path: ${{ env.DUMP_SERVER_NAME }}.gz
   esr-upgrade-script:
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - name: Checkout mattermost project

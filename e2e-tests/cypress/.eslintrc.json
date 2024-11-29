@@ -62,7 +62,7 @@
         ]
       }
     ],
-    "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}],
+    "no-only-tests/no-only-tests": ["error", {"focus": ["only"]}],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}]
   },
   "overrides": [

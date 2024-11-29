@@ -318,7 +318,8 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an invalid token response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("invalid"))
+			_, err := w.Write([]byte("invalid"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -337,10 +338,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an invalid token type", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(&model.AccessResponse{
+			err := json.NewEncoder(w).Encode(&model.AccessResponse{
 				AccessToken: model.NewId(),
 				TokenType:   "",
 			})
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -358,10 +360,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an empty token response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(&model.AccessResponse{
+			err := json.NewEncoder(w).Encode(&model.AccessResponse{
 				AccessToken: "",
 				TokenType:   model.AccessTokenType,
 			})
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -379,10 +382,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an incorrect user endpoint", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(&model.AccessResponse{
+			err := json.NewEncoder(w).Encode(&model.AccessResponse{
 				AccessToken: model.NewId(),
 				TokenType:   model.AccessTokenType,
 			})
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -403,10 +407,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			switch r.URL.Path {
 			case "/token":
 				t.Log("hit token")
-				json.NewEncoder(w).Encode(&model.AccessResponse{
+				err := json.NewEncoder(w).Encode(&model.AccessResponse{
 					AccessToken: model.NewId(),
 					TokenType:   model.AccessTokenType,
 				})
+				require.NoError(t, err)
 			case "/user":
 				t.Log("hit user")
 				w.WriteHeader(http.StatusTeapot)
@@ -431,14 +436,16 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			switch r.URL.Path {
 			case "/token":
 				t.Log("hit token")
-				json.NewEncoder(w).Encode(&model.AccessResponse{
+				err := json.NewEncoder(w).Encode(&model.AccessResponse{
 					AccessToken: model.NewId(),
 					TokenType:   model.AccessTokenType,
 				})
+				require.NoError(t, err)
 			case "/user":
 				t.Log("hit user")
 				w.WriteHeader(http.StatusForbidden)
-				w.Write([]byte("Terms of Service"))
+				_, err := w.Write([]byte("Terms of Service"))
+				require.NoError(t, err)
 			}
 		}))
 		defer server.Close()
@@ -489,13 +496,15 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					switch r.URL.Path {
 					case "/token":
-						json.NewEncoder(w).Encode(&model.AccessResponse{
+						err := json.NewEncoder(w).Encode(&model.AccessResponse{
 							AccessToken: model.NewId(),
 							TokenType:   model.AccessTokenType,
 						})
+						require.NoError(t, err)
 					case "/user":
 						w.WriteHeader(http.StatusOK)
-						w.Write([]byte(userData))
+						_, err := w.Write([]byte(userData))
+						require.NoError(t, err)
 					}
 				}))
 				defer server.Close()

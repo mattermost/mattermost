@@ -919,6 +919,26 @@ func (_m *Store) Role() store.RoleStore {
 	return r0
 }
 
+// ScheduledPost provides a mock function with given fields:
+func (_m *Store) ScheduledPost() store.ScheduledPostStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScheduledPost")
+	}
+
+	var r0 store.ScheduledPostStore
+	if rf, ok := ret.Get(0).(func() store.ScheduledPostStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ScheduledPostStore)
+		}
+	}
+
+	return r0
+}
+
 // Scheme provides a mock function with given fields:
 func (_m *Store) Scheme() store.SchemeStore {
 	ret := _m.Called()

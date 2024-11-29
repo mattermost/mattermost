@@ -1,17 +1,15 @@
-@charset "UTF-8";
-
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .PostPriorityPicker {
     width: 324px;
 
     &__apply {
-        @include button-small;
-        @include primary-button;
+        @include mixins.button-small;
+        @include mixins.primary-button;
     }
 
     &__cancel {
-        @include button-small;
-        @include tertiary-button;
+        @include mixins.button-small;
+        @include mixins.tertiary-button;
     }
 }

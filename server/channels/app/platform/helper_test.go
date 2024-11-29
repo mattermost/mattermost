@@ -106,15 +106,6 @@ func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	options = append(options, StoreOverride(mockStore))
 	th := setupTestHelper(mockStore, false, false, tb, options...)
-	statusMock := mocks.StatusStore{}
-	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
-	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	emptyMockStore.On("Status").Return(&statusMock)
-	th.Service.Store = &emptyMockStore
 	return th
 }
 
@@ -168,6 +159,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		Context: request.TestContext(tb),
 		Service: ps,
 		Suite:   &mockSuite{},
+	}
+
+	if _, ok := dbStore.(*mocks.Store); ok {
+		statusMock := mocks.StatusStore{}
+		statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
+		statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
+		statusMock.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+		statusMock.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+		emptyMockStore := mocks.Store{}
+		emptyMockStore.On("Close").Return(nil)
+		emptyMockStore.On("Status").Return(&statusMock)
+		th.Service.Store = &emptyMockStore
 	}
 
 	// Share same configuration with app.TestHelper

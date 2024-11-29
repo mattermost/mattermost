@@ -90,8 +90,14 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		plugin.Seek(0, 0)
-		signature.Seek(0, 0)
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			mlog.Warn("Unable to seek in public key reader for ", mlog.String("filename", pk))
+			continue
+		}
+		if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			mlog.Warn("Unable to seek in signature for public key ", mlog.String("filename", pk))
+			continue
+		}
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
 			return nil
 		}

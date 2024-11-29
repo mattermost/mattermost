@@ -10,7 +10,7 @@ import type {MessageExportSettings as MessageExportSettingsClass} from 'componen
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import type {BaseProps} from './admin_settings';
+import type {BaseProps} from './old_admin_settings';
 
 describe('components/MessageExportSettings', () => {
     test('should match snapshot, disabled, actiance', () => {

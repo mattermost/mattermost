@@ -4408,10 +4408,6 @@
     "translation": "Nem frissíthet webhookokat csapatok között."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nem sikerült dekódolni a bejövő webhook többrészes adatát."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Vagy trigger_words, vagy channel_id értéket kell adni."
   },

@@ -433,10 +433,7 @@ for (const key of emojiFilePositions.keys()) {
     cssEmojis.push(`.emoji-${key} { background-position: ${emojiFilePositions.get(key)} }`);
 }
 
-const cssRules = `
-@charset "UTF-8";
-
-.emojisprite-preview {
+const cssRules = `.emojisprite-preview {
     width: ${EMOJI_SIZE_PADDED}px;
     max-width: none;
     height: ${EMOJI_SIZE_PADDED}px;

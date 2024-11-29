@@ -5,6 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
 
@@ -372,6 +373,21 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
         ]));
 
         return {data: profiles};
+    };
+}
+
+export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.profilesInChannelLoader) {
+            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
+                maxBatchSize: 1,
+                wait: missingProfilesWait,
+            });
+        }
+
+        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        return {};
     };
 }
 

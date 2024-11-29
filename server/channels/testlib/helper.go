@@ -73,10 +73,16 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		Logger: logger,
 	}
 
-	mlog.NewLogger()
+	_, err := mlog.NewLogger()
+	if err != nil {
+		log.Fatal(err)
+	}
 	flag.Parse()
 
-	utils.TranslationsPreInit()
+	err = utils.TranslationsPreInit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if options != nil {
 		if options.EnableStore && !testing.Short() {
@@ -92,7 +98,13 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 }
 
 func (h *MainHelper) Main(m *testing.M) {
-	defer h.Logger.Shutdown()
+	defer func() {
+		err := h.Logger.Shutdown()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()
 		if err != nil {

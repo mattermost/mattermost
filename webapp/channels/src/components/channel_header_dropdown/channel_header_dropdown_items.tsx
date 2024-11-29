@@ -105,7 +105,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
         });
 
         return (
-            <React.Fragment>
+            <>
                 <MenuItemToggleInfo
                     show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
                     channel={channel}
@@ -344,7 +344,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
-            </React.Fragment>
+            </>
         );
     }
 }

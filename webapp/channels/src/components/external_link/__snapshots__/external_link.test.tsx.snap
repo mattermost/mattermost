@@ -18,7 +18,7 @@ exports[`components/external_link should match snapshot 1`] = `
     location="test"
   >
     <a
-      href="https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid="
+      href="https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid="
       location="test"
       onClick={[Function]}
       rel="noopener noreferrer"

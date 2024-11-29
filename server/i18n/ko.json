@@ -2288,10 +2288,6 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "팀들간의 웹훅을 업데이트 할 수 없습니다."
   },

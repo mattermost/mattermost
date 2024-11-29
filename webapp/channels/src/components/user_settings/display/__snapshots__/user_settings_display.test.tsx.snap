@@ -3552,7 +3552,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         allowCustomThemes={true}
         areAllSectionsInactive={false}
         selected={true}
-        setEnforceFocus={[MockFunction]}
         setRequireConfirm={[MockFunction]}
         updateSection={[Function]}
       />

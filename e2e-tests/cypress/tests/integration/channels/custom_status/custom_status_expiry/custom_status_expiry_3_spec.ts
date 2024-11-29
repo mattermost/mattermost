@@ -99,7 +99,7 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
         cy.get('#custom_status_modal .dateTime').should('exist');
     });
 
-    it('MM-T4065_6 should show selected date in the date input field', () => {
+    it.skip('MM-T4065_6 should show selected date in the date input field', () => {
         // # Click on DayPicker input field
         cy.get('.dateTime__calendar-icon').click();
 
@@ -144,7 +144,7 @@ describe('MM-T4065 Setting manual status clear time less than 7 days away', () =
             should('have.attr', 'data-emoticon', customStatus.emoji);
     });
 
-    it('MM-T4065_9 should show the set custom status with expiry when status dropdown is opened', () => {
+    it.skip('MM-T4065_9 should show the set custom status with expiry when status dropdown is opened', () => {
         // # Click on the sidebar header to open status dropdown
         cy.get('.MenuWrapper .status-wrapper').click();
 

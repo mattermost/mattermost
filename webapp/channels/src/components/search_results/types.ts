@@ -29,6 +29,8 @@ export type OwnProps = {
     setSearchType: (searchType: SearchType) => void;
     searchFilterType: SearchFilterType;
     setSearchFilterType: (filterType: SearchFilterType) => void;
+    updateSearchTeam: (teamId: string) => void;
+    crossTeamSearchEnabled: boolean;
 };
 
 export type StateProps = {

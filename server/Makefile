@@ -144,7 +144,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
@@ -319,15 +319,15 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 store-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir channels/store --name ".*Store" --output channels/store/storetest/mocks --note 'Regenerate this file using `make store-mocks`.'
+	$(GOBIN)/mockery --config channels/store/.mockery.yaml
 
 cache-mocks:
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir platform/services/cache --all --output platform/services/cache/mocks --note 'Regenerate this file using `make cache-mocks`.'
+	$(GOBIN)/mockery --config platform/services/cache/.mockery.yaml
 
 telemetry-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir platform/services/telemetry --all --output platform/services/telemetry/mocks --note 'Regenerate this file using `make telemetry-mocks`.'
+	$(GOBIN)/mockery --config platform/services/telemetry/.mockery.yaml
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./channels/store
@@ -342,7 +342,7 @@ new-migration: ## Creates a new migration. Run with make new-migration name=<>
 
 filestore-mocks: ## Creates mock files.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir platform/shared/filestore --all --output platform/shared/filestore/mocks --note 'Regenerate this file using `make filestore-mocks`.'
+	$(GOBIN)/mockery --config platform/shared/filestore/.mockery.yaml
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
@@ -350,34 +350,31 @@ ldap-mocks: ## Creates mock files for ldap.
 
 plugin-mocks: ## Creates mock files for plugins.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir ./public/plugin --name API --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ./public/plugin --name Hooks --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOBIN)/mockery --dir ./public/plugin --name Driver --output ./public/plugin/plugintest --outpkg plugintest --case underscore --note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery --config public/plugin/.mockery.yaml
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir einterfaces --all --output einterfaces/mocks --note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GOBIN)/mockery --config einterfaces/.mockery.yaml
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir platform/services/searchengine --all --output platform/services/searchengine/mocks --note 'Regenerate this file using `make searchengine-mocks`.'
+	$(GOBIN)/mockery --config platform/services/searchengine/.mockery.yaml
 
 sharedchannel-mocks: ## Creates mock files for shared channels.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=ServerIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
-	$(GOBIN)/mockery --dir=./platform/services/sharedchannel --name=AppIface --output=./platform/services/sharedchannel --inpackage --outpkg=sharedchannel --testonly --note 'Regenerate this file using `make sharedchannel-mocks`.'
+	$(GOBIN)/mockery --config platform/services/sharedchannel/.mockery.yaml
 
 misc-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir channels/utils --name LicenseValidatorIface --output channels/utils/mocks --note 'Regenerate this file using `make misc-mocks`.'
+	$(GOBIN)/mockery --config channels/utils/.mockery.yaml
 
 email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir channels/app/email --name ServiceInterface --output channels/app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
+	$(GOBIN)/mockery --config channels/app/email/.mockery.yaml
 
 platform-mocks: ## Creates mocks for platform interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.42.2
-	$(GOBIN)/mockery --dir channels/app/platform --name SuiteIFace --output channels/app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
+	$(GOBIN)/mockery --config channels/app/platform/.mockery.yaml
 
 mmctl-mocks: ## Creates mocks for mmctl
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0

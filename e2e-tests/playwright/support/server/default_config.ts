@@ -319,6 +319,7 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
+        AmazonS3StorageClass: '',
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -335,6 +336,7 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3RequestTimeoutMilliseconds: 30000,
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
+        ExportAmazonS3StorageClass: '',
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -507,6 +509,7 @@ const defaultServerConfig: AdminConfig = {
         DefaultServerLocale: 'en',
         DefaultClientLocale: 'en',
         AvailableLocales: '',
+        EnableExperimentalLocales: false,
     },
     SamlSettings: {
         Enable: false,

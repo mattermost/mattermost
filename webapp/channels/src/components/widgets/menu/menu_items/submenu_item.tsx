@@ -159,10 +159,10 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         let textProp = text;
         if (icon) {
             textProp = (
-                <React.Fragment>
+                <>
                     <span className={classNames(['icon', {'sorting-menu-icon': styleSelectableItem}])}>{icon}</span>
                     {textProp}
-                </React.Fragment>
+                </>
             );
         }
 

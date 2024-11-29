@@ -7,7 +7,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="ThreadItem__author"
     >
@@ -35,7 +35,7 @@ exports[`components/threading/global_threads/thread_item should report total num
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >
@@ -123,7 +123,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="indicator"
     >
@@ -160,7 +160,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >
@@ -248,7 +248,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="indicator"
     >
@@ -283,7 +283,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >

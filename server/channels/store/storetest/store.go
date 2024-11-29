@@ -65,6 +65,7 @@ type Store struct {
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
+	ScheduledPostStore              mocks.ScheduledPostStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -117,6 +118,7 @@ func (s *Store) Group() store.GroupStore                     { return &s.GroupSt
 func (s *Store) LinkMetadata() store.LinkMetadataStore       { return &s.LinkMetadataStore }
 func (s *Store) SharedChannel() store.SharedChannelStore     { return &s.SharedChannelStore }
 func (s *Store) PostPriority() store.PostPriorityStore       { return &s.PostPriorityStore }
+func (s *Store) ScheduledPost() store.ScheduledPostStore     { return &s.ScheduledPostStore }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
@@ -188,5 +190,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostPersistentNotificationStore,
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
+		&s.ScheduledPostStore,
 	)
 }

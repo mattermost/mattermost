@@ -46,7 +46,10 @@ func (ps *PlatformService) updateFeatureFlagValuesFromManagement() {
 	if oldFlags != newFlags {
 		ps.logger.Debug("Feature flag change detected, updating config")
 		*newCfg.FeatureFlags = newFlags
-		ps.SaveConfig(newCfg, true)
+		_, _, appErr := ps.SaveConfig(newCfg, true)
+		if appErr != nil {
+			ps.logger.Error("Failed to save config with updated feature flags", mlog.Err(appErr))
+		}
 	}
 }
 

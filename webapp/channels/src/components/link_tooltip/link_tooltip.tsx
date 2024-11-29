@@ -110,7 +110,7 @@ export default class LinkTooltip extends React.PureComponent<Props, State> {
             'data-channel-mention': attributes['data-channel-mention'],
         };
         return (
-            <React.Fragment>
+            <>
                 {ReactDOM.createPortal(
                     <div
                         style={tooltipContainerStyles}
@@ -132,7 +132,7 @@ export default class LinkTooltip extends React.PureComponent<Props, State> {
                 >
                     {children}
                 </span>
-            </React.Fragment>
+            </>
         );
     }
 }

@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .style--none {
     padding: 0;
@@ -313,22 +313,22 @@ button {
 
     &.btn-danger {
         background: var(--error-text);
-        color: $white;
+        color: variables.$white;
 
         .app__body & {
-            color: $white;
+            color: variables.$white;
 
             &:hover,
             &:focus,
             &:active {
-                color: $white;
+                color: variables.$white;
             }
         }
 
         &:hover,
         &:focus,
         &:active {
-            color: $white;
+            color: variables.$white;
         }
     }
 
@@ -340,8 +340,8 @@ button {
 
     &.btn-inactive {
         border-color: transparent;
-        background: $light-gray;
-        color: $white;
+        background: variables.$light-gray;
+        color: variables.$white;
     }
 
     .fa {
@@ -355,8 +355,4 @@ button {
             margin-left: 6px;
         }
     }
-}
-
-%btn-transition {
-    transition: all 0.15s ease;
 }

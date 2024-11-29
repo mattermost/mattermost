@@ -1,0 +1,79 @@
+.date-time-picker-modal {
+    .modal-body {
+        overflow: visible;
+    }
+
+    .dateTime__calendar-input {
+        width: 100%;
+        font-size: 14px;
+
+        &:focus-within {
+            box-shadow: 0;
+        }
+
+        .Input_wrapper {
+            padding: 0 10px;
+        }
+
+        button.dateTime__calendar-icon {
+            margin: 0 8px 0 0;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+
+        input#customStatus__calendar-input {
+            &.form-control {
+                height: auto;
+                padding: 0;
+                border: 0;
+                font-weight: 400;
+
+                &[readonly] {
+                    background: transparent;
+                }
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    .dateTime__time-menu .dateTime__input, .dateTime__calendar-input {
+        height: 40px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        &:hover, &.isOpen {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: 0 0 0 2px var(--button-bg);
+            cursor: pointer;
+        }
+
+        .Input_wrapper {
+            button:hover {
+                background: none;
+            }
+        }
+    }
+
+    .dateTime__time-menu {
+        &.MenuWrapper--open {
+            .dateTime__input {
+                box-shadow: 0 0 0 2px var(--button-bg);
+                cursor: pointer;
+            }
+        }
+
+        .dateTime__time-icon {
+            pointer-events: none;
+        }
+    }
+
+    .dateTime {
+        width: 100%;
+        margin: unset;
+
+        .dateTime__input {
+            width: 100%;
+        }
+    }
+}

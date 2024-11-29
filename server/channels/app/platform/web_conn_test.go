@@ -22,7 +22,7 @@ import (
 type hookRunner struct {
 }
 
-func (h *hookRunner) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+func (h *hookRunner) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, _ *model.Manifest) bool, hookId int) {
 
 }
 func (h *hookRunner) HooksForPlugin(id string) (plugin.Hooks, error) {

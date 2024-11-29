@@ -1,0 +1,203 @@
+  /api/v4/posts/schedule:
+    post:
+      tags:
+        - scheduled_post
+      summary: Creates a scheduled post
+      description: >
+        Creates a scheduled post
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel the post is being created in.
+
+        __Minimum server version__: 10.3
+      operationId: CreateScheduledPost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - message
+                - scheduled_at
+              properties:
+                scheduled_at:
+                  type: integer
+                  description: UNIX timestamp in milliseconds of the time when the scheduled post should be sent
+                channel_id:
+                  type: string
+                  description: The channel ID to post in
+                message:
+                  type: string
+                  description: The message contents, can be formatted with Markdown
+                root_id:
+                  type: string
+                  description: The post ID to comment on
+                file_ids:
+                  type: array
+                  description: A list of file IDs to associate with the post. Note that
+                    posts are limited to 5 files maximum. Please use additional
+                    posts for more files.
+                props:
+                  description: A general JSON property bag to attach to the post
+                  type: object
+      responses:
+        "200":
+          description: Created scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/posts/scheduled/team/{team_id}:
+    get:
+      tags:
+        - scheduled_post
+      summary: Gets all scheduled posts for a user for the specified team..
+      description: >
+        Get user-team scheduled posts
+
+        ##### Permissions
+
+        Must have `view_team` permission for the team the scheduled posts are being fetched for.
+
+        __Minimum server version__: 10.3
+      operationId: GetUserScheduledPosts
+      parameters:
+        - name: includeDirectChannels
+          in: query
+          description: Whether to include scheduled posts from DMs an GMs or not. Default is false
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Created scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/posts/schedule/{scheduled_post_id}:
+    put:
+      tags:
+        - scheduled_post
+      summary: Update a scheduled post
+      description: >
+        Updates a scheduled post
+
+        ##### Permissions
+
+        Must have `create_post` permission for the channel where the scheduled post belongs to.
+
+        __Minimum server version__: 10.3
+      operationId: UpdateScheduledPost
+      parameters:
+        - name: scheduled_post_id
+          in: path
+          description: ID of the scheduled post to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - channel_id
+                - user_id
+                - message
+                - scheduled_at
+              properties:
+                id:
+                  description: ID of the scheduled post to update
+                  type: string
+                channel_id:
+                  type: string
+                  description: The channel ID to post in
+                user_id:
+                  type: string
+                  description: The current user ID
+                scheduled_at:
+                  type: integer
+                  description: UNIX timestamp in milliseconds of the time when the scheduled post should be sent
+                message:
+                  type: string
+                  description: The message contents, can be formatted with Markdown
+      responses:
+        "200":
+          description: Updated scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - scheduled_post
+      summary: Delete a scheduled post
+      description: >
+        Delete a scheduled post
+
+        __Minimum server version__: 10.3
+      operationId: DeleteScheduledPost
+      parameters:
+        - name: scheduled_post_id
+          in: path
+          description: ID of the scheduled post to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted scheduled post
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/ScheduledPost"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

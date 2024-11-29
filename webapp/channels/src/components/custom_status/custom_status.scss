@@ -328,8 +328,13 @@ span.emoticon[style]:hover {
 
         &-icon {
             position: absolute;
-            top: 11.3px;
+            top: 9.5px;
             left: 15px;
+        }
+
+        .dateTime__input {
+            display: flex;
+            align-items: center;
         }
     }
 

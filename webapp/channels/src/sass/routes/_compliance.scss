@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 .compliance-panel__table,
 .audit-panel__table,
@@ -8,9 +8,9 @@
     min-height: 100px;
     max-height: 70vh;
     padding: 5px;
-    border: 1px solid $border-gray;
+    border: 1px solid variables.$border-gray;
     margin-top: 10px;
-    background-color: $white;
+    background-color: variables.$white;
 }
 
 .compliance-panel,

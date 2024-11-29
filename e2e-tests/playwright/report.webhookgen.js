@@ -13,7 +13,7 @@ const summaryFile = 'results/summary.json';
 const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
 const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
 const passRate = summary.passed / (summary.passed + summary.failed);
-const totalSpecs = summary.passed + summary.failed + summary.failed_expected;
+const totalSpecs = summary.passed + summary.failed;
 const playwrightVersion = results.config.version;
 const playwrightDuration = dayjs.duration(results.stats.duration, 'seconds').format('HH:mm:ss');
 

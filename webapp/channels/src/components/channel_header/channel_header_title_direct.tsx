@@ -25,7 +25,7 @@ const ChannelHeaderTitleDirect = ({
     const displayName = displayUsername(dmUser, teammateNameDisplaySetting);
 
     return (
-        <React.Fragment>
+        <>
             {currentUser.id !== dmUser?.id && displayName + ' '}
             {currentUser.id === dmUser?.id &&
                 <FormattedMessage
@@ -34,7 +34,7 @@ const ChannelHeaderTitleDirect = ({
                     values={{displayName}}
                 />}
             {isGuest(dmUser?.roles ?? '') && <GuestTag/>}
-        </React.Fragment>
+        </>
     );
 };
 

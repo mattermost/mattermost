@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .channel-header {
     position: relative;
@@ -8,7 +10,7 @@
     padding: 12px;
     border-radius: 12px 12px 0 0;
     border-bottom: var(--border-default);
-    background: v(center-channel-bg);
+    background: functions.v(center-channel-bg);
     font-size: 14px;
 
     #channelHeaderDropdownButton {
@@ -26,15 +28,15 @@
         margin-right: 2px;
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
         }
 
         &.active {
-            background: rgba(v(button-bg-rgb), 0.08);
+            background: rgba(functions.v(button-bg-rgb), 0.08);
 
             .heading,
             .header-dropdown-chevron-icon {
-                color: v(button-bg);
+                color: functions.v(button-bg);
             }
         }
 
@@ -65,7 +67,7 @@
         }
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
 
             i {
                 opacity: 0.8;
@@ -74,7 +76,7 @@
 
         &.inactive {
             .icon {
-                color: v(center-channel-color);
+                color: functions.v(center-channel-color);
             }
         }
 
@@ -699,7 +701,7 @@
     }
 
     .team__header {
-        @include pie-clearfix;
+        @include mixins.pie-clearfix;
 
         position: relative;
         display: flex;
@@ -717,7 +719,7 @@
             height: 100%;
             background: none;
             content: "";
-            transition: all $transition-quick ease-in-out;
+            transition: all variables.$transition-quick ease-in-out;
         }
 
         &:hover {
@@ -807,7 +809,7 @@
                 height: 100%;
                 padding: 10px;
                 background: none;
-                color: $white;
+                color: variables.$white;
                 font-size: 1em;
                 line-height: 1.8;
                 opacity: 0.8;
@@ -833,7 +835,7 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 36px;
-                fill: $white;
+                fill: variables.$white;
                 float: right;
                 line-height: 36px;
                 text-align: center;
@@ -881,7 +883,7 @@
             color: rgba(var(--sidebar-header-text-color-rgb), 0.8);
             font-size: 14px;
             font-weight: 400;
-            transition: all $transition-quick ease-in-out;
+            transition: all variables.$transition-quick ease-in-out;
         }
 
         .custom-status {

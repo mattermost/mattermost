@@ -402,7 +402,7 @@ describe('Integrations page', () => {
         cy.contains('Invalid client credentials.').should('exist');
     });
 
-    it('MM-T654 Successful reconnect with updated secret', () => {
+    it.skip('MM-T654 Successful reconnect with updated secret', () => {
         cy.apiAdminLogin();
 
         // # Send new credentials

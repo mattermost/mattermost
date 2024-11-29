@@ -63,6 +63,7 @@ type FileBackendSettings struct {
 	AmazonS3RequestTimeoutMilliseconds int64
 	AmazonS3PresignExpiresSeconds      int64
 	AmazonS3UploadPartSizeBytes        int64
+	AmazonS3StorageClass               string
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -87,6 +88,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.AmazonS3RequestTimeoutMilliseconds,
 		SkipVerify:                         skipVerify,
 		AmazonS3UploadPartSizeBytes:        *fileSettings.AmazonS3UploadPartSizeBytes,
+		AmazonS3StorageClass:               *fileSettings.AmazonS3StorageClass,
 	}
 }
 
@@ -112,6 +114,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 		AmazonS3RequestTimeoutMilliseconds: *fileSettings.ExportAmazonS3RequestTimeoutMilliseconds,
 		AmazonS3PresignExpiresSeconds:      *fileSettings.ExportAmazonS3PresignExpiresSeconds,
 		AmazonS3UploadPartSizeBytes:        *fileSettings.ExportAmazonS3UploadPartSizeBytes,
+		AmazonS3StorageClass:               *fileSettings.ExportAmazonS3StorageClass,
 		SkipVerify:                         skipVerify,
 	}
 }

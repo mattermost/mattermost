@@ -1013,7 +1013,6 @@
   "create_post.error_message": "Viestisi on liian pitkä. Kirjainmerkkejä: {length}/{limit}",
   "create_post.fileProcessing": "Prosessoidaan...",
   "create_post.read_only": "Tämä kanava on vain-luku-tilassa. Vain jäsenet joilla on oikeus voivat kirjoittaa tänne.",
-  "create_post.send_message": "Lähetä viesti",
   "create_post.shortcutsNotSupported": "Näppäimistöoikoteitä ei tueta laitteellasi.",
   "create_post.write": "Kirjoita kanavalle {channelDisplayName}",
   "create_team.display_name.charLength": "Nimen on oltava vähintään {min} ja enintään {max} merkkiä. Voit lisätä pidemmän kuvauksen tiimille myöhemmin.",

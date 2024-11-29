@@ -1,16 +1,16 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 @use 'sass:color';
 
 a {
-    color: $primary-color;
+    color: variables.$primary-color;
     cursor: pointer;
     text-decoration: none;
     word-break: break-word;
 
     &:hover,
     &:focus {
-        color: $primary-color--hover;
+        color: variables.$primary-color--hover;
         outline: 0;
     }
 }
@@ -31,10 +31,10 @@ button.style--link {
 }
 
 .text-danger {
-    color: color.adjust($red, $saturation: -20%);
+    color: color.adjust(variables.$red, $saturation: -20%);
 
     &:hover,
     &:focus {
-        color: color.adjust($red, $saturation: -20%);
+        color: color.adjust(variables.$red, $saturation: -20%);
     }
 }

@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .toast {
     position: absolute;
@@ -92,7 +92,7 @@
 }
 
 .toast__red {
-    background-color: $red;
+    background-color: variables.$red;
 }
 
 @media screen and (max-width: 768px) {

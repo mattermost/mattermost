@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/functions";
 
 .app__body {
     .settings-modal {
@@ -41,10 +41,10 @@
                 &.active {
                     button {
                         background: rgba(var(--button-bg-rgb), 0.08);
-                        color: v(button-bg);
+                        color: functions.v(button-bg);
 
                         i {
-                            color: v(button-bg);
+                            color: functions.v(button-bg);
                         }
                     }
                 }

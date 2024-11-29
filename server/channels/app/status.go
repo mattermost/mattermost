@@ -98,13 +98,15 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return err
 	}
 
-	user.SetCustomStatus(cs)
+	if err := user.SetCustomStatus(cs); err != nil {
+		c.Logger().Error("Failed to set custom status", mlog.String("userID", userID), mlog.Err(err))
+	}
 	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
 		return updateErr
 	}
 
-	if err := a.addRecentCustomStatus(c, userID, cs); err != nil {
+	if err = a.addRecentCustomStatus(c, userID, cs); err != nil {
 		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 

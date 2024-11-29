@@ -3496,10 +3496,6 @@
     "translation": "No es pot actualitzar el «webhook» a través d'equips"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "No s'ha pogut codificar la càrrega multipart al «webhook» entrant."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Cal configurar les «trigger_words» o el «channel_id»"
   },

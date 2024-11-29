@@ -1,6 +1,6 @@
-@import 'utils/variables';
-@import 'utils/mixins';
-@import 'mixins';
+@use 'utils/variables';
+@use 'utils/mixins' as utils-mixins;
+@use 'mixins';
 
 .PreparingWorkspace {
     width: 100vw;
@@ -38,7 +38,7 @@
         padding: 10px;
         border-radius: 4px;
         background-color: var(--dnd-indicator);
-        box-shadow: $elevation-3;
+        box-shadow: variables.$elevation-3;
         color: var(--center-channel-bg);
         font-size: 14px;
         font-weight: 600;
@@ -55,15 +55,15 @@
     }
 
     .tertiary-button {
-        @include tertiary-button;
-        @include button-medium;
+        @include utils-mixins.tertiary-button;
+        @include utils-mixins.button-medium;
 
         margin-left: 16px;
     }
 
     .primary-button {
-        @include primary-button;
-        @include button-medium;
+        @include utils-mixins.primary-button;
+        @include utils-mixins.button-medium;
 
         box-sizing: border-box;
         border: 2px solid var(--button-bg);
@@ -75,7 +75,7 @@
     }
 
     .link-style {
-        @include link;
+        @include utils-mixins.link;
 
         background: transparent;
         font-size: 14px;
@@ -95,7 +95,7 @@
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
 
-        @include sideIllustrationKeyframe(invitation, -651, 0);
+        @include mixins.sideIllustrationKeyframe(invitation, -651, 0);
 
         &.enter {
             animation-name: invitationSlideInRight;
@@ -138,7 +138,7 @@
 
 @media screen and (min-width: 1200px) and (max-width: 1500px) {
     .PreparingWorkspace__invite-members-illustration {
-        @include sideIllustrationKeyframe(invitation, -651, -200);
+        @include mixins.sideIllustrationKeyframe(invitation, -651, -200);
 
         &.enter {
             animation-name: invitationSlideInRight;

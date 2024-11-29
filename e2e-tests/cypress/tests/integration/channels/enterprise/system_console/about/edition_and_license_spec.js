@@ -13,7 +13,7 @@
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
 
-import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.js';
+import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
 
 describe('System console', () => {
     const sysadmin = getAdminAccount();

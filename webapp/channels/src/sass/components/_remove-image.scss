@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
 
 .remove-image {
     position: relative;
@@ -12,9 +13,9 @@
     height: 128px;
     align-items: center;
     justify-content: center;
-    border: 1px solid alpha-color($black, 0.15);
+    border: 1px solid functions.alpha-color(variables.$black, 0.15);
     border-radius: 4px;
-    background: $white;
+    background: variables.$white;
 
     img {
         max-width: 100%;
@@ -33,12 +34,12 @@
     justify-content: center;
     border: none;
     border-radius: 40px;
-    background: alpha-color($black, 0.8);
+    background: functions.alpha-color(variables.$black, 0.8);
     color: white;
     font-size: 20px;
 
     &:hover {
-        background: $black;
+        background: variables.$black;
     }
 
     span {

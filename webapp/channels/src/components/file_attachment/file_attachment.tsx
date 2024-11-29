@@ -29,7 +29,7 @@ import FilenameOverlay from './filename_overlay';
 
 import type {PropsFromRedux} from './index';
 
-interface Props extends PropsFromRedux {
+type Props = PropsFromRedux & {
 
     /*
     * File detailed information
@@ -52,7 +52,7 @@ interface Props extends PropsFromRedux {
     compactDisplay?: boolean;
     disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
-}
+};
 
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);

@@ -151,7 +151,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 return this.getCreateLabel((user as EmailInvite).value);
             }
             return (
-                <React.Fragment>
+                <>
                     <Avatar
                         size='lg'
                         username={(user as UserProfile).username}
@@ -160,21 +160,21 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                     {this.renderUserName(user as UserProfile)}
                     {botBadge}
                     {guestBadge}
-                </React.Fragment>
+                </>
             );
         }
 
         if ((user as EmailInvite).value && isEmail((user as EmailInvite).value)) {
             return (
-                <React.Fragment>
+                <>
                     <MailIcon className='mail-icon'/>
                     <span>{(user as EmailInvite).value}</span>
-                </React.Fragment>
+                </>
             );
         }
 
         return (
-            <React.Fragment>
+            <>
                 <Avatar
                     size='sm'
                     username={(user as UserProfile).username}
@@ -183,7 +183,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 {getDisplayName(user as UserProfile)}
                 {botBadge}
                 {guestBadge}
-            </React.Fragment>
+            </>
         );
     };
 
@@ -203,7 +203,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     };
 
     getCreateLabel = (value: string) => (
-        <React.Fragment>
+        <>
             <MailPlusIcon className='mail-plus-icon'/>
             <FormattedMarkdownMessage
                 key='widgets.users_emails_input.valid_email'
@@ -211,7 +211,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
                 values={{email: value}}
                 disableLinks={true}
             />
-        </React.Fragment>
+        </>
     );
 
     Input = (props: InputProps) => {

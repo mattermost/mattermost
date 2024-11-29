@@ -88,6 +88,14 @@ func desanitize(actual, target *model.Config) {
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
+
+	for id, settings := range target.PluginSettings.Plugins {
+		for k, v := range settings {
+			if v == model.FakeSetting {
+				settings[k] = actual.PluginSettings.Plugins[id][k]
+			}
+		}
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration.

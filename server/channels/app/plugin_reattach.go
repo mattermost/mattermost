@@ -20,7 +20,10 @@ func (ch *Channels) ReattachPlugin(manifest *model.Manifest, pluginReattachConfi
 		return model.NewAppError("ReattachPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ch.DetachPlugin(manifest.Id)
+	appErr := ch.DetachPlugin(manifest.Id)
+	if appErr != nil {
+		return appErr
+	}
 
 	// Reattach to the plugin
 	if err := pluginsEnvironment.Reattach(manifest, pluginReattachConfig); err != nil {

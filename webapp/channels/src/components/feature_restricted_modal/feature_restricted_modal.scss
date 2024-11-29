@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .FeatureRestrictedModal {
     &__description {
@@ -19,7 +19,7 @@
         line-height: 16px;
 
         a {
-            @include link;
+            @include mixins.link;
         }
     }
 
@@ -29,20 +29,20 @@
         padding: 24px 0;
 
         .button-plans {
-            @include tertiary-button;
-            @include button-medium;
+            @include mixins.tertiary-button;
+            @include mixins.button-medium;
         }
 
         .button-trial {
-            @include primary-button;
-            @include button-medium;
+            @include mixins.primary-button;
+            @include mixins.button-medium;
         }
 
         &.single {
             justify-content: flex-end;
 
             .button-plans {
-                @include primary-button;
+                @include mixins.primary-button;
             }
         }
     }

@@ -10,6 +10,7 @@ import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import InfoToast from 'components/info_toast/info_toast';
@@ -131,7 +132,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     const profileSrc = imageURLForUser(post.user_id);
 
-    const overwriteName = post.props ? post.props.override_username : '';
+    const overwriteName = ensureString(post.props?.override_username);
     const postHeader = (
         <div className='edit-post-history__header'>
             <span className='profile-icon'>

@@ -77,7 +77,9 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
-	loginAttemptsMut sync.Mutex
+	scheduledPostMut  sync.Mutex
+	scheduledPostTask *model.ScheduledTask
+	loginAttemptsMut  sync.Mutex
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -217,7 +219,7 @@ func (ch *Channels) RemoveConfigListener(id string) {
 	ch.cfgSvc.RemoveConfigListener(id)
 }
 
-func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifest *model.Manifest) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}

@@ -370,12 +370,13 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 	if groupSyncable.Type == model.GroupSyncableTypeChannel {
 		channel, nErr := a.Srv().Store().Channel().Get(groupSyncable.SyncableId, true)
 		if nErr != nil {
+			errCtx := map[string]any{"channel_id": groupSyncable.SyncableId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 

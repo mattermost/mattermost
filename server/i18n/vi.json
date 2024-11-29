@@ -3846,10 +3846,6 @@
     "translation": "Giấy phép của bạn không hỗ trợ Elaticsearch."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Không thể giải mã gói dữ liệu nhiều phần của webhook sắp tới."
-  },
-  {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "Token MFA không hợp lệ."
   },

@@ -277,7 +277,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, rctx request.CTX, args *model.
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
 
-		CreateTestEnvironmentInTeam(
+		_, err = CreateTestEnvironmentInTeam(
 			a,
 			rctx,
 			client,
@@ -286,6 +286,9 @@ func (*LoadTestProvider) SetupCommand(a *app.App, rctx request.CTX, args *model.
 			utils.Range{Begin: numUsers, End: numUsers},
 			utils.Range{Begin: numPosts, End: numPosts},
 			doFuzz)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
 	}
 
 	return &model.CommandResponse{Text: "Created environment", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -474,8 +477,9 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 	}
 
 	var usernames []string
+	var profileUsers []*model.User
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
+	if profileUsers, err = a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -494,7 +498,10 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 	}
 	numPosts := utils.RandIntFromRange(rng)
 	for i := 0; i < numPosts; i++ {
-		testPoster.CreateRandomPostNested(c, rpost.Id)
+		_, err = testPoster.CreateRandomPostNested(c, rpost.Id)
+		if err != nil {
+			return &model.CommandResponse{Text: "Failed to create nested post", ResponseType: model.CommandResponseTypeEphemeral}, err
+		}
 	}
 
 	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -636,7 +643,10 @@ func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.Comma
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 	defer func() {
-		io.Copy(io.Discard, r.Body)
+		_, err := io.Copy(io.Discard, r.Body)
+		if err != nil {
+			c.Logger().Warn("Error discarding request body", mlog.Err(err))
+		}
 		r.Body.Close()
 	}()
 
@@ -694,7 +704,10 @@ func (*LoadTestProvider) JSONCommand(a *app.App, c request.CTX, args *model.Comm
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
 	}
 	defer func() {
-		io.Copy(io.Discard, r.Body)
+		_, err := io.Copy(io.Discard, r.Body)
+		if err != nil {
+			c.Logger().Warn("Error discarding request body", mlog.Err(err))
+		}
 		r.Body.Close()
 	}()
 

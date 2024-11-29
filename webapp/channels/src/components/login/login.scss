@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .login-body {
     display: flex;
@@ -101,7 +101,7 @@
             box-shadow: var(--elevation-5);
 
             &.with-error {
-                @include shake-horizontally;
+                @include mixins.shake-horizontally;
             }
 
             .login-body-card-content {
@@ -144,13 +144,13 @@
                         margin-top: 17px;
 
                         a {
-                            @include link;
+                            @include mixins.link;
                         }
                     }
 
                     .login-body-card-form-button-submit {
-                        @include primary-button;
-                        @include button-large;
+                        @include mixins.primary-button;
+                        @include mixins.button-large;
 
                         width: 100%;
                         margin-top: 30px;

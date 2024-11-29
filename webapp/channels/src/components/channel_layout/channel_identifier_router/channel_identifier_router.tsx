@@ -20,13 +20,13 @@ export interface Match {
 
 export type MatchAndHistory = Pick<Props, 'match' | 'history'>
 
-interface Props {
+type Props = {
     match: Match;
     actions: {
         onChannelByIdentifierEnter: (props: MatchAndHistory) => any;
     };
     history: any;
-}
+};
 
 export default class ChannelIdentifierRouter extends React.PureComponent<Props> {
     constructor(props: Props) {

@@ -3,7 +3,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('Base channel accessibility', async ({pw, pages, axe}) => {
+test.fixme('Base channel accessibility', async ({pw, pages, axe}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
 

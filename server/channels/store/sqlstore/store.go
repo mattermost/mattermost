@@ -46,6 +46,7 @@ const (
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
 	DBPingAttempts                    = 5
+	DBReplicaPingAttempts             = 2
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -111,6 +112,7 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	scheduledPost              store.ScheduledPostStore
 }
 
 type SqlStore struct {
@@ -236,6 +238,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.scheduledPost = newScheduledPostStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -287,7 +290,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -302,7 +305,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -319,7 +322,7 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
+			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
@@ -1293,4 +1296,52 @@ func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	}
 
 	return migrations, nil
+}
+
+func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, error) {
+	var columnSizeBytes int32
+	ss.getQueryPlaceholder()
+
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(character_maximum_length, 0)
+			FROM
+				information_schema.columns
+			WHERE
+				lower(table_name) = lower($1)
+			AND	lower(column_name) = lower($2)
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
+			return 0, err
+		}
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		if err := ss.GetReplicaX().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
+			FROM
+				INFORMATION_SCHEMA.COLUMNS
+			WHERE
+				table_schema = DATABASE()
+			AND	lower(table_name) = lower(?)
+			AND	lower(column_name) = lower(?)
+			LIMIT 0, 1
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for MySQL", mlog.Err(err))
+			return 0, err
+		}
+	} else {
+		mlog.Warn("No implementation found to determine the maximum supported column size")
+	}
+
+	// Assume a worst-case representation of four bytes per rune.
+	maxColumnSize := int(columnSizeBytes) / 4
+
+	mlog.Info("Column has size restrictions", mlog.String("table_name", tableName), mlog.String("column_name", columnName), mlog.Int("max_characters", maxColumnSize), mlog.Int("max_bytes", columnSizeBytes))
+
+	return maxColumnSize, nil
+}
+
+func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
+	return ss.stores.scheduledPost
 }

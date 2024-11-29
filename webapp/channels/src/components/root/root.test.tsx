@@ -15,6 +15,7 @@ import * as GlobalActions from 'actions/global_actions';
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
 import type {Props} from './root';
@@ -49,14 +50,9 @@ jest.mock('components/team_sidebar', () => () => <div/>);
 jest.mock('components/mobile_view_watcher', () => () => <div/>);
 jest.mock('./performance_reporter_controller', () => () => <div/>);
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-
-    return {
-        ...original,
-        applyTheme: jest.fn(),
-    };
-});
+jest.mock('utils/utils', () => ({
+    applyTheme: jest.fn(),
+}));
 
 jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
@@ -74,7 +70,7 @@ describe('components/Root', () => {
     const store = testConfigureStore();
 
     const baseProps: Props = {
-        theme: {} as Theme,
+        theme: {sidebarBg: 'color'} as Theme,
         isConfigLoaded: true,
         telemetryEnabled: true,
         noAccounts: false,
@@ -121,6 +117,7 @@ describe('components/Root', () => {
                 push: jest.fn(),
             } as unknown as RouteComponentProps['history'],
         } as RouteComponentProps,
+        isDevModeEnabled: false,
     };
 
     let originalMatchMedia: (query: string) => MediaQueryList;
@@ -369,6 +366,51 @@ describe('components/Root', () => {
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('applyTheme', () => {
+        test('should apply theme initially and on change', async () => {
+            const props = {
+                ...baseProps,
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            await waitFor(() => {
+                expect(Utils.applyTheme).toHaveBeenCalledWith(props.theme);
+            });
+
+            const props2 = {
+                ...props,
+                theme: {sidebarBg: 'color2'} as Theme,
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(Utils.applyTheme).toHaveBeenCalledWith(props2.theme);
+        });
+
+        test('should not apply theme in system console', async () => {
+            const props = {
+                ...baseProps,
+                ...{
+                    location: {
+                        pathname: '/admin_console',
+                    },
+                } as RouteComponentProps,
+            };
+
+            const {rerender} = renderWithContext(<Root {...props}/>);
+
+            const props2 = {
+                ...props,
+                theme: {sidebarBg: 'color2'} as Theme,
+            };
+
+            rerender(<Root {...props2}/>);
+
+            expect(Utils.applyTheme).not.toHaveBeenCalled();
         });
     });
 });

@@ -5532,10 +5532,6 @@
     "translation": "وب هوک در بین تیم ها به روز نمی شود."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "رمزگشایی بارگیری چند بخشی از وب هوک امکان پذیر نیست."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "trigger_words یا channel_id باید تنظیم شوند."
   },

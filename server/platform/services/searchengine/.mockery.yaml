@@ -1,0 +1,10 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/v8/platform/services/searchengine:
+    config:
+      all: true
+      dir: "platform/services/searchengine/mocks"
+      filename: "{{.InterfaceName}}.go"
+      mockname: "{{.InterfaceName}}"
+      outpkg: mocks
+      note: "Regenerate this file using `make searchengine-mocks`."

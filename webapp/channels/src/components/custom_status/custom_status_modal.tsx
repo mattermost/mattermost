@@ -138,13 +138,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         initialCustomExpiryTime = moment(currentCustomStatus.expires_at);
     }
     const [customExpiryTime, setCustomExpiryTime] = useState<Moment>(initialCustomExpiryTime);
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+    const [isInteracting, setIsInteracting] = useState<boolean>(false);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
-        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
+        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isInteracting) {
             props.onExited();
         }
-    }, [isDatePickerOpen, props.onExited]);
+    }, [isInteracting, props.onExited]);
 
     useEffect(() => {
         document.addEventListener('keydown', handleKeyDown);
@@ -180,9 +180,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         if (inCustomEmojiPath) {
             dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
         }
-    }, [inCustomEmojiPath]);
+    }, [dispatch, inCustomEmojiPath]);
 
     const handleSetStatus = () => {
+        if (isInteracting) {
+            return;
+        }
+
         const expiresAt = calculateExpiryTime();
         const customStatus: UserCustomStatus = {
             emoji: emoji || 'speech_balloon',
@@ -193,7 +197,14 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             customStatus.expires_at = expiresAt;
         }
         dispatch(setCustomStatus(customStatus));
+        dispatch(closeModal(ModalIdentifiers.CUSTOM_STATUS));
     };
+
+    const handleEnterKeyPressed = useCallback(() => {
+        if (!isInteracting) {
+            handleSetStatus();
+        }
+    }, [isInteracting, handleSetStatus]);
 
     const calculateExpiryTime = (): string => {
         switch (duration) {
@@ -404,12 +415,13 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             id='custom_status_modal'
             className={'StatusModal'}
             handleConfirm={handleSetStatus}
-            handleEnterKeyPress={handleSetStatus}
+            handleEnterKeyPress={handleEnterKeyPressed}
             handleCancel={handleClearStatus}
             confirmButtonClassName='btn btn-primary'
             ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}
+            autoCloseOnConfirmButton={false}
         >
             <div className='StatusModal__body'>
                 <div className='StatusModal__input'>
@@ -469,7 +481,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         time={customExpiryTime}
                         handleChange={setCustomExpiryTime}
                         timezone={timezone}
-                        setIsDatePickerOpen={setIsDatePickerOpen}
+                        setIsInteracting={setIsInteracting}
                     />
                 )}
             </div>

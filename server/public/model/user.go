@@ -567,7 +567,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[DesktopSoundNotifyProp] = "true"
 	u.NotifyProps[MentionKeysNotifyProp] = ""
 	u.NotifyProps[ChannelMentionsNotifyProp] = "true"
-	u.NotifyProps[PushStatusNotifyProp] = StatusAway
+	u.NotifyProps[PushStatusNotifyProp] = StatusOnline
 	u.NotifyProps[CommentsNotifyProp] = CommentsNotifyNever
 	u.NotifyProps[FirstNameNotifyProp] = "false"
 	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll

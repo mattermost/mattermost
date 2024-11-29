@@ -117,7 +117,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     }, [displayNameError, urlError]);
 
     return (
-        <React.Fragment>
+        <>
             <Input
                 type='text'
                 autoComplete='off'
@@ -144,7 +144,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 error={urlError || props.urlError}
                 onChange={handleOnURLChange}
             />
-        </React.Fragment>
+        </>
     );
 };
 

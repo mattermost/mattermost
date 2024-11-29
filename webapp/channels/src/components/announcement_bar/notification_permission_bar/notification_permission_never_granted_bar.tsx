@@ -4,13 +4,15 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import BrowserStore from 'stores/browser_store';
+
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 
 import {AnnouncementBarTypes} from 'utils/constants';
 import {requestNotificationPermission} from 'utils/notifications';
 
 export default function NotificationPermissionNeverGrantedBar() {
-    const [show, setShow] = useState(true);
+    const [show, setShow] = useState(!BrowserStore.getHideNotificationPermissionRequestBanner());
 
     const handleClick = useCallback(async () => {
         try {
@@ -25,9 +27,10 @@ export default function NotificationPermissionNeverGrantedBar() {
     }, []);
 
     const handleClose = useCallback(() => {
-        // If the user closes the bar, don't show the notification bar any more for the rest of the session, but
-        // show it again on app refresh.
         setShow(false);
+
+        // Close the bar and don't show it again for the rest of the session.
+        BrowserStore.setHideNotificationPermissionRequestBanner();
     }, []);
 
     if (!show) {
@@ -36,8 +39,6 @@ export default function NotificationPermissionNeverGrantedBar() {
 
     return (
         <AnnouncementBar
-            showCloseButton={true}
-            handleClose={handleClose}
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             message={
                 <FormattedMessage
@@ -48,12 +49,14 @@ export default function NotificationPermissionNeverGrantedBar() {
             ctaText={
                 <FormattedMessage
                     id='announcementBar.notification.permissionNeverGrantedBar.cta'
-                    defaultMessage='Enable notifications'
+                    defaultMessage='Manage notification preferences'
                 />
             }
             showCTA={true}
             showLinkAsButton={true}
             onButtonClick={handleClick}
+            showCloseButton={true}
+            handleClose={handleClose}
         />
     );
 }

@@ -514,9 +514,9 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         const toastToRender = this.getToastToRender();
 
         return (
-            <React.Fragment>
+            <>
                 {toastToRender}
-            </React.Fragment>
+            </>
         );
     }
 }

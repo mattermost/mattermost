@@ -945,7 +945,6 @@
   "create_category_modal.createCategory": "Stvori novu kategoriju",
   "create_group_memberships_modal.cancel": "Ne",
   "create_group_memberships_modal.create": "Da",
-  "create_post.send_message": "Pošalji poruku",
   "create_team.display_name.next": "Dalje",
   "create_team.display_name.required": "Ovo je obavezno polje",
   "create_team.display_name.teamName": "Ime tima",

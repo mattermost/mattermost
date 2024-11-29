@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/user_settings/display/user_settings_theme/user_settings_theme.jsx should match snapshot 1`] = `
+exports[`components/user_settings/display/user_settings_theme/user_settings_theme should match snapshot 1`] = `
 <SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)

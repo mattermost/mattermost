@@ -123,8 +123,8 @@ export default function Pluggable(props: Props): JSX.Element | null {
     }
 
     return (
-        <React.Fragment>
+        <>
             {content}
-        </React.Fragment>
+        </>
     );
 }

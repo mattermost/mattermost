@@ -879,6 +879,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				)
 			}
 		}
+		if user.IsRemote() {
+			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
+		}
 	}
 	for groupId := range mentions.GroupMentions {
 		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
