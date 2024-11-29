@@ -13,6 +13,53 @@ import ChannelHeaderMobile from './channel_header_mobile';
 
 const mockStore = configureStore();
 
+const defaultState = {
+    entities: {
+        general: {
+            config: {},
+        },
+        teams: {
+            currentTeamId: 'team_id',
+            teams: {
+                team_id: {
+                    id: 'team_id',
+                    name: 'team',
+                    display_name: 'Team',
+                },
+            },
+        },
+        channels: {
+            channels: {},
+            myMembers: {},
+        },
+        users: {
+            currentUserId: 'user_id',
+            profiles: {
+                user_id: {
+                    id: 'user_id',
+                    username: 'username',
+                    roles: '',
+                },
+            },
+        },
+        preferences: {
+            myPreferences: {},
+        },
+        groups: {
+            groups: {},
+            myGroups: [],
+        },
+        emojis: {
+            customEmoji: {},
+        },
+        apps: {
+            main: {
+                bindings: [],
+            },
+        },
+    },
+};
+
 describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     global.document.querySelector = jest.fn().mockReturnValue({
         addEventListener: jest.fn(),
@@ -47,14 +94,17 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
 
     test('should render channel header mobile component', () => {
         const store = mockStore({
+            ...defaultState,
             entities: {
+                ...defaultState.entities,
                 channels: {
+                    ...defaultState.entities.channels,
                     channels: {
                         channel_id: baseProps.channel,
                     },
                 },
                 users: {
-                    currentUserId: 'user_id',
+                    ...defaultState.entities.users,
                     profiles: {
                         user_id: baseProps.user,
                     },
@@ -85,14 +135,17 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         };
 
         const store = mockStore({
+            ...defaultState,
             entities: {
+                ...defaultState.entities,
                 channels: {
+                    ...defaultState.entities.channels,
                     channels: {
                         123: props.channel,
                     },
                 },
                 users: {
-                    currentUserId: 'user_id',
+                    ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
@@ -126,14 +179,17 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         };
 
         const store = mockStore({
+            ...defaultState,
             entities: {
+                ...defaultState.entities,
                 channels: {
+                    ...defaultState.entities.channels,
                     channels: {
                         channel_id: props.channel,
                     },
                 },
                 users: {
-                    currentUserId: 'user_id',
+                    ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
@@ -166,14 +222,17 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         };
 
         const store = mockStore({
+            ...defaultState,
             entities: {
+                ...defaultState.entities,
                 channels: {
+                    ...defaultState.entities.channels,
                     channels: {
                         channel_id: props.channel,
                     },
                 },
                 users: {
-                    currentUserId: 'user_id',
+                    ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
