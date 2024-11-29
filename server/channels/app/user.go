@@ -579,6 +579,9 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersNotInTeamPage gets a page of users who are not members of a team and applies the given restrictions.
+// Page and perPage parameters control pagination.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersNotInTeamPage(teamID, groupConstrained, page*perPage, perPage, asAdmin, viewRestrictions)
 	if err != nil {
@@ -588,14 +591,20 @@ func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page i
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInTeamEtag returns a unique identifier for the current state of users in the given team.
+// The identifier changes when a user is created, updated, deleted or when their team membership changes.
 func (a *App) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersInTeamEtag(teamID, restrictionsHash)
 }
 
+// GetUsersNotInTeamEtag returns a unique identifier for the current state of users not in the given team.
+// The identifier changes when a user is created, updated, deleted or when their team membership changes.
 func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
 }
 
+// GetUsersInChannel gets a list of users in the specified channel.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannel(options)
 	if err != nil {
@@ -605,6 +614,8 @@ func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *
 	return users, nil
 }
 
+// GetUsersInChannelByStatus gets a list of users in the specified channel, ordered by their status.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannelByStatus(options)
 	if err != nil {
