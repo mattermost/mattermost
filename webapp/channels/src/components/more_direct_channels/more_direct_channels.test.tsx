@@ -17,6 +17,7 @@ jest.useFakeTimers();
 const mockedUser = {
     ...TestHelper.getUserMock(),
     status: 'online',
+    delete_at: 0,
 };
 
 describe('components/MoreDirectChannels', () => {
@@ -133,14 +134,10 @@ describe('components/MoreDirectChannels', () => {
     test('should handle search with debounce', () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const {container} = renderWithContext(<MoreDirectChannels {...props}/>);
+        const {getByPlaceholderText} = renderWithContext(<MoreDirectChannels {...props}/>);
 
-        const searchInput = container.querySelector('input[type="text"]');
-        expect(searchInput).toBeTruthy();
-        if (searchInput) {
-            searchInput.value = 'user_search';
-            searchInput.dispatchEvent(new Event('change', {bubbles: true}));
-        }
+        const searchInput = getByPlaceholderText('Search users');
+        userEvent.type(searchInput, 'user_search');
 
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
         jest.runAllTimers();
