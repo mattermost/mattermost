@@ -449,6 +449,8 @@ func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
 	return users, nil
 }
 
+// GetUserByUsername gets a user by their username. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
@@ -463,6 +465,8 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 	return result, nil
 }
 
+// GetUserByEmail gets a user by their email. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByEmail(email)
 	if err != nil {
@@ -477,6 +481,8 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+// GetUserByRemoteID gets a user by their remote ID. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByRemoteID(remoteID)
 	if err != nil {
@@ -491,6 +497,8 @@ func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) 
 	return user, nil
 }
 
+// GetUserByAuth gets a user by their auth data and auth service. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {
@@ -509,6 +517,8 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
+// GetUsersFromProfiles gets users based on the provided user options. Returns the users and nil on success.
+// Returns nil and an error on failure.
 func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
