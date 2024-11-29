@@ -135,7 +135,7 @@ describe('components/MoreDirectChannels', () => {
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('');
     });
 
-    test('should handle search with debounce', () => {
+    test('should handle search with debounce', async () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const {getByPlaceholderText} = renderWithContext(<MoreDirectChannels {...props}/>);
