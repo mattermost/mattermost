@@ -30,7 +30,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
         expect(screen.getByRole('button', {name: 'Submit'})).toBeInTheDocument();
     });
 
-    test('should show main form when showMfa is false', () => {
+    test('should show main form when showMfa is false', async () => {
         const props = {
             ...requiredProps,
             switchLdapToEmail: jest.fn(() => Promise.resolve({
@@ -45,9 +45,22 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
 
         // Submit MFA form to trigger error and show main form
         const submitButton = screen.getByRole('button', {name: 'Submit'});
-        submitButton.click();
+        const tokenInput = screen.getByLabelText('Enter MFA Token');
+        await userEvent.type(tokenInput, '123456');
+        await userEvent.click(submitButton);
 
         // Wait for error and check main form elements
-        expect(props.switchLdapToEmail).toHaveBeenCalled();
+        expect(props.switchLdapToEmail).toHaveBeenCalledWith(
+            '', // ldapPassword
+            'test@example.com', // loginId
+            '', // password  
+            '123456' // token
+        );
+
+        // Verify main form appears
+        expect(await screen.findByText('AD/LDAP Password:')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('AD/LDAP Password')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
     });
 });
