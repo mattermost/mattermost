@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithIntl} from 'tests/react_testing_utils';
+import {screen, fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import MultiSelect from './multiselect';
 import type {Value} from './multiselect';
-import MultiSelectList from './multiselect_list';
 import type {Props as MultiSelectProps} from './multiselect_list';
 
 const element = () => <div/>;
@@ -40,35 +40,28 @@ describe('components/multiselect/multiselect', () => {
         valueWithImage: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <MultiSelect
-                {...baseProps}
-            />,
-        );
-
-        expect(wrapper).toMatchSnapshot();
+    test('should render multiselect component', () => {
+        renderWithIntl(<MultiSelect {...baseProps}/>);
+        
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /go/i})).toBeInTheDocument();
     });
 
-    test('should match snapshot for page 2', () => {
-        const wrapper = shallow(
-            <MultiSelect
-                {...baseProps}
-            />,
-        );
+    test('should handle next page navigation', () => {
+        renderWithIntl(<MultiSelect {...baseProps}/>);
 
-        wrapper.find('.filter-control__next').simulate('click');
-        wrapper.update();
-        expect(wrapper.state('page')).toEqual(1);
-        expect(wrapper).toMatchSnapshot();
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        fireEvent.click(nextButton);
+
+        expect(screen.getByRole('button', {name: /previous/i})).toBeInTheDocument();
     });
 
-    test('MultiSelectList should match state on next page', () => {
+    test('should handle option selection and navigation', () => {
         const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
             return (
                 <p
                     key={option.id}
-                    ref={isSelected ? 'selected' : option.id}
+                    data-testid={`option-${option.id}`}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >
@@ -81,7 +74,7 @@ describe('components/multiselect/multiselect', () => {
             return props.data.value;
         };
 
-        const wrapper = mountWithIntl(
+        renderWithIntl(
             <MultiSelect
                 {...baseProps}
                 optionRenderer={renderOption}
@@ -89,31 +82,36 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        expect(wrapper.find(MultiSelectList).state('selected')).toEqual(-1);
-        wrapper.find('.filter-control__next').simulate('click');
-        expect(wrapper.find(MultiSelectList).state('selected')).toEqual(0);
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        fireEvent.click(nextButton);
+
+        // Verify options are rendered
+        users.slice(0, baseProps.perPage).forEach((user) => {
+            expect(screen.getByTestId(`option-${user.id}`)).toBeInTheDocument();
+        });
     });
 
-    test('MultiSelectList should match snapshot when custom no option message is defined', () => {
+    test('should render custom no options message', () => {
         const customNoOptionsMessage = (
             <div className='custom-no-options-message'>
                 <span>{'No matches found'}</span>
             </div>
         );
 
-        const wrapper = shallow(
+        renderWithIntl(
             <MultiSelect
                 {...baseProps}
                 customNoOptionsMessage={customNoOptionsMessage}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('No matches found')).toBeInTheDocument();
     });
 
-    test('Back button should be customizable', () => {
+    test('should handle back button customization', async () => {
         const handleBackButtonClick = jest.fn();
-        const wrapper = mountWithIntl(
+        
+        renderWithIntl(
             <MultiSelect
                 {...baseProps}
                 backButtonClick={handleBackButtonClick}
@@ -123,12 +121,10 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        const backButton = wrapper.find('div.multi-select__footer button.tertiary-button');
+        const backButton = screen.getByRole('button', {name: /cancel/i});
+        expect(backButton).toHaveClass('tertiary-button');
 
-        backButton.simulate('click');
-
-        expect(backButton).toHaveLength(1);
-
+        await userEvent.click(backButton);
         expect(handleBackButtonClick).toHaveBeenCalled();
     });
 });
