@@ -16,10 +16,9 @@ func AssertHeaderContains(t *testing.T, msg string, expected map[string]string) 
 	t.Helper()
 	m, err := mail.ReadMessage(strings.NewReader(msg))
 	require.NoError(t, err)
-	header := m.Header
 
 	for k, v := range expected {
-		assert.Equal(t, v, header.Get(k))
+		assert.Equal(t, v, m.Header.Get(k))
 	}
 }
 

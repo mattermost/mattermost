@@ -455,20 +455,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{batch001, batch002, batch003}, files)
 
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
+		fileContents := openZipAndReadFile(t, exportBackend, batch001, attachmentPath001)
 
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		attachmentInZip, err := zipReader.Open(attachmentPath001)
-		require.NoError(t, err)
-		attachmentInZipContents, err := io.ReadAll(attachmentInZip)
-		require.NoError(t, err)
-		err = attachmentInZip.Close()
-		require.NoError(t, err)
-
-		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
+		require.EqualValuesf(t, attachmentContent, fileContents, "file contents not equal")
 	})
 
 	t.Run("actiance -- multiple batches, using UntilUpdateAt", func(t *testing.T) {
@@ -613,38 +602,33 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				batch3Possibility2 := fmt.Sprintf(xmlHeader, batch3ch4, batch3ch2)
 
 				for b, batchName := range batches {
-					zipBytes, err := exportBackend.ReadFile(batchName)
-					require.NoError(t, err)
-					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-					require.NoError(t, err)
-
-					actxml, err := zipReader.Open("actiance_export.xml")
-					require.NoError(t, err)
-					xmlContents, err := io.ReadAll(actxml)
-					require.NoError(t, err)
-					err = actxml.Close()
-					require.NoError(t, err)
+					xmlContents := openZipAndReadFile(t, exportBackend, batchName, "actiance_export.xml")
 
 					// this is so clunky, sorry. but it's simple.
 					if b == 0 {
-						if string(xmlContents) != batch1Possibility1 && string(xmlContents) != batch1Possibility2 {
+						if xmlContents != batch1Possibility1 && xmlContents != batch1Possibility2 {
 							// to make some output
-							assert.Equal(t, batch1Possibility1, string(xmlContents), "batch 1 possibility 1")
-							assert.Equal(t, batch1Possibility2, string(xmlContents), "batch 1 possibility 2")
+							assert.Equal(t, batch1Possibility1, xmlContents, "batch 1 possibility 1")
+							assert.Equal(t, batch1Possibility2, xmlContents, "batch 1 possibility 2")
 						}
 					}
 
 					if b == 1 {
-						require.Equal(t, batch2xml, string(xmlContents), "batch 2")
+						require.Equal(t, batch2xml, xmlContents, "batch 2")
 					}
 
 					if b == 2 {
-						if string(xmlContents) != batch3Possibility1 && string(xmlContents) != batch3Possibility2 {
+						if xmlContents != batch3Possibility1 && xmlContents != batch3Possibility2 {
 							// to make some output
-							assert.Equal(t, batch3Possibility1, string(xmlContents), "batch 3 possibility 1")
-							assert.Equal(t, batch3Possibility2, string(xmlContents), "batch 3 possibility 2")
+							assert.Equal(t, batch3Possibility1, xmlContents, "batch 3 possibility 1")
+							assert.Equal(t, batch3Possibility2, xmlContents, "batch 3 possibility 2")
 						}
 					}
+
+					zipBytes, err := exportBackend.ReadFile(batchName)
+					require.NoError(t, err)
+					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+					require.NoError(t, err)
 
 					for i := 0; i < 3; i++ {
 						num := b*3 + i
@@ -700,19 +684,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				cu := ret.createUpdateTimes
 
 				for batchNum, batchName := range batches {
-					zipBytes, err := exportBackend.ReadFile(batchName)
-					require.NoError(t, err)
-					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-					require.NoError(t, err)
-
-					firstFile, err := zipReader.File[0].Open()
-					assert.NoError(t, err)
-					data, err := io.ReadAll(firstFile)
-					assert.NoError(t, err)
-					err = firstFile.Close()
-					require.NoError(t, err)
+					data := openZipAndReadFirstFile(t, exportBackend, batchName)
 					// clean some bad csrf if present
-					msg := global_relay_export.CleanTestOutput(string(data))
+					msg := global_relay_export.CleanTestOutput(data)
 
 					// Global relay needs to be updated to use Actiance logic. MM-61718
 					batchStartTime := batchTimes[batchNum].start
@@ -898,18 +872,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}
 
 				for batchNum, batchName := range batches {
-					zipBytes, err := exportBackend.ReadFile(batchName)
-					require.NoError(t, err)
-					zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-					require.NoError(t, err)
+					export := openZipAndReadFirstFile(t, exportBackend, batchName)
 
-					exportFile, err := zipReader.File[0].Open()
-					assert.NoError(t, err)
-					exportDataBytes, err := io.ReadAll(exportFile)
-					assert.NoError(t, err)
-					err = exportFile.Close()
-					require.NoError(t, err)
-					export := string(exportDataBytes)
 					exportLines := strings.Split(export, "\n")
 					expectedLines := strings.Split(expectedBatchExport[batchNum], "\n")
 
@@ -951,19 +915,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			posts[1].Id, createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents := openZipAndReadFile(t, exportBackend, batches[0], "actiance_export.xml")
 
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		require.Equal(t, batch1xml, string(xmlContents), "batch 1")
+		require.Equal(t, batch1xml, xmlContents, "batch 1")
 	})
 
 	t.Run("GlobalRelay e2e 2 - post from user not in channel", func(t *testing.T) {
@@ -1005,19 +959,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				conv(batchEndTime), conv(cu[0]), conv(cu[1]), conv(jobStartTime)),
 		}
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		firstFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err := io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
 		// clean some bad csrf if present
-		msg := global_relay_export.CleanTestOutput(string(data))
+		msg := global_relay_export.CleanTestOutput(data)
 
 		require.Contains(t, msg, expectedBatchExport[0])
 		require.Contains(t, msg, expectedBatchExport[1])
@@ -1051,19 +995,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			// 6          7              8           9          10              11      12
 			users[1].Id, posts[0].Id, posts[1].Id, jl[0].join, batchStartTime, cu[0], cu[1])
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		exportFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err := io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export := string(exportDataBytes)
-
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
 		assert.Equal(t, expectedExport, export)
 	})
 
@@ -1079,17 +1011,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		contents := ret.contents
 
 		for b, batchName := range batches {
-			zipBytes, err := exportBackend.ReadFile(batchName)
-			require.NoError(t, err)
-			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-			require.NoError(t, err)
-
-			actxml, err := zipReader.Open("actiance_export.xml")
-			require.NoError(t, err)
-			xmlContents, err := io.ReadAll(actxml)
-			require.NoError(t, err)
-			err = actxml.Close()
-			require.NoError(t, err)
+			xmlContents := openZipAndReadFile(t, exportBackend, batchName, "actiance_export.xml")
 
 			// Because 7 and 8 fall on the boundary, they could be in either batch, so save them here
 			// and then test for one or the other in each batch.
@@ -1118,7 +1040,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			}
 
 			if b == 0 {
-				exportedChannels := actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+				exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
 				require.Len(t, messages, 10) // batch size 7 + deleted msg1, deleted ms3, 1 deleted file msg
@@ -1238,6 +1160,11 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}
 
 				// only batch one has files, but they're deleted
+				zipBytes, err := exportBackend.ReadFile(batchName)
+				require.NoError(t, err)
+				zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+				require.NoError(t, err)
+
 				attachmentInZip, err := zipReader.Open(attachments[0].Path)
 				require.NoError(t, err)
 				attachmentInZipContents, err := io.ReadAll(attachmentInZip)
@@ -1248,7 +1175,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			}
 
 			if b == 1 {
-				exportedChannels := actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+				exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
 				require.Len(t, messages, 1)
@@ -1410,68 +1337,25 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				conv(posts[6].CreateAt), conv(jobStartTime)),
 		}
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		firstFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err := io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
 		// clean some bad csrf if present
-		msg := global_relay_export.CleanTestOutput(string(data))
+		msg := global_relay_export.CleanTestOutput(data)
 
-		matched := false
-		for _, perm := range expectedBatch1Summaries {
-			if strings.Contains(msg, perm) {
-				matched = true
-				break
-			}
-		}
+		matched := dataContainsOneOfExpected(msg, expectedBatch1Summaries)
+
 		assert.True(t, matched, "batch 1 summary didn't match one of the expected permutations")
 
-		matched = false
-		for _, perm := range expectedBatch1 {
-			if strings.Contains(msg, perm) {
-				matched = true
-				break
-			}
-		}
+		matched = dataContainsOneOfExpected(msg, expectedBatch1)
 		assert.True(t, matched, "batch 1 body didn't match one of the expected permutations")
 
-		zipBytes, err = exportBackend.ReadFile(batches[1])
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		firstFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err = io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data = openZipAndReadFirstFile(t, exportBackend, batches[1])
 		// clean some bad csrf if present
-		msg = global_relay_export.CleanTestOutput(string(data))
+		msg = global_relay_export.CleanTestOutput(data)
 
-		matched = false
-		for _, perm := range expectedBatch2Summaries {
-			if strings.Contains(msg, perm) {
-				matched = true
-				break
-			}
-		}
+		matched = dataContainsOneOfExpected(msg, expectedBatch2Summaries)
 		assert.True(t, matched, "batch 2 summary didn't match one of the expected permutations")
 
-		matched = false
-		for _, perm := range expectedBatch2 {
-			if strings.Contains(msg, perm) {
-				matched = true
-				break
-			}
-		}
+		matched = dataContainsOneOfExpected(msg, expectedBatch2)
 		assert.True(t, matched, "batch 2 body didn't match one of the expected permutations")
 	})
 
@@ -1551,18 +1435,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
 		}
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		exportFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err := io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export := string(exportDataBytes)
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
 
 		matched := false
 		for _, perm := range expectedExports {
@@ -1593,18 +1466,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[7].Id, posts[6].CreateAt, jl[0].join),
 		}
 
-		zipBytes, err = exportBackend.ReadFile(batches[1])
-		require.NoError(t, err)
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		exportFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err = io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export = string(exportDataBytes)
+		export = openZipAndReadFirstFile(t, exportBackend, batches[1])
 
 		matched = false
 		for _, perm := range expectedExports {
@@ -1625,19 +1487,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		posts := ret.posts
 		users := ret.users
 
-		zipBytes, err := exportBackend.ReadFile(batch001)
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents := openZipAndReadFile(t, exportBackend, batch001, "actiance_export.xml")
 
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels := actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages := exportedChannels[0].Messages
 		require.Len(t, messages, 5)
@@ -1736,19 +1588,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			fmt.Sprintf("<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@user1</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(user1@email):</span>\n    <span class=3D\"message\">message 4</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n", conv(posts[4].CreateAt)),
 		)
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		firstFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err := io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data := openZipAndReadFirstFile(t, exportBackend, batches[0])
 		// clean some bad csrf if present
-		msg := global_relay_export.CleanTestOutput(string(data))
+		msg := global_relay_export.CleanTestOutput(data)
 
 		for _, expected := range allExpected {
 			assert.Contains(t, msg, expected, "expected exported msg to contain: \n%s\n\nExported msg:\n%s\n", expected, msg)
@@ -1782,18 +1624,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		allExpected := strings.Split(tmpl, "\n")
 
-		zipBytes, err := exportBackend.ReadFile(batches[0])
-		require.NoError(t, err)
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-
-		exportFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err := io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export := string(exportDataBytes)
+		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
 
 		assert.Len(t, strings.Split(export, "\n"), len(allExpected)+1) // +1 for header line
 
@@ -1817,17 +1648,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		//
 		// Job 1
 		//
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents := readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		actxml, err := zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err := io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels := actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels := actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages := exportedChannels[0].Messages
 		require.Len(t, messages, 2) // 1 posted, 1 deleted
@@ -1862,17 +1685,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		zipBytes = ret5s[1].zipBytes[0]
 		zipBytes2 := ret5s[1].zipBytes[1]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels = actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 1) // 1 posted
@@ -1887,17 +1702,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			Message:   posts[1].Message,
 		}, messages[0])
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes2), int64(len(zipBytes2)))
-		require.NoError(t, err)
+		xmlContents = readFileFromZip(t, zipBytes2, "actiance_export.xml")
 
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels = actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 2) // message0's create and delete messages
@@ -1930,17 +1737,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		posts = rets[2].posts
 		zipBytes = ret5s[2].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels = actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 2) // 2 posted
@@ -1973,17 +1772,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		message0DeleteAt = ret5s[3].message0DeleteAt
 		zipBytes = ret5s[3].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
+		xmlContents = readFileFromZip(t, zipBytes, "actiance_export.xml")
 
-		actxml, err = zipReader.Open("actiance_export.xml")
-		require.NoError(t, err)
-		xmlContents, err = io.ReadAll(actxml)
-		require.NoError(t, err)
-		err = actxml.Close()
-		require.NoError(t, err)
-
-		exportedChannels = actiance_export.GetChannelExports(t, bytes.NewReader(xmlContents))
+		exportedChannels = actiance_export.GetChannelExports(t, strings.NewReader(xmlContents))
 		assert.Len(t, exportedChannels, 1)
 		messages = exportedChannels[0].Messages
 		require.Len(t, messages, 3) //filler post, deleted post, and updated posts ONLY
@@ -2049,22 +1840,14 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
-		//message0DeleteAt := ret5s[0].message0DeleteAt
 		zipBytes := ret5s[0].zipBytes[0]
 
 		//
 		// Job 1
 		//
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		firstFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err := io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data := readFirstFileFromZip(t, zipBytes)
 		// clean some bad csrf if present
-		msg := global_relay_export.CleanTestOutput(string(data))
+		msg := global_relay_export.CleanTestOutput(data)
 
 		// post created
 		allExpected := []string{
@@ -2081,16 +1864,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		zipBytes = ret5s[1].zipBytes[0]
 		zipBytes2 := ret5s[1].zipBytes[1]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		firstFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err = io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data = readFirstFileFromZip(t, zipBytes)
 		// clean some bad csrf if present
-		msg = global_relay_export.CleanTestOutput(string(data))
+		msg = global_relay_export.CleanTestOutput(data)
 
 		// post created
 		allExpected = []string{
@@ -2098,16 +1874,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		}
 		assertContainsAllMsgs(msg, allExpected)
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes2), int64(len(zipBytes2)))
-		require.NoError(t, err)
-		firstFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err = io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data = readFirstFileFromZip(t, zipBytes2)
 		// clean some bad csrf if present
-		msg = global_relay_export.CleanTestOutput(string(data))
+		msg = global_relay_export.CleanTestOutput(data)
 
 		// should get message 0's create message (but not its delete message MM-61718)
 		allExpected = []string{
@@ -2121,16 +1890,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		posts = rets[2].posts
 		zipBytes = ret5s[2].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		firstFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err = io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data = readFirstFileFromZip(t, zipBytes)
 		// clean some bad csrf if present
-		msg = global_relay_export.CleanTestOutput(string(data))
+		msg = global_relay_export.CleanTestOutput(data)
 
 		// post created
 		allExpected = []string{
@@ -2146,16 +1908,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		updatedPost1 := ret5s[3].updatedPost1
 		zipBytes = ret5s[3].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		firstFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		data, err = io.ReadAll(firstFile)
-		assert.NoError(t, err)
-		err = firstFile.Close()
-		require.NoError(t, err)
+		data = readFirstFileFromZip(t, zipBytes)
 		// clean some bad csrf if present
-		msg = global_relay_export.CleanTestOutput(string(data))
+		msg = global_relay_export.CleanTestOutput(data)
 
 		// should get message 0's create message (but not its delete message MM-61718)
 		allExpected = []string{
@@ -2215,15 +1970,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		//
 		// Job 1
 		//
-		zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		exportFile, err := zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err := io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export := string(exportDataBytes)
+		export := readFirstFileFromZip(t, zipBytes)
 
 		// post created, post deleted
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
@@ -2247,15 +1994,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		zipBytes = ret5s[1].zipBytes[0]
 		zipBytes2 := ret5s[1].zipBytes[1]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		exportFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err = io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export = string(exportDataBytes)
+		export = readFirstFileFromZip(t, zipBytes)
 
 		// post created
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
@@ -2266,15 +2005,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			},
 		}, "Job 1")
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes2), int64(len(zipBytes2)))
-		require.NoError(t, err)
-		exportFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err = io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export = string(exportDataBytes)
+		export = readFirstFileFromZip(t, zipBytes2)
 
 		// post created
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
@@ -2295,15 +2026,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		posts = rets[2].posts
 		zipBytes = ret5s[2].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		exportFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err = io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export = string(exportDataBytes)
+		export = readFirstFileFromZip(t, zipBytes)
 
 		// 2 posts created
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
@@ -2326,15 +2049,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		message0DeleteAt = ret5s[3].message0DeleteAt
 		zipBytes = ret5s[3].zipBytes[0]
 
-		zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-		require.NoError(t, err)
-		exportFile, err = zipReader.File[0].Open()
-		assert.NoError(t, err)
-		exportDataBytes, err = io.ReadAll(exportFile)
-		assert.NoError(t, err)
-		err = exportFile.Close()
-		require.NoError(t, err)
-		export = string(exportDataBytes)
+		export = readFirstFileFromZip(t, zipBytes)
 
 		// post created
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
@@ -2464,4 +2179,53 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		require.EqualValuesf(t, attachmentContent, string(attachmentInZipContents), "file contents not equal")
 	})
+}
+
+func openZipAndReadFile(t *testing.T, backend filestore.FileBackend, path string, filename string) string {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+	return readFileFromZip(t, zipBytes, filename)
+}
+
+func readFileFromZip(t *testing.T, zipBytes []byte, filename string) string {
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	file, err := zipReader.Open(filename)
+	require.NoError(t, err)
+	contents, err := io.ReadAll(file)
+	require.NoError(t, err)
+	err = file.Close()
+	require.NoError(t, err)
+
+	return string(contents)
+}
+
+func openZipAndReadFirstFile(t *testing.T, backend filestore.FileBackend, path string) string {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+	return readFirstFileFromZip(t, zipBytes)
+}
+
+func readFirstFileFromZip(t *testing.T, zipBytes []byte) string {
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	firstFile, err := zipReader.File[0].Open()
+	require.NoError(t, err)
+	contents, err := io.ReadAll(firstFile)
+	require.NoError(t, err)
+	err = firstFile.Close()
+	require.NoError(t, err)
+
+	return string(contents)
+}
+
+func dataContainsOneOfExpected(data string, expected []string) bool {
+	for _, perm := range expected {
+		if strings.Contains(data, perm) {
+			return true
+		}
+	}
+	return false
 }
