@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 
 import {closeModal} from 'actions/views/modals';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ModalController from '.';
 
@@ -57,7 +57,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        renderWithIntlAndStore(<ModalController/>, state);
+        renderWithContext(<ModalController/>, state);
 
         expect(document.querySelector('.modal-dialog')).not.toBeInTheDocument();
     });
@@ -77,7 +77,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        renderWithIntlAndStore(<ModalController/>, state);
+        renderWithContext(<ModalController/>, state);
 
         expect(document.querySelector('.modal-dialog')).toBeInTheDocument();
     });
@@ -97,7 +97,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {store} = renderWithIntlAndStore(<ModalController/>, state);
+        const {store} = renderWithContext(<ModalController/>, state);
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
@@ -129,7 +129,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {store} = renderWithIntlAndStore(<ModalController/>, state);
+        const {store} = renderWithContext(<ModalController/>, state);
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
