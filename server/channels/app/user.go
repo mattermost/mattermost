@@ -219,6 +219,8 @@ func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect str
 	return ruser, nil
 }
 
+// IsUserSignUpAllowed determines if user signup is allowed according to system configuration.
+// Returns nil if signup is allowed, otherwise returns an appropriate error.
 func (a *App) IsUserSignUpAllowed() *model.AppError {
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -227,6 +229,8 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
+// IsFirstUserAccount returns true if this is the first account created on the system
+// based on the SYS_ADMIN_ROLE being assigned to the user.
 func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
@@ -347,6 +351,8 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
+// CreateOAuthUser creates a user from OAuth information. The user is created with roles determined by the
+// team and channel membership defaults set by the system admin.
 func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -415,6 +421,8 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 	return ruser, nil
 }
 
+// GetUser gets a user by their ID. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUser(userID)
 	if err != nil {
@@ -430,6 +438,8 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+// GetUsers gets users by a list of IDs. Returns the users found and nil if successful.
+// Returns nil and an error if unsuccessful.
 func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsers(userIDs)
 	if err != nil {
