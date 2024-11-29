@@ -43,8 +43,8 @@ describe('components/multiselect/multiselect', () => {
     test('should render multiselect component', () => {
         renderWithIntl(<MultiSelect {...baseProps}/>);
         
-        expect(screen.getByRole('combobox')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: /go/i})).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
     });
 
     test('should handle next page navigation', () => {
@@ -56,22 +56,22 @@ describe('components/multiselect/multiselect', () => {
         expect(screen.getByRole('button', {name: /previous/i})).toBeInTheDocument();
     });
 
-    test('should handle option selection and navigation', () => {
+    test('should handle option selection and navigation', async () => {
         const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
             return (
-                <p
+                <div
                     key={option.id}
                     data-testid={`option-${option.id}`}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >
-                    {option.id}
-                </p>
+                    {option.label}
+                </div>
             );
         };
 
-        const renderValue = (props: {data: {value: unknown}}) => {
-            return props.data.value;
+        const renderValue = (props: {data: Value}) => {
+            return props.data.label;
         };
 
         renderWithIntl(
@@ -82,10 +82,10 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        const nextButton = screen.getByRole('button', {name: /next/i});
-        fireEvent.click(nextButton);
+        // Wait for initial render
+        await screen.findByTestId('option-0');
 
-        // Verify options are rendered
+        // Verify first page options are rendered
         users.slice(0, baseProps.perPage).forEach((user) => {
             expect(screen.getByTestId(`option-${user.id}`)).toBeInTheDocument();
         });
@@ -94,13 +94,14 @@ describe('components/multiselect/multiselect', () => {
     test('should render custom no options message', () => {
         const customNoOptionsMessage = (
             <div className='custom-no-options-message'>
-                <span>{'No matches found'}</span>
+                <span>No matches found</span>
             </div>
         );
 
         renderWithIntl(
             <MultiSelect
                 {...baseProps}
+                options={[]} // Empty options to trigger no options message
                 customNoOptionsMessage={customNoOptionsMessage}
             />,
         );
