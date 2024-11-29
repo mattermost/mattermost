@@ -195,7 +195,7 @@ type batchStartEndTimes struct {
 	end   int64
 }
 
-type SetupReturn struct {
+type JobResults struct {
 	start             int64
 	joinLeaves        []joinLeave
 	users             []*model.User
@@ -373,6 +373,9 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 
 	// Also tests the `BatchSize+1` logic in the worker, because we have 9 posts and batch size of 3.
 
+	waitUntilZeroPosts(t, th)
+	start := model.GetMillis()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.EnableExport = true
 		*cfg.MessageExportSettings.ExportFromTimestamp = 0
@@ -468,8 +471,6 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}, 999)
 	require.NoError(t, err)
 
-	start := model.GetMillis()
-
 	// Save 9 posts so that we have the following batches:
 	createUpdateTimes := []int64{
 		start + 10, start + 14, start + 20, // batch 1: start-20, posts start at 10
@@ -526,9 +527,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 	err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[7].Id, channel4.Id, start+59)
 	require.NoError(t, err)
 
-	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
+	assertNumPostsToExport(t, th, 0, start, model.GetMillis())
 
 	var attachments []*model.FileInfo
 	var contents []string
@@ -544,7 +543,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 		})
 		require.NoError(t, err2)
 		posts = append(posts, post)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 
 		attachmentContent := fmt.Sprintf("Hello there %d", i)
 		attachmentPath := fmt.Sprintf("path/to/attachments/file_%d.txt", i)
@@ -594,20 +593,21 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}
 	require.Equal(t, prevUpdatedAt, start)
 
-	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 9, int(count))
-
 	// move past the last post time
 	time.Sleep(100 * time.Millisecond)
+
+	// check number of messages to be exported
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 9, start, until)
 
 	// Now run the exports
 	var job *model.Job
 	if testStopping {
 		var jobData map[string]string
 		// manually create the job (which will start right away, so we need to wait for it below, after we use its id.
-		job, _, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: "message_export"})
+		job, _, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{
+			Type: "message_export",
+			Data: map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)}})
 		require.NoError(t, err)
 
 		// Stop the export after the second batch by stopping the Worker.
@@ -634,7 +634,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 		testEndOfBatchCb = nil
 		jobDataInvariantsShouldBeEqual(t, jobData, job.Data)
 	} else {
-		job = runJobForTest(t, th, nil)
+		job = runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 	}
 
 	warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
@@ -661,7 +661,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 	batches := []string{batch001, batch002, batch003}
 	require.ElementsMatch(t, batches, files)
 
-	return SetupReturn{
+	return JobResults{
 		start:             start,
 		joinLeaves:        jl,
 		users:             users,
@@ -677,8 +677,8 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}
 }
 
-func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) SetupReturn {
+func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
+	attachmentBackend, exportBackend filestore.FileBackend) JobResults {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.EnableExport = true
 		*cfg.MessageExportSettings.ExportFromTimestamp = 0
@@ -693,6 +693,9 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 			*cfg.FileSettings.ExportDirectory = exportDir
 		}
 	})
+
+	waitUntilZeroPosts(t, th)
+	start := model.GetMillis()
 
 	// Users:
 	users := make([]*model.User, 0)
@@ -718,8 +721,6 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	}, 999)
 	require.NoError(t, err)
 
-	start := model.GetMillis()
-
 	createUpdateTimes := []int64{start + 10, start + 14}
 
 	jl := []joinLeave{
@@ -744,7 +745,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		ChannelId: channel2.Id,
@@ -755,7 +756,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// Test that it's picking up a previous successful job
 	var previousJob *model.Job
@@ -787,16 +788,15 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	}
 	require.Equal(t, prevUpdatedAt, start)
 
-	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 2, int(count))
-
 	// move past the last post time
 	time.Sleep(30 * time.Millisecond)
 
+	// check number of messages to be exported
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 2, start, until)
+
 	// Now run the exports
-	job := runJobForTest(t, th, nil)
+	job := runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
 	require.NoError(t, err)
@@ -814,7 +814,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	batches := []string{batch001}
 	require.ElementsMatch(t, batches, files)
 
-	return SetupReturn{
+	return JobResults{
 		start:             start,
 		joinLeaves:        jl,
 		users:             users,
@@ -828,16 +828,16 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	}
 }
 
-// SetupType3Return specific data needed to be returned by this test only
-type SetupType3Return struct {
+// Type3Results specific data needed to be returned by this test only
+type Type3Results struct {
 	message1DeleteAt int64
 	updatedPost2     *model.Post
 	message3DeleteAt int64
 	deletedPost3     *model.Post
 }
 
-func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) (SetupReturn, SetupType3Return) {
+func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
+	attachmentBackend, exportBackend filestore.FileBackend) (JobResults, Type3Results) {
 	// This tests (reading the files exported and testing the exported xml):
 	//  - post create at field is set
 	//  - post deleted fields are set
@@ -846,6 +846,9 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	//  - post edited (new message created with original message, old message updated)
 	//  - post edited with 3 simultaneous posts in-between - forward
 	//  - post edited but falls on the batch boundary (originalId is in batch 1, newId is batch 2)
+
+	waitUntilZeroPosts(t, th)
+	start := model.GetMillis()
 
 	// Users:
 	users := make([]*model.User, 0)
@@ -865,9 +868,6 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 		CreatorId:   th.BasicUser.Id,
 	}, 999)
 	require.NoError(t, err)
-
-	time.Sleep(100 * time.Millisecond)
-	start := model.GetMillis()
 
 	// user 1 joins before start time and stays (and posts)
 	user1JoinTime := start - 100
@@ -892,7 +892,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 1 - post deleted
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -905,7 +905,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message1DeleteAt, users[0].Id)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 2 - post updated not edited (e.g., reaction)
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -915,7 +915,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	_, err = th.App.Srv().Store().Reaction().Save(&model.Reaction{
 		UserId:    users[0].Id,
 		PostId:    post.Id,
@@ -934,14 +934,14 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 		FileIds:   []string{"test3"},
 	})
 	require.NoError(t, err)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	message3DeleteAt := model.GetMillis()
 	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeleteAt, users[0].Id)
 	require.NoError(t, err)
 	deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// Message for deleted file -- NOT INCLUDED IN THE BATCH SIZE
 	attachmentContent := "Hello there message 3"
@@ -959,7 +959,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err2)
 	attachments = append(attachments, info)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	contents = append(contents, attachmentContent)
 
 	// 4 - original post
@@ -970,7 +970,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	// 5 - post edited
 	post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 		Id:        post.Id,
@@ -982,7 +982,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	}, post)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 6 - post edited but falls on the batch boundary
 	// original post, but gets modified by the next edit
@@ -993,7 +993,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 7 - new post with original message
 	// update returns "new" post, which is the old post modified
@@ -1007,7 +1007,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	}, post)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	require.Len(t, posts, 8)
 	// therefore, need a batch size of 7
@@ -1029,12 +1029,11 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 
 	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 8, int(count))
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 8, start, until)
 
 	// Now run the exports
-	job := runJobForTest(t, th, nil)
+	job := runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	assertNumExported(t, 8, job.Data)
 
@@ -1055,7 +1054,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	batches := []string{batch001, batch002}
 	require.ElementsMatch(t, batches, files)
 
-	return SetupReturn{
+	return JobResults{
 			start:       start,
 			users:       users,
 			joinLeaves:  jl,
@@ -1067,7 +1066,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 			channels:    []*model.Channel{channel2},
 			teams:       []*model.Team{th.BasicTeam},
 			batchTimes:  batchTimes,
-		}, SetupType3Return{
+		}, Type3Results{
 			message1DeleteAt: message1DeleteAt,
 			updatedPost2:     updatedPost2,
 			message3DeleteAt: message3DeleteAt,
@@ -1075,8 +1074,11 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 		}
 }
 
-func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) SetupReturn {
+func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
+	attachmentBackend, exportBackend filestore.FileBackend) JobResults {
+	waitUntilZeroPosts(t, th)
+	start := model.GetMillis()
+
 	// Users:
 	users := make([]*model.User, 0)
 	user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
@@ -1120,7 +1122,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, originalPost)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 1 - edited post
 	post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
@@ -1133,7 +1135,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	}, originalPost)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	simultaneous := post.UpdateAt
 
@@ -1146,7 +1148,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 3 - post 2 at same updateAt
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1157,7 +1159,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// 4 - post 3 in-between
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1190,7 +1192,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	assertNumPostsToExport(t, th, 5, start, until)
 
 	// Now run the exports
-	job := runJobForTest(t, th, nil)
+	job := runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 	// cleanup for next run
 	_, err = th.App.Srv().Store().Job().Delete(job.Id)
 	require.NoError(t, err)
@@ -1209,7 +1211,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	batches := []string{batch001}
 	require.ElementsMatch(t, batches, files)
 
-	return SetupReturn{
+	return JobResults{
 		start:      start,
 		users:      users,
 		joinLeaves: jl,
@@ -1222,25 +1224,37 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	}
 }
 
-// SetupType5Return specific data needed to be returned by this test only
-type SetupType5Return struct {
+// Type5Results specific data needed to be returned by this test only
+type Type5Results struct {
 	message0DeleteAt int64
 	updatedPost1     *model.Post
 	zipBytes         [][]byte
 }
 
-// setupAndRunE2ETestType5 does 4 jobs, returns an array of each job's data to use in testing
-func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend) ([]SetupReturn, []SetupType5Return) {
+// generateE2ETestType5Results does 4 jobs, returns an array of each job's data to use in testing
+func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
+	attachmentBackend, exportBackend filestore.FileBackend) ([]JobResults, []Type5Results) {
 	// This tests (reading the files exported and testing the exported file):
 	//  - post deleted in current job: shows created post, then deleted post
 	//  - post deleted in current job but different batch: shows created post (in second batch), then deleted post
 	//  - post created in previous job, deleted in current job: shows only deleted post in current job
 	//    (and same for updated post)
 
+	waitUntilZeroPosts(t, th)
+	start := model.GetMillis()
+
+	channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		DisplayName: "the Channel Two",
+		Name:        "channel_two_name",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+		CreatorId:   th.BasicUser.Id,
+	}, 999)
+	require.NoError(t, err)
+
 	// user 1 joins before start time and stays (and posts)
 	user1JoinTime := model.GetMillis() - 100
-	err := th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(th.BasicUser.Id, th.BasicChannel.Id, user1JoinTime)
+	err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(th.BasicUser.Id, channel2.Id, user1JoinTime)
 	require.NoError(t, err)
 
 	// Job 1: post deleted in current job: shows created post, then deleted post
@@ -1250,13 +1264,13 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 
 	// post create
 	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 0",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// post deleted
 	message0DeleteAt := model.GetMillis()
@@ -1284,7 +1298,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	assertNumPostsToExport(t, th, 1, start, until)
 
 	// Now run the exports
-	job := runJobForTest(t, th, nil)
+	job := runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	assertNumExported(t, 1, job.Data)
 
@@ -1305,18 +1319,13 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	zipBytes, err := exportBackend.ReadFile(batches[0])
 	require.NoError(t, err)
 
-	var setupReturns []SetupReturn
-	var setupType5Returns []SetupType5Return
+	var setupReturns []JobResults
+	var setupType5Returns []Type5Results
 
-	setupReturns = append(setupReturns, SetupReturn{
-		//joinLeaves: jl,  // not needed for actiance, if we use it need to update it I think
-		//batches: batches,
+	setupReturns = append(setupReturns, JobResults{
 		posts: posts,
-		//channels:   []*model.Channel{th.BasicChannel},
-		//teams:      []*model.Team{th.BasicTeam},
-		//batchTimes: batchTimes,
 	})
-	setupType5Returns = append(setupType5Returns, SetupType5Return{
+	setupType5Returns = append(setupType5Returns, Type5Results{
 		message0DeleteAt: message0DeleteAt,
 		zipBytes:         [][]byte{zipBytes},
 	})
@@ -1334,34 +1343,30 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	//
 
 	// Job 2: post deleted in current job, shows up in second batch because it was deleted after the "second" post
-	time.Sleep(1 * time.Millisecond)
+	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
-
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
 
 	posts = make([]*model.Post, 0)
 
 	// post create -- this will be the one deleted
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 0",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// post create -- this is the "second" post, but it will show up first because first post is deleted after
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 1",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// post deleted -- first post deleted
 	message0DeleteAt = model.GetMillis()
@@ -1379,7 +1384,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	assertNumPostsToExport(t, th, 2, start, until)
 
 	// Now run the exports
-	job = runJobForTest(t, th, nil)
+	job = runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	assertNumExported(t, 2, job.Data)
 
@@ -1400,15 +1405,10 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	zipBytes2, err := exportBackend.ReadFile(batches[1])
 	require.NoError(t, err)
 
-	setupReturns = append(setupReturns, SetupReturn{
-		//joinLeaves: jl,  // not needed for actiance, if we use it need to update it I think
-		//batches: batches,
+	setupReturns = append(setupReturns, JobResults{
 		posts: posts,
-		//channels:   []*model.Channel{th.BasicChannel},
-		//teams:      []*model.Team{th.BasicTeam},
-		//batchTimes: batchTimes,
 	})
-	setupType5Returns = append(setupType5Returns, SetupType5Return{
+	setupType5Returns = append(setupType5Returns, Type5Results{
 		message0DeleteAt: message0DeleteAt,
 		zipBytes:         [][]byte{zipBytes, zipBytes2},
 	})
@@ -1426,34 +1426,29 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	//
 
 	// Job 3: post created in previous job, deleted in current job: shows only deleted post in current job
-	time.Sleep(1 * time.Millisecond)
+	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
-
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
 
 	posts = make([]*model.Post, 0)
 
 	// post create -- this will be the one deleted in second job
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 0",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// post create -- this will be the one updated in second job
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 1",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
 
 	// use the config fallback
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1465,7 +1460,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	assertNumPostsToExport(t, th, 2, start, until)
 
 	// Now run the exports
-	job = runJobForTest(t, th, nil)
+	job = runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	assertNumExported(t, 2, job.Data)
 
@@ -1482,15 +1477,10 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	zipBytes, err = exportBackend.ReadFile(batches[0])
 	require.NoError(t, err)
 
-	setupReturns = append(setupReturns, SetupReturn{
-		//joinLeaves: jl,  // not needed for actiance, if we use it need to update it I think
-		//batches: batches,
+	setupReturns = append(setupReturns, JobResults{
 		posts: posts,
-		//channels:   []*model.Channel{th.BasicChannel},
-		//teams:      []*model.Team{th.BasicTeam},
-		//batchTimes: batchTimes,
 	})
-	setupType5Returns = append(setupType5Returns, SetupType5Return{
+	setupType5Returns = append(setupType5Returns, Type5Results{
 		zipBytes: [][]byte{zipBytes},
 	})
 
@@ -1505,26 +1495,21 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	//
 	// Job 4
 	//
-
-	time.Sleep(1 * time.Millisecond)
+	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
-
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
 
 	// make a copy of posts so the one we sent earlier doesn't get modified and cause difficult to detect bugs
 	posts = append([]*model.Post{}, posts...)
 
 	// post create -- filler
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
 		Message:   "message 1",
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// post deleted -- first post deleted (the first one exported earlier)
 	message0DeleteAt = model.GetMillis()
@@ -1536,7 +1521,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 		UserId:    th.BasicUser.Id,
 		PostId:    posts[1].Id,
 		EmojiName: "smile",
-		ChannelId: th.BasicChannel.Id,
+		ChannelId: channel2.Id,
 	})
 	require.NoError(t, err)
 	updatedPost1, err := th.App.Srv().Store().Post().GetSingle(th.Context, posts[1].Id, false)
@@ -1553,7 +1538,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	assertNumPostsToExport(t, th, 3, start, until)
 
 	// Now run the exports
-	job = runJobForTest(t, th, nil)
+	job = runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
 
 	assertNumExported(t, 3, job.Data)
 
@@ -1570,10 +1555,10 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	zipBytes, err = exportBackend.ReadFile(batches[0])
 	require.NoError(t, err)
 
-	setupReturns = append(setupReturns, SetupReturn{
+	setupReturns = append(setupReturns, JobResults{
 		posts: posts,
 	})
-	setupType5Returns = append(setupType5Returns, SetupType5Return{
+	setupType5Returns = append(setupType5Returns, Type5Results{
 		message0DeleteAt: message0DeleteAt,
 		updatedPost1:     updatedPost1,
 		zipBytes:         [][]byte{zipBytes},

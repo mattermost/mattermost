@@ -438,7 +438,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					assert.NoError(t, err)
 				}()
 
-				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeActiance, attachmentDir,
+				ret := generateE2ETestType1Results(t, th, model.ComplianceExportTypeActiance, attachmentDir,
 					exportDir, attachmentBackend, exportBackend, tt.testStopping)
 				channel2 := ret.channels[0]
 				channel3 := ret.channels[1]
@@ -559,7 +559,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					assert.NoError(t, err)
 				}()
 
-				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+				ret := generateE2ETestType1Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 					exportDir, attachmentBackend, exportBackend, tt.testStopping)
 				channel2 := ret.channels[0]
 				posts := ret.posts
@@ -704,7 +704,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					assert.NoError(t, err)
 				}()
 
-				ret := setupAndRunE2ETestType1(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+				ret := generateE2ETestType1Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 					exportDir, attachmentBackend, exportBackend, tt.testStopping)
 				jl := ret.joinLeaves
 				cu := ret.createUpdateTimes
@@ -785,7 +785,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			assert.NoError(t, err)
 		}()
 
-		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeActiance, attachmentDir,
+		ret := generateE2ETestType2Results(t, th, model.ComplianceExportTypeActiance, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		channel2 := ret.channels[0]
 		start := ret.start
@@ -816,7 +816,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			assert.NoError(t, err)
 		}()
 
-		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+		ret := generateE2ETestType2Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		posts := ret.posts
 		batchTimes := ret.batchTimes
@@ -863,7 +863,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			assert.NoError(t, err)
 		}()
 
-		ret := setupAndRunE2ETestType2(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+		ret := generateE2ETestType2Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		posts := ret.posts
 		jl := ret.joinLeaves
@@ -889,7 +889,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret, type3Ret := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		ret, type3Ret := generateE2ETestType3Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		batches := ret.batches
 		posts := ret.posts
 		users := ret.users
@@ -932,7 +932,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				require.Len(t, messages, 10) // batch size 7 + deleted msg1, deleted ms3, 1 deleted file msg
 
 				// 0 - post create
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:   xml.Name{Local: "Message"},
 					MessageId: posts[0].Id,
 					UserEmail: users[0].Email,
@@ -942,7 +942,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[0])
 
 				// 1 - post created
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:   xml.Name{Local: "Message"},
 					MessageId: posts[1].Id,
 					UserEmail: users[0].Email,
@@ -952,7 +952,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[1])
 
 				// 1 - post deleted
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:     xml.Name{Local: "Message"},
 					MessageId:   posts[1].Id,
 					UserEmail:   users[0].Email,
@@ -964,7 +964,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[2])
 
 				// 2 - post updated not edited (e.g., reaction)
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:     xml.Name{Local: "Message"},
 					MessageId:   posts[2].Id,
 					UserEmail:   users[0].Email,
@@ -976,7 +976,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[3])
 
 				// 3 - post created
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:   xml.Name{Local: "Message"},
 					MessageId: posts[3].Id,
 					UserEmail: users[0].Email,
@@ -986,7 +986,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[4])
 
 				// 3 - post deleted with a deleted file
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:     xml.Name{Local: "Message"},
 					MessageId:   posts[3].Id,
 					UserEmail:   users[0].Email,
@@ -998,7 +998,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}, messages[5])
 
 				// file deleted message
-				require.Equal(t, &actiance_export.PostExport{
+				assert.Equal(t, &actiance_export.PostExport{
 					XMLName:     xml.Name{Local: "Message"},
 					MessageId:   messages[4].MessageId, // cheating bc we don't have this messageId
 					UserEmail:   users[0].Email,
@@ -1040,9 +1040,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 				// the last message is one of the two edited or original
 				if messages[9].MessageId == message7.MessageId {
-					require.Equal(t, message7, messages[9])
+					assert.Equal(t, message7, messages[9])
 				} else {
-					require.Equal(t, message8, messages[9])
+					assert.Equal(t, message8, messages[9])
 				}
 
 				// only batch one has files, but they're deleted
@@ -1057,7 +1057,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				require.NoError(t, err)
 				err = attachmentInZip.Close()
 				require.NoError(t, err)
-				require.EqualValuesf(t, contents[0], string(attachmentInZipContents), "file contents not equal")
+				assert.EqualValuesf(t, contents[0], string(attachmentInZipContents), "file contents not equal")
 			}
 
 			if b == 1 {
@@ -1068,9 +1068,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 				// check for either message 7 or message8
 				if messages[0].MessageId == message7.MessageId {
-					require.Equal(t, message7, messages[0])
+					assert.Equal(t, message7, messages[0])
 				} else {
-					require.Equal(t, message8, messages[0])
+					assert.Equal(t, message8, messages[0])
 				}
 			}
 		}
@@ -1080,7 +1080,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret, type3Ret := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+		ret, type3Ret := generateE2ETestType3Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		jl := ret.joinLeaves
 		posts := ret.posts
@@ -1249,7 +1249,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret, ret3 := setupAndRunE2ETestType3(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+		ret, ret3 := generateE2ETestType3Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		jl := ret.joinLeaves
 		posts := ret.posts
@@ -1368,7 +1368,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		batch001 := ret.batches[0]
 		posts := ret.posts
 		users := ret.users
@@ -1436,7 +1436,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
+		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		jl := ret.joinLeaves
 		posts := ret.posts
@@ -1490,7 +1490,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		ret := setupAndRunE2ETestType4(t, th, model.ComplianceExportTypeCsv, attachmentDir,
+		ret := generateE2ETestType4Results(t, th, model.ComplianceExportTypeCsv, attachmentDir,
 			exportDir, attachmentBackend, exportBackend)
 		jl := ret.joinLeaves
 		posts := ret.posts
@@ -1526,7 +1526,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeActiance, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
 		message0DeleteAt := ret5s[0].message0DeleteAt
 		zipBytes := ret5s[0].zipBytes[0]
@@ -1724,7 +1724,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeGlobalrelayZip, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
 		zipBytes := ret5s[0].zipBytes[0]
 
@@ -1846,7 +1846,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		th := setup(t)
 		defer th.TearDown()
 
-		rets, ret5s := setupAndRunE2ETestType5(t, th, model.ComplianceExportTypeCsv, attachmentDir, exportDir, attachmentBackend, exportBackend)
+		rets, ret5s := generateE2ETestType5Results(t, th, model.ComplianceExportTypeCsv, attachmentDir, exportDir, attachmentBackend, exportBackend)
 		posts := rets[0].posts
 		message0DeleteAt := ret5s[0].message0DeleteAt
 		zipBytes := ret5s[0].zipBytes[0]
