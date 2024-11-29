@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/utils"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -751,6 +750,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		if appErr != nil {
 			return nil, appErr
 		}
+		newPost.FileIds = receivedUpdatedPost.FileIds
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -832,21 +832,6 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	rpost = sanitizedPost
 
 	return rpost, nil
-}
-
-func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.Post) *model.AppError {
-	newFileIDs := model.RemoveDuplicateStrings(newPost.FileIds)
-	oldFileIDs := model.RemoveDuplicateStrings(oldPost.FileIds)
-
-	addedFiles, _, unchangedFiles := utils.FindExclusives(newFileIDs, oldFileIDs)
-	// TODO handle removed files here
-
-	attachedFileIDs := a.attachFileIDsToPost(rctx, newPost.Id, newPost.ChannelId, newPost.UserId, addedFiles)
-	if len(addedFiles) != len(attachedFileIDs) {
-		// if not all files could be attached, the final list of files
-		// is those that could be attached + the existing, unchanged files
-		newPost.FileIds = append(addedFiles, unchangedFiles...)
-	}
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
