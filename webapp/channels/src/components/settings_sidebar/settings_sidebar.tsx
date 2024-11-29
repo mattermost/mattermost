@@ -110,17 +110,31 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             pluginTabList = (
                 <>
                     <hr/>
-                    <li
-                        key={'plugin preferences heading'}
-                        role='heading'
-                        className={'header'}
+                    <div
+                        aria-labelledby={'userSettingsModal.pluginPreferences.header'}
+                        role='region'
                     >
-                        <FormattedMessage
+                        <div
                             id={'userSettingsModal.pluginPreferences.header'}
-                            defaultMessage={'PLUGIN PREFERENCES'}
-                        />
-                    </li>
-                    {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index))}
+                            key={'plugin preferences heading'}
+                            role='heading'
+                            aria-level={3}
+                            className={'header'}
+                        >
+                            <FormattedMessage
+                                id={'userSettingsModal.pluginPreferences.header'}
+                                defaultMessage={'PLUGIN PREFERENCES'}
+                            />
+                        </div>
+                        <ul
+                            id='tabList.plugins'
+                            className='nav nav-pills nav-stacked'
+                            role='tablist'
+                            aria-orientation='vertical'
+                        >
+                            {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index))}
+                        </ul>
+                    </div>
                 </>
             );
         }
@@ -134,8 +148,8 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     aria-orientation='vertical'
                 >
                     {tabList}
-                    {pluginTabList}
                 </ul>
+                {pluginTabList}
             </div>
         );
     }
