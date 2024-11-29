@@ -1543,6 +1543,8 @@ func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *mod
 	return nil
 }
 
+// UpdatePasswordByUserIdSendEmail updates a user's password and sends an email to notify them of the change.
+// Returns an error if the user cannot be found or the password cannot be updated.
 func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1552,6 +1554,8 @@ func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword
 	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
+// UpdatePassword updates a user's password. Validates the password meets length requirements.
+// Returns an error if the password is invalid or cannot be updated.
 func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
 	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
 		return err
@@ -1602,6 +1606,8 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 	return nil
 }
 
+// UpdatePasswordSendEmail updates a user's password and sends an email notification.
+// The method parameter is included in the email to identify how the password was changed.
 func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
 	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return err
@@ -1616,6 +1622,8 @@ func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPasswo
 	return nil
 }
 
+// UpdateHashedPasswordByUserId updates a user's hashed password directly by user ID.
+// This should only be used when you already have a properly hashed password.
 func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1625,6 +1633,8 @@ func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *mo
 	return a.UpdateHashedPassword(user, newHashedPassword)
 }
 
+// UpdateHashedPassword updates a user's password with an already-hashed password.
+// This should only be used when you already have a properly hashed password.
 func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
 	// remote/synthetic users cannot update password via any mechanism
 	if user.IsRemote() {
