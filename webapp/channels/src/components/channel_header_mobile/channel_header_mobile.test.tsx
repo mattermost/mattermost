@@ -65,7 +65,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
         expect(heading).not.toBeNull();
         expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/Town Square/i);
+        expect(heading?.innerHTML).toMatch(/Town Square/i);
     });
 
     test('should render DM channel header', () => {
@@ -85,7 +85,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
         expect(heading).not.toBeNull();
         expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/display_name/i);
+        expect(heading?.innerHTML).toMatch(/display_name/i);
     });
 
     test('should render private channel header', () => {
@@ -104,6 +104,6 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
         expect(heading).not.toBeNull();
         expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/display_name/i);
+        expect(heading?.innerHTML).toMatch(/display_name/i);
     });
 });
