@@ -99,7 +99,7 @@ describe('components/ModalController', () => {
         };
 
         const store = mockStore(state);
-        renderWithContext(<ModalController/>, state);
+        renderWithContext(<ModalController/>, state, {useMockedStore: true});
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('components/ModalController', () => {
         };
 
         const store = mockStore(state);
-        renderWithContext(<ModalController/>, state);
+        renderWithContext(<ModalController/>, state, {useMockedStore: true});
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
