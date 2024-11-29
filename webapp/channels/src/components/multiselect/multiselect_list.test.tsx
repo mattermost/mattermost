@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {Value} from './multiselect';
 import MultiSelectList from './multiselect_list';
 import type {Props as MultiSelectProps} from './multiselect_list';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 const element = () => <div/>;
 
@@ -48,6 +50,7 @@ describe('components/multiselect/multiselect', () => {
                     ref={isSelected ? selectedItemRef : option.id}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
+                    data-testid={`option-${option.id}`}
                 >
                     {option.id}
                 </p>
@@ -63,7 +66,7 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        const wrapper = shallow(
+        renderWithIntl(
             <MultiSelectList
                 {...baseProps}
                 optionRenderer={renderOption}
@@ -71,8 +74,9 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        const component = wrapper.dive().instance();
-        component.setSelected(1);
+        const option = screen.getByTestId('option-1');
+        userEvent.hover(option);
+
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
     });
 
@@ -84,6 +88,7 @@ describe('components/multiselect/multiselect', () => {
                     ref={isSelected ? selectedItemRef : option.id}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
+                    data-testid={`option-${option.id}`}
                 >
                     {option.id}
                 </p>
@@ -99,7 +104,7 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        const wrapper = shallow(
+        renderWithIntl(
             <MultiSelectList
                 {...baseProps}
                 optionRenderer={renderOption}
@@ -107,8 +112,9 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        const component = wrapper.dive().instance();
-        component.setSelected(1);
+        const option = screen.getByTestId('option-1');
+        userEvent.hover(option);
+
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
     });
 });
