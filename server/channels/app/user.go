@@ -955,6 +955,8 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	return nil
 }
 
+// SetProfileImage sets a user's profile image from a provided multipart.FileHeader.
+// Returns an error if the image cannot be opened or processed.
 func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
@@ -964,6 +966,9 @@ func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart
 	return a.SetProfileImageFromMultiPartFile(c, userID, file)
 }
 
+// SetProfileImageFromMultiPartFile sets a user's profile image from a multipart.File.
+// Validates image dimensions and file size before setting the image.
+// Returns an error if the image exceeds size limits or cannot be processed.
 func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
 	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
@@ -972,6 +977,9 @@ func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, fil
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
+// AdjustImage processes an image file for use as a profile image.
+// Decodes the image, corrects orientation, and resizes to profile dimensions.
+// Returns the processed image as a bytes.Buffer or an error if processing fails.
 func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
 	img, _, err := a.ch.imgDecoder.Decode(file)
@@ -994,6 +1002,9 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	return buf, nil
 }
 
+// SetProfileImageFromFile sets a user's profile image from an io.Reader containing the image data.
+// Processes the image, saves it to storage, and triggers necessary cache invalidation and events.
+// Returns an error if the image cannot be processed or saved.
 func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
 	buf, err := a.AdjustImage(file)
 	if err != nil {
@@ -1018,6 +1029,9 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	return nil
 }
 
+// UpdatePasswordAsUser updates a user's password after validating their current password.
+// This is used when a user updates their own password, as opposed to an admin update.
+// Returns an error if the current password is invalid or the new password cannot be set.
 func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
