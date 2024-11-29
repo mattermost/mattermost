@@ -61,8 +61,13 @@ const defaultState = {
             countsIncludingDirect: {},
         },
         plugins: {
+            plugins: {},
             components: {
                 MobileChannelHeaderButton: [],
+                CallButton: [],
+                PostDropdownMenu: [],
+                PostAction: [],
+                PostEditorAction: [],
             },
         },
     },
