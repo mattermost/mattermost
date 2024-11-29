@@ -44,6 +44,9 @@ type AppIface interface {
 	ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	// @openTracingParams teamID, skipSlackParsing
 	CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
+	// ActivateMfa activates multi-factor authentication for the user with the given ID using the provided token.
+	// Returns nil on success, or an error if MFA is not enabled, the token is invalid, or there was an error activating MFA.
+	ActivateMfa(userID, token string) *model.AppError
 	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 	AddChannelMember(c request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError)
 	// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
@@ -54,6 +57,18 @@ type AppIface interface {
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	// AdjustImage processes an image file for use as a profile image.
+	// Decodes the image, corrects orientation, and resizes to profile dimensions.
+	// Returns the processed image as a bytes.Buffer or an error if processing fails.
+	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
+	// AutocompleteUsersInChannel returns a list of users in and out of the specified channel for autocomplete purposes.
+	// The result is divided into two lists: users in the channel and users not in the channel.
+	// The search term is matched against username, full name, and nickname fields.
+	AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
+	// AutocompleteUsersInTeam returns a list of users in the specified team for autocomplete purposes.
+	// The search term is matched against username, full name, and nickname fields.
+	// Results can be filtered and paginated using the options parameter.
+	AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
 	// Caller must close the first return value
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// Caller must close the first return value
@@ -102,11 +117,36 @@ type AppIface interface {
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError)
+	// CreateOAuthUser creates a user from OAuth information. The user is created with roles determined by the
+	// team and channel membership defaults set by the system admin.
+	CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
+	// CreatePasswordRecoveryToken creates a token that can be used to reset a user's password.
+	// The token is valid for PasswordRecoverExpiryTime duration.
+	// Returns the token if successful, or an error if the token could not be created.
+	CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError)
 	// CreateUser creates a user and sets several fields of the returned User struct to
 	// their zero values.
 	CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError)
+	// CreateUserAsAdmin creates a new user with system admin privileges.
+	// Returns the created user and nil on success, or nil and an error on failure.
+	CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
+	// CreateUserFromSignup creates a user from a signup request. The user will be created with default permissions.
+	// Returns the created user and nil on success, or nil and an error on failure.
+	CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
+	// CreateUserWithInviteId creates a user from an invite ID. The invite ID must be valid and not expired.
+	// Returns the created user and nil on success, or nil and an error on failure.
+	CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
+	// CreateUserWithToken creates a user from the provided user object and token. The token must be valid and not expired.
+	// Returns the created user and nil on success, or nil and an error on failure.
+	CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
+	// DeactivateGuests deactivates all guest account users and revokes all their sessions.
+	// A WebSocket event will be broadcast announcing the deactivation.
+	DeactivateGuests(c request.CTX) *model.AppError
+	// DeactivateMfa deactivates multi-factor authentication for the user with the given ID.
+	// Returns nil on success, or an error if MFA could not be deactivated.
+	DeactivateMfa(userID string) *model.AppError
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -127,6 +167,9 @@ type AppIface interface {
 	DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
+	// DeleteToken deletes the given token from the database.
+	// Returns an error if the token could not be deleted.
+	DeleteToken(token *model.Token) *model.AppError
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
 	// regular user roles to guest roles.
 	DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
@@ -164,6 +207,9 @@ type AppIface interface {
 	// FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 	// associated to the team excluding bots.
 	FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error)
+	// GenerateMfaSecret generates an MFA secret for the user with the given ID. Returns the secret and nil on success,
+	// or nil and an error if MFA is not enabled or there was an error generating the secret.
+	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 	// filter.
 	GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
@@ -179,6 +225,9 @@ type AppIface interface {
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
+	// GetDefaultProfileImage gets the default profile image for the given user.
+	// Returns the image data and any error that occurred while generating the default image.
+	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	// GetEmojiStaticURL returns a relative static URL for system default emojis,
 	// and the API route for custom ones. Errors if not found or if custom and deleted.
 	GetEmojiStaticURL(c request.CTX, emojiName string) (string, *model.AppError)
@@ -207,6 +256,9 @@ type AppIface interface {
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 	// and plugins that are installed locally.
 	GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError)
+	// GetPasswordRecoveryToken retrieves a password recovery token by token string.
+	// Returns the token if valid and of the correct type, or an error if the token is invalid or of the wrong type.
+	GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError)
 	// GetPluginStatus returns the status for a plugin installed on this server.
 	GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 	// GetPluginStatuses returns the status for plugins installed on this server.
@@ -224,10 +276,16 @@ type AppIface interface {
 	GetPostsUsage() (int64, *model.AppError)
 	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 	GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
+	// GetProfileImage gets the profile image for the given user. Returns the image data, whether it exists,
+	// and any error that occurred while fetching the image.
+	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
 	GetProfileImagePath(user *model.User) (string, *model.AppError)
 	// GetPublicKey will return the actual public key saved in the `name` file.
 	GetPublicKey(name string) ([]byte, *model.AppError)
+	// GetSanitizeOptions returns the options to sanitize user data based on whether
+	// the sanitization is being done for an admin or not.
+	GetSanitizeOptions(asAdmin bool) map[string]bool
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
 	GetSanitizedConfig() *model.Config
 	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
@@ -243,15 +301,145 @@ type AppIface interface {
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
 	GetTeamSchemeChannelRoles(c request.CTX, teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
+	// GetThreadForUser gets thread information for a specific user based on their thread membership.
+	// The extended parameter determines whether to return additional thread details.
+	// Returns the ThreadResponse if found, or an error if the thread does not exist or could not be retrieved.
+	GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError)
+	// GetThreadMembershipForUser gets a user's membership information for a specific thread.
+	// Returns the ThreadMembership if found, or an error if the membership does not exist or could not be retrieved.
+	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
+	// GetThreadsForUser gets all threads followed by or participated in by a user for the given team.
+	// Returns a Threads object containing thread and count information based on the GetUserThreadsOpts provided.
+	// The options parameter can filter and customize the results.
+	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
+	// GetTokenById retrieves a token by its ID. Returns the token if found, or an error
+	// if the token is invalid or could not be retrieved.
+	GetTokenById(token string) (*model.Token, *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// GetUser gets a user by their ID. Returns the user and nil if found.
+	// Returns nil and an error if not found.
+	GetUser(userID string) (*model.User, *model.AppError)
+	// GetUserByAuth gets a user by their auth data and auth service. Returns the user and nil if found.
+	// Returns nil and an error if not found.
+	GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError)
+	// GetUserByEmail gets a user by their email. Returns the user and nil if found.
+	// Returns nil and an error if not found.
+	GetUserByEmail(email string) (*model.User, *model.AppError)
+	// GetUserByRemoteID gets a user by their remote ID. Returns the user and nil if found.
+	// Returns nil and an error if not found.
+	GetUserByRemoteID(remoteID string) (*model.User, *model.AppError)
+	// GetUserByUsername gets a user by their username. Returns the user and nil if found.
+	// Returns nil and an error if not found.
+	GetUserByUsername(username string) (*model.User, *model.AppError)
 	// GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
+	// GetUserTermsOfService retrieves the terms of service status for a given user.
+	// Returns the UserTermsOfService if found, or an error if the user has not accepted the terms of service.
+	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
+	// GetUsers gets users by a list of IDs. Returns the users found and nil if successful.
+	// Returns nil and an error if unsuccessful.
+	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
+	// GetUsersByGroupChannelIds returns a map of channel IDs to user objects for the set of users in each group channel.
+	// Returns the map and nil on success, or nil and an error on failure.
+	GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError)
+	// GetUsersByIds returns a list of users based on the provided user IDs. Returns the users and nil on success,
+	// or nil and an error on failure.
+	GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError)
+	// GetUsersByUsernames returns a list of users based on the provided usernames, applying view restrictions if any.
+	// Returns the users and nil on success, or nil and an error on failure.
+	GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	// GetUsersEtag returns a unique identifier for the current state of users in the system.
+	// The identifier changes when a user is created, updated, or deleted.
+	GetUsersEtag(restrictionsHash string) string
+	// GetUsersFromProfiles gets users based on the provided user options. Returns the users and nil on success.
+	// Returns nil and an error on failure.
+	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersInChannel gets a list of users in the specified channel.
+	// The options parameter can be used to specify pagination and other filters.
+	GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersInChannelByAdmin returns a list of users in the specified channel ordered by their admin status.
+	// The options parameter can be used to specify pagination and other filters.
+	GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersInChannelByStatus gets a list of users in the specified channel, ordered by their status.
+	// The options parameter can be used to specify pagination and other filters.
+	GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersInChannelMap returns a map of users in the specified channel where the map key is the user ID.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError)
+	// GetUsersInChannelPage returns a page of users in the specified channel.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetUsersInChannelPageByAdmin returns a page of users in the specified channel ordered by their admin status.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetUsersInChannelPageByStatus returns a page of users in the specified channel ordered by their status.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetUsersInTeam returns a list of users who are members of the team.
+	// The options parameter can be used to filter and paginate the results.
+	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersInTeamEtag returns a unique identifier for the current state of users in the given team.
+	// The identifier changes when a user is created, updated, deleted or when their team membership changes.
+	GetUsersInTeamEtag(teamID string, restrictionsHash string) string
+	// GetUsersInTeamPage returns a page of users who are members of the specified team.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetUsersNotInChannel gets a page of users that are not in the specified channel and team.
+	// Filters are optional and can be provided to filter the results further.
+	GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	// GetUsersNotInChannelMap gets a map of users that are not in the specified channel and team.
+	// The map keys are user IDs and values are the user objects.
+	GetUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError)
+	// GetUsersNotInChannelPage gets a page of users that are not in the specified channel and team.
+	// Page and perPage parameters control the pagination.
+	GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	// GetUsersNotInTeam returns a list of users who are not members of the specified team.
+	// The groupConstrained parameter filters users based on group constraints.
+	// Offset and limit parameters control pagination.
+	GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	// GetUsersNotInTeamEtag returns a unique identifier for the current state of users not in the given team.
+	// The identifier changes when a user is created, updated, deleted or when their team membership changes.
+	GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string
+	// GetUsersNotInTeamPage gets a page of users who are not members of a team and applies the given restrictions.
+	// Page and perPage parameters control pagination.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	// GetUsersPage returns a page of users on the system. Page and perPage parameters restrict the number of users returned.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetUsersWithInvalidEmails returns a list of users whose email addresses do not match
+	// the configured email domain restrictions. Results are paginated.
+	// Returns the list of users and any error that occurred.
+	GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError)
+	// GetUsersWithoutTeam gets a list of users that are not members of any team.
+	// Results can be filtered using the options parameter.
+	GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	// GetUsersWithoutTeamPage gets a page of users that are not members of any team.
+	// The asAdmin parameter determines if the users should be sanitized.
+	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	// GetVerifyEmailToken retrieves an email verification token by token string.
+	// Returns the token if valid and of the correct type, or an error otherwise.
+	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
+	// GetViewUsersRestrictions returns the restrictions that should be applied when the given user tries to view other users.
+	// The restrictions include which teams and channels the user has access to view.
+	// Returns nil restrictions if the user has the permission to view all users.
+	GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
 	// plugin was already enabled.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
+	// InvalidatePasswordRecoveryTokensForUser invalidates all password recovery tokens for a user.
+	// This is typically called when a user changes their password or when tokens need to be invalidated for security reasons.
+	// Returns an error if there was a problem invalidating the tokens.
+	InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError
+	// IsFirstUserAccount returns true if this is the first account created on the system
+	// based on the SYS_ADMIN_ROLE being assigned to the user.
+	IsFirstUserAccount() bool
+	// IsUserSignUpAllowed determines if user signup is allowed according to system configuration.
+	// Returns nil if signup is allowed, otherwise returns an appropriate error.
+	IsUserSignUpAllowed() *model.AppError
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rctx request.CTX, rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
@@ -290,18 +478,30 @@ type AppIface interface {
 	PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	// PatchUser applies the given patch to a user and returns the patched user.
+	// If asAdmin is true, the patch is applied with admin level permissions.
+	PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError)
 	// Perform an HTTP POST request to an integration's action endpoint.
 	// Caller must consume and close returned http.Response as necessary.
 	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
 	DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
+	// PermanentDeleteAllUsers permanently deletes all users from the system. This is a destructive operation and should be used with caution.
+	PermanentDeleteAllUsers(c request.CTX) *model.AppError
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
 	PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError
+	// PermanentDeleteUser permanently deletes a user and all their related information.
+	// This includes the user's posts, files, reactions, and other associated data.
+	// This action is irreversible. Returns an error if the deletion fails.
+	PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError
 	// PopulateWebConnConfig checks if the connection id already exists in the hub,
 	// and if so, accordingly populates the other fields of the webconn.
 	PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error)
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError
+	// PublishUserTyping publishes a user typing WebSocket event with the provided user ID, channel ID and optional parent post ID.
+	// Returns an error if there was a problem publishing the event.
+	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	// ReattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
 	ReattachPlugin(manifest *model.Manifest, pluginReattachConfig *model.PluginReattachConfig) *model.AppError
 	// Removes a listener function by the unique ID returned when AddConfigListener was called
@@ -310,20 +510,68 @@ type AppIface interface {
 	RenameChannel(c request.CTX, channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
 	RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError)
+	// ResetPasswordFromToken resets a user's password using a recovery token and updates any authentication data.
+	// Returns an error if the token is invalid, expired, or if there was an error updating the password.
+	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	// ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
 	// Post-owner can only delete the original post to stop the notifications.
 	ResolvePersistentNotification(c request.CTX, post *model.Post, loggedInUserID string) *model.AppError
+	// RestrictUsersGetByPermissions applies view restrictions to user get options based on the given user's permissions.
+	// Returns the modified options and any error that occurred while getting the restrictions.
+	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
+	// RestrictUsersSearchByPermissions applies view restrictions to user search options based on the given user's permissions.
+	// Returns the modified options and any error that occurred while getting the restrictions.
+	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
+	// SanitizeProfile sanitizes a user's profile data based on the provided admin status.
+	// This will redact sensitive information if the sanitization is not done as an admin.
+	SanitizeProfile(user *model.User, asAdmin bool)
 	// SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
 	SanitizedConfig(cfg *model.Config)
 	// SaveConfig replaces the active configuration, optionally notifying cluster peers.
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
+	// SaveUserTermsOfService records a user's acceptance or rejection of the terms of service.
+	// If accepted is true, creates a new UserTermsOfService record.
+	// If accepted is false, deletes any existing record.
+	// Returns an error if the operation fails.
+	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
 	// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 	SearchAllChannels(c request.CTX, term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError)
 	// SearchAllTeams returns a team list and the total count of the results
 	SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError)
+	// SearchUsers returns a list of users based on search criteria provided in props and options.
+	// It can search across teams, channels, and groups depending on the props provided.
+	SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersInChannel returns a list of users in the specified channel whose username, full name, or nickname
+	// matches the search term. The search is case-insensitive.
+	SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersInGroup returns a list of users who are members of the specified group and match the search term.
+	// The search is case-insensitive and applies to username, full name, and nickname fields.
+	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersInTeam returns a list of users in the specified team whose username, full name, or nickname
+	// matches the search term. The search is case-insensitive.
+	SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersNotInChannel returns a list of users not in the specified channel whose username, full name, or nickname
+	// matches the search term. The search is case-insensitive.
+	SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersNotInGroup returns a list of users who are not members of the specified group and match the search term.
+	// The search is case-insensitive and applies to username, full name, and nickname fields.
+	SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersNotInTeam returns a list of users not in the specified team whose username, full name, or nickname
+	// matches the search term. The search is case-insensitive.
+	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SearchUsersWithoutTeam returns a list of users who are not members of any team and match the search term.
+	// Results can be filtered and paginated using the options parameter.
+	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	// SendEmailVerification sends an email verification token to a user's email address.
+	// If newEmail is provided, the token will be sent to that address instead of the user's current email.
+	// The redirect parameter specifies where to redirect the user after verification.
+	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
+	// SendPasswordReset sends a password recovery email to the specified email address.
+	// Returns true if the email was sent successfully, false if the user was not found, and an error if there was a problem sending the email.
+	SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError)
 	// SessionHasPermissionToChannels returns true only if user has access to all channels.
 	SessionHasPermissionToChannels(c request.CTX, session model.Session, channelIDs []string, permission *model.Permission) bool
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
@@ -334,6 +582,20 @@ type AppIface interface {
 	SessionHasPermissionToTeams(c request.CTX, session model.Session, teamIDs []string, permission *model.Permission) bool
 	// SessionIsRegistered determines if a specific session has been registered
 	SessionIsRegistered(session model.Session) bool
+	// SetDefaultProfileImage sets the user's profile image to the default image and notifies other users of the change.
+	// Returns an error if the default image could not be set or if notifications could not be sent.
+	SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
+	// SetProfileImage sets a user's profile image from a provided multipart.FileHeader.
+	// Returns an error if the image cannot be opened or processed.
+	SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError
+	// SetProfileImageFromFile sets a user's profile image from an io.Reader containing the image data.
+	// Processes the image, saves it to storage, and triggers necessary cache invalidation and events.
+	// Returns an error if the image cannot be processed or saved.
+	SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError
+	// SetProfileImageFromMultiPartFile sets a user's profile image from a multipart.File.
+	// Validates image dimensions and file size before setting the image.
+	// Returns an error if the image exceeds size limits or cannot be processed.
+	SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError
 	// SetSessionExpireInHours sets the session's expiry the specified number of hours
 	// relative to either the session creation date or the current time, depending
 	// on the `ExtendSessionOnActivity` config setting.
@@ -381,6 +643,10 @@ type AppIface interface {
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
 	// This to be used for places we check the users password when they are already logged in
 	DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError
+	// UpdateActive activates or deactivates a user. The provided user record will be updated
+	// in memory and saved to the database. The returned user record will be the updated version.
+	// If the active parameter is true and the user limit has been reached, an error will be returned.
+	UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError)
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError)
 	// UpdateBotOwner changes a bot's owner to the given value.
@@ -392,6 +658,35 @@ type AppIface interface {
 	// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 	// which unsets dnd status of users if needed and saves and broadcasts it
 	UpdateDNDStatusOfUsers()
+	// UpdateDefaultProfileImage updates the user's profile image to the default image.
+	// Returns an error if the default image could not be generated or saved.
+	UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
+	// UpdateHashedPassword updates a user's password with an already-hashed password.
+	// This should only be used when you already have a properly hashed password.
+	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
+	// UpdateHashedPasswordByUserId updates a user's hashed password directly by user ID.
+	// This should only be used when you already have a properly hashed password.
+	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
+	// UpdateMfa activates or deactivates multi-factor authentication for a user.
+	// The token parameter is required when activating MFA. Sends an email notification to the user.
+	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
+	// UpdateOAuthUserAttrs updates a user's attributes based on OAuth data received from the provider.
+	// This is used to keep the user's information in sync with the OAuth provider's data.
+	// Returns an error if the update fails or if there are validation errors.
+	UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError
+	// UpdatePassword updates a user's password. Validates the password meets length requirements.
+	// Returns an error if the password is invalid or cannot be updated.
+	UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError
+	// UpdatePasswordAsUser updates a user's password after validating their current password.
+	// This is used when a user updates their own password, as opposed to an admin update.
+	// Returns an error if the current password is invalid or the new password cannot be set.
+	UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError
+	// UpdatePasswordByUserIdSendEmail updates a user's password and sends an email to notify them of the change.
+	// Returns an error if the user cannot be found or the password cannot be updated.
+	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
+	// UpdatePasswordSendEmail updates a user's password and sends an email notification.
+	// The method parameter is included in the email to identify how the password was changed.
+	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
 	// UpdateSharedChannelCursor updates the cursor for the specified channelID and remoteID.
@@ -400,6 +695,45 @@ type AppIface interface {
 	// This call by itself does not force a re-sync - a change to channel contents or a call to
 	// SyncSharedChannel are needed to force a sync.
 	UpdateSharedChannelCursor(channelID, remoteID string, cursor model.GetPostsSinceForSyncCursor) error
+	// UpdateThreadFollowForUser updates the follow state of a thread for a user.
+	// Publishes a WebSocket event to notify clients of the update.
+	// Returns an error if the update fails.
+	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
+	// UpdateThreadFollowForUserFromChannelAdd updates thread following state when a user is added to a channel.
+	// This ensures proper thread following state and notifications for users joining channels with existing threads.
+	// Returns an error if the update fails.
+	UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError
+	// UpdateThreadReadForUser marks a thread as read for a user up to a given timestamp.
+	// Updates unread mentions and replies, and publishes WebSocket events for the update.
+	// Returns the updated thread and any error that occurred.
+	UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
+	// UpdateThreadReadForUserByPost marks a thread as read for a user up to a given post.
+	// The post must belong to the specified thread.
+	// Returns the updated thread and any error that occurred.
+	UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
+	// UpdateThreadsReadForUser marks all threads as read for a user in a specific team.
+	// Publishes a WebSocket event to notify clients of the update.
+	// Returns an error if the update fails.
+	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
+	// UpdateUser updates an existing user in the database. If sendNotifications is true, notifications
+	// will be sent to users and the client will be informed through WebSocket events.
+	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
+	// UpdateUserActive updates the active status of a user. If active is true, the user is activated.
+	// If active is false, the user is deactivated and all their sessions are revoked.
+	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
+	// UpdateUserAsUser updates a user's settings as if the change was made by that user.
+	// This enforces certain permissions and restrictions that apply to users updating their own settings.
+	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
+	// UpdateUserAuth updates a user's authentication data (AuthData and AuthService) and returns
+	// the updated auth data. Invalidates all other sessions for the user.
+	UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
+	// UpdateUserRoles updates a user's roles and sends a WebSocket event if specified.
+	// Returns the updated user and nil on success, or nil and an error on failure.
+	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
+	// UpdateUserRolesWithUser updates roles for the given user and sends a WebSocket event if specified.
+	// This differs from UpdateUserRoles by taking a user object directly instead of a user ID.
+	// Returns the updated user and nil on success, or nil and an error on failure.
+	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 	UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError
 	// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
@@ -415,19 +749,31 @@ type AppIface interface {
 	// upload, returning a rejection error. In this case FileInfo would have
 	// contained the last "good" FileInfo before the execution of that plugin.
 	UploadFileX(c request.CTX, channelID, name string, input io.Reader, opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError)
+	// UserCanSeeOtherUser checks if a user has permission to view another user's information.
+	// Returns true if the user can see the other user, false otherwise.
+	// Also returns an error if there was a problem checking the permissions.
+	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	// UserIsFirstAdmin checks if the given user is the first admin user created on the system.
+	// Returns true if the user is a system admin and has the earliest creation date among all system admins.
+	UserIsFirstAdmin(rctx request.CTX, user *model.User) bool
 	// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
 	// ValidateUserPermissionsOnChannels filters channelIds based on whether userId is authorized to manage channel members. Unauthorized channels are removed from the returned list.
 	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
+	// VerifyEmailFromToken verifies a user's email using a token received in an email.
+	// Returns an error if the token is invalid, expired, or if there was a problem verifying the email.
+	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	// VerifyUserEmail marks a user's email as verified in the system.
+	// This will update the user's EmailVerified field and trigger relevant notifications.
+	VerifyUserEmail(userID, email string) *model.AppError
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.
 	ValidateMoveOrCopy(c request.CTX, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error
 	AccountMigration() einterfaces.AccountMigrationInterface
-	ActivateMfa(userID, token string) *model.AppError
 	ActiveSearchBackend() string
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
@@ -449,7 +795,6 @@ type AppIface interface {
 	AddUserToTeamByInviteId(c request.CTX, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c request.CTX, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
-	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
 	AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError
 	AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
@@ -463,8 +808,6 @@ type AppIface interface {
 	AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError)
 	AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError)
 	AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError)
-	AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
-	AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
 	BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
@@ -526,9 +869,7 @@ type AppIface interface {
 	CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError)
 	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	CreateOAuthStateToken(extra string) (*model.Token, *model.AppError)
-	CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError)
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
@@ -544,16 +885,10 @@ type AppIface interface {
 	CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
-	CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError)
 	DBHealthCheckDelete() error
 	DBHealthCheckWrite() error
 	DataRetention() einterfaces.DataRetentionInterface
-	DeactivateGuests(c request.CTX) *model.AppError
-	DeactivateMfa(userID string) *model.AppError
 	DeauthorizeOAuthAppForUser(c request.CTX, userID, appID string) *model.AppError
 	DecryptRemoteClusterInvite(inviteCode, password string) (*model.RemoteClusterInvite, *model.AppError)
 	DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError
@@ -584,7 +919,6 @@ type AppIface interface {
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError
-	DeleteToken(token *model.Token) *model.AppError
 	DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
@@ -617,7 +951,6 @@ type AppIface interface {
 	FindTeamByName(name string) bool
 	FinishSendAdminNotifyPost(rctx request.CTX, trial bool, now int64, pluginBasedData map[string][]*model.NotifyAdminData)
 	GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError)
-	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData
@@ -680,7 +1013,6 @@ type AppIface interface {
 	GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError)
 	GetCookieDomain() string
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
-	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError)
 	GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError)
 	GetDraftsForUser(rctx request.CTX, userID, teamID string) ([]*model.Draft, *model.AppError)
@@ -757,7 +1089,6 @@ type AppIface interface {
 	GetOutgoingWebhooksForTeamPageByUser(teamID string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError)
 	GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
@@ -783,7 +1114,6 @@ type AppIface interface {
 	GetPriorityForPost(postId string) (*model.PostPriority, *model.AppError)
 	GetPriorityForPostList(list *model.PostList) (map[string]*model.PostPriority, *model.AppError)
 	GetPrivateChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError)
-	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	GetPublicChannelsByIdsForTeam(c request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppError)
@@ -803,7 +1133,6 @@ type AppIface interface {
 	GetSamlEmailToken(token string) (*model.Token, *model.AppError)
 	GetSamlMetadata(c request.CTX) (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError)
-	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)
@@ -850,55 +1179,17 @@ type AppIface interface {
 	GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError)
 	GetTeamsUsage() (*model.TeamsUsage, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
-	GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError)
-	GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError)
 	GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error)
-	GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
-	GetTokenById(token string) (*model.Token, *model.AppError)
 	GetUploadSession(c request.CTX, uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
-	GetUser(userID string) (*model.User, *model.AppError)
 	GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError)
 	GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	GetUserAccessTokensForUser(userID string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
-	GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError)
-	GetUserByEmail(email string) (*model.User, *model.AppError)
-	GetUserByRemoteID(remoteID string) (*model.User, *model.AppError)
-	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUserCountForReport(filter *model.UserReportOptions) (*int64, *model.AppError)
 	GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *model.AppError)
 	GetUserTeamScheduledPosts(rctx request.CTX, userId, teamId string) ([]*model.ScheduledPost, *model.AppError)
-	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
-	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
-	GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError)
-	GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError)
-	GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetUsersEtag(restrictionsHash string) string
 	GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError)
-	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError)
-	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersInTeamEtag(teamID string, restrictionsHash string) string
-	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError)
-	GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string
-	GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError)
-	GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
-	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
-	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
-	GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
 	HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
@@ -923,7 +1214,6 @@ type AppIface interface {
 	InvalidateAllEmailInvites(c request.CTX) *model.AppError
 	InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError
 	InvalidateCacheForUser(userID string)
-	InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError
 	InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID, senderId string) *model.AppError
@@ -931,14 +1221,12 @@ type AppIface interface {
 	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsConfigReadOnly() bool
-	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	IsPersistentNotificationsEnabled() bool
 	IsPhase2MigrationCompleted() *model.AppError
 	IsPluginActive(pluginName string) (bool, error)
 	IsPostPriorityEnabled() bool
-	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
 	JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
@@ -981,14 +1269,11 @@ type AppIface interface {
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)
 	PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError)
-	PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError)
-	PermanentDeleteAllUsers(c request.CTX) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError
 	PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *model.AppError
 	PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
-	PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
@@ -1004,7 +1289,6 @@ type AppIface interface {
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishScheduledPostEvent(rctx request.CTX, eventType model.WebsocketEventType, scheduledPost *model.ScheduledPost, connectionId string)
-	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes(c request.CTX) *model.AppError
 	PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError
 	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
@@ -1038,14 +1322,11 @@ type AppIface interface {
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
-	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	RestoreGroup(groupID string) (*model.Group, *model.AppError)
 	RestoreTeam(teamID string) *model.AppError
-	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
-	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
 	RevokeAccessToken(c request.CTX, token string) *model.AppError
 	RevokeAllSessions(c request.CTX, userID string) *model.AppError
 	RevokeSession(c request.CTX, session *model.Session) *model.AppError
@@ -1056,7 +1337,6 @@ type AppIface interface {
 	Saml() einterfaces.SamlInterface
 	SanitizePostListMetadataForUser(c request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError)
 	SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError)
-	SanitizeProfile(user *model.User, asAdmin bool)
 	SanitizeTeam(session model.Session, team *model.Team) *model.Team
 	SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team
 	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
@@ -1069,7 +1349,6 @@ type AppIface interface {
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
 	SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
-	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(c request.CTX, teamID string, term string, userID string) (model.ChannelList, *model.AppError)
 	SearchChannels(c request.CTX, teamID string, term string) (model.ChannelList, *model.AppError)
@@ -1084,23 +1363,13 @@ type AppIface interface {
 	SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
-	SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(rctx request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(rctx request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError)
-	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	SendIPFiltersChangedEmail(c request.CTX, userID string) error
 	SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendNotifyAdminPosts(c request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError
-	SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError)
 	SendPersistentNotifications() error
 	SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError
 	SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError)
@@ -1123,7 +1392,6 @@ type AppIface interface {
 	SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap)
 	SetChannels(ch *Channels)
 	SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError
-	SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
 	SetExtraSessionProps(session *model.Session, newProps map[string]string) *model.AppError
 	SetFileSearchableContent(rctx request.CTX, fileID string, data string) *model.AppError
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
@@ -1131,9 +1399,6 @@ type AppIface interface {
 	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError
-	SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError
-	SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError
-	SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError
 	SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
@@ -1173,7 +1438,6 @@ type AppIface interface {
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
 	UnregisterPluginForSharedChannels(pluginID string) error
 	UnshareChannel(channelID string) (bool, error)
-	UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError)
 	UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIndex int64, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
@@ -1182,24 +1446,15 @@ type AppIface interface {
 	UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError)
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
-	UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
 	UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
-	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
-	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError
-	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError
 	UpdateOutgoingWebhook(c request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError
-	UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError
-	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
-	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
@@ -1216,17 +1471,6 @@ type AppIface interface {
 	UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError)
 	UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite bool) *model.AppError
 	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
-	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
-	UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError
-	UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
-	UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
-	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
-	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
-	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
-	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
-	UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
-	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadFileForUserAndTeam(c request.CTX, data []byte, channelID string, filename string, rawUserId string, rawTeamId string) (*model.FileInfo, *model.AppError)
 	UpsertDraft(c request.CTX, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
@@ -1234,11 +1478,7 @@ type AppIface interface {
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostFeature) bool
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
-	UserIsFirstAdmin(rctx request.CTX, user *model.User) bool
 	ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError)
-	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
-	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteExportFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
