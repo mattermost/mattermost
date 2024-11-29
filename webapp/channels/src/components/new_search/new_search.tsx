@@ -72,7 +72,7 @@ const CloseIcon = styled.div`
     transition: opacity 0.12s easy-out;
 `;
 
-const NewSearchContainer = styled.button`
+const NewSearchContainer = styled.div`
     display: flex;
     position: relative;
     align-items: center;
@@ -218,7 +218,7 @@ const NewSearch = (): JSX.Element => {
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
             id='searchFormContainer'
-            role='search'
+            role='button'
             className='a11y__region'
         >
             <i className='icon icon-magnify'/>
