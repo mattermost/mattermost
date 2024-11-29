@@ -47,7 +47,11 @@ describe('components/ChannelSelect', () => {
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
         expect(select).toHaveValue('testValue');
-        expect(screen.getByText('--- Select a channel ---')).toBeInTheDocument();
+        
+        const placeholder = screen.getByText('--- Select a channel ---');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder.tagName.toLowerCase()).toBe('option');
+        expect(placeholder.getAttribute('value')).toBe('');
     });
 
     test('should show open channels when selectOpen is true', () => {
