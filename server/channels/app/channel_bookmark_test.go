@@ -134,7 +134,7 @@ func TestUpdateBookmark(t *testing.T) {
 		err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
 		assert.NoError(t, err)
 		defer func() {
-			err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+			err = th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
 			require.NoError(t, err)
 		}()
 
