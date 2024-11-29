@@ -2295,10 +2295,6 @@
     "translation": "trigger_words ya da channel_id değerleri ayarlanmış olmalıdır."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Gelen İnternet kancasının birkaç parçalı paketinin kodu çözülemedi."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "İnternet kancası takımlar arasında güncellenemez."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizin işlemini oluşturamadı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizin görevini oluşturamadı"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizinleri silemedi"
+    "translation": "{{.Backend}} toplayıcı işlemi dizinleri silemedi"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizinleri alamadı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizinleri alamadı"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Elasticsearch istemcisi kurulamadı"
+    "translation": "{{.Backend}} istemcisi kurulamadı"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "ElasticSearch dizini silinemedi"
+    "translation": "{{.Backend}} dizini silinemedi"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Elasticsearch dizinleri oluşturulamadı"
+    "translation": "{{.Backend}} dizinleri oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4944,11 +4940,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "İletiler için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "İletiler için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Kullanıcılar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Kullanıcılar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5340,7 +5336,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Kanallar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Kanallar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -7432,7 +7428,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Dosyalar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Dosyalar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8823,7 +8819,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalda onay veremezsiniz."
+    "translation": "Arşivlenmiş bir kanalda bir onay kaydedemezsiniz."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8947,19 +8943,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+    "translation": "{{.Backend}} için istemci anahtar dosyası açılamadı"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+    "translation": "{{.Backend}} için istemci sertifikası dosyası açılamadı"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+    "translation": "{{.Backend}} için istemci sertifikasının kodu çözülemedi"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Elasticsearch için CA dosyası açılamadı"
+    "translation": "{{.Backend}} için CA dosyası açılamadı"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10228,5 +10224,187 @@
   {
     "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
     "translation": "Uzak kimlik geçersiz."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: İstek geçersiz."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "zamanlanmış iletiler özelliği kullanımdan kaldırılmış"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Zamanlanmış iletiler özelliğini kullanabilmek için bir lisans gereklidir"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Bot güncellenemedi."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Zamanlanmış ileti veri tabanından silinemedi."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Bu kaynağı silme izniniz yok."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zamanlanmış ileti bulunamadı."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Var olan zamanlanmış ileti veri tabanından alınamadı."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Zamanlanmış iletiler alınırken sorun çıktı."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Botun sahibi bulunamadı"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "İçe aktarılan veri satırının türü \"bot\" ancak bot nesnesi null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot sahibi eksik"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "İleti oluşturulamadı"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "GIF verilerinin başlangıcı bulunamadı."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Zamanlanmış ileti kaydedilirken sorun çıktı."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Arşivlenmiş bir kanalda ileti zamanlanamaz."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Güncellenen zamanlanmış ileti veri tabanına kaydedilemedi."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zamanlanmış ileti bulunamadı."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Var olan zamanlanmış ileti veri tabanından alınamadı."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Bu kaynağı güncelleme izniniz yok."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Boş bir ileti zamanlanamaz. Zamanlanmış iletilerde en az bir içerik veya dosya eki olmalıdır."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "İşlenme zamanı geçersiz."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Gönderilme zamanı geçersiz."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Sistem botu alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Sistem botu doğrudan iletisi alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kullanıcı alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Bu deneme bildirimini aldıysanız, çalışıyor!"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zamanlanmış iletinin bir kimliği olmalıdır."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanal arşivlendi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanal bulunamadı"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "İleti içeriği geçersiz"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Kanalın üyesi değil"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Kanala ileti gönderme izni yok"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Konu silindi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "İleti gönderilemedi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Bilinmeyen bir sorun çıktı"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Kullanıcı hesabı silindi"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "{{.Count}} zamanlanmış ileti gönderilemedi.",
+      "other": "{{.Count}} zamanlanmış ileti gönderilemedi."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kullanıcının zamanlanmış iletileri silinemedi."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.ChannelName}} kanalında {{.Count}}. Nedeni: {{.ErrorReason}}",
+      "other": "- {{.ChannelName}} kanalında {{.Count}}. Nedeni: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Özel kanal"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Kanal bilinmiyor"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "{{.Value}} depolama sınıfı geçersiz."
   }
 ]

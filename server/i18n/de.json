@@ -2295,10 +2295,6 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Konnte die Multipart-Daten des eingehenden Webhooks nicht entschlüsseln."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Indexe nicht löschen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte die Indexe nicht löschen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte Indexe nicht abrufen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte Indexe nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
+    "translation": "{{.Backend}}-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
+    "translation": "Fehler beim Einrichten des {{.Backend}}-Client"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Konnte Elasticsearch-Index nicht löschen"
+    "translation": "Konnte {{.Backend}}-Index nicht löschen"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Konnte Elasticsearch-Index nicht abrufen"
+    "translation": "Konnte {{.Backend}}-Index nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -5036,15 +5032,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Benutzer"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Benutzer"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Nachrichten"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Nachrichten"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Kanäle"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Kanäle"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -8231,7 +8227,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Konnte Elasticsearch Vorlage für Dateien nicht erstellen"
+    "translation": "Konnte {{.Backend}} Vorlage für Dateien nicht erstellen"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8947,19 +8943,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Die Client-Schlüsseldatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Schlüsseldatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Die Client-Zertifikatsdatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Zertifikatsdatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Dekodierung des Client-Zertifikats für Elasticsearch fehlgeschlagen"
+    "translation": "Dekodierung des Client-Zertifikats für {{.Backend}} fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die CA-Datei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10336,5 +10332,79 @@
   {
     "id": "app.notifications.send_test_message.errors.no_bot",
     "translation": "Kann den Systembot nicht holen"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Es ist nicht möglich, den Anfang der GIF-Daten zu suchen."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanal ist archiviert"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanal nicht gefunden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ungültiger Nachrichteninhalt"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Kein Mitglied des Kanals"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Keine Erlaubnis zum Posten im Kanal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Die Unterhaltung wurde gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Die Nachricht kann nicht gesendet werden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unbekannter Fehler"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privater Kanal"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}",
+      "other": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Benutzerkonto ist gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Benutzer existiert nicht"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Der Versand von einem geplanten Beitrag ist fehlgeschlagen.",
+      "other": "Der Versand von {{.Count}} geplanten Beiträgen ist fehlgeschlagen."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Geplante Beiträge für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unbekannter Kanal"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ungültige Speicherklasse {{.Value}}."
   }
 ]
