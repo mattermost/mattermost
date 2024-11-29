@@ -2118,6 +2118,8 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	return nil
 }
 
+// SearchUsers returns a list of users based on search criteria provided in props and options.
+// It can search across teams, channels, and groups depending on the props provided.
 func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
 		return a.SearchUsersWithoutTeam(props.Term, options)
@@ -2140,6 +2142,8 @@ func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *mo
 	return a.SearchUsersInTeam(rctx, props.TeamId, props.Term, options)
 }
 
+// SearchUsersInChannel returns a list of users in the specified channel whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchInChannel(channelID, term, options)
@@ -2153,6 +2157,8 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 	return users, nil
 }
 
+// SearchUsersNotInChannel returns a list of users not in the specified channel whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
@@ -2167,6 +2173,8 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	return users, nil
 }
 
+// SearchUsersInTeam returns a list of users in the specified team whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 
@@ -2182,6 +2190,8 @@ func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *
 	return users, nil
 }
 
+// SearchUsersNotInTeam returns a list of users not in the specified team whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInTeam(notInTeamId, term, options)
