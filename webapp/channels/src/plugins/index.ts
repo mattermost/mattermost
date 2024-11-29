@@ -16,6 +16,9 @@ import {unregisterPluginTranslationsSource} from 'actions/views/root';
 import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import type {GlobalState} from 'types/store';
 import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -65,7 +68,7 @@ function registerPlugin(id: string, plugin: Plugin): void {
 }
 window.registerPlugin = registerPlugin;
 
-function arePluginsEnabled(state: any): boolean {
+function arePluginsEnabled(state: GlobalState): boolean {
     if (getConfig(state).PluginsEnabled !== 'true') {
         return false;
     }
@@ -106,8 +109,8 @@ export async function initializePlugins(): Promise<void> {
 }
 
 // getPlugins queries the server for all enabled plugins
-export function getPlugins() {
-    return async (dispatch: any) => {
+export function getPlugins(): ActionFuncAsync {
+    return async (dispatch) => {
         let plugins;
         try {
             plugins = await Client4.getWebappPlugins();
