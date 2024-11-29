@@ -528,6 +528,8 @@ func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User
 	return users, nil
 }
 
+// GetUsersPage returns a page of users on the system. Page and perPage parameters restrict the number of users returned.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersPage(options, asAdmin)
 	if err != nil {
@@ -537,10 +539,14 @@ func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*mode
 	return users, nil
 }
 
+// GetUsersEtag returns a unique identifier for the current state of users in the system.
+// The identifier changes when a user is created, updated, or deleted.
 func (a *App) GetUsersEtag(restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
+// GetUsersInTeam returns a list of users who are members of the team.
+// The options parameter can be used to filter and paginate the results.
 func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersInTeam(options)
 	if err != nil {
@@ -550,6 +556,9 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return users, nil
 }
 
+// GetUsersNotInTeam returns a list of users who are not members of the specified team.
+// The groupConstrained parameter filters users based on group constraints.
+// Offset and limit parameters control pagination.
 func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -559,6 +568,8 @@ func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int
 	return users, nil
 }
 
+// GetUsersInTeamPage returns a page of users who are members of the specified team.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersInTeamPage(options, asAdmin)
 	if err != nil {
