@@ -45,7 +45,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...baseProps}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Navbar Toggle'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Toggle sidebar'})).toBeInTheDocument();
     });
 
     test('should render default channel header', () => {
@@ -62,7 +62,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByText('Town Square')).toBeInTheDocument();
+        const heading = screen.getByRole('navigation').querySelector('.heading');
+        expect(heading).toHaveTextContent('Town Square');
     });
 
     test('should render DM channel header', () => {
@@ -79,7 +80,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByText('display_name')).toBeInTheDocument();
+        const heading = screen.getByRole('navigation').querySelector('.heading');
+        expect(heading).toHaveTextContent('display_name');
     });
 
     test('should render private channel header', () => {
@@ -95,6 +97,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByText('display_name')).toBeInTheDocument();
+        const heading = screen.getByRole('navigation').querySelector('.heading');
+        expect(heading).toHaveTextContent('display_name');
     });
 });
