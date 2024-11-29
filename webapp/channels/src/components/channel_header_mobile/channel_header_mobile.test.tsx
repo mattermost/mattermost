@@ -61,7 +61,9 @@ const defaultState = {
             countsIncludingDirect: {},
         },
         plugins: {
-            components: {},
+            components: {
+                MobileChannelHeaderButton: [],
+            },
         },
     },
 };
