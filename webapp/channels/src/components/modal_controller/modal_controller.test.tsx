@@ -83,7 +83,7 @@ describe('components/ModalController', () => {
         expect(document.querySelector('.modal-dialog')).toBeInTheDocument();
     });
 
-    test('should pass onExited to modal to allow a modal to remove itself', () => {
+    test('should pass onExited to modal to allow a modal to remove itself', async () => {
         const state = {
             views: {
                 modals: {
@@ -109,10 +109,13 @@ describe('components/ModalController', () => {
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
 
+        // Wait for modal animation to complete
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         expect(store.getActions()).toContainEqual(closeModal(modalId));
     });
 
-    test('should call a provided onExited in addition to removing the modal', () => {
+    test('should call a provided onExited in addition to removing the modal', async () => {
         const onExited = jest.fn();
 
         const state = {
@@ -141,6 +144,9 @@ describe('components/ModalController', () => {
         const closeButton = document.querySelector('.modal-header .close') as HTMLElement;
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
+
+        // Wait for modal animation to complete
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         expect(store.getActions()).toContainEqual(closeModal(modalId));
         expect(onExited).toHaveBeenCalled();
