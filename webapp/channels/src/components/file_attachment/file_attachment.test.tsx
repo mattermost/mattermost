@@ -183,8 +183,8 @@ describe('FileAttachment', () => {
             reduxState
         );
 
-        expect(screen.getByTestId('fileAttachmentArchivedTooltip')).toBeInTheDocument();
         expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
+        expect(screen.getByClassName('post-image__load')).toBeInTheDocument();
     });
 
     test('should blur file attachment link after click', async () => {
