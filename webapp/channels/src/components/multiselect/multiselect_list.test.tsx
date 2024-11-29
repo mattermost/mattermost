@@ -54,13 +54,6 @@ describe('components/multiselect/multiselect', () => {
             );
         };
 
-        const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
-        );
-
         const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
@@ -69,10 +62,16 @@ describe('components/multiselect/multiselect', () => {
                 })),
             },
         } as any;
-        
-        wrapper.setProps({ forwardedRef: listRef });
 
-        wrapper.setState({selected: 1});
+        const wrapper = shallow(
+            <MultiSelectList
+                {...baseProps}
+                optionRenderer={renderOption}
+                forwardedRef={listRef}
+            />,
+        );
+
+        wrapper.instance().setSelected(1);
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
     });
 
@@ -90,13 +89,6 @@ describe('components/multiselect/multiselect', () => {
             );
         };
 
-        const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
-        );
-
         const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
@@ -105,10 +97,16 @@ describe('components/multiselect/multiselect', () => {
                 })),
             },
         } as any;
-        
-        wrapper.setProps({ forwardedRef: listRef });
 
-        wrapper.setState({selected: 1});
+        const wrapper = shallow(
+            <MultiSelectList
+                {...baseProps}
+                optionRenderer={renderOption}
+                forwardedRef={listRef}
+            />,
+        );
+
+        wrapper.instance().setSelected(1);
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
     });
 });
