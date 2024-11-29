@@ -22,6 +22,7 @@ const mockedUser = {
     label: 'some-user',
     value: 'user_id_1',
     props: {},
+    username: 'some-user',
 };
 
 describe('components/MoreDirectChannels', () => {
@@ -138,7 +139,7 @@ describe('components/MoreDirectChannels', () => {
     test('should handle search with debounce', async () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        const {getByPlaceholderText} = renderWithContext(<MoreDirectChannels {...props}/>);
+        const {getByLabelText} = renderWithContext(<MoreDirectChannels {...props}/>);
 
         const searchInput = await waitFor(() => getByLabelText('Search and add members'));
         userEvent.type(searchInput, 'user_search');
