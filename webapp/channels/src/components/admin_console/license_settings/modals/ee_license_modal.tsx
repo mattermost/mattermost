@@ -14,6 +14,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './ee_license_modal.scss';
+import { FormattedMessage } from 'react-intl';
 
 type Props = {
     onClose?: () => void;
@@ -37,18 +38,33 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
     return (
         <GenericModal
+            modalHeaderText={
+                <FormattedMessage
+                    id='EE_license_modal.defaultMsg'
+                    defaultMessage='Enterprise Edition License'
+                />
+            }
             compassDesign={true}
             className={'EELicenseModal'}
             show={show}
             id='EELicenseModal'
             onExited={handleOnClose}
+            tabIndex={-1}
+            // Removing the props below will result in the 'Close' not being rendered.
+            handleConfirm={handleOnClose}
+            confirmButtonText={
+                <FormattedMessage
+                    id='EE_license_modal_close.defaultMsg'
+                    defaultMessage='Close'
+                />
+            }
         >
             <>
-                <div
+                {/* <div
                     className='title'
                 >
                     {'Enterprise Edition License:'}
-                </div>
+                </div> */}
                 <div className='enterprise-license-text'>
                     <div>
                         <p>{'The Mattermost Enterprise Edition (EE) license (the “EE License”)'}</p>
@@ -57,14 +73,14 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
                         <p>{'EXCEPT AS OTHERWISE SET FORTH IN A BINDING WRITTEN AGREEMENT BETWEEN YOU AND MATTERMOST, THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'}</p>
                     </div>
                 </div>
-                <div className='content-footer'>
+                {/* <div className='content-footer'>
                     <button
                         onClick={handleOnClose}
                         className='btn btn-primary'
                     >
                         {'Close'}
                     </button>
-                </div>
+                </div> */}
             </>
         </GenericModal>
     );

@@ -205,6 +205,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     tabIndex={this.props.tabIndex || 0}
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
+                {/* Consider only rendering a header when there's header text. EE License doesn't
+                have any header text but a header is still being rendered leaving a large, white, empty space
+                above the modal. Alternatively, the EE title could be moved to the header */}
                     <Modal.Header closeButton={true}>
                         <div className='GenericModal__header__text_container'>
                             {this.props.compassDesign && (
