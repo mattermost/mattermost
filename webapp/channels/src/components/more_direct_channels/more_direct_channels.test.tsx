@@ -18,6 +18,9 @@ const mockedUser = {
     ...TestHelper.getUserMock(),
     status: 'online',
     delete_at: 0,
+    id: 'user_id_1',
+    label: 'some-user',
+    value: 'user_id_1',
 };
 
 describe('components/MoreDirectChannels', () => {
@@ -136,7 +139,7 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const {getByPlaceholderText} = renderWithContext(<MoreDirectChannels {...props}/>);
 
-        const searchInput = getByPlaceholderText('Search users');
+        const searchInput = getByPlaceholderText('Search and add members');
         userEvent.type(searchInput, 'user_search');
 
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
