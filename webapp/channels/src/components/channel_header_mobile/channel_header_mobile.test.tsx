@@ -152,6 +152,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 ...defaultState.entities,
                 channels: {
                     ...defaultState.entities.channels,
+                    currentChannelId: '123',
                     channels: {
                         123: props.channel,
                     },
@@ -205,6 +206,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 ...defaultState.entities,
                 channels: {
                     ...defaultState.entities.channels,
+                    currentChannelId: 'channel_id',
                     channels: {
                         channel_id: props.channel,
                     },
@@ -257,6 +259,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 ...defaultState.entities,
                 channels: {
                     ...defaultState.entities.channels,
+                    currentChannelId: 'channel_id',
                     channels: {
                         channel_id: props.channel,
                     },
