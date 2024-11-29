@@ -109,10 +109,14 @@ describe('components/ModalController', () => {
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
 
-        // Wait for modal animation to complete
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Wait for modal animation to complete and store actions to be dispatched
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        expect(store.getActions()).toContainEqual(closeModal(modalId));
+        // Wait for modal to be removed from DOM
+        await expect(modal).not.toBeVisible();
+
+        const actions = store.getActions();
+        expect(actions).toContainEqual(closeModal(modalId));
     });
 
     test('should call a provided onExited in addition to removing the modal', async () => {
@@ -145,10 +149,14 @@ describe('components/ModalController', () => {
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
 
-        // Wait for modal animation to complete
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Wait for modal animation to complete and store actions to be dispatched
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        expect(store.getActions()).toContainEqual(closeModal(modalId));
+        // Wait for modal to be removed from DOM
+        await expect(modal).not.toBeVisible();
+
+        const actions = store.getActions();
+        expect(actions).toContainEqual(closeModal(modalId));
         expect(onExited).toHaveBeenCalled();
     });
 });
