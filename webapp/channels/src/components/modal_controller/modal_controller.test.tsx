@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 
 import {closeModal} from 'actions/views/modals';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import ModalController from '.';
@@ -109,11 +109,10 @@ describe('components/ModalController', () => {
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
 
-        // Wait for modal animation to complete and store actions to be dispatched
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
         // Wait for modal to be removed from DOM
-        await expect(modal).not.toBeVisible();
+        await waitFor(() => {
+            expect(modal).not.toBeVisible();
+        });
 
         const actions = store.getActions();
         expect(actions).toContainEqual(closeModal(modalId));
@@ -149,11 +148,10 @@ describe('components/ModalController', () => {
         expect(closeButton).toBeInTheDocument();
         closeButton.click();
 
-        // Wait for modal animation to complete and store actions to be dispatched
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
         // Wait for modal to be removed from DOM
-        await expect(modal).not.toBeVisible();
+        await waitFor(() => {
+            expect(modal).not.toBeVisible();
+        });
 
         const actions = store.getActions();
         expect(actions).toContainEqual(closeModal(modalId));
