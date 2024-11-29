@@ -734,6 +734,8 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return users, nil
 }
 
+// GetUsersByIds returns a list of users based on the provided user IDs. Returns the users and nil on success,
+// or nil and an error on failure.
 func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersByIds(userIDs, options)
 	if err != nil {
@@ -743,6 +745,8 @@ func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) (
 	return users, nil
 }
 
+// GetUsersByGroupChannelIds returns a map of channel IDs to user objects for the set of users in each group channel.
+// Returns the map and nil on success, or nil and an error on failure.
 func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(c.Session().UserId, channelIDs)
 	if err != nil {
@@ -755,6 +759,8 @@ func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAd
 	return usersByChannelId, nil
 }
 
+// GetUsersByUsernames returns a list of users based on the provided usernames, applying view restrictions if any.
+// Returns the users and nil on success, or nil and an error on failure.
 func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersByUsernames(usernames, &model.UserGetOptions{ViewRestrictions: viewRestrictions})
 	if err != nil {
@@ -771,6 +777,8 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 	return users
 }
 
+// GenerateMfaSecret generates an MFA secret for the user with the given ID. Returns the secret and nil on success,
+// or nil and an error if MFA is not enabled or there was an error generating the secret.
 func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
@@ -789,6 +797,8 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 	return mfaSecret, nil
 }
 
+// ActivateMfa activates multi-factor authentication for the user with the given ID using the provided token.
+// Returns nil on success, or an error if MFA is not enabled, the token is invalid, or there was an error activating MFA.
 func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
