@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {getOptionValue} from 'react-select/src/builtins';
 
@@ -32,12 +32,16 @@ export type Props<T extends Value> = {
     customNoOptionsMessage?: React.ReactNode;
 }
 
+export default forwardRef((props: Props<any>, ref) => (
+    <MultiSelectList {...props} ref={ref}/>
+));
+
 type State = {
     selected: number;
 }
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {
+class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {
     public static defaultProps = {
         options: [],
         perPage: 50,
