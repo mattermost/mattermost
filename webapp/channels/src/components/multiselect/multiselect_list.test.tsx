@@ -61,7 +61,7 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        (wrapper.instance() as any).listRef = {
+        const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
                     bottom: 50,
@@ -69,6 +69,8 @@ describe('components/multiselect/multiselect', () => {
                 })),
             },
         } as any;
+        
+        wrapper.setProps({ forwardedRef: listRef });
 
         wrapper.setState({selected: 1});
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
@@ -95,7 +97,7 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        (wrapper.instance() as any).listRef = {
+        const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
                     bottom: 200,
@@ -103,6 +105,8 @@ describe('components/multiselect/multiselect', () => {
                 })),
             },
         } as any;
+        
+        wrapper.setProps({ forwardedRef: listRef });
 
         wrapper.setState({selected: 1});
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
