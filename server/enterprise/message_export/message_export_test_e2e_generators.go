@@ -22,6 +22,104 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+type MessageExport struct {
+	TeamId          string
+	TeamName        string
+	TeamDisplayName string
+
+	ChannelId          string
+	ChannelName        string
+	ChannelDisplayName string
+	ChannelType        model.ChannelType
+
+	UserId    string
+	UserEmail string
+	Username  string
+	IsBot     bool
+
+	PostId         string
+	PostCreateAt   int64
+	PostUpdateAt   int64
+	PostDeleteAt   int64
+	PostEditAt     int64
+	PostMessage    string
+	PostType       string
+	PostRootId     string
+	PostProps      string
+	PostOriginalId string
+	PostFileIds    []string
+}
+
+func removePointers(p *model.MessageExport) MessageExport {
+	return MessageExport{
+		TeamId:             model.SafeDereference(p.TeamId),
+		TeamName:           model.SafeDereference(p.TeamName),
+		TeamDisplayName:    model.SafeDereference(p.TeamDisplayName),
+		ChannelId:          model.SafeDereference(p.ChannelId),
+		ChannelName:        model.SafeDereference(p.ChannelName),
+		ChannelDisplayName: model.SafeDereference(p.ChannelDisplayName),
+		ChannelType:        model.SafeDereference(p.ChannelType),
+		UserId:             model.SafeDereference(p.UserId),
+		UserEmail:          model.SafeDereference(p.UserEmail),
+		Username:           model.SafeDereference(p.Username),
+		IsBot:              p.IsBot,
+		PostId:             model.SafeDereference(p.PostId),
+		PostCreateAt:       model.SafeDereference(p.PostCreateAt),
+		PostUpdateAt:       model.SafeDereference(p.PostUpdateAt),
+		PostDeleteAt:       model.SafeDereference(p.PostDeleteAt),
+		PostEditAt:         model.SafeDereference(p.PostEditAt),
+		PostMessage:        model.SafeDereference(p.PostMessage),
+		PostType:           model.SafeDereference(p.PostType),
+		PostRootId:         model.SafeDereference(p.PostRootId),
+		PostProps:          model.SafeDereference(p.PostProps),
+		PostOriginalId:     model.SafeDereference(p.PostOriginalId),
+		PostFileIds:        p.PostFileIds,
+	}
+}
+
+func waitUntilZeroPosts(t *testing.T, th *api4.TestHelper) {
+	// This is bananas -- sometimes there's a post in the future before we start the test, and it's causing failures.
+	for x := 0; x < 5; x++ {
+		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: model.GetMillis()})
+		require.NoError(t, err)
+		if count != 0 {
+			time.Sleep(1 * time.Second)
+		} else {
+			return
+		}
+	}
+	assert.Fail(t, "e2e setup failed", "waited 5 seconds and there was still a message in the future. Something is wrong.")
+}
+
+// assertNumPostsToExport checks both the MessageExport and the AnalyticsPostCount -- they were sometimes giving
+// different numbers and this helps debug.
+func assertNumPostsToExport(t *testing.T, th *api4.TestHelper, num int, since, until int64) {
+	exports, _, err := th.App.Srv().Store().Compliance().MessageExport(th.Context, model.MessageExportCursor{
+		LastPostUpdateAt: since, UntilUpdateAt: until,
+	}, 100)
+	assert.NoError(t, err)
+	assert.Len(t, exports, num)
+	if len(exports) != num {
+		fmt.Fprintf(os.Stderr, "\nMessageExport posts found, since %d, th.BasicChannel.Id: %s\n", since, th.BasicChannel.Id)
+		for _, p := range exports {
+			fmt.Fprintf(os.Stderr, "%#+v\n", removePointers(p))
+		}
+	}
+
+	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, UsersPostsOnly: true, SincePostID: "", SinceUpdateAt: since})
+	require.NoError(t, err)
+	assert.Equal(t, num, int(count))
+}
+
+func assertNumExported(t *testing.T, expectedNum int, data map[string]string) {
+	numExported, err := strconv.Atoi(data[shared.JobDataMessagesExported])
+	require.NoError(t, err)
+	if numExported != expectedNum {
+		fmt.Fprintf(os.Stderr, "\njobData: %v\n", data)
+	}
+	require.Equal(t, expectedNum, numExported)
+}
+
 func getMostRecentJobWithId(t *testing.T, th *api4.TestHelper, id string) *model.Job {
 	list, _, err := th.SystemAdminClient.GetJobsByType(context.Background(), "message_export", 0, 1)
 	require.NoError(t, err)
@@ -79,13 +177,13 @@ func setup(t *testing.T) *api4.TestHelper {
 
 // jobDataInvariantsShouldBeEqual tests that the parts of the job.Data that shouldn't change, don't change.
 func jobDataInvariantsShouldBeEqual(t *testing.T, expected map[string]string, received map[string]string) {
-	require.Equal(t, expected[shared.JobDataExportType], received[shared.JobDataExportType])
-	require.Equal(t, expected[shared.JobDataBatchSize], received[shared.JobDataBatchSize])
-	require.Equal(t, expected[shared.JobDataChannelBatchSize], received[shared.JobDataChannelBatchSize])
-	require.Equal(t, expected[shared.JobDataChannelHistoryBatchSize], received[shared.JobDataChannelHistoryBatchSize])
-	require.Equal(t, expected[shared.JobDataExportDir], received[shared.JobDataExportDir])
-	require.Equal(t, expected[shared.JobDataJobEndTime], received[shared.JobDataJobEndTime])
-	require.Equal(t, expected[shared.JobDataJobStartTime], received[shared.JobDataJobStartTime])
+	assert.Equal(t, expected[shared.JobDataExportType], received[shared.JobDataExportType])
+	assert.Equal(t, expected[shared.JobDataBatchSize], received[shared.JobDataBatchSize])
+	assert.Equal(t, expected[shared.JobDataChannelBatchSize], received[shared.JobDataChannelBatchSize])
+	assert.Equal(t, expected[shared.JobDataChannelHistoryBatchSize], received[shared.JobDataChannelHistoryBatchSize])
+	assert.Equal(t, expected[shared.JobDataExportDir], received[shared.JobDataExportDir])
+	assert.Equal(t, expected[shared.JobDataJobEndTime], received[shared.JobDataJobEndTime])
+	assert.Equal(t, expected[shared.JobDataJobStartTime], received[shared.JobDataJobStartTime])
 }
 
 type joinLeave struct {
@@ -399,9 +497,7 @@ func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, atta
 	require.NoError(t, err)
 	require.Equal(t, 0, warnings)
 
-	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 9, numExported)
+	assertNumExported(t, 9, job.Data)
 
 	jobExportDir := job.Data[shared.JobDataExportDir]
 	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -490,9 +586,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	err = th.App.Srv().Store().ChannelMemberHistory().LogJoinEvent(users[0].Id, channel2.Id, jl[0].join)
 	require.NoError(t, err)
 
-	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
+	assertNumPostsToExport(t, th, 0, start, model.GetMillis())
 
 	var posts []*model.Post
 
@@ -564,9 +658,7 @@ func setupAndRunE2ETestType2(t *testing.T, th *api4.TestHelper, exportType, atta
 	require.NoError(t, err)
 	require.Equal(t, 0, warnings)
 
-	numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
-	require.NoError(t, err)
-	require.Equal(t, 2, int(numExported))
+	assertNumExported(t, 2, job.Data)
 
 	jobExportDir := job.Data[shared.JobDataExportDir]
 	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -642,9 +734,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 		{user1JoinTime, 0}, // user 1 never leaves
 	}
 
-	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
+	assertNumPostsToExport(t, th, 0, start, model.GetMillis())
 
 	var attachments []*model.FileInfo
 	var contents []string
@@ -802,9 +892,7 @@ func setupAndRunE2ETestType3(t *testing.T, th *api4.TestHelper, exportType, atta
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
 
-	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 8, numExported)
+	assertNumExported(t, 8, job.Data)
 
 	jobExportDir := job.Data[shared.JobDataExportDir]
 	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -875,13 +963,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 
 	// This tests (reading the files exported and testing the exported xml):
 	//  - post edited with 3 simultaneous posts in-between
-
-	time.Sleep(1 * time.Millisecond)
-	start := model.GetMillis()
-
-	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
+	assertNumPostsToExport(t, th, 0, start, model.GetMillis())
 
 	var posts []*model.Post
 
@@ -960,9 +1042,8 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 
 	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 5, int(count))
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 5, start, until)
 
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
@@ -970,9 +1051,7 @@ func setupAndRunE2ETestType4(t *testing.T, th *api4.TestHelper, exportType, atta
 	_, err = th.App.Srv().Store().Job().Delete(job.Id)
 	require.NoError(t, err)
 
-	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 5, numExported)
+	assertNumExported(t, 5, job.Data)
 
 	jobExportDir := job.Data[shared.JobDataExportDir]
 	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -1021,11 +1100,7 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	require.NoError(t, err)
 
 	// Job 1: post deleted in current job: shows created post, then deleted post
-	start := model.GetMillis()
-
-	count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 0, int(count))
+	assertNumPostsToExport(t, th, 0, start, model.GetMillis())
 
 	var posts []*model.Post
 
@@ -1061,16 +1136,13 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 
 	// check number of messages to be exported -- will be 1 (because one message deleted)
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 1, int(count))
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 1, start, until)
 
 	// Now run the exports
 	job := runJobForTest(t, th, nil)
 
-	numExported, err := strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 1, numExported)
+	assertNumExported(t, 1, job.Data)
 
 	jobExportDir := job.Data[shared.JobDataExportDir]
 	jobEndTime, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -1159,16 +1231,13 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 
 	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 2, int(count))
+	until = model.GetMillis()
+	assertNumPostsToExport(t, th, 2, start, until)
 
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 2, numExported)
+	assertNumExported(t, 2, job.Data)
 
 	jobExportDir = job.Data[shared.JobDataExportDir]
 	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -1248,13 +1317,13 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 		*cfg.MessageExportSettings.BatchSize = 10
 	})
 
-	// run the job so that it gets exported.
+	until = model.GetMillis()
+	assertNumPostsToExport(t, th, 2, start, until)
+
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 2, numExported)
+	assertNumExported(t, 2, job.Data)
 
 	jobExportDir = job.Data[shared.JobDataExportDir]
 	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
@@ -1335,16 +1404,14 @@ func setupAndRunE2ETestType5(t *testing.T, th *api4.TestHelper, exportType, atta
 	})
 
 	// check number of messages to be exported
-	count, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: start})
-	require.NoError(t, err)
-	require.Equal(t, 3, int(count)) // filler post, deleted post, and updated post
+	// filler post, deleted post, and updated post
+	until = model.GetMillis()
+	assertNumPostsToExport(t, th, 3, start, until)
 
 	// Now run the exports
 	job = runJobForTest(t, th, nil)
 
-	numExported, err = strconv.Atoi(job.Data[shared.JobDataMessagesExported])
-	require.NoError(t, err)
-	require.Equal(t, 3, numExported)
+	assertNumExported(t, 3, job.Data)
 
 	jobExportDir = job.Data[shared.JobDataExportDir]
 	jobEndTime, err = strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 10, 64)
