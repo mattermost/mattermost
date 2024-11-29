@@ -241,7 +241,7 @@ export function reconnect() {
         dispatch(fetchAllMyTeamsChannels());
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
-        dispatch(loadProfilesForSidebar());
+        loadProfilesForSidebar();
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
