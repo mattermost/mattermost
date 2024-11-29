@@ -4,7 +4,7 @@
 import React from 'react';
 import {screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithIntl, userEvent} from 'tests/react_testing_utils';
 
 import LDAPToEmail from './ldap_to_email';
 
