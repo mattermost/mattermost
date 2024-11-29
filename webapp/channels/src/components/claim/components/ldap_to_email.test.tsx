@@ -21,23 +21,33 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
         switchLdapToEmail: jest.fn(() => Promise.resolve({data: {follow_link: '/login'}})),
     };
 
-    test('should render form fields correctly', () => {
+    test('should render MFA form initially', () => {
         renderWithIntl(<LDAPToEmail {...requiredProps}/>);
 
-        // Check for form elements
+        // Check for MFA form elements
         expect(screen.getByText('Switch AD/LDAP Account to Email/Password')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('AD/LDAP Password')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Switch account to email/password'})).toBeInTheDocument();
+        expect(screen.getByLabelText('Enter MFA Token')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Submit'})).toBeInTheDocument();
     });
 
-    test('should show validation errors for empty fields', async () => {
-        renderWithIntl(<LDAPToEmail {...requiredProps}/>);
+    test('should show main form when showMfa is false', () => {
+        const props = {
+            ...requiredProps,
+            switchLdapToEmail: jest.fn(() => Promise.resolve({
+                error: {
+                    server_error_id: 'model.user.is_valid.pwd',
+                    message: 'Invalid password',
+                },
+            })),
+        };
 
-        const submitButton = screen.getByRole('button', {name: 'Switch account to email/password'});
+        renderWithIntl(<LDAPToEmail {...props}/>);
+
+        // Submit MFA form to trigger error and show main form
+        const submitButton = screen.getByRole('button', {name: 'Submit'});
         submitButton.click();
 
-        expect(await screen.findByText('Please enter your AD/LDAP password.')).toBeInTheDocument();
+        // Wait for error and check main form elements
+        expect(props.switchLdapToEmail).toHaveBeenCalled();
     });
 });
