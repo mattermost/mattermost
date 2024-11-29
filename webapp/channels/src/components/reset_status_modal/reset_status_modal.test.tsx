@@ -77,6 +77,7 @@ describe('components/ResetStatusModal', () => {
         expect(newSetStatus).toHaveBeenCalledWith({
             status: 'online',
             user_id: 'user_id_1',
+            manual: true,
         });
         expect(newSavePreferences).not.toHaveBeenCalled();
 
@@ -126,7 +127,28 @@ describe('components/ResetStatusModal', () => {
     });
 
     test('should render modal for OOF status correctly', async () => {
-        const props = {...baseProps, currentUserStatus: 'ooo'};
+        const autoResetStatusOOF = jest.fn().mockImplementation(
+            () => {
+                return new Promise((resolve) => {
+                    process.nextTick(() => resolve({
+                        data: {
+                            status: 'ooo',
+                            user_id: 'user_id_1',
+                            manual: true
+                        },
+                    }));
+                });
+            },
+        );
+        
+        const props = {
+            ...baseProps,
+            currentUserStatus: 'ooo',
+            actions: {
+                ...baseProps.actions,
+                autoResetStatus: autoResetStatusOOF,
+            },
+        };
         
         renderWithIntl(
             <ResetStatusModal
