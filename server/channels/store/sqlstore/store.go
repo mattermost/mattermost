@@ -46,6 +46,7 @@ const (
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
 	DBPingAttempts                    = 5
+	DBReplicaPingAttempts             = 2
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -289,7 +290,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -304,7 +305,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -321,7 +322,7 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
+			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue

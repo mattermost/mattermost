@@ -21,6 +21,8 @@ import {ThreadFooter} from './channels/thread_footer';
 import {EmojiGifPicker} from './channels/emoji_gif_picker';
 import {GenericConfirmModal} from './channels/generic_confirm_modal';
 
+import {ScheduledDraftMenu} from './channels/scheduled_draft_menu';
+import {ScheduledDraftModal} from './channels/scheduled_draft_modal';
 import {SystemConsoleSidebar} from './system_console/sidebar';
 import {SystemConsoleNavbar} from './system_console/navbar';
 
@@ -49,6 +51,8 @@ const components = {
     PostReminderMenu,
     EmojiGifPicker,
     GenericConfirmModal,
+    ScheduledDraftMenu,
+    ScheduledDraftModal,
     SystemConsoleSidebar,
     SystemConsoleNavbar,
     SystemUsers,

@@ -164,7 +164,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		Request(common.GetPostTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up channels index template.
@@ -172,7 +172,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		Request(common.GetChannelTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up users index template.
@@ -180,7 +180,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		Request(common.GetUserTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up files index template.
@@ -188,7 +188,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		Request(common.GetFileInfoTemplate(es.Platform.Config())).
 		Do(ctx)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if atomic.LoadInt32(&es.channelIndexVerified) == 0 {
@@ -1419,7 +1419,7 @@ func (es *ElasticsearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CT
 	dateFormat := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "_2006_01_02"
 	postIndexesResult, err := es.client.Indices.Get(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "_*").Do(ctx)
 	if err != nil {
-		return model.NewAppError("ElasticSearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("ElasticSearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for index := range postIndexesResult {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
@@ -1427,7 +1427,7 @@ func (es *ElasticsearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CT
 		} else {
 			if indexDate.Before(cutoff) || indexDate.Equal(cutoff) {
 				if _, err := es.client.Indices.Delete(index).Do(ctx); err != nil {
-					return model.NewAppError("ElasticSearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.delete_index.error", nil, "", http.StatusInternalServerError).Wrap(err)
+					return model.NewAppError("ElasticSearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.delete_index.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
 		}

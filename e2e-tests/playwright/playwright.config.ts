@@ -59,6 +59,7 @@ export default defineConfig({
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
+                permissions: ['notifications'],
             },
         },
         {

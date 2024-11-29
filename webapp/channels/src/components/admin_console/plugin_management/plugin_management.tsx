@@ -927,8 +927,8 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
     renderSettings = () => {
         const {enableUploads} = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
-        let serverError = <React.Fragment/>;
-        let lastMessage = <React.Fragment/>;
+        let serverError = <></>;
+        let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
         const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);
