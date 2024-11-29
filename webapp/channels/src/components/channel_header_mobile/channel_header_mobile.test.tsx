@@ -170,12 +170,6 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
-                        user_id_2: {
-                            id: 'user_id_2',
-                            username: 'other_user',
-                            roles: '',
-                            display_name: 'Other User',
-                        },
                     },
                 },
                 preferences: {
@@ -200,7 +194,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
             channel: TestHelper.getChannelMock({
                 type: 'D',
                 id: 'channel_id',
-                name: 'user_id_1__user_id_2',
+                name: 'user_id__user_id_2',
                 display_name: 'display_name',
                 team_id: 'team_id',
             }),
@@ -230,6 +224,12 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
+                        user_id_2: {
+                            id: 'user_id_2',
+                            username: 'other_user',
+                            roles: '',
+                            display_name: 'Other User',
+                        },
                     },
                 },
                 preferences: {
@@ -245,7 +245,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByText('Other User')).toBeInTheDocument();
+        expect(screen.getByText('other_user')).toBeInTheDocument();
     });
 
     test('should render private channel header', () => {
