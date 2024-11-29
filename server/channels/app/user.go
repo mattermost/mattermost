@@ -1964,6 +1964,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 	return nil
 }
 
+// PermanentDeleteAllUsers permanently deletes all users from the system. This is a destructive operation and should be used with caution.
 func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	users, err := a.Srv().Store().User().GetAll()
 	if err != nil {
@@ -1978,6 +1979,9 @@ func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	return nil
 }
 
+// SendEmailVerification sends an email verification token to a user's email address.
+// If newEmail is provided, the token will be sent to that address instead of the user's current email.
+// The redirect parameter specifies where to redirect the user after verification.
 func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError {
 	token, err := a.Srv().EmailService.CreateVerifyEmailToken(user.Id, newEmail)
 	if err != nil {
@@ -2008,6 +2012,8 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	return nil
 }
 
+// VerifyEmailFromToken verifies a user's email using a token received in an email.
+// Returns an error if the token is invalid, expired, or if there was a problem verifying the email.
 func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError {
 	token, err := a.GetVerifyEmailToken(userSuppliedTokenString)
 	if err != nil {
@@ -2052,6 +2058,8 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	return nil
 }
 
+// GetVerifyEmailToken retrieves an email verification token by token string.
+// Returns the token if valid and of the correct type, or an error otherwise.
 func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 	if err != nil {
@@ -2090,6 +2098,8 @@ func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.Use
 	return stats, nil
 }
 
+// VerifyUserEmail marks a user's email as verified in the system.
+// This will update the user's EmailVerified field and trigger relevant notifications.
 func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	if _, err := a.Srv().Store().User().VerifyEmail(userID, email); err != nil {
 		return model.NewAppError("VerifyUserEmail", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
