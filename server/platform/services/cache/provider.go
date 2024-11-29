@@ -101,15 +101,7 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		// meant to be used at very high scales. The docs suggest 20us,
 		// but going as high as 250us doesn't make any material difference.
 		MaxFlushDelay: 250 * time.Microsecond,
-		RetryDelay: func(attempts int, _ rueidis.Completed, _ error) time.Duration {
-			// We only retry once.
-			if attempts > 1 {
-				return -1
-			}
-			// Sleep for a random duration within 1s
-			sleep := rand.Int63n(1000)
-			return time.Duration(sleep) * time.Millisecond
-		},
+		DisableRetry:  true,
 		// The default is 10s, which is a bit too high
 		ConnWriteTimeout: 5 * time.Second,
 	})
