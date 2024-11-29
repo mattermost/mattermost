@@ -130,6 +130,8 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 	return ruser, nil
 }
 
+// CreateUserWithInviteId creates a user from an invite ID. The invite ID must be valid and not expired.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -176,6 +178,8 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 	return ruser, nil
 }
 
+// CreateUserAsAdmin creates a new user with system admin privileges.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	ruser, err := a.CreateUser(c, user)
 	if err != nil {
@@ -189,6 +193,8 @@ func (a *App) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string
 	return ruser, nil
 }
 
+// CreateUserFromSignup creates a user from a signup request. The user will be created with default permissions.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
