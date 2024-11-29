@@ -1650,6 +1650,8 @@ func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *
 	return nil
 }
 
+// ResetPasswordFromToken resets a user's password using a recovery token and updates any authentication data.
+// Returns an error if the token is invalid, expired, or if there was an error updating the password.
 func (a *App) ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError {
 	return a.resetPasswordFromToken(c, userSuppliedTokenString, newPassword, model.GetMillis())
 }
@@ -1704,6 +1706,8 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 	return nil
 }
 
+// SendPasswordReset sends a password recovery email to the specified email address.
+// Returns true if the email was sent successfully, false if the user was not found, and an error if there was a problem sending the email.
 func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
@@ -1732,6 +1736,9 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 	return result, nil
 }
 
+// CreatePasswordRecoveryToken creates a token that can be used to reset a user's password.
+// The token is valid for PasswordRecoverExpiryTime duration.
+// Returns the token if successful, or an error if the token could not be created.
 func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
@@ -1765,6 +1772,9 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 	return token, nil
 }
 
+// InvalidatePasswordRecoveryTokensForUser invalidates all password recovery tokens for a user.
+// This is typically called when a user changes their password or when tokens need to be invalidated for security reasons.
+// Returns an error if there was a problem invalidating the tokens.
 func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
 	tokens, err := a.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
 	if err != nil {
@@ -1793,6 +1803,8 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 	return appErr
 }
 
+// GetPasswordRecoveryToken retrieves a password recovery token by token string.
+// Returns the token if valid and of the correct type, or an error if the token is invalid or of the wrong type.
 func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 	if err != nil {
