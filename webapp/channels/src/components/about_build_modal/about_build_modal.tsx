@@ -225,7 +225,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                     <Nbsp/>
                     <FormattedMessage
                         id='about.serverUnknown'
-                        defaultMessage='unknown'
+                        defaultMessage='server did not provide hostname'
                     />
                 </div>
             );

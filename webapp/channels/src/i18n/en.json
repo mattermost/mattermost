@@ -16,7 +16,7 @@
   "about.privacy": "Privacy Policy",
   "about.serverDisconnected": "disconnected",
   "about.serverHostname": "Hostname:",
-  "about.serverUnknown": "unknown",
+  "about.serverUnknown": "server did not provide hostname",
   "about.teamEditionLearn": "Join the Mattermost community at ",
   "about.teamEditionSt": "All your team communication in one place, instantly searchable and accessible anywhere.",
   "about.teamEditiont0": "Team Edition",
