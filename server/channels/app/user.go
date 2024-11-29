@@ -43,6 +43,8 @@ const (
 	ImageProfilePixelDimension = 128
 )
 
+// CreateUserWithToken creates a user from the provided user object and token. The token must be valid and not expired.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
