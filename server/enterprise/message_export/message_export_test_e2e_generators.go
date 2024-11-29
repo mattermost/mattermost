@@ -208,10 +208,154 @@ type SetupReturn struct {
 	channels          []*model.Channel
 	teams             []*model.Team
 	batchTimes        []batchStartEndTimes
+	jobExportDir      string
 }
 
-func setupAndRunE2ETestType1(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
-	attachmentBackend, exportBackend filestore.FileBackend, testStopping bool) SetupReturn {
+func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir, exportDir string,
+	attachmentBackend filestore.FileBackend) JobResults {
+	waitUntilZeroPosts(t, th)
+	now := model.GetMillis()
+	jobStart := now - 1
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = true
+		*cfg.MessageExportSettings.ExportFromTimestamp = jobStart
+		*cfg.MessageExportSettings.BatchSize = 5
+		*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
+		*cfg.FileSettings.DriverName = model.ImageDriverLocal
+		*cfg.FileSettings.Directory = attachmentDir
+
+		if exportDir != attachmentDir {
+			*cfg.FileSettings.DedicatedExportStore = true
+			*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
+			*cfg.FileSettings.ExportDirectory = exportDir
+		}
+	})
+
+	contents := []string{"Hello there"}
+	attachmentPath001 := "path/to/attachments/one.txt"
+	_, _ = attachmentBackend.WriteFile(bytes.NewBufferString(contents[0]), attachmentPath001)
+	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    model.NewId(),
+		Message:   "zz" + model.NewId() + "b",
+		CreateAt:  now,
+		UpdateAt:  now,
+		FileIds:   []string{"test1"},
+	})
+	require.NoError(t, err)
+
+	attachment, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+		Id:        model.NewId(),
+		CreatorId: post.UserId,
+		PostId:    post.Id,
+		CreateAt:  now,
+		UpdateAt:  now,
+		Path:      attachmentPath001,
+	})
+	require.NoError(t, err)
+	attachments := []*model.FileInfo{attachment}
+
+	for i := 0; i < 10; i++ {
+		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    model.NewId(),
+			Message:   "zz" + model.NewId() + "b",
+			CreateAt:  now + int64(i),
+			UpdateAt:  now + int64(i),
+		})
+		require.NoError(t, e)
+	}
+
+	until := model.GetMillis()
+	assertNumPostsToExport(t, th, 11, jobStart, until)
+
+	job := runJobForTest(t, th, map[string]string{shared.JobDataJobEndTime: strconv.FormatInt(until, 10)})
+
+	warnings, err := strconv.Atoi(job.Data[shared.JobDataWarningCount])
+	require.NoError(t, err)
+	require.Equal(t, 0, warnings)
+
+	numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
+	require.NoError(t, err)
+	require.Equal(t, int64(11), numExported)
+
+	jobEnd, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 0, 64)
+	require.NoError(t, err)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	batch001 := shared.GetBatchPath(jobExportDir, jobStart, now+3, 1)
+	batch002 := shared.GetBatchPath(jobExportDir, now+3, now+8, 2)
+	batch003 := shared.GetBatchPath(jobExportDir, now+8, jobEnd, 3)
+	batches := []string{batch001, batch002, batch003}
+
+	return JobResults{
+		attachments:  attachments,
+		contents:     contents,
+		batches:      batches,
+		jobExportDir: jobExportDir,
+	}
+}
+
+func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir, exportDir string) JobResults {
+	waitUntilZeroPosts(t, th)
+	now := model.GetMillis()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = true
+		*cfg.MessageExportSettings.BatchSize = 3
+		*cfg.MessageExportSettings.ExportFormat = model.ComplianceExportTypeActiance
+		*cfg.FileSettings.DriverName = model.ImageDriverLocal
+		*cfg.FileSettings.Directory = attachmentDir
+
+		if exportDir != attachmentDir {
+			*cfg.FileSettings.DedicatedExportStore = true
+			*cfg.FileSettings.ExportDriverName = model.ImageDriverLocal
+			*cfg.FileSettings.ExportDirectory = exportDir
+		}
+	})
+
+	for i := 0; i < 10; i++ {
+		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    model.NewId(),
+			Message:   "zz" + model.NewId() + "b",
+			CreateAt:  now + int64(i),
+			UpdateAt:  now + int64(i),
+		})
+		require.NoError(t, e)
+	}
+
+	// start at the 2nd post and get till the 7th post (inclusive) = 6 posts
+	job := runJobForTest(t, th, map[string]string{
+		shared.JobDataBatchStartTime: strconv.Itoa(int(now) + 1),
+		shared.JobDataJobEndTime:     strconv.Itoa(int(now) + 6),
+	})
+	numExported, err := strconv.ParseInt(job.Data[shared.JobDataMessagesExported], 0, 64)
+	require.NoError(t, err)
+	numExpected, err := strconv.ParseInt(job.Data[shared.JobDataTotalPostsExpected], 0, 64)
+	require.NoError(t, err)
+	// test that we only exported 6 (because the JobDataJobEndTime was translated to the cursor's UntilUpdateAt)
+	require.Equal(t, 6, int(numExported))
+	// test that we were reporting that correctly in the UI
+	require.Equal(t, 6, int(numExpected))
+
+	jobEnd, err := strconv.ParseInt(job.Data[shared.JobDataJobEndTime], 0, 64)
+	require.NoError(t, err)
+	require.Equal(t, now+6, jobEnd)
+	jobExportDir := job.Data[shared.JobDataExportDir]
+	batch001 := shared.GetBatchPath(jobExportDir, now+1, now+3, 1)
+	// lastPostUpdateAt will be post#4 (now+3), even though we exported it above, because LastPostId will exclude it
+	batch002 := shared.GetBatchPath(jobExportDir, now+3, now+6, 2)
+	batches := []string{batch001, batch002}
+
+	return JobResults{
+		batches:      batches,
+		jobExportDir: jobExportDir,
+	}
+}
+
+func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
+	attachmentBackend, exportBackend filestore.FileBackend, testStopping bool) JobResults {
 	// This tests (reading the files exported and testing the actual exported data):
 	//  - job system exports the complete time from beginning to end; i.e., it doesn't use the post updateAt values as the bounds, it uses the start time and end time of the job.
 	//  - job system uses previous job's end time as the start for the next batch
