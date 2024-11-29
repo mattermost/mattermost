@@ -107,7 +107,7 @@ type MetricsInterface interface {
 	ObserveClientTimeToFirstByte(platform, agent string, elapsed float64)
 	ObserveClientTimeToLastByte(platform, agent string, elapsed float64)
 	ObserveClientTimeToDomInteractive(platform, agent string, elapsed float64)
-	ObserveClientSplashScreenEnd(platform, agent string, elapsed float64)
+	ObserveClientSplashScreenEnd(platform, agent, pageType string, elapsed float64)
 	ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64)
 	ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64)
 	ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64)

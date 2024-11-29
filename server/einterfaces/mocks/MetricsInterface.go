@@ -338,9 +338,9 @@ func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent 
 	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientSplashScreenEnd provides a mock function with given fields: platform, agent, elapsed
-func (_m *MetricsInterface) ObserveClientSplashScreenEnd(platform string, agent string, elapsed float64) {
-	_m.Called(platform, agent, elapsed)
+// ObserveClientSplashScreenEnd provides a mock function with given fields: platform, agent, pageType, elapsed
+func (_m *MetricsInterface) ObserveClientSplashScreenEnd(platform string, agent string, pageType string, elapsed float64) {
+	_m.Called(platform, agent, pageType, elapsed)
 }
 
 // ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed

@@ -33,7 +33,10 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		case model.ClientTimeToDOMInteractive:
 			a.Metrics().ObserveClientTimeToDomInteractive(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
 		case model.ClientSplashScreenEnd:
-			a.Metrics().ObserveClientSplashScreenEnd(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
+			a.Metrics().ObserveClientSplashScreenEnd(commonLabels["platform"],
+				commonLabels["agent"],
+				h.GetLabelValue("page_type", model.AcceptedSplashScreenOrigins, "team_controller"),
+				h.Value/1000)
 		case model.ClientFirstContentfulPaint:
 			a.Metrics().ObserveClientFirstContentfulPaint(commonLabels["platform"], commonLabels["agent"], h.Value/1000)
 		case model.ClientLargestContentfulPaint:

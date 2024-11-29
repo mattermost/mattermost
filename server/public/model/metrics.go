@@ -56,7 +56,8 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels = sliceToMapKey("true", "false")
+	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
 )
 
 type MetricSample struct {

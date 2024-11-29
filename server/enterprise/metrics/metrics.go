@@ -1219,7 +1219,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "splash_screen",
 			Help:      "Duration from when a browser starts to request a page from a server until when the splash screen ends. (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "page_type"},
 	)
 	m.Registry.MustRegister(m.ClientSplashScreenEnd)
 
@@ -1882,8 +1882,8 @@ func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agen
 	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent string, elapsed float64) {
-	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType string, elapsed float64) {
+	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {

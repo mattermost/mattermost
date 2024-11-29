@@ -116,7 +116,7 @@ export class InitialLoadingScreenClass {
         this.loadingAnimationElement.className = LOADING_CLASS_FOR_ANIMATION;
     }
 
-    public stop() {
+    public stop(pageType: string) {
         if (!this.loadingScreenElement || !this.loadingAnimationElement) {
             return;
         }
@@ -130,6 +130,9 @@ export class InitialLoadingScreenClass {
             name: Measure.SplashScreen,
             startMark: 0,
             canFail: false,
+            labels: {
+                page_type: pageType,
+            },
         });
     }
 }
