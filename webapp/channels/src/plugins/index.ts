@@ -33,6 +33,10 @@ import 'components/widgets/modals/full_screen_modal.scss';
 interface Plugin {
     initialize?: (registry: PluginRegistry, store: any) => void;
     uninitialize?: () => void;
+
+    /**
+     * @deprecated Define an uninitialize method instead.
+     */
     deinitialize?: () => void;
 }
 
