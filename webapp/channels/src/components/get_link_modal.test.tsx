@@ -56,9 +56,7 @@ describe('components/GetLinkModal', () => {
     });
 
     test('should handle copy link functionality', () => {
-        const originalExecCommand = document.execCommand;
-        const execCommandMock = jest.fn().mockImplementation(() => true);
-        document.execCommand = execCommandMock;
+        const execCommandMock = jest.spyOn(document, 'execCommand').mockImplementation(() => true);
 
         renderWithIntl(<GetLinkModal {...requiredProps}/>);
 
@@ -68,7 +66,6 @@ describe('components/GetLinkModal', () => {
         expect(screen.getByText('Link copied')).toBeInTheDocument();
         expect(execCommandMock).toHaveBeenCalledWith('copy');
 
-        // Restore original
-        document.execCommand = originalExecCommand;
+        execCommandMock.mockRestore();
     });
 });
