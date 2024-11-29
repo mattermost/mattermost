@@ -31,6 +31,7 @@ const defaultState = {
         channels: {
             channels: {},
             myMembers: {},
+            channelMemberCountsByGroup: {},
         },
         users: {
             currentUserId: 'user_id',
@@ -40,6 +41,9 @@ const defaultState = {
                     username: 'username',
                     roles: '',
                 },
+            },
+            statuses: {
+                user_id: 'online',
             },
         },
         preferences: {
@@ -168,10 +172,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).not.toBeNull();
-        expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/Town Square/i);
+        expect(screen.getByText('Town Square')).toBeInTheDocument();
     });
 
     test('should render DM channel header', () => {
@@ -212,10 +213,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).not.toBeNull();
-        expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/display_name/i);
+        expect(screen.getByText('display_name')).toBeInTheDocument();
     });
 
     test('should render private channel header', () => {
@@ -255,9 +253,6 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).not.toBeNull();
-        expect(heading).toBeInTheDocument();
-        expect(heading?.textContent).toMatch(/display_name/i);
+        expect(screen.getByText('display_name')).toBeInTheDocument();
     });
 });
