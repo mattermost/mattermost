@@ -182,6 +182,7 @@ func RunExportByType(rctx request.CTX, p ExportParams, b shared.BackendParams) (
 		Db:                     b.Store,
 		FileAttachmentBackend:  b.FileAttachmentBackend,
 		ExportBackend:          b.ExportBackend,
+		Templates:              b.HtmlTemplates,
 	}
 
 	switch p.ExportType {
