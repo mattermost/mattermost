@@ -57,6 +57,12 @@ const defaultState = {
                 bindings: [],
             },
         },
+        threads: {
+            countsIncludingDirect: {},
+        },
+        plugins: {
+            components: {},
+        },
     },
 };
 
