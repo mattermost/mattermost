@@ -1,6 +1,7 @@
 @use "utils/variables";
 
-.MuiPopover-root.MuiModal-root.menu_menuStyled {
+.MuiPopover-root.MuiModal-root{
+    &.menu_menuStyled{
     z-index: variables.$z-index-menu;
 
     & .MuiPaper-root {
@@ -15,7 +16,21 @@
             box-shadow: var(--elevation-5);
         }
     }
+    }
+    &.popover_popoverStyled{
+        & .MuiPaper-root {
+            padding-top: 4px;
+            padding-bottom: 4px;
+            background-color: var(--center-channel-bg);
+            box-shadow: var(--elevation - 5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+            min-width: 114px;
+            max-width: 496px;
+            max-height: 80vh;
+        }
+    }
 }
+
+
 
 .menuModal {
     & .modal-header {
