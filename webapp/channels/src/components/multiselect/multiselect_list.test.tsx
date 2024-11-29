@@ -25,7 +25,7 @@ describe('components/multiselect/multiselect', () => {
                 bottom: 100,
                 top: 50,
             })) as any,
-            scrollIntoView: jest.fn(),
+            scrollIntoView: jest.fn().mockImplementation(() => {}),
         },
     } as any;
 
