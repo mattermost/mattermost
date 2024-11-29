@@ -2473,8 +2473,13 @@ export default class Client4 {
     searchFilesWithParams = (teamId: string, params: any) => {
         this.trackEvent('api', 'api_files_search', {team_id: teamId});
 
+        let route = `${this.getFilesRoute()}/search`;
+        if (teamId) {
+            route = `${this.getTeamRoute(teamId)}/files/search`;
+        }
+
         return this.doFetch<FileSearchResults>(
-            `${this.getTeamRoute(teamId)}/files/search`,
+            route,
             {method: 'post', body: JSON.stringify(params)},
         );
     };
