@@ -24,9 +24,10 @@ import (
 )
 
 const (
-	XMLNS                   = "http://www.w3.org/2001/XMLSchema-instance"
-	ActianceExportFilename  = "actiance_export.xml"
-	ActianceWarningFilename = "warning.txt"
+	XMLNS                    = "http://www.w3.org/2001/XMLSchema-instance"
+	ActianceExportFilename   = "actiance_export.xml"
+	ActianceWarningFilename  = "warning.txt"
+	EnsureLastMessageInASort = "zzzzzzzzzzzzzzzzzzzzzzzzzz"
 )
 
 // The root-level element of an actiance export
@@ -123,7 +124,7 @@ type FileUploadStartExport struct {
 
 func (f FileUploadStartExport) SortVal() (int64, string) {
 	// file messages should come after the message they were with
-	return f.UploadStartTime, strings.Repeat("z", 26)
+	return f.UploadStartTime, EnsureLastMessageInASort
 }
 
 // The FileTransferEnded element indicates the end of a file transfer in a conversation
@@ -138,7 +139,7 @@ type FileUploadStopExport struct {
 
 func (f FileUploadStopExport) SortVal() (int64, string) {
 	// file messages should come after the message they were with
-	return f.UploadStopTime, strings.Repeat("z", 26)
+	return f.UploadStopTime, EnsureLastMessageInASort
 }
 
 func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
