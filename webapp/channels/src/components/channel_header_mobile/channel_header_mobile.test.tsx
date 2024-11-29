@@ -68,6 +68,7 @@ const defaultState = {
                 PostDropdownMenu: [],
                 PostAction: [],
                 PostEditorAction: [],
+                Product: [],
             },
         },
     },
