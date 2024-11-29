@@ -2396,6 +2396,9 @@ func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term stri
 	return autocomplete, nil
 }
 
+// UpdateOAuthUserAttrs updates a user's attributes based on OAuth data received from the provider.
+// This is used to keep the user's information in sync with the OAuth provider's data.
+// Returns an error if the update fails or if there are validation errors.
 func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
@@ -2452,6 +2455,8 @@ func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *mode
 	return nil
 }
 
+// RestrictUsersGetByPermissions applies view restrictions to user get options based on the given user's permissions.
+// Returns the modified options and any error that occurred while getting the restrictions.
 func (a *App) RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
@@ -2508,6 +2513,8 @@ func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([
 	return nonMemberIds, nil
 }
 
+// RestrictUsersSearchByPermissions applies view restrictions to user search options based on the given user's permissions.
+// Returns the modified options and any error that occurred while getting the restrictions.
 func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
@@ -2518,6 +2525,9 @@ func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, opt
 	return options, nil
 }
 
+// UserCanSeeOtherUser checks if a user has permission to view another user's information.
+// Returns true if the user can see the other user, false otherwise.
+// Also returns an error if there was a problem checking the permissions.
 func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	if userID == otherUserId {
 		return true, nil
@@ -2564,6 +2574,9 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 	return belongs, nil
 }
 
+// GetViewUsersRestrictions returns the restrictions that should be applied when the given user tries to view other users.
+// The restrictions include which teams and channels the user has access to view.
+// Returns nil restrictions if the user has the permission to view all users.
 func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
 	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
 		return nil, nil
