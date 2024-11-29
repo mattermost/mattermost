@@ -139,8 +139,8 @@ func TestUpdateBookmark(t *testing.T) {
 		}()
 
 		bookmark2.FileId = file2.Id
-		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-		require.Error(t, err)
+		bookmarkResp, appErr := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.Nil(t, appErr)
 		require.Nil(t, bookmarkResp)
 	}
 
