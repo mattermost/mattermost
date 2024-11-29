@@ -18,7 +18,7 @@ type OwnProps = {
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
         currentUserId: getCurrentUserId(state),
-        status: getStatusForUserId(state, ownProps.option.id),
+        status: getStatusForUserId(state, ownProps.option.id) || 'offline',
     };
 }
 
