@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Provider} from 'react-redux';
 import {screen} from '@testing-library/react';
+import configureStore from 'redux-mock-store';
 
 import {renderWithIntl} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderMobile from './channel_header_mobile';
+
+const mockStore = configureStore();
 
 describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     global.document.querySelector = jest.fn().mockReturnValue({
@@ -42,7 +46,27 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     };
 
     test('should render channel header mobile component', () => {
-        renderWithIntl(<ChannelHeaderMobile {...baseProps}/>);
+        const store = mockStore({
+            entities: {
+                channels: {
+                    channels: {
+                        channel_id: baseProps.channel,
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: baseProps.user,
+                    },
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...baseProps}/>
+            </Provider>,
+        );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Toggle sidebar Menu Icon'})).toBeInTheDocument();
@@ -59,7 +83,28 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        renderWithIntl(<ChannelHeaderMobile {...props}/>);
+
+        const store = mockStore({
+            entities: {
+                channels: {
+                    channels: {
+                        123: props.channel,
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: props.user,
+                    },
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
+        );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
@@ -79,7 +124,28 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        renderWithIntl(<ChannelHeaderMobile {...props}/>);
+
+        const store = mockStore({
+            entities: {
+                channels: {
+                    channels: {
+                        channel_id: props.channel,
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: props.user,
+                    },
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
+        );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
@@ -98,7 +164,28 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        renderWithIntl(<ChannelHeaderMobile {...props}/>);
+
+        const store = mockStore({
+            entities: {
+                channels: {
+                    channels: {
+                        channel_id: props.channel,
+                    },
+                },
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: props.user,
+                    },
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
+        );
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
         const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
