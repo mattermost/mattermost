@@ -60,16 +60,10 @@ const defaultState = {
         threads: {
             countsIncludingDirect: {},
         },
-        plugins: {
-            plugins: {},
-            components: {
-                MobileChannelHeaderButton: [],
-                CallButton: [],
-                PostDropdownMenu: [],
-                PostAction: [],
-                PostEditorAction: [],
-                Product: [],
-            },
+    },
+    plugins: {
+        components: {
+            MobileChannelHeaderButton: [],
         },
     },
 };
