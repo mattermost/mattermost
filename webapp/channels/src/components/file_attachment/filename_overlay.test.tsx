@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, render} from '@testing-library/react';
+import {screen} from '@testing-library/react';
+import {renderWithIntl} from 'tests/react_testing_utils';
 import userEvent from '@testing-library/user-event';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
@@ -34,7 +35,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
     };
 
     test('should render filename in standard display mode', () => {
-        render(<FilenameOverlay {...baseProps}/>);
+        renderWithIntl(<FilenameOverlay {...baseProps}/>);
 
         const downloadLink = screen.getByRole('link', {name: /download/i});
         expect(downloadLink).toBeInTheDocument();
@@ -46,7 +47,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
         const handleImageClick = jest.fn();
         const props = {...baseProps, compactDisplay: true, handleImageClick};
         
-        render(<FilenameOverlay {...props}/>);
+        renderWithIntl(<FilenameOverlay {...props}/>);
 
         const link = screen.getByRole('link', {name: /test_filename/i});
         expect(link).toBeInTheDocument();
@@ -61,7 +62,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
     test('should render with Download icon as children', () => {
         const props = {...baseProps, canDownload: true};
         
-        render(
+        renderWithIntl(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,
