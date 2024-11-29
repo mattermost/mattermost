@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import {GenericModal} from '@mattermost/components';
 
 import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ProductNoticesModal from './product_notices_modal';
 
@@ -51,7 +51,7 @@ describe('ProductNoticesModal', () => {
     };
 
     test('should render correctly with no notices', async () => {
-        renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        renderWithContext(<ProductNoticesModal {...baseProps}/>);
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
@@ -171,7 +171,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('should fetch notices on socket reconnect if first time in a day', async () => {
-        const {rerender} = renderWithIntlAndStore(<ProductNoticesModal {...baseProps}/>);
+        const {rerender} = renderWithContext(<ProductNoticesModal {...baseProps}/>);
         Date.now = jest.fn().mockReturnValue(1599807605628);
         
         rerender(<ProductNoticesModal
