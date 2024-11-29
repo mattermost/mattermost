@@ -83,10 +83,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -257,10 +257,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -457,10 +457,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -657,10 +657,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -857,10 +857,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -1029,10 +1029,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
@@ -1201,10 +1201,10 @@ func TestGlobalRelayExport(t *testing.T) {
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(400)),
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(80)),
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
 						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",

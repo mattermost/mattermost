@@ -6,7 +6,6 @@ package actiance_export
 import (
 	"archive/zip"
 	"bytes"
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -153,7 +153,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		// Was the post deleted (not an edited post), and originally posted during the current job window?
 		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
 		// before now because of the way we export posts (by updateAt).
-		if isDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
+		if common_export.IsDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
 			results.CreatedPosts++
 			elementsByChannel[channelId] = append(elementsByChannel[channelId], createdPostToExportEntry(post))
 		}
@@ -239,7 +239,7 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 		// Post has been edited. This is the original message.
 		results.EditedOrigMsgPosts++
 		return editedOriginalMsgToExportEntry(post), results
-	} else if isDeletedMsg(post) {
+	} else if common_export.IsDeletedMsg(post) {
 		// Post is deleted
 		results.DeletedPosts++
 		return deletedPostToExportEntry(post, "delete "+*post.PostMessage), results
@@ -263,21 +263,6 @@ func getPostExport(posts []*model.MessageExport, i int, results shared.RunExport
 
 func isEditedOriginalMsg(post *model.MessageExport) bool {
 	return model.SafeDereference(post.PostDeleteAt) > 0 && model.SafeDereference(post.PostOriginalId) != ""
-}
-
-func isDeletedMsg(post *model.MessageExport) bool {
-	if model.SafeDereference(post.PostDeleteAt) > 0 && post.PostProps != nil {
-		props := map[string]any{}
-		err := json.Unmarshal([]byte(*post.PostProps), &props)
-		if err != nil {
-			return false
-		}
-
-		if _, ok := props[model.PostPropsDeleteBy]; ok {
-			return true
-		}
-	}
-	return false
 }
 
 func createdPostToExportEntry(post *model.MessageExport) PostExport {

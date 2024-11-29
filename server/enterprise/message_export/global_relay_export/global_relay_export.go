@@ -120,7 +120,7 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 			Email:    *post.UserEmail,
 		}
 
-		attachmentsRemoved := addToExports(rctx, attachments, allExports, post)
+		attachmentsRemoved := addToExports(rctx, attachments, allExports, post, p.BatchStartTime, p.BatchEndTime)
 		attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, attachmentsRemoved...)
 	}
 
@@ -139,7 +139,7 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 				return results, err
 			}
 			channelExport.Participants = participants
-			channelExport.ExportedOn = time.Now().Unix() * 1000
+			channelExport.ExportedOn = p.JobStartTime
 
 			var channelExportFile io.Writer
 			channelExportFile, err = zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
@@ -186,7 +186,7 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 	return results, nil
 }
 
-func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[string][]*ChannelExport, post *model.MessageExport) []string {
+func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[string][]*ChannelExport, post *model.MessageExport, batchStartTime, batchEndTime int64) []string {
 	var channelExport *ChannelExport
 	attachmentsRemovedPostIDs := []string{}
 	if channelExports, present := exports[*post.ChannelId]; !present {
@@ -195,7 +195,8 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 			ChannelId:       *post.ChannelId,
 			ChannelName:     *post.ChannelDisplayName,
 			ChannelType:     *post.ChannelType,
-			StartTime:       *post.PostCreateAt,
+			StartTime:       batchStartTime,
+			EndTime:         batchEndTime,
 			Messages:        make([]Message, 0),
 			Participants:    make([]ParticipantRow, 0),
 			numUserMessages: make(map[string]int),
@@ -224,7 +225,8 @@ func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[s
 			ChannelId:       *post.ChannelId,
 			ChannelName:     *post.ChannelDisplayName,
 			ChannelType:     *post.ChannelType,
-			StartTime:       *post.PostCreateAt,
+			StartTime:       batchStartTime,
+			EndTime:         batchEndTime,
 			Messages:        make([]Message, 0),
 			Participants:    make([]ParticipantRow, 0),
 			numUserMessages: make(map[string]int),
@@ -270,6 +272,7 @@ func getParticipants(startTime int64, endTime int64, channelMembersHistory []*mo
 	for _, leave := range leaves {
 		if participantRow, ok := participantsMap[leave.UserId]; ok {
 			participantRow.LeaveTime = leave.Datetime //nolint:govet
+			participantsMap[leave.UserId] = participantRow
 		}
 	}
 
@@ -410,7 +413,6 @@ func addPostToChannelExport(rctx request.CTX, channelExport *ChannelExport, post
 		PreviewsPost:   post.PreviewID(),
 	}
 	channelExport.Messages = append(channelExport.Messages, element)
-	channelExport.EndTime = *post.PostCreateAt
 	channelExport.numUserMessages[*post.UserId] += 1
 }
 
