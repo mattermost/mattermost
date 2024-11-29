@@ -35,7 +35,7 @@ export type Props = {
     select: (value: OptionValue) => void;
 }
 
-const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
+const ListItem = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
     const {
         option,
         isMobileView,
@@ -50,7 +50,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
     if (isGroupChannel(option)) {
         details = <GMDetails option={option}/>;
     } else {
-        details = <UserDetails option={option}/>;
+        details = <UserDetails option={option} currentUserId={''} status={option.status || 'offline'}/>;
     }
 
     const handleClick = useCallback(() => add(option), [option, add]);
