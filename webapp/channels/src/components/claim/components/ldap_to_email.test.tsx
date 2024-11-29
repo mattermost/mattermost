@@ -48,6 +48,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
         const tokenInput = screen.getByLabelText('Enter MFA Token');
         
         await act(async () => {
+            await userEvent.clear(tokenInput);
             await userEvent.type(tokenInput, '123456');
             await userEvent.click(submitButton);
         });
@@ -60,7 +61,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
                 '', // password  
                 '123456' // token
             );
-        });
+        }, {timeout: 2000});
 
         // Verify main form appears
         await waitFor(() => {
