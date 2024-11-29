@@ -6,7 +6,6 @@ package cache
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
