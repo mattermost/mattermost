@@ -12,7 +12,13 @@ describe('components/ResetStatusModal', () => {
     const autoResetStatus = jest.fn().mockImplementation(
         () => {
             return new Promise((resolve) => {
-                process.nextTick(() => resolve({data: {status: 'away'}}));
+                process.nextTick(() => resolve({
+                    data: {
+                        status: 'away',
+                        user_id: 'user_id_1',
+                        manual: true
+                    },
+                }));
             });
         },
     );
@@ -34,9 +40,10 @@ describe('components/ResetStatusModal', () => {
         );
 
         // Wait for modal to appear after autoResetStatus resolves
-        await screen.findByText('Your status is set to "Away"');
+        const title = await screen.findByText(/Your status is set to "Away"/i);
+        expect(title).toBeInTheDocument();
         
-        expect(screen.getByText('Would you like to switch your status to "Online"?')).toBeInTheDocument();
+        expect(await screen.findByText('Would you like to switch your status to "Online"?')).toBeInTheDocument();
         expect(screen.getByText('Set status to "Online"')).toBeInTheDocument();
         expect(screen.getByText('Stay as "Away"')).toBeInTheDocument();
         expect(screen.getByText('Do not ask me again')).toBeInTheDocument();
@@ -62,7 +69,8 @@ describe('components/ResetStatusModal', () => {
         );
 
         // Wait for modal to appear
-        await screen.findByText('Your status is set to "Away"');
+        const title = await screen.findByText(/Your status is set to "Away"/i);
+        expect(title).toBeInTheDocument();
 
         // Test without checkbox
         await userEvent.click(screen.getByText('Set status to "Online"'));
@@ -101,7 +109,8 @@ describe('components/ResetStatusModal', () => {
         );
 
         // Wait for modal to appear
-        await screen.findByText('Your status is set to "Away"');
+        const title = await screen.findByText(/Your status is set to "Away"/i);
+        expect(title).toBeInTheDocument();
 
         // Test without checkbox
         await userEvent.click(screen.getByText('Stay as "Away"'));
@@ -127,8 +136,9 @@ describe('components/ResetStatusModal', () => {
         );
 
         // Wait for modal to appear
-        await screen.findByText('Your status is set to "Out of office"');
-        expect(screen.getByText('Would you like to switch your status to "Online" and disable automatic replies?')).toBeInTheDocument();
+        const title = await screen.findByText(/Your status is set to "Out of office"/i);
+        expect(title).toBeInTheDocument();
+        expect(await screen.findByText('Would you like to switch your status to "Online" and disable automatic replies?')).toBeInTheDocument();
         expect(screen.getByText('Set status to "Online"')).toBeInTheDocument();
         expect(screen.getByText('Stay "Out of office"')).toBeInTheDocument();
     });
