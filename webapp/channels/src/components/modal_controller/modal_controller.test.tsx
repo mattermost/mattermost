@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {closeModal} from 'actions/views/modals';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import mockStore from 'tests/test_store';
 
 import ModalController from '.';
 
@@ -97,7 +98,8 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {store} = renderWithContext(<ModalController/>, state);
+        const store = mockStore(state);
+        renderWithContext(<ModalController/>, state);
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
@@ -129,7 +131,8 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {store} = renderWithContext(<ModalController/>, state);
+        const store = mockStore(state);
+        renderWithContext(<ModalController/>, state);
 
         const modal = document.querySelector('.modal') as HTMLElement;
         expect(modal).toBeInTheDocument();
