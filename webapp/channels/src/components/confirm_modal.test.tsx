@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {screen, render} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 import ConfirmModal from './confirm_modal';
 
@@ -20,7 +22,7 @@ describe('ConfirmModal', () => {
             showCheckbox: true,
         };
 
-        render(<ConfirmModal {...props}/>);
+        renderWithIntl(<ConfirmModal {...props}/>);
 
         const checkbox = screen.getByRole('checkbox');
         const confirmButton = screen.getByRole('button', {name: ''});
@@ -43,7 +45,7 @@ describe('ConfirmModal', () => {
             showCheckbox: true,
         };
 
-        render(<ConfirmModal {...props}/>);
+        renderWithIntl(<ConfirmModal {...props}/>);
 
         const checkbox = screen.getByRole('checkbox');
         const cancelButton = screen.getByTestId('cancel-button');
