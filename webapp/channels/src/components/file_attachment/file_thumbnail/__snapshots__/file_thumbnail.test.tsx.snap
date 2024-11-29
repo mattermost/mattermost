@@ -24,12 +24,6 @@ exports[`FileThumbnail should render a small image 1`] = `
 />
 `;
 
-exports[`FileThumbnail should render an icon for a PDF 1`] = `
-<div
-  className="file-icon pdf"
-/>
-`;
-
 exports[`FileThumbnail should render an icon for an SVG when SVG previews are disabled 1`] = `
 <div
   className="file-icon generic"
