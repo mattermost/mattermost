@@ -23,6 +23,7 @@ const mockedUser = {
     value: 'user_id_1',
     props: {},
     username: 'some-user',
+    status: 'online',
 };
 
 describe('components/MoreDirectChannels', () => {
