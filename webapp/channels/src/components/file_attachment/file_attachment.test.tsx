@@ -184,7 +184,7 @@ describe('FileAttachment', () => {
         );
 
         expect(screen.getByText(baseProps.fileInfo.name)).toBeInTheDocument();
-        expect(screen.getByClassName('post-image__load')).toBeInTheDocument();
+        expect(screen.getByTestId('file-attachment-loading')).toBeInTheDocument();
     });
 
     test('should blur file attachment link after click', async () => {

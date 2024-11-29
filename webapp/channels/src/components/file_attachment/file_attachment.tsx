@@ -272,7 +272,10 @@ export default function FileAttachment(props: Props) {
                         disablePreview={props.disablePreview}
                     />
                 ) : (
-                    <div className='post-image__load'/>
+                    <div 
+                        className='post-image__load'
+                        data-testid='file-attachment-loading'
+                    />
                 )}
             </a>
         );
