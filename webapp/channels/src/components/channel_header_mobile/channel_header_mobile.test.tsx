@@ -45,7 +45,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...baseProps}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Toggle sidebar'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Toggle sidebar Menu Icon'})).toBeInTheDocument();
     });
 
     test('should render default channel header', () => {
@@ -62,8 +62,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).toHaveTextContent('Town Square');
+        const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
+        expect(heading).toHaveTextContent(/Town Square/i);
     });
 
     test('should render DM channel header', () => {
@@ -80,8 +80,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).toHaveTextContent('display_name');
+        const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
+        expect(heading).toHaveTextContent(/display_name/i);
     });
 
     test('should render private channel header', () => {
@@ -97,7 +97,7 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         renderWithIntl(<ChannelHeaderMobile {...props}/>);
 
         expect(screen.getByRole('navigation')).toBeInTheDocument();
-        const heading = screen.getByRole('navigation').querySelector('.heading');
-        expect(heading).toHaveTextContent('display_name');
+        const heading = screen.getByRole('navigation').querySelector('.navbar-brand');
+        expect(heading).toHaveTextContent(/display_name/i);
     });
 });
