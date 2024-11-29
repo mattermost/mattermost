@@ -3133,6 +3133,8 @@ func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
 }
 
+// UserIsFirstAdmin checks if the given user is the first admin user created on the system.
+// Returns true if the user is a system admin and has the earliest creation date among all system admins.
 func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	if !user.IsSystemAdmin() {
 		return false

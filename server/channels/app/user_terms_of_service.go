@@ -11,6 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// GetUserTermsOfService retrieves the terms of service status for a given user.
+// Returns the UserTermsOfService if found, or an error if the user has not accepted the terms of service.
 func (a *App) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
 	u, err := a.Srv().Store().UserTermsOfService().GetByUser(userID)
 	if err != nil {
@@ -26,6 +28,10 @@ func (a *App) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *
 	return u, nil
 }
 
+// SaveUserTermsOfService records a user's acceptance or rejection of the terms of service.
+// If accepted is true, creates a new UserTermsOfService record.
+// If accepted is false, deletes any existing record.
+// Returns an error if the operation fails.
 func (a *App) SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError {
 	if accepted {
 		userTermsOfService := &model.UserTermsOfService{
