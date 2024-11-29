@@ -39,8 +39,8 @@ describe('components/SpinnerButton', () => {
                 spinning={false}
                 spinningText='Test'
             >
-                <span id='child1'/>
-                <span id='child2'/>
+                <span id='child1' data-testid='child1'/>
+                <span id='child2' data-testid='child2'/>
             </SpinnerButton>,
         );
 
