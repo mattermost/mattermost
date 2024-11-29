@@ -155,12 +155,24 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     channels: {
                         123: props.channel,
                     },
+                    myMembers: {
+                        123: {
+                            channel_id: '123',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
                 },
                 users: {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
+                },
+                preferences: {
+                    myPreferences: {},
                 },
             },
         });
@@ -196,12 +208,24 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     channels: {
                         channel_id: props.channel,
                     },
+                    myMembers: {
+                        channel_id: {
+                            channel_id: 'channel_id',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
                 },
                 users: {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
+                },
+                preferences: {
+                    myPreferences: {},
                 },
             },
         });
@@ -236,12 +260,24 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                     channels: {
                         channel_id: props.channel,
                     },
+                    myMembers: {
+                        channel_id: {
+                            channel_id: 'channel_id',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
                 },
                 users: {
                     ...defaultState.entities.users,
                     profiles: {
                         user_id: props.user,
                     },
+                },
+                preferences: {
+                    myPreferences: {},
                 },
             },
         });
