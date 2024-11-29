@@ -71,7 +71,8 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        wrapper.instance().setSelected(1);
+        const component = wrapper.dive().instance();
+        component.setSelected(1);
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
     });
 
@@ -106,7 +107,8 @@ describe('components/multiselect/multiselect', () => {
             />,
         );
 
-        wrapper.instance().setSelected(1);
+        const component = wrapper.dive().instance();
+        component.setSelected(1);
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
     });
 });
