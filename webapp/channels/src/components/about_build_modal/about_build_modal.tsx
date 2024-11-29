@@ -62,11 +62,6 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
         const config = this.props.config;
         const license = this.props.license;
 
-        var serverHostname = 'disconnected';
-        if (this.props.socketStatus.connected) {
-            serverHostname = this.props.socketStatus.serverHostname ?? 'unknown';
-        }
-
         if (license.Cloud === 'true') {
             return (
                 <AboutBuildModalCloud
@@ -194,6 +189,48 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
 
         const mmversion: string | undefined = config.BuildNumber === 'dev' ? config.BuildNumber : config.Version;
 
+        let serverHostname;
+        if (!this.props.socketStatus.connected) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverDisconnected'
+                        defaultMessage='disconnected'
+                    />
+                </div>
+            );
+        } else if (this.props.socketStatus.serverHostname) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    {this.props.socketStatus.serverHostname}
+                </div>
+            );
+        } else {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverUnknown'
+                        defaultMessage='unknown'
+                    />
+                </div>
+            );
+        }
+
         return (
             <Modal
                 dialogClassName='a11y__modal about-modal'
@@ -258,13 +295,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                     />
                                     {'\u00a0' + config.SQLDriverName}
                                 </div>
-                                <div>
-                                    <FormattedMessage
-                                        id='about.serverHostname'
-                                        defaultMessage='Hostname:'
-                                    />
-                                    {'\u00a0' + serverHostname}
-                                </div>
+                                {serverHostname}
                             </div>
                             {licensee}
                         </div>

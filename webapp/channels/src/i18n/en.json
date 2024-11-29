@@ -15,6 +15,8 @@
   "about.notice": "Mattermost is made possible by the open source software used in our <linkServer>server</linkServer>, <linkDesktop>desktop</linkDesktop> and <linkMobile>mobile</linkMobile> apps.",
   "about.privacy": "Privacy Policy",
   "about.serverHostname": "Hostname:",
+  "about.serverDisconnected": "disconnected",
+  "about.serverUnknown": "unknown",
   "about.teamEditionLearn": "Join the Mattermost community at ",
   "about.teamEditionSt": "All your team communication in one place, instantly searchable and accessible anywhere.",
   "about.teamEditiont0": "Team Edition",
