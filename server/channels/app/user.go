@@ -2306,6 +2306,8 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 	return users, nil
 }
 
+// SearchUsersWithoutTeam returns a list of users who are not members of any team and match the search term.
+// Results can be filtered and paginated using the options parameter.
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchWithoutTeam(term, options)
@@ -2320,6 +2322,8 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 	return users, nil
 }
 
+// SearchUsersInGroup returns a list of users who are members of the specified group and match the search term.
+// The search is case-insensitive and applies to username, full name, and nickname fields.
 func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchInGroup(groupID, term, options)
@@ -2334,6 +2338,8 @@ func (a *App) SearchUsersInGroup(groupID string, term string, options *model.Use
 	return users, nil
 }
 
+// SearchUsersNotInGroup returns a list of users who are not members of the specified group and match the search term.
+// The search is case-insensitive and applies to username, full name, and nickname fields.
 func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInGroup(groupID, term, options)
@@ -2348,6 +2354,9 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 	return users, nil
 }
 
+// AutocompleteUsersInChannel returns a list of users in and out of the specified channel for autocomplete purposes.
+// The result is divided into two lists: users in the channel and users not in the channel.
+// The search term is matched against username, full name, and nickname fields.
 func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
@@ -2367,6 +2376,9 @@ func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channe
 	return autocomplete, nil
 }
 
+// AutocompleteUsersInTeam returns a list of users in the specified team for autocomplete purposes.
+// The search term is matched against username, full name, and nickname fields.
+// Results can be filtered and paginated using the options parameter.
 func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	term = strings.TrimSpace(term)
 
