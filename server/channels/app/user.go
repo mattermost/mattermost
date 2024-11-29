@@ -1816,6 +1816,8 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	return rtoken, nil
 }
 
+// GetTokenById retrieves a token by its ID. Returns the token if found, or an error
+// if the token is invalid or could not be retrieved.
 func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 
@@ -1835,6 +1837,8 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
+// DeleteToken deletes the given token from the database.
+// Returns an error if the token could not be deleted.
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	err := a.Srv().Store().Token().Delete(token.Token)
 	if err != nil {
@@ -1843,6 +1847,8 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	return nil
 }
 
+// UpdateUserRoles updates a user's roles and sends a WebSocket event if specified.
+// Returns the updated user and nil on success, or nil and an error on failure.
 func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1853,6 +1859,9 @@ func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sen
 	return a.UpdateUserRolesWithUser(c, user, newRoles, sendWebSocketEvent)
 }
 
+// UpdateUserRolesWithUser updates roles for the given user and sends a WebSocket event if specified.
+// This differs from UpdateUserRoles by taking a user object directly instead of a user ID.
+// Returns the updated user and nil on success, or nil and an error on failure.
 func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
@@ -1921,6 +1930,9 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
+// PermanentDeleteUser permanently deletes a user and all their related information.
+// This includes the user's posts, files, reactions, and other associated data.
+// This action is irreversible. Returns an error if the deletion fails.
 func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
 	rctx.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SystemAdminRoleId) {
