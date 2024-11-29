@@ -14,7 +14,10 @@ import userEvent from '@testing-library/user-event';
 import MoreDirectChannels from './more_direct_channels';
 
 jest.useFakeTimers();
-const mockedUser = TestHelper.getUserMock();
+const mockedUser = {
+    ...TestHelper.getUserMock(),
+    status: 'online',
+};
 
 describe('components/MoreDirectChannels', () => {
     const baseProps: ComponentProps<typeof MoreDirectChannels> = {
@@ -86,17 +89,17 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should call for modal data on mount', async () => {
-        jest.setTimeout(70000); // Increase timeout for this specific test
+        jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
         renderWithContext(<MoreDirectChannels {...props}/>);
 
-        await waitFor(() => {
-            expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
-            expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
-            expect(props.actions.getProfiles).toBeCalledWith(0, 100);
-            expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-            expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(baseProps.users);
-        });
+        jest.runAllTimers();
+        
+        expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
+        expect(props.actions.getTotalUsersStats).toHaveBeenCalledTimes(1);
+        expect(props.actions.getProfiles).toBeCalledWith(0, 100);
+        expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledTimes(1);
+        expect(props.actions.loadProfilesMissingStatus).toBeCalledWith(baseProps.users);
     });
 
     test('should call actions.loadProfilesMissingStatus when users prop changes', async () => {
@@ -127,18 +130,20 @@ describe('components/MoreDirectChannels', () => {
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('');
     });
 
-    test('should handle search with debounce', async () => {
+    test('should handle search with debounce', () => {
         jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
-        renderWithContext(<MoreDirectChannels {...props}/>);
+        const {container} = renderWithContext(<MoreDirectChannels {...props}/>);
 
-        const searchInput = screen.getByLabelText('Search and add members');
-        await userEvent.type(searchInput, 'user_search');
+        const searchInput = container.querySelector('input[type="text"]');
+        expect(searchInput).toBeTruthy();
+        if (searchInput) {
+            searchInput.value = 'user_search';
+            searchInput.dispatchEvent(new Event('change', {bubbles: true}));
+        }
 
         expect(props.actions.setModalSearchTerm).not.toBeCalled();
-        
         jest.runAllTimers();
-        
         expect(props.actions.setModalSearchTerm).toHaveBeenCalledWith('user_search');
     });
 
