@@ -50,7 +50,7 @@ const ListItem = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
     if (isGroupChannel(option)) {
         details = <GMDetails option={option}/>;
     } else {
-        details = <UserDetails option={option} currentUserId={''} status={option.status || 'offline'}/>;
+        details = <UserDetails option={option} currentUserId={option.id} status={option.status || 'offline'}/>;
     }
 
     const handleClick = useCallback(() => add(option), [option, add]);
