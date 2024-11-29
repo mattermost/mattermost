@@ -2940,6 +2940,9 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	return nil
 }
 
+// UpdateThreadFollowForUser updates the follow state of a thread for a user.
+// Publishes a WebSocket event to notify clients of the update.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             state,
@@ -2968,6 +2971,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
+// UpdateThreadFollowForUserFromChannelAdd updates thread following state when a user is added to a channel.
+// This ensures proper thread following state and notifications for users joining channels with existing threads.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
@@ -3029,6 +3035,9 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	return nil
 }
 
+// UpdateThreadReadForUserByPost marks a thread as read for a user up to a given post.
+// The post must belong to the specified thread.
+// Returns the updated thread and any error that occurred.
 func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
@@ -3042,6 +3051,9 @@ func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, use
 	return a.UpdateThreadReadForUser(c, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
+// UpdateThreadReadForUser marks a thread as read for a user up to a given timestamp.
+// Updates unread mentions and replies, and publishes WebSocket events for the update.
+// Returns the updated thread and any error that occurred.
 func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -3101,6 +3113,9 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	return thread, nil
 }
 
+// GetUsersWithInvalidEmails returns a list of users whose email addresses do not match
+// the configured email domain restrictions. Results are paginated.
+// Returns the list of users and any error that occurred.
 func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetUsersWithInvalidEmails(page, perPage, *a.Config().TeamSettings.RestrictCreationToDomains)
 	if err != nil {
