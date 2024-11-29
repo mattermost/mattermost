@@ -35,7 +35,7 @@ describe('components/ChannelSelect', () => {
             }),
         ],
         onChange: jest.fn(),
-        value: 'testValue',
+        value: 'id2',
         selectOpen: false,
         selectPrivate: false,
         selectDm: false,
@@ -44,14 +44,25 @@ describe('components/ChannelSelect', () => {
     test('should render default placeholder text', () => {
         renderWithIntl(<ChannelSelect {...defaultProps}/>);
 
-        const select = screen.getByRole('combobox');
-        expect(select).toBeInTheDocument();
-        expect(select).toHaveValue('testValue');
-        
         const placeholder = screen.getByText('--- Select a channel ---');
         expect(placeholder).toBeInTheDocument();
         expect(placeholder.tagName.toLowerCase()).toBe('option');
         expect(placeholder.getAttribute('value')).toBe('');
+    });
+
+    test('should select the default option when is open', () => {
+        renderWithIntl(
+            <ChannelSelect
+                {...defaultProps}
+                selectOpen={true}
+                selectPrivate={true}
+            />,
+        );
+
+        const select = screen.getByRole('combobox');
+        expect(select).toBeInTheDocument();
+        const option: HTMLOptionElement = screen.getByRole('option', {name: 'Channel 2'});
+        expect(option.selected).toBe(true);
     });
 
     test('should show open channels when selectOpen is true', () => {
