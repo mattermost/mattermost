@@ -35,7 +35,7 @@ describe('FileThumbnail', () => {
 
         const image = container.querySelector('.post-image.small');
         expect(image).toBeInTheDocument();
-        expect(image).toHaveStyle({backgroundImage: `url(api/v4/files/${fileInfo.id}/thumbnail)`});
+        expect(image).toHaveStyle({backgroundImage: `url(/api/v4/files/${fileInfo.id}/thumbnail)`});
     });
 
     test('should render a normal-sized image', () => {
@@ -54,7 +54,7 @@ describe('FileThumbnail', () => {
 
         const image = container.querySelector('.post-image.normal');
         expect(image).toBeInTheDocument();
-        expect(image).toHaveStyle({backgroundImage: `url(api/v4/files/${fileInfo.id}/thumbnail)`});
+        expect(image).toHaveStyle({backgroundImage: `url(/api/v4/files/${fileInfo.id}/thumbnail)`});
     });
 
     test('should render an svg when svg previews are enabled', () => {
@@ -72,7 +72,7 @@ describe('FileThumbnail', () => {
         const image = screen.getByRole('img', {name: 'file thumbnail image'});
         expect(image).toBeInTheDocument();
         expect(image).toHaveClass('post-image', 'normal');
-        expect(image).toHaveAttribute('src', `api/v4/files/${fileInfo.id}`);
+        expect(image).toHaveAttribute('src', `/api/v4/files/${fileInfo.id}`);
     });
 
     test('should render an icon for an SVG when SVG previews are disabled', () => {
@@ -91,7 +91,7 @@ describe('FileThumbnail', () => {
 
         const icon = container.querySelector('.file-icon');
         expect(icon).toBeInTheDocument();
-        expect(icon).toHaveClass('svg');
+        expect(icon).toHaveClass('file-icon', 'generic');
     });
 
     test('should render an icon for a PDF', () => {
