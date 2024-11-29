@@ -652,6 +652,8 @@ func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmi
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersNotInChannel gets a page of users that are not in the specified channel and team.
+// Filters are optional and can be provided to filter the results further.
 func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -661,6 +663,8 @@ func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstra
 	return users, nil
 }
 
+// GetUsersNotInChannelMap gets a map of users that are not in the specified channel and team.
+// The map keys are user IDs and values are the user objects.
 func (a *App) GetUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -677,6 +681,8 @@ func (a *App) GetUsersNotInChannelMap(teamID string, channelID string, groupCons
 	return userMap, nil
 }
 
+// GetUsersNotInChannelPage gets a page of users that are not in the specified channel and team.
+// Page and perPage parameters control the pagination.
 func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
@@ -686,6 +692,8 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersWithoutTeamPage gets a page of users that are not members of any team.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
@@ -695,6 +703,8 @@ func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin boo
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersWithoutTeam gets a list of users that are not members of any team.
+// Results can be filtered using the options parameter.
 func (a *App) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeam(options)
 	if err != nil {
