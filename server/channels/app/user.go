@@ -1055,6 +1055,9 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 	return nil
 }
 
+// UpdateActive activates or deactivates a user. The provided user record will be updated
+// in memory and saved to the database. The returned user record will be the updated version.
+// If the active parameter is true and the user limit has been reached, an error will be returned.
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		exceeded, appErr := a.isHardUserLimitExceeded()
@@ -1129,6 +1132,8 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	return ruser, nil
 }
 
+// DeactivateGuests deactivates all guest account users and revokes all their sessions.
+// A WebSocket event will be broadcast announcing the deactivation.
 func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
@@ -1156,16 +1161,22 @@ func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	return nil
 }
 
+// GetSanitizeOptions returns the options to sanitize user data based on whether
+// the sanitization is being done for an admin or not.
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	return a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 }
 
+// SanitizeProfile sanitizes a user's profile data based on the provided admin status.
+// This will redact sensitive information if the sanitization is not done as an admin.
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
 	user.SanitizeProfile(options, asAdmin)
 }
 
+// UpdateUserAsUser updates a user's settings as if the change was made by that user.
+// This enforces certain permissions and restrictions that apply to users updating their own settings.
 func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
 	updatedUser, err := a.UpdateUser(c, user, true)
 	if err != nil {
