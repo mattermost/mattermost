@@ -2649,7 +2649,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Відповідь властивості повідомлення перевищує максимальну дозволену довжину."
+    "translation": "Властивість Відповіді на повідомлення перевищує максимальну дозволену довжину."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
@@ -2745,7 +2745,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Недійсний робочий стіл NotifyProps для членства в каналі користувача."
+    "translation": "Некоректні параметри сповіщень для настільного додатка у членстві користувача в каналі."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
@@ -2761,11 +2761,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "Користувацькі AuthData та пароль є взаємовиключними."
+    "translation": "Дані автентифікації користувача (AuthData) та пароль є взаємовиключними."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": "Структура AuthData занадто довга."
+    "translation": "Структура AuthData перевищує допустиму довжину."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
@@ -2821,11 +2821,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
-    "translation": "Позиція користувача задовга."
+    "translation": "Посада користувача занадто довга."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Недійсний образ профілю."
+    "translation": "Недійсне зображення профілю."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -2833,7 +2833,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": "Ім'я користувача недійсне."
+    "translation": "Ім'я користувача не дійсне."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
@@ -2961,7 +2961,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Токени особистого доступу вимикаються на цьому сервері. Зверніться до свого системного адміністратора, щоб дізнатись більше."
+    "translation": "Персональні токени доступу на цьому сервері вимкнено. Будь ласка, зверніться до вашого системного адміністратора за деталями."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3801,7 +3801,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "Потрібно поле AD/LDAP \"Username Attribute\"."
+    "translation": "Поле AD/LDAP \"Атрибут імені користувача\" є обов'язковим."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4381,7 +4381,7 @@
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "Неприпустиме ім'я для відображення ролі."
+    "translation": "Некоректна назва компанії."
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
@@ -4433,7 +4433,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Недійсний термін дії токенів"
+    "translation": "Неправильний термін дії токена"
   },
   {
     "id": "model.token.is_valid.size",
@@ -4445,67 +4445,67 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі і одну цифру."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери та однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну цифру і один спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі і один спец. символ (\"~!@#$%^&()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери та одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому і верхньому регістрі."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери та однієї великої літери."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в верхньому регістрі і одну цифру."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери та однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну букву верхньому регістрі, одну цифру і спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери, однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну букву в верхньому регістрі, одну цифру і спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": "Ваш пароль повинен містити як мінімум {{.Min}} символів, хоча б один з яких повинен бути цифрою."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні одного числа та принаймні одного символу (наприклад, \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються з принаймні однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "Ваш пароль повинен містити мінімум {{.Min}} символів, включаючи хоча б один спецсимвол (напр., \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складаються принаймні з однієї великої літери."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери та принаймні одного номера."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складаються принаймні з однієї великої літери та цифри."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери, принаймні одного числа та принаймні одного символу (наприклад, \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються з принаймні однієї великої літери, цифри і символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити як мінімум {{.Min}} символів, включаючи хоча б одну головну букву та один спец. символ (напр., \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з однієї великої літери та символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Ім'я користувача повинно починатися з літери та містити від 3 до 22 символів, включаючи номери, літери та символи \".\", \"-\" та \"_\"."
+    "translation": "Ім'я користувача повинно починатися з літери і містити від 3 до 22 малих літер, що складаються з цифр, букв і символів \".\", \"-\" і \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4529,7 +4529,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Неможливо підключитися до сервера WebSocket."
+    "translation": "Не вдалося підключитися до сервера WebSocket."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -4537,7 +4537,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Не вдається встановити статус користувача. Невідомий статус користувача."
+    "translation": "Не вдалося встановити статус користувача. Невідомий статус користувача."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -4549,15 +4549,15 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Відсутнє тіло HTML."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "Відсутня тема листа."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Відсутня адреса адресата."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -4569,7 +4569,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "Ви не можете реагувати на архівований канал."
+    "translation": "Ви не можете змінювати заархівований канал."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4585,7 +4585,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
-    "translation": "Ви досягли обмеження кількості дозволених каналів."
+    "translation": "Ви досягли межі дозволеної кількості каналів."
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
@@ -4597,7 +4597,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
@@ -4605,7 +4605,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
+    "translation": "Не вдалося знайти існуючий обліковий запис, що відповідає вашим обліковим даним. Щоб приєднатися до цієї команди, вам може знадобитися запрошення від її власника."
   },
   {
     "id": "system.message.name",
@@ -4633,7 +4633,7 @@
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Вхідні вебхуки були відключені системним адміністратором."
+    "translation": "Вхідні вебхуки відключені системним адміністратором."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -4649,7 +4649,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Неможливо розбити реквізит webhook на частину символів {{.Max}}."
+    "translation": "Неможливо розділити властивості вебхука на частини по {{.Max}} символів."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -4697,15 +4697,15 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Ця версія вашого браузера більше не підтримується Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Цей браузер більше не підтримується Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4717,7 +4717,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Версія 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4729,7 +4729,7 @@
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Дізнайтеся більше про підтримувані браузери."
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
@@ -4781,15 +4781,15 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "Помилка при очищенні індексів Bleve: механізм вимкнено"
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Користувач бота не може створити іншого користувача бота."
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria."
+    "translation": "Неможливо отримати користувачів, невірні критерії сортування."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -4797,11 +4797,11 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 128 characters."
+    "translation": "Неправильна посада: не може бути довшою за 128 символів."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "Неможливо встановити пароль довше 72 символів через обмеження bcrypt."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -4829,19 +4829,19 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Неправильний користувач, дані авторизації повинні бути задані з типом авторизації."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
-    "translation": "Invalid user, password and auth data cannot both be set."
+    "translation": "Неправильні дані користувача, пароля та авторизації не можуть бути встановлені одночасно."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
-    "translation": "Invalid auth data."
+    "translation": "Невірні дані автентифікації."
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Invalid invite id."
+    "translation": "Некоректний ідентифікатор запрошення."
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
@@ -5081,7 +5081,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
+    "translation": "Не вдалося проіндексувати пакет каналів."
   },
   {
     "id": "bleveengine.index_user.error",
@@ -5109,11 +5109,11 @@
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
+    "translation": "Помилка при створенні індексу користувача bleve."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
+    "translation": "Помилка при створенні індексу допису bleve."
   },
   {
     "id": "bleveengine.create_channel_index.error",
@@ -5121,31 +5121,31 @@
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
+    "translation": "Bleve вже запущено."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
+    "translation": "Неможливо зберегти умови надання послуг."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
+    "translation": "Умов надання послуг не знайдено."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
+    "translation": "Не вдалося отримати умови надання послуг."
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
-    "translation": "Неможливо видалити умови використання послуги."
+    "translation": "Неможливо видалити умови надання послуг."
   },
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
+    "translation": "Умов надання послуг не знайдено."
   },
   {
     "id": "app.terms_of_service.get.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
+    "translation": "Не вдалося отримати умови надання послуг."
   },
   {
     "id": "app.terms_of_service.create.existing.app_error",
@@ -5153,11 +5153,11 @@
   },
   {
     "id": "app.terms_of_service.create.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
+    "translation": "Неможливо зберегти умови надання послуг."
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use."
+    "translation": "Неможливо перейменувати команду, назва вже використовується."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
@@ -5265,7 +5265,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "Служба автентифікації користувача (AuthService) та дані автентифікації (AuthData) є взаємозалежними."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
@@ -6441,7 +6441,7 @@
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams."
+    "translation": "Неможливо визначити, чи належить користувач до списку команд."
   },
   {
     "id": "app.team.reset_all_team_schemes.app_error",
@@ -6493,11 +6493,11 @@
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+    "translation": "Розмір файлу {{.Filename}} ({{.Width}} на {{.Height}} пікселів) перевищує допустимі."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-    "translation": "Неможливо розмістити публікацію на видаленому каналі."
+    "translation": "Неможливо завантажити на видалений канал."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
