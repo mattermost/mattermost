@@ -128,6 +128,51 @@ func (j *Job) MarshalYAML() (any, error) {
 	}, nil
 }
 
+func (j *Job) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	out := struct {
+		Id             string    `yaml:"id"`
+		Type           string    `yaml:"type"`
+		Priority       int64     `yaml:"priority"`
+		CreateAt       string    `yaml:"create_at"`
+		StartAt        string    `yaml:"start_at"`
+		LastActivityAt string    `yaml:"last_activity_at"`
+		Status         string    `yaml:"status"`
+		Progress       int64     `yaml:"progress"`
+		Data           StringMap `yaml:"data"`
+	}{}
+
+	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
+
+	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	if err != nil {
+		return err
+	}
+	updateAt, err := timeutils.ParseFormatedMillis(out.StartAt)
+	if err != nil {
+		return err
+	}
+	deleteAt, err := timeutils.ParseFormatedMillis(out.LastActivityAt)
+	if err != nil {
+		return err
+	}
+
+	*j = Job{
+		Id:             out.Id,
+		Type:           out.Type,
+		Priority:       out.Priority,
+		CreateAt:       createAt,
+		StartAt:        updateAt,
+		LastActivityAt: deleteAt,
+		Status:         out.Status,
+		Progress:       out.Progress,
+		Data:           out.Data,
+	}
+	return nil
+}
+
 func (j *Job) IsValid() *AppError {
 	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)

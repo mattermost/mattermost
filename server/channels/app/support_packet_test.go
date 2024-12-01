@@ -284,6 +284,86 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		assert.Empty(t, jobs.BlevePostIndexingJobs)
 		assert.Empty(t, jobs.MigrationJobs)
 	})
+
+	t.Run("jobs exist", func(t *testing.T) {
+		getJob := func(jobType string) *model.Job {
+			return &model.Job{
+				Id:             model.NewId(),
+				Type:           jobType,
+				Priority:       1,
+				CreateAt:       model.GetMillis() - 1,
+				StartAt:        model.GetMillis(),
+				LastActivityAt: model.GetMillis() + 1,
+				Status:         model.JobStatusPending,
+				Progress:       51,
+				Data:           model.StringMap{"key": "value"},
+			}
+		}
+		// Create some jobs
+		jobsToCreate := []*model.Job{
+			getJob(model.JobTypeLdapSync),
+			getJob(model.JobTypeDataRetention),
+			getJob(model.JobTypeMessageExport),
+			getJob(model.JobTypeElasticsearchPostIndexing),
+			getJob(model.JobTypeElasticsearchPostAggregation),
+			getJob(model.JobTypeBlevePostIndexing),
+			getJob(model.JobTypeMigrations),
+		}
+
+		var expectedJobs []*model.Job
+		for _, job := range jobsToCreate {
+			// Create the job using the store directly.
+			// Creating the job at the job service would error as the workers require enterprise code.
+			rJob, err := th.App.Srv().Store().Job().Save(job)
+			require.NoError(t, err)
+
+			expectedJobs = append(expectedJobs, rJob)
+		}
+
+		jobs := getJobList(t)
+
+		// Helper to verify job content matches
+		verifyJob := func(t *testing.T, expected, actual *model.Job) {
+			t.Helper()
+			assert.Equal(t, expected.Id, actual.Id)
+			assert.Equal(t, expected.Type, actual.Type)
+			assert.Equal(t, expected.Priority, actual.Priority)
+			assert.Equal(t, expected.CreateAt, actual.CreateAt)
+			assert.Equal(t, expected.StartAt, actual.StartAt)
+			assert.Equal(t, expected.LastActivityAt, actual.LastActivityAt)
+			assert.Equal(t, expected.Status, actual.Status)
+			assert.Equal(t, expected.Progress, actual.Progress)
+			assert.Equal(t, expected.Data, actual.Data)
+		}
+
+		// Verify LDAP sync jobs
+		require.Len(t, jobs.LDAPSyncJobs, 1, "Should have 1 LDAP sync job")
+		verifyJob(t, expectedJobs[0], jobs.LDAPSyncJobs[0])
+
+		// Verify data retention jobs
+		require.Len(t, jobs.DataRetentionJobs, 1, "Should have 1 data retention job")
+		verifyJob(t, expectedJobs[1], jobs.DataRetentionJobs[0])
+
+		// Verify message export jobs
+		require.Len(t, jobs.MessageExportJobs, 1, "Should have 1 message export job")
+		verifyJob(t, expectedJobs[2], jobs.MessageExportJobs[0])
+
+		// Verify elasticsearch post indexing jobs
+		require.Len(t, jobs.ElasticPostIndexingJobs, 1, "Should have 1 elasticsearch post indexing job")
+		verifyJob(t, expectedJobs[3], jobs.ElasticPostIndexingJobs[0])
+
+		// Verify elasticsearch post aggregation jobs
+		require.Len(t, jobs.ElasticPostAggregationJobs, 1, "Should have 1 elasticsearch post aggregation job")
+		verifyJob(t, expectedJobs[4], jobs.ElasticPostAggregationJobs[0])
+
+		// Verify bleve post indexing jobs
+		require.Len(t, jobs.BlevePostIndexingJobs, 1, "Should have 1 bleve post indexing job")
+		verifyJob(t, expectedJobs[5], jobs.BlevePostIndexingJobs[0])
+
+		// Verify migration jobs
+		require.Len(t, jobs.MigrationJobs, 1, "Should have 1 migration job")
+		verifyJob(t, expectedJobs[6], jobs.MigrationJobs[0])
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
