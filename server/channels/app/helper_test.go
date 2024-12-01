@@ -105,6 +105,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
+		TB:                tb,
 	}
 
 	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
