@@ -202,6 +202,9 @@ type MetricsInterfaceImpl struct {
 	NotificationUnsupportedCounters *prometheus.CounterVec
 
 	ClientTimeToFirstByte           *prometheus.HistogramVec
+	ClientTimeToLastByte            *prometheus.HistogramVec
+	ClientTimeToDOMInteractive      *prometheus.HistogramVec
+	ClientSplashScreenEnd           *prometheus.HistogramVec
 	ClientFirstContentfulPaint      *prometheus.HistogramVec
 	ClientLargestContentfulPaint    *prometheus.HistogramVec
 	ClientInteractionToNextPaint    *prometheus.HistogramVec
@@ -1187,6 +1190,39 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientTimeToFirstByte)
 
+	m.ClientTimeToLastByte = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "time_to_last_byte",
+			Help:      "Duration from when a browser starts to request a page from a server until when it receives the last byte of the resource or immediately before the transport connection is closed, whichever comes first. (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientTimeToLastByte)
+
+	m.ClientTimeToDOMInteractive = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "dom_interactive",
+			Help:      "Duration from when a browser starts to request a page from a server until when it sets the document's readyState to interactive. (seconds)",
+		},
+		[]string{"platform", "agent"},
+	)
+	m.Registry.MustRegister(m.ClientTimeToDOMInteractive)
+
+	m.ClientSplashScreenEnd = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "splash_screen",
+			Help:      "Duration from when a browser starts to request a page from a server until when the splash screen ends. (seconds)",
+		},
+		[]string{"platform", "agent", "page_type"},
+	)
+	m.Registry.MustRegister(m.ClientSplashScreenEnd)
+
 	m.ClientFirstContentfulPaint = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1836,6 +1872,18 @@ func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 
 func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent string, elapsed float64) {
 	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToLastByte(platform, agent string, elapsed float64) {
+	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agent string, elapsed float64) {
+	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType string, elapsed float64) {
+	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
