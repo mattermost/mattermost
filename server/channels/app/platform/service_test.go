@@ -200,31 +200,16 @@ func TestSetTelemetryId(t *testing.T) {
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
-	// sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-
-	// if sqlDrivernameEnvironment != "" {
-	// 	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
-	// } else {
-	// 	defer os.Unsetenv("MM_SQLSETTINGS_DRIVERNAME")
-	// }
-
-	t.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
-
 	th := Setup(t)
 	defer th.TearDown()
 
 	databaseType, mattermostVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
 	require.NoError(t, err)
-	assert.Equal(t, "postgres", databaseType)
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
+	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		assert.Equal(t, "postgres", databaseType)
+	} else {
+		assert.Equal(t, "mysql", databaseType)
+	}
 
-	t.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
-
-	th2 := Setup(t)
-	defer th2.TearDown()
-
-	databaseType, mattermostVersion, err = th2.Service.DatabaseTypeAndSchemaVersion()
-	require.NoError(t, err)
-	assert.Equal(t, "mysql", databaseType)
 	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
 }
