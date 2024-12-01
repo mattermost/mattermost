@@ -8,7 +8,7 @@ import type {SectionNoticeButtonProp} from './types';
 
 type Props = {
     button: SectionNoticeButtonProp;
-    buttonClass: 'btn-primary' | 'btn-tertiary' | 'btn-link';
+    buttonClass: 'btn-primary' | 'btn-secondary' | 'btn-tertiary' | 'btn-link';
 }
 
 const SectionNoticeButton = ({
@@ -21,6 +21,7 @@ const SectionNoticeButton = ({
         <button
             onClick={button.onClick}
             className={classNames('btn btn-sm sectionNoticeButton', buttonClass)}
+            disabled={button.disabled}
         >
             {button.loading && (<i className='icon fa fa-pulse fa-spinner'/>)}
             {leading}

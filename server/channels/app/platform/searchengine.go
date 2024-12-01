@@ -5,6 +5,7 @@ package platform
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
@@ -20,7 +21,10 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		if ps.SearchEngine == nil {
 			return
 		}
-		ps.SearchEngine.UpdateConfig(newConfig)
+
+		if err := ps.SearchEngine.UpdateConfig(newConfig); err != nil {
+			ps.Log().Error("Failed to update search engine config", mlog.Err(err))
+		}
 
 		if ps.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			ps.Go(func() {
@@ -78,9 +82,13 @@ func (ps *PlatformService) StopSearchEngine() {
 	ps.RemoveConfigListener(ps.searchConfigListenerId)
 	ps.RemoveLicenseListener(ps.searchLicenseListenerId)
 	if ps.SearchEngine != nil && ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
-		ps.SearchEngine.ElasticsearchEngine.Stop()
+		if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
+			ps.Log().Error("Failed to stop Elasticsearch engine", mlog.Err(err))
+		}
 	}
 	if ps.SearchEngine != nil && ps.SearchEngine.BleveEngine != nil && ps.SearchEngine.BleveEngine.IsActive() {
-		ps.SearchEngine.BleveEngine.Stop()
+		if err := ps.SearchEngine.BleveEngine.Stop(); err != nil {
+			ps.Log().Error("Failed to stop Bleve Engine", mlog.Err(err))
+		}
 	}
 }
