@@ -284,6 +284,41 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		assert.Empty(t, jobs.BlevePostIndexingJobs)
 		assert.Empty(t, jobs.MigrationJobs)
 	})
+
+	t.Run("jobs exist", func(t *testing.T) {
+		// Create some jobs
+		jobsToCreate := []*model.Job{
+			{Id: model.NewId(), Type: model.JobTypeLdapSync},
+			{Id: model.NewId(), Type: model.JobTypeDataRetention},
+			{Id: model.NewId(), Type: model.JobTypeMessageExport},
+			{Id: model.NewId(), Type: model.JobTypeElasticsearchPostIndexing},
+			{Id: model.NewId(), Type: model.JobTypeElasticsearchPostAggregation},
+			{Id: model.NewId(), Type: model.JobTypeBlevePostIndexing},
+			{Id: model.NewId(), Type: model.JobTypeMigrations},
+		}
+
+		for _, job := range jobsToCreate {
+			_, err := th.App.Srv().Store().Job().Save(job)
+			require.NoError(t, err)
+		}
+
+		jobs := getJobList(t)
+
+		assert.Len(t, jobs.LDAPSyncJobs, 1)
+		assert.Equal(t, jobsToCreate[0].Id, jobs.LDAPSyncJobs[0].Id)
+		assert.Len(t, jobs.DataRetentionJobs, 1)
+		assert.Equal(t, jobsToCreate[1].Id, jobs.DataRetentionJobs[0].Id)
+		assert.Len(t, jobs.MessageExportJobs, 1)
+		assert.Equal(t, jobsToCreate[2].Id, jobs.MessageExportJobs[0].Id)
+		assert.Len(t, jobs.ElasticPostIndexingJobs, 1)
+		assert.Equal(t, jobsToCreate[3].Id, jobs.ElasticPostIndexingJobs[0].Id)
+		assert.Len(t, jobs.ElasticPostAggregationJobs, 1)
+		assert.Equal(t, jobsToCreate[4].Id, jobs.ElasticPostAggregationJobs[0].Id)
+		assert.Len(t, jobs.BlevePostIndexingJobs, 1)
+		assert.Equal(t, jobsToCreate[5].Id, jobs.BlevePostIndexingJobs[0].Id)
+		assert.Len(t, jobs.MigrationJobs, 1)
+		assert.Equal(t, jobsToCreate[6].Id, jobs.MigrationJobs[0].Id)
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
