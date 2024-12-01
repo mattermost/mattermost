@@ -20,6 +20,7 @@ func TestScheduledPostStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("PermanentlyDeleteScheduledPosts", func(t *testing.T) { testPermanentlyDeleteScheduledPosts(t, rctx, ss, s) })
 	t.Run("UpdatedScheduledPost", func(t *testing.T) { testUpdatedScheduledPost(t, rctx, ss, s) })
 	t.Run("UpdateOldScheduledPosts", func(t *testing.T) { testUpdateOldScheduledPosts(t, rctx, ss, s) })
+	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteScheduledPostsByUser(t, rctx, ss, s) })
 }
 
 func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -348,8 +349,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.NotEmpty(t, createdScheduledPost.Id)
 
 		// now we'll update the scheduled post
-		processedAt := model.GetMillis()
-		scheduledPost.ProcessedAt = processedAt
+		now := model.GetMillis()
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 
 		err = ss.ScheduledPost().UpdatedScheduledPost(scheduledPost)
@@ -357,7 +357,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 		updatedScheduledPost, err := ss.ScheduledPost().Get(scheduledPost.Id)
 		assert.NoError(t, err)
-		assert.Equal(t, processedAt, updatedScheduledPost.ProcessedAt)
+		assert.LessOrEqual(t, now, updatedScheduledPost.ProcessedAt)
 		assert.Equal(t, model.ScheduledPostErrorUnknownError, updatedScheduledPost.ErrorCode)
 	})
 }
@@ -468,5 +468,86 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[1].ErrorCode)
 		assert.Equal(t, "", scheduledPosts[2].ErrorCode)
 		assert.Equal(t, "", scheduledPosts[3].ErrorCode)
+	})
+}
+
+func testPermanentDeleteScheduledPostsByUser(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should delete all scheduled posts for a given user", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Create a scheduled post for the user
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: model.NewId(),
+				Message:   "this is a scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdScheduledPost.Id)
+
+		// Delete scheduled posts for the user
+		err = ss.ScheduledPost().PermanentDeleteByUser(userId)
+		assert.NoError(t, err)
+
+		// Verify that no scheduled posts exist for the user
+		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+		assert.NoError(t, err)
+		assert.Empty(t, scheduledPosts)
+	})
+
+	t.Run("should not fail if no scheduled posts exist for the user", func(t *testing.T) {
+		userId := model.NewId()
+
+		// Attempt to delete scheduled posts for a user with no scheduled posts
+		err := ss.ScheduledPost().PermanentDeleteByUser(userId)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should handle multiple scheduled posts for the same user", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Create multiple scheduled posts for the user
+		for i := 0; i < 3; i++ {
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    userId,
+					ChannelId: model.NewId(),
+					Message:   "this is a scheduled post",
+				},
+				ScheduledAt: model.GetMillis() + 100000,
+			}
+
+			createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, createdScheduledPost.Id)
+		}
+
+		// Delete scheduled posts for the user
+		err := ss.ScheduledPost().PermanentDeleteByUser(userId)
+		assert.NoError(t, err)
+
+		// Verify that no scheduled posts exist for the user
+		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
+		assert.NoError(t, err)
+		assert.Empty(t, scheduledPosts)
+	})
+
+	t.Run("should handle empty user id", func(t *testing.T) {
+		err := ss.ScheduledPost().PermanentDeleteByUser("")
+		assert.NoError(t, err)
+	})
+
+	t.Run("should handle non-existing user id", func(t *testing.T) {
+		nonExistingUserId := model.NewId()
+		err := ss.ScheduledPost().PermanentDeleteByUser(nonExistingUserId)
+		assert.NoError(t, err)
 	})
 }

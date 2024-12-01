@@ -35,7 +35,6 @@ function getBaseProps(): Props {
                 uiName: 'other plugin',
             },
         },
-        setEnforceFocus: jest.fn(),
         setRequireConfirm: jest.fn(),
         updateSection: jest.fn(),
         updateTab: jest.fn(),
