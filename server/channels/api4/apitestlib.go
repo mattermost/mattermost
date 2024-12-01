@@ -69,7 +69,7 @@ type TestHelper struct {
 
 	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
-	T          *testing.T
+	TB         testing.TB
 }
 
 var mainHelper *testlib.MainHelper
@@ -151,6 +151,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, searchEngine *searcheng
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
+		TB:                tb,
 	}
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
@@ -402,7 +403,7 @@ func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
 		appErr := th.App.Srv().InvalidateAllCaches()
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 	}
 	th.ShutdownApp()
 }
@@ -430,19 +431,19 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
 		_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
 		_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
@@ -463,7 +464,7 @@ func (th *TestHelper) InitLogin() *TestHelper {
 
 	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
 	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
@@ -497,25 +498,25 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	_, err := th.Client.DeleteChannel(context.Background(), th.BasicDeletedChannel.Id)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
@@ -527,7 +528,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
 		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 	}
 	return th
 }
@@ -592,7 +593,7 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 	}
 
 	rbot, _, err := client.CreateBot(context.Background(), bot)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rbot
 }
 
@@ -614,7 +615,7 @@ func (th *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 
 	rteam, _, err := client.CreateTeam(context.Background(), team)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rteam
 }
 
@@ -631,7 +632,7 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser, _, err := client.CreateUser(context.Background(), user)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 
 	ruser.Password = "Pa$$word11"
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
@@ -651,7 +652,7 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 		AuthService:   authService,
 	}
 	user, err := th.App.CreateUser(th.Context, user)
-	require.Nil(th.T, err)
+	require.Nil(th.TB, err)
 	return user
 }
 
@@ -763,7 +764,7 @@ func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, chan
 	}
 
 	rchannel, _, err := client.CreateChannel(context.Background(), channel)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rchannel
 }
 
@@ -800,7 +801,7 @@ func (th *TestHelper) CreatePostWithFilesWithClient(client *model.Client4, chann
 	}
 
 	rpost, _, err := client.CreatePost(context.Background(), post)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rpost
 }
 
@@ -813,7 +814,7 @@ func (th *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	}
 
 	rpost, _, err := client.CreatePost(context.Background(), post)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rpost
 }
 
@@ -827,7 +828,7 @@ func (th *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 	}
 
 	rpost, _, err := client.CreatePost(context.Background(), post)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rpost
 }
 
@@ -838,7 +839,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	}
 
 	rpost, _, err := client.CreatePost(context.Background(), post)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 	return rpost
 }
 
@@ -850,7 +851,7 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 		CreateAt:  createAtTime,
 	})
 
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 
 	return post
 }
@@ -859,7 +860,7 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var appErr *model.AppError
 	var channel *model.Channel
 	if channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); appErr != nil {
-		require.Nil(th.T, appErr)
+		require.Nil(th.TB, appErr)
 	}
 	return channel
 }
@@ -871,10 +872,10 @@ func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, 
 	}}
 
 	channel, appErr := th.App.GetChannel(th.Context, channelId)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 
 	_, appErr = th.App.PatchChannelModerationsForChannel(th.Context, channel, patch)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 }
 
 func (th *TestHelper) LoginBasic() {
@@ -899,53 +900,53 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.SystemManagerUser.Email, th.SystemManagerUser.Password)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
-	require.NoError(th.T, err)
+	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 	_, appErr := th.App.UpdateActive(th.Context, user, active)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 }
 
 func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 }
 
 func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
 	appErr := th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, "")
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	member, appErr := th.App.AddUserToChannel(th.Context, user, channel, false)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	return member
 }
 
 func (th *TestHelper) RemoveUserFromChannel(user *model.User, channel *model.Channel) {
 	appErr := th.App.RemoveUserFromChannel(th.Context, user.Id, "", channel)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 }
 
 func (th *TestHelper) GenerateTestEmail() string {
@@ -965,7 +966,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 	}
 
 	group, appErr := th.App.CreateGroup(group)
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	return group
 }
 
@@ -1210,10 +1211,10 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
-			require.NoError(th.T, err)
+			require.NoError(th.TB, err)
 		}
 	} else {
-		require.NoError(th.T, err)
+		require.NoError(th.TB, err)
 	}
 }
 
@@ -1221,10 +1222,10 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Team().UpdateMember(th.Context, tm); err != nil {
-			require.NoError(th.T, err)
+			require.NoError(th.TB, err)
 		}
 	} else {
-		require.NoError(th.T, err)
+		require.NoError(th.TB, err)
 	}
 }
 
@@ -1232,10 +1233,10 @@ func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store().Team().UpdateMember(th.Context, tm); err != nil {
-			require.NoError(th.T, err)
+			require.NoError(th.TB, err)
 		}
 	} else {
-		require.NoError(th.T, err)
+		require.NoError(th.TB, err)
 	}
 }
 
@@ -1339,6 +1340,6 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		DisplayName: model.NewId(),
 		Scope:       scope,
 	})
-	require.Nil(th.T, appErr)
+	require.Nil(th.TB, appErr)
 	return scheme
 }
