@@ -5,8 +5,8 @@ import {expect} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
 
 test('MM-53377 should still have your email loaded after using the at-mention autocomplete', async ({pw, pages}) => {
-    // # Initialize with specific config
-    const {user, adminClient} = await pw.initSetup({
+    // # Initialize with specific config and get admin client
+    const {user, adminClient, team} = await pw.initSetup({
         adminConfig: {
             PrivacySettings: {
                 ShowEmailAddress: false,
@@ -17,7 +17,7 @@ test('MM-53377 should still have your email loaded after using the at-mention au
 
     // # Create and add another user using admin client
     const testUser2 = await adminClient.createUser();
-    await adminClient.addToTeam(testUser2);
+    await adminClient.addToTeam(team.id, testUser2.id);
 
     // # Log in as user in new browser context
     const {page} = await pw.testBrowser.login(user);
