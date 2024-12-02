@@ -7,6 +7,7 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+// Stage: @prod
 // Group: @channels @system_console @enterprise @e20_only @not_cloud
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
