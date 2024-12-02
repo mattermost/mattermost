@@ -498,6 +498,27 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
+    <Memo(ChannelBookmarksSubmenu)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+    />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
@@ -1330,6 +1351,27 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
+    <Memo(ChannelBookmarksSubmenu)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+    />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={

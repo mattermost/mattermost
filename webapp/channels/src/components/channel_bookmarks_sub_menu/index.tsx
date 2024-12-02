@@ -26,7 +26,7 @@ type Props = {
     inHeaderDropdown?: boolean;
 };
 
-const ChannelMoveToSubMenuOld = (props: Props) => {
+const ChannelBookmarksSubmenu = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(props.channel.id);
@@ -72,4 +72,4 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
     );
 };
 
-export default memo(ChannelMoveToSubMenuOld);
+export default memo(ChannelBookmarksSubmenu);
