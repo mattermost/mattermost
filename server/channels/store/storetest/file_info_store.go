@@ -22,22 +22,22 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Cleanup(func() {
 		s.GetMasterX().Exec("TRUNCATE FileInfo")
 	})
-	//t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, rctx, ss) })
-	//t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })
-	//t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, rctx, ss) })
-	//t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, rctx, ss) })
-	//t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, rctx, ss) })
-	//t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, rctx, ss) })
-	//t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, rctx, ss) })
-	//t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, rctx, ss) })
-	//t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, rctx, ss) })
-	//t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, rctx, ss) })
-	//t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, rctx, ss) })
-	//t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, rctx, ss) })
-	//t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
-	//t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
-	//t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
-	//t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
+	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, rctx, ss) })
+	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })
+	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, rctx, ss) })
+	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, rctx, ss) })
+	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, rctx, ss) })
+	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, rctx, ss) })
+	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, rctx, ss) })
+	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, rctx, ss) })
+	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, rctx, ss) })
+	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, rctx, ss) })
+	t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, rctx, ss) })
+	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, rctx, ss) })
+	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
+	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
+	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
+	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
 }
 
@@ -1113,7 +1113,7 @@ func testDeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 	})
 
-	t.Run("non existant fileInfo IDs specified", func(t *testing.T) {
+	t.Run("non existent fileInfo IDs specified", func(t *testing.T) {
 		now := model.GetMillis()
 		postId := model.NewId()
 
