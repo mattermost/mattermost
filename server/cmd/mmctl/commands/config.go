@@ -142,7 +142,7 @@ func init() {
 	RootCmd.AddCommand(ConfigCmd)
 }
 
-func getValue(path []string, obj interface{}) (interface{}, bool) {
+func getValue(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {
@@ -187,7 +187,7 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-func setValueWithConversion(val reflect.Value, newValue interface{}) error {
+func setValueWithConversion(val reflect.Value, newValue any) error {
 	switch val.Kind() {
 	case reflect.Struct:
 		val.Set(reflect.ValueOf(newValue))
@@ -236,7 +236,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 	}
 }
 
-func setValue(path []string, obj reflect.Value, newValue interface{}) error {
+func setValue(path []string, obj reflect.Value, newValue any) error {
 	var val reflect.Value
 	switch obj.Kind() {
 	case reflect.Struct:
@@ -307,7 +307,7 @@ func setConfigValue(path []string, config *model.Config, newValue []string) erro
 	return setValue(path, reflect.ValueOf(config).Elem(), newValue[0])
 }
 
-func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
+func resetConfigValue(path []string, config *model.Config, newValue any) error {
 	nv := reflect.ValueOf(newValue)
 	if nv.Kind() == reflect.Ptr {
 		switch nv.Elem().Kind() {
