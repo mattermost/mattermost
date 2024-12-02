@@ -6,9 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-
-import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {openModal} from 'actions/views/modals';
 
@@ -18,18 +15,11 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    isArchived: boolean;
-    isReadonly: boolean;
     channel: Channel;
-    user: UserProfile;
 }
 
-const ConvertGMtoPrivate = ({isArchived, isReadonly, channel, user}: Props): JSX.Element => {
+const ConvertGMtoPrivate = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived || isReadonly || isGuest(user.roles)) {
-        return <></>;
-    }
-
     return (
         <Menu.Item
             id='convertGMPrivateChannel'

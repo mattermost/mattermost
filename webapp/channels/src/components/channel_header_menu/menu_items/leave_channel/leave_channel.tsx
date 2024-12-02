@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -19,14 +19,10 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isDefault: boolean;
-    isGuestUser: boolean;
     id?: string;
 }
 
 const LeaveChannel = ({
-    isDefault = true,
-    isGuestUser = false,
     channel,
     id,
 }: Props) => {
@@ -47,9 +43,6 @@ const LeaveChannel = ({
         }
     };
 
-    if (isDefault && !isGuestUser) {
-        return <></>;
-    }
     return (
         <Menu.Item
             id={id}

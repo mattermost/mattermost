@@ -19,22 +19,14 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isDefault: boolean;
-    isArchived: boolean;
 }
 
 const ArchiveChannel = ({
-    isDefault = true,
-    isArchived = false,
     channel,
 }: Props) => {
     const dispatch = useDispatch();
     const redirectChannelName = useSelector(getRedirectChannelNameForCurrentTeam);
     const penultimateViewedChannelName = useSelector(getPenultimateViewedChannelName) || redirectChannelName;
-
-    if (isArchived || isDefault) {
-        return <></>;
-    }
 
     return (
         <Menu.Item

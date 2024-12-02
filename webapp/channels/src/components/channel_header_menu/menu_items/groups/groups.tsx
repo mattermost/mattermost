@@ -17,18 +17,10 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isArchived: boolean;
-    isGroupConstrained: boolean;
-    isDefault: boolean;
-    isLicensedForLDAPGroups: boolean;
 }
 
-const Groups = ({channel, isArchived, isGroupConstrained, isDefault, isLicensedForLDAPGroups}: Props): JSX.Element => {
+const Groups = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived || isDefault || !isGroupConstrained || !isLicensedForLDAPGroups) {
-        return <></>;
-    }
-
     return (
         <>
             <Menu.Item

@@ -16,16 +16,10 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isArchived: boolean;
-    isGroupConstrained: boolean;
-    isDefault: boolean;
 }
 
-const AddChannelMembers = ({channel, isArchived, isGroupConstrained, isDefault}: Props): JSX.Element => {
+const AddChannelMembers = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived || isGroupConstrained || isDefault) {
-        return <></>;
-    }
 
     return (
         <Menu.Item

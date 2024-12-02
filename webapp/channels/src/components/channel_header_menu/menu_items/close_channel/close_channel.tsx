@@ -8,14 +8,7 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 
 import * as Menu from 'components/menu';
 
-type Props = {
-    isArchived: boolean;
-}
-
-const CloseChannel = (props: Props): JSX.Element => {
-    if (!props.isArchived) {
-        return <></>;
-    }
+const CloseChannel = (): JSX.Element => {
     return (
         <Menu.Item
             onClick={goToLastViewedChannel}

@@ -12,20 +12,36 @@ import * as Menu from 'components/menu';
 
 import CloseMessage from '../menu_items/close_message/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header/edit_conversation_header';
+import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
+import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
 
 type Props = {
     channel: Channel;
     user: UserProfile;
     isMuted: boolean;
+    isMobile: boolean;
+    isFavorite: boolean;
     pluginItems: ReactNode;
 };
 
-const ChannelHeaderDirectMenu = ({channel, user, isMuted, pluginItems}: Props) => {
+const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {
     return (
         <>
             <ChannelMoveToSubMenu channel={channel}/>
             <Menu.Separator/>
+            {isMobile && (
+                <>
+                    <MenuItemToggleFavoriteChannel
+                        channelID={channel.id}
+                        isFavorite={isFavorite}
+                    />
+                    <MenuItemViewPinnedPosts
+                        channelID={channel.id}
+                    />
+                </>
+            )}
+
             <MenuItemToggleMuteChannel
                 id='channelToggleMuteChannel'
                 user={user}

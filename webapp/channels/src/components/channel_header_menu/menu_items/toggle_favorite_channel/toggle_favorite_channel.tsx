@@ -3,6 +3,7 @@
 
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 
@@ -17,8 +18,13 @@ const ToggleFavoriteChannel = ({
     isFavorite,
     channelID,
 }: Props) => {
-    const toggleFavoriteChannel = () => {
-        return isFavorite ? unfavoriteChannel(channelID) : favoriteChannel(channelID);
+    const dispatch = useDispatch();
+    const toggleFavorite = () => {
+        if (isFavorite) {
+            dispatch(unfavoriteChannel(channelID));
+        } else {
+            dispatch(favoriteChannel(channelID));
+        }
     };
 
     let text = (
@@ -35,7 +41,7 @@ const ToggleFavoriteChannel = ({
     }
     return (
         <Menu.Item
-            onClick={toggleFavoriteChannel}
+            onClick={toggleFavorite}
             labels={text}
         />
     );

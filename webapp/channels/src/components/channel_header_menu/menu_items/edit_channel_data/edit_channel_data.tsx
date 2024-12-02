@@ -18,16 +18,11 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isArchived: boolean;
     isReadonly: boolean;
 }
 
-const EditChannelData = ({channel, isArchived, isReadonly}: Props): JSX.Element => {
+const EditChannelData = ({channel, isReadonly}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived) {
-        return <></>;
-    }
-
     return (
         <>
             {!isReadonly && (

@@ -12,16 +12,8 @@ import MoreDirectChannels from 'components/more_direct_channels';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-type Props = {
-    isArchived: boolean;
-    isGroupConstrained: boolean;
-}
-
-const AddGroupMembers = ({isArchived, isGroupConstrained}: Props): JSX.Element => {
+const AddGroupMembers = (): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived || isGroupConstrained) {
-        return <></>;
-    }
 
     return (
         <Menu.Item

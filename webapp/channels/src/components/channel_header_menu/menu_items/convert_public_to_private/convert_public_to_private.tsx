@@ -12,20 +12,14 @@ import {openModal} from 'actions/views/modals';
 import ConvertChannelModal from 'components/convert_channel_modal';
 import * as Menu from 'components/menu';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    isArchived: boolean;
-    isDefault: boolean;
     channel: Channel;
 }
 
-const ConvertPublictoPrivate = ({isArchived, isDefault, channel}: Props): JSX.Element => {
+const ConvertPublictoPrivate = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived || isDefault || channel.type !== Constants.OPEN_CHANNEL) {
-        return <></>;
-    }
-
     return (
         <Menu.Item
             id='channelConvertToPrivate'

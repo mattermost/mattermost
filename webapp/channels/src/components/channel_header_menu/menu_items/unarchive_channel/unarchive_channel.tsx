@@ -16,20 +16,12 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-    isDefault: boolean;
-    isArchived: boolean;
 }
 
 const UnarchiveChannel = ({
-    isDefault = true,
-    isArchived = false,
     channel,
 }: Props) => {
     const dispatch = useDispatch();
-
-    if (!isArchived || isDefault) {
-        return <></>;
-    }
 
     return (
         <>

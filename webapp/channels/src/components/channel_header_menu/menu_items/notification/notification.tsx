@@ -16,16 +16,12 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    isArchived: boolean;
     channel: Channel;
     user: UserProfile;
 }
 
-const Notification = ({isArchived, channel, user}: Props): JSX.Element => {
+const Notification = ({channel, user}: Props): JSX.Element => {
     const dispatch = useDispatch();
-    if (isArchived) {
-        return <></>;
-    }
 
     return (
         <Menu.Item
