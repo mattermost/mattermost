@@ -26,12 +26,14 @@ export default function SettingSet({
             </legend>
             <div className='col-sm-8'>
                 {children}
-                <div
-                    data-textid={inputId + 'help-text'}
-                    className='help-text'
-                >
-                    {helpText}
-                </div>
+                {helpText ? (
+                    <div
+                        data-textid={inputId + 'help-text'}
+                        className='help-text'
+                    >
+                        {helpText}
+                    </div>
+                ) : null}
                 {setByEnv ? <SetByEnv/> : null}
             </div>
         </fieldset>
