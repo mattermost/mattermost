@@ -8,6 +8,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import NotificationPermissionNeverGrantedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_never_granted_bar';
 import NotificationPermissionUnsupportedBar from 'components/announcement_bar/notification_permission_bar/notification_permission_unsupported_bar';
+import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
 import {
     isNotificationAPISupported,
@@ -18,6 +19,8 @@ import {
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));
+
+    useDesktopAppNotificationPermission();
 
     if (!isLoggedIn) {
         return null;

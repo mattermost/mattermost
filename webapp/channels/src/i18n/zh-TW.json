@@ -4706,7 +4706,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "您收到了以下應用程式安裝請求：",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> 或前往 <marketplaceLink>商城</marketplaceLink> 檢視所有擴充程式。",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "已請求安裝 {pluginRequests} 應用程式。",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "已安裝 {pluginName}。",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "安裝應用程式或前往 <marketplaceLink>Marketplace</marketplaceLink> 以檢視所有擴充程式。",
   "postypes.custom_open_pricing_modal_post_renderer.and": "及",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} 位成員",
