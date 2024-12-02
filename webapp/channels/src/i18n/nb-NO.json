@@ -2437,7 +2437,6 @@
   "postypes.custom_open_plugin_install_post_rendered.app_installation_request_text": "Du har mottatt følgende forespørsler om appinstallasjon:",
   "postypes.custom_open_plugin_install_post_rendered.plugin_instructions": "<pluginApp></pluginApp> eller besøk <marketplaceLink>Marketplace</marketplaceLink> for å se alle plugins.",
   "postypes.custom_open_plugin_install_post_rendered.plugin_request": "ba om å installere appen {pluginRequests}.",
-  "postypes.custom_open_plugin_install_post_rendered.plugins_installed": "{pluginName} er nå installert.",
   "postypes.custom_open_plugin_install_post_rendered.plugins_instructions": "Installer appene eller besøk <marketplaceLink>Markedsplass</marketplaceLink> for å se alle plugins.",
   "postypes.custom_open_pricing_modal_post_renderer.and": "og",
   "postypes.custom_open_pricing_modal_post_renderer.members": "{members} medlemmer",
