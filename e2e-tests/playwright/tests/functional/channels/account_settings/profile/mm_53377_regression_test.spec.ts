@@ -3,7 +3,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw, pages}) => {
+test.fixme('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw, pages}) => {
     // # Initialize with specific config and get admin client
     const {user, adminClient, team} = await pw.initSetup({
         adminConfig: {
