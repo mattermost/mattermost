@@ -28,6 +28,10 @@ declare global {
     }
 }
 
+type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 window.Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
@@ -39,7 +43,7 @@ interface LocalForageObservableChange {
     crossTabNotification: boolean;
 }
 
-export default function configureStore(preloadedState?: Partial<GlobalState>, additionalReducers?: Record<string, any>): Store<GlobalState> {
+export default function configureStore(preloadedState?: DeepPartial<GlobalState>, additionalReducers?: Record<string, any>): Store<GlobalState> {
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
         appReducers: reducers,

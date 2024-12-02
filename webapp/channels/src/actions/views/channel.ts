@@ -174,7 +174,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         }
         state = getState();
 
-        const prevChannelName = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state);
+        const prevChannelName = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state as GlobalState);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const prevChannel = getChannelByName(channelsInTeam, prevChannelName);
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
@@ -208,8 +208,8 @@ export function leaveDirectChannel(channelName: string): ActionFuncAsync {
         const currentUserId = getCurrentUserId(state);
         const teams = getTeamsList(state); // dms are shared across teams but on local storage are set linked to one, we need to look into all.
         teams.forEach((currentTeam) => {
-            const previousChannel = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state);
-            const penultimateChannel = LocalStorageStore.getPenultimateChannelName(currentUserId, currentTeam.id, state);
+            const previousChannel = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state as GlobalState);
+            const penultimateChannel = LocalStorageStore.getPenultimateChannelName(currentUserId, currentTeam.id, state as GlobalState);
             if (channelName === previousChannel) {
                 LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
             } else if (channelName === penultimateChannel) {

@@ -57,5 +57,5 @@ export const getPreviousTeamLastViewedType = (state: GlobalState) => {
     const previousTeamID = getPreviousTeamId(state);
     const userId = getCurrentUserId(state);
 
-    return localStorageStore.getPreviousViewedType(userId, previousTeamID || '', state);
+    return localStorageStore.getPreviousViewedType(userId, previousTeamID || '', state as GlobalState);
 };
