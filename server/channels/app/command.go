@@ -421,12 +421,13 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 
 	cr := <-chanChan
 	if cr.NErr != nil {
+		errCtx := map[string]any{"channel_id": args.ChannelId}
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(cr.NErr, &nfErr):
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(cr.NErr)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(cr.NErr)
 		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cr.NErr)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
 	}
 	channel := cr.Data
