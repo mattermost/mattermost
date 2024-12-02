@@ -101,6 +101,7 @@ describe('Collapsed Reply Threads', () => {
     it('MM-T4843_2 should go to threads view when threads view is the penultimate view and leave the current channel', () => {
         // # Go to the ‘Threads’ view on Team A
         cy.uiGetSidebarThreadsButton().click();
+        cy.url().should('include', `${teamA.name}/threads`);
 
         // # Switch to Test Channel
         cy.uiClickSidebarItem(testChannel.name);

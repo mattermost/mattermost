@@ -5144,10 +5144,6 @@
     "translation": "Не ўдалося абнавіць вэбхук у розных камандах."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не атрымалася дэкадаваць шматчастковую карысную нагрузку ўваходнага вэбхука."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Павінны быць зададзены trigger_words ці channel_id."
   },
