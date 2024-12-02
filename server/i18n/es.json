@@ -2296,10 +2296,6 @@
     "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "No se pudo codificar la carga del multipart en el webhook entrante."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "No se puede actualizar el webhook a través de equipos."
   },
