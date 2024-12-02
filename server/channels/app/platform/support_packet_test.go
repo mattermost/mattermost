@@ -5,6 +5,7 @@ package platform
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,9 +14,101 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
+
+func TestGenerateSupportPacket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	dir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(dir)
+		assert.NoError(t, err)
+	})
+
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LogSettings.FileLocation = dir
+		*cfg.NotificationLogSettings.FileLocation = dir
+	})
+
+	logLocation := config.GetLogFileLocation(dir)
+	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
+
+	genMockLogFiles := func() {
+		d1 := []byte("hello\ngo\n")
+		genErr := os.WriteFile(logLocation, d1, 0777)
+		require.NoError(t, genErr)
+		genErr = os.WriteFile(notificationsLogLocation, d1, 0777)
+		require.NoError(t, genErr)
+	}
+	genMockLogFiles()
+
+	getFileNames := func(t *testing.T, fileDatas []model.FileData) []string {
+		var rFileNames []string
+		for _, fileData := range fileDatas {
+			require.NotNil(t, fileData)
+			assert.Positive(t, len(fileData.Body))
+
+			rFileNames = append(rFileNames, fileData.Filename)
+		}
+		return rFileNames
+	}
+
+	expectedFileNames := []string{
+		"diagnostics.yaml",
+		"cpu.prof",
+		"heap.prof",
+		"goroutines",
+	}
+
+	expectedFileNamesWithLogs := append(expectedFileNames, []string{
+		"mattermost.log",
+		"notifications.log",
+	}...)
+
+	var fileDatas []model.FileData
+
+	t.Run("generate Support Packet with logs", func(t *testing.T) {
+		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		require.NoError(t, err)
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNamesWithLogs, rFileNames)
+	})
+
+	t.Run("generate Support Packet without logs", func(t *testing.T) {
+		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		require.NoError(t, err)
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
+	})
+
+	t.Run("remove the log files and ensure that an error is returned", func(t *testing.T) {
+		err = os.Remove(logLocation)
+		require.NoError(t, err)
+		err = os.Remove(notificationsLogLocation)
+		require.NoError(t, err)
+		t.Cleanup(genMockLogFiles)
+
+		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed read mattermost log file")
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
+	})
+}
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
 	th := Setup(t).InitBasic()

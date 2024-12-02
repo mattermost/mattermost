@@ -45,31 +45,41 @@ func TestGenerateSupportPacket(t *testing.T) {
 	}
 	genMockLogFiles()
 
-	t.Run("generate Support Packet with logs", func(t *testing.T) {
-		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
-		})
+	getFileNames := func(t *testing.T, fileDatas []model.FileData) []string {
 		var rFileNames []string
-		testFiles := []string{
-			"metadata.yaml",
-			"stats.yaml",
-			"jobs.yaml",
-			"plugins.json",
-			"sanitized_config.json",
-			"diagnostics.yaml",
-			"mattermost.log",
-			"notifications.log",
-			"cpu.prof",
-			"heap.prof",
-			"goroutines",
-		}
 		for _, fileData := range fileDatas {
 			require.NotNil(t, fileData)
 			assert.Positive(t, len(fileData.Body))
 
 			rFileNames = append(rFileNames, fileData.Filename)
 		}
-		assert.ElementsMatch(t, testFiles, rFileNames)
+		return rFileNames
+	}
+
+	expectedFileNames := []string{
+		"metadata.yaml",
+		"stats.yaml",
+		"jobs.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"diagnostics.yaml",
+		"cpu.prof",
+		"heap.prof",
+		"goroutines",
+	}
+
+	expectedFileNamesWithLogs := append(expectedFileNames, []string{
+		"mattermost.log",
+		"notifications.log",
+	}...)
+
+	t.Run("generate Support Packet with logs", func(t *testing.T) {
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNamesWithLogs, rFileNames)
 	})
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
@@ -77,29 +87,12 @@ func TestGenerateSupportPacket(t *testing.T) {
 			IncludeLogs: false,
 		})
 
-		testFiles := []string{
-			"metadata.yaml",
-			"stats.yaml",
-			"jobs.yaml",
-			"plugins.json",
-			"sanitized_config.json",
-			"diagnostics.yaml",
-			"cpu.prof",
-			"heap.prof",
-			"goroutines",
-		}
-		var rFileNames []string
-		for _, fileData := range fileDatas {
-			require.NotNil(t, fileData)
-			assert.Positive(t, len(fileData.Body))
+		rFileNames := getFileNames(t, fileDatas)
 
-			rFileNames = append(rFileNames, fileData.Filename)
-		}
-		assert.ElementsMatch(t, testFiles, rFileNames)
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
 	})
 
 	t.Run("remove the log files and ensure that warning.txt file is generated", func(t *testing.T) {
-		// Remove these two files and ensure that warning.txt file is generated
 		err = os.Remove(logLocation)
 		require.NoError(t, err)
 		err = os.Remove(notificationsLogLocation)
@@ -109,26 +102,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: true,
 		})
-		testFiles := []string{
-			"metadata.yaml",
-			"stats.yaml",
-			"jobs.yaml",
-			"plugins.json",
-			"sanitized_config.json",
-			"diagnostics.yaml",
-			"cpu.prof",
-			"heap.prof",
-			"warning.txt",
-			"goroutines",
-		}
-		var rFileNames []string
-		for _, fileData := range fileDatas {
-			require.NotNil(t, fileData)
-			assert.Positive(t, len(fileData.Body))
+		rFileNames := getFileNames(t, fileDatas)
 
-			rFileNames = append(rFileNames, fileData.Filename)
-		}
-		assert.ElementsMatch(t, testFiles, rFileNames)
+		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
 	})
 
 	t.Run("steps that generated an error should still return file data", func(t *testing.T) {
@@ -156,21 +132,93 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: false,
 		})
+		rFileNames := getFileNames(t, fileDatas)
 
-		var rFileNames []string
-		for _, fileData := range fileDatas {
-			require.NotNil(t, fileData)
-			assert.Positive(t, len(fileData.Body))
-
-			rFileNames = append(rFileNames, fileData.Filename)
-		}
 		assert.Contains(t, rFileNames, "warning.txt")
 		assert.Contains(t, rFileNames, "stats.yaml")
+		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
+	})
+
+	pluginID := "testplugin"
+	pluginCode := `
+		package main
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type TestPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *TestPlugin) GenerateSupportData(c *plugin.Context) ([]*model.FileData, error) {
+			return []*model.FileData{{
+				Filename: "testplugin/diagnostics.yaml",
+				Body:     []byte("foo"),
+			}}, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&TestPlugin{})
+		}`
+
+	t.Run("Support Packet always contains plugin data if the plugin doesn't define the support_packet prop", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNames, "testplugin/diagnostics.yaml"), rFileNames)
+	})
+
+	t.Run("Support Packet contains plugin data if the plugin defines the support_packet prop and it gets queried", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs:   false,
+			PluginPackets: []string{pluginID},
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNames, "testplugin/diagnostics.yaml"), rFileNames)
+	})
+
+	t.Run("Support Packet doesn't contain plugin data if the plugin defines the support_packet prop and it doesn't get queried", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, expectedFileNames, rFileNames)
 	})
 }
 
