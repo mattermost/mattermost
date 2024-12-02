@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@playwright/test';
-import {test} from '@e2e-support/test_fixture';
+import {expect, test} from '@e2e-support/test_fixture';
 
-test('MM-53377 should still have your email loaded after using the at-mention autocomplete', async ({pw, pages}) => {
+test('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw, pages}) => {
     // # Initialize with specific config and get admin client
     const {user, adminClient, team} = await pw.initSetup({
         adminConfig: {
