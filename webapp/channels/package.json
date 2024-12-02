@@ -140,6 +140,7 @@
     "@types/shallow-equals": "1.0.3",
     "@types/styled-components": "5.1.32",
     "@types/tinycolor2": "1.4.6",
+    "@types/zen-observable": "0.8.7",
     "copy-webpack-plugin": "11.0.0",
     "emoji-datasource": "6.1.1",
     "emoji-datasource-apple": "6.1.1",
