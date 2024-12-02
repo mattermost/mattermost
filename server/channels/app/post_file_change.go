@@ -14,7 +14,6 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 	oldFileIDs := model.RemoveDuplicateStrings(oldPost.FileIds)
 
 	addedFileIDs, removedFileIDs, unchangedFileIDs := utils.FindExclusives(newFileIDs, oldFileIDs)
-	// TODO: probably need to invalidate posts' file metadata cache here if some files were added or removed - probably via InvalidateFileInfosForPostCache and the in-memory cache
 
 	if len(addedFileIDs) > 0 {
 		a.attachNewFilesToPost(rctx, newPost, addedFileIDs, unchangedFileIDs)
