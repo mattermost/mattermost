@@ -2649,27 +2649,27 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "Відповідь властивості повідомлення перевищує максимальну дозволену довжину."
+    "translation": "Властивість Відповіді на повідомлення перевищує максимальну дозволену довжину."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Відсутня необхідна відповідь властивість: Повідомлення."
+    "translation": "Відсутня обов'язкова властивість Reply: Повідомлення."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Відсутня необхідна відповідь властивість: користувач."
+    "translation": "Відсутня обов'язкова властивість Reply: Користувач."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "Неприпустимий опис ролі."
+    "translation": "Недійсний опис ролі."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "Неприпустиме ім'я для відображення ролі."
+    "translation": "Недійсна відображувана назва ролі."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "Неприпустимий дозвіл ролі."
+    "translation": "Недійсний дозвіл на роль."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
@@ -2677,11 +2677,11 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "Неприпустимий опис схеми."
+    "translation": "Недійсний опис схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "Неприпустиме ім'я для відображення схеми."
+    "translation": "Недійсне ім'я для відображення схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
@@ -2689,15 +2689,15 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Необхідний обсяг схем ."
+    "translation": "Необхідно вказати область схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Невідома схема масштабу."
+    "translation": "Невідомий обсяг схеми."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "Неправильні ролі були передбачені для схеми з таким обсягом."
+    "translation": "Для схеми з цією областю надано неправильні ролі."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2729,11 +2729,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": "Неприпустиме ім'я схеми для команди."
+    "translation": "Невірна назва схеми для команди."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": "Тип команди недійсний."
+    "translation": "Тип команди не є дійсним."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
@@ -2745,7 +2745,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Недійсний робочий стіл NotifyProps для членства в каналі користувача."
+    "translation": "Некоректні параметри сповіщень для настільного додатка у членстві користувача в каналі."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
@@ -2761,19 +2761,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "Користувацькі AuthData та пароль є взаємовиключними."
+    "translation": "Дані автентифікації користувача (AuthData) та пароль є взаємовиключними."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": "Структура AuthData занадто довга."
+    "translation": "Структура AuthData перевищує допустиму довжину."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": "Електронна адреса користувача має недійсну довжину."
+    "translation": "Електронна пошта користувача має неприпустиму довжину."
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Відсутня необхідна властивість користувача: email."
+    "translation": "Пропущено обов'язкову властивість користувача: email."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -2821,11 +2821,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
-    "translation": "Позиція користувача задовга."
+    "translation": "Посада користувача занадто довга."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Недійсний образ профілю."
+    "translation": "Недійсне зображення профілю."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -2833,7 +2833,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": "Ім'я користувача недійсне."
+    "translation": "Ім'я користувача не дійсне."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
@@ -2961,7 +2961,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Токени особистого доступу вимикаються на цьому сервері. Зверніться до свого системного адміністратора, щоб дізнатись більше."
+    "translation": "Персональні токени доступу на цьому сервері вимкнено. Будь ласка, зверніться до вашого системного адміністратора за деталями."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3001,43 +3001,43 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Невідомий вихідний формат {{.ExportType}}"
+    "translation": "Невідомий формат виводу {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Неможливо скопіювати вкладення у файл zip."
+    "translation": "Не вдалося скопіювати вкладення в zip-файл."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Неможливо додати вкладення до експорту CSV."
+    "translation": "Не вдалося додати вкладення до CSV-експорту."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Неможливо створити тимчасовий файл експорту CSV."
+    "translation": "Не вдалося створити тимчасовий файл експорту CSV."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Неможливо додати заголовок до експорту CSV."
+    "translation": "Не вдалося додати заголовок до експорту CSV."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Неможливо додати метадані до архіву."
+    "translation": "Не вдалося додати файл метаданих до zip-файлу."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Неможливо перетворити метадані в json."
+    "translation": "Не вдається конвертувати метадані в json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Неможливо експортувати публікацію."
+    "translation": "Не вдалось експортувати допис."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Неможливо створити файл експорту ZIP."
+    "translation": "Не вдалося створити файл експорту у форматі zip."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Завантажений файл був видалений з експорту Global Relay, оскільки він був надто великим для відправлення."
+    "translation": "Завантажений файл було вилучено з експорту Global Relay, оскільки він був занадто великим для надсилання."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
@@ -3045,7 +3045,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Неможливо повторно прочитати файл тимчасового експорту Global Relay."
+    "translation": "Не вдалося перечитати тимчасовий файл експорту Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3053,7 +3053,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Неможливо завантажити шаблони експорту. Будь ласка спробуйте ще раз."
+    "translation": "Не вдалося завантажити шаблони експорту. Спробуйте ще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3141,7 +3141,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch відключений."
+    "translation": "Elasticsearch вимкнений."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3149,7 +3149,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінено. Будь ласка, повторно введіть пароль Elasticsearch, щоб перевірити з'єднання."
+    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінилися. Будь ласка, введіть пароль Elasticsearch ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3157,15 +3157,15 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Неможливо створити користувача LDAP."
+    "translation": "Не вдалося створити користувача LDAP."
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "AD / LDAP відключений або ліцензія не підтримує AD / LDAP."
+    "translation": "AD/LDAP вимкнено або ліцензія не підтримує AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Неможливо зробити прив'язку до сервера AD / LDAP. Перевірте ім'я користувача BindUsername і пароль BindPassword."
+    "translation": "Не вдалося підключитися до сервера AD/LDAP. Перевірте BindUsername та BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -3189,7 +3189,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Ваш обліковий запис AD/LDAP не має дозволу на використання цього сервера Mattermost. Будь ласка, зверніться до системного адміністратора, щоб перевірити фільтр користувачів AD/LDAP."
+    "translation": "Ваш обліковий запис AD/LDAP не має дозволу на використання цього сервера Mattermost. Попросіть вашого системного адміністратора перевірити фільтр користувачів AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -3205,11 +3205,11 @@
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "помилка заповнення синхронізації"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Не вдалося знайти користувачів в AD/LDAP. Перевірте, чи сервер Mattermost може підключитися до вашого сервера AD/LDAP і повторіть спробу."
+    "translation": "Не вдалося здійснити пошук користувачів в AD/LDAP. Перевірте, чи може сервер Mattermost підключитися до вашого сервера AD/LDAP, і повторіть спробу."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3217,63 +3217,63 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "помилка при отриманні групи ldap"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "помилка при отриманні ldap груп"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "помилка при отриманні членів групи"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "не знайдено груп з відповідним uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "помилка при отриманні груп для користувача"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Неможливо додати вкладення до експорту CSV."
+    "translation": "Не вдалося додати вкладення до експорту Global Relay."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Неможливо створити файл zip."
+    "translation": "Не вдалось закрити zip-файл."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Неможливо створити файл eml."
+    "translation": "Не вдалося створити файл eml."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Не вдається генерувати дані файлу eml."
+    "translation": "Не вдається згенерувати дані eml-файлу."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не вдається доставити електронний лист до Global Relay."
+    "translation": "Не вдалося доставити електронний лист до Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Неможливо встановити адресу електронної пошти."
+    "translation": "Не вдалося встановити адресу відправника електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Неможливо встановити повідомлення електронної пошти."
+    "translation": "Не вдалося встановити повідомлення електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не вдається записати повідомлення електронної пошти."
+    "translation": "Не вдалося написати повідомлення електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Не вдається прочитати інформацію електронної пошти."
+    "translation": "Не вдалося прочитати інформацію електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Не вдається встановити email для адреси."
+    "translation": "Не вдалося встановити адресу отримувача електронної пошти."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
@@ -3289,7 +3289,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Неможливо перенести користувачів AD/LDAP із зазначеним полем. Виявлено дублювання записів. Будь ласка, видаліть всі дублікати і спробуйте ще раз."
+    "translation": "Не вдалося перенести користувачів AD/LDAP із зазначеним полем. Виявлено дублікат запису. Будь ласка, видаліть всі дублікати і спробуйте ще раз."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -3301,31 +3301,31 @@
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "Користувач не знайдений в файлі користувачів."
+    "translation": "Користувача не знайдено у файлі користувачів."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Ім'я користувача, яке вже використовувалося іншим користувачем Mattermost."
+    "translation": "Ім'я користувача вже використовується іншим користувачем Mattermost."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через некоректне атрибута. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки один з атрибутів є некоректним. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Сталася помилка при ініціюванні запиту постачальнику послуг ідентифікації. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Сталася помилка під час ініціації запиту до постачальника ідентифікації. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через відключеного шифрування. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Не вдалося виконати вхід за допомогою SAML, оскільки шифрування не ввімкнено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через те, що ні виявлено приватний ключ постачальника служби. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки приватний ключ постачальника послуг не знайдено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася, так як відповідь постачальника облікових записів не зашифровані. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Вхід через SAML не вдалося виконати, оскільки відповідь постачальника ідентифікації не зашифрована. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -3333,7 +3333,7 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Виникла помилка по час розбору відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
+    "translation": "Сталася помилка під час розбору відповіді від постачальника ідентифікації. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3341,7 +3341,7 @@
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "Сталася помилка при побудові метаданих постачальника послуг."
+    "translation": "Виникла помилка під час створення метаданих постачальника послуг."
   },
   {
     "id": "ent.saml.service_disable.app_error",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Не вдається розшифрувати base64 для ідентифікатора тригера для інтерактивного діалогу."
+    "translation": "Не вдалося декодувати base64 для ідентифікатора тригера для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3357,15 +3357,15 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Тригер ID не містить необхідних даних для інтерактивного діалогу."
+    "translation": "Ідентифікатор тригера не містить необхідних даних для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Не вдалося декодувати підпис бази64 під час запуску інтерактивного діалогу."
+    "translation": "Не вдалося декодувати підпис base64 для ID тригера інтерактивного діалогу."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Не вдалося перевірити підпис під час ідентифікатора тригера для інтерактивного діалогу."
+    "translation": "Не вдалося перевірити підпис ідентифікатора тригера для інтерактивного діалогу."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
@@ -3401,7 +3401,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Багатофункціональна аутентифікація потрібна на цьому сервері."
+    "translation": "Багатофакторна автентифікація вимкнена на цьому сервері."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -3409,11 +3409,11 @@
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Не вдалося перемістити через недійсні дані про перебіг."
+    "translation": "Міграція не відбулася через невірні дані про прогрес."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Неможливо запустити роботу міграції через невідомий ключ міграції."
+    "translation": "Неможливо запустити завдання міграції через невідомий ключ міграції."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -3801,7 +3801,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "Потрібно поле AD/LDAP \"Username Attribute\"."
+    "translation": "Поле AD/LDAP \"Атрибут імені користувача\" є обов'язковим."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4381,7 +4381,7 @@
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "Неприпустиме ім'я для відображення ролі."
+    "translation": "Некоректна назва компанії."
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
@@ -4433,7 +4433,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Недійсний термін дії токенів"
+    "translation": "Неправильний термін дії токена"
   },
   {
     "id": "model.token.is_valid.size",
@@ -4445,67 +4445,67 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі і одну цифру."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери та однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну цифру і один спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі і один спец. символ (\"~!@#$%^&()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери та одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому і верхньому регістрі."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери та однієї великої літери."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в верхньому регістрі і одну цифру."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери та однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну букву верхньому регістрі, одну цифру і спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери, однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, а так само одну букву в нижньому регістрі, одну букву в верхньому регістрі, одну цифру і спец. символ (\"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складається хоча б з однієї малої літери, однієї великої літери і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": "Ваш пароль повинен містити як мінімум {{.Min}} символів, хоча б один з яких повинен бути цифрою."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з однієї цифри."
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні одного числа та принаймні одного символу (наприклад, \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються з принаймні однієї цифри і одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "Ваш пароль повинен містити мінімум {{.Min}} символів, включаючи хоча б один спецсимвол (напр., \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з одного символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складаються принаймні з однієї великої літери."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери та принаймні одного номера."
+    "translation": "Ваш пароль повинен містити щонайменше {{.Min}} символів, що складаються принаймні з однієї великої літери та цифри."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символи, що складаються з принаймні однієї великої літери, принаймні одного числа та принаймні одного символу (наприклад, \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються з принаймні однієї великої літери, цифри і символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Ваш пароль повинен містити як мінімум {{.Min}} символів, включаючи хоча б одну головну букву та один спец. символ (напр., \"~!@#$%^&*()\")."
+    "translation": "Ваш пароль повинен містити принаймні {{.Min}} символів, що складаються принаймні з однієї великої літери та символу (наприклад, \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Ім'я користувача повинно починатися з літери та містити від 3 до 22 символів, включаючи номери, літери та символи \".\", \"-\" та \"_\"."
+    "translation": "Ім'я користувача повинно починатися з літери і містити від 3 до 22 малих літер, що складаються з цифр, букв і символів \".\", \"-\" і \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4529,7 +4529,7 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Неможливо підключитися до сервера WebSocket."
+    "translation": "Не вдалося підключитися до сервера WebSocket."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -4537,7 +4537,7 @@
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Не вдається встановити статус користувача. Невідомий статус користувача."
+    "translation": "Не вдалося встановити статус користувача. Невідомий статус користувача."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -4549,15 +4549,15 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Відсутнє тіло HTML."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "Відсутня тема листа."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Відсутня адреса адресата."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -4569,7 +4569,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "Ви не можете реагувати на архівований канал."
+    "translation": "Ви не можете змінювати заархівований канал."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4585,7 +4585,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
-    "translation": "Ви досягли обмеження кількості дозволених каналів."
+    "translation": "Ви досягли межі дозволеної кількості каналів."
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
@@ -4597,7 +4597,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
+    "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зверніться до вашого системного адміністратора."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
@@ -4605,7 +4605,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
+    "translation": "Не вдалося знайти існуючий обліковий запис, що відповідає вашим обліковим даним. Щоб приєднатися до цієї команди, вам може знадобитися запрошення від її власника."
   },
   {
     "id": "system.message.name",
@@ -4613,11 +4613,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не вдалось знайти команду."
+    "translation": "Не вдалося знайти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Не вдається розібрати вхідні дані."
+    "translation": "Не вдалося розібрати вхідні дані для вебхуку {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4629,11 +4629,11 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Цей вебхук не дозволено публікувати на запитуваному каналі."
+    "translation": "Цей вебхук не має дозволу на публікацію в запитуваному каналі {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Вхідні вебхуки були відключені системним адміністратором."
+    "translation": "Вхідні вебхуки відключені системним адміністратором."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
@@ -4645,11 +4645,11 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Невідповідні дозволи на канали."
+    "translation": "Користувач {{.user}} не має відповідних прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Неможливо розбити реквізит webhook на частину символів {{.Max}}."
+    "translation": "Неможливо розділити властивості вебхука на частини по {{.Max}} символів."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -4657,7 +4657,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не вдалося знайти користувача."
+    "translation": "Не вдалося знайти користувача {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4697,15 +4697,15 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Ця версія вашого браузера більше не підтримується Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Цей браузер більше не підтримується Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 10+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4717,7 +4717,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Версія 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4729,7 +4729,7 @@
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Дізнайтеся більше про підтримувані браузери."
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
@@ -4781,15 +4781,15 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "Помилка при очищенні індексів Bleve: механізм вимкнено"
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Користувач бота не може створити іншого користувача бота."
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria."
+    "translation": "Неможливо отримати користувачів, невірні критерії сортування."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -4797,11 +4797,11 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 128 characters."
+    "translation": "Неправильна посада: не може бути довшою за 128 символів."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "Неможливо встановити пароль довше 72 символів через обмеження bcrypt."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -4829,19 +4829,19 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Invalid user, auth data must be set with auth type."
+    "translation": "Неправильний користувач, дані авторизації повинні бути задані з типом авторизації."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
-    "translation": "Invalid user, password and auth data cannot both be set."
+    "translation": "Неправильні дані користувача, пароля та авторизації не можуть бути встановлені одночасно."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
-    "translation": "Invalid auth data."
+    "translation": "Невірні дані автентифікації."
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Invalid invite id."
+    "translation": "Некоректний ідентифікатор запрошення."
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
@@ -4909,19 +4909,19 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Назви каналів не можуть бути в шістнадцятковому форматі. Будь ласка, введіть іншу назву каналу."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Не вдалося декодувати підпис бази64 під час запуску інтерактивного діалогу."
+    "translation": "Не вдалося декодувати підпис base64 для ID тригера інтерактивного діалогу."
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "Непідтримуваний синхронізований тип '{{.Value}}'."
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+    "translation": "Групу не можна асоціювати з каналом, поки вона не буде спочатку асоційована з батьківською командою, синхронізованою з групою."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
@@ -4937,15 +4937,15 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Your license does not support ID Loaded Push Notifications."
+    "translation": "Ваша ліцензія не підтримує push-повідомлення з завантаженням за ідентифікатором."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Не вдалося обробити версію сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Не вдалося отримати версію сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4973,7 +4973,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed"
+    "translation": "Спроба індексації нового пакету, коли всі сутності вже завершені"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -5005,7 +5005,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "Неможливо створити файл eml."
+    "translation": "Не вдалося створити файл попередження."
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
@@ -5081,7 +5081,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
+    "translation": "Не вдалося проіндексувати пакет каналів."
   },
   {
     "id": "bleveengine.index_user.error",
@@ -5109,11 +5109,11 @@
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
+    "translation": "Помилка при створенні індексу користувача bleve."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
+    "translation": "Помилка при створенні індексу допису bleve."
   },
   {
     "id": "bleveengine.create_channel_index.error",
@@ -5121,31 +5121,31 @@
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
+    "translation": "Bleve вже запущено."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
+    "translation": "Неможливо зберегти умови надання послуг."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
+    "translation": "Умов надання послуг не знайдено."
   },
   {
     "id": "app.user_terms_of_service.get_by_user.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
+    "translation": "Не вдалося отримати умови надання послуг."
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
-    "translation": "Неможливо видалити умови використання послуги."
+    "translation": "Неможливо видалити умови надання послуг."
   },
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
+    "translation": "Умов надання послуг не знайдено."
   },
   {
     "id": "app.terms_of_service.get.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
+    "translation": "Не вдалося отримати умови надання послуг."
   },
   {
     "id": "app.terms_of_service.create.existing.app_error",
@@ -5153,11 +5153,11 @@
   },
   {
     "id": "app.terms_of_service.create.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
+    "translation": "Неможливо зберегти умови надання послуг."
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use."
+    "translation": "Неможливо перейменувати команду, назва вже використовується."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
@@ -5265,23 +5265,23 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "Служба автентифікації користувача (AuthService) та дані автентифікації (AuthData) є взаємозалежними."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Невірне налаштування відображення розділу непрочитаних повідомлень для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Неправильне налаштування форматування публікації для Користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Невірне налаштування попереднього перегляду Markdown для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Невірне налаштування інтервалу пакетної обробки електронної пошти для користувача"
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
@@ -5373,11 +5373,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Виникла помилка при пошуку каналу."
+    "translation": "Ми зіткнулися з помилкою при пошуку каналу {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не вдалося знайти існуючий канал."
+    "translation": "Не вдалося знайти існуючий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -6241,27 +6241,27 @@
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
+    "translation": "Не вдалося виконати вхід через SAML з порожньою адресою електронної пошти."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зверніться до свого адміністратора."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    "translation": "Цей обліковий запис не використовує SAML-аутентифікацію. Будь ласка, увійдіть, використовуючи електронну пошту та пароль."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зверніться до свого адміністратора."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    "translation": "Цей обліковий запис не використовує автентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту та пароль."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
+    "translation": "Досягнуто тайм-ауту завдання синхронізації AD/LDAP."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -6441,7 +6441,7 @@
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams."
+    "translation": "Неможливо визначити, чи належить користувач до списку команд."
   },
   {
     "id": "app.team.reset_all_team_schemes.app_error",
@@ -6493,11 +6493,11 @@
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+    "translation": "Розмір файлу {{.Filename}} ({{.Width}} на {{.Height}} пікселів) перевищує допустимі."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-    "translation": "Неможливо розмістити публікацію на видаленому каналі."
+    "translation": "Неможливо завантажити на видалений канал."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -10410,5 +10410,29 @@
       "many": "- {{.Count}} у каналах {{.ChannelName}}. Причина: {{.ErrorReason}}",
       "one": "- {{.Count}} у каналі {{.ChannelName}}. Причина: {{.ErrorReason}}"
     }
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Не вдалося скинути позицію читання на початок пакета плагіна."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Не вдалося обробити команду вебхуку {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Не вдалося декодувати корисне навантаження медіатипу {{.media_type}} для вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Не вдалося обробити корисне навантаження медіатипу {{.media_type}} для вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Не вдалося розпарсити медіа вхідного вебхука {{.hook_id}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не вдалося кешувати допис після усунення дублікатів клієнта, що повторював один і той самий запит."
   }
 ]
