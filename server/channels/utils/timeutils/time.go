@@ -14,3 +14,11 @@ const (
 func FormatMillis(millis int64) string {
 	return time.UnixMilli(millis).Format(RFC3339Milli)
 }
+
+func FormatDeleteAt(deleteAt int64) string {
+	if 0 == deleteAt {
+		return ""
+	}
+
+	return FormatMillis(deleteAt)
+}
