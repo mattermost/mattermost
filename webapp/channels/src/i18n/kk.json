@@ -531,5 +531,17 @@
   "admin.cluster.ClusterName": "Кластер аты:",
   "admin.cluster.ClusterNameDesc": "Аты арқылы қосылуға болатын кластер. Кластерлерінің аты бірдей түйіндер ғана бірге қосылады.   Бұл бірдей дерекқорға бағытталған Көк-Жасыл ортаға жазуды немесе стейджингті қолдау үшін жасалған.",
   "admin.cluster.ClusterNameEx": "Мысалы: \"Өндірістік орта\" немесе \"Стэйджинг\"",
+  "admin.cluster.EnableExperimentalGossipEncryption": "Тәжірибелік Gossip шифрлеуді іске қосу:",
+  "admin.cluster.EnableExperimentalGossipEncryptionDesc": "Іске қосылса, gossip хаттамасы арқылы өтетін барлық байланыс шифрленетін болады.",
+  "admin.cluster.EnableGossipCompression": "Gossip сығуын іске қосу:",
+  "admin.cluster.EnableGossipCompressionDesc": "Іске қосылса, gossip хаттамасы арқылы өтетін барлық байланыс сығылатын болады. Осы жалауды өшіріп ұстаған абзал.",
+  "admin.cluster.GossipPort": "Gossip порты:",
+  "admin.cluster.GossipPortDesc": "Gossip хаттамасы үшін қолданылатын порт. Осы портта UDP да, TCP да рұқсат етілуі қажет.",
+  "admin.cluster.GossipPortEx": "Мысалы: \"8074\"",
+  "admin.cluster.OverrideHostname": "Хост атын қайта жазу:",
+  "admin.cluster.enableDescription": "Іске қосылса, Mattermost жоғары қолжетімділік режимінде жұмыс істейді. Mattermost үшін жоғары қолжетімділікті баптау туралы көбірек ақпарат алу үшін <link>құжаттаманы</link> қараңыз.",
+  "admin.cluster.enableTitle": "Жоғары қолжетімділік режимін іске қосу:",
+  "admin.cluster.loadedFrom": "Бұл конфигурациялық файл ID {clusterId} түйінінен жүктелінді. Егер сіз жүктеме теңгерімдеуші арқылы Жүйе Консоліне қол жеткізіп, мәселелерге тап болсаңыз, біздің <link>құжаттамадағы</link> ақаулықтарды іздеу нұсқаулығын көріңіз.",
+  "admin.cluster.noteDescription": "Осы бөлімдегі қасиеттерді өзгерту күшіне енуі үшін, серверді қайта жүктеу қажет болады.",
   "admin_settings.save_unsaved_changes": "Алдымен сақталмаған өзгерістерді сақтауыңызды сұраймыз"
 }
