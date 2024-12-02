@@ -9,10 +9,11 @@ import {close as closeLhs} from 'actions/views/lhs';
 import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
 import LocalStorageStore from 'stores/local_storage_store';
 import reduxStore from 'stores/redux_store';
-import {GlobalState} from 'types/store';
 
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),

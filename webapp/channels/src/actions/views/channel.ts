@@ -65,7 +65,7 @@ import type {GlobalState} from 'types/store';
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const state = getState();
+        const state = getState() as GlobalState;
         const currentChannel = getCurrentChannel(state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const directChannel = getAllDirectChannelsNameMapInCurrentTeam(state);
@@ -166,7 +166,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         const teamUrl = getCurrentRelativeTeamUrl(state);
 
         if (!isArchivedChannel(channel)) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
         }
         const {error} = await dispatch(leaveChannelRedux(channelId));
         if (error) {
@@ -178,7 +178,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const prevChannel = getChannelByName(channelsInTeam, prevChannelName);
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
         }
         const selectedPost = getSelectedPost(state as GlobalState);
         const selectedPostId = getSelectedPostId(state as GlobalState);
@@ -187,7 +187,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         }
 
         if (getMyChannels(getState()).filter((c) => c.type === Constants.OPEN_CHANNEL || c.type === Constants.PRIVATE_CHANNEL).length === 0) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
             dispatch(selectTeam(''));
             dispatch({type: TeamTypes.LEAVE_TEAM, data: currentTeam});
             getHistory().push('/');
@@ -211,7 +211,7 @@ export function leaveDirectChannel(channelName: string): ActionFuncAsync {
             const previousChannel = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state as GlobalState);
             const penultimateChannel = LocalStorageStore.getPenultimateChannelName(currentUserId, currentTeam.id, state as GlobalState);
             if (channelName === previousChannel) {
-                LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
+                LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
             } else if (channelName === penultimateChannel) {
                 LocalStorageStore.removePenultimateChannelName(currentUserId, currentTeam.id);
             }

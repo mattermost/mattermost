@@ -8,8 +8,6 @@ import type {Persistor} from 'redux-persist';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
 
-import type {GlobalState} from 'types/store';
-
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
 
@@ -17,6 +15,8 @@ import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
+
+import type {GlobalState} from 'types/store';
 
 function getAppReducers() {
     return require('../reducers'); // eslint-disable-line global-require
@@ -72,21 +72,21 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
 
         // Rehydrate redux-persist when another tab changes localForage
         observable.subscribe({
-            next: (args: LocalForageObservableChange) => {
-                if (!args.crossTabNotification) {
+            next: (value: LocalForageObservableChange) => {
+                if (!value.crossTabNotification) {
                     // Ignore changes made by this tab
                     return;
                 }
 
                 const keyPrefix = 'persist:';
 
-                if (!args.key.startsWith(keyPrefix)) {
+                if (!value.key.startsWith(keyPrefix)) {
                     // Ignore changes that weren't made by redux-persist
                     return;
                 }
 
-                const key = args.key.substring(keyPrefix.length);
-                const newValue = JSON.parse(args.newValue);
+                const key = value.key.substring(keyPrefix.length);
+                const newValue = JSON.parse(value.newValue);
 
                 const payload: Record<string, any> = {};
 
@@ -105,7 +105,7 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
                     payload,
                 });
             },
-        });
+        } as any);
 
         let purging = false;
 

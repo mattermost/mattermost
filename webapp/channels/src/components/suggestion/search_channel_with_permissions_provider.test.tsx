@@ -5,7 +5,8 @@ import store from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import SearchChannelWithPermissionsProvider from './search_channel_with_permissions_provider';
 

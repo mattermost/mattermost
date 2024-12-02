@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Dispatch, AnyAction} from 'redux';
+import type {Dispatch, AnyAction} from 'redux';
 
 import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';

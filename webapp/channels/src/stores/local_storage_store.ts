@@ -91,12 +91,12 @@ class LocalStorageStoreClass {
         this.removeItem(getPenultimateChannelNameKey(userId, teamId));
     }
 
-    removePreviousChannelType(userId: string, teamId: string, state = store.getStore()) {
+    removePreviousChannelType(userId: string, teamId: string, state = store.getState()) {
         this.setItem(getPreviousViewedTypeKey(userId, teamId), this.getPenultimateViewedType(userId, teamId, state));
         this.removeItem(getPenultimateViewedTypeKey(userId, teamId));
     }
 
-    removePreviousChannel(userId: string, teamId: string, state = store.getStore()) {
+    removePreviousChannel(userId: string, teamId: string, state = store.getState()) {
         this.removePreviousChannelName(userId, teamId, state);
         this.removePreviousChannelType(userId, teamId, state);
     }
