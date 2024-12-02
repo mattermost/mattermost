@@ -18,6 +18,7 @@ describe('components/new_search/SearchBox', () => {
         initialSearchTerms: '',
         initialSearchType: 'messages',
         initialSearchTeam: 'teamId',
+        crossTeamSearchEnabled: true,
     };
 
     test('should have the focus on the input field', () => {
