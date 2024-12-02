@@ -25,11 +25,12 @@ const (
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
-		"metadata": a.getSupportPacketMetadata,
-		"stats":    a.getSupportPacketStats,
-		"jobs":     a.getSupportPacketJobList,
-		"plugins":  a.getPluginsFile,
-		"config":   a.getSanitizedConfigFile,
+		"metadata":    a.getSupportPacketMetadata,
+		"stats":       a.getSupportPacketStats,
+		"jobs":        a.getSupportPacketJobList,
+		"permissions": a.getSupportPacketPermissionsInfo,
+		"plugins":     a.getPluginsFile,
+		"config":      a.getSanitizedConfigFile,
 	}
 
 	var (
@@ -266,6 +267,57 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 
 	fileData := &model.FileData{
 		Filename: "jobs.yaml",
+		Body:     b,
+	}
+	return fileData, rErr.ErrorOrNil()
+}
+
+func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, error) {
+	var (
+		rErr        *multierror.Error
+		err         error
+		permissions model.SupportPacketPermissionInfo
+	)
+
+	var allSchemes []*model.Scheme
+	perPage := 100
+	page := 0
+	for {
+		schemes, appErr := a.GetSchemesPage("", page, perPage)
+		if appErr != nil {
+			rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of schemes"))
+			break
+		}
+
+		allSchemes = append(allSchemes, schemes...)
+		if len(schemes) < perPage {
+			break
+		}
+		page += 1
+	}
+
+	for _, s := range allSchemes {
+		s.Sanitize()
+	}
+	permissions.Schemes = allSchemes
+
+	roles, appErr := a.GetAllRoles()
+	if appErr != nil {
+		rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of roles"))
+	}
+
+	for _, r := range roles {
+		r.Sanitize()
+	}
+	permissions.Roles = roles
+
+	b, err := yaml.Marshal(&permissions)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to marshal permission info into yaml"))
+	}
+
+	fileData := &model.FileData{
+		Filename: "permissions.yaml",
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()

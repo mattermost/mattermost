@@ -14,3 +14,16 @@ const (
 func FormatMillis(millis int64) string {
 	return time.UnixMilli(millis).Format(RFC3339Milli)
 }
+
+func ParseFormatedMillis(s string) (millis int64, err error) {
+	if s == "" {
+		return 0, nil
+	}
+
+	t, err := time.Parse(RFC3339Milli, s)
+	if err != nil {
+		return 0, err
+	}
+
+	return t.UnixMilli(), nil
+}

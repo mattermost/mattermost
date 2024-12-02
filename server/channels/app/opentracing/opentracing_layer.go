@@ -3727,6 +3727,28 @@ func (a *OpenTracingAppLayer) DeleteRetentionPolicy(policyID string) *model.AppE
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) DeleteRole(id string) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteRole")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DeleteRole(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) DeleteScheduledPost(rctx request.CTX, userId string, scheduledPostId string, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteScheduledPost")

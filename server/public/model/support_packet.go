@@ -100,6 +100,13 @@ type SupportPacketJobList struct {
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
 }
 
+// SupportPacketPermissionInfo contains the list of schemes and the list of roles.
+// It is included in the Support Packet.
+type SupportPacketPermissionInfo struct {
+	Roles   []*Role   `yaml:"roles"`
+	Schemes []*Scheme `yaml:"schemes"`
+}
+
 type FileData struct {
 	Filename string
 	Body     []byte

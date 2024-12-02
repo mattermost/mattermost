@@ -21,6 +21,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -60,6 +62,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"metadata.yaml",
 		"stats.yaml",
 		"jobs.yaml",
+		"permissions.yaml",
 		"plugins.json",
 		"sanitized_config.json",
 		"diagnostics.yaml",
@@ -126,6 +129,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("Scheme").Return(th.App.Srv().Store().Scheme())
 		mockStore.On("Close").Return(nil)
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)
@@ -255,7 +260,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 	license.Features.Users = model.NewPointer(licenseUsers)
 	th.App.Srv().SetLicense(license)
 
-	generateSupportPacket := func(t *testing.T) *model.SupportPacketStats {
+	generateStats := func(t *testing.T) *model.SupportPacketStats {
 		t.Helper()
 
 		fileData, err := th.App.getSupportPacketStats(th.Context)
@@ -270,7 +275,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
-		sp := generateSupportPacket(t)
+		sp := generateStats(t)
 
 		assert.Equal(t, int64(3), sp.RegisteredUsers) // from InitBasic()
 		assert.Equal(t, int64(3), sp.ActiveUsers)     // from InitBasic()
@@ -298,7 +303,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		}
 
 		// InitBasic() already creats 5 posts
-		packet := generateSupportPacket(t)
+		packet := generateStats(t)
 		assert.Equal(t, int64(10), packet.Posts)
 	})
 }
@@ -411,6 +416,89 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		// Verify migration jobs
 		require.Len(t, jobs.MigrationJobs, 1, "Should have 1 migration job")
 		verifyJob(t, expectedJobs[6], jobs.MigrationJobs[0])
+	})
+}
+
+func TestGetSupportPacketPermissionsInfo(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
+		t.Helper()
+
+		fileData, err := th.App.getSupportPacketPermissionsInfo(th.Context)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "permissions.yaml", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+		assert.NoError(t, err)
+
+		var permissions model.SupportPacketPermissionInfo
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &permissions))
+		return &permissions
+	}
+
+	t.Run("No custom permissions", func(t *testing.T) {
+		permissions := generatePermissionInfo(t)
+
+		assert.Len(t, permissions.Roles, 23)
+		assert.Empty(t, permissions.Schemes)
+	})
+
+	scheme, appErr := th.App.CreateScheme(&model.Scheme{
+		Name:        "custom_scheme",
+		DisplayName: "Custom Scheme",
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("with custom scheme", func(t *testing.T) {
+		permissions := generatePermissionInfo(t)
+
+		assert.Len(t, permissions.Roles, 33) // 23 default roles + 10 custom roles from the scheme
+		require.Len(t, permissions.Schemes, 1)
+		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].DisplayName, "DisplayName should be obfuscated")
+		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Description, "Description should be obfuscated")
+	})
+
+	t.Run("with custom role", func(t *testing.T) {
+		role, appErr := th.App.CreateRole(&model.Role{
+			Name:        "custom_role",
+			DisplayName: "Custom Role",
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.DeleteRole(role.Id)
+			require.Nil(t, appErr)
+		})
+
+		permissions := generatePermissionInfo(t)
+
+		require.Len(t, permissions.Schemes, 1)
+		require.Len(t, permissions.Roles, 34) // 23 default roles + 10 custom roles from the scheme + 1 custom role
+		found := false
+		for _, r := range permissions.Roles {
+			// Confirm that sensitive fields are obfuscated
+			assert.Equal(t, model.FakeSetting, r.DisplayName, "DisplayName should be obfuscated")
+			assert.Equal(t, model.FakeSetting, r.Description, "Description should be obfuscated")
+
+			// Fine the custom role
+			if r.Id == role.Id {
+				assert.Equal(t, role.Name, r.Name)
+				assert.Equal(t, role.CreateAt, r.CreateAt)
+				assert.Equal(t, role.UpdateAt, r.UpdateAt)
+				assert.Equal(t, role.DeleteAt, r.DeleteAt)
+				assert.Equal(t, role.Permissions, r.Permissions)
+				assert.Equal(t, role.SchemeManaged, r.SchemeManaged)
+				assert.Equal(t, role.BuiltIn, r.BuiltIn)
+				found = true
+				break
+			}
+		}
+		assert.True(t, found)
 	})
 }
 
