@@ -24,6 +24,7 @@ type Props = {
     initialSearchTerms: string;
     initialSearchType: string;
     initialSearchTeam: string;
+    crossTeamSearchEnabled: boolean;
 };
 
 const SearchBoxContainer = styled.div`
@@ -72,7 +73,7 @@ const SearchTeamSelector = styled.div`
 
 const SearchBox = forwardRef(
     (
-        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam}: Props,
+        {onClose, onSearch, initialSearchTerms, initialSearchType, initialSearchTeam, crossTeamSearchEnabled}: Props,
         ref: React.Ref<HTMLDivElement>,
     ): JSX.Element => {
         const intl = useIntl();
@@ -271,12 +272,14 @@ const SearchBox = forwardRef(
                         searchType={searchType}
                         setSearchType={setSearchType}
                     />
-                    <SearchTeamSelector>
-                        <SelectTeam
-                            value={searchTeam}
-                            onChange={changeSearchTeam}
-                        />
-                    </SearchTeamSelector>
+                    {crossTeamSearchEnabled && (
+                        <SearchTeamSelector>
+                            <SelectTeam
+                                value={searchTeam}
+                                onChange={changeSearchTeam}
+                            />
+                        </SearchTeamSelector>
+                    )}
                 </SearchBoxHeader>
                 <SearchInput
                     ref={inputRef}

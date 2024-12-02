@@ -6,10 +6,18 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
+import {getCurrentLocale} from 'selectors/i18n';
+
 import * as Menu from 'components/menu';
+
 import './select_team.scss';
+import {Preferences} from 'utils/constants';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
+
+import type {GlobalState} from 'types/store';
 
 interface Props {
     value: string;
@@ -18,9 +26,11 @@ interface Props {
 
 const SelectTeam = (props: Props) => {
     const intl = useIntl();
-    const teams = useSelector(getMyTeams);
+    const myTeams = useSelector(getMyTeams);
+    const locale = useSelector(getCurrentLocale);
+    const userTeamsOrderPreference = useSelector((state: GlobalState) => get(state, Preferences.TEAMS_ORDER, '', ''));
     const currentTeamId = useSelector(getCurrentTeamId);
-    teams.sort((a, b) => a.display_name.localeCompare(b.display_name));
+    const teams = filterAndSortTeamsByDisplayName(myTeams, locale, userTeamsOrderPreference);
 
     const isDifferentTeamSelected = props.value !== currentTeamId;
 

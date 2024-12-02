@@ -7,6 +7,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
@@ -18,6 +19,8 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -98,6 +101,7 @@ const NewSearch = (): JSX.Element => {
     const searchType = useSelector(getSearchType) || '';
     const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
+    const crossTeamSearchEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch')) === 'true';
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
@@ -278,6 +282,7 @@ const NewSearch = (): JSX.Element => {
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                         initialSearchType={searchType}
                         initialSearchTeam={searchTeam}
+                        crossTeamSearchEnabled={crossTeamSearchEnabled}
                     />
                 </PopoverStyled>
             )}
