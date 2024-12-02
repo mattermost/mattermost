@@ -50,6 +50,12 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
+type postModifierFunc func(*model.Post)
+
+func noOpPostModifier(*model.Post) {
+	// no-op
+}
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
@@ -446,6 +452,25 @@ func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2
 }
 
 func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
+	//id := model.NewId()
+	//
+	//post := &model.Post{
+	//	UserId:    th.BasicUser.Id,
+	//	ChannelId: channel.Id,
+	//	Message:   "message_" + id,
+	//	CreateAt:  model.GetMillis() - 10000,
+	//}
+	//
+	//var err *model.AppError
+	//if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+	//	panic(err)
+	//}
+	//return post
+
+	return th.CreatePostWithModifier(channel, noOpPostModifier)
+}
+
+func (th *TestHelper) CreatePostWithModifier(channel *model.Channel, postModifier postModifierFunc) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -454,6 +479,8 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		Message:   "message_" + id,
 		CreateAt:  model.GetMillis() - 10000,
 	}
+
+	postModifier(post)
 
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
@@ -770,6 +797,25 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	if err2 != nil {
 		panic(err2)
 	}
+}
+
+func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.FileInfo {
+	fileInfo := &model.FileInfo{
+		Id:        model.NewId(),
+		CreatorId: userId,
+		PostId:    postId,
+		ChannelId: channelId,
+		CreateAt:  model.GetMillis(),
+		Name:      model.NewRandomString(10),
+		Path:      model.NewRandomString(50),
+	}
+
+	createdFileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	return createdFileInfo
 }
 
 // This function is copy of storetest/NewTestId
