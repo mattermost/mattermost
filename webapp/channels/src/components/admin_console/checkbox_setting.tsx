@@ -48,7 +48,6 @@ export default class CheckboxSetting extends React.PureComponent<Props> {
                 setByEnv={this.props.setByEnv}
                 nested={true}
             >
-                <a id={this.props.id}/>
                 <label className='checkbox-inline'>
                     <input
                         data-testid={this.props.id}
