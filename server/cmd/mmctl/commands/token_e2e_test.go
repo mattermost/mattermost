@@ -77,3 +77,56 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		s.Require().Equal(0, len(userTokens))
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestTokenListForUserCmd() {
+	s.SetupTestHelper().InitBasic()
+	s.RunForSystemAdminAndLocal("List tokens for a user", func(c client.Client) {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		// Create a token first
+		tokenDescription := model.NewRandomString(10)
+		token, appErr := s.th.App.CreateUserAccessToken(s.th.Context, &model.UserAccessToken{
+			UserId:      user.Id,
+			Description: tokenDescription,
+			IsActive:    true,
+		})
+		s.Require().Nil(appErr)
+		s.Require().NotNil(token)
+
+		err := listTokensOfAUserCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.RunForSystemAdminAndLocal("List token for non existent user", func(c client.Client) {
+		printer.Clean()
+
+		nonExistentUserEmail := s.th.GenerateTestEmail()
+		err := listTokensOfAUserCmdF(c, &cobra.Command{}, []string{nonExistentUserEmail})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(
+			fmt.Sprintf(`could not retrieve user information of %q`, nonExistentUserEmail),
+			err.Error())
+	})
+
+	s.Run("List token without permission", func() {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		err := listTokensOfAUserCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf(`could not retrieve tokens for user %q: You do not have the appropriate permissions.`, user.Email),
+		)
+	})
+}
