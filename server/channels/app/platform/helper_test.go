@@ -33,7 +33,7 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
-	Tb              testing.TB
+	T               testing.TB
 }
 
 var initBasicOnce sync.Once
@@ -94,7 +94,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
 	err := mainHelper.GetSQLStore().User().InsertUsers(users)
-	require.NoError(th.Tb, err)
+	require.NoError(th.T, err)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -129,9 +129,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -155,9 +153,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		ServiceConfig{
 			Store: dbStore,
 		}, options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		Context: request.TestContext(tb),
@@ -200,20 +196,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	err = th.Service.Start(nil)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	return th
 }
 
 func (th *TestHelper) TearDown() {
 	err := th.Service.ShutdownMetrics()
-	require.NoError(th.Tb, err)
+	require.NoError(th.T, err)
 	err = th.Service.Shutdown()
-	require.NoError(th.Tb, err)
+	require.NoError(th.T, err)
 	err = th.Service.ShutdownConfig()
-	require.NoError(th.Tb, err)
+	require.NoError(th.T, err)
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
@@ -227,9 +221,9 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
-		panic(err)
-	}
+	team, err = th.Service.Store.Team().Save(team)
+	require.NoError(th.T, err)
+
 	return team
 }
 
@@ -247,9 +241,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -268,9 +260,7 @@ func (th *TestHelper) CreateAdmin() *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -299,9 +289,7 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 
 	var err error
 	channel, err = th.Service.Store.Channel().Save(th.Context, channel, 999)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return channel
 }
