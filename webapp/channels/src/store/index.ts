@@ -3,13 +3,15 @@
 
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
-import {persistStore, REHYDRATE, Persistor} from 'redux-persist';
-import {Store} from 'redux';
+import type {Store} from 'redux';
+import type {Persistor} from 'redux-persist';
+import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
-import {GlobalState} from '@mattermost/types/store';
 
 import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';

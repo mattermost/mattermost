@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Store} from 'redux';
+import type {Store} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
+
 import {UserTypes} from 'mattermost-redux/action_types';
-import {GlobalState} from '@mattermost/types/store';
 
 import configureStore from './index';
 
