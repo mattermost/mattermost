@@ -91,27 +91,21 @@ issues:
         channels/app/file_test.go|\
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
-        channels/app/imports/import_validators.go|\
         channels/app/integration_action.go|\
-        channels/app/integration_action_test.go|\
         channels/app/job_test.go|\
         channels/app/migrations.go|\
         channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\
-        channels/app/platform/log.go|\
-        channels/app/platform/searchengine.go|\
         channels/app/platform/service.go|\
         channels/app/platform/service_test.go|\
         channels/app/platform/session.go|\
-        channels/app/platform/session_test.go|\
         channels/app/platform/status.go|\
         channels/app/platform/web_broadcast_hook.go|\
         channels/app/platform/web_conn.go|\
         channels/app/platform/web_hub.go|\
         channels/app/platform/web_hub_test.go|\
-        channels/app/plugin_signature_test.go|\
         channels/app/plugin_test.go|\
         channels/app/post_helpers_test.go|\
         channels/app/post_test.go|\
@@ -133,7 +127,6 @@ issues:
         channels/jobs/helper_test.go|\
         channels/jobs/hosted_purchase_screening/worker.go|\
         channels/jobs/jobs.go|\
-        channels/jobs/resend_invitation_email/worker.go|\
         channels/manualtesting/manual_testing.go|\
         channels/store/localcachelayer/channel_layer.go|\
         channels/store/localcachelayer/channel_layer_test.go|\
