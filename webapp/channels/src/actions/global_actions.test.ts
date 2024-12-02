@@ -29,7 +29,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('stores/redux_store', () => {
     return {
         dispatch: jest.fn(),
-        getState: jest.fn(),
+        getState: jest.fn() as jest.MockedFunction<() => GlobalState>,
     };
 });
 
