@@ -497,7 +497,7 @@ func NewServer(options ...Option) (*Server, error) {
 			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
 			if err = s.openGraphDataCache.Purge(); err != nil {
-				mlog.Error("Failed to purge Open Graph data cache", mlog.Err(err))
+				mlog.Error("Failed to purge Open Graph data cache after config change", mlog.Err(err))
 			}
 		}
 	})
@@ -898,7 +898,7 @@ func (s *Server) Start() error {
 	s.checkPushNotificationServerURL()
 
 	if err = s.platform.ReloadConfig(); err != nil {
-		mlog.Error("Failed to reload the config", mlog.Err(err))
+		mlog.Error("Failed to reload config on server start", mlog.Err(err))
 	}
 
 	mlog.Info("Starting Server...")
@@ -1000,7 +1000,7 @@ func (s *Server) Start() error {
 				}
 				go func() {
 					if err := server.ListenAndServe(); err != nil {
-						mlog.Error("Error starting server", mlog.Err(err))
+						mlog.Error("Failed to serve redirect from port 80 to 443 with autocert ", mlog.Err(err))
 					}
 				}()
 			} else {
@@ -1017,7 +1017,7 @@ func (s *Server) Start() error {
 						ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
 					if err := server.Serve(redirectListener); err != nil {
-						mlog.Error("Error starting redirect server", mlog.Err(err))
+						mlog.Error("Failed to serve redirect from port 80 to 443", mlog.Err(err))
 					}
 				}()
 			}
