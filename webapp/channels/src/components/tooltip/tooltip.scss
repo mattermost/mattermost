@@ -2,6 +2,7 @@
     z-index: 1070;
 
     > .tooltipContentContainer {
+        z-index: 1070;
         max-width: 220px;
         padding: 4px 8px;
         border-radius: 4px;
@@ -11,14 +12,12 @@
         pointer-events: none;
         text-align: center;
         word-break: break-word;
-        z-index: 1070;
-        opacity: 1;
 
         > .tooltipContent {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             font-family: "Open Sans", sans-serif;
 
             > .tooltipContentTitleContainer {
@@ -29,8 +28,8 @@
                 gap: 6px;
 
                 &.isEmoticonLarge {
-                    gap: 2px;
                     flex-direction: column;
+                    gap: 2px;
 
                     > .tooltipContentEmoticon {
                         padding-top: 1px;
@@ -44,27 +43,27 @@
                 }
 
                 > .tooltipContentTitle {
+                    color: #ffffff;
                     font-size: 12px;
                     font-weight: 600;
                     line-height: 15px;
-                    color: #ffffff;
                 }
             }
 
             > .tooltipContentShortcut {
-                padding: 4px 0;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
                 justify-content: center;
+                padding: 4px 0;
                 gap: 2px;
             }
 
             > .tooltipContentHint {
+                color: rgba(255, 255, 255, 0.64);
                 font-size: 11px;
                 font-weight: 600;
                 line-height: 16px;
-                color: rgba(255, 255, 255, 0.64);
             }
         }
     }
