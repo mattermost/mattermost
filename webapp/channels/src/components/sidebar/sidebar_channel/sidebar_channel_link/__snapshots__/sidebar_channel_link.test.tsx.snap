@@ -21,7 +21,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -103,7 +103,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -191,7 +191,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         channel_label
       </span>
     </WithTooltip>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,
@@ -273,7 +273,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     >
       channel_label
     </span>
-    <Connect(Pluggable)
+    <Pluggable
       channel={
         Object {
           "create_at": 0,

@@ -345,6 +345,11 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
+        icon={
+          <i
+            className="fa fa-anchor"
+          />
+        }
         id="someplugin_pluginmenuitem"
         key="someplugin_pluginmenuitem"
         onClick={[Function]}

@@ -431,7 +431,7 @@ export class TestHelper {
             showTeamSidebar: false,
             showAppBar: false,
             wrapped: true,
-            publicComponent: null,
+            publicComponent: () => null,
         };
     }
 

@@ -1899,6 +1899,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       key="plugin-id-1_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="some text"
     />
     <MenuItemAction
       icon={false}
@@ -1906,6 +1907,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       key="plugind-id-2_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="some text"
     />
   </Memo(MenuGroup)>
 </Menu>
@@ -2249,16 +2251,28 @@ exports[`components/Menu should match snapshot with plugins in mobile 1`] = `
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemAction
+      icon={
+        <i
+          className="fa fa-anchor"
+        />
+      }
       id="plugin-id-1_pluginmenuitem"
       key="plugin-id-1_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="some text"
     />
     <MenuItemAction
+      icon={
+        <i
+          className="fa fa-anchor"
+        />
+      }
       id="plugind-id-2_pluginmenuitem"
       key="plugind-id-2_pluginmenuitem"
       onClick={[Function]}
       show={true}
+      text="some text"
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>

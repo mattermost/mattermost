@@ -29,7 +29,7 @@ import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {ChannelHeaderAction} from 'types/store/plugins';
 
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
@@ -50,7 +50,7 @@ export type Props = {
     isArchived: boolean;
     isMobile: boolean;
     penultimateViewedChannelName: string;
-    pluginMenuItems: PluginComponent[];
+    pluginMenuItems: ChannelHeaderAction[];
     isLicensedForLDAPGroups: boolean;
 }
 

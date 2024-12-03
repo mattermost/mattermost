@@ -32,8 +32,8 @@ describe('components/ChannelHeaderDropdown', () => {
         const props: Props = {
             ...defaultProps,
             pluginMenuItems: [
-                {id: 'plugin-1', pluginId: 'playbooks', action: jest.fn(), text: 'plugin-1-text'},
-                {id: 'plugin-2', pluginId: 'playbooks', action: jest.fn(), text: 'plugin-2-text'},
+                {id: 'plugin-1', pluginId: 'playbooks', action: jest.fn(), text: 'plugin-1-text', shouldRender: () => true},
+                {id: 'plugin-2', pluginId: 'playbooks', action: jest.fn(), text: 'plugin-2-text', shouldRender: () => true},
             ],
         };
         const wrapper = shallow(<ChannelHeaderDropdown {...props}/>);
