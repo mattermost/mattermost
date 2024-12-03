@@ -1321,30 +1321,6 @@ func TestUpdatePost(t *testing.T) {
 	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
 	assert.Equal(t, model.StringArray(fileIds), rpost.FileIds, "FileIds should have been set")
 
-	t.Run("same message, fewer files", func(t *testing.T) {
-		msg := "zz" + model.NewId() + " update post"
-		rpost.Message = msg
-		rpost.UserId = ""
-
-		rupost, _, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
-			Id:      rpost.Id,
-			Message: rpost.Message,
-			FileIds: fileIds[0:2], // one fewer file id
-		})
-		require.NoError(t, err)
-
-		assert.Equal(t, rupost.Message, msg, "failed to updates")
-		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
-		assert.Equal(t, model.StringArray(fileIds), rupost.FileIds, "FileIds should have not have been updated")
-
-		actual, _, err := client.GetPost(context.Background(), rpost.Id, "")
-		require.NoError(t, err)
-
-		assert.Equal(t, actual.Message, msg, "failed to updates")
-		assert.NotEqual(t, 0, actual.EditAt, "EditAt not updated for post")
-		assert.Equal(t, model.StringArray(fileIds), actual.FileIds, "FileIds should have not have been updated")
-	})
-
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
@@ -1390,22 +1366,6 @@ func TestUpdatePost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
-
-	t.Run("new message, add files", func(t *testing.T) {
-		up3 := &model.Post{
-			Id:        rpost3.Id,
-			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + " update post 3",
-			FileIds:   fileIds[0:2],
-		}
-		rrupost3, _, err := client.UpdatePost(context.Background(), rpost3.Id, up3)
-		require.NoError(t, err)
-		assert.Empty(t, rrupost3.FileIds)
-
-		actual, _, err := client.GetPost(context.Background(), rpost.Id, "")
-		require.NoError(t, err)
-		assert.Equal(t, model.StringArray(fileIds), actual.FileIds)
-	})
 
 	t.Run("add slack attachments", func(t *testing.T) {
 		up4 := &model.Post{
@@ -1501,6 +1461,74 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("different user, but system admin", func(t *testing.T) {
 		_, _, err := th.SystemAdminClient.UpdatePost(context.Background(), rpost.Id, rpost)
 		require.NoError(t, err)
+	})
+
+	t.Run("should be able to add new files", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+
+		// update post with new file
+		post.FileIds = []string{fileInfo.Id}
+		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 1, len(updatedPost.FileIds))
+		require.Equal(t, fileInfo.Id, updatedPost.FileIds[0])
+
+		// verify file is attached to the post
+		fetchedFileInfo, _, err := client.GetFileInfo(context.Background(), fileInfo.Id)
+		require.NoError(t, err)
+		require.Equal(t, fileInfo.Id, fetchedFileInfo.Id)
+		require.Equal(t, post.Id, fetchedFileInfo.PostId)
+	})
+
+	t.Run("should be able to remove files", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   []string{fileInfo.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 1, len(post.FileIds))
+
+		// remove files from post
+		post.FileIds = []string{}
+		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 0, len(updatedPost.FileIds))
+
+		// verify file is removed from the post
+		postFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(postFileInfos))
+		require.Equal(t, fileInfo.Id, postFileInfos[0].Id)
+		require.Greater(t, postFileInfos[0].DeleteAt, int64(0))
 	})
 }
 
