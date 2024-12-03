@@ -8870,5 +8870,73 @@
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
     "translation": "Un fil de discussion avec {{.NumMessages}} messages a été déplace vers un message personnel ou un message de groupe.\n"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Votre licence ne supporte pas les marque-pages de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "L'utilisateur n'est pas autorisé a créer un marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Échec de la création du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Échec de la création du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Échec de la suppression du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Échec de la suppression du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Échec de la suppression du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Échec de la mise à jour du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Échec de la mise à jour du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Échec de la mise à jour du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Échec de la mise à jour de l'ordre de tri du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Échec de la mise à jour de l'ordre de tri du marque-page de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Échec de la mise à jour de l'ordre de tri du marque-page de canal."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Le champ display_name est manquant dans le corps de la requête"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Impossible de créer un canal direct avec un utilisateur distant"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Le champ team_id est manquant dans le corps de la requête"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Impossible de créer un canal de groupe avec des utilisateurs distants"
   }
 ]
