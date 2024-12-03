@@ -46,6 +46,8 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         teammateTimezone,
         teammateDisplayName,
         isDM,
+        isSelfDM,
+        isBot,
     } = useTimePostBoxIndicator(channelId);
 
     const currentUserId = useSelector(getCurrentUserId);
@@ -87,7 +89,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     const extraProps: Partial<MenuItemProps> = {};
 
-    if (isDM) {
+    if (isDM && !isBot && !isSelfDM) {
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
         const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
         const teammateTimeDisplay = (
@@ -122,6 +124,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 />
             }
             className='core-menu-options'
+            autoFocus={true}
             {...extraProps}
         />
     );
@@ -158,6 +161,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
                 />
             }
             className='core-menu-options'
+            autoFocus={now.weekday === 5 || now.weekday === 6}
             {...extraProps}
         />
     );

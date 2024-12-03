@@ -448,7 +448,7 @@ describe('PostUtils', () => {
             const post = TestHelper.getPostMock({
                 user_id: 'currentUser',
                 props: {
-                    from_webhook: true,
+                    from_webhook: 'true',
                 },
             });
 

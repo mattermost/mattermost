@@ -13,12 +13,12 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
+import {Preferences} from 'mattermost-redux/constants';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent} from 'components/async_load';
-import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -191,7 +191,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.showLandingPageIfNecessary();
 
-        applyTheme(this.props.theme);
+        this.applyTheme();
     };
 
     private showLandingPageIfNecessary = () => {
@@ -255,9 +255,19 @@ export default class Root extends React.PureComponent<Props, State> {
         BrowserStore.setLandingPageSeen(true);
     };
 
+    applyTheme() {
+        // don't apply theme when in system console; system console hardcoded to THEMES.denim
+        // AdminConsole will apply denim on mount re-apply user theme on unmount
+        if (this.props.location.pathname.startsWith('/admin_console')) {
+            return;
+        }
+
+        applyTheme(this.props.theme);
+    }
+
     componentDidUpdate(prevProps: Props, prevState: State) {
         if (!deepEqual(prevProps.theme, this.props.theme)) {
-            applyTheme(this.props.theme);
+            this.applyTheme();
         }
 
         if (this.props.location.pathname === '/') {
@@ -283,7 +293,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
-                InitialLoadingScreen.stop();
+                InitialLoadingScreen.stop('root');
             }
         }
     }
@@ -348,9 +358,6 @@ export default class Root extends React.PureComponent<Props, State> {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
         this.initiateMeRequests();
-
-        // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
-        this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
         measurePageLoadTelemetry();
         trackSelectorMetrics();
@@ -452,7 +459,7 @@ export default class Root extends React.PureComponent<Props, State> {
                     >
                         <Switch>
                             <LoggedInRoute
-                                theme={this.props.theme}
+                                theme={Preferences.THEMES.denim}
                                 path={'/admin_console'}
                                 component={AdminConsole}
                             />
