@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenu from '@mui/material/Menu';
 import MuiMenuList from '@mui/material/MenuList';
-import type {PopoverOrigin} from '@mui/material/Popover';
+import MuiPopover from '@mui/material/Popover';
+import type { PopoverOrigin } from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
     useState,
@@ -15,22 +15,22 @@ import type {
     MouseEvent,
     KeyboardEvent,
 } from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
+import { GenericModal } from '@mattermost/components';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import { getTheme } from 'mattermost-redux/selectors/entities/preferences';
 
-import {openModal, closeModal} from 'actions/views/modals';
-import {getIsMobileView} from 'selectors/views/browser';
+import { openModal, closeModal } from 'actions/views/modals';
+import { getIsMobileView } from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import WithTooltip from 'components/with_tooltip';
 
-import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import Constants, { A11yClassNames } from 'utils/constants';
+import { isKeyPressed } from 'utils/keyboard';
 
-import {MenuContext, useMenuContextValue} from './menu_context';
+import { MenuContext, useMenuContextValue } from './menu_context';
 
 import './menu.scss';
 
@@ -75,12 +75,14 @@ type MenuProps = {
     width?: string;
 }
 
-const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
-const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
+const defaultAnchorOrigin = { vertical: 'bottom', horizontal: 'left' } as PopoverOrigin;
+const defaultTransformOrigin = { vertical: 'top', horizontal: 'left' } as PopoverOrigin;
 
 interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
+    menuHeader?: ReactNode;
+    menuFooter?: ReactNode;
     menu: MenuProps;
     children: ReactNode[];
 
@@ -108,20 +110,17 @@ export function Menu(props: Props) {
     const dispatch = useDispatch();
 
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
-    const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }
 
     // Handle function injected into menu items to close the menu
     const closeMenu = useCallback(() => {
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }, []);
 
     function handleMenuModalClose(modalId: MenuProps['id']) {
@@ -181,11 +180,6 @@ export function Menu(props: Props) {
         }
     }
 
-    // Function to prevent focus-visible from being set on clicking menu items with the mouse
-    function handleMenuButtonMouseDown() {
-        setDisableAutoFocusItem(true);
-    }
-
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
@@ -202,7 +196,6 @@ export function Menu(props: Props) {
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
-                onMouseDown={handleMenuButtonMouseDown}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
@@ -240,7 +233,7 @@ export function Menu(props: Props) {
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
-                <MuiMenu
+                <MuiPopover
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}
@@ -250,16 +243,6 @@ export function Menu(props: Props) {
                     marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
-                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                    MenuListProps={{
-                        id: props.menu.id,
-                        className: props.menu.className,
-                        'aria-label': props.menu?.['aria-label'],
-                        'aria-labelledby': props.menu?.['aria-labelledby'],
-                        style: {
-                            width: props.menu?.width,
-                        },
-                    }}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
@@ -277,8 +260,19 @@ export function Menu(props: Props) {
                     // @ts-expect-error This exists in source code of mui, but its types are missing
                     onTransitionExited={providerValue.handleClosed}
                 >
-                    {props.children}
-                </MuiMenu>
+                    {props.menuHeader}
+                    <MuiMenuList
+                        id={props.menu.id}
+                        aria-label={props.menu?.['aria-label'] ?? ''}
+                        autoFocusItem={true}
+                        style={{
+                            width: props.menu.width || 'inherit',
+                        }}
+                    >
+                        {props.children}
+                    </MuiMenuList>
+                    {props.menuFooter}
+                </MuiPopover>
             </MenuContext.Provider>
         </CompassDesignProvider>
     );

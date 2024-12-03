@@ -14,6 +14,7 @@ type Props = {
     overrideTestId?: boolean;
     size?: 'btn-lg' | 'btn-md' |'btn-sm';
     toggleClassName?: string;
+    ariaLabel?: string;
 }
 
 const Toggle: React.FC<Props> = (props: Props) => {
@@ -25,6 +26,7 @@ const Toggle: React.FC<Props> = (props: Props) => {
         offText,
         id,
         overrideTestId,
+        ariaLabel,
         size = 'btn-lg',
         toggleClassName = 'btn-toggle',
     } = props;
@@ -45,6 +47,7 @@ const Toggle: React.FC<Props> = (props: Props) => {
 
     return (
         <button
+            aria-label={ariaLabel}
             data-testid={dataTestId}
             id={id}
             type='button'

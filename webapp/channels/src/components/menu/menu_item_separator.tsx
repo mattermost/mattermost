@@ -15,7 +15,7 @@ import React from 'react';
 export function MenuItemSeparator() {
     return (
         <Divider
-            component='li'
+            role='presentation'
             aria-orientation='vertical'
         />
     );
