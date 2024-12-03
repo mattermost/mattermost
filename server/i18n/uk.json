@@ -2789,7 +2789,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Недійсний сповіщувач Prop Trigger для каналу користувача."
+    "translation": "Некоректна властивість Cповіщення для тригера каналу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
@@ -2797,11 +2797,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Недійсне значення параметра \"Сповіщення про робочий стіл\" для користувача."
+    "translation": "Некоректне значення властивості Cповіщення для робочого столу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Невірний звук робочого столу Notify Prop значення для користувача."
+    "translation": "Некоректне значення властивості Звукового сповіщення для робочого столу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
@@ -2813,7 +2813,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Недійсний статус мобільного стану сповіщення для користувача."
+    "translation": "Некоректне значення властивості Сповіщення про статус мобільних push-сповіщень для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
@@ -2829,7 +2829,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "Ролі користувача недійсні."
+    "translation": "Неправильні ролі користувачів."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -2837,7 +2837,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Відсутня необхідна властивість користувача: username."
+    "translation": "Відсутня обов'язкова властивість користувача: ім'я користувача."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -2861,11 +2861,11 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Повідомлення в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Сповіщення в {{ .TeamName}} від {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Конфігурація плагіна у вашому файлі config.json повинна бути оновлена вручну при використанні ReadOnlyConfig з увімкненою кластеризацією."
+    "translation": "Конфігурацію плагіна у вашому файлі config.json необхідно оновлювати вручну при використанні ReadOnlyConfig з увімкненою кластеризацією."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2877,7 +2877,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
+    "translation": "Плагіни були вимкнені. Будь ласка, перевірте свої логи для деталей."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -2889,7 +2889,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Неможливо отримати статуси плагінів з кластера."
+    "translation": "Не вдається отримати статуси плагінів від кластера."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -2897,7 +2897,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Неможливо встановити стан статусу плагіна."
+    "translation": "Не вдалося отримати статуси плагінів."
   },
   {
     "id": "app.plugin.install.app_error",
@@ -2905,11 +2905,11 @@
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Не вдається встановити плагін. Плагін з тим самим ідентифікатором вже встановлений."
+    "translation": "Не вдалося встановити плагін. Плагін з таким самим ідентифікатором вже встановлено."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Не вдається встановити плагін. Плагін з тим самим ідентифікатором вже встановлений і його не вдалося видалити."
+    "translation": "Не вдалося встановити плагін. Плагін з таким самим ідентифікатором вже встановлено і його не вдалося видалити."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -5229,15 +5229,15 @@
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
+    "translation": "Магазин плагінів було вимкнено. Будь ласка, перевірте свої журнали для отримання детальної інформації."
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Не вдалося отримати плагіни з сервера Магазину плагінів."
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Не вдалося створити Магазин плагінів клієнта."
   },
   {
     "id": "app.plugin.invalid_version.app_error",
@@ -5249,11 +5249,11 @@
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store."
+    "translation": "Виникла помилка при отриманні відкритого ключа зі сховища."
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Не вдалося встановити плагін як керований файловим сховищем."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5261,7 +5261,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Недійсна тема команди для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
