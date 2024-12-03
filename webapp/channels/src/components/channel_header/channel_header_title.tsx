@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import type {ReactNode} from 'react';
-import React, {memo, useState, useRef, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import React, {memo} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-
-import {getIsRhsOpen} from 'selectors/rhs';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';

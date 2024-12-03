@@ -14,7 +14,6 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
-    getUser,
     getCurrentUser,
     getUserStatuses,
     getCurrentUserId,
@@ -29,8 +28,6 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import Desktop from './channel_header_menu';
-import Items from './channel_header_menu_items';
-// import Mobile from './mobile_channel_header_menu';
 
 const getTeammateId = createSelector(
     'getTeammateId',
