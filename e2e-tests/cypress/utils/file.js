@@ -149,7 +149,7 @@ function removeFromFiles(files = {}, filesToRemove = []) {
 
     const removedFiles = intersection(Object.keys(testFilesObject), filesToRemove);
     removedFiles.forEach((file) => {
-        if (testFilesObject.hasOwnProperty(file)) {
+        if (Object.hasOwn(testFilesObject, file)) {
             delete testFilesObject[file];
         }
     });
