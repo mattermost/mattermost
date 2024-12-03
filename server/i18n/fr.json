@@ -5641,7 +5641,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
+    "translation": "Ce point de terminaison nécessite une origine de requête locale."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
@@ -8305,7 +8305,7 @@
   },
   {
     "id": "api.license_error",
-    "translation": "l'API endpoint nécessite une licence"
+    "translation": "le point de terminaison API nécessite une licence"
   },
   {
     "id": "app.user.update_update.app_error",
@@ -8945,6 +8945,10 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.guest.app_error",
-    "translation": "Mise à jour du membre de canal invalide : Un invité ne peut pas être promu en tant que membre de l'équipe ou administrateur de l'équipe, veuillez le promouvoir en tant qu'utilisateur en premier."
+    "translation": "Mise à jour des membres de canal invalides : un invité ne peut pas être promu en tant que membre de l'équipe ou administrateur de l'équipe, veuillez le promouvoir en tant qu'utilisateur en premier."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Mise à jour des membres de canal invalides : un invité ne peut pas être défini pour un seul canal, un administrateur système doit promouvoir ou rétrograder les utilisateurs en tant que/du statut d'invité."
   }
 ]
