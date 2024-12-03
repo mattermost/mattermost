@@ -63,6 +63,7 @@ func (o *WrappedObserver) Observe(v float64) {
 			mlog.String("metric_name", o.metricName),
 			mlog.String("user_id", o.userID),
 			mlog.Float("observed_value", v),
+			mlog.Float("highest_bucket_value", o.buckets[len(o.buckets)-1]),
 		}
 		for k, v := range o.labels {
 			fields = append(fields,
