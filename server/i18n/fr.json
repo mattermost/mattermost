@@ -3005,11 +3005,11 @@
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Impossible de copier le fichier joint dans le fichier zip."
+    "translation": "Impossible de copier la pièce jointe dans le fichier zip."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Impossible d'ajouter le fichier joint dans l'export CSV."
+    "translation": "Impossible d'ajouter la pièce jointe dans l'export CSV."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
@@ -3237,7 +3237,7 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Impossible d'ajouter le fichier joint à l'export Global Relay."
+    "translation": "Impossible d'ajouter la pièce jointe à l'export Global Relay."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
@@ -8938,5 +8938,13 @@
   {
     "id": "api.channel.create_group.remote_restricted.app_error",
     "translation": "Impossible de créer un canal de groupe avec des utilisateurs distants"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Mise à jour du membre de l'équipe invalide : Un invité ne peut pas être promu en tant que membre de l'équipe ou administrateur de l'équipe, veuillez le promouvoir en tant qu'utilisateur en premier."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Mise à jour du membre de canal invalide : Un invité ne peut pas être promu en tant que membre de l'équipe ou administrateur de l'équipe, veuillez le promouvoir en tant qu'utilisateur en premier."
   }
 ]
