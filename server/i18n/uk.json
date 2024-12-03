@@ -2921,7 +2921,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Неможливо перемістити плагін з тимчасового каталогу до кінцевого пункту призначення. Інший плагін може використовувати ту саму назву каталогу."
+    "translation": "Не вдалося перемістити плагін з тимчасового каталогу до кінцевого місця призначення. Можливо, інший плагін використовує той самий каталог."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -2933,7 +2933,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Завантаження плагінів та / або плагінів вимкнено."
+    "translation": "Плагіни та/або завантаження плагінів вимкнено."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -2945,11 +2945,11 @@
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "Ця кінцева точка API недоступна, оскільки необхідна міграція ще не завершена."
+    "translation": "Ця кінцева точка API недоступна, оскільки необхідні міграції ще не завершені."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Виявлено помилку, яка кодує JSON для інтерактивного діалогу."
+    "translation": "Виникла помилка кодування JSON для інтерактивного діалогу."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -2957,7 +2957,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
+    "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити вищий ліміт."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -2969,19 +2969,19 @@
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Неможливо декодувати дані зображення."
+    "translation": "Неможливо розшифрувати дані зображення."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Неможливо перетворити дані зображення у формат PNG. Будь ласка спробуйте ще раз."
+    "translation": "Не вдалося конвертувати дані зображення у формат PNG. Будь ласка, спробуйте ще раз."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Не вдається завантажити користувацький образ бренда. Переконайтеся, що розмір зображення менше 2 МБ, і спробуйте ще раз."
+    "translation": "Не вдалося завантажити власне зображення бренду. Переконайтеся, що розмір зображення не перевищує 2 МБ, і спробуйте ще раз."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
+    "translation": "Не вдалося записати файл зображення до вашого файлового сховища. Будь ласка, перевірте з'єднання і спробуйте ще раз."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3369,15 +3369,15 @@
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Не вдалося підписати сформований ідентифікатор тригер для інтерактивного діалогу."
+    "translation": "Не вдалося підписати згенерований ідентифікатор тригера для інтерактивного діалогу."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Не вдалося скасувати запит на роботу, яка не перебуває у скасовуваному стані."
+    "translation": "Не вдалося надіслати запит на скасування для завдання, яке не знаходиться в стані, що дозволяє скасування."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": "Не вдалося встановити статус роботи до помилки"
+    "translation": "Не вдалося встановити статус завдання на \"помилка\""
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3577,7 +3577,7 @@
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Тип повинен бути встановлений."
+    "translation": "Тип повинен бути заданий."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3673,15 +3673,15 @@
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "\"До\" має бути більше, ніж \"З\"."
+    "translation": "Значення \"До\" повинно бути більшим за значення \"Від\"."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Щоб дозволити cookies для піддоменів, потрібно встановити SiteURL."
+    "translation": "Щоб дозволити файли cookie для субдоменів, потрібно встановити SiteURL."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Некоректний параметр RemoteImageProxyOptions для atmos/camo. Необхідно встановити спільний ключ."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -4905,7 +4905,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "Неправильні AutocompleteData"
   },
   {
     "id": "model.channel.is_valid.name.app_error",
@@ -5013,11 +5013,11 @@
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
+    "translation": "Не вдалося закрити індекс користувача."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
+    "translation": "Не вдалося закрити індекс допису."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
@@ -5045,15 +5045,15 @@
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
+    "translation": "Не вдалося очистити індекси користувача."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
+    "translation": "Не вдалося очистити індекси дописів."
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
+    "translation": "Не вдалося очистити індекси каналу."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -5069,15 +5069,15 @@
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
+    "translation": "Не вдалося запустити завдання індексації Bleve: механізм неактивний."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
+    "translation": "Не вдалося проіндексувати пакет користувачів."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
+    "translation": "Не вдалося проіндексувати пакет дописів."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
@@ -5149,7 +5149,7 @@
   },
   {
     "id": "app.terms_of_service.create.existing.app_error",
-    "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
+    "translation": "Не можна викликати збереження для існуючих Умов використання."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -5161,11 +5161,11 @@
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Не вдалося приєднатися до команди з обмеженням групи за токеном."
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Не вдалося приєднатися до команди з обмеженням групи за запрошенням."
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
@@ -5177,27 +5177,27 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Не вдалося згенерувати пакет веб-додатків плагіна."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Помилка читання локальної папки плагінів."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Помилка читання файлів з теки плагінів у файловому сховищі."
   },
   {
     "id": "app.plugin.store_signature.app_error",
-    "translation": "Unable to store the plugin signature to the configured file store."
+    "translation": "Не вдалося зберегти підпис плагіна в налаштованому сховищі файлів."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Не вдалося зберегти плагін до налаштованого файлового сховища."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
-    "translation": "Unable to decode base64 signature."
+    "translation": "Не вдалося розшифрувати підпис у форматі base64."
   },
   {
     "id": "app.plugin.restart.app_error",
@@ -5205,11 +5205,11 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Не вдається видалити пакет плагінів з файлового сховища."
   },
   {
     "id": "app.plugin.modify_saml.app_error",
-    "translation": "Can't modify saml files."
+    "translation": "Не вдалось модифікувати saml-файли."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -5217,15 +5217,15 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin signature."
+    "translation": "Не вдалося знайти запитуваний підпис плагіна із Магазина плагінів."
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "Не вдалося знайти запитуваний плагін із Магазину плагінів."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "Failed to decode the marketplace plugin request."
+    "translation": "Не вдалося розшифрувати запит на плагін із маркетплейсу."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
@@ -6237,7 +6237,7 @@
   },
   {
     "id": "app.system.get_by_name.app_error",
-    "translation": "Не вдається знайти системну змінну."
+    "translation": "Не вдалося знайти системну змінну."
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6457,7 +6457,7 @@
   },
   {
     "id": "app.team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user."
+    "translation": "Не вдається отримати список Команд користувача."
   },
   {
     "id": "app.team.get_members.app_error",
@@ -6561,7 +6561,7 @@
   },
   {
     "id": "app.post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound."
+    "translation": "Неможливо отримати повідомлення після вказаного часу."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
