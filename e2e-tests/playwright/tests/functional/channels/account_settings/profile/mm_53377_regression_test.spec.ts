@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@e2e-support/test_fixture';
+import {createRandomUser} from '@e2e-support/server';
 
-test.fixme('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw, pages}) => {
+test('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw, pages}) => {
     // # Initialize with specific config and get admin client
-    const {user, adminClient, team} = await pw.initSetup({
-        adminConfig: {
-            PrivacySettings: {
-                ShowEmailAddress: false,
-                ShowFullName: false,
-            },
+    const {user, adminClient, team} = await pw.initSetup();
+
+    adminClient.patchConfig({
+        PrivacySettings: {
+            ShowEmailAddress: false,
+            ShowFullName: false,
         },
-    });
+    })
 
     // # Create and add another user using admin client
-    const testUser2 = await adminClient.createUser();
+    const testUser2 = await adminClient.createUser(createRandomUser(), '', '');
     await adminClient.addToTeam(team.id, testUser2.id);
 
     // # Log in as user in new browser context
@@ -40,7 +41,7 @@ test.fixme('MM-T53377 Profile popover should show correct fields after at-mentio
     await expect(popover.container.getByText(user.email)).toBeVisible();
 
     // # Close profile popover
-    await channelPage.channelHeader.click();
+    await popover.close()
 
     // # Open profile popover for other user
     const secondMention = channelPage.centerView.container.getByText(`@${testUser2.username}`, {exact: true});
@@ -51,6 +52,9 @@ test.fixme('MM-T53377 Profile popover should show correct fields after at-mentio
     await expect(popover.container.getByText(`${testUser2.first_name} ${testUser2.last_name}`)).not.toBeVisible();
     await expect(popover.container.getByText(testUser2.email)).not.toBeVisible();
 
+    // # Close profile popover
+    await popover.close()
+
     // # Trigger autocomplete
     await channelPage.centerView.postCreate.writeMessage(`@${user.username}`);
 
@@ -59,7 +63,7 @@ test.fixme('MM-T53377 Profile popover should show correct fields after at-mentio
     await expect(suggestionList.getByText(`@${user.username}`)).toBeVisible();
 
     // # Clear textbox
-    await channelPage.centerView.postCreate.clearMessage();
+    await channelPage.centerView.postCreate.writeMessage('');
 
     // # Open profile popover for current user again
     await firstMention.click();
