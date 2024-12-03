@@ -10418,5 +10418,9 @@
   {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Onbekend Kanaal"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Kan post niet in cache plaatsen na ontdubbelen van een client die hetzelfde verzoek herhaalt."
   }
 ]
