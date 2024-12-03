@@ -118,7 +118,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         let themeChanged = this.state.theme.length === theme.length;
         if (!themeChanged) {
             for (const field in theme) {
-                if (theme.hasOwnProperty(field)) {
+                if (Object.hasOwn(theme, field)) {
                     if (this.state.theme[field] !== theme[field]) {
                         themeChanged = true;
                         break;
