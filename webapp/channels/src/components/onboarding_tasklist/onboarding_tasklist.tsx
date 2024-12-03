@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, useCallback, useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
@@ -161,6 +161,8 @@ const Skeleton = styled.div`
 `;
 
 const OnBoardingTaskList = (): JSX.Element | null => {
+    const intl = useIntl();
+
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
     useEffect(() => {
@@ -332,7 +334,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             <Skeleton>
                                 <img
                                     src={checklistImg}
-                                    alt={'On Boarding video'}
+                                    alt={intl.formatMessage({id: 'onboardingTask.checklist.video_thumbnail', defaultMessage: 'Mattermost overview video thumbnail'})}
                                     style={{display: 'block', margin: '1rem auto', borderRadius: '4px'}}
                                 />
                                 <PlayButton

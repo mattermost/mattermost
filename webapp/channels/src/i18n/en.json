@@ -4562,6 +4562,7 @@
   "onboardingTask.checklist.task_learn_more_about_messaging": "Take a tour of Channels.",
   "onboardingTask.checklist.task_start_enterprise_trial": "Learn more about Enterprise-level high-security features.",
   "onboardingTask.checklist.task_visit_system_console": "Visit the System Console to configure your workspace.",
+  "onboardingTask.checklist.video_thumbnail": "Mattermost overview video thumbnail",
   "onboardingTask.checklist.video_title": "Watch overview",
   "onboardingTask.checklist.video_title_full": "Mattermost overview video",
   "onboardingTask.completeYourProfileTour.Description": "Use this menu item to update your profile details and security settings.",
