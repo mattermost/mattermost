@@ -3421,7 +3421,7 @@
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": "Id client invalide"
+    "translation": "ID client invalide."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
@@ -3441,7 +3441,7 @@
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Id client invalide"
+    "translation": "ID client invalide."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
@@ -5641,7 +5641,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "Ce point de terminaison nécessite une origine de requête locale."
+    "translation": "Ce nœud nécessite une origine de requête locale."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
@@ -8305,7 +8305,7 @@
   },
   {
     "id": "api.license_error",
-    "translation": "le point de terminaison API nécessite une licence"
+    "translation": "le nœud API nécessite une licence"
   },
   {
     "id": "app.user.update_update.app_error",
@@ -8950,5 +8950,9 @@
   {
     "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
     "translation": "Mise à jour des membres de canal invalides : un invité ne peut pas être défini pour un seul canal, un administrateur système doit promouvoir ou rétrograder les utilisateurs en tant que/du statut d'invité."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "ID client invalide."
   }
 ]
