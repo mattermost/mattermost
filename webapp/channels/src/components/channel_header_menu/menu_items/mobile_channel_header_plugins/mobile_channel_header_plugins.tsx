@@ -26,7 +26,7 @@ type Props = {
     channel: Channel;
 }
 
-const MobileChannelHeaderPlug = (props: Props): JSX.Element => {
+const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
     const mobileComponents = useSelector(getChannelMobileHeaderPluginButtons);
     const channelMember = useSelector(getMyCurrentChannelMembership);
     const intl = useIntl();
@@ -45,10 +45,12 @@ const MobileChannelHeaderPlug = (props: Props): JSX.Element => {
             );
         }
         return (
-            <Menu.Item
-                id={binding.app_id + binding.location}
-                onClick={onClick}
-                labels={
+            <li className='flex-parent--center'>
+                <button
+                    id={`${binding.app_id}_${binding.location}`}
+                    className='navbar-toggle navbar-right__icon'
+                    onClick={onClick}
+                >
                     <span className='icon navbar-plugin-button'>
                         <img
                             src={binding.icon}
@@ -56,8 +58,8 @@ const MobileChannelHeaderPlug = (props: Props): JSX.Element => {
                             height='16'
                         />
                     </span>
-                }
-            />
+                </button>
+            </li>
         );
     };
 
@@ -74,11 +76,16 @@ const MobileChannelHeaderPlug = (props: Props): JSX.Element => {
         }
 
         return (
-            <Menu.Item
-                id={'mobileChannelHeaderItem' + plug.id}
-                onClick={onClick}
-                labels={<span className='icon navbar-plugin-button'>{plug.icon}</span>}
-            />
+            <li className='flex-parent--center'>
+                <button
+                    className='navbar-toggle navbar-right__icon'
+                    onClick={onClick}
+                >
+                    <span className='icon navbar-plugin-button'>
+                        {plug.icon}
+                    </span>
+                </button>
+            </li>
         );
     };
 
@@ -168,6 +175,6 @@ const MobileChannelHeaderPlug = (props: Props): JSX.Element => {
 };
 
 // Exported for tests
-export {MobileChannelHeaderPlug as RawMobileChannelHeaderPlug};
+export {MobileChannelHeaderPlugins as RawMobileChannelHeaderPlug};
 
-export default memo(MobileChannelHeaderPlug);
+export default memo(MobileChannelHeaderPlugins);

@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
+// import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 
 import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
@@ -17,20 +17,15 @@ import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 
 import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
+import MobileChannelHeaderPlug from '../channel_header_menu/menu_items/mobile_channel_header_plugins/mobile_channel_header_plugins';
 
 type Props = {
     channel?: Channel;
-
-    /**
-     * Relative url for the team, used to redirect if a link in the channel header is clicked
-     */
-    currentRelativeTeamUrl?: string;
 
     inGlobalThreads?: boolean;
     inDrafts?: boolean;
     isMobileView: boolean;
     isMuted?: boolean;
-    isReadOnly?: boolean;
     isRHSOpen?: boolean;
     user: UserProfile;
     actions: {
