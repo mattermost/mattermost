@@ -4,8 +4,11 @@
 package platform
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +17,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
@@ -107,6 +112,56 @@ func TestGenerateSupportPacket(t *testing.T) {
 		rFileNames := getFileNames(t, fileDatas)
 
 		assert.ElementsMatch(t, expectedFileNames, rFileNames)
+	})
+
+	t.Run("with advanced logs", func(t *testing.T) {
+		optLDAP := map[string]string{
+			"filename": path.Join(dir, "ldap.log"),
+		}
+		dataLDAP, err := json.Marshal(optLDAP)
+		require.NoError(t, err)
+
+		cfg := mlog.LoggerConfiguration{
+			"ldap-file": mlog.TargetCfg{
+				Type:   "file",
+				Format: "json",
+				Levels: []mlog.Level{
+					mlog.LvlLDAPError,
+					mlog.LvlLDAPWarn,
+					mlog.LvlLDAPInfo,
+					mlog.LvlLDAPDebug,
+				},
+				Options: dataLDAP,
+			},
+		}
+		cfgData, err := json.Marshal(cfg)
+		require.NoError(t, err)
+
+		th.Service.UpdateConfig(func(c *model.Config) {
+			c.LogSettings.AdvancedLoggingJSON = cfgData
+		})
+
+		th.Service.Logger().LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
+		err = th.Service.Logger().Flush()
+		require.NoError(t, err)
+
+		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: true,
+		})
+		require.NoError(t, err)
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.ElementsMatch(t, append(expectedFileNamesWithLogs, "ldap.log"), rFileNames)
+
+		found := false
+		for _, fileData := range fileDatas {
+			if fileData.Filename == "ldap.log" {
+				testlib.AssertLog(t, bytes.NewBuffer(fileData.Body), mlog.LvlLDAPInfo.Name, "Some LDAP info")
+				found = true
+				break
+			}
+		}
+		assert.True(t, found)
 	})
 }
 

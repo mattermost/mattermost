@@ -57,6 +57,18 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 		}
 	}
 
+	if options != nil && options.IncludeLogs {
+		advancedLogs, err := ps.GetAdvancedLogs(rctx)
+		if err != nil {
+			rctx.Logger().Error("Failed to read advanced log files for Support Packet", mlog.Err(err))
+			rErr = multierror.Append(rErr, err)
+		}
+
+		for _, log := range advancedLogs {
+			fileDatas = append(fileDatas, *log)
+		}
+	}
+
 	return fileDatas, rErr.ErrorOrNil()
 }
 
