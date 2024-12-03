@@ -431,8 +431,15 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 
 		require.Len(t, permissions.Schemes, 1)
 		require.Len(t, permissions.Roles, 34) // 23 default roles + 10 custom roles from the scheme + 1 custom role
-		assert.Equal(t, scheme.Id, permissions.Roles[33].Id)
-		assert.Equal(t, scheme.Name, permissions.Roles[33].Name)
+		found := false
+		for _, p := range permissions.Roles {
+			if p.Id == scheme.Id {
+				found = true
+				assert.Equal(t, scheme.Name, p.Name)
+				break
+			}
+		}
+		assert.True(t, found)
 	})
 }
 
