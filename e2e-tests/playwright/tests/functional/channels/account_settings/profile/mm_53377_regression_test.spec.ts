@@ -13,7 +13,7 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
             ShowEmailAddress: false,
             ShowFullName: false,
         },
-    })
+    });
 
     // # Create and add another user using admin client
     const testUser2 = await adminClient.createUser(createRandomUser(), '', '');
@@ -41,7 +41,7 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     await expect(popover.container.getByText(user.email)).toBeVisible();
 
     // # Close profile popover
-    await popover.close()
+    await popover.close();
 
     // # Open profile popover for other user
     const secondMention = channelPage.centerView.container.getByText(`@${testUser2.username}`, {exact: true});
@@ -53,7 +53,7 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     await expect(popover.container.getByText(testUser2.email)).not.toBeVisible();
 
     // # Close profile popover
-    await popover.close()
+    await popover.close();
 
     // # Trigger autocomplete
     await channelPage.centerView.postCreate.writeMessage(`@${user.username}`);

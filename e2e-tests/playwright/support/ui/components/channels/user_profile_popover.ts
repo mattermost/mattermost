@@ -15,9 +15,8 @@ export default class UserProfilePopover {
     }
 
     async close() {
-        await this.container.getByLabel("Close user profile popover").click();
+        await this.container.getByLabel('Close user profile popover').click();
     }
 }
 
 export {UserProfilePopover};
-
