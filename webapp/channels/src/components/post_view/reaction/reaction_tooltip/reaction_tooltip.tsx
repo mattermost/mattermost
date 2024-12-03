@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import WithTooltip from 'components/with_tooltip';
+import Tooltip from 'components/tooltip';
 
 type Props = {
     canAddReactions: boolean;
@@ -14,7 +14,6 @@ type Props = {
     children: React.ReactNode;
     currentUserReacted: boolean;
     emojiName: string;
-    id: string;
     onShow: () => void;
     reactions: ReactionType[];
     users: string[];
@@ -27,7 +26,6 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         children,
         currentUserReacted,
         emojiName,
-        id,
         onShow,
         reactions,
         users,
@@ -101,7 +99,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         });
     }
 
-    const tooltip = intl.formatMessage(
+    const tooltipTitle = intl.formatMessage(
         {
             id: 'reaction.reacted',
             defaultMessage: '{users} {reactionVerb} with {emoji}',
@@ -113,31 +111,31 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         },
     );
 
-    let clickTooltip;
+    let tooltipHint;
     if (currentUserReacted && canRemoveReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToRemove',
             defaultMessage: '(click to remove)',
         });
     } else if (!currentUserReacted && canAddReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToAdd',
             defaultMessage: '(click to add)',
         });
     }
 
     return (
-        <WithTooltip
-            id={id}
-            emoji={emojiName}
-            emojiStyle='large'
-            placement='top'
-            title={tooltip}
-            hint={clickTooltip}
-            onShow={onShow}
+        <Tooltip
+            emoticon={emojiName}
+            isEmoticonLarge={true}
+            title={tooltipTitle}
+            hint={tooltipHint}
+            options={{
+                onChange: onShow,
+            }}
         >
             {children}
-        </WithTooltip>
+        </Tooltip>
     );
 };
 

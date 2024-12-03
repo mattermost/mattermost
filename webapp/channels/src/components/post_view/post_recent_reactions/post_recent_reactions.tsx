@@ -9,7 +9,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import WithTooltip from 'components/with_tooltip';
+import Tooltip from 'components/tooltip';
 
 import {Locations} from 'utils/constants';
 
@@ -91,12 +91,10 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <WithTooltip
-                    id='post_info.emoji.tooltip'
+                <Tooltip
                     title={this.emojiName(emoji, this.props.locale)}
-                    emoji={getEmojiName(emoji)}
-                    emojiStyle='large'
-                    placement='top'
+                    emoticon={getEmojiName(emoji)}
+                    isEmoticonLarge={true}
                 >
                     <div>
                         <>
@@ -107,7 +105,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                             />
                         </>
                     </div>
-                </WithTooltip>
+                </Tooltip>
             </ChannelPermissionGate>
         ),
         );
