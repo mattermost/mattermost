@@ -25,12 +25,13 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
 import * as Menu from 'components/menu';
 
-import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
+// import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants} from 'utils/constants';
 
 import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
 import ChannelGroupMenu from './channel_header_menu_items/channel_header_group_menu';
 import ChannelPublicMenu from './channel_header_menu_items/channel_header_public_private_menu';
+import MobileChannelHeaderPlug from './menu_items/mobile_channel_header_plug/mobile_channel_header_plug';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
