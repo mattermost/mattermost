@@ -169,6 +169,7 @@
   "add_oauth_app.trusted.help": "Si activé, l'application OAuth 2.0 est considérée comme étant de confiance par le serveur Mattermost et ne nécessite pas l'approbation de l'utilisateur. Si désactivé, une fenêtre additionnelle apparaît et demande à l'utilisateur d'accepter ou de refuser son autorisation.",
   "add_oauth_app.url": "**URL(s)** : {url}",
   "add_outgoing_oauth_connection.add": "Ajouter",
+  "add_outgoing_oauth_connection.audienceUrls.help": "Les URLs qui recevront des requêtes avec le jeton OAuth, par exemple votre point de terminaison personnalisé pour les commandes slash. Elles doivent être des URLs valides commençant par http:// ou https://.",
   "add_outgoing_oauth_connection.audience_urls": "<b>URL(s) du champ Audience</b> : `{url}`",
   "add_outgoing_oauth_connection.cancel": "Annuler",
   "add_outgoing_oauth_connection.client_id.help": "Spécifiez l’ID du client pour la connexion OAuth.",
