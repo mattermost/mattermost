@@ -93,6 +93,7 @@
   "add_command.method.get": "GET",
   "add_command.method.help": "Spécifie le type de requête, POST ou GET, envoyé au nœud de sortie par Mattermost pour atteindre votre application.",
   "add_command.method.post": "POST",
+  "add_command.outgoing_oauth_connections.help_text": "Vous pouvez connecter des commandes aux <link>connexions sortantes OAuth</link>.",
   "add_command.save": "Enregistrer",
   "add_command.saving": "Sauvegarde en cours...",
   "add_command.token": "**Jeton** : {token}",
