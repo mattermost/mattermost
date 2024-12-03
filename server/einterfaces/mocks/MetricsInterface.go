@@ -303,29 +303,29 @@ func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method s
 	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
-// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, userID, elapsed
-func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, fresh string, userID string, elapsed float64) {
-	_m.Called(platform, agent, fresh, userID, elapsed)
+// ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
-// ObserveClientCumulativeLayoutShift provides a mock function with given fields: platform, agent, userID, elapsed
-func (_m *MetricsInterface) ObserveClientCumulativeLayoutShift(platform string, agent string, userID string, elapsed float64) {
-	_m.Called(platform, agent, userID, elapsed)
+// ObserveClientCumulativeLayoutShift provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientCumulativeLayoutShift(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientFirstContentfulPaint provides a mock function with given fields: platform, agent, userID, elapsed
-func (_m *MetricsInterface) ObserveClientFirstContentfulPaint(platform string, agent string, userID string, elapsed float64) {
-	_m.Called(platform, agent, userID, elapsed)
+// ObserveClientFirstContentfulPaint provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientFirstContentfulPaint(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, interaction, userID, elapsed
-func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, interaction string, userID string, elapsed float64) {
-	_m.Called(platform, agent, interaction, userID, elapsed)
+// ObserveClientInteractionToNextPaint provides a mock function with given fields: platform, agent, interaction, elapsed
+func (_m *MetricsInterface) ObserveClientInteractionToNextPaint(platform string, agent string, interaction string, elapsed float64) {
+	_m.Called(platform, agent, interaction, elapsed)
 }
 
-// ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, region, userID, elapsed
-func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string, agent string, region string, userID string, elapsed float64) {
-	_m.Called(platform, agent, region, userID, elapsed)
+// ObserveClientLargestContentfulPaint provides a mock function with given fields: platform, agent, region, elapsed
+func (_m *MetricsInterface) ObserveClientLargestContentfulPaint(platform string, agent string, region string, elapsed float64) {
+	_m.Called(platform, agent, region, elapsed)
 }
 
 // ObserveClientPageLoadDuration provides a mock function with given fields: platform, agent, userID, elapsed
@@ -333,9 +333,9 @@ func (_m *MetricsInterface) ObserveClientPageLoadDuration(platform string, agent
 	_m.Called(platform, agent, userID, elapsed)
 }
 
-// ObserveClientRHSLoadDuration provides a mock function with given fields: platform, agent, userID, elapsed
-func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent string, userID string, elapsed float64) {
-	_m.Called(platform, agent, userID, elapsed)
+// ObserveClientRHSLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveClientRHSLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
 // ObserveClientSplashScreenEnd provides a mock function with given fields: platform, agent, pageType, userID, elapsed
@@ -343,9 +343,9 @@ func (_m *MetricsInterface) ObserveClientSplashScreenEnd(platform string, agent 
 	_m.Called(platform, agent, pageType, userID, elapsed)
 }
 
-// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, fresh, userID, elapsed
-func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, fresh string, userID string, elapsed float64) {
-	_m.Called(platform, agent, fresh, userID, elapsed)
+// ObserveClientTeamSwitchDuration provides a mock function with given fields: platform, agent, fresh, elapsed
+func (_m *MetricsInterface) ObserveClientTeamSwitchDuration(platform string, agent string, fresh string, elapsed float64) {
+	_m.Called(platform, agent, fresh, elapsed)
 }
 
 // ObserveClientTimeToDomInteractive provides a mock function with given fields: platform, agent, userID, elapsed
@@ -388,19 +388,19 @@ func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
-// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, userID, elapsed
-func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, userID string, elapsed float64) {
-	_m.Called(platform, agent, userID, elapsed)
+// ObserveGlobalThreadsLoadDuration provides a mock function with given fields: platform, agent, elapsed
+func (_m *MetricsInterface) ObserveGlobalThreadsLoadDuration(platform string, agent string, elapsed float64) {
+	_m.Called(platform, agent, elapsed)
 }
 
-// ObserveMobileClientChannelSwitchDuration provides a mock function with given fields: platform, userID, elapsed
-func (_m *MetricsInterface) ObserveMobileClientChannelSwitchDuration(platform string, userID string, elapsed float64) {
-	_m.Called(platform, userID, elapsed)
+// ObserveMobileClientChannelSwitchDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
 }
 
-// ObserveMobileClientLoadDuration provides a mock function with given fields: platform, userID, elapsed
-func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, userID string, elapsed float64) {
-	_m.Called(platform, userID, elapsed)
+// ObserveMobileClientLoadDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
 }
 
 // ObserveMobileClientSessionMetadata provides a mock function with given fields: version, platform, value, notificationDisabled
@@ -408,9 +408,9 @@ func (_m *MetricsInterface) ObserveMobileClientSessionMetadata(version string, p
 	_m.Called(version, platform, value, notificationDisabled)
 }
 
-// ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, userID, elapsed
-func (_m *MetricsInterface) ObserveMobileClientTeamSwitchDuration(platform string, userID string, elapsed float64) {
-	_m.Called(platform, userID, elapsed)
+// ObserveMobileClientTeamSwitchDuration provides a mock function with given fields: platform, elapsed
+func (_m *MetricsInterface) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	_m.Called(platform, elapsed)
 }
 
 // ObservePluginAPIDuration provides a mock function with given fields: pluginID, apiName, success, elapsed

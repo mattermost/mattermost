@@ -205,20 +205,20 @@ type MetricsInterfaceImpl struct {
 	ClientTimeToLastByte            *HistogramVec
 	ClientTimeToDOMInteractive      *HistogramVec
 	ClientSplashScreenEnd           *HistogramVec
-	ClientFirstContentfulPaint      *HistogramVec
-	ClientLargestContentfulPaint    *HistogramVec
-	ClientInteractionToNextPaint    *HistogramVec
-	ClientCumulativeLayoutShift     *HistogramVec
+	ClientFirstContentfulPaint      *prometheus.HistogramVec
+	ClientLargestContentfulPaint    *prometheus.HistogramVec
+	ClientInteractionToNextPaint    *prometheus.HistogramVec
+	ClientCumulativeLayoutShift     *prometheus.HistogramVec
 	ClientLongTasks                 *prometheus.CounterVec
 	ClientPageLoadDuration          *HistogramVec
-	ClientChannelSwitchDuration     *HistogramVec
-	ClientTeamSwitchDuration        *HistogramVec
-	ClientRHSLoadDuration           *HistogramVec
-	ClientGlobalThreadsLoadDuration *HistogramVec
+	ClientChannelSwitchDuration     *prometheus.HistogramVec
+	ClientTeamSwitchDuration        *prometheus.HistogramVec
+	ClientRHSLoadDuration           *prometheus.HistogramVec
+	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
 
-	MobileClientLoadDuration          *HistogramVec
-	MobileClientChannelSwitchDuration *HistogramVec
-	MobileClientTeamSwitchDuration    *HistogramVec
+	MobileClientLoadDuration          *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
@@ -1227,7 +1227,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientSplashScreenEnd)
 
-	m.ClientFirstContentfulPaint = NewHistogramVec(
+	m.ClientFirstContentfulPaint = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1238,11 +1238,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientFirstContentfulPaint)
 
-	m.ClientLargestContentfulPaint = NewHistogramVec(
+	m.ClientLargestContentfulPaint = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1253,11 +1252,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
 		[]string{"platform", "agent", "region"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientLargestContentfulPaint)
 
-	m.ClientInteractionToNextPaint = NewHistogramVec(
+	m.ClientInteractionToNextPaint = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1265,11 +1263,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (seconds)",
 		},
 		[]string{"platform", "agent", "interaction"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientInteractionToNextPaint)
 
-	m.ClientCumulativeLayoutShift = NewHistogramVec(
+	m.ClientCumulativeLayoutShift = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1277,7 +1274,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Measure of how much a page's content shifts unexpectedly",
 		},
 		[]string{"platform", "agent"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientCumulativeLayoutShift)
 
@@ -1305,7 +1301,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientPageLoadDuration)
 
-	m.ClientChannelSwitchDuration = NewHistogramVec(
+	m.ClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1313,11 +1309,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
 		},
 		[]string{"platform", "agent", "fresh"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientChannelSwitchDuration)
 
-	m.ClientTeamSwitchDuration = NewHistogramVec(
+	m.ClientTeamSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1325,11 +1320,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
 		},
 		[]string{"platform", "agent", "fresh"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
 
-	m.ClientRHSLoadDuration = NewHistogramVec(
+	m.ClientRHSLoadDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1337,11 +1331,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (seconds)",
 		},
 		[]string{"platform", "agent"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientRHSLoadDuration)
 
-	m.ClientGlobalThreadsLoadDuration = NewHistogramVec(
+	m.ClientGlobalThreadsLoadDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1349,11 +1342,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration of the time taken from when a user clicks to open Threads in the LHS until when the global threads view becomes visible (milliseconds)",
 		},
 		[]string{"platform", "agent"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
 
-	m.MobileClientLoadDuration = NewHistogramVec(
+	m.MobileClientLoadDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
@@ -1362,11 +1354,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets:   []float64{1, 1.5, 2, 3, 4, 4.5, 5, 5.5, 6, 7.5, 10, 20, 25, 30},
 		},
 		[]string{"platform"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
 
-	m.MobileClientChannelSwitchDuration = NewHistogramVec(
+	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
@@ -1375,11 +1366,10 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets:   []float64{0.150, 0.200, 0.300, 0.400, 0.450, 0.500, 0.550, 0.600, 0.750, 1, 2, 3},
 		},
 		[]string{"platform"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.MobileClientChannelSwitchDuration)
 
-	m.MobileClientTeamSwitchDuration = NewHistogramVec(
+	m.MobileClientTeamSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
@@ -1388,7 +1378,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets:   []float64{0.150, 0.200, 0.250, 0.300, 0.350, 0.400, 0.500, 0.750, 1, 2, 3},
 		},
 		[]string{"platform"},
-		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.MobileClientTeamSwitchDuration)
 
@@ -1902,20 +1891,20 @@ func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pa
 	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent, userID string, elapsed float64) {
-	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
+	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region, userID string, elapsed float64) {
-	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64) {
+	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction, userID string, elapsed float64) {
-	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64) {
+	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent, userID string, elapsed float64) {
-	mi.ClientCumulativeLayoutShift.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64) {
+	mi.ClientCumulativeLayoutShift.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string, inc float64) {
@@ -1929,20 +1918,20 @@ func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent, u
 	}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh, userID string, elapsed float64) {
-	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh, userID string, elapsed float64) {
-	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh string, elapsed float64) {
+	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent, userID string, elapsed float64) {
-	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent, userID string, elapsed float64) {
-	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
+	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
@@ -1953,16 +1942,16 @@ func (mi *MetricsInterfaceImpl) ObserveDesktopMemoryUsage(platform, version, pro
 	mi.DesktopClientMemoryUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform, userID string, elapsed float64) {
-	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
+	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform, userID string, elapsed float64) {
-	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform, userID string, elapsed float64) {
-	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}, userID).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64) {
+	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.enterprise for license information.
+
 package metrics
 
 import (
@@ -21,7 +24,6 @@ func TestWrappedObserver(t *testing.T) {
 		Name:      "test",
 		Buckets:   []float64{0, 5, 10},
 	}, []string{"l1"}, th.TestLogger)
-
 
 	h.With(prometheus.Labels{"l1": "hello"}, th.BasicUser.Id).Observe(6)
 	require.NoError(t, th.TestLogger.Flush())
