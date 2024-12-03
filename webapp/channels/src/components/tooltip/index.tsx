@@ -32,6 +32,7 @@ const ARROW_WIDTH = 10;
 const ARROW_HEIGHT = 6;
 const ARROW_OFFSET = 8;
 
+const TOOLTIP_REST_TIME_BEFORE_OPEN = 100;
 const TOOLTIP_APPEAR_DURATION = 250;
 const TOOLTIP_DISAPPEAR_DURATION = 200;
 
@@ -119,7 +120,7 @@ function Tooltip(props: Props) {
     });
 
     const hover = useHover(context, {
-        restMs: Constants.TOOLTIP_REST_TIME_BEFORE_OPEN,
+        restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
         delay: {
             open: Constants.OVERLAY_TIME_DELAY,
         },
