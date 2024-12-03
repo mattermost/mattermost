@@ -155,6 +155,8 @@ func TestGetAdvancedLogs(t *testing.T) {
 	})
 	th.Service.Logger().LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
 	th.Service.Logger().Error("Some Error")
+	err = th.Service.Logger().Flush()
+	require.NoError(t, err)
 
 	fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
 	require.NoError(t, err)

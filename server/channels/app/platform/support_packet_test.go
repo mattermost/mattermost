@@ -142,6 +142,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		th.Service.Logger().LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
+		err = th.Service.Logger().Flush()
+		require.NoError(t, err)
 
 		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
 			IncludeLogs: true,
