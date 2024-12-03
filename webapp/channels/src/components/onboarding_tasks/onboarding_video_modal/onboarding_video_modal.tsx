@@ -3,12 +3,14 @@
 
 import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from '../constants';
+
 import './onboarding_video_modal.scss';
 
 type Props = {
@@ -16,6 +18,8 @@ type Props = {
 }
 
 const OnBoardingVideoModal = ({onExited}: Props) => {
+    const intl = useIntl();
+
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
@@ -54,6 +58,7 @@ const OnBoardingVideoModal = ({onExited}: Props) => {
                     scrolling='no'
                     className='wistia_embed'
                     name='wistia_embed'
+                    title={intl.formatMessage({id: 'onboardingTask.checklist.video_title_full', defaultMessage: 'Mattermost overview video'})}
                     allowFullScreen={true}
                 />
             </Modal.Body>
