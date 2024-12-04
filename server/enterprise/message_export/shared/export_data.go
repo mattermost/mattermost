@@ -17,10 +17,8 @@ const (
 )
 
 type PostExport struct {
-	MessageId string   // the message id in the db
-	UserEmail string   // the email of the person that sent the post
-	UserType  UserType // the type of the person that sent the post: "user" or "bot"
-	CreateAt  int64    // utc timestamp (unix milliseconds), the post's createAt
+	model.MessageExport          // the MessageExport that this PostExport is providing more information for
+	UserType            UserType // the type of the person that sent the post: "user" or "bot"
 
 	// Allows us to differentiate between:
 	// - "EditedOriginalMsg": the newly created message (new Id), which holds the pre-edited message contents. The
@@ -39,24 +37,24 @@ type PostExport struct {
 
 	// when a message is edited, the EditedOriginalMsg points to the message Id that now has the newly edited message.
 	EditedNewMsgId string
-	Message        string // the text body of the post
-	PreviewsPost   string // the post id of the post that is previewed by the permalink preview feature
+	Message        string          // the text body of the post
+	PreviewsPost   string          // the post id of the post that is previewed by the permalink preview feature
+	FileInfo       *model.FileInfo // if this was a file-related PostExport, FileInfo will contain that info. Otherwise, nil.
 }
 
 type FileUploadStartExport struct {
-	UserEmail       string // the email of the person that sent the file
-	UploadStartTime int64  // utc timestamp (seconds), time at which the user started the upload. Example: 1366611728
-	Filename        string // the name of the file that was uploaded
-	FilePath        string // the path to the file, as stored on the server
+	model.MessageExport        // the post that this upload was attached to
+	UserEmail           string // the email of the person that sent the file
+	UploadStartTime     int64  // utc timestamp (seconds), time at which the user started the upload. Example: 1366611728
+	FileInfo            *model.FileInfo
 }
 
 type FileUploadStopExport struct {
-	UserEmail      string // the email of the person that sent the file
-	UploadStopTime int64  // utc timestamp (seconds), time at which the user finished the upload. Example: 1366611728
-	Filename       string // the name of the file that was uploaded
-	FilePath       string // the path to the file, as stored on the server
-	Status         string // set to either "Completed" or "Failed" depending on the outcome of the upload operation
-	CreateAt       int64  // for sorting
+	model.MessageExport        // the post that this upload was attached to
+	UserEmail           string // the email of the person that sent the file
+	UploadStopTime      int64  // utc timestamp (seconds), time at which the user finished the upload. Example: 1366611728
+	Status              string // set to either "Completed" or "Failed" depending on the outcome of the upload operation
+	FileInfo            *model.FileInfo
 }
 
 type ChannelExport struct {
@@ -73,31 +71,44 @@ type ChannelExport struct {
 	UploadStops  []*FileUploadStopExport
 	JoinEvents   []JoinExport  // start with a list of all users who were present in the channel during the export period
 	LeaveEvents  []LeaveExport // finish with a list of all users who were present in the channel during the export period
+
+	// Used by csv, ignored by others
+	TeamId          string
+	TeamName        string
+	TeamDisplayName string
 }
 
 type JoinExport struct {
+	UserId    string
+	Username  string
 	UserEmail string   // the email of the person that joined the channel
 	UserType  UserType // the type of the user that joined the channel
 	JoinTime  int64    // utc timestamp (seconds), time at which the user joined. Example: 1366611728
 }
 
 type LeaveExport struct {
+	UserId    string
+	Username  string
 	UserEmail string   // the email of the person that left the channel
 	UserType  UserType // the type of the user that left the channel
 	LeaveTime int64    // utc timestamp (seconds), time at which the user left. Example: 1366611728
+
+	// ClosedOut indicates this is a "leave" event created by closing out the channel at the end of an export period.
+	// Actiance requires all users to be closed out at the end of an export period (each join has a matching leave).
+	ClosedOut bool
 }
 
 // GetGenericExportData assembles all the data in an exportType-agnostic way. Each exportType will process this data into
 // the specific format they need to export.
-func GetGenericExportData(p ExportParams) ([]ChannelExport, RunExportResults, error) {
+func GetGenericExportData(p ExportParams) ([]ChannelExport, Metadata, RunExportResults, error) {
 	// postAuthorsByChannel is a map so that we don't store duplicate authors
 	postAuthorsByChannel := make(map[string]map[string]ChannelMember)
 	metadata := Metadata{
 		Channels:         p.ChannelMetadata,
 		MessagesCount:    0,
 		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
+		StartTime:        p.BatchStartTime,
+		EndTime:          p.BatchEndTime,
 	}
 
 	var results RunExportResults
@@ -108,7 +119,7 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, RunExportResults, er
 	uploadStopsByChannel := make(map[string][]*FileUploadStopExport)
 	deletedFilesByChannel := make(map[string][]PostExport)
 
-	for i, post := range p.Posts {
+	for _, post := range p.Posts {
 		channelId := *post.ChannelId
 		channelsInThisBatch[channelId] = true
 
@@ -120,20 +131,23 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, RunExportResults, er
 			postsByChannel[channelId] = append(postsByChannel[channelId], createdPostToExportEntry(post))
 		}
 		var postExport PostExport
-		postExport, results = getPostExport(p.Posts, i, results)
+		postExport, results = getPostExport(post, results)
 		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 
 		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
 		if err != nil {
-			return nil, results, err
+			return nil, Metadata{}, results, err
 		}
 		uploadStartsByChannel[channelId] = append(uploadStartsByChannel[channelId], startUploads...)
 		uploadStopsByChannel[channelId] = append(uploadStopsByChannel[channelId], stopUploads...)
 		deletedFilesByChannel[channelId] = append(deletedFilesByChannel[channelId], deleteFileMessages...)
 		filesByChannel[channelId] = append(filesByChannel[channelId], uploadedFiles...)
 
+		results.UploadedFiles += len(uploadStartsByChannel[channelId])
+		results.DeletedFiles += len(deletedFilesByChannel[channelId])
+
 		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
-			return nil, results, err
+			return nil, Metadata{}, results, err
 		}
 
 		if _, ok := postAuthorsByChannel[channelId]; !ok {
@@ -166,23 +180,26 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, RunExportResults, er
 			p.ChannelMemberHistories[id], postAuthorsByChannel[id])
 
 		channelExports = append(channelExports, ChannelExport{
-			ChannelId:    c.ChannelId,
-			ChannelType:  c.ChannelType,
-			ChannelName:  c.ChannelName,
-			DisplayName:  c.ChannelDisplayName,
-			StartTime:    p.BatchStartTime,
-			EndTime:      p.BatchEndTime,
-			Posts:        postsByChannel[id],
-			Files:        filesByChannel[id],
-			DeletedFiles: deletedFilesByChannel[id],
-			UploadStarts: uploadStartsByChannel[id],
-			UploadStops:  uploadStopsByChannel[id],
-			JoinEvents:   joinEvents,
-			LeaveEvents:  leaveEvents,
+			ChannelId:       c.ChannelId,
+			ChannelType:     c.ChannelType,
+			ChannelName:     c.ChannelName,
+			DisplayName:     c.ChannelDisplayName,
+			StartTime:       p.BatchStartTime,
+			EndTime:         p.BatchEndTime,
+			Posts:           postsByChannel[id],
+			Files:           filesByChannel[id],
+			DeletedFiles:    deletedFilesByChannel[id],
+			UploadStarts:    uploadStartsByChannel[id],
+			UploadStops:     uploadStopsByChannel[id],
+			JoinEvents:      joinEvents,
+			LeaveEvents:     leaveEvents,
+			TeamId:          model.SafeDereference(c.TeamId),
+			TeamName:        model.SafeDereference(c.TeamName),
+			TeamDisplayName: model.SafeDereference(c.TeamDisplayName),
 		})
 	}
 
-	return channelExports, results, nil
+	return channelExports, metadata, results, nil
 }
 
 // postToAttachmentsEntries returns every fileInfo as uploadedFiles. It also adds each file into the lists:
@@ -205,28 +222,28 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore) 
 		// path to exported file is relative to the fileAttachmentFilestore root,
 		// which could be different from the exportFilestore root
 		startUploads = append(startUploads, &FileUploadStartExport{
+			MessageExport:   *post,
 			UserEmail:       *post.UserEmail,
-			Filename:        fileInfo.Name,
-			FilePath:        fileInfo.Path,
 			UploadStartTime: *post.PostCreateAt,
+			FileInfo:        fileInfo,
 		})
 
 		stopUploads = append(stopUploads, &FileUploadStopExport{
+			MessageExport:  *post,
 			UserEmail:      *post.UserEmail,
-			Filename:       fileInfo.Name,
-			FilePath:       fileInfo.Path,
 			UploadStopTime: *post.PostCreateAt,
 			Status:         "Completed",
+			FileInfo:       fileInfo,
 		})
 
-		if fileInfo.DeleteAt > 0 && post.PostDeleteAt != nil {
-			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, "delete "+fileInfo.Path))
+		if fileInfo.DeleteAt > 0 {
+			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, fileInfo))
 		}
 	}
 	return
 }
 
-func getPostExport(posts []*model.MessageExport, i int, results RunExportResults) (PostExport, RunExportResults) {
+func getPostExport(post *model.MessageExport, results RunExportResults) (PostExport, RunExportResults) {
 	// We have three "kinds" of posts:
 	// (using "1" and "2" for simplicity)
 	// - created:                         Id = new,  CreateAt = 1,    UpdateAt = 1, DeleteAt = 0
@@ -237,7 +254,6 @@ func getPostExport(posts []*model.MessageExport, i int, results RunExportResults
 	// We also have other ways for a post to be updated:
 	//  - a root post in a thread is replied to, when a reply is edited, or (as of 10.2) when a reply is deleted
 
-	post := posts[i]
 	if isEditedOriginalMsg(post) {
 		// Post has been edited. This is the original message.
 		results.EditedOrigMsgPosts++
@@ -273,6 +289,8 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 	type StillJoinedInfo struct {
 		time     int64
 		userType UserType
+		userId   string
+		username string
 	}
 	stillJoined := map[string]StillJoinedInfo{}
 	for _, join := range joins {
@@ -281,14 +299,16 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 			userType = Bot
 		}
 		joinEvents = append(joinEvents, JoinExport{
+			UserId:    join.UserId,
+			Username:  join.Username,
 			UserEmail: join.Email,
 			JoinTime:  join.Datetime,
 			UserType:  userType,
 		})
 		if value, ok := stillJoined[join.Email]; !ok {
-			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType}
+			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
 		} else if join.Datetime > value.time {
-			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType}
+			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
 		}
 	}
 	for _, leave := range leaves {
@@ -297,8 +317,10 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 			userType = Bot
 		}
 		leaveEvents = append(leaveEvents, LeaveExport{
-			LeaveTime: leave.Datetime,
+			UserId:    leave.UserId,
+			Username:  leave.Username,
 			UserEmail: leave.Email,
+			LeaveTime: leave.Datetime,
 			UserType:  userType,
 		})
 		if leave.Datetime > stillJoined[leave.Email].time {
@@ -308,9 +330,12 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 
 	for email := range stillJoined {
 		leaveEvents = append(leaveEvents, LeaveExport{
+			UserId:    stillJoined[email].userId,
+			Username:  stillJoined[email].username,
 			LeaveTime: endTime,
 			UserEmail: email,
 			UserType:  stillJoined[email].userType,
+			ClosedOut: true,
 		})
 	}
 
@@ -341,12 +366,10 @@ func createdPostToExportEntry(post *model.MessageExport) PostExport {
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:    *post.PostId,
-		CreateAt:     *post.PostCreateAt,
-		Message:      *post.PostMessage,
-		UserType:     userType,
-		UserEmail:    *post.UserEmail,
-		PreviewsPost: post.PreviewID(),
+		MessageExport: *post,
+		Message:       *post.PostMessage,
+		UserType:      userType,
+		PreviewsPost:  post.PreviewID(),
 	}
 }
 
@@ -356,14 +379,12 @@ func deletedPostToExportEntry(post *model.MessageExport, newMsg string) PostExpo
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:    *post.PostId,
-		CreateAt:     *post.PostCreateAt,
-		UpdateAt:     *post.PostDeleteAt,
-		UpdatedType:  Deleted,
-		Message:      newMsg,
-		UserType:     userType,
-		UserEmail:    *post.UserEmail,
-		PreviewsPost: post.PreviewID(),
+		MessageExport: *post,
+		UpdateAt:      *post.PostDeleteAt,
+		UpdatedType:   Deleted,
+		Message:       newMsg,
+		UserType:      userType,
+		PreviewsPost:  post.PreviewID(),
 	}
 }
 
@@ -373,13 +394,11 @@ func editedOriginalMsgToExportEntry(post *model.MessageExport) PostExport {
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:      *post.PostId,
-		CreateAt:       *post.PostCreateAt,
+		MessageExport:  *post,
 		UpdateAt:       *post.PostUpdateAt,
 		UpdatedType:    EditedOriginalMsg,
 		Message:        *post.PostMessage,
 		UserType:       userType,
-		UserEmail:      *post.UserEmail,
 		PreviewsPost:   post.PreviewID(),
 		EditedNewMsgId: *post.PostOriginalId,
 	}
@@ -391,14 +410,12 @@ func editedNewMsgToExportEntry(post *model.MessageExport) PostExport {
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:    *post.PostId,
-		CreateAt:     *post.PostCreateAt,
-		UpdateAt:     *post.PostUpdateAt,
-		UpdatedType:  EditedNewMsg,
-		Message:      *post.PostMessage,
-		UserType:     userType,
-		UserEmail:    *post.UserEmail,
-		PreviewsPost: post.PreviewID(),
+		MessageExport: *post,
+		UpdateAt:      *post.PostUpdateAt,
+		UpdatedType:   EditedNewMsg,
+		Message:       *post.PostMessage,
+		UserType:      userType,
+		PreviewsPost:  post.PreviewID(),
 	}
 }
 
@@ -408,30 +425,40 @@ func updatedPostToExportEntry(post *model.MessageExport) PostExport {
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:    *post.PostId,
-		CreateAt:     *post.PostCreateAt,
-		UpdateAt:     *post.PostUpdateAt,
-		UpdatedType:  UpdatedNoMsgChange,
-		Message:      *post.PostMessage,
-		UserType:     userType,
-		UserEmail:    *post.UserEmail,
-		PreviewsPost: post.PreviewID(),
+		MessageExport: *post,
+		UpdateAt:      *post.PostUpdateAt,
+		UpdatedType:   UpdatedNoMsgChange,
+		Message:       *post.PostMessage,
+		UserType:      userType,
+		PreviewsPost:  post.PreviewID(),
 	}
 }
 
-func deleteFileToExportEntry(post *model.MessageExport, message string) PostExport {
+func deleteFileToExportEntry(post *model.MessageExport, fileInfo *model.FileInfo) PostExport {
 	userType := User
 	if post.IsBot {
 		userType = Bot
 	}
 	return PostExport{
-		MessageId:    *post.PostId,
-		CreateAt:     *post.PostCreateAt,
-		UpdateAt:     *post.PostDeleteAt,
-		UpdatedType:  FileDeleted,
-		Message:      message,
-		UserType:     userType,
-		UserEmail:    *post.UserEmail,
-		PreviewsPost: post.PreviewID(),
+		MessageExport: *post,
+		UpdateAt:      fileInfo.DeleteAt,
+		UpdatedType:   FileDeleted,
+		Message:       "delete " + fileInfo.Path,
+		UserType:      userType,
+		PreviewsPost:  post.PreviewID(),
+		FileInfo:      fileInfo,
+	}
+}
+
+func UploadStartToExportEntry(u *FileUploadStartExport) PostExport {
+	userType := User
+	if u.IsBot {
+		userType = Bot
+	}
+	return PostExport{
+		MessageExport: u.MessageExport,
+		UpdateAt:      u.FileInfo.UpdateAt,
+		UserType:      userType,
+		FileInfo:      u.FileInfo,
 	}
 }
