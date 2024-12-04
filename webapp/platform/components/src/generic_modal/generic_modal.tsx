@@ -205,9 +205,6 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     tabIndex={this.props.tabIndex || 0}
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
-                {/* Consider only rendering a header when there's header text. EE License doesn't
-                have any header text but a header is still being rendered leaving a large, white, empty space
-                above the modal. Alternatively, the EE title could be moved to the header */}
                     <Modal.Header closeButton={true}>
                         <div className='GenericModal__header__text_container'>
                             {this.props.compassDesign && (
@@ -241,7 +238,15 @@ export class GenericModal extends React.PureComponent<Props, State> {
                         ) : (
                             headerText
                         )}
-                        <div className={classNames('GenericModal__body', {padding: this.props.bodyPadding})}>
+                        <div className={classNames(
+                            'GenericModal__body',
+                            {
+                                padding: this.props.bodyPadding,
+                                // Add some bottom padding so content doesn't stick to the modal's bottom edge.
+                                // The 'padding' class above sets it to 0.
+                                paddingBottom: !confirmButton && !cancelButton && !this.props.footerContent,
+                            })}
+                        >
                             {this.props.children}
                         </div>
                     </Modal.Body>
