@@ -59,6 +59,7 @@ export const ShortcutKeys = {
 interface Options {
 
     /**
+     * @d
      * The placement of the tooltip. Defaults placement is top.
      */
     placement?: Placement;
@@ -83,6 +84,10 @@ interface Options {
 interface Props {
     children: ReactNode;
     options?: Options;
+
+    /**
+     * @deprecated dont use
+     */
     title: string | ReactNode;
     emoticon?: string;
     isEmoticonLarge?: boolean;
@@ -106,7 +111,7 @@ function Tooltip(props: Props) {
     const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
         open,
         onOpenChange: handleChange,
-        placement: props.options?.placement ?? DEFAULT_PLACEMENT,
+        // placement: props.options?.placement ?? DEFAULT_PLACEMENT,
         whileElementsMounted: autoUpdate,
         middleware: [
             props.options?.autoPlacement ? autoPlacement({
@@ -163,7 +168,9 @@ function Tooltip(props: Props) {
 
     return (
         <>
-            {tooltipTrigger}
+            <span>
+                {tooltipTrigger}
+            </span>
             {isMounted && (
                 <FloatingPortal id='root-portal'>
                     <div
