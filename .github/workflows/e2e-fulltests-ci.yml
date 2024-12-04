@@ -63,7 +63,7 @@ jobs:
     outputs:
       commit_sha: "${{ steps.generate.outputs.commit_sha }}"
       BRANCH: "${{ steps.generate.outputs.BRANCH }}"
-      SERVER_IMAGE: "${{ steps.generate.outputs.SERVER_IMAGE }}"
+      SERVER_IMAGE: "mattermostdevelopment/chgpoc:20241203-1"
       status_check_context: "${{ steps.generate.outputs.status_check_context }}"
       workers_number: "${{ steps.generate.outputs.workers_number }}"
       server_uppercase: "${{ steps.generate.outputs.server_uppercase }}" # Required for license selection
