@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"fmt"
 	"hash/maphash"
 	"runtime"
@@ -251,7 +252,104 @@ func (ps *PlatformService) SessionIsRegistered(session model.Session) bool {
 	return false
 }
 
-func (ps *PlatformService) CheckWebConn(userID, connectionID string) *CheckConnResult {
+func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int64) *CheckConnResult {
+	if ps.Cluster() == nil || seqNum == 0 {
+		hub := ps.GetHubForUserId(userID)
+		if hub != nil {
+			return hub.CheckConn(userID, connectionID)
+		}
+		return nil
+	}
+
+	// We need some extra care for HA
+	// Check other nodes
+	// If any nodes return with an aq and/or dq, use that.
+	// If all nodes return empty, proceed with local case.
+	// We have to do this because a client might reconnect with an older seq num to a node
+	// which it had connected before. So checking its local queue will lead the server to believe
+	// that there is no msg loss, whereas there is actually loss.
+	queueMap, err := ps.Cluster().GetWSQueues(userID, connectionID, seqNum)
+	if err != nil {
+		// If there is an error we do not have enough data to say anything reliably.
+		// Fall back to unreliable case.
+		ps.Log().Error("Error while getting websocket queues",
+			mlog.String("connection_id", connectionID),
+			mlog.String("user_id", userID),
+			mlog.Err(err))
+		return nil
+	}
+
+	connRes := &CheckConnResult{
+		ConnectionID: connectionID,
+		UserID:       userID,
+	}
+	for _, queues := range queueMap {
+		if queues == nil || queues.ActiveQ == nil {
+			continue
+		}
+		// parse the activeq
+		aq := make(chan model.WebSocketMessage, sendQueueSize)
+		for _, aqItem := range queues.ActiveQ {
+			var item model.WebSocketMessage
+			var err error
+			if aqItem.Type == model.WebSocketMsgTypeEvent {
+				item, err = model.WebSocketEventFromJSON(bytes.NewReader(aqItem.Buf))
+			} else if aqItem.Type == model.WebSocketMsgTypeResponse {
+				item, err = model.WebSocketResponseFromJSON(bytes.NewReader(aqItem.Buf))
+			} else {
+				ps.Log().Warn("Unknown websocket message type",
+					mlog.String("connection_id", connectionID),
+					mlog.String("user_id", userID),
+					mlog.String("msg_type", aqItem.Type))
+				continue
+			}
+			if err != nil {
+				ps.Log().Error("Error while unmarshalling websocket message from active queue",
+					mlog.String("connection_id", connectionID),
+					mlog.String("user_id", userID),
+					mlog.Err(err))
+				return nil
+			}
+			// This cannot block because all send queues are of sendQueueSize at max.
+			// TODO: There could be a case where there's severe message loss, and to
+			// reliably get the messages, we need to get send queues from multiple nodes.
+			// We leave that case for Redis.
+			aq <- item
+		}
+
+		connRes.ActiveQueue = aq
+		connRes.ReuseCount = queues.ReuseCount
+
+		// parse the dq, wc.addToDeadQ()
+		if queues.DeadQ != nil {
+			dqPtr := 0
+			dq := make([]*model.WebSocketEvent, deadQueueSize)
+			for _, dqItem := range queues.DeadQ {
+				item, err := model.WebSocketEventFromJSON(bytes.NewReader(dqItem))
+				if err != nil {
+					ps.Log().Error("Error while unmarshalling websocket message from dead queue",
+						mlog.String("connection_id", connectionID),
+						mlog.String("user_id", userID),
+						mlog.Err(err))
+					return nil
+				}
+
+				// Same as active queue, this can never be out of bounds because all dead queues
+				// are of deadQueueSize.
+				dq[dqPtr] = item
+				dqPtr++
+			}
+
+			if dqPtr > 0 {
+				connRes.DeadQueue = dq
+				connRes.DeadQueuePointer = dqPtr
+			}
+		}
+
+		return connRes
+	}
+
+	// Now we check local queue
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		return hub.CheckConn(userID, connectionID)

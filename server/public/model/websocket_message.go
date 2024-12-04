@@ -94,7 +94,21 @@ const (
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
+
+	WebSocketMsgTypeResponse = "response"
+	WebSocketMsgTypeEvent    = "event"
 )
+
+type ActiveQueueItem struct {
+	Type string `json:"type"` // websocket event or websocket response
+	Buf  []byte `json:"buf"`
+}
+
+type WSQueues struct {
+	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
+	DeadQ      [][]byte          `json:"dead_queue"`   // websocketEvent
+	ReuseCount int               `json:"reuse_count"`
+}
 
 type WebSocketMessage interface {
 	ToJSON() ([]byte, error)
