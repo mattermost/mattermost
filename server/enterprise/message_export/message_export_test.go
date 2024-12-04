@@ -1230,16 +1230,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 		matched := dataContainsOneOfExpected(msg, expectedBatch1Summaries)
 
-		fmt.Fprintf(os.Stderr, "\n<><>summary: %s\n", msg)
-		fmt.Fprintf(os.Stderr, "\n<><>summary perm 0: %s\n", expectedBatch1Summaries[0])
-		fmt.Fprintf(os.Stderr, "\n<><>summary perm 1: %s\n", expectedBatch1Summaries[1])
-		fmt.Fprintf(os.Stderr, "\n<><>summary perm 2: %s\n", expectedBatch1Summaries[2])
-		fmt.Fprintf(os.Stderr, "\n<><>summary perm 3: %s\n", expectedBatch1Summaries[3])
-		fmt.Fprintf(os.Stderr, "\n<><>body perm 0: %s\n", expectedBatch1[0])
-		fmt.Fprintf(os.Stderr, "\n<><>body perm 1: %s\n", expectedBatch1[1])
-		fmt.Fprintf(os.Stderr, "\n<><>body perm 2: %s\n", expectedBatch1[2])
-		fmt.Fprintf(os.Stderr, "\n<><>body perm 3: %s\n", expectedBatch1[3])
-
 		assert.True(t, matched, "batch 1 summary didn't match one of the expected permutations")
 
 		matched = dataContainsOneOfExpected(msg, expectedBatch1)
