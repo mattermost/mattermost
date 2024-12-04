@@ -100,6 +100,9 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		// meant to be used at very high scales. The docs suggest 20us,
 		// but going as high as 250us doesn't make any material difference.
 		MaxFlushDelay: 250 * time.Microsecond,
+		DisableRetry:  true,
+		// The default is 10s, which is a bit too high
+		ConnWriteTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		return nil, err

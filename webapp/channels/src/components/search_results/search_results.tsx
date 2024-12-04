@@ -439,11 +439,11 @@ SearchResults.defaultProps = defaultProps;
 export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
     // Shallow compare for all props except 'results' and 'fileResults'
     for (const key in nextProps) {
-        if (!Object.prototype.hasOwnProperty.call(nextProps, key) || key === 'results') {
+        if (!Object.hasOwn(nextProps, key) || key === 'results') {
             continue;
         }
 
-        if (!Object.prototype.hasOwnProperty.call(nextProps, key) || key === 'fileResults') {
+        if (!Object.hasOwn(nextProps, key) || key === 'fileResults') {
             continue;
         }
 
