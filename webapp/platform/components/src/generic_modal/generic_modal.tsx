@@ -245,7 +245,8 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
                                 // Add some bottom padding so content doesn't stick to the modal's bottom edge.
                                 // The 'padding' class above sets it to 0.
-                                paddingBottom: !confirmButton && !cancelButton && !this.props.footerContent,
+                                paddingBottom: !confirmButton && !cancelButton &&
+                                    !this.props.footerContent && this.props.bodyPadding,
                             })}
                         >
                             {this.props.children}
