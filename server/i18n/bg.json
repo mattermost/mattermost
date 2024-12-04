@@ -4706,10 +4706,6 @@
     "translation": "Не може да се актуализира webhook между екипи."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не може да се декодира тялото от много части на входящите webhook."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Трябва да се зададат trigger_words или channel_id."
   },
