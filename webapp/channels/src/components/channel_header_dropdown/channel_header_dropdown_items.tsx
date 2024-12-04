@@ -53,6 +53,7 @@ export type Props = {
     penultimateViewedChannelName: string;
     pluginMenuItems: PluginComponent[];
     isLicensedForLDAPGroups: boolean;
+    isChannelBookmarksEnabled: boolean;
 }
 
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
@@ -68,6 +69,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
             isMobile,
             penultimateViewedChannelName,
             isLicensedForLDAPGroups,
+            isChannelBookmarksEnabled,
         } = this.props;
 
         if (!channel) {
@@ -239,7 +241,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                 </Menu.Group>
 
                 <Menu.Group divider={divider}>
-                    <ChannelBookmarksSubmenu channel={channel}/>
+                    {isChannelBookmarksEnabled && <ChannelBookmarksSubmenu channel={channel}/>}
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}
