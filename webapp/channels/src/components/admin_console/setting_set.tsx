@@ -4,9 +4,7 @@
 import React from 'react';
 
 import SetByEnv from './set_by_env';
-import type {Props as SettingProps} from './setting';
-
-export type Props = Omit<SettingProps, 'nested'>;
+import type {Props} from './setting';
 
 export default function SettingSet({
     children,
