@@ -2409,7 +2409,8 @@ func TestUserUnicodeNames(t *testing.T) {
 			Nickname:  "Ender\u2028 Wiggin",
 			Password:  "hello1",
 			Username:  "\ufeffwiggin77",
-			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		}
 
 		ruser, resp, err := client.CreateUser(context.Background(), &user)
 		require.NoError(t, err)
@@ -4983,7 +4984,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { 
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
 			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 0
 		})
@@ -5593,7 +5594,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { 
+		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableUserAccessTokens = true
 			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 60
 		})
@@ -6212,7 +6213,7 @@ func TestLoginLockout(t *testing.T) {
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
@@ -6234,7 +6235,7 @@ func TestLoginLockout(t *testing.T) {
 	err = th.Server.Store().User().UpdateMfaActive(th.BasicUser2.Id, false)
 	require.NoError(t, err)
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 }
@@ -6693,6 +6694,7 @@ func TestMigrateAuthToSAML(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 }
+
 func TestUpdatePassword(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -7405,7 +7407,8 @@ func TestThreadSocketEvents(t *testing.T) {
 				preMentions: 2,
 				replies:     0,
 				mentions:    0,
-			}, {
+			},
+			{
 				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id},
 				preReplies:  0,
 				preMentions: 0,
@@ -8268,6 +8271,7 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
+
 func TestUserUpdateEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
