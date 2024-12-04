@@ -47,7 +47,7 @@ function teams(state: IDMappedObjects<Team> = {}, action: AnyAction) {
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
@@ -352,7 +352,7 @@ function membersInTeam(state: RelationOneToOne<Team, RelationOneToOne<UserProfil
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
@@ -381,7 +381,7 @@ function stats(state: any = {}, action: AnyAction) {
     case TeamTypes.RECEIVED_TEAM_DELETED: {
         const nextState = {...state};
         const teamId = action.data.id;
-        if (nextState.hasOwnProperty(teamId)) {
+        if (Object.hasOwn(nextState, teamId)) {
             Reflect.deleteProperty(nextState, teamId);
             return nextState;
         }
