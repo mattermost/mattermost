@@ -933,9 +933,9 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 		CreatorId: post.UserId,
 		PostId:    post.Id,
 		CreateAt:  post.CreateAt,
-		UpdateAt:  post.UpdateAt,
+		UpdateAt:  message3DeleteAt,
 		Path:      attachmentPath,
-		DeleteAt:  post.UpdateAt,
+		DeleteAt:  message3DeleteAt,
 	})
 	require.NoError(t, err2)
 	attachments = append(attachments, info)
