@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -14,7 +15,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import './ee_license_modal.scss';
-import { FormattedMessage } from 'react-intl';
 
 type Props = {
     onClose?: () => void;
