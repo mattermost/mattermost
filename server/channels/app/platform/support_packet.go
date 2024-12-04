@@ -5,6 +5,7 @@ package platform
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -27,6 +28,7 @@ const (
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics":  ps.getSupportPacketDiagnostics,
+		"config":       ps.getSanitizedConfigFile,
 		"cpu profile":  ps.getCPUProfile,
 		"heap profile": ps.getHeapProfile,
 		"goroutines":   ps.getGoroutineProfile,
@@ -182,6 +184,24 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+func (ps *PlatformService) getSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
+	config := ps.getSanitizedConfig()
+	spConfig := model.SupportPacketConfig{
+		Config:       config,
+		FeatureFlags: *config.FeatureFlags,
+	}
+	sanitizedConfigPrettyJSON, err := json.MarshalIndent(spConfig, "", "    ")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sanitized config into json")
+	}
+
+	fileData := &model.FileData{
+		Filename: "sanitized_config.json",
+		Body:     sanitizedConfigPrettyJSON,
+	}
+	return fileData, nil
 }
 
 func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error) {

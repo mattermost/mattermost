@@ -65,6 +65,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	expectedFileNames := []string{
 		"diagnostics.yaml",
+		"sanitized_config.json",
 		"cpu.prof",
 		"heap.prof",
 		"goroutines",
@@ -330,6 +331,37 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "unknown", packet.LDAP.ServerName)
 		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
 	})
+}
+
+func TestGetSanitizedConfigFile(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
+
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
+	})
+
+	// Happy path where we have a sanitized config file with no err
+	fileData, err := th.Service.getSanitizedConfigFile(th.Context)
+	require.NotNil(t, fileData)
+	assert.Equal(t, "sanitized_config.json", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.NoError(t, err)
+
+	var config model.Config
+	err = json.Unmarshal(fileData.Body, &config)
+	require.NoError(t, err)
+
+	// Ensure sensitive fields are redacted
+	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+
+	// Ensure non-sensitive fields are present
+	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
+
+	// Ensure feature flags are present
+	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
 }
 
 func TestGetCPUProfile(t *testing.T) {
