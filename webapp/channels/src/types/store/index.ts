@@ -3,6 +3,7 @@
 
 import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
@@ -25,9 +26,14 @@ export type GlobalState = BaseGlobalState & {
 };
 
 /**
+ * An MMAction is any non-Thunk Redux action accepted by the web app and mattermost-redux.
+ */
+export type MMAction = MMReduxAction;
+
+/**
  * A version of {@link MMReduxTypes.DispatchFunc} which supports dispatching web app actions.
  */
-export type DispatchFunc = MMReduxTypes.DispatchFunc;
+export type DispatchFunc = MMReduxTypes.DispatchFunc<MMAction>;
 
 /**
  * A version of {@link MMReduxTypes.GetStateFunc} which supports web app state.
@@ -40,7 +46,7 @@ export type GetStateFunc<State extends GlobalState = GlobalState> = MMReduxTypes
 export type ActionFunc<
     Data = unknown,
     State extends GlobalState = GlobalState,
-> = MMReduxTypes.ActionFunc<Data, State>;
+> = MMReduxTypes.ActionFunc<Data, State, MMAction>;
 
 /**
  * A version of {@link MMReduxTypes.ActionFuncAsync} which supports web app state and allows dispatching its actions.
@@ -48,7 +54,7 @@ export type ActionFunc<
 export type ActionFuncAsync<
     Data = unknown,
     State extends GlobalState = GlobalState,
-> = MMReduxTypes.ActionFuncAsync<Data, State>;
+> = MMReduxTypes.ActionFuncAsync<Data, State, MMAction>;
 
 /**
  * A version of {@link MMReduxTypes.ThunkActionFunc} which supports web app state and allows dispatching its actions.
@@ -56,4 +62,4 @@ export type ActionFuncAsync<
 export type ThunkActionFunc<
     ReturnType,
     State extends GlobalState = GlobalState
-> = MMReduxTypes.ThunkActionFunc<ReturnType, State>;
+> = MMReduxTypes.ThunkActionFunc<ReturnType, State, MMAction>;
