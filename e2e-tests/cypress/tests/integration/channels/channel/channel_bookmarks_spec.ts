@@ -31,6 +31,8 @@ describe('Channel Bookmarks', () => {
     const BOOKMARK_LIMIT = 50;
 
     before(() => {
+        cy.apiRequireLicense();
+
         cy.apiGetMe().then(({user: adminUser}) => {
             admin = adminUser;
 
@@ -325,12 +327,12 @@ describe('Channel Bookmarks', () => {
         };
 
         const verifyCannotCreate = () => {
-            // * Verify cannot access create UI - bookmarks bar
-            cy.get('#channelBookmarksPlusMenuButton').should('not.exist');
-
             // * Verify cannot access create UI - channel menu
             cy.uiOpenChannelMenu();
             cy.findByRole('menuitem', {name: 'Bookmarks Bar submenu icon'}).should('not.exist');
+
+            // * Verify cannot access create UI - bookmarks bar
+            cy.get('#channelBookmarksPlusMenuButton').should('not.exist');
         };
     });
 
@@ -352,7 +354,7 @@ describe('Channel Bookmarks', () => {
         cy.makeClient().then(async (client) => {
             const nToMake = n ?? BOOKMARK_LIMIT - (await client.getChannelBookmarks(channel.id))?.length;
 
-            await Promise.all(Array(nToMake).fill(0).map(() => {
+            await Promise.allSettled(Array(nToMake).fill(0).map(() => {
                 return client.createChannelBookmark(publicChannel.id, {
                     type: 'link',
                     display_name: 'google.com',
