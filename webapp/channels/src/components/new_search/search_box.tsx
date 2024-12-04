@@ -5,6 +5,8 @@ import React, {useState, useRef, forwardRef, useCallback, useEffect} from 'react
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import WithTooltip from 'components/with_tooltip';
+
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {escapeRegex} from 'utils/text_formatting';
@@ -224,13 +226,22 @@ const SearchBox = forwardRef(
                 aria-describedby='searchHints'
                 role='searchbox'
             >
-                <CloseIcon
-                    data-testid='searchBoxClose'
-                    className='btn btn-icon btn-m'
-                    onClick={closeHandler}
+                <WithTooltip
+                    id='searchBoxCloseTooltip'
+                    title={intl.formatMessage({
+                        id: 'generic.close',
+                        defaultMessage: 'Close',
+                    })}
+                    placement='right'
                 >
-                    <i className='icon icon-close'/>
-                </CloseIcon>
+                    <CloseIcon
+                        data-testid='searchBoxClose'
+                        className='btn btn-icon btn-m'
+                        onClick={closeHandler}
+                    >
+                        <i className='icon icon-close'/>
+                    </CloseIcon>
+                </WithTooltip>
                 <SearchTypeSelector
                     searchType={searchType}
                     setSearchType={setSearchType}
