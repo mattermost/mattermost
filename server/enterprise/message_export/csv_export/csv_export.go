@@ -55,7 +55,40 @@ type Row struct {
 func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	results := shared.RunExportResults{}
 
-	// TODO, rearrange below getting section
+	// Build the channel exports for the channels that had post or user join/leave activity this batch.
+	genericChannelExports, metadata, results, err := shared.GetGenericExportData(p)
+	if err != nil {
+		return results, err
+	}
+
+	totalRows := results.CreatedPosts + results.EditedOrigMsgPosts + results.DeletedPosts + results.EditedNewMsgPosts +
+		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles
+	rows := make([]Row, 0, totalRows)
+	for _, channel := range genericChannelExports {
+		rows = append(rows, getJoinLeavePosts(channel)...)
+		for _, p := range channel.Posts {
+			createAt := p.PostCreateAt
+			if p.UpdatedType == shared.Deleted {
+				createAt = p.PostDeleteAt
+			}
+			rows = append(rows, postToRow(p.MessageExport, "message", createAt, p.Message))
+		}
+
+		for _, u := range channel.UploadStarts {
+			rows = append(rows, attachmentToRow(shared.UploadStartToExportEntry(u)))
+		}
+		for _, d := range channel.DeletedFiles {
+			rows = append(rows, attachmentToRow(d))
+		}
+	}
+
+	// We need to sort all the elements by (updateAt, messageId) because they were added by type and by channel above.
+	slices.SortStableFunc(rows, func(a, b Row) int {
+		return int(a.CreateAt - b.CreateAt)
+	})
+
+	// We've got the data, now its write time:
+
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
@@ -96,38 +129,6 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	if err != nil {
 		return results, fmt.Errorf("unable to add header to the CSV export: %w", err)
 	}
-
-	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	genericChannelExports, metadata, results, err := shared.GetGenericExportData(p)
-	if err != nil {
-		return results, err
-	}
-
-	totalRows := results.CreatedPosts + results.EditedOrigMsgPosts + results.DeletedPosts + results.EditedNewMsgPosts +
-		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles
-	rows := make([]Row, 0, totalRows)
-	for _, channel := range genericChannelExports {
-		rows = append(rows, getJoinLeavePosts(channel)...)
-		for _, p := range channel.Posts {
-			createAt := p.PostCreateAt
-			if p.UpdatedType == shared.Deleted {
-				createAt = p.PostDeleteAt
-			}
-			rows = append(rows, postToRow(p.MessageExport, "message", createAt, p.Message))
-		}
-
-		for _, u := range channel.UploadStarts {
-			rows = append(rows, attachmentToRow(shared.UploadStartToExportEntry(u)))
-		}
-		for _, d := range channel.DeletedFiles {
-			rows = append(rows, attachmentToRow(d))
-		}
-	}
-
-	// We need to sort all the elements by (updateAt, messageId) because they were added by type and by channel above.
-	slices.SortStableFunc(rows, func(a, b Row) int {
-		return int(a.CreateAt - b.CreateAt)
-	})
 
 	for _, row := range rows {
 		if err = csvWriter.Write(rowToStringSlice(row)); err != nil {
