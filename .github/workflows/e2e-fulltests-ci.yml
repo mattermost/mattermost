@@ -265,6 +265,8 @@ jobs:
       REPORT_TM4J_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      DOCKERHUB_DEV_USERNAME: "${{ secrets.DOCKERHUB_DEV_USERNAME }}"
+      DOCKERHUB_DEV_TOKEN: "${{ secrets.DOCKERHUB_DEV_TOKEN }}"
 
   e2e-fulltest-playwright:
     needs:
@@ -294,6 +296,8 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
       CWS_URL: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_URL || '' }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ needs.generate-test-variables.outputs.SERVER == 'cloud' && secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS || '' }}"
+      DOCKERHUB_DEV_USERNAME: "${{ secrets.DOCKERHUB_DEV_USERNAME }}"
+      DOCKERHUB_DEV_TOKEN: "${{ secrets.DOCKERHUB_DEV_TOKEN }}"
 
   notify-user:
     runs-on: ubuntu-latest
