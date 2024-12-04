@@ -1,0 +1,1 @@
+ALTER TABLE UserAccessTokens DROP COLUMN IF EXISTS ExpiresAt;

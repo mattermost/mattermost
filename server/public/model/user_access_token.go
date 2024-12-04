@@ -13,6 +13,7 @@ type UserAccessToken struct {
 	UserId      string `json:"user_id"`
 	Description string `json:"description"`
 	IsActive    bool   `json:"is_active"`
+	ExpiresAt   int64  `json:"expires_at"`
 }
 
 func (t *UserAccessToken) IsValid() *AppError {

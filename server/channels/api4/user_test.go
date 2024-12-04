@@ -4983,7 +4983,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { 
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 0
+		})
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
@@ -4995,6 +4998,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		assert.NotEmpty(t, rtoken.Id, "id should not be empty")
 		assert.Equal(t, "test token", rtoken.Description, "description did not match")
 		assert.True(t, rtoken.IsActive, "token should be active")
+		assert.Equal(t, int64(0), rtoken.ExpiresAt, "expiry should be 0 when no max is set")
 
 		assertToken(t, th, rtoken, th.BasicUser.Id)
 	})
@@ -5589,7 +5593,10 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { 
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 60
+		})
 
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
@@ -5616,6 +5623,8 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
+		require.Greater(t, token.ExpiresAt, model.GetMillis())
+		require.LessOrEqual(t, token.ExpiresAt, model.GetMillis()+(60*1000))
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
 			resp, err = th.Client.RevokeUserAccessToken(context.Background(), token.Id)

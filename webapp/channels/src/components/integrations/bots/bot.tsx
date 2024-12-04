@@ -281,7 +281,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 {token.id}
                             </div>
                         </div>
-                        <div>
+                        <div className='setting-box__token-action'>
                             {disabledText}
                             {activeLink}
                             {' - '}

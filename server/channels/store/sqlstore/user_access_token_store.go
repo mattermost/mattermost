@@ -29,8 +29,8 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("UserAccessTokens").
-		Columns("Id", "Token", "UserId", "Description", "IsActive").
-		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive).
+		Columns("Id", "Token", "UserId", "Description", "IsActive", "ExpiresAt").
+		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive, token.ExpiresAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "UserAccessToken_tosql")

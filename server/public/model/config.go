@@ -357,6 +357,7 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication     *bool    `access:"authentication_mfa"`
 	EnforceMultifactorAuthentication    *bool    `access:"authentication_mfa"`
 	EnableUserAccessTokens              *bool    `access:"integrations_integration_management"`
+	UserAccessTokensMaxExpiresSeconds   *int64   `access:"authentication_password"`
 	AllowCorsFrom                       *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	CorsExposedHeaders                  *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
 	CorsAllowCredentials                *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
@@ -522,6 +523,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableUserAccessTokens == nil {
 		s.EnableUserAccessTokens = NewPointer(false)
+	}
+
+	if s.UserAccessTokensMaxExpiresSeconds == nil {
+		s.UserAccessTokensMaxExpiresSeconds = NewPointer(int64(0)) // 0 means no expiry
 	}
 
 	if s.GoroutineHealthThreshold == nil {
@@ -4206,6 +4211,10 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.MaximumURLLength <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_url_length.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.UserAccessTokensMaxExpiresSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.user_access_tokens.max_expires_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ReadTimeout <= 0 {

@@ -1,0 +1,1 @@
+ALTER TABLE UserAccessTokens ADD COLUMN IF NOT EXISTS ExpiresAt bigint DEFAULT NULL;

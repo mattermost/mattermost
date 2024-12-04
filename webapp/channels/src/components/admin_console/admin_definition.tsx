@@ -5686,6 +5686,17 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
                         },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.UserAccessTokensMaxExpiresSeconds',
+                            label: defineMessage({id: 'admin.service.userAccessTokensMaxExpiresSecondsTitle', defaultMessage: 'Max Token Expiry (seconds):'}),
+                            help_text: defineMessage({id: 'admin.service.userAccessTokensMaxExpiresSecondsDescription', defaultMessage: 'Maximum lifetime for user access tokens in seconds. Zero means tokens never expire.'}),
+                            placeholder: defineMessage({id: 'admin.service.userAccessTokensMaxExpiresSecondsExample', defaultMessage: 'E.g.: "31536000" (1 year)'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableUserAccessTokens'),
+                            ),
+                        },
                     ],
                 },
             },

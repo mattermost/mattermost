@@ -404,6 +404,14 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
+	// Enforce max expiry limit if set
+	if maxSeconds := *a.Config().ServiceSettings.UserAccessTokensMaxExpiresSeconds; maxSeconds > 0 {
+		// If token has no expiry or expiry is too far in future, set it to max allowed
+		if token.ExpiresAt == 0 || token.ExpiresAt > (model.GetMillis()+(maxSeconds*1000)) {
+			token.ExpiresAt = model.GetMillis() + (maxSeconds * 1000)
+		}
+	}
+
 	token.Token = model.NewId()
 
 	token, nErr = a.Srv().Store().UserAccessToken().Save(token)
@@ -435,6 +443,10 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 
 	if !token.IsActive {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
+	}
+
+	if token.ExpiresAt != 0 && token.ExpiresAt <= model.GetMillis() {
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "token_expired", http.StatusUnauthorized)
 	}
 
 	user, nErr := a.Srv().Store().User().Get(c.Context(), token.UserId)
@@ -478,6 +490,10 @@ func (a *App) createSessionForUserAccessToken(c request.CTX, tokenString string)
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 	a.ch.srv.platform.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+
+	if session.ExpiresAt > token.ExpiresAt {
+		session.ExpiresAt = token.ExpiresAt
+	}
 
 	session, nErr = a.Srv().Store().Session().Save(c, session)
 	if nErr != nil {

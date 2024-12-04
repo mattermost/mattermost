@@ -1765,6 +1765,24 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
 	})
+
+	t.Run("user access tokens max expires seconds should not be negative", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+
+		*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = -1
+		appErr := cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.user_access_tokens.max_expires_seconds.app_error", appErr.Id)
+
+		*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 0
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 1
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {
