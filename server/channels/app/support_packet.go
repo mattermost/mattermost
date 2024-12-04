@@ -30,7 +30,6 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		"jobs":        a.getSupportPacketJobList,
 		"permissions": a.getSupportPacketPermissionsInfo,
 		"plugins":     a.getPluginsFile,
-		"config":      a.getSanitizedConfigFile,
 	}
 
 	var (
@@ -321,25 +320,6 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
-}
-
-func (a *App) getSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
-	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	config := a.GetSanitizedConfig()
-	spConfig := model.SupportPacketConfig{
-		Config:       config,
-		FeatureFlags: *config.FeatureFlags,
-	}
-	sanitizedConfigPrettyJSON, err := json.MarshalIndent(spConfig, "", "    ")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to sanitized config into json")
-	}
-
-	fileData := &model.FileData{
-		Filename: "sanitized_config.json",
-		Body:     sanitizedConfigPrettyJSON,
-	}
-	return fileData, nil
 }
 
 func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {

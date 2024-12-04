@@ -226,6 +226,41 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 		assert.ElementsMatch(t, expectedFileNames, rFileNames)
 	})
+
+	t.Run("Plugin config values in the Support Packet are obfuscated, if the plugin marks them as secrets", func(t *testing.T) {
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": [{"key": "foo", "type": "text"}, {"key": "bar", "type": "text", "secret": true}]}}`
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+		t.Cleanup(func() {
+			appErr := th.App.ch.RemovePlugin(pluginID)
+			require.Nil(t, appErr)
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins[pluginID] = map[string]any{
+				"foo": "foo_value",
+				"bar": "bar_value",
+			}
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			IncludeLogs: false,
+		})
+
+		found := false
+		for _, f := range fileDatas {
+			if f.Filename == "sanitized_config.json" {
+				var config model.Config
+				err = json.Unmarshal(f.Body, &config)
+				require.NoError(t, err)
+
+				assert.Equal(t, "foo_value", config.PluginSettings.Plugins[pluginID]["foo"])
+				assert.Equal(t, model.FakeSetting, config.PluginSettings.Plugins[pluginID]["bar"])
+
+				found = true
+			}
+		}
+		assert.True(t, found)
+	})
 }
 
 func TestGetPluginsFile(t *testing.T) {
@@ -507,37 +542,6 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		}
 		assert.True(t, found)
 	})
-}
-
-func TestGetSanitizedConfigFile(t *testing.T) {
-	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
-
-	th := Setup(t)
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
-	})
-
-	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.App.getSanitizedConfigFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "sanitized_config.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
-
-	var config model.Config
-	err = json.Unmarshal(fileData.Body, &config)
-	require.NoError(t, err)
-
-	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
-
-	// Ensure non-sensitive fields are present
-	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
-
-	// Ensure feature flags are present
-	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
 }
 
 func TestGetSupportPacketMetadata(t *testing.T) {

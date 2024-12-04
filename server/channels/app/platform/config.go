@@ -40,6 +40,22 @@ func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
 }
 
+// getSanitizedConfig gets the configuration without any secrets.
+func (ps *PlatformService) getSanitizedConfig() *model.Config {
+	cfg := ps.Config().Clone()
+
+	manifests, err := ps.getPluginManifests()
+	if err != nil {
+		// getPluginManifests might error, e.g. when plugins are disabled.
+		// Sanitize all plugin settings in this case.
+		cfg.Sanitize(nil)
+	} else {
+		cfg.Sanitize(manifests)
+	}
+
+	return cfg
+}
+
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.

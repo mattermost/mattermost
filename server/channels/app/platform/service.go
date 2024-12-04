@@ -554,6 +554,29 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
+func (ps *PlatformService) getPluginManifests() ([]*model.Manifest, error) {
+	if ps.pluginEnv == nil {
+		return nil, nil
+	}
+
+	pluginsEnvironment := ps.pluginEnv.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list of available plugins: %w", err)
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
+	}
+
+	return manifests, nil
+}
+
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
 }
