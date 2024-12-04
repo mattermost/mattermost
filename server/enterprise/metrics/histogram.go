@@ -10,7 +10,7 @@ import (
 )
 
 // HistogramVec is a wrapper of prometheus.HistogramVec that stores the buckets
-// which is later passed down to WrappedObserver.
+// which are later passed down to WrappedObserver.
 type HistogramVec struct {
 	*prometheus.HistogramVec
 	buckets []float64
@@ -18,8 +18,8 @@ type HistogramVec struct {
 	logger  mlog.LoggerIFace
 }
 
-// WrappedObserver is a wrapper of prometheus.Observer which also addtionally
-// logs userIDs when the value exceeds or equal to the highest bucket.
+// WrappedObserver is a wrapper of prometheus.Observer which addtionally
+// logs userIDs when the value exceeds or equals to the one in the highest bucket.
 type WrappedObserver struct {
 	prometheus.Observer
 	labels     prometheus.Labels
