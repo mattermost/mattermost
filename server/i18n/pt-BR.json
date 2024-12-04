@@ -4657,7 +4657,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Não foi possível encontrar o usuário."
+    "translation": "Não foi possível encontrar o usuário {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -8942,5 +8942,13 @@
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
     "translation": "Não foi possível convidar o remoto para o canal"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "A Transferência de Autenticação não está disponível porque o registro de e-mail está desativado."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Falha ao armazenar a publicação em cache após a desduplicação de um cliente repetindo a mesma solicitação."
   }
 ]
