@@ -15,7 +15,7 @@ function byId(state: ScheduledPostsState['byId'] = {}, action: AnyAction) {
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     newState[scheduledPost.id] = scheduledPost;
                 });
@@ -58,7 +58,7 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 newState[teamId] = scheduledPostsByTeamId[teamId].map((scheduledPost: ScheduledPost) => scheduledPost.id);
             }
         });
@@ -118,7 +118,7 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 const teamScheduledPosts = scheduledPostsByTeamId[teamId] as ScheduledPost[];
                 newState[teamId] = teamScheduledPosts.filter((scheduledPost) => scheduledPost.error_code).map((scheduledPost) => scheduledPost.id);
             }
@@ -179,7 +179,7 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     const id = scheduledPost.root_id || scheduledPost.channel_id;
 
