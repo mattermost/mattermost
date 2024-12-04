@@ -155,7 +155,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 	start := time.Now()
 
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	genericChannelExports, results, err := shared.GetGenericExportData(p)
+	genericChannelExports, _, results, err := shared.GetGenericExportData(p)
 	if err != nil {
 		return results, err
 	}
@@ -187,10 +187,10 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		elements := make([]Sortable, 0, len(channel.Posts)+len(channel.DeletedFiles)+len(channel.UploadStarts)+len(channel.UploadStops))
 		for _, p := range channel.Posts {
 			elements = append(elements, PostExport{
-				MessageId:      p.MessageId,
-				UserEmail:      p.UserEmail,
+				MessageId:      *p.PostId,
+				UserEmail:      *p.UserEmail,
 				UserType:       p.UserType,
-				CreateAt:       p.CreateAt,
+				CreateAt:       *p.PostCreateAt,
 				UpdatedType:    p.UpdatedType,
 				UpdateAt:       p.UpdateAt,
 				EditedNewMsgId: p.EditedNewMsgId,
@@ -200,10 +200,10 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		}
 		for _, p := range channel.DeletedFiles {
 			elements = append(elements, PostExport{
-				MessageId:      p.MessageId,
-				UserEmail:      p.UserEmail,
+				MessageId:      *p.PostId,
+				UserEmail:      *p.UserEmail,
 				UserType:       p.UserType,
-				CreateAt:       p.CreateAt,
+				CreateAt:       *p.PostCreateAt,
 				UpdatedType:    p.UpdatedType,
 				UpdateAt:       p.UpdateAt,
 				EditedNewMsgId: p.EditedNewMsgId,
@@ -215,16 +215,16 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 			elements = append(elements, FileUploadStartExport{
 				UserEmail:       u.UserEmail,
 				UploadStartTime: u.UploadStartTime,
-				Filename:        u.Filename,
-				FilePath:        u.FilePath,
+				Filename:        u.FileInfo.Name,
+				FilePath:        u.FileInfo.Path,
 			})
 		}
 		for _, u := range channel.UploadStops {
 			elements = append(elements, FileUploadStopExport{
 				UserEmail:      u.UserEmail,
 				UploadStopTime: u.UploadStopTime,
-				Filename:       u.Filename,
-				FilePath:       u.FilePath,
+				Filename:       u.FileInfo.Name,
+				FilePath:       u.FileInfo.Path,
 				Status:         u.Status,
 			})
 		}
