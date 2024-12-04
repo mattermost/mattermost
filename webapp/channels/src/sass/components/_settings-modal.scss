@@ -15,11 +15,6 @@
             > li {
                 margin-bottom: 8px;
 
-                &.header {
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-weight: 600;
-                }
-
                 button {
                     height: 32px;
                     padding: 0 12px;
@@ -49,6 +44,12 @@
                     }
                 }
             }
+        }
+
+        .header {
+            margin-bottom: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-weight: 600;
         }
 
         .settings-table {
