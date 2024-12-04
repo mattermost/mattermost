@@ -75,6 +75,15 @@ type Sortable interface {
 	SortVal() (int64, string)
 }
 
+func SortableSort(a, b Sortable) int {
+	aTimestamp, aId := a.SortVal()
+	bTimestamp, bId := b.SortVal()
+	if aTimestamp == bTimestamp {
+		return strings.Compare(aId, bId)
+	}
+	return int(aTimestamp - bTimestamp)
+}
+
 // The Message element indicates the message sent by a user
 type PostExport struct {
 	XMLName   xml.Name        `xml:"Message"`
@@ -221,14 +230,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		}
 
 		// We need to sort all the elements by (updateAt, messageId) because they were added by type above.
-		slices.SortStableFunc(elements, func(a, b Sortable) int {
-			aTimestamp, aId := a.SortVal()
-			bTimestamp, bId := b.SortVal()
-			if aTimestamp == bTimestamp {
-				return strings.Compare(aId, bId)
-			}
-			return int(aTimestamp - bTimestamp)
-		})
+		slices.SortStableFunc(elements, SortableSort)
 
 		channelExports = append(channelExports, ChannelExport{
 			Perspective: channel.DisplayName,
