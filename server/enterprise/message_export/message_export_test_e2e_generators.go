@@ -77,20 +77,6 @@ func removePointers(p *model.MessageExport) MessageExport {
 	}
 }
 
-func waitUntilZeroPosts(t *testing.T, th *api4.TestHelper) {
-	// This is bananas -- sometimes there's a post in the future before we start the test, and it's causing failures.
-	for x := 0; x < 5; x++ {
-		count, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: "", SinceUpdateAt: model.GetMillis()})
-		require.NoError(t, err)
-		if count != 0 {
-			time.Sleep(1 * time.Second)
-		} else {
-			return
-		}
-	}
-	assert.Fail(t, "e2e setup failed", "waited 5 seconds and there was still a message in the future. Something is wrong.")
-}
-
 // assertNumPostsToExport checks both the MessageExport and the AnalyticsPostCount -- they were sometimes giving
 // different numbers and this helps debug.
 func assertNumPostsToExport(t *testing.T, th *api4.TestHelper, num int, since, until int64) {
@@ -99,10 +85,10 @@ func assertNumPostsToExport(t *testing.T, th *api4.TestHelper, num int, since, u
 	}, 100)
 	assert.NoError(t, err)
 	assert.Len(t, exports, num)
+	assert.Lenf(t, exports, num, "MessageExport posts found, since %d, th.BasicChannel.Id: %s\n", since, th.BasicChannel.Id)
 	if len(exports) != num {
-		fmt.Fprintf(os.Stderr, "\nMessageExport posts found, since %d, th.BasicChannel.Id: %s\n", since, th.BasicChannel.Id)
 		for _, p := range exports {
-			fmt.Fprintf(os.Stderr, "%#+v\n", removePointers(p))
+			t.Logf("%#+v\n", removePointers(p))
 		}
 	}
 
@@ -114,9 +100,7 @@ func assertNumPostsToExport(t *testing.T, th *api4.TestHelper, num int, since, u
 func assertNumExported(t *testing.T, expectedNum int, data map[string]string) {
 	numExported, err := strconv.Atoi(data[shared.JobDataMessagesExported])
 	require.NoError(t, err)
-	if numExported != expectedNum {
-		fmt.Fprintf(os.Stderr, "\njobData: %v\n", data)
-	}
+	assert.Equalf(t, numExported, expectedNum, "\njobData: %v\n", data)
 	require.Equal(t, expectedNum, numExported)
 }
 
@@ -213,7 +197,6 @@ type JobResults struct {
 
 func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir, exportDir string,
 	attachmentBackend filestore.FileBackend) JobResults {
-	waitUntilZeroPosts(t, th)
 	now := model.GetMillis()
 	jobStart := now - 1
 
@@ -238,7 +221,7 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    model.NewId(),
-		Message:   "zz" + model.NewId() + "b",
+		Message:   model.NewId(),
 		CreateAt:  now,
 		UpdateAt:  now,
 		FileIds:   []string{"test1"},
@@ -260,7 +243,7 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    model.NewId(),
-			Message:   "zz" + model.NewId() + "b",
+			Message:   model.NewId(),
 			CreateAt:  now + int64(i),
 			UpdateAt:  now + int64(i),
 		})
@@ -297,7 +280,6 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 }
 
 func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir, exportDir string) JobResults {
-	waitUntilZeroPosts(t, th)
 	now := model.GetMillis()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -318,7 +300,7 @@ func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    model.NewId(),
-			Message:   "zz" + model.NewId() + "b",
+			Message:   model.NewId(),
 			CreateAt:  now + int64(i),
 			UpdateAt:  now + int64(i),
 		})
@@ -373,7 +355,6 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 
 	// Also tests the `BatchSize+1` logic in the worker, because we have 9 posts and batch size of 3.
 
-	waitUntilZeroPosts(t, th)
 	start := model.GetMillis()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -694,7 +675,6 @@ func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, 
 		}
 	})
 
-	waitUntilZeroPosts(t, th)
 	start := model.GetMillis()
 
 	// Users:
@@ -847,7 +827,6 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	//  - post edited with 3 simultaneous posts in-between - forward
 	//  - post edited but falls on the batch boundary (originalId is in batch 1, newId is batch 2)
 
-	waitUntilZeroPosts(t, th)
 	start := model.GetMillis()
 
 	// Users:
@@ -1076,7 +1055,6 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 
 func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
 	attachmentBackend, exportBackend filestore.FileBackend) JobResults {
-	waitUntilZeroPosts(t, th)
 	start := model.GetMillis()
 
 	// Users:
@@ -1240,7 +1218,6 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	//  - post created in previous job, deleted in current job: shows only deleted post in current job
 	//    (and same for updated post)
 
-	waitUntilZeroPosts(t, th)
 	start := model.GetMillis()
 
 	channel2, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
@@ -1343,7 +1320,6 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	//
 
 	// Job 2: post deleted in current job, shows up in second batch because it was deleted after the "second" post
-	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
 
 	posts = make([]*model.Post, 0)
@@ -1426,7 +1402,6 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	//
 
 	// Job 3: post created in previous job, deleted in current job: shows only deleted post in current job
-	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
 
 	posts = make([]*model.Post, 0)
@@ -1495,7 +1470,6 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	//
 	// Job 4
 	//
-	waitUntilZeroPosts(t, th)
 	start = model.GetMillis()
 
 	// make a copy of posts so the one we sent earlier doesn't get modified and cause difficult to detect bugs

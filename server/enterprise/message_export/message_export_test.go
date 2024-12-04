@@ -355,7 +355,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			_, err2 := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    model.NewId(),
-				Message:   "zz" + model.NewId() + "b",
+				Message:   model.NewId(),
 				CreateAt:  now,
 			})
 			require.NoError(t, err2)
@@ -2000,7 +2000,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    model.NewId(),
-			Message:   "zz" + model.NewId() + "b",
+			Message:   model.NewId(),
 			CreateAt:  now,
 			UpdateAt:  now,
 			FileIds:   []string{"test1"},
@@ -2021,7 +2021,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
 				UserId:    model.NewId(),
-				Message:   "zz" + model.NewId() + "b",
+				Message:   model.NewId(),
 				CreateAt:  now + int64(i),
 				UpdateAt:  now + int64(i),
 			})
