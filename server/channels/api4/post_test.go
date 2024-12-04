@@ -1483,7 +1483,10 @@ func TestUpdatePost(t *testing.T) {
 
 		// update post with new file
 		post.FileIds = []string{fileInfo.Id}
-		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, post.Id, updatedPost.Id)
 		require.Equal(t, 1, len(updatedPost.FileIds))
@@ -1518,7 +1521,10 @@ func TestUpdatePost(t *testing.T) {
 
 		// remove files from post
 		post.FileIds = []string{}
-		updatedPost, _, err := client.UpdatePost(context.Background(), post.Id, post)
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
 		require.NoError(t, err)
 		require.Equal(t, post.Id, updatedPost.Id)
 		require.Equal(t, 0, len(updatedPost.FileIds))
@@ -1529,6 +1535,110 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, 1, len(postFileInfos))
 		require.Equal(t, fileInfo.Id, postFileInfos[0].Id)
 		require.Greater(t, postFileInfos[0].DeleteAt, int64(0))
+	})
+
+	t.Run("post files remain unchanged when fileIds is nil", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   []string{fileInfo.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 1, len(post.FileIds))
+
+		// update post without specifying fileIds
+		post.FileIds = nil
+		post.Message = "updated message"
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 1, len(updatedPost.FileIds))
+		require.Equal(t, fileInfo.Id, updatedPost.FileIds[0])
+		require.Equal(t, "updated message", updatedPost.Message)
+
+		// verify file is still part of the post
+		postFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(postFileInfos))
+		require.Equal(t, fileInfo.Id, postFileInfos[0].Id)
+		require.Equal(t, int64(0), postFileInfos[0].DeleteAt)
+	})
+
+	t.Run("should be able to add and remove files simultaneously", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 2, len(post.FileIds))
+
+		// update post with new file
+
+		fileResponse3, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse3.FileInfos))
+		fileInfo3 := fileResponse3.FileInfos[0]
+
+		fileResponse4, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse4.FileInfos))
+		fileInfo4 := fileResponse4.FileInfos[0]
+
+		post.FileIds = []string{fileInfo3.Id, fileInfo4.Id}
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 2, len(updatedPost.FileIds))
+		require.Contains(t, updatedPost.FileIds, fileInfo3.Id)
+		require.Contains(t, updatedPost.FileIds, fileInfo4.Id)
+
+		postFiles, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, err)
+		require.Equal(t, 4, len(postFiles))
+
+		for _, postFile := range postFiles {
+			if postFile.Id == fileInfo1.Id || postFile.Id == fileInfo2.Id {
+				require.Greater(t, postFile.DeleteAt, int64(0))
+			}
+
+			if postFile.Id == fileInfo3.Id || postFile.Id == fileInfo4.Id {
+				require.Equal(t, postFile.PostId, post.Id)
+			}
+		}
 	})
 }
 
@@ -1604,7 +1714,7 @@ func TestPatchPost(t *testing.T) {
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-		assert.Equal(t, model.StringArray(fileIDs[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.Equal(t, model.StringArray(fileIDs), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 	})
 
@@ -1750,6 +1860,135 @@ func TestPatchPost(t *testing.T) {
 
 		require.Error(t, patchErr)
 		CheckBadRequestStatus(t, patchResp)
+	})
+
+	t.Run("should be able to add new files", func(t *testing.T) {
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		})
+
+		require.NoError(t, err)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileInfo.Id},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(patchedPost.FileIds))
+		require.Equal(t, fileInfo.Id, patchedPost.FileIds[0])
+	})
+
+	t.Run("should be able to remove some files", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileInfo2.Id},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(patchedPost.FileIds))
+		require.Equal(t, fileInfo2.Id, patchedPost.FileIds[0])
+	})
+
+	t.Run("should be able to remove all files", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 0, len(patchedPost.FileIds))
+	})
+
+	t.Run("post files remain unchanged when fileIds is nil", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: nil,
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 2, len(patchedPost.FileIds))
+		require.Contains(t, patchedPost.FileIds, fileInfo1.Id)
+		require.Contains(t, patchedPost.FileIds, fileInfo2.Id)
 	})
 }
 

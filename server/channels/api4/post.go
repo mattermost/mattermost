@@ -859,6 +859,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
+	// passing a nil fileIds should not have any effect on a post's file IDs
+	// so, we restore the original file IDs in this case
+	if post.FileIds == nil {
+		post.FileIds = originalPost.FileIds
+	}
+
 	if c.AppContext.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
 			c.SetPermissionError(model.PermissionEditOthersPosts)

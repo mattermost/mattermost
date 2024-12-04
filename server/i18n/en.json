@@ -5132,7 +5132,7 @@
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
-    "translation": "Failed to delete removed files"
+    "translation": "Failed to remove the requested files from database"
   },
   {
     "id": "app.file_info.get.app_error",

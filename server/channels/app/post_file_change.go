@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
-func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.Post) *model.AppError {
+func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.Post) (model.StringArray, *model.AppError) {
 	newFileIDs := model.RemoveDuplicateStrings(newPost.FileIds)
 	oldFileIDs := model.RemoveDuplicateStrings(oldPost.FileIds)
 
@@ -21,7 +21,7 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 
 	if len(removedFileIDs) > 0 {
 		if appErr := a.detachFilesFromPost(rctx, newPost.Id, removedFileIDs); appErr != nil {
-			return appErr
+			return nil, appErr
 		}
 	}
 
@@ -32,7 +32,7 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(newPost.Id, false)
 	}
 
-	return nil
+	return newPost.FileIds, nil
 }
 
 func (a *App) attachNewFilesToPost(rctx request.CTX, post *model.Post, addedFileIDs, unchangedFileIDs []string) {

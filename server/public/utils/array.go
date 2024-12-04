@@ -8,32 +8,38 @@ package utils
 // 2. Items exclusive to arr2
 // 3. Items common to both arr1 and arr2
 func FindExclusives[T comparable](arr1, arr2 []T) ([]T, []T, []T) {
-	elementMap := make(map[T]int)
+	// Create maps to track the presence of elements in each array
+	existsInArr1 := make(map[T]bool)
+	existsInArr2 := make(map[T]bool)
 
-	// Populate the map with counts from arr1
+	// Populate the maps with the elements from both arrays
 	for _, elem := range arr1 {
-		elementMap[elem]++
+		existsInArr1[elem] = true
 	}
-
-	// Process arr2 and adjust counts
-	var exclusiveToArr2 []T
-	var commonElements []T
 	for _, elem := range arr2 {
-		if elementMap[elem] > 0 {
-			elementMap[elem]--                            // Common element
-			commonElements = append(commonElements, elem) // Track common elements
+		existsInArr2[elem] = true
+	}
+
+	// Slices for results
+	var uniqueToArr1 []T
+	var uniqueToArr2 []T
+	var common []T
+
+	// Find elements unique to arr1 and common elements
+	for elem := range existsInArr1 {
+		if existsInArr2[elem] {
+			common = append(common, elem)
 		} else {
-			exclusiveToArr2 = append(exclusiveToArr2, elem) // Exclusive to arr2
+			uniqueToArr1 = append(uniqueToArr1, elem)
 		}
 	}
 
-	// Collect exclusive elements for arr1
-	var exclusiveToArr1 []T
-	for elem, count := range elementMap {
-		for i := 0; i < count; i++ {
-			exclusiveToArr1 = append(exclusiveToArr1, elem)
+	// Find elements unique to arr2
+	for elem := range existsInArr2 {
+		if !existsInArr1[elem] {
+			uniqueToArr2 = append(uniqueToArr2, elem)
 		}
 	}
 
-	return exclusiveToArr1, exclusiveToArr2, commonElements
+	return uniqueToArr1, uniqueToArr2, common
 }

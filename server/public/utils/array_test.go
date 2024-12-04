@@ -51,8 +51,8 @@ func TestFindExclusives(t *testing.T) {
 				name:               "Duplicates in arr1",
 				arr1:               []int{1, 2, 2, 3},
 				arr2:               []int{2, 4, 4},
-				expectedExclusive1: []int{1, 2, 3},
-				expectedExclusive2: []int{4, 4},
+				expectedExclusive1: []int{1, 3},
+				expectedExclusive2: []int{4},
 				expectedCommon:     []int{2},
 			},
 			{
@@ -60,14 +60,22 @@ func TestFindExclusives(t *testing.T) {
 				arr1:               []int{1, 2, 3},
 				arr2:               []int{2, 2, 3, 3},
 				expectedExclusive1: []int{1},
-				expectedExclusive2: []int{2, 3},
+				expectedExclusive2: nil,
 				expectedCommon:     []int{2, 3},
 			},
 			// Edge cases
 			{
-				name:               "Both arrays empty",
+				name:               "Both arrays nil",
 				arr1:               nil,
 				arr2:               nil,
+				expectedExclusive1: nil,
+				expectedExclusive2: nil,
+				expectedCommon:     nil,
+			},
+			{
+				name:               "Both arrays empty",
+				arr1:               []int{},
+				arr2:               []int{},
 				expectedExclusive1: nil,
 				expectedExclusive2: nil,
 				expectedCommon:     nil,
@@ -154,8 +162,8 @@ func TestFindExclusives(t *testing.T) {
 				name:               "Duplicates in arr1",
 				arr1:               []string{"a", "b", "b", "c"},
 				arr2:               []string{"b", "d", "d"},
-				expectedExclusive1: []string{"a", "b", "c"},
-				expectedExclusive2: []string{"d", "d"},
+				expectedExclusive1: []string{"a", "c"},
+				expectedExclusive2: []string{"d"},
 				expectedCommon:     []string{"b"},
 			},
 			{
@@ -163,14 +171,22 @@ func TestFindExclusives(t *testing.T) {
 				arr1:               []string{"a", "b", "c"},
 				arr2:               []string{"b", "b", "c", "c"},
 				expectedExclusive1: []string{"a"},
-				expectedExclusive2: []string{"b", "c"},
+				expectedExclusive2: nil,
 				expectedCommon:     []string{"b", "c"},
 			},
 			// Edge cases
 			{
-				name:               "Both arrays empty",
+				name:               "Both arrays nil",
 				arr1:               nil,
 				arr2:               nil,
+				expectedExclusive1: nil,
+				expectedExclusive2: nil,
+				expectedCommon:     nil,
+			},
+			{
+				name:               "Both arrays empty",
+				arr1:               []string{},
+				arr2:               []string{},
 				expectedExclusive1: nil,
 				expectedExclusive2: nil,
 				expectedCommon:     nil,
@@ -315,11 +331,9 @@ func TestFindExclusives(t *testing.T) {
 				},
 				expectedExclusive1: []time.Time{
 					time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
-					time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
 					time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC),
 				},
 				expectedExclusive2: []time.Time{
-					time.Date(2023, 1, 4, 0, 0, 0, 0, time.UTC),
 					time.Date(2023, 1, 4, 0, 0, 0, 0, time.UTC),
 				},
 				expectedCommon: []time.Time{
@@ -342,10 +356,7 @@ func TestFindExclusives(t *testing.T) {
 				expectedExclusive1: []time.Time{
 					time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 				},
-				expectedExclusive2: []time.Time{
-					time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
-					time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC),
-				},
+				expectedExclusive2: nil,
 				expectedCommon: []time.Time{
 					time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
 					time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC),
@@ -353,9 +364,17 @@ func TestFindExclusives(t *testing.T) {
 			},
 			// Edge cases
 			{
-				name:               "Both arrays empty",
+				name:               "Both arrays nil",
 				arr1:               nil,
 				arr2:               nil,
+				expectedExclusive1: nil,
+				expectedExclusive2: nil,
+				expectedCommon:     nil,
+			},
+			{
+				name:               "Both arrays empty",
+				arr1:               []time.Time{},
+				arr2:               []time.Time{},
 				expectedExclusive1: nil,
 				expectedExclusive2: nil,
 				expectedCommon:     nil,

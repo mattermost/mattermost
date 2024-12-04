@@ -735,11 +735,12 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
-		appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost)
+		var fileIds []string
+		fileIds, appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost)
 		if appErr != nil {
 			return nil, appErr
 		}
-		newPost.FileIds = receivedUpdatedPost.FileIds
+		newPost.FileIds = fileIds
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change

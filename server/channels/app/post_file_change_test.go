@@ -18,18 +18,18 @@ func TestProcessPostFileChanges(t *testing.T) {
 		oldPost := &model.Post{FileIds: []string{}}
 		newPost := &model.Post{FileIds: []string{}}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
-		require.Equal(t, 0, len(newPost.FileIds))
+		require.Equal(t, 0, len(fileIds))
 	})
 
 	t.Run("have files but nothing changed", func(t *testing.T) {
 		oldPost := &model.Post{FileIds: []string{"file_id_1", "file_id_2"}}
 		newPost := &model.Post{FileIds: []string{"file_id_1", "file_id_2"}}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
-		require.Equal(t, 2, len(newPost.FileIds))
+		require.Equal(t, 2, len(fileIds))
 	})
 
 	t.Run("one file deleted", func(t *testing.T) {
@@ -55,8 +55,10 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id},
 		}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
+		require.Equal(t, 1, len(fileIds))
+		require.Equal(t, fileInfo2.Id, fileIds[0])
 
 		// verify file2 was soft deleted
 		updatedFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(postId, true, true, false)
@@ -97,8 +99,11 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
 		}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
+		require.Equal(t, 2, len(fileIds))
+		require.Contains(t, fileIds, fileInfo1.Id)
+		require.Contains(t, fileIds, fileInfo2.Id)
 
 		// verify file2 is attached to the post
 		updatedFileInfo2, err := th.App.Srv().Store().FileInfo().Get(fileInfo2.Id)
@@ -129,8 +134,9 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{},
 		}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
+		require.Equal(t, 0, len(fileIds))
 
 		// verify file2 was soft deleted
 		updatedFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(postId, true, true, false)
@@ -169,8 +175,11 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
 		}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
+		require.Equal(t, 2, len(fileIds))
+		require.Contains(t, fileIds, fileInfo1.Id)
+		require.Contains(t, fileIds, fileInfo2.Id)
 
 		updatedFileInfo1, err := th.App.Srv().Store().FileInfo().Get(fileInfo2.Id)
 		require.NoError(t, err)
@@ -204,8 +213,10 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
 		}
 
-		appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
+		require.Equal(t, 1, len(fileIds))
+		require.Equal(t, fileInfo1.Id, fileIds[0])
 
 		// verify file2 is attached to the post
 		updatedFileInfo2, err := th.App.Srv().Store().FileInfo().Get(fileInfo2.Id)
