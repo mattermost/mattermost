@@ -44,7 +44,7 @@
     },
     {
       "files": ["*"],
-      "excludedFiles": ["mattermost-redux/*"],
+      "excludedFiles": ["src/packages/mattermost-redux/**"],
       "rules": {
         "@typescript-eslint/no-restricted-imports": [
           "error",

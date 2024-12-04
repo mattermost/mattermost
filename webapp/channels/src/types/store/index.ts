@@ -3,6 +3,7 @@
 
 import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
 import type {PluginsState} from './plugins';
