@@ -53,8 +53,6 @@ type Row struct {
 }
 
 func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
-	results := shared.RunExportResults{}
-
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
 	genericChannelExports, metadata, results, err := shared.GetGenericExportData(p)
 	if err != nil {
