@@ -296,3 +296,130 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		})
 	}
 }
+
+func TestGetJoinLeavePosts(t *testing.T) {
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	// This would have been retrieved during CalculateChannelExports
+	channelMemberHistories := map[string][]*model.ChannelMemberHistoryResult{
+		"good-request-1": {
+			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
+			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
+			{JoinTime: 3, UserId: "test3", UserEmail: "test3", Username: "test3"},
+		},
+		"good-request-2": {
+			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
+			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
+			{JoinTime: 6, UserId: "test6", UserEmail: "test6", Username: "test6"},
+		},
+	}
+
+	var joins []JoinExport
+	var leaves []LeaveExport
+	for _, id := range []string{"good-request-1", "good-request-2"} {
+		newJoins, newLeaves := getJoinsAndLeaves(
+			1,
+			7,
+			channelMemberHistories[id],
+			nil,
+		)
+		joins = append(joins, newJoins...)
+		leaves = append(leaves, newLeaves...)
+	}
+
+	assert.Len(t, joins, 6)
+	assert.Equal(t, JoinExport{
+		UserId:    "test1",
+		Username:  "test1",
+		UserEmail: "test1",
+		UserType:  User,
+		JoinTime:  1,
+	}, joins[0])
+	assert.Equal(t, JoinExport{
+		UserId:    "test2",
+		Username:  "test2",
+		UserEmail: "test2",
+		UserType:  User,
+		JoinTime:  2,
+	}, joins[1])
+	assert.Equal(t, JoinExport{
+		UserId:    "test3",
+		Username:  "test3",
+		UserEmail: "test3",
+		UserType:  User,
+		JoinTime:  3,
+	}, joins[2])
+	assert.Equal(t, JoinExport{
+		UserId:    "test4",
+		Username:  "test4",
+		UserEmail: "test4",
+		UserType:  User,
+		JoinTime:  4,
+	}, joins[3])
+	assert.Equal(t, JoinExport{
+		UserId:    "test5",
+		Username:  "test5",
+		UserEmail: "test5",
+		UserType:  User,
+		JoinTime:  5,
+	}, joins[4])
+	assert.Equal(t, JoinExport{
+		UserId:    "test6",
+		Username:  "test6",
+		UserEmail: "test6",
+		UserType:  User,
+		JoinTime:  6,
+	}, joins[5])
+
+	// remember that getJoinsAndLeaves sorts _for each channel_
+	assert.Len(t, leaves, 6)
+	// 1st channel:
+	assert.Equal(t, LeaveExport{
+		UserId:    "test2",
+		Username:  "test2",
+		UserEmail: "test2",
+		UserType:  User,
+		LeaveTime: 3,
+	}, leaves[0])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test1",
+		Username:  "test1",
+		UserEmail: "test1",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[1])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test3",
+		Username:  "test3",
+		UserEmail: "test3",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[2])
+	// 2nd channel:
+	assert.Equal(t, LeaveExport{
+		UserId:    "test5",
+		Username:  "test5",
+		UserEmail: "test5",
+		UserType:  User,
+		LeaveTime: 6,
+	}, leaves[3])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test4",
+		Username:  "test4",
+		UserEmail: "test4",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[4])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test6",
+		Username:  "test6",
+		UserEmail: "test6",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[5])
+}
