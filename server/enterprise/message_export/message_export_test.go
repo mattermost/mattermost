@@ -1006,7 +1006,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[3].CreateAt,
 					Message:     "delete " + attachments[0].Path,
-					UpdateAt:    type3Ret.deletedPost3.DeleteAt,
+					UpdateAt:    type3Ret.message3DeleteAt,
 					UpdatedType: shared.FileDeleted,
 				}, messages[6])
 
@@ -1946,12 +1946,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				message:  posts[2].Message,
 			},
 			// post deleted ONLY (not its created post, because that was in the previous job)
-			// except that CSV doesn't have this logic, needs fix, MM-61718
-			{
-				createAt: posts[0].CreateAt,
-				postId:   posts[0].Id,
-				message:  posts[0].Message,
-			},
 			{
 				createAt: message0DeleteAt,
 				postId:   posts[0].Id,

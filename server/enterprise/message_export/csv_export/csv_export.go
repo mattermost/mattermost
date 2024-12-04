@@ -11,7 +11,7 @@ import (
 	"io"
 	"os"
 	"path"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -31,9 +31,31 @@ const (
 	CSVWarningFilename       = "warning.txt"
 )
 
+type Row struct {
+	CreateAt           int64
+	TeamId             string
+	TeamName           string
+	TeamDisplayName    string
+	ChannelId          string
+	ChannelName        string
+	ChannelDisplayName string
+	ChannelType        string
+	UserId             string
+	UserEmail          string
+	Username           string
+	PostId             string
+	EditedByPostId     string
+	RepliedToPostId    string
+	PostMessage        string
+	PostType           string
+	UserType           string
+	PreviewsPostId     string
+}
+
 func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	results := shared.RunExportResults{}
 
+	// TODO, rearrange below getting section
 	// Write this batch to a tmp zip, then copy the zip to the export directory.
 	// Using a 2M buffer because the file backend may be s3 and this optimizes speed and
 	// memory usage, see: https://github.com/mattermost/mattermost/pull/26629
@@ -75,95 +97,41 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 		return results, fmt.Errorf("unable to add header to the CSV export: %w", err)
 	}
 
-	// postAuthorsByChannel is a map so that we don't store duplicate authors
-	postAuthorsByChannel := make(map[string]map[string]shared.ChannelMember)
-	metadata := shared.Metadata{
-		Channels:         p.ChannelMetadata,
-		MessagesCount:    0,
-		AttachmentsCount: 0,
-		StartTime:        p.BatchStartTime,
-		EndTime:          p.BatchEndTime,
-	}
-	channelsInThisBatch := make(map[string]bool)
-
-	for _, post := range p.Posts {
-		channelId := *post.ChannelId
-		channelsInThisBatch[channelId] = true
-
-		var attachments []*model.FileInfo
-		attachments, err = shared.GetPostAttachments(p.Db, post)
-		if err != nil {
-			return results, err
-		}
-
-		if err = metadata.UpdateCounts(channelId, 1, len(attachments)); err != nil {
-			return results, err
-		}
-
-		if _, ok := postAuthorsByChannel[channelId]; !ok {
-			postAuthorsByChannel[channelId] = make(map[string]shared.ChannelMember)
-		}
-		postAuthorsByChannel[channelId][*post.UserId] = shared.ChannelMember{
-			UserId:   *post.UserId,
-			Email:    *post.UserEmail,
-			Username: *post.Username,
-			IsBot:    post.IsBot,
-		}
+	// Build the channel exports for the channels that had post or user join/leave activity this batch.
+	genericChannelExports, metadata, results, err := shared.GetGenericExportData(p)
+	if err != nil {
+		return results, err
 	}
 
-	// If the channel is not in channelsInThisBatch (i.e. if it didn't have a post), we need to check if it had
-	// user activity between this batch's startTime-endTime. If so, add it to the channelsInThisBatch.
-	for id := range p.ChannelMetadata {
-		if !channelsInThisBatch[id] {
-			if shared.ChannelHasActivity(p.ChannelMemberHistories[id], p.BatchStartTime, p.BatchEndTime) {
-				channelsInThisBatch[id] = true
+	totalRows := results.CreatedPosts + results.EditedOrigMsgPosts + results.DeletedPosts + results.EditedNewMsgPosts +
+		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles
+	rows := make([]Row, 0, totalRows)
+	for _, channel := range genericChannelExports {
+		rows = append(rows, getJoinLeavePosts(channel)...)
+		for _, p := range channel.Posts {
+			createAt := p.PostCreateAt
+			if p.UpdatedType == shared.Deleted {
+				createAt = p.PostDeleteAt
 			}
+			rows = append(rows, postToRow(p.MessageExport, "message", createAt, p.Message))
+		}
+
+		for _, u := range channel.UploadStarts {
+			rows = append(rows, attachmentToRow(shared.UploadStartToExportEntry(u)))
+		}
+		for _, d := range channel.DeletedFiles {
+			rows = append(rows, attachmentToRow(d))
 		}
 	}
 
-	var joinLeavePosts []*model.MessageExport
-	for id := range channelsInThisBatch {
-		var joinLeaves []*model.MessageExport
-		joinLeaves, err = getJoinLeavePosts(
-			p.BatchStartTime,
-			p.BatchEndTime,
-			metadata.Channels[id],
-			p.ChannelMemberHistories[id],
-			postAuthorsByChannel[id],
-		)
-		if err != nil {
-			return results, err
-		}
-		joinLeavePosts = append(joinLeavePosts, joinLeaves...)
-	}
+	// We need to sort all the elements by (updateAt, messageId) because they were added by type and by channel above.
+	slices.SortStableFunc(rows, func(a, b Row) int {
+		return int(a.CreateAt - b.CreateAt)
+	})
 
-	postsGenerator := mergePosts(joinLeavePosts, p.Posts)
-
-	for post := postsGenerator(); post != nil; post = postsGenerator() {
-		postType := model.SafeDereference(post.PostType)
-		if postType == "" {
-			postType = "message"
-		}
-		if err = csvWriter.Write(postToRow(post, postType, post.PostCreateAt, *post.PostMessage)); err != nil {
-			return results, fmt.Errorf("unable to export a post: %w", err)
-		}
-
-		if shared.IsDeletedMsg(post) {
-			if err = csvWriter.Write(postToRow(post, postType, post.PostDeleteAt, "delete "+*post.PostMessage)); err != nil {
-				return results, fmt.Errorf("unable to export a post: %w", err)
-			}
-		}
-
-		var attachments []*model.FileInfo
-		attachments, err = shared.GetPostAttachments(p.Db, post)
-		if err != nil {
-			return results, err
-		}
-
-		for _, attachment := range attachments {
-			if err = csvWriter.Write(attachmentToRow(post, attachment)); err != nil {
-				return results, fmt.Errorf("unable to add attachment to the CSV export: %w", err)
-			}
+	for _, row := range rows {
+		if err = csvWriter.Write(rowToStringSlice(row)); err != nil {
+			return results, fmt.Errorf("unable to export a row: %w", err)
 		}
 	}
 
@@ -248,164 +216,131 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	return results, nil
 }
 
-func mergePosts(left []*model.MessageExport, right []*model.MessageExport) func() *model.MessageExport {
-	leftCursor := 0
-	rightCursor := 0
-	return func() *model.MessageExport {
-		if leftCursor >= len(left) && rightCursor >= len(right) {
-			return nil
-		}
+func getJoinLeavePosts(channel shared.ChannelExport) []Row {
+	var joinLeavePosts []Row
 
-		if leftCursor >= len(left) {
-			rightCursor += 1
-			return right[rightCursor-1]
-		}
-
-		if rightCursor >= len(right) {
-			leftCursor += 1
-			return left[leftCursor-1]
-		}
-
-		if *left[leftCursor].PostCreateAt <= *right[rightCursor].PostCreateAt {
-			leftCursor += 1
-			return left[leftCursor-1]
-		}
-
-		rightCursor += 1
-		return right[rightCursor-1]
-	}
-}
-
-func getJoinLeavePosts(startTime int64, endTime int64, channel *shared.MetadataChannel,
-	channelMembersHistory []*model.ChannelMemberHistoryResult, postAuthors map[string]shared.ChannelMember) ([]*model.MessageExport, error) {
-	var joinLeavePosts []*model.MessageExport
-
-	joins, leaves := shared.GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
-
-	for _, join := range joins {
-		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.Email)
+	for _, join := range channel.JoinEvents {
+		enterMessage := fmt.Sprintf("User %s (%s) joined the channel", join.Username, join.UserEmail)
 		enterPostType := EnterPostType
-		createAt := model.NewPointer(join.Datetime)
-		if join.Datetime <= channel.StartTime {
+		if join.JoinTime <= channel.StartTime {
 			enterPostType = PreviouslyJoinedPostType
-			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.Email)
+			enterMessage = fmt.Sprintf("User %s (%s) was already in the channel", join.Username, join.UserEmail)
 		}
 		joinLeavePosts = append(
 			joinLeavePosts,
-			&model.MessageExport{
-				TeamId:          channel.TeamId,
-				TeamName:        channel.TeamName,
-				TeamDisplayName: channel.TeamDisplayName,
-
+			postToRow(model.MessageExport{
+				TeamId:             &channel.TeamId,
+				TeamName:           &channel.TeamName,
+				TeamDisplayName:    &channel.TeamDisplayName,
 				ChannelId:          &channel.ChannelId,
 				ChannelName:        &channel.ChannelName,
-				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelDisplayName: &channel.DisplayName,
 				ChannelType:        &channel.ChannelType,
-
-				UserId:    model.NewPointer(join.UserId),
-				UserEmail: model.NewPointer(join.Email),
-				Username:  model.NewPointer(join.Username),
-				IsBot:     join.IsBot,
-
-				PostId:         model.NewPointer(""),
-				PostCreateAt:   createAt,
-				PostMessage:    &enterMessage,
-				PostType:       &enterPostType,
-				PostOriginalId: model.NewPointer(""),
-				PostFileIds:    []string{},
-			},
+				UserId:             &join.UserId,
+				UserEmail:          &join.UserEmail,
+				Username:           &join.Username,
+				IsBot:              join.UserType == shared.Bot,
+				PostId:             model.NewPointer(""),
+				PostCreateAt:       &join.JoinTime,
+				PostMessage:        &enterMessage,
+				PostType:           &enterPostType,
+				PostOriginalId:     model.NewPointer(""),
+				PostFileIds:        []string{},
+			}, enterPostType, &join.JoinTime, enterMessage),
 		)
 	}
-	for _, leave := range leaves {
-		leaveMessage := fmt.Sprintf("User %s (%s) leaved the channel", leave.Username, leave.Email)
+	for _, leave := range channel.LeaveEvents {
+		if leave.ClosedOut {
+			continue
+		}
+		leaveMessage := fmt.Sprintf("User %s (%s) left the channel", leave.Username, leave.UserEmail)
 		leavePostType := LeavePostType
 
 		joinLeavePosts = append(
 			joinLeavePosts,
-			&model.MessageExport{
-				TeamId:          channel.TeamId,
-				TeamName:        channel.TeamName,
-				TeamDisplayName: channel.TeamDisplayName,
-
+			postToRow(model.MessageExport{
+				TeamId:             &channel.TeamId,
+				TeamName:           &channel.TeamName,
+				TeamDisplayName:    &channel.TeamDisplayName,
 				ChannelId:          &channel.ChannelId,
 				ChannelName:        &channel.ChannelName,
-				ChannelDisplayName: &channel.ChannelDisplayName,
+				ChannelDisplayName: &channel.DisplayName,
 				ChannelType:        &channel.ChannelType,
-
-				UserId:    model.NewPointer(leave.UserId),
-				UserEmail: model.NewPointer(leave.Email),
-				Username:  model.NewPointer(leave.Username),
-				IsBot:     leave.IsBot,
-
-				PostId:         model.NewPointer(""),
-				PostCreateAt:   model.NewPointer(leave.Datetime),
-				PostMessage:    &leaveMessage,
-				PostType:       &leavePostType,
-				PostOriginalId: model.NewPointer(""),
-				PostFileIds:    []string{},
-			},
+				UserId:             &leave.UserId,
+				UserEmail:          &leave.UserEmail,
+				Username:           &leave.Username,
+				IsBot:              leave.UserType == shared.Bot,
+				PostId:             model.NewPointer(""),
+				PostCreateAt:       &leave.LeaveTime,
+				PostMessage:        &leaveMessage,
+				PostType:           &leavePostType,
+				PostOriginalId:     model.NewPointer(""),
+				PostFileIds:        []string{},
+			}, leavePostType, &leave.LeaveTime, leaveMessage),
 		)
 	}
 
-	sort.Slice(joinLeavePosts, func(i, j int) bool {
-		return *joinLeavePosts[i].PostCreateAt < *joinLeavePosts[j].PostCreateAt
-	})
-	return joinLeavePosts, nil
+	return joinLeavePosts
 }
 
-func postToRow(post *model.MessageExport, postType string, createTime *int64, message string) []string {
-	// createTime should always be createTime, even for deleted posts? Check actiance. MM-61718
-	teamId := ""
-	teamName := ""
-	teamDisplayName := ""
-	if post.TeamId != nil {
-		teamId = *post.TeamId
-	}
-	if post.TeamName != nil {
-		teamName = *post.TeamName
-	}
-	if post.TeamDisplayName != nil {
-		teamDisplayName = *post.TeamDisplayName
-	}
-	postRootId := ""
-	if post.PostRootId != nil {
-		postRootId = *post.PostRootId
-	}
+func postToRow(p model.MessageExport, postType string, createTime *int64, message string) Row {
 	userType := "user"
-	if post.IsBot {
+	if p.IsBot {
 		userType = "bot"
 	}
-
-	return []string{
-		strconv.FormatInt(*createTime, 10),
-		teamId,
-		teamName,
-		teamDisplayName,
-		*post.ChannelId,
-		*post.ChannelName,
-		*post.ChannelDisplayName,
-		shared.ChannelTypeDisplayName(*post.ChannelType),
-		*post.UserId,
-		*post.UserEmail,
-		*post.Username,
-		*post.PostId,
-		*post.PostOriginalId,
-		postRootId,
-		message,
-		postType,
-		userType,
-		post.PreviewID(),
+	return Row{
+		CreateAt:           model.SafeDereference(createTime),
+		TeamId:             model.SafeDereference(p.TeamId),
+		TeamName:           model.SafeDereference(p.TeamName),
+		TeamDisplayName:    model.SafeDereference(p.TeamDisplayName),
+		ChannelId:          model.SafeDereference(p.ChannelId),
+		ChannelName:        model.SafeDereference(p.ChannelName),
+		ChannelDisplayName: model.SafeDereference(p.ChannelDisplayName),
+		ChannelType:        shared.ChannelTypeDisplayName(model.SafeDereference(p.ChannelType)),
+		UserId:             model.SafeDereference(p.UserId),
+		UserEmail:          model.SafeDereference(p.UserEmail),
+		Username:           model.SafeDereference(p.Username),
+		PostId:             model.SafeDereference(p.PostId),
+		EditedByPostId:     model.SafeDereference(p.PostOriginalId),
+		RepliedToPostId:    model.SafeDereference(p.PostRootId),
+		PostMessage:        message,
+		PostType:           postType,
+		UserType:           userType,
+		PreviewsPostId:     p.PreviewID(),
 	}
 }
 
-func attachmentToRow(post *model.MessageExport, attachment *model.FileInfo) []string {
-	message := strings.TrimSpace(fmt.Sprintf("%s (files/%s/%s-%s)", attachment.Name, *post.PostId, attachment.Id, path.Base(attachment.Path)))
+func rowToStringSlice(r Row) []string {
+	return []string{
+		strconv.FormatInt(r.CreateAt, 10),
+		r.TeamId,
+		r.TeamName,
+		r.TeamDisplayName,
+		r.ChannelId,
+		r.ChannelName,
+		r.ChannelDisplayName,
+		r.ChannelType,
+		r.UserId,
+		r.UserEmail,
+		r.Username,
+		r.PostId,
+		r.EditedByPostId,
+		r.RepliedToPostId,
+		r.PostMessage,
+		r.PostType,
+		r.UserType,
+		r.PreviewsPostId,
+	}
+}
+
+func attachmentToRow(post shared.PostExport) Row {
+	message := strings.TrimSpace(fmt.Sprintf("%s (files/%s/%s-%s)", post.FileInfo.Name, *post.PostId, post.FileInfo.Id, path.Base(post.FileInfo.Path)))
 	createAt := post.PostCreateAt
 	postType := "attachment"
-	if shared.IsDeletedMsg(post) {
-		createAt = model.NewPointer(attachment.DeleteAt)
+	if post.UpdatedType == shared.FileDeleted {
+		createAt = &post.FileInfo.DeleteAt
 		postType = "deleted attachment"
 	}
 
-	return postToRow(post, postType, createAt, message)
+	return postToRow(post.MessageExport, postType, createAt, message)
 }
