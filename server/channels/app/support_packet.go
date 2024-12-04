@@ -325,7 +325,12 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 
 func (a *App) getSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
+	config := a.GetSanitizedConfig()
+	spConfig := model.SupportPacketConfig{
+		Config:       config,
+		FeatureFlags: *config.FeatureFlags,
+	}
+	sanitizedConfigPrettyJSON, err := json.MarshalIndent(spConfig, "", "    ")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to sanitized config into json")
 	}

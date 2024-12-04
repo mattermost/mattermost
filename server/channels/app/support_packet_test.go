@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"testing"
@@ -270,7 +271,9 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.NoError(t, err)
 
 		var packet model.SupportPacketStats
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		err = yaml.Unmarshal(fileData.Body, &packet)
+		require.NoError(t, err)
+
 		return &packet
 	}
 
@@ -322,7 +325,9 @@ func TestGetSupportPacketJobList(t *testing.T) {
 		assert.Positive(t, len(fileData.Body))
 
 		var jobs model.SupportPacketJobList
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &jobs))
+		err = yaml.Unmarshal(fileData.Body, &jobs)
+		require.NoError(t, err)
+
 		return &jobs
 	}
 
@@ -435,7 +440,9 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		assert.NoError(t, err)
 
 		var permissions model.SupportPacketPermissionInfo
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &permissions))
+		err = yaml.Unmarshal(fileData.Body, &permissions)
+		require.NoError(t, err)
+
 		return &permissions
 	}
 
@@ -503,8 +510,14 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
+
 	th := Setup(t)
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
+	})
 
 	// Happy path where we have a sanitized config file with no err
 	fileData, err := th.App.getSanitizedConfigFile(th.Context)
@@ -512,6 +525,19 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.NoError(t, err)
+
+	var config model.Config
+	err = json.Unmarshal(fileData.Body, &config)
+	require.NoError(t, err)
+
+	// Ensure sensitive fields are redacted
+	assert.Equal(t, model.FakeSetting, *config.SqlSettings.DataSource)
+
+	// Ensure non-sensitive fields are present
+	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
+
+	// Ensure feature flags are present
+	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
 }
 
 func TestGetSupportPacketMetadata(t *testing.T) {
