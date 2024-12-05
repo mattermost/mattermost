@@ -26,10 +26,12 @@ export type Props = {
 
 export default class SettingsSidebar extends React.PureComponent<Props> {
     buttonRefs: Array<RefObject<HTMLButtonElement>>;
+    totalTabs: Tab[];
 
     constructor(props: Props) {
         super(props);
-        this.buttonRefs = this.props.tabs.map(() => React.createRef());
+        this.totalTabs = [...this.props.tabs, ...this.props.pluginTabs || []];
+        this.buttonRefs = this.totalTabs.map(() => React.createRef());
     }
 
     public handleClick = (tab: Tab, e: React.MouseEvent) => {
@@ -41,13 +43,19 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     public handleKeyUp = (index: number, e: React.KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.UP)) {
             if (index > 0) {
-                this.props.updateTab(this.props.tabs[index - 1].name);
+                this.props.updateTab(this.totalTabs[index - 1].name);
                 a11yFocus(this.buttonRefs[index - 1].current);
+            } else {
+                this.props.updateTab(this.totalTabs[this.totalTabs.length - 1].name);
+                a11yFocus(this.buttonRefs[this.buttonRefs.length - 1].current);
             }
         } else if (isKeyPressed(e, Constants.KeyCodes.DOWN)) {
-            if (index < this.props.tabs.length - 1) {
-                this.props.updateTab(this.props.tabs[index + 1].name);
+            if (index < this.totalTabs.length - 1) {
+                this.props.updateTab(this.totalTabs[index + 1].name);
                 a11yFocus(this.buttonRefs[index + 1].current);
+            } else {
+                this.props.updateTab(this.totalTabs[0].name);
+                a11yFocus(this.buttonRefs[0].current);
             }
         }
     };
@@ -55,9 +63,9 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     private renderTab(tab: Tab, index: number) {
         const key = `${tab.name}_li`;
         const isActive = this.props.activeTab === tab.name;
-        let className = '';
+        let className = 'nav-pills__tab';
         if (isActive) {
-            className = 'active';
+            className += ' active';
         }
 
         let icon;
@@ -79,27 +87,22 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
 
         return (
-            <li
-                id={`${tab.name}Li`}
+            <button
                 key={key}
-                className={className}
-                role='presentation'
+                ref={this.buttonRefs[index]}
+                id={`${tab.name}Button`}
+                className={`cursor--pointer style--none ${className}`}
+                onClick={this.handleClick.bind(null, tab)}
+                onKeyUp={this.handleKeyUp.bind(null, index)}
+                aria-label={tab.uiName.toLowerCase()}
+                role='tab'
+                aria-selected={isActive}
+                tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
+                aria-controls={`${tab.name}Settings`}
             >
-                <button
-                    ref={this.buttonRefs[index]}
-                    id={`${tab.name}Button`}
-                    className='cursor--pointer style--none'
-                    onClick={this.handleClick.bind(null, tab)}
-                    onKeyUp={this.handleKeyUp.bind(null, index)}
-                    aria-label={tab.uiName.toLowerCase()}
-                    role='tab'
-                    aria-selected={isActive}
-                    tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
-                >
-                    {icon}
-                    {tab.uiName}
-                </button>
-            </li>
+                {icon}
+                {tab.uiName}
+            </button>
         );
     }
 
@@ -110,32 +113,38 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             pluginTabList = (
                 <>
                     <hr/>
-                    <li
-                        key={'plugin preferences heading'}
-                        role='heading'
-                        className={'header'}
+                    <div
+                        role='group'
+                        aria-labelledby='userSettingsModal.pluginPreferences.header'
                     >
-                        <FormattedMessage
-                            id={'userSettingsModal.pluginPreferences.header'}
-                            defaultMessage={'PLUGIN PREFERENCES'}
-                        />
-                    </li>
-                    {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index))}
+                        <div
+                            key={'plugin preferences heading'}
+                            role='heading'
+                            className={'header'}
+                            id='userSettingsModal.pluginPreferences.header'
+                        >
+                            <FormattedMessage
+                                id={'userSettingsModal.pluginPreferences.header'}
+                                defaultMessage={'PLUGIN PREFERENCES'}
+                            />
+                        </div>
+                        {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index + this.props.tabs.length))}
+                    </div>
                 </>
             );
         }
 
         return (
-            <div>
-                <ul
-                    id='tabList'
-                    className='nav nav-pills nav-stacked'
-                    role='tablist'
-                    aria-orientation='vertical'
-                >
+            <div
+                id='tabList'
+                className='nav nav-pills nav-stacked'
+                role='tablist'
+                aria-orientation='vertical'
+            >
+                <div role='group'>
                     {tabList}
-                    {pluginTabList}
-                </ul>
+                </div>
+                {pluginTabList}
             </div>
         );
     }
