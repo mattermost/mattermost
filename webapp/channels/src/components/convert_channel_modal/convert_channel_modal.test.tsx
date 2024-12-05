@@ -10,7 +10,6 @@ import {General} from 'mattermost-redux/constants';
 import ConvertChannelModal from 'components/convert_channel_modal/convert_channel_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import { ModalFieldset } from 'components/admin_console/secure_connections/controls';
 
 describe('component/ConvertChannelModal', () => {
     const updateChannelPrivacy = jest.fn().mockImplementation(() => Promise.resolve({}));
