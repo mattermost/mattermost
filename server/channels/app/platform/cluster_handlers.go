@@ -134,7 +134,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	ps.InvalidateAllCachesSkipSend()
 
-	if ps.clusterIFace != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

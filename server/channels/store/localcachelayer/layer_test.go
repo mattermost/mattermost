@@ -14,7 +14,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -147,4 +149,29 @@ func tearDownStores() {
 		}
 		wg.Wait()
 	})
+}
+
+func TestClearCacheCluster(t *testing.T) {
+	cluster := &testlib.FakeClusterInterface{}
+	lc := &LocalCacheStore{
+		cluster: cluster,
+	}
+
+	c := cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForRoles,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
+
+	c = cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventNone,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
 }
