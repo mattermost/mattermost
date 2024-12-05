@@ -63,12 +63,14 @@ const SelectTeam = (props: Props) => {
             menu={{
                 id: 'searchTeamSelectorMenu',
             }}
+            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+            transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
             <Menu.Item
                 id='all_teams'
-                onClick={() => {
-                    props.onChange('');
-                }}
+                role='menuitem'
+                aria-checked={props.value === ''}
+                onClick={() => props.onChange('')}
                 labels={<span>{allTeamsText}</span>}
                 trailingElements={(props.value === '' && (
                     <CheckIcon
@@ -81,6 +83,8 @@ const SelectTeam = (props: Props) => {
             {teams.map((team) => (
                 <Menu.Item
                     id={team.id}
+                    role='menuitem'
+                    aria-checked={team.id === props.value}
                     key={team.id}
                     onClick={() => props.onChange(team.id)}
                     labels={<span>{team.display_name}</span>}
