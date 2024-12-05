@@ -13,7 +13,7 @@ type Props = {
     pluginButtons: PluginComponent[];
 }
 
-const PluggableIntroButtons = (props: Props => {
+const PluggableIntroButtons = (props: Props) => {
     const channelIsArchived = props.channel.delete_at !== 0;
     if (channelIsArchived || props.pluginButtons.length === 0) {
         return null;
@@ -33,7 +33,7 @@ const PluggableIntroButtons = (props: Props => {
     });
 
     return <>{buttons}</>;
-});
+};
 PluggableIntroButtons.displayName = 'PluggableIntroButtons';
 
 export default PluggableIntroButtons;

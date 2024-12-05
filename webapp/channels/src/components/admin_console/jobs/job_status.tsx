@@ -8,7 +8,7 @@ import type {Job} from '@mattermost/types/jobs';
 
 import {JobStatuses} from 'utils/constants';
 
-const JobStatus = ({job}: {job: Job} => {
+const JobStatus = ({job}: {job: Job}) => {
     const intl = useIntl();
     if (job.status === JobStatuses.PENDING) {
         return (
@@ -104,6 +104,6 @@ const JobStatus = ({job}: {job: Job} => {
             {job.status}
         </span>
     );
-});
+};
 
 export default JobStatus;

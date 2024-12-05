@@ -487,4 +487,4 @@ export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
     return true;
 };
 
-export default SearchResults, arePropsEqual;
+export default SearchResults;
