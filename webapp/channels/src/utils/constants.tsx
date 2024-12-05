@@ -725,11 +725,11 @@ export const RecommendedNextStepsLegacy = {
     SKIP: 'skip',
 };
 
-export const Threads = {
-    CHANGED_SELECTED_THREAD: 'changed_selected_thread',
-    CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
-    MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
-};
+export const Threads = keyMirror({
+    CHANGED_SELECTED_THREAD: null,
+    CHANGED_LAST_VIEWED_AT: null,
+    MANUALLY_UNREAD_THREAD: null,
+});
 
 export const CloudBanners = {
     HIDE: 'hide',

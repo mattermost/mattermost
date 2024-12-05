@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {UserStatus, UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
 import keyMirror from 'mattermost-redux/utils/key_mirror';
 
-export default keyMirror({
+import type {SomeAction} from './types';
+
+const UserTypes = keyMirror({
     CREATE_USER_REQUEST: null,
     CREATE_USER_SUCCESS: null,
     CREATE_USER_FAILURE: null,
@@ -74,3 +79,16 @@ export default keyMirror({
     PROFILE_NO_LONGER_VISIBLE: null,
     LOGIN: null,
 });
+export default UserTypes;
+
+type UserActionTypes = {
+    RECEIVED_ME: {
+        type: 'RECEIVED_ME';
+        data: UserProfile;
+    };
+    RECEIVED_STATUSES: {
+        type: 'RECEIVED_STATUSES';
+        data: RelationOneToOne<UserProfile, UserStatus['status']>;
+    };
+};
+export type UserAction = SomeAction<typeof UserTypes, UserActionTypes>;
