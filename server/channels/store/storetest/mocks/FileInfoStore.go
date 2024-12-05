@@ -94,6 +94,24 @@ func (_m *FileInfoStore) DeleteForPost(c request.CTX, postID string) (string, er
 	return r0, r1
 }
 
+// DeleteForPostByIds provides a mock function with given fields: rctx, postId, fileIDs
+func (_m *FileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	ret := _m.Called(rctx, postId, fileIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteForPostByIds")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
+		r0 = rf(rctx, postId, fileIDs)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	ret := _m.Called(id)
