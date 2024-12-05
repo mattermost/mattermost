@@ -249,4 +249,4 @@ const UpdateUserGroupModal = ({
     );
 };
 
-export default React.memo(UpdateUserGroupModal);
+export default UpdateUserGroupModal;

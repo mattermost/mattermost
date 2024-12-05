@@ -81,4 +81,4 @@ const SettingItem = ({
     );
 };
 
-export default React.memo(SettingItem);
+export default SettingItem;

@@ -85,4 +85,4 @@ const UserGroupsFilter = (props: Props) => {
     );
 };
 
-export default React.memo(UserGroupsFilter);
+export default UserGroupsFilter;

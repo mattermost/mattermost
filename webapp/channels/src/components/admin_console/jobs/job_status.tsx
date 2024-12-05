@@ -8,7 +8,7 @@ import type {Job} from '@mattermost/types/jobs';
 
 import {JobStatuses} from 'utils/constants';
 
-const JobStatus = React.memo(({job}: {job: Job}) => {
+const JobStatus = ({job}: {job: Job} => {
     const intl = useIntl();
     if (job.status === JobStatuses.PENDING) {
         return (

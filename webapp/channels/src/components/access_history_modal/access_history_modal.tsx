@@ -92,4 +92,4 @@ const AccessHistoryModal = ({
     );
 };
 
-export default React.memo(AccessHistoryModal);
+export default AccessHistoryModal;

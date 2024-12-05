@@ -46,4 +46,4 @@ const FloatingTimestamp = ({createAt, isScrolling, isRhsPost, toastPresent}: Pro
     );
 };
 
-export default React.memo(FloatingTimestamp);
+export default FloatingTimestamp;

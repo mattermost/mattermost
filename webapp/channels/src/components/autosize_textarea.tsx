@@ -193,4 +193,4 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     );
 });
 
-export default React.memo(AutosizeTextarea);
+export default AutosizeTextarea;

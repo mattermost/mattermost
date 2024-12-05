@@ -48,4 +48,4 @@ const Settings = ({children, setByEnv, helpText, inputId, label, nested = false}
     );
 };
 
-export default React.memo(Settings);
+export default Settings;

@@ -130,4 +130,4 @@ const GroupOption = (props: Props) => {
     );
 };
 
-export default React.memo(GroupOption);
+export default GroupOption;

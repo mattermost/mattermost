@@ -112,4 +112,4 @@ const PostFlagIcon = ({
     );
 };
 
-export default React.memo(PostFlagIcon);
+export default PostFlagIcon;

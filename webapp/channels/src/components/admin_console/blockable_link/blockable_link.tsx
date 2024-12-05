@@ -47,4 +47,4 @@ const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => 
     );
 };
 
-export default React.memo(BlockableLink);
+export default BlockableLink;

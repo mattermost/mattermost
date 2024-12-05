@@ -63,4 +63,4 @@ const TeamPermissionGate = ({
     );
 };
 
-export default React.memo(TeamPermissionGate);
+export default TeamPermissionGate;

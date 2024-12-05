@@ -65,4 +65,4 @@ const StatisticCount = ({
     );
 };
 
-export default React.memo(StatisticCount);
+export default StatisticCount;

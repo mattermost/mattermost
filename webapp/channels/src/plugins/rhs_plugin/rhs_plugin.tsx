@@ -33,4 +33,4 @@ const RhsPlugin = ({showPluggable, pluggableId, title}: Props) => {
     );
 };
 
-export default React.memo(RhsPlugin);
+export default RhsPlugin;

@@ -59,4 +59,4 @@ const UserGroupsModalHeader = (props: Props) => {
     );
 };
 
-export default React.memo(UserGroupsModalHeader);
+export default UserGroupsModalHeader;

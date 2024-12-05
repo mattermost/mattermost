@@ -134,4 +134,4 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
     );
 };
 
-export default React.memo(ViewUserGroupHeaderSubMenu);
+export default ViewUserGroupHeaderSubMenu;

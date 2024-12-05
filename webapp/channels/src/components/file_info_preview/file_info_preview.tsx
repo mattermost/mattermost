@@ -77,4 +77,4 @@ const FileInfoPreview = ({
     );
 };
 
-export default React.memo(FileInfoPreview);
+export default FileInfoPreview;

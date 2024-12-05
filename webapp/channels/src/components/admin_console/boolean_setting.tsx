@@ -158,4 +158,4 @@ const BooleanSetting = ({
     );
 };
 
-export default React.memo(BooleanSetting);
+export default BooleanSetting;

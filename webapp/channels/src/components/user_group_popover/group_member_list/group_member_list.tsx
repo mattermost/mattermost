@@ -438,4 +438,4 @@ const RetryButton = styled.button`
     color: var(--link-color);
 `;
 
-export default React.memo(GroupMemberList);
+export default GroupMemberList;

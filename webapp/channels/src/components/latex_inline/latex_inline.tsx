@@ -65,4 +65,4 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
     }
 };
 
-export default React.memo(LatexInline);
+export default LatexInline;

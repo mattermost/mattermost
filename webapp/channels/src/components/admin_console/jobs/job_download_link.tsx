@@ -12,7 +12,7 @@ import ExternalLink from 'components/external_link';
 
 import {exportFormats} from 'utils/constants';
 
-const JobDownloadLink = React.memo(({job}: {job: Job}): JSX.Element => {
+const JobDownloadLink = ({job}: {job: Job}: JSX.Element => {
     if (job.data?.is_downloadable === 'true' && parseInt(job.data?.messages_exported, 10) > 0 && job.data?.export_type !== exportFormats.EXPORT_FORMAT_GLOBALRELAY) {
         return (
             <ExternalLink

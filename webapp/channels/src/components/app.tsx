@@ -25,4 +25,4 @@ const App = () => {
     );
 };
 
-export default hot(React.memo(App));
+export default hot(App);

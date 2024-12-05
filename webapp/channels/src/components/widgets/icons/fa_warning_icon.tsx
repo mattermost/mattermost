@@ -19,4 +19,4 @@ const WarningIcon = ({additionalClassName}: Props) => {
     );
 };
 
-export default React.memo(WarningIcon);
+export default WarningIcon;

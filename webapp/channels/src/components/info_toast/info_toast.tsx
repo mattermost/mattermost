@@ -76,4 +76,4 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
     );
 }
 
-export default React.memo(InfoToast);
+export default InfoToast;

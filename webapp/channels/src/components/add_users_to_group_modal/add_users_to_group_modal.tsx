@@ -158,4 +158,4 @@ const AddUsersToGroupModal = (props: Props) => {
     );
 };
 
-export default React.memo(AddUsersToGroupModal);
+export default AddUsersToGroupModal;

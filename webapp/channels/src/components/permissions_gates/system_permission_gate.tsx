@@ -49,4 +49,4 @@ const SystemPermissionGate = ({
     );
 };
 
-export default React.memo(SystemPermissionGate);
+export default SystemPermissionGate;

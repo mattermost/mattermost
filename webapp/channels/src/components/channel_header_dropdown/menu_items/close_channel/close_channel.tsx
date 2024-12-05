@@ -31,4 +31,4 @@ const CloseChannel = ({
     );
 };
 
-export default React.memo(CloseChannel);
+export default CloseChannel;

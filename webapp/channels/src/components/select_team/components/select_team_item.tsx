@@ -89,4 +89,4 @@ const SelectTeamItem = ({
     );
 };
 
-export default React.memo(SelectTeamItem);
+export default SelectTeamItem;

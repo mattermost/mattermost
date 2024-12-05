@@ -60,4 +60,4 @@ const VersionBar = ({
     return null;
 };
 
-export default React.memo(VersionBar);
+export default VersionBar;

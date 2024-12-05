@@ -28,4 +28,4 @@ const AdvancedCreatePost = () => {
     );
 };
 
-export default React.memo(AdvancedCreatePost);
+export default AdvancedCreatePost;

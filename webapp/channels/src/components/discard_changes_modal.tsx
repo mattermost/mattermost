@@ -55,4 +55,4 @@ const DiscardChangesModal = ({
     );
 };
 
-export default React.memo(DiscardChangesModal);
+export default DiscardChangesModal;

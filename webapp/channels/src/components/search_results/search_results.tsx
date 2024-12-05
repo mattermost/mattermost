@@ -487,4 +487,4 @@ export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
     return true;
 };
 
-export default React.memo(SearchResults, arePropsEqual);
+export default SearchResults, arePropsEqual;

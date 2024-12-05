@@ -20,4 +20,4 @@ const LoadingWrapper = ({loading = true, text, children}: Props) => {
     );
 };
 
-export default React.memo(LoadingWrapper);
+export default LoadingWrapper;

@@ -183,4 +183,4 @@ const ViewUserGroupModalHeader = ({
     );
 };
 
-export default React.memo(ViewUserGroupModalHeader);
+export default ViewUserGroupModalHeader;

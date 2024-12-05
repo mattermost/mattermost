@@ -21,4 +21,4 @@ const ShieldOutlineIcon = (props: Props) => {
         </span>
     );
 };
-export default React.memo(ShieldOutlineIcon);
+export default ShieldOutlineIcon;

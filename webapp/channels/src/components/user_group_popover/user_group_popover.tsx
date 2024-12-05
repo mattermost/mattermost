@@ -323,4 +323,4 @@ const SearchBar = styled.div`
     }
 `;
 
-export default React.memo(UserGroupPopover);
+export default UserGroupPopover;

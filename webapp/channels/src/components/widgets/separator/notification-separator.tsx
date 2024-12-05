@@ -25,5 +25,5 @@ const NotificationSeparator = ({children}: Props) => {
     );
 };
 
-export default React.memo(NotificationSeparator);
+export default NotificationSeparator;
 

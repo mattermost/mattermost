@@ -117,4 +117,4 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     );
 };
 
-export default React.memo(StarterLeftPanel);
+export default StarterLeftPanel;

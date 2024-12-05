@@ -57,4 +57,4 @@ const GroupUsersRow = ({
     );
 };
 
-export default React.memo(GroupUsersRow);
+export default GroupUsersRow;

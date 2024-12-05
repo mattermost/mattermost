@@ -22,4 +22,4 @@ const EmailIcon: React.FC<Props> = (props) => {
     );
 };
 
-export default React.memo(EmailIcon);
+export default EmailIcon;

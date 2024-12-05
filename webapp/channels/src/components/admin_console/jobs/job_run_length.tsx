@@ -8,7 +8,7 @@ import type {Job} from '@mattermost/types/jobs';
 
 import {JobStatuses} from 'utils/constants';
 
-const JobRunLength = React.memo(({job}: {job: Job}): JSX.Element => {
+const JobRunLength = ({job}: {job: Job}: JSX.Element => {
     const intl = useIntl();
     let millis = job.last_activity_at - job.start_at;
     if (job.status === JobStatuses.IN_PROGRESS) {

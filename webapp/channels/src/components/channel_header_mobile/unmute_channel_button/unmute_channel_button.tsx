@@ -33,4 +33,4 @@ const UnmuteChannelButton = ({user, channel, actions}: Props) => {
     );
 };
 
-export default React.memo(UnmuteChannelButton);
+export default UnmuteChannelButton;

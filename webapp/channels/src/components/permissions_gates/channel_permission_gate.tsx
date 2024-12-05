@@ -61,4 +61,4 @@ const ChannelPermissionGate = ({channelId, teamId, permissions, children, invert
     );
 };
 
-export default React.memo(ChannelPermissionGate);
+export default ChannelPermissionGate;

@@ -33,4 +33,4 @@ const MobileChannelHeaderDropdownAnimation = ({show, children}: Props) => {
     );
 };
 
-export default React.memo(MobileChannelHeaderDropdownAnimation);
+export default MobileChannelHeaderDropdownAnimation;

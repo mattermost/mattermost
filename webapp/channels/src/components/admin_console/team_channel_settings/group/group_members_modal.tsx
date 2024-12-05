@@ -77,4 +77,4 @@ const GroupMembersModal: React.FC<Props> = ({
     );
 };
 
-export default React.memo(GroupMembersModal);
+export default GroupMembersModal;

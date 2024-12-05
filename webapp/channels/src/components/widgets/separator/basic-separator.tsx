@@ -25,4 +25,4 @@ const BasicSeparator = ({children}: Props) => {
     );
 };
 
-export default React.memo(BasicSeparator);
+export default BasicSeparator;
