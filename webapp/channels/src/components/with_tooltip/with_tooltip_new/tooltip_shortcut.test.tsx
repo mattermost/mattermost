@@ -14,8 +14,18 @@ jest.mock('utils/user_agent', () => ({
 }));
 
 describe('TooltipShortcut', () => {
+    let isMacMock: jest.Mock;
+
+    beforeEach(() => {
+        isMacMock = jest.mocked(userAgentUtils.isMac);
+    });
+
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
     test('should show non mac shortcut when on non mac', () => {
-        (userAgentUtils.isMac as jest.Mock).mockReturnValue(false);
+        isMacMock.mockReturnValue(false);
         const shortcut = {
             default: ['Ctrl', 'K'],
             mac: ['⌘', 'K'],
@@ -32,7 +42,7 @@ describe('TooltipShortcut', () => {
     });
 
     test('should show mac shortcut when on mac', () => {
-        (userAgentUtils.isMac as jest.Mock).mockReturnValue(true);
+        isMacMock.mockReturnValue(true);
 
         const shortcut = {
             default: ['Ctrl', 'K'],

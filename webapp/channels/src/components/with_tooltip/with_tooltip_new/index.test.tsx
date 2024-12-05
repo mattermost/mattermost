@@ -82,6 +82,8 @@ describe('WithTooltip', () => {
         );
 
         await act(async () => {
+            expect(onOpen).not.toHaveBeenCalled();
+
             userEvent.hover(screen.getByText('Hover Me'));
 
             jest.advanceTimersByTime(1000);
