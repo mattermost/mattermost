@@ -6,6 +6,8 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
@@ -48,7 +50,7 @@ const SelectTeam = (props: Props) => {
     }
 
     const button = (
-        <span>{menuButtonText}  <i className='icon icon-chevron-down'/></span>
+        <><span>{menuButtonText}</span> <ChevronDownIcon size={12}/></>
     );
 
     return (
@@ -57,7 +59,6 @@ const SelectTeam = (props: Props) => {
                 id: 'searchTeamsSelectorMenuButton',
                 class: classNames('search-teams-selector-menu-button', {'search-teams-selector-menu-button__different-team': isDifferentTeamSelected}),
                 children: button,
-                as: 'span',
             }}
             menu={{
                 id: 'searchTeamSelectorMenu',
@@ -69,7 +70,12 @@ const SelectTeam = (props: Props) => {
                     props.onChange('');
                 }}
                 labels={<span>{allTeamsText}</span>}
-                trailingElements={(props.value === '' && <div><i className='icon icon-check'/></div>)}
+                trailingElements={(props.value === '' && (
+                    <CheckIcon
+                        size={14}
+                        color='var(--button-bg, #1c58d9)'
+                    />
+                ))}
             />
             <Menu.Separator/>
             {teams.map((team) => (
@@ -78,7 +84,12 @@ const SelectTeam = (props: Props) => {
                     key={team.id}
                     onClick={() => props.onChange(team.id)}
                     labels={<span>{team.display_name}</span>}
-                    trailingElements={(team.id === props.value && <div><i className='icon icon-check'/></div>)}
+                    trailingElements={(team.id === props.value && (
+                        <CheckIcon
+                            size={14}
+                            color='var(--button-bg, #1c58d9)'
+                        />
+                    ))}
                 />
             ))}
         </Menu.Container>
