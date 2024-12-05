@@ -95,6 +95,18 @@ func TestIsValid(t *testing.T) {
 							},
 						},
 					},
+					{
+						Key:      "section3",
+						Custom:   true,
+						Fallback: true,
+						Settings: []*PluginSetting{
+							{
+								Key:         "section3setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+					},
 				},
 			},
 		}, false},
