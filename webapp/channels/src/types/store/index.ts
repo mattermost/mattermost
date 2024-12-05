@@ -11,7 +11,9 @@ import type {General, WebsocketEvents} from 'mattermost-redux/constants';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
-import type {ActionTypes, SearchTypes, StorageTypes, Threads} from 'utils/constants';
+import type {StorageAction} from 'actions/storage';
+
+import type {ActionTypes, SearchTypes, Threads} from 'utils/constants';
 
 import type {PluginsState} from './plugins';
 import type {ViewsState} from './views';
@@ -40,7 +42,8 @@ export type MMAction = (
     MMReduxAction |
 
     // Actions used by web app reducers
-    AnyActionFrom<typeof ActionTypes & typeof Threads & typeof SearchTypes & typeof StorageTypes> |
+    AnyActionFrom<typeof ActionTypes & typeof Threads & typeof SearchTypes> |
+    StorageAction |
 
     // Actions used by the reducer for state.entities.typing in mattermost-redux which are incorrectly reusing WS
     // message types
