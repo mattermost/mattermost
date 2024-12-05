@@ -38,6 +38,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
 	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
 	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
+	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -966,4 +967,95 @@ func testPermanentDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) 
 	)
 	require.NoError(t, err)
 	assert.Len(t, postInfos, 0)
+}
+
+func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Should get single file info", func(t *testing.T) {
+		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info.Id)
+		}()
+
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false)
+		require.NoError(t, err)
+		require.Len(t, fileInfos, 1)
+		require.Equal(t, info.Id, fileInfos[0].Id)
+	})
+
+	t.Run("Should get multiple file info", func(t *testing.T) {
+		info1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info1.Id), 0)
+
+		// waiting 1 second to add deterministic difference between the two file info's CreateAt time
+		time.Sleep(1 * time.Second)
+
+		info2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info2.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info1.Id)
+			ss.FileInfo().PermanentDelete(rctx, info2.Id)
+		}()
+
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false)
+		require.NoError(t, err)
+		require.Len(t, fileInfos, 2)
+		require.Equal(t, info1.Id, fileInfos[1].Id)
+		require.Equal(t, info2.Id, fileInfos[0].Id)
+	})
+
+	t.Run("Should get deleted file infos when specified", func(t *testing.T) {
+		postId := model.NewId()
+
+		info1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+			PostId:    postId,
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info1.Id), 0)
+
+		// waiting 1 second to add deterministic difference between the two file info's CreateAt time
+		time.Sleep(1 * time.Second)
+
+		info2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file.txt",
+			PostId:    postId,
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, len(info2.Id), 0)
+
+		defer func() {
+			ss.FileInfo().PermanentDelete(rctx, info1.Id)
+			ss.FileInfo().PermanentDelete(rctx, info2.Id)
+		}()
+
+		// we'll delete thw two file infos
+		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfos, 2)
+		require.Equal(t, info2.Id, fileInfos[0].Id)
+		require.Greater(t, fileInfos[0].DeleteAt, int64(0))
+
+		require.Equal(t, info1.Id, fileInfos[1].Id)
+		require.Greater(t, fileInfos[1].DeleteAt, int64(0))
+	})
 }
