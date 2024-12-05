@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 type Props = {
     canAddReactions: boolean;
@@ -125,17 +125,15 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
     }
 
     return (
-        <Tooltip
-            emoticon={emojiName}
-            isEmoticonLarge={true}
+        <WithTooltip
             title={tooltipTitle}
             hint={tooltipHint}
-            options={{
-                onChange: onShow,
-            }}
+            emoji={emojiName}
+            isEmojiLarge={true}
+            onOpen={onShow}
         >
             {children}
-        </Tooltip>
+        </WithTooltip>
     );
 };
 

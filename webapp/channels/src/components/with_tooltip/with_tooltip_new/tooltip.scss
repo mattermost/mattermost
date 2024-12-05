@@ -27,16 +27,16 @@
                 justify-content: center;
                 gap: 6px;
 
-                &.isEmoticonLarge {
+                &.isEmojiLarge {
                     flex-direction: column;
                     gap: 2px;
 
-                    > .tooltipContentEmoticon {
+                    > .tooltipContentEmoji {
                         padding-top: 1px;
                     }
                 }
 
-                > .tooltipContentEmoticon {
+                > .tooltipContentEmoji {
                     display: flex;
                     align-items: center;
                     justify-content: center;

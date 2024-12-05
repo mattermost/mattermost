@@ -9,9 +9,9 @@ import {Link} from 'react-router-dom';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
-import Tooltip from 'components/tooltip';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 import {Mark} from 'utils/performance_telemetry';
 
@@ -226,14 +226,11 @@ function WithTeamTooltip({
     }, [order]);
 
     return (
-        <Tooltip
+        <WithTooltip
             title={tip || intl.formatMessage(messages.nameUndefined)}
-            options={{
-                placement: 'right',
-            }}
             shortcut={shortcut}
         >
             {children}
-        </Tooltip>
+        </WithTooltip>
     );
 }

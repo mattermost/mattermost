@@ -6,16 +6,17 @@ import type {ReactNode} from 'react';
 import React, {memo} from 'react';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import {TooltipShortcut} from 'components/tooltip/tooltip_shortcut';
-import {type ShortcutDefinition} from 'components/tooltip/tooltip_shortcut';
+
+import {TooltipShortcut} from './tooltip_shortcut';
+import {type ShortcutDefinition} from './tooltip_shortcut';
 
 const TOOLTIP_EMOTICON_SIZE = 16;
 const TOOLTIP_EMOTICON_LARGE_SIZE = 48;
 
 interface Props {
     title: string | ReactNode;
-    emoticon?: string;
-    isEmoticonLarge?: boolean;
+    emoji?: string;
+    isEmojiLarge?: boolean;
     hint?: string;
     shortcut?: ShortcutDefinition;
 }
@@ -25,14 +26,14 @@ function TooltipContent(props: Props) {
         <div className='tooltipContent'>
             <span
                 className={classNames('tooltipContentTitleContainer', {
-                    isEmoticonLarge: props.isEmoticonLarge,
+                    isEmojiLarge: props.isEmojiLarge,
                 })}
             >
-                {props.emoticon && (
-                    <span className='tooltipContentEmoticon'>
+                {props.emoji && (
+                    <span className='tooltipContentEmoji'>
                         <RenderEmoji
-                            emojiName={props.emoticon}
-                            size={props.isEmoticonLarge ? TOOLTIP_EMOTICON_LARGE_SIZE : TOOLTIP_EMOTICON_SIZE}
+                            emojiName={props.emoji}
+                            size={props.isEmojiLarge ? TOOLTIP_EMOTICON_LARGE_SIZE : TOOLTIP_EMOTICON_SIZE}
                         />
                     </span>
                 )}
