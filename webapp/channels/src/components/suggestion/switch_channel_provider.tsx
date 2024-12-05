@@ -440,7 +440,7 @@ export default class SwitchChannelProvider extends Provider {
      *
      * @see {@link components/forward_post_modal/forward_post_channel_select.tsx}
      */
-    handlePretextChanged(channelPrefix: string, _: string, resultsCallback: ResultsCallback<WrappedChannel>) {
+    handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
         if (channelPrefix) {
             prefix = channelPrefix;
             this.startNewRequest(channelPrefix);

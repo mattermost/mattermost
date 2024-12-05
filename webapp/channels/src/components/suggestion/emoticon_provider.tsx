@@ -63,7 +63,7 @@ export default class EmoticonProvider extends Provider {
         this.triggerCharacter = ':';
     }
 
-    handlePretextChanged(pretext: string, _: string, resultsCallback: ResultsCallback<EmojiItem>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<EmojiItem>) {
         // Look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
         const captured = (/(^|\s|^\+|^-)(:([^:\s]*))$/g).exec(pretext.toLowerCase());
         if (!captured) {

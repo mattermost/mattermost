@@ -55,7 +55,7 @@ export default class GenericChannelProvider extends Provider {
         this.autocompleteChannels = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, _: string, resultsCallback: ResultsCallback<Channel>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
         const normalizedPretext = pretext.toLowerCase();
         this.startNewRequest(normalizedPretext);
 

@@ -8,7 +8,7 @@ import SearchDateSuggestion from './search_date_suggestion';
 type DateItem = {label: string; date: string};
 
 export default class SearchDateProvider extends Provider {
-    handlePretextChanged(pretext: string, _: string, resultsCallback: ResultsCallback<DateItem>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<DateItem>) {
         const captured = (/\b(?:on|before|after):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const datePrefix = captured[1];

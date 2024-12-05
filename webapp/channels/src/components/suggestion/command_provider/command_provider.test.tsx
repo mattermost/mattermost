@@ -60,7 +60,7 @@ describe('CommandProvider', () => {
             });
 
             const callback = jest.fn();
-            provider.handlePretextChanged('/jira issue', '', callback);
+            provider.handlePretextChanged('/jira issue', callback);
             await mockFunc();
 
             const expected = {
@@ -101,7 +101,7 @@ describe('CommandProvider', () => {
             });
 
             const callback = jest.fn();
-            provider.handlePretextChanged('/jira issue', '', callback);
+            provider.handlePretextChanged('/jira issue', callback);
             await mockFunc();
 
             const expected = {

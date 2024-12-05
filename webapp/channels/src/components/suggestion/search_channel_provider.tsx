@@ -41,7 +41,7 @@ export default class SearchChannelProvider extends Provider {
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }
 
-    handlePretextChanged(pretext: string, teamId: string, resultsCallback: ResultsCallback<Channel>) {
+    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>, teamId: string) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             let channelPrefix = captured[1];

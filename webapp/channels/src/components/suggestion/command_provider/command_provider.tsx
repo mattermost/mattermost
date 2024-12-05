@@ -106,7 +106,7 @@ export default class CommandProvider extends Provider {
         this.appCommandParser.setChannelContext(props.channelId, props.teamId, props.rootId);
     }
 
-    handlePretextChanged(pretext: string, _: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         if (!pretext.startsWith(this.triggerCharacter)) {
             return false;
         }

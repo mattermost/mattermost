@@ -67,7 +67,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
         }
 
         suggestionProviders.current.forEach((provider, idx) => {
-            provider.handlePretextChanged(partialSearchTerms, searchTeam, (res: ProviderResult<unknown>) => {
+            provider.handlePretextChanged(partialSearchTerms, (res: ProviderResult<unknown>) => {
                 if (idx === 3 && searchType !== 'files') {
                     return;
                 }
@@ -79,7 +79,7 @@ const useSearchSuggestions = (searchType: string, searchTerms: string, searchTea
                 setProviderResults(res);
                 setSelectedOption(0);
                 setSuggestionsHeader(headers[idx]);
-            });
+            }, searchTeam);
         });
     }, [searchTerms, searchTeam, searchType, caretPosition]);
 

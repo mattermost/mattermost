@@ -379,7 +379,7 @@ export default class AtMentionProvider extends Provider {
         });
     }
 
-    handlePretextChanged(pretext: string, _: string, resultCallback: ResultsCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
         const captured = regexForAtMention.exec(pretext.toLowerCase());
         if (!captured) {
             return false;

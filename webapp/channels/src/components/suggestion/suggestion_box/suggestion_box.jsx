@@ -686,7 +686,7 @@ export default class SuggestionBox extends React.PureComponent {
             callback = this.makeHandleReceivedSuggestionsAndComplete();
         }
         for (const provider of this.props.providers) {
-            handled = provider.handlePretextChanged(pretext, '', callback) || handled;
+            handled = provider.handlePretextChanged(pretext, callback) || handled;
 
             if (handled) {
                 if (!this.state.suggestionBoxAlgn && ['@', ':', '~', '/'].includes(provider.triggerCharacter)) {

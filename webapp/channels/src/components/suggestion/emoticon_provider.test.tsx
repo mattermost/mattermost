@@ -36,7 +36,7 @@ describe('components/EmoticonProvider', () => {
     it('should not suggest emojis when partial name < MIN_EMOTICON_LENGTH', () => {
         for (let i = 0; i < MIN_EMOTICON_LENGTH; i++) {
             const pretext = `:${'s'.repeat(i)}`;
-            emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+            emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).not.toHaveBeenCalled();
         }
     });
@@ -48,7 +48,7 @@ describe('components/EmoticonProvider', () => {
         for (const i of [MIN_EMOTICON_LENGTH, MIN_EMOTICON_LENGTH + 1]) {
             const pretext = `:${'s'.repeat(i)}`;
 
-            emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+            emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).toHaveBeenCalled();
         }
     });
@@ -59,7 +59,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         const results = args.items.filter(
@@ -83,7 +83,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         expect(args.items.length).toEqual(0);
@@ -111,7 +111,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMapWithBlocklist);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         expect(args.items.length).toEqual(1);
@@ -126,7 +126,7 @@ describe('components/EmoticonProvider', () => {
             mockedGetEmojiMap.mockReturnValue(emojiMap);
             mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-            emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+            emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).toHaveBeenCalled();
             const args = resultsCallback.mock.calls[0][0];
             const results = args.items.filter(
@@ -150,7 +150,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         const results = args.items.filter(
@@ -179,7 +179,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         const results = args.items.filter(
@@ -207,7 +207,7 @@ describe('components/EmoticonProvider', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
         mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
-        emoticonProvider.handlePretextChanged(pretext, '', resultsCallback);
+        emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
         const args = resultsCallback.mock.calls[0][0];
         const results = args.items.filter(
