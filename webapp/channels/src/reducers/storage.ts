@@ -82,9 +82,6 @@ function storage(state: Record<string, any> = {}, action: MMAction) {
 
         return changed ? nextState : state;
     }
-    case StorageTypes.STORAGE_REHYDRATE: {
-        return {...state, ...action.data};
-    }
 
     case UserTypes.LOGOUT_SUCCESS:
         return {};
