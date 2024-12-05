@@ -12,8 +12,9 @@ import type {WebsocketEvents} from 'mattermost-redux/constants';
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
 import type {StorageAction} from 'actions/storage';
+import type {ThreadAction} from 'actions/views/threads';
 
-import type {ActionTypes, SearchTypes, Threads} from 'utils/constants';
+import type {ActionTypes, SearchTypes} from 'utils/constants';
 
 import type {PluginsState} from './plugins';
 import type {ViewsState} from './views';
@@ -42,7 +43,8 @@ export type MMAction = (
     MMReduxAction |
 
     // Actions used by web app reducers
-    AnyActionFrom<typeof ActionTypes & typeof Threads & typeof SearchTypes> |
+    AnyActionFrom<typeof ActionTypes & typeof SearchTypes> |
+    ThreadAction |
     StorageAction |
 
     // Actions used by the reducer for state.entities.typing in mattermost-redux which are incorrectly reusing WS
