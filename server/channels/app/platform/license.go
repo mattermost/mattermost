@@ -127,11 +127,11 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	}
 
 	if license.Features == nil {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("license.Features is nil"))
 	}
 
 	if license.Features.Users == nil {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("license.Features.Users is nil"))
 	}
 
 	uniqueUserCount, err := ps.Store.User().Count(model.UserCountOptions{})
