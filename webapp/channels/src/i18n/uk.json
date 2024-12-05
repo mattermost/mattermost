@@ -2,7 +2,7 @@
   "FIVE_HUNDRED_TO_1000": "501-1000",
   "about.buildnumber": "Версія збірки:",
   "about.cloudEdition": "Хмара",
-  "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. Всі права захищені",
+  "about.copyright": "Авторські права 2015 - {currentYear} Mattermost, Inc. Усі права захищено",
   "about.database": "База даних:",
   "about.date": "Дата збірки:",
   "about.dbversion": "Версія схеми бази даних:",
