@@ -6,10 +6,10 @@ import {extendPrototype} from 'localforage-observable';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
 
-import {General, RequestStatus} from 'mattermost-redux/constants';
+import {RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
 
-import {cleanLocalStorage} from 'actions/storage';
+import {cleanLocalStorage, storageInitialized} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
@@ -32,10 +32,7 @@ export default function configureStore(preloadedState, additionalReducers) {
 
     localForage.ready().then(() => {
         const persistor = persistStore(store, null, () => {
-            store.dispatch({
-                type: General.STORE_REHYDRATION_COMPLETE,
-                complete: true,
-            });
+            store.dispatch(storageInitialized());
 
             migratePersistedState(store, persistor);
         });

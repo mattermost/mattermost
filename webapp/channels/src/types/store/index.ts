@@ -7,7 +7,7 @@ import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import type {AnyActionFrom, AnyActionWithType} from 'mattermost-redux/action_types/types';
-import type {General, WebsocketEvents} from 'mattermost-redux/constants';
+import type {WebsocketEvents} from 'mattermost-redux/constants';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
@@ -48,9 +48,6 @@ export type MMAction = (
     // Actions used by the reducer for state.entities.typing in mattermost-redux which are incorrectly reusing WS
     // message types
     AnyActionWithType<typeof WebsocketEvents.TYPING | typeof WebsocketEvents.STOP_TYPING> |
-
-    // An action used by the store to indicate when state.storage is initialized
-    AnyActionWithType<typeof General.STORE_REHYDRATION_COMPLETE> |
 
     // An action used by redux-persist on initial load and when state.storage is changed from another tab
     RehydrateAction
