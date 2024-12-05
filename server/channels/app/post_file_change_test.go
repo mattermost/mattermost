@@ -58,7 +58,7 @@ func TestProcessPostFileChanges(t *testing.T) {
 		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(fileIds))
-		require.Equal(t, fileInfo2.Id, fileIds[0])
+		require.Equal(t, fileInfo1.Id, fileIds[0])
 
 		// verify file2 was soft deleted
 		updatedFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(postId, true, true, false)
