@@ -3459,7 +3459,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {
-	t.Skip("This needs fixing, OriginalId seems to be empty for all posts")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3487,11 +3486,10 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
 	require.Nil(t, err2)
 
-	// get the edit history
-	edits, err := th.App.GetEditHistoryForPost(post.Id)
-	require.Nil(t, err)
-
 	t.Run("should return the edit history", func(t *testing.T) {
+		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, err)
+
 		require.Len(t, edits, 2)
 		require.Equal(t, "new message edited", edits[0].Message)
 		require.Equal(t, "new message", edits[1].Message)
@@ -3501,6 +3499,103 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
+	})
+
+	t.Run("edit history should contain file metadata", func(t *testing.T) {
+		fileBytes := []byte("file contents")
+		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, err)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+
+		_, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("new message edited"),
+		}
+		_, appErr := th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 2"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 3"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, err)
+
+		require.Len(t, edits, 3)
+
+		for _, edit := range edits {
+			require.Len(t, edit.FileIds, 1)
+			require.Equal(t, fileInfo.Id, edit.FileIds[0])
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+		}
+	})
+
+	t.Run("edit history should contain file metadata even if the file info is deleted", func(t *testing.T) {
+		fileBytes := []byte("file contents")
+		fileInfo, appErr := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+
+		_, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("new message edited"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 2"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 3"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		// now delete the file info, and it should still be include in edit history metadata
+		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		require.Nil(t, err)
+
+		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, err)
+
+		require.Len(t, edits, 3)
+
+		for _, edit := range edits {
+			require.Len(t, edit.FileIds, 1)
+			require.Equal(t, fileInfo.Id, edit.FileIds[0])
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+			require.Greater(t, edit.Metadata.Files[0].DeleteAt, int64(0))
+		}
 	})
 }
 
