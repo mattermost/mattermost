@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {RehydrateAction} from 'redux-persist';
+
 import type {GlobalState as BaseGlobalState} from '@mattermost/types/store';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
+import type {AnyActionFrom, AnyActionWithType} from 'mattermost-redux/action_types/types';
+import type {General, WebsocketEvents} from 'mattermost-redux/constants';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
+
+import type {ActionTypes, SearchTypes, StorageTypes, Threads} from 'utils/constants';
 
 import type {PluginsState} from './plugins';
 import type {ViewsState} from './views';
@@ -28,7 +34,24 @@ export type GlobalState = BaseGlobalState & {
 /**
  * An MMAction is any non-Thunk Redux action accepted by the web app and mattermost-redux.
  */
-export type MMAction = MMReduxAction;
+export type MMAction = (
+
+    // Actions used by mattermost-redux reducers
+    MMReduxAction |
+
+    // Actions used by web app reducers
+    AnyActionFrom<typeof ActionTypes & typeof Threads & typeof SearchTypes & typeof StorageTypes> |
+
+    // Actions used by the reducer for state.entities.typing in mattermost-redux which are incorrectly reusing WS
+    // message types
+    AnyActionWithType<typeof WebsocketEvents.TYPING | typeof WebsocketEvents.STOP_TYPING> |
+
+    // An action used by the store to indicate when state.storage is initialized
+    AnyActionWithType<typeof General.STORE_REHYDRATION_COMPLETE> |
+
+    // An action used by redux-persist on initial load and when state.storage is changed from another tab
+    RehydrateAction
+);
 
 /**
  * A version of {@link MMReduxTypes.DispatchFunc} which supports dispatching web app actions.
