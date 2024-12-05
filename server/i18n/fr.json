@@ -9098,5 +9098,113 @@
   {
     "id": "app.job.update_status.app_error",
     "translation": "Impossible de mettre à jour le statut du job. Le statut paramétré est invalide"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Les messages de notification persistante autorisent un maximum de {{.MaxRecipients}} destinataires."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "La validation de la notification persistante a échouée."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "L'utilisateur n'est pas autorisé à créer un message prioritaire ou une notification persistante."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Les messages de notification persistante doivent avoir au moins un destinataire."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Les messages de notification persistante doivent avoir une priorité urgente."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Seuls les messages racines peuvent avoir une priorité."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Nombre total de notifications persistantes par message invalide. Cela doit être un nombre positif."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Impossible de supprimer les notifications persistantes par canal."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Nombre maximum de destinataires pour les notifications persistantes invalide. Cela doit être un nombre positif."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Fréquence de notifications persistantes invalide. Cela doit être au moins deux minutes."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Le déplacement de fil de discussion est désactivé"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Impossible de générer le code d'invitation pour un cluster confirmé"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Impossible de décoder la chaîne de caractères base64"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "Le cluster distant n'a pas été supprimé"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Impossible de chiffrer l'invitation au cluster distant avec le mot de passe renseigné"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Cluster distant introuvable"
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Impossible de déchiffrer l'invitation au cluster distant avec le mot de passe renseigné"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} et @{{.LastUsername}} n'ont pas été notifiés par cette mention, car ils ne font pas partie de cette équipe."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Impossible de supprimer le message, ServiceSettings.EnableAPIPostDeletion n'est pas activé."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Impossible de supprimer le message de notification persistante"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Impossible de supprimer les notifications persistantes par équipe."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} n'a pas été notifié par cette mention, car il ne fait pas partie de cette équipe."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Impossible de mettre en cache le message après la déduplication d'un client qui a répété la même requête."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Vous n'avez pas la permission de déplacer ce fil de discussion."
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "L'invitation au cluster distant n'a pas pu être acceptée"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Impossible de créer l'invitation au cluster distant"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "La taille du plugin envoyé excède la limite. Cette limite peut être changée dans la console système via Stockage de fichiers > Taille maximale de fichier"
   }
 ]
