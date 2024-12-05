@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -21,7 +21,7 @@ type Props = {
     shortcut: ShortcutDefinition;
 }
 
-export function TooltipShortcut(props: Props) {
+function TooltipShortcut(props: Props) {
     let shortcut = props.shortcut.default;
     if (props.shortcut.mac && isMac()) {
         shortcut = props.shortcut.mac;
@@ -52,3 +52,5 @@ export function TooltipShortcut(props: Props) {
         </>
     );
 }
+
+export default memo(TooltipShortcut);

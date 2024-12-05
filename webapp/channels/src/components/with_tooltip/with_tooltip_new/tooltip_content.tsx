@@ -7,7 +7,7 @@ import React, {memo} from 'react';
 
 import RenderEmoji from 'components/emoji/render_emoji';
 
-import {TooltipShortcut} from './tooltip_shortcut';
+import TooltipShortcut from './tooltip_shortcut';
 import {type ShortcutDefinition} from './tooltip_shortcut';
 
 const TOOLTIP_EMOTICON_SIZE = 16;
