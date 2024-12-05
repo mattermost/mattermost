@@ -54,15 +54,16 @@ type Row struct {
 
 func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	genericChannelExports, metadata, results, err := shared.GetGenericExportData(p)
+	exportData, err := shared.GetGenericExportData(p)
+	results := exportData.Results
 	if err != nil {
 		return results, err
 	}
 
 	totalRows := results.CreatedPosts + results.EditedOrigMsgPosts + results.DeletedPosts + results.EditedNewMsgPosts +
-		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles
+		results.UpdatedPosts + results.UploadedFiles + results.DeletedFiles + results.Joins
 	rows := make([]Row, 0, totalRows)
-	for _, channel := range genericChannelExports {
+	for _, channel := range exportData.Exports {
 		rows = append(rows, getJoinLeavePosts(channel)...)
 		for _, p := range channel.Posts {
 			createAt := p.PostCreateAt
@@ -80,8 +81,11 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 		}
 	}
 
-	// We need to sort all the elements by (updateAt, messageId) because they were added by type and by channel above.
+	// We need to sort all the elements by (CreateAt, PostId) because they were added by type and by channel above.
 	slices.SortStableFunc(rows, func(a, b Row) int {
+		if a.CreateAt == b.CreateAt {
+			return strings.Compare(a.PostId, b.PostId)
+		}
 		return int(a.CreateAt - b.CreateAt)
 	})
 
@@ -189,7 +193,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	if err != nil {
 		return results, fmt.Errorf("unable to create the zip file: %w", err)
 	}
-	data, err := json.MarshalIndent(metadata, "", "  ")
+	data, err := json.MarshalIndent(exportData.Metadata, "", "  ")
 	if err != nil {
 		return results, fmt.Errorf("unable to convert metadata to json: %w", err)
 	}
@@ -250,6 +254,7 @@ func getJoinLeavePosts(channel shared.ChannelExport) []Row {
 	}
 	for _, leave := range channel.LeaveEvents {
 		if leave.ClosedOut {
+			// csv does not record closed-out leaves; see export_data.go for further explanation.
 			continue
 		}
 		leaveMessage := fmt.Sprintf("User %s (%s) left the channel", leave.Username, leave.UserEmail)

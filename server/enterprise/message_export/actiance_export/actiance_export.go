@@ -155,15 +155,15 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 	start := time.Now()
 
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	genericChannelExports, _, results, err := shared.GetGenericExportData(p)
+	exportData, err := shared.GetGenericExportData(p)
 	if err != nil {
-		return results, err
+		return exportData.Results, err
 	}
 	var allUploadedFiles []*model.FileInfo
 
 	// Convert the generic shared.ChannelExports to the Actiance-specific ChannelExports data.
-	channelExports := make([]ChannelExport, 0, len(genericChannelExports))
-	for _, channel := range genericChannelExports {
+	channelExports := make([]ChannelExport, 0, len(exportData.Exports))
+	for _, channel := range exportData.Exports {
 		joinEvents := make([]JoinExport, 0, len(channel.JoinEvents))
 		leaveEvents := make([]LeaveExport, 0, len(channel.LeaveEvents))
 
@@ -252,6 +252,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		Channels: channelExports,
 	}
 
+	results := exportData.Results
 	results.ProcessingPostsMs = time.Since(start).Milliseconds()
 
 	results.WriteExportResult, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)

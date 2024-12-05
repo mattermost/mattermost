@@ -265,6 +265,8 @@ type RunExportResults struct {
 	UploadedFiles      int
 	DeletedFiles       int
 	NumChannels        int
+	Joins              int
+	Leaves             int
 	ProcessingPostsMs  int64
 	WriteExportResult
 }

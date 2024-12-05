@@ -98,9 +98,15 @@ type LeaveExport struct {
 	ClosedOut bool
 }
 
+type GenericExportData struct {
+	Exports  []ChannelExport
+	Metadata Metadata
+	Results  RunExportResults
+}
+
 // GetGenericExportData assembles all the data in an exportType-agnostic way. Each exportType will process this data into
 // the specific format they need to export.
-func GetGenericExportData(p ExportParams) ([]ChannelExport, Metadata, RunExportResults, error) {
+func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 	// postAuthorsByChannel is a map so that we don't store duplicate authors
 	postAuthorsByChannel := make(map[string]map[string]ChannelMember)
 	metadata := Metadata{
@@ -136,7 +142,7 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, Metadata, RunExportR
 
 		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
 		if err != nil {
-			return nil, Metadata{}, results, err
+			return GenericExportData{}, err
 		}
 		uploadStartsByChannel[channelId] = append(uploadStartsByChannel[channelId], startUploads...)
 		uploadStopsByChannel[channelId] = append(uploadStopsByChannel[channelId], stopUploads...)
@@ -147,7 +153,7 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, Metadata, RunExportR
 		results.DeletedFiles += len(deletedFilesByChannel[channelId])
 
 		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
-			return nil, Metadata{}, results, err
+			return GenericExportData{}, err
 		}
 
 		if _, ok := postAuthorsByChannel[channelId]; !ok {
@@ -197,9 +203,12 @@ func GetGenericExportData(p ExportParams) ([]ChannelExport, Metadata, RunExportR
 			TeamName:        model.SafeDereference(c.TeamName),
 			TeamDisplayName: model.SafeDereference(c.TeamDisplayName),
 		})
+
+		results.Joins += len(joinEvents)
+		results.Leaves += len(leaveEvents)
 	}
 
-	return channelExports, metadata, results, nil
+	return GenericExportData{channelExports, metadata, results}, nil
 }
 
 // postToAttachmentsEntries returns every fileInfo as uploadedFiles. It also adds each file into the lists:
@@ -286,13 +295,13 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 	var leaveEvents []LeaveExport
 
 	joins, leaves := GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
-	type StillJoinedInfo struct {
+	type StillMemberInfo struct {
 		time     int64
 		userType UserType
 		userId   string
 		username string
 	}
-	stillJoined := map[string]StillJoinedInfo{}
+	stillMember := map[string]StillMemberInfo{}
 	for _, join := range joins {
 		userType := User
 		if join.IsBot {
@@ -305,10 +314,10 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 			JoinTime:  join.Datetime,
 			UserType:  userType,
 		})
-		if value, ok := stillJoined[join.Email]; !ok {
-			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
+		if value, ok := stillMember[join.Email]; !ok {
+			stillMember[join.Email] = StillMemberInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
 		} else if join.Datetime > value.time {
-			stillJoined[join.Email] = StillJoinedInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
+			stillMember[join.Email] = StillMemberInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
 		}
 	}
 	for _, leave := range leaves {
@@ -323,18 +332,19 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 			LeaveTime: leave.Datetime,
 			UserType:  userType,
 		})
-		if leave.Datetime > stillJoined[leave.Email].time {
-			delete(stillJoined, leave.Email)
+		if leave.Datetime > stillMember[leave.Email].time {
+			delete(stillMember, leave.Email)
 		}
 	}
 
-	for email := range stillJoined {
+	// Closing-out the channel for Actiance (each join must have a matching leave).
+	for email := range stillMember {
 		leaveEvents = append(leaveEvents, LeaveExport{
-			UserId:    stillJoined[email].userId,
-			Username:  stillJoined[email].username,
+			UserId:    stillMember[email].userId,
+			Username:  stillMember[email].username,
 			LeaveTime: endTime,
 			UserEmail: email,
-			UserType:  stillJoined[email].userType,
+			UserType:  stillMember[email].userType,
 			ClosedOut: true,
 		})
 	}

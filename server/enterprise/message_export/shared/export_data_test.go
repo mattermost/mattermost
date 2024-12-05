@@ -20,6 +20,7 @@ import (
 )
 
 func postToMessageExport(t *testing.T, p *model.Post, u *model.User, c *model.Channel, team *model.Team) model.MessageExport {
+	t.Helper()
 	props, err := json.Marshal(p.GetProps())
 	assert.NoError(t, err)
 
