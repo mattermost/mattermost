@@ -299,7 +299,6 @@ export const ActionTypes = keyMirror({
 
     SET_UNREAD_FILTER_ENABLED: null,
     UPDATE_TOAST_STATUS: null,
-    UPDATE_THREAD_TOAST_STATUS: null,
 
     SIDEBAR_DRAGGING_SET_STATE: null,
     SIDEBAR_DRAGGING_STOP: null,
@@ -729,6 +728,7 @@ export const Threads = keyMirror({
     CHANGED_SELECTED_THREAD: null,
     CHANGED_LAST_VIEWED_AT: null,
     MANUALLY_UNREAD_THREAD: null,
+    UPDATE_THREAD_TOAST_STATUS: null,
 });
 
 export const CloudBanners = {
