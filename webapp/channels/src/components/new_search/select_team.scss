@@ -1,11 +1,11 @@
 .search-teams-selector-menu-button {
-    border-radius: var(--radius-s, 4px);
-    font-size: 12px;
-    font-weight: 600;
-    border: 0;
-    background-color: transparent;
     display: flex;
     align-items: center;
+    border: 0;
+    border-radius: var(--radius-s, 4px);
+    background-color: transparent;
+    font-size: 12px;
+    font-weight: 600;
 
     &:hover {
         background-color: var(--center-channel-color-8, rgba(63, 67, 80, 0.08));
