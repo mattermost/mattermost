@@ -725,7 +725,7 @@ func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		ChannelId: channel2.Id,
@@ -736,7 +736,7 @@ func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// Test that it's picking up a previous successful job
 	var previousJob *model.Job
@@ -810,10 +810,10 @@ func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, 
 
 // Type3Results specific data needed to be returned by this test only
 type Type3Results struct {
-	message1DeleteAt int64
-	updatedPost2     *model.Post
-	message3DeleteAt int64
-	deletedPost3     *model.Post
+	message1DeleteAt            int64
+	updatedPost2                *model.Post
+	message3AndFileInfoDeleteAt int64
+	deletedPost3                *model.Post
 }
 
 func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
@@ -871,7 +871,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 1 - post deleted
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -884,7 +884,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message1DeleteAt, users[0].Id)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 2 - post updated not edited (e.g., reaction)
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -894,7 +894,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	_, err = th.App.Srv().Store().Reaction().Save(&model.Reaction{
 		UserId:    users[0].Id,
 		PostId:    post.Id,
@@ -913,14 +913,14 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 		FileIds:   []string{"test3"},
 	})
 	require.NoError(t, err)
-	time.Sleep(10 * time.Millisecond)
-	message3DeleteAt := model.GetMillis()
-	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeleteAt, users[0].Id)
+	time.Sleep(100 * time.Millisecond)
+	message3AndFileInfoDeleteAt := model.GetMillis()
+	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3AndFileInfoDeleteAt, users[0].Id)
 	require.NoError(t, err)
 	deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// Message for deleted file -- NOT INCLUDED IN THE BATCH SIZE
 	attachmentContent := "Hello there message 3"
@@ -932,13 +932,13 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 		CreatorId: post.UserId,
 		PostId:    post.Id,
 		CreateAt:  post.CreateAt,
-		UpdateAt:  post.UpdateAt,
+		UpdateAt:  message3AndFileInfoDeleteAt,
 		Path:      attachmentPath,
-		DeleteAt:  post.UpdateAt,
+		DeleteAt:  message3AndFileInfoDeleteAt,
 	})
 	require.NoError(t, err2)
 	attachments = append(attachments, info)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	contents = append(contents, attachmentContent)
 
 	// 4 - original post
@@ -949,7 +949,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	// 5 - post edited
 	post, err = th.App.Srv().Store().Post().Update(th.Context, &model.Post{
 		Id:        post.Id,
@@ -961,7 +961,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}, post)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 6 - post edited but falls on the batch boundary
 	// original post, but gets modified by the next edit
@@ -972,7 +972,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 7 - new post with original message
 	// update returns "new" post, which is the old post modified
@@ -986,7 +986,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}, post)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	require.Len(t, posts, 8)
 	// therefore, need a batch size of 7
@@ -1046,10 +1046,10 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 			teams:       []*model.Team{th.BasicTeam},
 			batchTimes:  batchTimes,
 		}, Type3Results{
-			message1DeleteAt: message1DeleteAt,
-			updatedPost2:     updatedPost2,
-			message3DeleteAt: message3DeleteAt,
-			deletedPost3:     deletedPost3,
+			message1DeleteAt:            message1DeleteAt,
+			updatedPost2:                updatedPost2,
+			message3AndFileInfoDeleteAt: message3AndFileInfoDeleteAt,
+			deletedPost3:                deletedPost3,
 		}
 }
 
@@ -1100,7 +1100,7 @@ func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, originalPost)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 1 - edited post
 	post, err := th.App.Srv().Store().Post().Update(th.Context, &model.Post{
@@ -1113,7 +1113,7 @@ func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, 
 	}, originalPost)
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	simultaneous := post.UpdateAt
 
@@ -1126,7 +1126,7 @@ func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 3 - post 2 at same updateAt
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1137,7 +1137,7 @@ func generateE2ETestType4Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// 4 - post 3 in-between
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1247,7 +1247,7 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// post deleted
 	message0DeleteAt := model.GetMillis()
@@ -1332,7 +1332,7 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// post create -- this is the "second" post, but it will show up first because first post is deleted after
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1342,7 +1342,7 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// post deleted -- first post deleted
 	message0DeleteAt = model.GetMillis()
@@ -1414,7 +1414,7 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// post create -- this will be the one updated in second job
 	post, err = th.App.Srv().Store().Post().Save(th.Context, &model.Post{
@@ -1483,7 +1483,7 @@ func generateE2ETestType5Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	posts = append(posts, post)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	// post deleted -- first post deleted (the first one exported earlier)
 	message0DeleteAt = model.GetMillis()

@@ -6,6 +6,7 @@ package csv_export
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -23,120 +24,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-func TestMergePosts(t *testing.T) {
-	chanTypeDirect := model.ChannelTypeDirect
-	// these two posts were made in the same channel
-	post1 := &model.MessageExport{
-		ChannelId:          model.NewPointer("Test"),
-		ChannelDisplayName: model.NewPointer("Test"),
-		PostCreateAt:       model.NewPointer(int64(1)),
-		PostMessage:        model.NewPointer("Some message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("test"),
-		Username:           model.NewPointer("test"),
-		ChannelType:        &chanTypeDirect,
-	}
-
-	post2 := &model.MessageExport{
-		ChannelId:          model.NewPointer("Test"),
-		ChannelDisplayName: model.NewPointer("Test"),
-		PostCreateAt:       model.NewPointer(int64(2)),
-		PostMessage:        model.NewPointer("Some message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("test"),
-		Username:           model.NewPointer("test"),
-		ChannelType:        &chanTypeDirect,
-	}
-
-	post3 := &model.MessageExport{
-		ChannelId:          model.NewPointer("Test"),
-		ChannelDisplayName: model.NewPointer("Test"),
-		PostCreateAt:       model.NewPointer(int64(3)),
-		PostMessage:        model.NewPointer("Some message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("test"),
-		Username:           model.NewPointer("test"),
-		ChannelType:        &chanTypeDirect,
-	}
-
-	post4 := &model.MessageExport{
-		ChannelId:          model.NewPointer("Test"),
-		ChannelDisplayName: model.NewPointer("Test"),
-		PostCreateAt:       model.NewPointer(int64(4)),
-		PostMessage:        model.NewPointer("Some message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("test"),
-		Username:           model.NewPointer("test"),
-		ChannelType:        &chanTypeDirect,
-	}
-
-	post2other := &model.MessageExport{
-		ChannelId:          model.NewPointer("Test"),
-		ChannelDisplayName: model.NewPointer("Test"),
-		PostCreateAt:       model.NewPointer(int64(2)),
-		PostMessage:        model.NewPointer("Some message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("test"),
-		Username:           model.NewPointer("test"),
-		ChannelType:        &chanTypeDirect,
-	}
-
-	var mergetests = []struct {
-		name string
-		in1  []*model.MessageExport
-		in2  []*model.MessageExport
-		out  []*model.MessageExport
-	}{
-		{
-			"merge all",
-			[]*model.MessageExport{post1, post2, post3, post4},
-			[]*model.MessageExport{post1, post2, post3, post4},
-			[]*model.MessageExport{post1, post1, post2, post2, post3, post3, post4, post4},
-		},
-		{
-			"split and merge 1",
-			[]*model.MessageExport{post1, post3},
-			[]*model.MessageExport{post2, post4},
-			[]*model.MessageExport{post1, post2, post3, post4},
-		},
-		{
-			"split and merge 2",
-			[]*model.MessageExport{post1, post4},
-			[]*model.MessageExport{post2, post3},
-			[]*model.MessageExport{post1, post2, post3, post4},
-		},
-		{
-			"ordered 1",
-			[]*model.MessageExport{post1, post2},
-			[]*model.MessageExport{post1, post2other},
-			[]*model.MessageExport{post1, post1, post2, post2other},
-		},
-		{
-			"ordered 2",
-			[]*model.MessageExport{post1, post2other},
-			[]*model.MessageExport{post1, post2},
-			[]*model.MessageExport{post1, post1, post2other, post2},
-		},
-	}
-
-	for _, tt := range mergetests {
-		t.Run(tt.name, func(t *testing.T) {
-			next := mergePosts(tt.in1, tt.in2)
-			posts := []*model.MessageExport{}
-			for post := next(); post != nil; post = next() {
-				posts = append(posts, post)
-			}
-			assert.Equal(t, tt.out, posts)
-		})
-	}
-}
-
 func TestPostToRow(t *testing.T) {
 	chanTypeDirect := model.ChannelTypeDirect
 	// these two posts were made in the same channel
-	post := &model.MessageExport{
+	post := model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		TeamId:             model.NewPointer("team-id"),
 		TeamName:           model.NewPointer("team-name"),
@@ -152,9 +45,9 @@ func TestPostToRow(t *testing.T) {
 		ChannelType:        &chanTypeDirect,
 	}
 
-	post_without_team := &model.MessageExport{
+	post_without_team := model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		ChannelId:          model.NewPointer("channel-id"),
 		ChannelName:        model.NewPointer("channel-name"),
@@ -167,9 +60,9 @@ func TestPostToRow(t *testing.T) {
 		ChannelType:        &chanTypeDirect,
 	}
 
-	post_with_other_type := &model.MessageExport{
+	post_with_other_type := model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		TeamId:             model.NewPointer("team-id"),
 		TeamName:           model.NewPointer("team-name"),
@@ -186,9 +79,9 @@ func TestPostToRow(t *testing.T) {
 		PostType:           model.NewPointer("other"),
 	}
 
-	post_with_other_type_bot := &model.MessageExport{
+	post_with_other_type_bot := model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		TeamId:             model.NewPointer("team-id"),
 		TeamName:           model.NewPointer("team-name"),
@@ -206,9 +99,9 @@ func TestPostToRow(t *testing.T) {
 		IsBot:              true,
 	}
 
-	post_with_permalink_preview := &model.MessageExport{
+	post_with_permalink_preview := model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		TeamId:             model.NewPointer("team-id"),
 		TeamName:           model.NewPointer("team-name"),
@@ -226,33 +119,33 @@ func TestPostToRow(t *testing.T) {
 	}
 	torowtests := []struct {
 		name string
-		in   *model.MessageExport
-		out  []string
+		in   model.MessageExport
+		out  Row
 	}{
 		{
 			"simple row",
 			post,
-			[]string{"1", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "message", "message", "user", ""},
+			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
 		},
 		{
 			"without team data",
 			post_without_team,
-			[]string{"1", "", "", "", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "message", "message", "user", ""},
+			Row{1, "", "", "", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
 		},
 		{
 			"with special post type",
 			post_with_other_type,
-			[]string{"1", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "message", "other", "user", ""},
+			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "user", ""},
 		},
 		{
 			"with special post type from bot",
 			post_with_other_type_bot,
-			[]string{"1", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "message", "other", "bot", ""},
+			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "bot", ""},
 		},
 		{
 			"with permalink preview",
 			post_with_permalink_preview,
-			[]string{"1", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "message", "message", "user", "n4w39mc1ff8y5fite4b8hacy1w"},
+			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", "n4w39mc1ff8y5fite4b8hacy1w"},
 		},
 	}
 
@@ -269,80 +162,80 @@ func TestPostToRow(t *testing.T) {
 
 func TestAttachmentToRow(t *testing.T) {
 	chanTypeDirect := model.ChannelTypeDirect
-	post := &model.MessageExport{
-		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
-		PostRootId:         model.NewPointer("post-root-id"),
-		TeamId:             model.NewPointer("team-id"),
-		TeamName:           model.NewPointer("team-name"),
-		TeamDisplayName:    model.NewPointer("team-display-name"),
-		ChannelId:          model.NewPointer("channel-id"),
-		ChannelName:        model.NewPointer("channel-name"),
-		ChannelDisplayName: model.NewPointer("channel-display-name"),
-		PostCreateAt:       model.NewPointer(int64(1)),
-		PostMessage:        model.NewPointer("message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("user-id"),
-		Username:           model.NewPointer("username"),
-		ChannelType:        &chanTypeDirect,
+	post := shared.PostExport{
+		MessageExport: model.MessageExport{
+			PostId:             model.NewPointer("post-id"),
+			PostOriginalId:     model.NewPointer(""),
+			PostRootId:         model.NewPointer("post-root-id"),
+			TeamId:             model.NewPointer("team-id"),
+			TeamName:           model.NewPointer("team-name"),
+			TeamDisplayName:    model.NewPointer("team-display-name"),
+			ChannelId:          model.NewPointer("channel-id"),
+			ChannelName:        model.NewPointer("channel-name"),
+			ChannelDisplayName: model.NewPointer("channel-display-name"),
+			PostCreateAt:       model.NewPointer(int64(1)),
+			PostMessage:        model.NewPointer("message"),
+			UserEmail:          model.NewPointer("test@test.com"),
+			UserId:             model.NewPointer("user-id"),
+			Username:           model.NewPointer("username"),
+			ChannelType:        &chanTypeDirect,
+		},
+		FileInfo: &model.FileInfo{
+			Name: "test1",
+			Id:   "12345",
+			Path: "filename.txt",
+		},
 	}
 
-	post_deleted := &model.MessageExport{
-		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
-		PostRootId:         model.NewPointer("post-root-id"),
-		TeamId:             model.NewPointer("team-id"),
-		TeamName:           model.NewPointer("team-name"),
-		TeamDisplayName:    model.NewPointer("team-display-name"),
-		ChannelId:          model.NewPointer("channel-id"),
-		ChannelName:        model.NewPointer("channel-name"),
-		ChannelDisplayName: model.NewPointer("channel-display-name"),
-		PostCreateAt:       model.NewPointer(int64(1)),
-		PostDeleteAt:       model.NewPointer(int64(10)),
-		PostMessage:        model.NewPointer("message"),
-		UserEmail:          model.NewPointer("test@test.com"),
-		UserId:             model.NewPointer("user-id"),
-		Username:           model.NewPointer("username"),
-		ChannelType:        &chanTypeDirect,
-		PostProps:          model.NewPointer(`{"deleteBy":"user-id"}`),
+	postDeleted := shared.PostExport{
+		MessageExport: model.MessageExport{
+			PostId:             model.NewPointer("post-id"),
+			PostOriginalId:     model.NewPointer(""),
+			PostRootId:         model.NewPointer("post-root-id"),
+			TeamId:             model.NewPointer("team-id"),
+			TeamName:           model.NewPointer("team-name"),
+			TeamDisplayName:    model.NewPointer("team-display-name"),
+			ChannelId:          model.NewPointer("channel-id"),
+			ChannelName:        model.NewPointer("channel-name"),
+			ChannelDisplayName: model.NewPointer("channel-display-name"),
+			PostCreateAt:       model.NewPointer(int64(1)),
+			PostDeleteAt:       model.NewPointer(int64(10)),
+			PostMessage:        model.NewPointer("message"),
+			UserEmail:          model.NewPointer("test@test.com"),
+			UserId:             model.NewPointer("user-id"),
+			Username:           model.NewPointer("username"),
+			ChannelType:        &chanTypeDirect,
+			PostProps:          model.NewPointer(`{"deleteBy":"user-id"}`),
+		},
+		UpdatedType: shared.FileDeleted,
+		FileInfo: &model.FileInfo{
+			Name:     "test2",
+			Id:       "12346",
+			Path:     "filename.txt",
+			DeleteAt: 10,
+		},
 	}
 
-	file := &model.FileInfo{
-		Name: "test1",
-		Id:   "12345",
-		Path: "filename.txt",
-	}
-
-	file_deleted := &model.FileInfo{
-		Name:     "test2",
-		Id:       "12346",
-		Path:     "filename.txt",
-		DeleteAt: 10,
-	}
-
-	torowtests := []struct {
-		name       string
-		post       *model.MessageExport
-		attachment *model.FileInfo
-		out        []string
+	toRowTests := []struct {
+		name string
+		post shared.PostExport
+		out  Row
 	}{
 		{
 			"simple attachment",
 			post,
-			file,
-			[]string{"1", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "test1 (files/post-id/12345-filename.txt)", "attachment", "user", ""},
+			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test1 (files/post-id/12345-filename.txt)", "attachment", "user", ""},
 		},
 		{
 			"simple deleted attachment",
-			post_deleted,
-			file_deleted,
-			[]string{"10", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "post-original-id", "post-root-id", "test2 (files/post-id/12346-filename.txt)", "deleted attachment", "user", ""},
+			postDeleted,
+			Row{10, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test2 (files/post-id/12346-filename.txt)", "deleted attachment", "user", ""},
 		},
 	}
 
-	for _, tt := range torowtests {
+	for _, tt := range toRowTests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.out, attachmentToRow(tt.post, tt.attachment))
+			assert.Equal(t, tt.out, attachmentToRow(tt.post))
 		})
 	}
 }
@@ -351,7 +244,7 @@ func TestGetPostAttachments(t *testing.T) {
 	chanTypeDirect := model.ChannelTypeDirect
 	post := &model.MessageExport{
 		PostId:             model.NewPointer("post-id"),
-		PostOriginalId:     model.NewPointer("post-original-id"),
+		PostOriginalId:     model.NewPointer(""),
 		PostRootId:         model.NewPointer("post-root-id"),
 		TeamId:             model.NewPointer("team-id"),
 		TeamName:           model.NewPointer("team-name"),
@@ -390,215 +283,6 @@ func TestGetPostAttachments(t *testing.T) {
 	files, err = shared.GetPostAttachments(shared.NewMessageExportStore(mockStore), post)
 	assert.Error(t, err)
 	assert.Nil(t, files)
-}
-
-func TestGetJoinLeavePosts(t *testing.T) {
-	mockStore := &storetest.Store{}
-	defer mockStore.AssertExpectations(t)
-
-	channels := map[string]*shared.MetadataChannel{
-		"good-request-1": {StartTime: 1, EndTime: 7, ChannelId: "good-request-1", TeamId: model.NewPointer("test1"), TeamName: model.NewPointer("test1"), TeamDisplayName: model.NewPointer("test1"), ChannelName: "test1", ChannelDisplayName: "test1", ChannelType: "O"},
-		"good-request-2": {StartTime: 2, EndTime: 7, ChannelId: "good-request-2", TeamId: model.NewPointer("test2"), TeamName: model.NewPointer("test2"), TeamDisplayName: model.NewPointer("test2"), ChannelName: "test2", ChannelDisplayName: "test2", ChannelType: "P"},
-	}
-
-	// This would have been retrieved during CalculateChannelExports
-	channelMemberHistories := map[string][]*model.ChannelMemberHistoryResult{
-		"good-request-1": {
-			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
-			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
-			{JoinTime: 3, UserId: "test3", UserEmail: "test3", Username: "test3"},
-		},
-		"good-request-2": {
-			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
-			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
-			{JoinTime: 6, UserId: "test6", UserEmail: "test6", Username: "test6"},
-		},
-	}
-
-	var messages []*model.MessageExport
-	for _, id := range []string{"good-request-1", "good-request-2"} {
-		joinLeaves, err2 := getJoinLeavePosts(
-			1,
-			7,
-			channels[id],
-			channelMemberHistories[id],
-			nil,
-		)
-		require.NoError(t, err2)
-		messages = append(messages, joinLeaves...)
-	}
-
-	assert.Len(t, messages, 8)
-	chanTypeOpen := model.ChannelTypeOpen
-	chanTypePr := model.ChannelTypePrivate
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test1"),
-		TeamName:           model.NewPointer("test1"),
-		TeamDisplayName:    model.NewPointer("test1"),
-		ChannelId:          model.NewPointer("good-request-1"),
-		ChannelName:        model.NewPointer("test1"),
-		ChannelDisplayName: model.NewPointer("test1"),
-		ChannelType:        &chanTypeOpen,
-		UserId:             model.NewPointer("test1"),
-		UserEmail:          model.NewPointer("test1"),
-		Username:           model.NewPointer("test1"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(1)),
-		PostMessage:        model.NewPointer("User test1 (test1) was already in the channel"),
-		PostType:           model.NewPointer("previously-joined"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[0])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test1"),
-		TeamName:           model.NewPointer("test1"),
-		TeamDisplayName:    model.NewPointer("test1"),
-		ChannelId:          model.NewPointer("good-request-1"),
-		ChannelName:        model.NewPointer("test1"),
-		ChannelDisplayName: model.NewPointer("test1"),
-		ChannelType:        &chanTypeOpen,
-		UserId:             model.NewPointer("test2"),
-		UserEmail:          model.NewPointer("test2"),
-		Username:           model.NewPointer("test2"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(2)),
-		PostMessage:        model.NewPointer("User test2 (test2) joined the channel"),
-		PostType:           model.NewPointer("enter"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[1])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test1"),
-		TeamName:           model.NewPointer("test1"),
-		TeamDisplayName:    model.NewPointer("test1"),
-		ChannelId:          model.NewPointer("good-request-1"),
-		ChannelName:        model.NewPointer("test1"),
-		ChannelDisplayName: model.NewPointer("test1"),
-		ChannelType:        &chanTypeOpen,
-		UserId:             model.NewPointer("test3"),
-		UserEmail:          model.NewPointer("test3"),
-		Username:           model.NewPointer("test3"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(3)),
-		PostMessage:        model.NewPointer("User test3 (test3) joined the channel"),
-		PostType:           model.NewPointer("enter"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[2])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test1"),
-		TeamName:           model.NewPointer("test1"),
-		TeamDisplayName:    model.NewPointer("test1"),
-		ChannelId:          model.NewPointer("good-request-1"),
-		ChannelName:        model.NewPointer("test1"),
-		ChannelDisplayName: model.NewPointer("test1"),
-		ChannelType:        &chanTypeOpen,
-		UserId:             model.NewPointer("test2"),
-		UserEmail:          model.NewPointer("test2"),
-		Username:           model.NewPointer("test2"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(3)),
-		PostMessage:        model.NewPointer("User test2 (test2) leaved the channel"),
-		PostType:           model.NewPointer("leave"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[3])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test2"),
-		TeamName:           model.NewPointer("test2"),
-		TeamDisplayName:    model.NewPointer("test2"),
-		ChannelId:          model.NewPointer("good-request-2"),
-		ChannelName:        model.NewPointer("test2"),
-		ChannelDisplayName: model.NewPointer("test2"),
-		ChannelType:        &chanTypePr,
-		UserId:             model.NewPointer("test4"),
-		UserEmail:          model.NewPointer("test4"),
-		Username:           model.NewPointer("test4"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(4)),
-		PostMessage:        model.NewPointer("User test4 (test4) joined the channel"),
-		PostType:           model.NewPointer("enter"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[4])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test2"),
-		TeamName:           model.NewPointer("test2"),
-		TeamDisplayName:    model.NewPointer("test2"),
-		ChannelId:          model.NewPointer("good-request-2"),
-		ChannelName:        model.NewPointer("test2"),
-		ChannelDisplayName: model.NewPointer("test2"),
-		ChannelType:        &chanTypePr,
-		UserId:             model.NewPointer("test5"),
-		UserEmail:          model.NewPointer("test5"),
-		Username:           model.NewPointer("test5"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(5)),
-		PostMessage:        model.NewPointer("User test5 (test5) joined the channel"),
-		PostType:           model.NewPointer("enter"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[5])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test2"),
-		TeamName:           model.NewPointer("test2"),
-		TeamDisplayName:    model.NewPointer("test2"),
-		ChannelId:          model.NewPointer("good-request-2"),
-		ChannelName:        model.NewPointer("test2"),
-		ChannelDisplayName: model.NewPointer("test2"),
-		ChannelType:        &chanTypePr,
-		UserId:             model.NewPointer("test6"),
-		UserEmail:          model.NewPointer("test6"),
-		Username:           model.NewPointer("test6"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(6)),
-		PostMessage:        model.NewPointer("User test6 (test6) joined the channel"),
-		PostType:           model.NewPointer("enter"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[6])
-	assert.Equal(t, &model.MessageExport{
-		TeamId:             model.NewPointer("test2"),
-		TeamName:           model.NewPointer("test2"),
-		TeamDisplayName:    model.NewPointer("test2"),
-		ChannelId:          model.NewPointer("good-request-2"),
-		ChannelName:        model.NewPointer("test2"),
-		ChannelDisplayName: model.NewPointer("test2"),
-		ChannelType:        &chanTypePr,
-		UserId:             model.NewPointer("test5"),
-		UserEmail:          model.NewPointer("test5"),
-		Username:           model.NewPointer("test5"),
-		IsBot:              false,
-		PostId:             model.NewPointer(""),
-		PostCreateAt:       model.NewPointer(int64(6)),
-		PostMessage:        model.NewPointer("User test5 (test5) leaved the channel"),
-		PostType:           model.NewPointer("leave"),
-		PostRootId:         nil,
-		PostProps:          nil,
-		PostOriginalId:     model.NewPointer(""),
-		PostFileIds:        model.StringArray{},
-	}, messages[7])
 }
 
 func TestCsvExport(t *testing.T) {
@@ -710,7 +394,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -718,6 +402,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(1)),
+					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -727,7 +412,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				},
 				{
 					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					PostRootId:         model.NewPointer("post-root-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -736,6 +421,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(100)),
+					PostUpdateAt:       model.NewPointer(int64(100)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -745,7 +431,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				},
 				{
 					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					PostRootId:         model.NewPointer("post-root-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -754,6 +440,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(100)),
+					PostUpdateAt:       model.NewPointer(int64(100)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
 					UserId:             model.NewPointer("user-id"),
@@ -768,11 +455,11 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				header,
 				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
 				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,,message,message,user,\n",
+				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
 				"8,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
-				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) leaved the channel,leave,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,post-root-id,message,message,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,post-root-id,message,message,user,o4w39mc1ff8y5fite4b8hacy1x\n",
+				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
+				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,\n",
+				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,o4w39mc1ff8y5fite4b8hacy1x\n",
 			}, ""),
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    2,
@@ -805,13 +492,14 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostCreateAt:       model.NewPointer(int64(1)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
@@ -822,7 +510,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				},
 				{
 					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -830,6 +518,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(100)),
+					PostUpdateAt:       model.NewPointer(int64(101)),
 					PostDeleteAt:       model.NewPointer(int64(101)),
 					PostMessage:        model.NewPointer("message"),
 					UserEmail:          model.NewPointer("test@test.com"),
@@ -845,9 +534,9 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				header,
 				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
 				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,,message,message,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,,message,message,user,\n",
-				"101,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,post-original-id,,delete message,message,user,\n",
+				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
+				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
+				"101,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,delete message,message,user,\n",
 			}, ""),
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 2,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 2,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    2,
@@ -886,13 +575,14 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostCreateAt:       model.NewPointer(int64(1)),
 					PostMessage:        model.NewPointer("message 1"),
 					UserEmail:          model.NewPointer("test@test.com"),
@@ -903,7 +593,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				},
 				{
 					PostId:             model.NewPointer("post-id-3"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -911,6 +601,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostCreateAt:       model.NewPointer(int64(2)),
+					PostUpdateAt:       model.NewPointer(int64(3)),
 					PostDeleteAt:       model.NewPointer(int64(3)),
 					PostMessage:        model.NewPointer("message 3"),
 					UserEmail:          model.NewPointer("test@test.com"),
@@ -922,7 +613,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				},
 				{
 					PostId:             model.NewPointer("post-id-2"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostOriginalId:     model.NewPointer(""),
 					PostRootId:         model.NewPointer("post-id-1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -930,6 +621,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100)),
 					PostCreateAt:       model.NewPointer(int64(100)),
 					PostMessage:        model.NewPointer("message 2"),
 					UserEmail:          model.NewPointer("test@test.com"),
@@ -960,14 +652,15 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				header,
 				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
 				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,post-original-id,,message 1,message,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,post-original-id,,test1 (files/post-id-1/test1-test1),attachment,user,\n",
-				"2,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,post-original-id,,message 3,message,user,\n",
-				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,post-original-id,,delete message 3,message,user,\n",
-				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,post-original-id,,test2 (files/post-id-3/test2-test2),deleted attachment,user,\n",
+				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,message 1,message,user,\n",
+				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,test1 (files/post-id-1/test1-test1),attachment,user,\n",
+				"2,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,message 3,message,user,\n",
+				"2,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),attachment,user,\n",
+				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,delete message 3,message,user,\n",
+				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),deleted attachment,user,\n",
 				"8,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
-				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) leaved the channel,leave,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,post-original-id,post-id-1,message 2,message,user,\n",
+				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
+				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,message 2,message,user,\n",
 			}, ""),
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 2\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 2,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    4,
@@ -981,7 +674,7 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 
 			if len(tt.attachments) > 0 {
 				for post_id, attachments := range tt.attachments {
-					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(3)
+					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(2)
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
 					})
@@ -1077,13 +770,14 @@ func TestWriteExportWarnings(t *testing.T) {
 	posts := []*model.MessageExport{
 		{
 			PostId:             model.NewPointer("post-id-1"),
-			PostOriginalId:     model.NewPointer("post-original-id"),
+			PostOriginalId:     model.NewPointer(""),
 			TeamId:             model.NewPointer("team-id"),
 			TeamName:           model.NewPointer("team-name"),
 			TeamDisplayName:    model.NewPointer("team-display-name"),
 			ChannelId:          model.NewPointer("channel-id"),
 			ChannelName:        model.NewPointer("channel-name"),
 			ChannelDisplayName: model.NewPointer("channel-display-name"),
+			PostUpdateAt:       model.NewPointer(int64(1)),
 			PostCreateAt:       model.NewPointer(int64(1)),
 			PostMessage:        model.NewPointer("message"),
 			UserEmail:          model.NewPointer("test@test.com"),
@@ -1094,7 +788,7 @@ func TestWriteExportWarnings(t *testing.T) {
 		},
 		{
 			PostId:             model.NewPointer("post-id-3"),
-			PostOriginalId:     model.NewPointer("post-original-id"),
+			PostOriginalId:     model.NewPointer(""),
 			TeamId:             model.NewPointer("team-id"),
 			TeamName:           model.NewPointer("team-name"),
 			TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -1102,13 +796,14 @@ func TestWriteExportWarnings(t *testing.T) {
 			ChannelName:        model.NewPointer("channel-name"),
 			ChannelDisplayName: model.NewPointer("channel-display-name"),
 			PostCreateAt:       model.NewPointer(int64(2)),
+			PostUpdateAt:       model.NewPointer(int64(3)),
 			PostDeleteAt:       model.NewPointer(int64(3)),
 			PostMessage:        model.NewPointer("message"),
 			UserEmail:          model.NewPointer("test@test.com"),
 			UserId:             model.NewPointer("user-id"),
 			Username:           model.NewPointer("username"),
 			ChannelType:        &chanTypeDirect,
-			PostFileIds:        []string{"post-id-2"},
+			PostFileIds:        []string{"post-id-3"},
 		},
 	}
 
@@ -1147,8 +842,8 @@ func TestWriteExportWarnings(t *testing.T) {
 	mockStore := &storetest.Store{}
 	defer mockStore.AssertExpectations(t)
 
-	for post_id := range attachments {
-		call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(3)
+	for postId := range attachments {
+		call := mockStore.FileInfoStore.On("GetForPost", postId, true, true, false).Times(2)
 		call.Run(func(args mock.Arguments) {
 			call.Return(attachments[args.Get(0).(string)], nil)
 		})
@@ -1182,4 +877,14 @@ func TestWriteExportWarnings(t *testing.T) {
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 	assert.NoError(t, err)
 	assert.Len(t, zipReader.File, 3)
+	warningsTxt, err := zipReader.Open("warning.txt")
+	assert.NoError(t, err)
+	data, err := io.ReadAll(warningsTxt)
+	assert.NoError(t, err)
+	warnings := string(data)
+
+	expectedWarnings := fmt.Sprintf("Warning:%[1]s - Post: post-id-1 - test1\nWarning:%[1]s - Post: post-id-3 - test2\n",
+		shared.MissingFileMessage)
+
+	assert.Equal(t, expectedWarnings, warnings)
 }
