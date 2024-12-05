@@ -4,10 +4,18 @@
 import {StorageTypes} from 'utils/constants';
 
 export type StorageAction = (
+    ReturnType<typeof storageInitialized> |
     ReturnType<typeof setGlobalItem> |
     ReturnType<typeof removeGlobalItem> |
     ReturnType<typeof actionOnGlobalItemsWithPrefix>
 );
+
+export function storageInitialized() {
+    return {
+        type: StorageTypes.STORAGE_INITIALIZED,
+        complete: true,
+    };
+}
 
 export function setGlobalItem(name: string, value: any) {
     return {

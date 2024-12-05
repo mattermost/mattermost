@@ -856,6 +856,7 @@ export const SearchTypes = keyMirror({
 });
 
 export const StorageTypes = keyMirror({
+    STORAGE_INITIALIZED: null,
     SET_GLOBAL_ITEM: null,
     REMOVE_GLOBAL_ITEM: null,
     ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX: null,
