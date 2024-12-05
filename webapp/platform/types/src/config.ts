@@ -400,6 +400,7 @@ export type ServiceSettings = {
     EnableAPIPostDeletion: boolean;
     EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
+    ScheduledPosts: boolean;
 };
 
 export type TeamSettings = {

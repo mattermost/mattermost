@@ -2295,10 +2295,6 @@
     "translation": "Ofwel trigger_words of channel_id moet ingesteld zijn."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kan multipart payload van inkomende webhook niet decoderen."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kan webhook niet bijwerken tussen teams."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-aggregator kon geen indexeertaak aanmaken"
+    "translation": "{{.Backend}}-aggregator kon geen indexeertaak aanmaken"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet wissen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet wissen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet ophalen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet ophalen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-aggregator werker mislukte omwille van een gefaalde indexeertaak"
+    "translation": "{{.Backend}}-aggregator werker mislukte omwille van een gefaalde indexeertaak"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Het opzetten van Elasticsearch Client mislukte"
+    "translation": "Het opzetten van {{.Backend}} Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -5016,15 +5012,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
+    "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -7440,7 +7436,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+    "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8947,19 +8943,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-keybestand voor {{.Backend}}niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-certificaatbestand voor {{.Backend}} niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+    "translation": "Het decoderen van het client-certificaat voor {{.Backend}} is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+    "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10348,5 +10344,83 @@
   {
     "id": "app.notifications.send_test_message.message_body",
     "translation": "Als je deze testmelding hebt ontvangen, dan werkt het!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Kan niet naar het begin van de GIF-gegevens zoeken."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanaal is gearchiveerd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Geen lid van het kanaal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Geen toestemming om in kanaal te posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Draadje is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan het bericht niet verzenden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Onbekende fout"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Gebruikersaccount is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Gebruiker bestaat niet"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ongeldige opslagklasse {{.Value}}."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ongeldige inhoud van bericht"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
+      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privé-kanaal"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Fout bij het verzenden {{.Count}} gepland bericht.",
+      "other": "Fout bij het verzenden {{.Count}} geplande berichten."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kan geplande berichten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Onbekend Kanaal"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Kan post niet in cache plaatsen na ontdubbelen van een client die hetzelfde verzoek herhaalt."
   }
 ]
