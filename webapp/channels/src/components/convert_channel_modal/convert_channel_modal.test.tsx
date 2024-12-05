@@ -53,7 +53,6 @@ describe('component/ConvertChannelModal', () => {
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
         wrapper.find('[data-testid="convertChannelConfirm"]').simulate('click');
-        // wrapper.find('#convertChannelConfirm').simulate('click');
 
         expect(updateChannelPrivacy).toHaveBeenCalledTimes(1);
         expect(updateChannelPrivacy).toHaveBeenCalledWith(baseProps.channelId, General.PRIVATE_CHANNEL);
@@ -73,7 +72,6 @@ describe('component/ConvertChannelModal', () => {
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
         wrapper.find('[data-testid="convertChannelCancel"]').simulate('click');
-        // wrapper.find('#convertChannelCancel').simulate('click');
 
         expect(wrapper.find(Modal).prop('show')).toBe(false);
     }, 5000);
