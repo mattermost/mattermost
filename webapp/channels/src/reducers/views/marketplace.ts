@@ -65,7 +65,7 @@ function installing(state: {[id: string]: boolean} = {}, action: AnyAction): {[i
 
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED:
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED: {
-        if (!Object.prototype.hasOwnProperty.call(state, action.id)) {
+        if (!Object.hasOwn(state, action.id)) {
             return state;
         }
 
@@ -100,7 +100,7 @@ function errors(state: {[id: string]: string} = {}, action: AnyAction): {[id: st
 
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED:
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM: {
-        if (!Object.prototype.hasOwnProperty.call(state, action.id)) {
+        if (!Object.hasOwn(state, action.id)) {
             return state;
         }
 
