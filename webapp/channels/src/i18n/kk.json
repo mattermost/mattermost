@@ -689,6 +689,9 @@
   "admin.data_retention.globalPoliciesTable.description": "Сипаттама",
   "admin.data_retention.globalPoliciesTable.edit": "Өңдеу",
   "admin.data_retention.globalPoliciesTable.files": "Файлдар",
+  "admin.data_retention.globalPolicy.subTitle": "Хабарламалар мен файлдарды орнатылған уақытқа сақтау.",
+  "admin.data_retention.globalPolicy.title": "Жаһандық сақтап қалу саясаты",
+  "admin.data_retention.globalPolicyTitle": "Жаһандық Сақтап Қалу Саясаты",
   "admin.data_retention.global_policy.form.numberError": "Сіз 1-ге тең не одан жоғары сан қосуыңыз керек.",
   "admin_settings.save_unsaved_changes": "Алдымен сақталмаған өзгерістерді сақтауыңызды сұраймыз"
 }
