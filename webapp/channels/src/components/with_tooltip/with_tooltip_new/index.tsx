@@ -16,8 +16,8 @@ import {
     useTransitionStyles,
     FloatingArrow,
 } from '@floating-ui/react';
-import React, {useRef, useState, memo, useMemo} from 'react';
-import type {ElementType, ReactNode} from 'react';
+import React, {useRef, useState, memo} from 'react';
+import type {ReactNode} from 'react';
 import {defineMessage} from 'react-intl';
 
 import {Constants} from 'utils/constants';
@@ -59,12 +59,6 @@ interface Props {
     isEmojiLarge?: boolean;
     hint?: string;
     shortcut?: ShortcutDefinition;
-
-    /**
-     * The root element wrapping the trigger/children of WithTooltip.
-     * @default 'span
-     */
-    triggerAs?: ElementType;
 
     /**
      * @deprecated Do not use this except for special cases
@@ -126,18 +120,14 @@ function WithTooltip(props: Props) {
         },
     });
 
-    const TriggerContainer = useMemo(() => {
-        return props.triggerAs || 'span';
-    }, [props.triggerAs]);
-
     return (
         <>
-            <TriggerContainer
+            <span
                 ref={setReference}
                 {...getReferenceProps()}
             >
                 {props.children}
-            </TriggerContainer>
+            </span>
             {isMounted && (
                 <FloatingPortal
                     id='root-portal' // This is the global portal container id
