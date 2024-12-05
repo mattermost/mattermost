@@ -519,7 +519,6 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		From("FileInfo").
 		LeftJoin("Channels as C ON C.Id=FileInfo.ChannelId").
 		LeftJoin("ChannelMembers as CM ON C.Id=CM.ChannelId").
-		Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}}).
 		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		Where(sq.Or{
 			sq.Eq{"FileInfo.CreatorId": model.BookmarkFileOwner},
@@ -527,6 +526,10 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 		}).
 		OrderBy("FileInfo.CreateAt DESC").
 		Limit(100)
+
+	if teamId != "" {
+		query = query.Where(sq.Or{sq.Eq{"C.TeamId": teamId}, sq.Eq{"C.TeamId": ""}})
+	}
 
 	for _, params := range paramsList {
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
