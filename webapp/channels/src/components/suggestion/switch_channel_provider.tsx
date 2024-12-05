@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessages, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
@@ -319,7 +319,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     };
 }
 
-const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
+const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(injectIntl(SwitchChannelSuggestion));
 
 let prefix = '';
 
