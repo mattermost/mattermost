@@ -811,10 +811,10 @@ func generateE2ETestType2Results(t *testing.T, th *api4.TestHelper, exportType, 
 
 // Type3Results specific data needed to be returned by this test only
 type Type3Results struct {
-	message1DeleteAt int64
-	updatedPost2     *model.Post
-	message3DeleteAt int64
-	deletedPost3     *model.Post
+	message1DeleteAt            int64
+	updatedPost2                *model.Post
+	message3AndFileInfoDeleteAt int64
+	deletedPost3                *model.Post
 }
 
 func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, attachmentDir, exportDir string,
@@ -915,8 +915,8 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	})
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
-	message3DeleteAt := model.GetMillis()
-	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3DeleteAt, users[0].Id)
+	message3AndFileInfoDeleteAt := model.GetMillis()
+	err = th.App.Srv().Store().Post().Delete(th.Context, post.Id, message3AndFileInfoDeleteAt, users[0].Id)
 	require.NoError(t, err)
 	deletedPost3, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
 	require.NoError(t, err)
@@ -933,9 +933,9 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 		CreatorId: post.UserId,
 		PostId:    post.Id,
 		CreateAt:  post.CreateAt,
-		UpdateAt:  message3DeleteAt,
+		UpdateAt:  message3AndFileInfoDeleteAt,
 		Path:      attachmentPath,
-		DeleteAt:  message3DeleteAt,
+		DeleteAt:  message3AndFileInfoDeleteAt,
 	})
 	require.NoError(t, err2)
 	attachments = append(attachments, info)
@@ -1047,10 +1047,10 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 			teams:       []*model.Team{th.BasicTeam},
 			batchTimes:  batchTimes,
 		}, Type3Results{
-			message1DeleteAt: message1DeleteAt,
-			updatedPost2:     updatedPost2,
-			message3DeleteAt: message3DeleteAt,
-			deletedPost3:     deletedPost3,
+			message1DeleteAt:            message1DeleteAt,
+			updatedPost2:                updatedPost2,
+			message3AndFileInfoDeleteAt: message3AndFileInfoDeleteAt,
+			deletedPost3:                deletedPost3,
 		}
 }
 

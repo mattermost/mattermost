@@ -513,7 +513,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostCreateAt:       model.NewPointer(int64(100000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
 					PostMessage:        model.NewPointer("message"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
@@ -530,7 +530,7 @@ func TestGlobalRelayExport(t *testing.T) {
 						Name:     "test1-attachment",
 						Id:       "test1-attachment",
 						Path:     "test1-attachment",
-						DeleteAt: 200000,
+						DeleteAt: 200_000,
 					},
 				},
 			},
@@ -713,7 +713,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostCreateAt:       model.NewPointer(int64(100000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
 					PostMessage:        model.NewPointer("message"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
@@ -913,7 +913,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostCreateAt:       model.NewPointer(int64(100000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
 					PostMessage:        model.NewPointer("message"),
 					PostProps:          model.NewPointer("{\"from_webhook\":\"true\",\"html\":\"<b>Test HTML</b>\",\"override_username\":\"test_username_override\",\"webhook_display_name\":\"Test Bot\"}"),
 					PostType:           model.NewPointer(""),
@@ -1085,7 +1085,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostCreateAt:       model.NewPointer(int64(100000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
 					PostMessage:        model.NewPointer("message"),
 					PostProps:          model.NewPointer("{\"from_webhook\":\"true\",\"webhook_display_name\":\"Test Bot\"}"),
 					PostType:           model.NewPointer(""),
@@ -1257,7 +1257,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostCreateAt:       model.NewPointer(int64(100000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
 					PostMessage:        model.NewPointer("message"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
@@ -1379,8 +1379,8 @@ func TestGlobalRelayExport(t *testing.T) {
 			defer mockStore.AssertExpectations(t)
 
 			if len(tt.attachments) > 0 {
-				for post_id, attachments := range tt.attachments {
-					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false)
+				for postId, attachments := range tt.attachments {
+					call := mockStore.FileInfoStore.On("GetForPost", postId, true, true, false)
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
