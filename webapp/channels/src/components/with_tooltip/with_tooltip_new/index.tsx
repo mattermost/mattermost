@@ -18,6 +18,7 @@ import {
 } from '@floating-ui/react';
 import React, {useRef, useState, memo} from 'react';
 import type {ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
 import {Constants} from 'utils/constants';
@@ -54,7 +55,7 @@ export const ShortcutKeys = {
 
 interface Props {
     children: ReactNode;
-    title: string | ReactNode;
+    title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
     hint?: string;
