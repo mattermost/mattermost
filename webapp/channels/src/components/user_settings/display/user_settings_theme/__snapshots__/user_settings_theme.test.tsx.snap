@@ -3,14 +3,14 @@
 exports[`components/user_settings/display/user_settings_theme/user_settings_theme should match snapshot 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Open to manage your theme"
       id="user.settings.display.theme.describe"
     />
   }
   section="theme"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Theme"
       id="user.settings.display.theme.title"
     />

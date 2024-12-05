@@ -24,7 +24,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -38,7 +38,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -72,7 +72,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -86,7 +86,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -120,7 +120,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -134,7 +134,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -168,7 +168,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -182,7 +182,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>

@@ -26,7 +26,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               onChange={[Function]}
               type="checkbox"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Enabled"
               id="user.settings.notifications.autoResponderEnabled"
             />
@@ -35,7 +35,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         <div
           className="mt-5"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
             id="user.settings.notifications.autoResponderHint"
           />
@@ -47,7 +47,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     shiftEnter={true}
     submit={[MockFunction]}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
@@ -61,14 +61,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
             Automatic direct message replies
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </h4>
       <div
         className="sectionContent col-sm-10 col-sm-offset-2"
@@ -92,28 +92,28 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                   onChange={[Function]}
                   type="checkbox"
                 />
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Enabled"
                   id="user.settings.notifications.autoResponderEnabled"
                 >
                   <span>
                     Enabled
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </label>
             </div>
             <div
               className="mt-5"
               key="autoResponderHint"
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
                 id="user.settings.notifications.autoResponderHint"
               >
                 <span>
                   Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </div>
           </div>
           <div
@@ -133,26 +133,26 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                 onClick={[Function]}
                 type="submit"
               >
-                <Memo(LoadingWrapper)
+                <LoadingWrapper
                   loading={false}
                   text={
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Saving"
                       id="save_button.saving"
                     />
                   }
                 >
                   <span>
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Save"
                       id="save_button.save"
                     >
                       <span>
                         Save
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
-                </Memo(LoadingWrapper)>
+                </LoadingWrapper>
               </button>
             </SaveButton>
             <button
@@ -160,14 +160,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               id="cancelSetting"
               onClick={[Function]}
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Cancel"
                 id="setting_item_max.cancel"
               >
                 <span>
                   Cancel
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </button>
           </div>
         </div>
@@ -203,7 +203,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               onChange={[Function]}
               type="checkbox"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Enabled"
               id="user.settings.notifications.autoResponderEnabled"
             />
@@ -239,7 +239,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         <div
           className="mt-5"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
             id="user.settings.notifications.autoResponderHint"
           />
@@ -251,7 +251,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
     shiftEnter={true}
     submit={[MockFunction]}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Automatic direct message replies"
         id="user.settings.notifications.autoResponder"
       />
@@ -265,14 +265,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Automatic direct message replies"
           id="user.settings.notifications.autoResponder"
         >
           <span>
             Automatic direct message replies
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </h4>
       <div
         className="sectionContent col-sm-10 col-sm-offset-2"
@@ -296,14 +296,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                   onChange={[Function]}
                   type="checkbox"
                 />
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Enabled"
                   id="user.settings.notifications.autoResponderEnabled"
                 >
                   <span>
                     Enabled
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </label>
             </div>
             <div
@@ -353,14 +353,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               className="mt-5"
               key="autoResponderHint"
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
                 id="user.settings.notifications.autoResponderHint"
               >
                 <span>
                   Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </div>
           </div>
           <div
@@ -380,26 +380,26 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                 onClick={[Function]}
                 type="submit"
               >
-                <Memo(LoadingWrapper)
+                <LoadingWrapper
                   loading={false}
                   text={
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Saving"
                       id="save_button.saving"
                     />
                   }
                 >
                   <span>
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Save"
                       id="save_button.save"
                     >
                       <span>
                         Save
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
-                </Memo(LoadingWrapper)>
+                </LoadingWrapper>
               </button>
             </SaveButton>
             <button
@@ -407,14 +407,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               id="cancelSetting"
               onClick={[Function]}
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Cancel"
                 id="setting_item_max.cancel"
               >
                 <span>
                   Cancel
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </button>
           </div>
         </div>

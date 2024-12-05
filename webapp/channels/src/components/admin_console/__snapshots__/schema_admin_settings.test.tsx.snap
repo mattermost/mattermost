@@ -106,7 +106,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         onSubmit={[Function]}
         role="form"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
         >
           <AdminTextSetting
@@ -126,7 +126,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             type="text"
             value="fsdsdg"
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -140,7 +140,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={false}
             value={false}
           />
-          <Memo(DropdownSetting)
+          <DropdownSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -170,7 +170,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <Memo(RadioSetting)
+          <RadioSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -214,7 +214,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             placeholder="placeholder-e"
             regenerateHelpText="This is help text for the regenerate button."
             regenerateText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Regenerate"
                 id="admin.regenerate"
               />
@@ -284,7 +284,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               </span>
             </div>
           </div>
-          <Memo(DropdownSetting)
+          <DropdownSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -412,7 +412,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <Memo(MultiSelectSetting)
+          <MultiSelectSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -567,7 +567,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               }
             }
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -581,7 +581,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={true}
             value={true}
           />
-          <Memo(ColorSetting)
+          <ColorSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -647,7 +647,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             jobType="test"
             key="Config_jobstable_undefined"
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -661,7 +661,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             setByEnv={false}
             value={true}
           />
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </form>
     </div>
   </div>
@@ -683,12 +683,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         className="error-message"
         data-testid="errorMessage"
       >
-        <Memo(FormError)
+        <FormError
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <Memo(FormError)
+        <FormError
           error={null}
         />
       </div>

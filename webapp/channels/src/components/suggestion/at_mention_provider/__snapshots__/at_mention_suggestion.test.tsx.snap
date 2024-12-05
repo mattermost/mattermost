@@ -48,7 +48,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid2/image?_=0"
             username="user2"
@@ -60,9 +60,9 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
               onError={[Function]}
               src="/api/v4/users/userid2/image?_=0"
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
-        <Memo(StatusIcon) />
+        <StatusIcon />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -143,7 +143,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid1/image?_=0"
             username="user"
@@ -155,9 +155,9 @@ exports[`at mention suggestion Should not display nick name of the signed in use
               onError={[Function]}
               src="/api/v4/users/userid1/image?_=0"
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
-        <Memo(StatusIcon) />
+        <StatusIcon />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -170,14 +170,14 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         <span>
           a b
         </span>
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="(you)"
           id="suggestion.user.isCurrent"
         >
           <span>
             (you)
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
         <Component
           emojiSize={15}
           emojiStyle={

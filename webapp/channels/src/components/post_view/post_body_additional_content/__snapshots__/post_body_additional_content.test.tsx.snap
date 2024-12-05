@@ -60,7 +60,7 @@ exports[`PostBodyAdditionalContent with a message attachment should render corre
   <span>
     some children
   </span>
-  <Memo(MessageAttachmentList)
+  <MessageAttachmentList
     attachments={Array []}
     postId="post_id_1"
   />

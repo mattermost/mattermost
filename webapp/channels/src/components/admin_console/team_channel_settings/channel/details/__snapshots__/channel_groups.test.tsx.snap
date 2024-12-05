@@ -26,19 +26,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelGroups should match 
           "skipCommit": true,
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       disabled={false}
       id="addGroupsToChannelToggle"
       modalId="add_groups_to_channel"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Group"
         id="admin.channel_settings.channel_details.add_group"
       />
@@ -58,7 +51,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelGroups should match 
     }
   }
 >
-  <Connect(Component)
+  <Connect(GroupList)
     channel={
       Object {
         "group_constrained": false,

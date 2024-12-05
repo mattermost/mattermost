@@ -36,7 +36,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         }
       }
     >
-      <Memo(UserGroupPopover)
+      <UserGroupPopover
         group={
           Object {
             "allow_reference": true,
@@ -112,7 +112,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                         •
                       </span>
                     </Dot>
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="{member_count} {member_count, plural, one {Member} other {Members}}"
                       id="user_group_popover.memberCount"
                       tagName={
@@ -152,7 +152,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                           15 Members
                         </span>
                       </NoShrink>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </div>
                 </Subtitle>
                 <HeaderButton
@@ -212,7 +212,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                 </QuickInput>
               </div>
             </SearchBar>
-            <Connect(Component)
+            <Connect(GroupMemberList)
               group={
                 Object {
                   "allow_reference": true,
@@ -233,7 +233,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               hide={[MockFunction]}
               searchState={0}
             >
-              <Memo(GroupMemberList)
+              <GroupMemberList
                 actions={
                   Object {
                     "closeRightHandSide": [Function],
@@ -1021,7 +1021,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                             <span
                                               className="status-wrapper"
                                             >
-                                              <Memo(Avatar)
+                                              <Avatar
                                                 className="avatar-post-preview"
                                                 size="sm"
                                                 tabIndex={-1}
@@ -1036,8 +1036,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   src="/api/v4/users/id0/image?_=0"
                                                   tabIndex={-1}
                                                 />
-                                              </Memo(Avatar)>
-                                              <Memo(StatusIcon)
+                                              </Avatar>
+                                              <StatusIcon
                                                 status="offline"
                                               >
                                                 <StatusOfflineIcon
@@ -1068,7 +1068,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     </svg>
                                                   </span>
                                                 </StatusOfflineIcon>
-                                              </Memo(StatusIcon)>
+                                              </StatusIcon>
                                             </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
@@ -1265,7 +1265,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                             <span
                                               className="status-wrapper"
                                             >
-                                              <Memo(Avatar)
+                                              <Avatar
                                                 className="avatar-post-preview"
                                                 size="sm"
                                                 tabIndex={-1}
@@ -1280,8 +1280,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   src="/api/v4/users/id1/image?_=0"
                                                   tabIndex={-1}
                                                 />
-                                              </Memo(Avatar)>
-                                              <Memo(StatusIcon)
+                                              </Avatar>
+                                              <StatusIcon
                                                 status="offline"
                                               >
                                                 <StatusOfflineIcon
@@ -1312,7 +1312,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     </svg>
                                                   </span>
                                                 </StatusOfflineIcon>
-                                              </Memo(StatusIcon)>
+                                              </StatusIcon>
                                             </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
@@ -1509,7 +1509,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                             <span
                                               className="status-wrapper"
                                             >
-                                              <Memo(Avatar)
+                                              <Avatar
                                                 className="avatar-post-preview"
                                                 size="sm"
                                                 tabIndex={-1}
@@ -1524,8 +1524,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   src="/api/v4/users/id10/image?_=0"
                                                   tabIndex={-1}
                                                 />
-                                              </Memo(Avatar)>
-                                              <Memo(StatusIcon)
+                                              </Avatar>
+                                              <StatusIcon
                                                 status="offline"
                                               >
                                                 <StatusOfflineIcon
@@ -1556,7 +1556,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     </svg>
                                                   </span>
                                                 </StatusOfflineIcon>
-                                              </Memo(StatusIcon)>
+                                              </StatusIcon>
                                             </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
@@ -1753,7 +1753,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                             <span
                                               className="status-wrapper"
                                             >
-                                              <Memo(Avatar)
+                                              <Avatar
                                                 className="avatar-post-preview"
                                                 size="sm"
                                                 tabIndex={-1}
@@ -1768,8 +1768,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   src="/api/v4/users/id11/image?_=0"
                                                   tabIndex={-1}
                                                 />
-                                              </Memo(Avatar)>
-                                              <Memo(StatusIcon)
+                                              </Avatar>
+                                              <StatusIcon
                                                 status="offline"
                                               >
                                                 <StatusOfflineIcon
@@ -1800,7 +1800,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     </svg>
                                                   </span>
                                                 </StatusOfflineIcon>
-                                              </Memo(StatusIcon)>
+                                              </StatusIcon>
                                             </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
@@ -1997,7 +1997,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                             <span
                                               className="status-wrapper"
                                             >
-                                              <Memo(Avatar)
+                                              <Avatar
                                                 className="avatar-post-preview"
                                                 size="sm"
                                                 tabIndex={-1}
@@ -2012,8 +2012,8 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   src="/api/v4/users/id12/image?_=0"
                                                   tabIndex={-1}
                                                 />
-                                              </Memo(Avatar)>
-                                              <Memo(StatusIcon)
+                                              </Avatar>
+                                              <StatusIcon
                                                 status="offline"
                                               >
                                                 <StatusOfflineIcon
@@ -2044,7 +2044,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     </svg>
                                                   </span>
                                                 </StatusOfflineIcon>
-                                              </Memo(StatusIcon)>
+                                              </StatusIcon>
                                             </span>
                                             <Username
                                               className="overflow--ellipsis text-nowrap"
@@ -2182,11 +2182,11 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     </Component>
                   </div>
                 </UserList>
-              </Memo(GroupMemberList)>
-            </Connect(Component)>
+              </GroupMemberList>
+            </Connect(GroupMemberList)>
           </div>
         </Body>
-      </Memo(UserGroupPopover)>
+      </UserGroupPopover>
     </Router>
   </BrowserRouter>
 </Provider>

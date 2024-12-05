@@ -24,7 +24,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenuOld)
+  <ChannelMoveToSubMenuOld
     channel={
       Object {
         "create_at": 0,
@@ -47,8 +47,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     inHeaderDropdown={true}
     openUp={false}
   />
-  <Memo(MenuGroup)>
-    <Connect(Component)
+  <MenuGroup>
+    <Connect(ToggleFavoriteChannel)
       channel={
         Object {
           "create_at": 0,
@@ -71,7 +71,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isFavorite={false}
       show={false}
     />
-    <Connect(Component)
+    <Connect(ViewPinnedPosts)
       channel={
         Object {
           "create_at": 0,
@@ -154,14 +154,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="channelNotificationPreferences"
       modalId="channel_notifications"
       show={true}
@@ -231,9 +224,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         }
       }
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -264,14 +257,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddMembers"
         modalId="channel_invite"
         show={true}
@@ -283,20 +269,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "isExistingChannel": true,
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddMembers"
         modalId="create_dm_channel"
         show={false}
         text="Add Members"
       />
-    </Memo(ChannelPermissionGate)>
+    </ChannelPermissionGate>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -321,7 +300,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       show={false}
       text="View Members"
     />
-    <Memo(ChannelPermissionGate)
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -331,14 +310,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       teamId="team_id"
     >
       <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddGroups"
         modalId="add_groups_to_channel"
         show={false}
@@ -350,14 +322,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "channelID": "test-channel-id",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelManageGroups"
         modalId="manage_channel_groups"
         show={false}
@@ -388,8 +353,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="Manage Members"
       />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
+    </ChannelPermissionGate>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       invert={true}
       permissions={
@@ -423,9 +388,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="View Members"
       />
-    </Memo(ChannelPermissionGate)>
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
+    </ChannelPermissionGate>
+  </MenuGroup>
+  <MenuGroup>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -448,14 +413,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="channelEditHeader"
       modalId="edit_channel_header"
       show={false}
@@ -483,22 +441,15 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="convertGMPrivateChannel"
       modalId="convert_gm_to_channel"
       show={false}
       text="Convert to Private Channel"
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -529,14 +480,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelEditHeader"
         modalId="edit_channel_header"
         show={true}
@@ -564,14 +508,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelEditPurpose"
         modalId="edit_channel_purpose"
         show={true}
@@ -599,21 +536,14 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelRename"
         modalId="rename_channel"
         show={true}
         text="Rename Channel"
       />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
+    </ChannelPermissionGate>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -629,21 +559,14 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "channelId": "test-channel-id",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelConvertToPrivate"
         modalId="convert_channel"
         show={true}
         text="Convert to Private Channel"
       />
-    </Memo(ChannelPermissionGate)>
-    <Connect(Component)
+    </ChannelPermissionGate>
+    <Connect(LeaveChannel)
       channel={
         Object {
           "create_at": 0,
@@ -667,7 +590,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isDefault={false}
       isGuestUser={false}
     />
-    <Memo(ChannelPermissionGate)
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -700,20 +623,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "penultimateViewedChannelName": "test-channel",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
         text="Archive Channel"
       />
-    </Memo(ChannelPermissionGate)>
+    </ChannelPermissionGate>
     <Connect(CloseMessage)
       channel={
         Object {
@@ -777,13 +693,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       }
       id="channelCloseMessage"
     />
-    <Connect(Component)
+    <Connect(CloseChannel)
       isArchived={false}
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup) />
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup />
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -814,21 +730,14 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelUnarchiveChannel"
         modalId="unarchive_channel"
         show={false}
         text="Unarchive Channel"
       />
-    </Memo(ChannelPermissionGate)>
-  </Memo(MenuGroup)>
+    </ChannelPermissionGate>
+  </MenuGroup>
 </Fragment>
 `;
 
@@ -856,7 +765,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenuOld)
+  <ChannelMoveToSubMenuOld
     channel={
       Object {
         "create_at": 0,
@@ -879,8 +788,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     inHeaderDropdown={true}
     openUp={false}
   />
-  <Memo(MenuGroup)>
-    <Connect(Component)
+  <MenuGroup>
+    <Connect(ToggleFavoriteChannel)
       channel={
         Object {
           "create_at": 0,
@@ -903,7 +812,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       isFavorite={false}
       show={false}
     />
-    <Connect(Component)
+    <Connect(ViewPinnedPosts)
       channel={
         Object {
           "create_at": 0,
@@ -986,14 +895,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="channelNotificationPreferences"
       modalId="channel_notifications"
       show={true}
@@ -1063,9 +965,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         }
       }
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1096,14 +998,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddMembers"
         modalId="channel_invite"
         show={true}
@@ -1115,20 +1010,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "isExistingChannel": true,
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddMembers"
         modalId="create_dm_channel"
         show={false}
         text="Add Members"
       />
-    </Memo(ChannelPermissionGate)>
+    </ChannelPermissionGate>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -1153,7 +1041,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={false}
       text="View Members"
     />
-    <Memo(ChannelPermissionGate)
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1163,14 +1051,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       teamId="team_id"
     >
       <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelAddGroups"
         modalId="add_groups_to_channel"
         show={false}
@@ -1182,14 +1063,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "channelID": "test-channel-id",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelManageGroups"
         modalId="manage_channel_groups"
         show={false}
@@ -1220,8 +1094,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="Manage Members"
       />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
+    </ChannelPermissionGate>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       invert={true}
       permissions={
@@ -1255,9 +1129,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="View Members"
       />
-    </Memo(ChannelPermissionGate)>
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
+    </ChannelPermissionGate>
+  </MenuGroup>
+  <MenuGroup>
     <MenuItemToggleModalRedux
       dialogProps={
         Object {
@@ -1280,14 +1154,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="channelEditHeader"
       modalId="edit_channel_header"
       show={false}
@@ -1315,22 +1182,15 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="convertGMPrivateChannel"
       modalId="convert_gm_to_channel"
       show={false}
       text="Convert to Private Channel"
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1361,14 +1221,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelEditHeader"
         modalId="edit_channel_header"
         show={true}
@@ -1396,14 +1249,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelEditPurpose"
         modalId="edit_channel_purpose"
         show={true}
@@ -1431,21 +1277,14 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelRename"
         modalId="rename_channel"
         show={true}
         text="Rename Channel"
       />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
+    </ChannelPermissionGate>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1461,21 +1300,14 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "channelId": "test-channel-id",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelConvertToPrivate"
         modalId="convert_channel"
         show={true}
         text="Convert to Private Channel"
       />
-    </Memo(ChannelPermissionGate)>
-    <Connect(Component)
+    </ChannelPermissionGate>
+    <Connect(LeaveChannel)
       channel={
         Object {
           "create_at": 0,
@@ -1499,7 +1331,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       isDefault={false}
       isGuestUser={false}
     />
-    <Memo(ChannelPermissionGate)
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1532,20 +1364,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "penultimateViewedChannelName": "test-channel",
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
         text="Archive Channel"
       />
-    </Memo(ChannelPermissionGate)>
+    </ChannelPermissionGate>
     <Connect(CloseMessage)
       channel={
         Object {
@@ -1609,11 +1434,11 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       id="channelCloseMessage"
     />
-    <Connect(Component)
+    <Connect(CloseChannel)
       isArchived={false}
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
+  </MenuGroup>
+  <MenuGroup>
     <MenuItemAction
       id="plugin-1_pluginmenuitem"
       key="plugin-1_pluginmenuitem"
@@ -1628,9 +1453,9 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={true}
       text="plugin-2-text"
     />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
+  </MenuGroup>
+  <MenuGroup>
+    <ChannelPermissionGate
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1661,20 +1486,13 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="channelUnarchiveChannel"
         modalId="unarchive_channel"
         show={false}
         text="Unarchive Channel"
       />
-    </Memo(ChannelPermissionGate)>
-  </Memo(MenuGroup)>
+    </ChannelPermissionGate>
+  </MenuGroup>
 </Fragment>
 `;

@@ -15,14 +15,14 @@ exports[`components/ToggleModalButton component should match snapshot 1`] = `
     onClick={[Function]}
     role="menuitem"
   >
-    <FormattedMessage
+    <MemoizedFormattedMessage
       defaultMessage="Delete Channel"
       id="channel_header.delete"
     >
       <span>
         Delete Channel
       </span>
-    </FormattedMessage>
+    </MemoizedFormattedMessage>
   </button>
 </ToggleModalButton>
 `;

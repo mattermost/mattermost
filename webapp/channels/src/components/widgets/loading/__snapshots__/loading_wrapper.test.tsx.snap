@@ -1,25 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/widgets/loading/LoadingWrapper showing content with children 1`] = `
-<Memo(LoadingWrapper)
+<LoadingWrapper
   loading={false}
 >
   text
-</Memo(LoadingWrapper)>
+</LoadingWrapper>
 `;
 
 exports[`components/widgets/loading/LoadingWrapper showing content without children 1`] = `
-<Memo(LoadingWrapper)
+<LoadingWrapper
   loading={false}
 />
 `;
 
 exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`] = `
-<Memo(LoadingWrapper)
+<LoadingWrapper
   loading={true}
   text="test"
 >
-  <Memo(LoadingSpinner)
+  <LoadingSpinner
     text="test"
   >
     <span
@@ -33,15 +33,15 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner with text 1`]
       />
       test
     </span>
-  </Memo(LoadingSpinner)>
-</Memo(LoadingWrapper)>
+  </LoadingSpinner>
+</LoadingWrapper>
 `;
 
 exports[`components/widgets/loading/LoadingWrapper showing spinner without text 1`] = `
-<Memo(LoadingWrapper)
+<LoadingWrapper
   loading={true}
 >
-  <Memo(LoadingSpinner)>
+  <LoadingSpinner>
     <span
       className="LoadingSpinner"
       data-testid="loadingSpinner"
@@ -52,6 +52,6 @@ exports[`components/widgets/loading/LoadingWrapper showing spinner without text 
         title="Loading Icon"
       />
     </span>
-  </Memo(LoadingSpinner)>
-</Memo(LoadingWrapper)>
+  </LoadingSpinner>
+</LoadingWrapper>
 `;

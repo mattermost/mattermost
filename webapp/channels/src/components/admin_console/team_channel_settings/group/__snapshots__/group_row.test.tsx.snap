@@ -28,13 +28,7 @@ exports[`admin_console/team_channel_settings/group/GroupRow should match snapsho
             },
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="DNMembersToggle"
         modalId="group_members"
       >

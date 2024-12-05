@@ -14,16 +14,16 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
     ]
   }
 >
-  <Memo(Settings)
+  <Settings
     helpText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
         id="admin.customization.customUrlSchemesDesc"
       />
     }
     inputId="MySetting"
     label={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Custom URL Schemes:"
         id="admin.customization.customUrlSchemes"
       />
@@ -38,14 +38,14 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
         className="control-label col-sm-4"
         htmlFor="MySetting"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Custom URL Schemes:"
           id="admin.customization.customUrlSchemes"
         >
           <span>
             Custom URL Schemes:
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </label>
       <div
         className="col-sm-8"
@@ -78,18 +78,18 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
           className="help-text"
           data-testid="MySettinghelp-text"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
             id="admin.customization.customUrlSchemesDesc"
           >
             <span>
               Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </div>
       </div>
     </div>
-  </Memo(Settings)>
+  </Settings>
 </CustomURLSchemesSetting>
 `;
 
@@ -101,16 +101,16 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
   setByEnv={false}
   value={Array []}
 >
-  <Memo(Settings)
+  <Settings
     helpText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
         id="admin.customization.customUrlSchemesDesc"
       />
     }
     inputId="MySetting"
     label={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Custom URL Schemes:"
         id="admin.customization.customUrlSchemes"
       />
@@ -125,14 +125,14 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
         className="control-label col-sm-4"
         htmlFor="MySetting"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Custom URL Schemes:"
           id="admin.customization.customUrlSchemes"
         >
           <span>
             Custom URL Schemes:
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </label>
       <div
         className="col-sm-8"
@@ -165,18 +165,18 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
           className="help-text"
           data-testid="MySettinghelp-text"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
             id="admin.customization.customUrlSchemesDesc"
           >
             <span>
               Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </div>
       </div>
     </div>
-  </Memo(Settings)>
+  </Settings>
 </CustomURLSchemesSetting>
 `;
 
@@ -192,16 +192,16 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
     ]
   }
 >
-  <Memo(Settings)
+  <Settings
     helpText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
         id="admin.customization.customUrlSchemesDesc"
       />
     }
     inputId="MySetting"
     label={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Custom URL Schemes:"
         id="admin.customization.customUrlSchemes"
       />
@@ -216,14 +216,14 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
         className="control-label col-sm-4"
         htmlFor="MySetting"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Custom URL Schemes:"
           id="admin.customization.customUrlSchemes"
         >
           <span>
             Custom URL Schemes:
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </label>
       <div
         className="col-sm-8"
@@ -256,18 +256,18 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
           className="help-text"
           data-testid="MySettinghelp-text"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
             id="admin.customization.customUrlSchemesDesc"
           >
             <span>
               Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </div>
       </div>
     </div>
-  </Memo(Settings)>
+  </Settings>
 </CustomURLSchemesSetting>
 `;
 
@@ -284,16 +284,16 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
     ]
   }
 >
-  <Memo(Settings)
+  <Settings
     helpText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
         id="admin.customization.customUrlSchemesDesc"
       />
     }
     inputId="MySetting"
     label={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Custom URL Schemes:"
         id="admin.customization.customUrlSchemes"
       />
@@ -308,14 +308,14 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
         className="control-label col-sm-4"
         htmlFor="MySetting"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Custom URL Schemes:"
           id="admin.customization.customUrlSchemes"
         >
           <span>
             Custom URL Schemes:
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </label>
       <div
         className="col-sm-8"
@@ -348,18 +348,18 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
           className="help-text"
           data-testid="MySettinghelp-text"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
             id="admin.customization.customUrlSchemesDesc"
           >
             <span>
               Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </div>
       </div>
     </div>
-  </Memo(Settings)>
+  </Settings>
 </CustomURLSchemesSetting>
 `;
 
@@ -376,16 +376,16 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
     ]
   }
 >
-  <Memo(Settings)
+  <Settings
     helpText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
         id="admin.customization.customUrlSchemesDesc"
       />
     }
     inputId="MySetting"
     label={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Custom URL Schemes:"
         id="admin.customization.customUrlSchemes"
       />
@@ -400,14 +400,14 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
         className="control-label col-sm-4"
         htmlFor="MySetting"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Custom URL Schemes:"
           id="admin.customization.customUrlSchemes"
         >
           <span>
             Custom URL Schemes:
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </label>
       <div
         className="col-sm-8"
@@ -440,31 +440,31 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
           className="help-text"
           data-testid="MySettinghelp-text"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
             id="admin.customization.customUrlSchemesDesc"
           >
             <span>
               Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </div>
         <SetByEnv>
           <div
             className="alert alert-warning"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="This setting has been set through an environment variable. It cannot be changed through the System Console."
               id="admin.set_by_env"
             >
               <span>
                 This setting has been set through an environment variable. It cannot be changed through the System Console.
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
         </SetByEnv>
       </div>
     </div>
-  </Memo(Settings)>
+  </Settings>
 </CustomURLSchemesSetting>
 `;

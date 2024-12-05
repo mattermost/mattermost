@@ -56,7 +56,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
           }
         }
       />
-      <Memo(CopyText)
+      <CopyText
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>
@@ -133,7 +133,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
           }
         }
       />
-      <Memo(CopyText)
+      <CopyText
         value="http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic"
       />
     </p>
@@ -212,9 +212,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
           }
         }
       />
-      <Memo(CopyText)
+      <CopyText
         tooltip={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Copy Client Id"
             id="integrations.copy_client_id"
           />
@@ -232,9 +232,9 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
           }
         }
       />
-      <Memo(CopyText)
+      <CopyText
         tooltip={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Copy Client Secret"
             id="integrations.copy_client_secret"
           />
@@ -339,7 +339,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
           }
         }
       />
-      <Memo(CopyText)
+      <CopyText
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>

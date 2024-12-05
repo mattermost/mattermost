@@ -46,7 +46,7 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_commands.delete.confirm"
             />
@@ -79,7 +79,7 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
             }
           }
         />
-        <Memo(CopyText)
+        <CopyText
           value="testToken"
         />
       </span>
@@ -152,7 +152,7 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_commands.delete.confirm"
             />
@@ -185,7 +185,7 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
             }
           }
         />
-        <Memo(CopyText)
+        <CopyText
           value="testToken"
         />
       </span>
@@ -261,7 +261,7 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
             }
           }
         />
-        <Memo(CopyText)
+        <CopyText
           value="testToken"
         />
       </span>
@@ -335,7 +335,7 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
             }
           }
         />
-        <Memo(CopyText)
+        <CopyText
           value="testToken"
         />
       </span>

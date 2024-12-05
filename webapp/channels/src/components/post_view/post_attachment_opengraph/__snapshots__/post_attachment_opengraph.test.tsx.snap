@@ -94,7 +94,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
 `;
 
 exports[`PostAttachmentOpenGraphBody should match snapshot 1`] = `
-<Memo()
+<Component
   description="test-description"
   isInPermalink={false}
   sitename="test-sitename"
@@ -119,11 +119,11 @@ exports[`PostAttachmentOpenGraphBody should match snapshot 1`] = `
       test-description
     </span>
   </div>
-</Memo()>
+</Component>
 `;
 
 exports[`PostAttachmentOpenGraphBody should match snapshot 2`] = `
-<Memo()
+<Component
   description="test_description"
   isInPermalink={false}
   siteName="test_sitename"
@@ -143,7 +143,7 @@ exports[`PostAttachmentOpenGraphBody should match snapshot 2`] = `
       test_description
     </span>
   </div>
-</Memo()>
+</Component>
 `;
 
 exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
@@ -159,7 +159,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
     }
   }
 >
-  <Memo()
+  <Component
     imageMetadata={
       Object {
         "format": "png",
@@ -182,7 +182,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
       <AutoHeightSwitcher
         showSlot={1}
         slot1={
-          <Memo(Connect(Component))
+          <Connect(ExternalImage)
             imageMetadata={
               Object {
                 "format": "png",
@@ -197,7 +197,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
           >
             [Function]
-          </Memo(Connect(Component))>
+          </Connect(ExternalImage)>
         }
         slot2={
           <button
@@ -240,7 +240,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             }
           >
             <div>
-              <Connect(Component)
+              <Connect(ExternalImage)
                 imageMetadata={
                   Object {
                     "format": "png",
@@ -254,7 +254,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                 }
                 src="http://localhost:8065/api/v4/image?url=http%3A%2F%2Fmattermo…t.com%2Fwp-content%2Fuploads%2F2021%2F09%2FHomepage%402x.png"
               >
-                <Memo(ExternalImage)
+                <ExternalImage
                   dispatch={[Function]}
                   enableSVGs={true}
                   hasImageProxy={true}
@@ -299,14 +299,14 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                       src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
                     />
                   </figure>
-                </Memo(ExternalImage)>
-              </Connect(Component)>
+                </ExternalImage>
+              </Connect(ExternalImage)>
             </div>
           </div>
         </Transition>
       </AutoHeightSwitcher>
     </div>
-  </Memo()>
+  </Component>
 </Provider>
 `;
 

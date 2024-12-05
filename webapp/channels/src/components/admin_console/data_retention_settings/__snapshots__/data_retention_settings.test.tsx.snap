@@ -23,13 +23,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Keep messages and files for a set amount of time."
                 id="admin.data_retention.globalPolicy.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Global retention policy"
                 id="admin.data_retention.globalPolicy.title"
               />
@@ -48,21 +48,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.globalPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.globalPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Files"
                       id="admin.data_retention.globalPoliciesTable.files"
                     />,
@@ -115,7 +115,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         data-testid="global_message_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Keep forever"
                           id="admin.data_retention.form.keepForever"
                         />
@@ -124,7 +124,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "files": <div
                         data-testid="global_file_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Keep forever"
                           id="admin.data_retention.form.keepForever"
                         />
@@ -148,20 +148,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add policy"
                 id="admin.data_retention.customPolicies.addPolicy"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Customize how long specific teams and channels will keep messages."
                 id="admin.data_retention.customPolicies.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Custom retention policies"
                 id="admin.data_retention.customPolicies.title"
               />
@@ -180,21 +180,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.customPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.customPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Applied to"
                       id="admin.data_retention.customPoliciesTable.appliedTo"
                     />,
@@ -253,7 +253,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "applied_to": <div
                         id="customAppliedTo-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
                           id="admin.data_retention.channel_team_counts"
                           values={
@@ -267,7 +267,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         id="customDuration-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Keep forever"
                           id="admin.data_retention.form.keepForever"
                         />
@@ -296,7 +296,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
@@ -304,13 +304,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             isDisabled={false}
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Daily log of messages and files removed based on the policies defined above."
                 id="admin.data_retention.jobCreation.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Policy log"
                 id="admin.data_retention.jobCreation.title"
               />
@@ -323,14 +323,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           <Connect(JobTable)
             className="job-table__data-retention"
             createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
             }
             createJobHelpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Daily time to check policies and run delete job:"
                   id="admin.data_retention.createJob.instructions"
                 />
@@ -338,7 +338,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   className="JobSelectedtime"
                 >
                   <b>
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="{time} AM (UTC)"
                       id="admin.data_retention.jobTimeAM"
                       values={
@@ -391,13 +391,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Keep messages and files for a set amount of time."
                 id="admin.data_retention.globalPolicy.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Global retention policy"
                 id="admin.data_retention.globalPolicy.title"
               />
@@ -416,21 +416,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.globalPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.globalPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Files"
                       id="admin.data_retention.globalPoliciesTable.files"
                     />,
@@ -483,7 +483,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         data-testid="global_message_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -497,7 +497,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "files": <div
                         data-testid="global_file_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -526,20 +526,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add policy"
                 id="admin.data_retention.customPolicies.addPolicy"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Customize how long specific teams and channels will keep messages."
                 id="admin.data_retention.customPolicies.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Custom retention policies"
                 id="admin.data_retention.customPolicies.title"
               />
@@ -558,21 +558,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.customPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.customPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Applied to"
                       id="admin.data_retention.customPoliciesTable.appliedTo"
                     />,
@@ -631,7 +631,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "applied_to": <div
                         id="customAppliedTo-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
                           id="admin.data_retention.channel_team_counts"
                           values={
@@ -645,7 +645,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         id="customDuration-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -679,7 +679,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
@@ -687,13 +687,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             isDisabled={false}
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Daily log of messages and files removed based on the policies defined above."
                 id="admin.data_retention.jobCreation.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Policy log"
                 id="admin.data_retention.jobCreation.title"
               />
@@ -706,14 +706,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           <Connect(JobTable)
             className="job-table__data-retention"
             createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
             }
             createJobHelpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Daily time to check policies and run delete job:"
                   id="admin.data_retention.createJob.instructions"
                 />
@@ -721,7 +721,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   className="JobSelectedtime"
                 >
                   <b>
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="{time} AM (UTC)"
                       id="admin.data_retention.jobTimeAM"
                       values={
@@ -774,13 +774,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Keep messages and files for a set amount of time."
                 id="admin.data_retention.globalPolicy.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Global retention policy"
                 id="admin.data_retention.globalPolicy.title"
               />
@@ -799,21 +799,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.globalPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.globalPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Files"
                       id="admin.data_retention.globalPoliciesTable.files"
                     />,
@@ -866,7 +866,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         data-testid="global_message_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -880,7 +880,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "files": <div
                         data-testid="global_file_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -909,20 +909,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add policy"
                 id="admin.data_retention.customPolicies.addPolicy"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Customize how long specific teams and channels will keep messages."
                 id="admin.data_retention.customPolicies.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Custom retention policies"
                 id="admin.data_retention.customPolicies.title"
               />
@@ -941,21 +941,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.customPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.customPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Applied to"
                       id="admin.data_retention.customPoliciesTable.appliedTo"
                     />,
@@ -1014,7 +1014,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "applied_to": <div
                         id="customAppliedTo-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
                           id="admin.data_retention.channel_team_counts"
                           values={
@@ -1028,7 +1028,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         id="customDuration-1234567"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Keep forever"
                           id="admin.data_retention.form.keepForever"
                         />
@@ -1057,7 +1057,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
@@ -1065,13 +1065,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             isDisabled={false}
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Daily log of messages and files removed based on the policies defined above."
                 id="admin.data_retention.jobCreation.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Policy log"
                 id="admin.data_retention.jobCreation.title"
               />
@@ -1084,14 +1084,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           <Connect(JobTable)
             className="job-table__data-retention"
             createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
             }
             createJobHelpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Daily time to check policies and run delete job:"
                   id="admin.data_retention.createJob.instructions"
                 />
@@ -1099,7 +1099,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   className="JobSelectedtime"
                 >
                   <b>
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="{time} AM (UTC)"
                       id="admin.data_retention.jobTimeAM"
                       values={
@@ -1152,13 +1152,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Keep messages and files for a set amount of time."
                 id="admin.data_retention.globalPolicy.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Global retention policy"
                 id="admin.data_retention.globalPolicy.title"
               />
@@ -1177,21 +1177,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.globalPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.globalPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Files"
                       id="admin.data_retention.globalPoliciesTable.files"
                     />,
@@ -1244,7 +1244,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "channel_messages": <div
                         data-testid="global_message_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -1258,7 +1258,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                       "files": <div
                         data-testid="global_file_retention_cell"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="{count} {count, plural, one {day} other {days}}"
                           id="admin.data_retention.retention_days"
                           values={
@@ -1287,20 +1287,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add policy"
                 id="admin.data_retention.customPolicies.addPolicy"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Customize how long specific teams and channels will keep messages."
                 id="admin.data_retention.customPolicies.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Custom retention policies"
                 id="admin.data_retention.customPolicies.title"
               />
@@ -1319,21 +1319,21 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 Array [
                   Object {
                     "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Description"
                       id="admin.data_retention.customPoliciesTable.description"
                     />,
                   },
                   Object {
                     "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Channel messages"
                       id="admin.data_retention.customPoliciesTable.channelMessages"
                     />,
                   },
                   Object {
                     "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
+                    "name": <MemoizedFormattedMessage
                       defaultMessage="Applied to"
                       id="admin.data_retention.customPoliciesTable.appliedTo"
                     />,
@@ -1365,7 +1365,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
@@ -1373,13 +1373,13 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             isDisabled={false}
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Daily log of messages and files removed based on the policies defined above."
                 id="admin.data_retention.jobCreation.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Policy log"
                 id="admin.data_retention.jobCreation.title"
               />
@@ -1392,14 +1392,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           <Connect(JobTable)
             className="job-table__data-retention"
             createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Run Deletion Job Now"
                 id="admin.data_retention.createJob.title"
               />
             }
             createJobHelpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Daily time to check policies and run delete job:"
                   id="admin.data_retention.createJob.instructions"
                 />
@@ -1407,7 +1407,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   className="JobSelectedtime"
                 >
                   <b>
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="{time} AM (UTC)"
                       id="admin.data_retention.jobTimeAM"
                       values={

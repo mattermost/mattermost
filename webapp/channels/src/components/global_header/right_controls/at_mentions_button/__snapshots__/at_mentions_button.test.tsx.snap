@@ -6,11 +6,11 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
   placement="bottom"
   title={
     <React.Fragment>
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Recent mentions"
         id="channel_header.recentMentions"
       />
-      <Memo(KeyboardShortcutSequence)
+      <KeyboardShortcutSequence
         hideDescription={true}
         isInsideTooltip={true}
         shortcut={

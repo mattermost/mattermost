@@ -36,7 +36,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
                   onClick={[Function]}
                   to="/path"
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="test-button-text-default"
                     id="test-button-text-id"
                   />
@@ -81,7 +81,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
                   onClick={[Function]}
                   to="/path"
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="test-button-text-default"
                     id="test-button-text-id"
                   />

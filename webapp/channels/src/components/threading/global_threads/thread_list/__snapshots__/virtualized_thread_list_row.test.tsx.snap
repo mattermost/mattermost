@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/threading/global_threads/thread_list/virtualized_thread_list_row should match snapshot 1`] = `
-<Connect(Component)
+<Connect(ThreadItem)
   isFirstThreadInList={false}
   isSelected={false}
   key="2"
@@ -28,7 +28,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
     }
   }
   subtitle={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="If you’re looking for older conversations, try searching with {searchShortcut}"
       id="globalThreads.searchGuidance.subtitle"
       values={
@@ -43,7 +43,7 @@ exports[`components/threading/global_threads/thread_list/virtualized_thread_list
   }
   subtitleClassName="thread-no-results-subtitle"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="That’s the end of the list"
       id="globalThreads.searchGuidance.title"
     />

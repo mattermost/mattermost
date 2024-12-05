@@ -8,13 +8,13 @@ exports[`messageHtmlToComponent At mention 1`] = `
     <span
       data-mention="joram"
     >
-      <Memo(Connect(Component))
+      <Connect(AtMention)
         disableGroupHighlight={false}
         disableHighlight={false}
         mentionName="joram"
       >
         @joram
-      </Memo(Connect(Component))>
+      </Connect(AtMention)>
     </span>
   </span>
 </p>
@@ -25,13 +25,13 @@ exports[`messageHtmlToComponent At mention 2`] = `
   <span
     data-mention="joram"
   >
-    <Memo(Connect(Component))
+    <Connect(AtMention)
       disableGroupHighlight={false}
       disableHighlight={true}
       mentionName="joram"
     >
       @joram
-    </Memo(Connect(Component))>
+    </Connect(AtMention)>
   </span>
 </p>
 `;
@@ -41,13 +41,13 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
   <span
     data-mention="developers"
   >
-    <Memo(Connect(Component))
+    <Connect(AtMention)
       disableGroupHighlight={false}
       disableHighlight={false}
       mentionName="developers"
     >
       @developers
-    </Memo(Connect(Component))>
+    </Connect(AtMention)>
   </span>
 </p>
 `;
@@ -57,13 +57,13 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
   <span
     data-mention="developers"
   >
-    <Memo(Connect(Component))
+    <Connect(AtMention)
       disableGroupHighlight={true}
       disableHighlight={false}
       mentionName="developers"
     >
       @developers
-    </Memo(Connect(Component))>
+    </Connect(AtMention)>
   </span>
 </p>
 `;
@@ -72,7 +72,7 @@ exports[`messageHtmlToComponent Inline markdown image 1`] = `
 <div
   className="markdown-inline-img__container"
 >
-  <Memo(Connect(MarkdownImage))
+  <Connect(MarkdownImage)
     alt="Mattermost"
     className="markdown-inline-img"
     imageIsLink={false}
@@ -102,7 +102,7 @@ exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = 
     rel="noreferrer"
     target="_blank"
   >
-    <Memo(Connect(MarkdownImage))
+    <Connect(MarkdownImage)
       alt="Mattermost"
       className="markdown-inline-img"
       imageIsLink={true}
@@ -129,10 +129,10 @@ Array [
   </p>,
   "
 ",
-  <Memo(Connect(Component))
+  <Connect(LatexBlock)
     content="x^2 + y^2 = z^2"
   />,
-  <Memo(Connect(Component))
+  <Connect(LatexBlock)
     content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
   />,
   <p>

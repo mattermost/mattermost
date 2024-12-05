@@ -13,7 +13,7 @@ exports[`EmojiPage should render without crashing 1`] = `
         id="emoji_list.header"
       />
     </h1>
-    <Memo(AnyTeamPermissionGate)
+    <AnyTeamPermissionGate
       permissions={
         Array [
           "create_emojis",
@@ -34,7 +34,7 @@ exports[`EmojiPage should render without crashing 1`] = `
           />
         </button>
       </Link>
-    </Memo(AnyTeamPermissionGate)>
+    </AnyTeamPermissionGate>
   </div>
   <Connect(EmojiList)
     scrollToTop={[MockFunction]}

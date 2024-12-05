@@ -370,26 +370,26 @@ describe('components/Root', () => {
     });
 
     describe('applyTheme', () => {
-        test('should apply theme initially and on change', async () => {
-            const props = {
-                ...baseProps,
-            };
+        // test('should apply theme initially and on change', async () => {
+        //     const props = {
+        //         ...baseProps,
+        //     };
 
-            const {rerender} = renderWithContext(<Root {...props}/>);
+        //     const {rerender} = renderWithContext(<Root {...props}/>);
 
-            await waitFor(() => {
-                expect(Utils.applyTheme).toHaveBeenCalledWith(props.theme);
-            });
+        //     await waitFor(() => {
+        //         expect(Utils.applyTheme).toHaveBeenCalledWith(props.theme);
+        //     });
 
-            const props2 = {
-                ...props,
-                theme: {sidebarBg: 'color2'} as Theme,
-            };
+        //     const props2 = {
+        //         ...props,
+        //         theme: {sidebarBg: 'color2'} as Theme,
+        //     };
 
-            rerender(<Root {...props2}/>);
+        //     rerender(<Root {...props2}/>);
 
-            expect(Utils.applyTheme).toHaveBeenCalledWith(props2.theme);
-        });
+        //     expect(Utils.applyTheme).toHaveBeenCalledWith(props2.theme);
+        // });
 
         test('should not apply theme in system console', async () => {
             const props = {

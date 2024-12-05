@@ -31,7 +31,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   role="dialog"
   show={true}
 >
-  <Connect(Component)
+  <Connect(UserGroupsModalHeader)
     backButtonAction={[MockFunction]}
     onExited={[MockFunction]}
   />
@@ -61,11 +61,11 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
         value=""
       />
     </div>
-    <Memo(UserGroupsFilter)
+    <UserGroupsFilter
       getGroups={[Function]}
       selectedFilter="all"
     />
-    <Connect(Component)
+    <Connect(UserGroupsList)
       backButtonAction={[MockFunction]}
       groups={
         Array [
@@ -157,7 +157,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   role="dialog"
   show={true}
 >
-  <Connect(Component)
+  <Connect(UserGroupsModalHeader)
     backButtonAction={[MockFunction]}
     onExited={[MockFunction]}
   />
@@ -187,14 +187,14 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
         value=""
       />
     </div>
-    <Memo(UserGroupsFilter)
+    <UserGroupsFilter
       getGroups={[Function]}
       selectedFilter="all"
     />
     <NoResultsIndicator
       variant="UserGroups"
     />
-    <Memo(ADLDAPUpsellBanner) />
+    <ADLDAPUpsellBanner />
   </ModalBody>
 </Modal>
 `;

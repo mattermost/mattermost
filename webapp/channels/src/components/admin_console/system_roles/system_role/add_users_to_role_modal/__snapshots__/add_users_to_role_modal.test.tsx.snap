@@ -120,7 +120,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={
@@ -315,7 +315,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={
@@ -466,7 +466,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={
@@ -661,7 +661,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={
@@ -897,7 +897,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={
@@ -1133,7 +1133,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
         <div
           id="numPeopleRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. "
             id="multiselect.numPeopleRemaining"
             values={

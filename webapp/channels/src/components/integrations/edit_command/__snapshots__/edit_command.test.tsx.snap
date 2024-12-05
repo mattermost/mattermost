@@ -4,13 +4,13 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
 <ConfirmModal
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Update"
       id="update_command.update"
     />
   }
   message={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Your changes may break the existing slash command. Are you sure you would like to update it?"
       id="update_command.question"
     />
@@ -20,7 +20,7 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
   onConfirm={[Function]}
   show={false}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Edit Slash Command"
       id="update_command.confirm"
     />
@@ -74,13 +74,13 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Update"
           id="update_command.update"
         />
       }
       message={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Your changes may break the existing slash command. Are you sure you would like to update it?"
           id="update_command.question"
         />
@@ -90,7 +90,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Edit Slash Command"
           id="update_command.confirm"
         />

@@ -14,10 +14,10 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         onClick={[Function]}
         type="button"
       >
-        <Memo(LoadingWrapper)
+        <LoadingWrapper
           loading={false}
           text={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Loading..."
               id="admin.requestButton.loading"
             />
@@ -27,7 +27,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
             defaultMessage="Button Text"
             id="test2"
           />
-        </Memo(LoadingWrapper)>
+        </LoadingWrapper>
       </button>
     </div>
     <div
@@ -45,7 +45,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 1`] = `
 <RequestButton
   buttonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Button Text"
       id="test2"
     />
@@ -58,7 +58,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     }
   }
   helpText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Help Text"
       id="test1"
     />
@@ -102,36 +102,36 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           onClick={[Function]}
           type="button"
         >
-          <Memo(LoadingWrapper)
+          <LoadingWrapper
             loading={false}
             text={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading..."
                 id="admin.requestButton.loading"
               />
             }
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Button Text"
               id="test2"
             >
               <span>
                 Button Text
               </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+            </MemoizedFormattedMessage>
+          </LoadingWrapper>
         </button>
         <div>
           <div
             className="alert alert-warning"
           >
-            <Memo(WarningIcon)>
+            <WarningIcon>
               <i
                 className="fa fa-warning"
                 title="Warning Icon"
               />
-            </Memo(WarningIcon)>
-            <FormattedMessage
+            </WarningIcon>
+            <MemoizedFormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
               values={
@@ -143,21 +143,21 @@ exports[`components/admin_console/request_button/request_button.jsx should match
               <span>
                 Error Message: __message__ - __detailed_error__
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
         </div>
       </div>
       <div
         className="help-text"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Help Text"
           id="test1"
         >
           <span>
             Help Text
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </div>
     </div>
   </div>
@@ -167,7 +167,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 2`] = `
 <RequestButton
   buttonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Button Text"
       id="test2"
     />
@@ -180,7 +180,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     }
   }
   helpText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Help Text"
       id="test1"
     />
@@ -232,36 +232,36 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           onClick={[Function]}
           type="button"
         >
-          <Memo(LoadingWrapper)
+          <LoadingWrapper
             loading={false}
             text={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading..."
                 id="admin.requestButton.loading"
               />
             }
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Button Text"
               id="test2"
             >
               <span>
                 Button Text
               </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+            </MemoizedFormattedMessage>
+          </LoadingWrapper>
         </button>
         <div>
           <div
             className="alert alert-warning"
           >
-            <Memo(WarningIcon)>
+            <WarningIcon>
               <i
                 className="fa fa-warning"
                 title="Warning Icon"
               />
-            </Memo(WarningIcon)>
-            <FormattedMessage
+            </WarningIcon>
+            <MemoizedFormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
               values={
@@ -273,21 +273,21 @@ exports[`components/admin_console/request_button/request_button.jsx should match
               <span>
                 Error Message: __message__
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
         </div>
       </div>
       <div
         className="help-text"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Help Text"
           id="test1"
         >
           <span>
             Help Text
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </div>
     </div>
   </div>
@@ -297,7 +297,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 1`] = `
 <RequestButton
   buttonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Button Text"
       id="test2"
     />
@@ -310,7 +310,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     }
   }
   helpText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Help Text"
       id="test1"
     />
@@ -354,24 +354,24 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           onClick={[Function]}
           type="button"
         >
-          <Memo(LoadingWrapper)
+          <LoadingWrapper
             loading={false}
             text={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading..."
                 id="admin.requestButton.loading"
               />
             }
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Button Text"
               id="test2"
             >
               <span>
                 Button Text
               </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+            </MemoizedFormattedMessage>
+          </LoadingWrapper>
         </button>
         <div>
           <div
@@ -383,28 +383,28 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                 title="Success Icon"
               />
             </SuccessIcon>
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Success Message"
               id="success.message"
             >
               <span>
                 Success Message
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
         </div>
       </div>
       <div
         className="help-text"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Help Text"
           id="test1"
         >
           <span>
             Help Text
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </div>
     </div>
   </div>
@@ -414,7 +414,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
 exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 2`] = `
 <RequestButton
   buttonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Button Text"
       id="test2"
     />
@@ -427,7 +427,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     }
   }
   helpText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Help Text"
       id="test1"
     />
@@ -479,37 +479,37 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           onClick={[Function]}
           type="button"
         >
-          <Memo(LoadingWrapper)
+          <LoadingWrapper
             loading={false}
             text={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading..."
                 id="admin.requestButton.loading"
               />
             }
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Button Text"
               id="test2"
             >
               <span>
                 Button Text
               </span>
-            </FormattedMessage>
-          </Memo(LoadingWrapper)>
+            </MemoizedFormattedMessage>
+          </LoadingWrapper>
         </button>
       </div>
       <div
         className="help-text"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Help Text"
           id="test1"
         >
           <span>
             Help Text
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </div>
     </div>
   </div>

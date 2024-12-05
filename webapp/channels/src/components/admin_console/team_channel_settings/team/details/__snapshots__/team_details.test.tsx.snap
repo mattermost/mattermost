@@ -8,7 +8,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/teams"
       />
@@ -51,13 +51,13 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       <ConfirmModal
         confirmButtonClass="btn btn-primary"
         confirmButtonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Archive"
             id="admin.team_settings.team_detail.archive_confirm.button"
           />
         }
         message={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?"
             id="admin.team_settings.team_detail.archive_confirm.message"
           />
@@ -67,7 +67,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         onConfirm={[Function]}
         show={false}
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Save and Archive Team"
             id="admin.team_settings.team_detail.archive_confirm.title"
           />
@@ -114,7 +114,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/teams"
       />
@@ -157,13 +157,13 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       <ConfirmModal
         confirmButtonClass="btn btn-primary"
         confirmButtonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Archive"
             id="admin.team_settings.team_detail.archive_confirm.button"
           />
         }
         message={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?"
             id="admin.team_settings.team_detail.archive_confirm.message"
           />
@@ -173,7 +173,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         onConfirm={[Function]}
         show={false}
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Save and Archive Team"
             id="admin.team_settings.team_detail.archive_confirm.title"
           />

@@ -33,7 +33,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     <SubMenu
       id="sortDirectMessages-category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Sort"
           id="sidebar.sort"
         />
@@ -46,7 +46,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       menuId="sortDirectMessages-category_id-menu"
       trailingElements={
         <React.Fragment>
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Alphabetically"
             id="user.settings.sidebar.sortAlpha"
           />
@@ -59,7 +59,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       <MenuItem
         id="sortAlphabetical-category_id"
         labels={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Alphabetically"
             id="user.settings.sidebar.sortAlpha"
           />
@@ -74,7 +74,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       <MenuItem
         id="sortByMostRecent-category_id"
         labels={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Recent Activity"
             id="sidebar.sortedByRecencyLabel"
           />
@@ -86,7 +86,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     <SubMenu
       id="showMessagesCount-category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Show"
           id="sidebar.show"
         />
@@ -161,7 +161,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     <MenuItem
       id="openDirectMessage-category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Open a direct message"
           id="sidebar.openDirectMessage"
         />

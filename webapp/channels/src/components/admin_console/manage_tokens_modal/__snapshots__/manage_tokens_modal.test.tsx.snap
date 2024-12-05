@@ -54,7 +54,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx in
       <div
         className="manage-teams__user"
       >
-        <Memo(Avatar)
+        <Avatar
           size="lg"
           url="/api/v4/users/defaultuser/image"
           username="some-user"
@@ -150,7 +150,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
       <div
         className="manage-teams__user"
       >
-        <Memo(Avatar)
+        <Avatar
           size="lg"
           url="/api/v4/users/defaultuser/image"
           username="some-user"
@@ -214,7 +214,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
           <div
             className="manage-teams__team-actions"
           >
-            <Connect(Component)
+            <Connect(RevokeTokenButton)
               onError={[Function]}
               tokenId="id1"
             />
@@ -249,7 +249,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
           <div
             className="manage-teams__team-actions"
           >
-            <Connect(Component)
+            <Connect(RevokeTokenButton)
               onError={[Function]}
               tokenId="id2"
             />
@@ -315,7 +315,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
       <div
         className="manage-teams__user"
       >
-        <Memo(Avatar)
+        <Avatar
           size="lg"
           url="/api/v4/users/defaultuser/image"
           username="some-user"

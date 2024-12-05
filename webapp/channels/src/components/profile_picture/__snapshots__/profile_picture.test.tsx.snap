@@ -7,12 +7,12 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
   <span
     className="profile-icon "
   >
-    <Memo(Avatar)
+    <Avatar
       size="md"
       url="http://example.com/image.png"
     />
   </span>
-  <Memo(StatusIcon)
+  <StatusIcon
     status="away"
   />
 </span>
@@ -25,12 +25,12 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
   <span
     className="profile-icon "
   >
-    <Memo(Avatar)
+    <Avatar
       size="xl"
       url="http://example.com/image.png"
     />
   </span>
-  <Memo(StatusIcon)
+  <StatusIcon
     status="away"
   />
 </span>
@@ -49,12 +49,12 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
     <span
       className="profile-icon "
     >
-      <Memo(Avatar)
+      <Avatar
         url="http://example.com/emoji.png"
       />
     </span>
   </RoundButton>
-  <Memo(StatusIcon)
+  <StatusIcon
     status="away"
   />
 </ProfilePopoverController>
@@ -67,12 +67,12 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
   <span
     className="profile-icon "
   >
-    <Memo(Avatar)
+    <Avatar
       size="md"
       url="http://example.com/image.png"
     />
   </span>
-  <Memo(StatusIcon)
+  <StatusIcon
     status="away"
   />
 </span>
@@ -85,12 +85,12 @@ exports[`components/ProfilePicture should match snapshot, user specified, overri
   <span
     className="profile-icon "
   >
-    <Memo(Avatar)
+    <Avatar
       size="xs"
       url="http://example.com/image.png"
     />
   </span>
-  <Memo(StatusIcon)
+  <StatusIcon
     status="away"
   />
 </span>

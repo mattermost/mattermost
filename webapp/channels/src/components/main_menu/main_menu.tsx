@@ -403,12 +403,14 @@ export class MainMenu extends React.PureComponent<Props> {
                             text={formatMessage({id: 'navbar_dropdown.addGroupsToTeam', defaultMessage: 'Add Groups to Team'})}
                         />
                     </TeamPermissionGate>
-                    <TeamPermissionGate
-                        teamId={teamId}
-                        permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
-                    >
-                        {invitePeopleModal}
-                    </TeamPermissionGate>
+                    {invitePeopleModal ? (
+                        <TeamPermissionGate
+                            teamId={teamId}
+                            permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
+                        >
+                            {invitePeopleModal}
+                        </TeamPermissionGate>
+                    ) : null}
                     <TeamPermissionGate
                         teamId={teamId}
                         permissions={[Permissions.MANAGE_TEAM]}

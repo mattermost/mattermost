@@ -33,7 +33,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <legend
             className="form-legend"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Send email notifications"
               id="user.settings.notifications.email.send"
             />
@@ -51,7 +51,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onChange={[Function]}
                 type="radio"
               />
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Immediately"
                 id="user.settings.notifications.email.immediately"
               />
@@ -70,7 +70,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onChange={[Function]}
                 type="radio"
               />
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Never"
                 id="user.settings.notifications.email.never"
               />
@@ -79,7 +79,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <div
             className="mt-3"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
               id="user.settings.notifications.emailInfo"
             />
@@ -94,7 +94,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     serverError=""
     submit={[Function]}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
@@ -108,14 +108,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
             Email notifications
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </h4>
       <div
         className="sectionContent col-sm-10 col-sm-offset-2"
@@ -133,14 +133,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               <legend
                 className="form-legend"
               >
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Send email notifications"
                   id="user.settings.notifications.email.send"
                 >
                   <span>
                     Send email notifications
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </legend>
               <div
                 className="radio"
@@ -155,14 +155,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     onChange={[Function]}
                     type="radio"
                   />
-                  <FormattedMessage
+                  <MemoizedFormattedMessage
                     defaultMessage="Immediately"
                     id="user.settings.notifications.email.immediately"
                   >
                     <span>
                       Immediately
                     </span>
-                  </FormattedMessage>
+                  </MemoizedFormattedMessage>
                 </label>
               </div>
               <div
@@ -178,27 +178,27 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     onChange={[Function]}
                     type="radio"
                   />
-                  <FormattedMessage
+                  <MemoizedFormattedMessage
                     defaultMessage="Never"
                     id="user.settings.notifications.email.never"
                   >
                     <span>
                       Never
                     </span>
-                  </FormattedMessage>
+                  </MemoizedFormattedMessage>
                 </label>
               </div>
               <div
                 className="mt-3"
               >
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
                   id="user.settings.notifications.emailInfo"
                 >
                   <span>
                     Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
                  
               </div>
             </fieldset>
@@ -220,26 +220,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onClick={[Function]}
                 type="submit"
               >
-                <Memo(LoadingWrapper)
+                <LoadingWrapper
                   loading={false}
                   text={
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Saving"
                       id="save_button.saving"
                     />
                   }
                 >
                   <span>
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Save"
                       id="save_button.save"
                     >
                       <span>
                         Save
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
-                </Memo(LoadingWrapper)>
+                </LoadingWrapper>
               </button>
             </SaveButton>
             <button
@@ -247,14 +247,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               id="cancelSetting"
               onClick={[Function]}
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Cancel"
                 id="setting_item_max.cancel"
               >
                 <span>
                   Cancel
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </button>
           </div>
         </div>
@@ -267,14 +267,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications !== true 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications are not enabled"
       id="user.settings.notifications.email.disabled"
     />
   }
   section="email"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -286,14 +286,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email and SendEmailNotifications = true 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Never"
       id="user.settings.notifications.email.never"
     />
   }
   section="email"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -305,14 +305,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Immediately"
       id="user.settings.notifications.email.immediately"
     />
   }
   section="email"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -354,7 +354,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <legend
             className="form-legend"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Send email notifications"
               id="user.settings.notifications.email.send"
             />
@@ -372,7 +372,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onChange={[Function]}
                 type="radio"
               />
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Immediately"
                 id="user.settings.notifications.email.immediately"
               />
@@ -392,7 +392,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                   onChange={[Function]}
                   type="radio"
                 />
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
                   id="user.settings.notifications.email.everyXMinutes"
                   values={
@@ -416,7 +416,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                   onChange={[Function]}
                   type="radio"
                 />
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Every hour"
                   id="user.settings.notifications.email.everyHour"
                 />
@@ -436,7 +436,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onChange={[Function]}
                 type="radio"
               />
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Never"
                 id="user.settings.notifications.email.never"
               />
@@ -445,12 +445,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <div
             className="mt-3"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
               id="user.settings.notifications.emailInfo"
             />
              
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Notifications received over the time period selected are combined and sent in a single email."
               id="user.settings.notifications.emailBatchingInfo"
             />
@@ -464,7 +464,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     serverError=""
     submit={[Function]}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Email notifications"
         id="user.settings.notifications.emailNotifications"
       />
@@ -478,14 +478,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         className="col-sm-12 section-title"
         id="settingTitle"
       >
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Email notifications"
           id="user.settings.notifications.emailNotifications"
         >
           <span>
             Email notifications
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </h4>
       <div
         className="sectionContent col-sm-10 col-sm-offset-2"
@@ -503,14 +503,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               <legend
                 className="form-legend"
               >
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Send email notifications"
                   id="user.settings.notifications.email.send"
                 >
                   <span>
                     Send email notifications
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </legend>
               <div
                 className="radio"
@@ -525,14 +525,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     onChange={[Function]}
                     type="radio"
                   />
-                  <FormattedMessage
+                  <MemoizedFormattedMessage
                     defaultMessage="Immediately"
                     id="user.settings.notifications.email.immediately"
                   >
                     <span>
                       Immediately
                     </span>
-                  </FormattedMessage>
+                  </MemoizedFormattedMessage>
                 </label>
               </div>
               <fieldset>
@@ -549,7 +549,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       onChange={[Function]}
                       type="radio"
                     />
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
                       id="user.settings.notifications.email.everyXMinutes"
                       values={
@@ -561,7 +561,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       <span>
                         Every 15 minutes
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                 </div>
                 <div
@@ -577,14 +577,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       onChange={[Function]}
                       type="radio"
                     />
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Every hour"
                       id="user.settings.notifications.email.everyHour"
                     >
                       <span>
                         Every hour
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                 </div>
               </fieldset>
@@ -601,36 +601,36 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     onChange={[Function]}
                     type="radio"
                   />
-                  <FormattedMessage
+                  <MemoizedFormattedMessage
                     defaultMessage="Never"
                     id="user.settings.notifications.email.never"
                   >
                     <span>
                       Never
                     </span>
-                  </FormattedMessage>
+                  </MemoizedFormattedMessage>
                 </label>
               </div>
               <div
                 className="mt-3"
               >
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
                   id="user.settings.notifications.emailInfo"
                 >
                   <span>
                     Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
                  
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications received over the time period selected are combined and sent in a single email."
                   id="user.settings.notifications.emailBatchingInfo"
                 >
                   <span>
                     Notifications received over the time period selected are combined and sent in a single email.
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </div>
             </fieldset>
           </div>
@@ -651,26 +651,26 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onClick={[Function]}
                 type="submit"
               >
-                <Memo(LoadingWrapper)
+                <LoadingWrapper
                   loading={false}
                   text={
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Saving"
                       id="save_button.saving"
                     />
                   }
                 >
                   <span>
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Save"
                       id="save_button.save"
                     >
                       <span>
                         Save
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
-                </Memo(LoadingWrapper)>
+                </LoadingWrapper>
               </button>
             </SaveButton>
             <button
@@ -678,14 +678,14 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               id="cancelSetting"
               onClick={[Function]}
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Cancel"
                 id="setting_item_max.cancel"
               >
                 <span>
                   Cancel
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </button>
           </div>
         </div>
@@ -704,7 +704,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       <div
         className="pt-2"
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Email notifications have not been enabled by your System Administrator."
           id="user.settings.notifications.email.disabled_long"
         />
@@ -715,7 +715,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   section="email"
   serverError=""
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -734,7 +734,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <legend
           className="form-legend"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Send email notifications"
             id="user.settings.notifications.email.send"
           />
@@ -752,7 +752,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Immediately"
               id="user.settings.notifications.email.immediately"
             />
@@ -771,7 +771,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Never"
               id="user.settings.notifications.email.never"
             />
@@ -780,7 +780,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <div
           className="mt-3"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
             id="user.settings.notifications.emailInfo"
           />
@@ -795,7 +795,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   serverError="serverError"
   submit={[Function]}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -814,7 +814,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <legend
           className="form-legend"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Send email notifications"
             id="user.settings.notifications.email.send"
           />
@@ -832,7 +832,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Immediately"
               id="user.settings.notifications.email.immediately"
             />
@@ -851,7 +851,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Never"
               id="user.settings.notifications.email.never"
             />
@@ -860,7 +860,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <div
           className="mt-3"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
             id="user.settings.notifications.emailInfo"
           />
@@ -881,7 +881,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 onChange={[Function]}
                 type="checkbox"
               />
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Notify me about replies to threads I’m following"
                 id="user.settings.notifications.email.notifyForthreads"
               />
@@ -896,7 +896,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   serverError=""
   submit={[Function]}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />
@@ -915,7 +915,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <legend
           className="form-legend"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Send email notifications"
             id="user.settings.notifications.email.send"
           />
@@ -933,7 +933,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Immediately"
               id="user.settings.notifications.email.immediately"
             />
@@ -952,7 +952,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               onChange={[Function]}
               type="radio"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Never"
               id="user.settings.notifications.email.never"
             />
@@ -961,7 +961,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         <div
           className="mt-3"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes."
             id="user.settings.notifications.emailInfo"
           />
@@ -976,7 +976,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   serverError=""
   submit={[Function]}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Email notifications"
       id="user.settings.notifications.emailNotifications"
     />

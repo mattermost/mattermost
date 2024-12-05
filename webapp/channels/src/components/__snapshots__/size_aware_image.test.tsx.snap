@@ -50,7 +50,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
           id="single_image_view.copy_link_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy link"
               id="single_image_view.copy_link_tooltip"
             />
@@ -71,7 +71,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
           id="single_image_view.download_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Download"
               id="single_image_view.download_tooltip"
             />
@@ -148,7 +148,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
           id="single_image_view.copy_link_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy link"
               id="single_image_view.copy_link_tooltip"
             />
@@ -169,7 +169,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
           id="single_image_view.download_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Download"
               id="single_image_view.download_tooltip"
             />
@@ -259,7 +259,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
           id="single_image_view.copy_link_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy link"
               id="single_image_view.copy_link_tooltip"
             />
@@ -280,7 +280,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
           id="single_image_view.download_tooltip.text"
           placement="top"
           title={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Download"
               id="single_image_view.download_tooltip"
             />

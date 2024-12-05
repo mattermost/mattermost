@@ -57,7 +57,7 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -126,7 +126,7 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           <LoadingImagePreview
             containerClass="view-image__loading"
             loading={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading"
                 id="view_image.loading"
               />
@@ -197,7 +197,7 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -266,7 +266,7 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           <LoadingImagePreview
             containerClass="view-image__loading"
             loading={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading"
                 id="view_image.loading"
               />
@@ -337,7 +337,7 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -406,7 +406,7 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           <LoadingImagePreview
             containerClass="view-image__loading"
             loading={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Loading"
                 id="view_image.loading"
               />
@@ -477,7 +477,7 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -655,7 +655,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -806,7 +806,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -957,7 +957,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={true}
             canDownloadFiles={true}
             content=""
@@ -1110,7 +1110,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -1261,7 +1261,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -1412,7 +1412,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -1563,7 +1563,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -1714,7 +1714,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
           componentClass="div"
           id="viewImageModalLabel"
         >
-          <Memo(FilePreviewModalHeader)
+          <FilePreviewModalHeader
             canCopyContent={false}
             canDownloadFiles={true}
             content=""
@@ -1780,7 +1780,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
           className="file-preview-modal__content"
           onClick={[Function]}
         >
-          <Connect(Component)
+          <Connect(FileInfoPreview)
             fileInfo={
               Object {
                 "archived": false,

@@ -8,10 +8,10 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
   id="saveSetting"
   type="submit"
 >
-  <Memo(LoadingWrapper)
+  <LoadingWrapper
     loading={false}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Saving"
         id="save_button.saving"
       />
@@ -23,7 +23,7 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
         id="save_button.save"
       />
     </span>
-  </Memo(LoadingWrapper)>
+  </LoadingWrapper>
 </button>
 `;
 
@@ -35,10 +35,10 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
   id="saveSetting"
   type="submit"
 >
-  <Memo(LoadingWrapper)
+  <LoadingWrapper
     loading={false}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Saving"
         id="save_button.saving"
       />
@@ -50,7 +50,7 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
         id="save_button.save"
       />
     </span>
-  </Memo(LoadingWrapper)>
+  </LoadingWrapper>
 </button>
 `;
 
@@ -62,10 +62,10 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
   id="saveSetting"
   type="submit"
 >
-  <Memo(LoadingWrapper)
+  <LoadingWrapper
     loading={false}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Saving"
         id="save_button.saving"
       />
@@ -74,7 +74,7 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
     <span>
       Go
     </span>
-  </Memo(LoadingWrapper)>
+  </LoadingWrapper>
 </button>
 `;
 
@@ -86,10 +86,10 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
   id="saveSetting"
   type="submit"
 >
-  <Memo(LoadingWrapper)
+  <LoadingWrapper
     loading={true}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Saving"
         id="save_button.saving"
       />
@@ -101,7 +101,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
         id="save_button.save"
       />
     </span>
-  </Memo(LoadingWrapper)>
+  </LoadingWrapper>
 </button>
 `;
 
@@ -113,7 +113,7 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
   id="saveSetting"
   type="submit"
 >
-  <Memo(LoadingWrapper)
+  <LoadingWrapper
     loading={true}
     text="Saving Config..."
   >
@@ -123,6 +123,6 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
         id="save_button.save"
       />
     </span>
-  </Memo(LoadingWrapper)>
+  </LoadingWrapper>
 </button>
 `;

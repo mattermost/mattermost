@@ -15,7 +15,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         id="admin.database.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
+    <SettingsGroup>
       <div
         className="banner"
       >
@@ -88,14 +88,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum number of idle connections held open to the database."
             id="admin.sql.maxConnectionsDescription"
           />
         }
         id="maxIdleConns"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum Idle Connections:"
             id="admin.sql.maxConnectionsTitle"
           />
@@ -114,14 +114,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum number of open connections held open to the database."
             id="admin.sql.maxOpenDescription"
           />
         }
         id="maxOpenConns"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum Open Connections:"
             id="admin.sql.maxOpenTitle"
           />
@@ -140,14 +140,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query."
             id="admin.sql.queryTimeoutDescription"
           />
         }
         id="queryTimeout"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Query Timeout:"
             id="admin.sql.queryTimeoutTitle"
           />
@@ -166,14 +166,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum lifetime for a connection to the database in milliseconds."
             id="admin.sql.connMaxLifetimeDescription"
           />
         }
         id="connMaxLifetimeMilliseconds"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum Connection Lifetime:"
             id="admin.sql.connMaxLifetimeTitle"
           />
@@ -192,14 +192,14 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum idle time for a connection to the database in milliseconds."
             id="admin.sql.connMaxIdleTimeDescription"
           />
         }
         id="connMaxIdleTimeMilliseconds"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Maximum Connection Idle Time:"
             id="admin.sql.connMaxIdleTimeTitle"
           />
@@ -218,7 +218,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>."
             id="admin.service.minimumHashtagLengthDescription"
             values={
@@ -230,7 +230,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         id="minimumHashtagLength"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Minimum Hashtag Length:"
             id="admin.service.minimumHashtagLengthTitle"
           />
@@ -246,17 +246,17 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         type="text"
         value={10}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Development Mode) When true, executing SQL statements are written to the log."
             id="admin.sql.traceDescription"
           />
         }
         id="trace"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="SQL Statement Logging: "
             id="admin.sql.traceTitle"
           />
@@ -267,7 +267,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
       />
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Recycle Database Connections"
             id="admin.recycle.button"
           />
@@ -280,13 +280,13 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating \\"config.json\\" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings."
             id="admin.recycle.recycleDescription"
             values={
               Object {
                 "featureName": <b>
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="Recycle Database Connections"
                     id="admin.recycle.recycleDescription.featureName"
                   />
@@ -295,7 +295,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                   href="../environment/web_server"
                 >
                   <b>
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Environment > Web Server > Reload Configuration from Disk"
                       id="admin.recycle.recycleDescription.reloadConfiguration"
                     />
@@ -316,10 +316,10 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           }
         }
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured."
             id="admin.sql.disableDatabaseSearchDescription"
             values={
@@ -331,7 +331,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         }
         id="disableDatabaseSearch"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Disable database search: "
             id="admin.sql.disableDatabaseSearchTitle"
           />
@@ -357,9 +357,9 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           <div
             className="migrations-table-setting"
           >
-            <Connect(Component)
+            <Connect(MigrationsTable)
               createHelpText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="All applied migrations."
                   id="admin.database.migrations_table.help_text"
                 />
@@ -398,7 +398,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           </div>
         </div>
       </div>
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -407,7 +407,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -421,7 +421,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>

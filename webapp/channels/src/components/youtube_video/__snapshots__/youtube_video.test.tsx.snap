@@ -71,10 +71,10 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
             <div
               className="video-thumbnail__container"
             >
-              <Connect(Component)
+              <Connect(ExternalImage)
                 src="linkForThumbnail"
               >
-                <Memo(ExternalImage)
+                <ExternalImage
                   dispatch={[Function]}
                   enableSVGs={false}
                   hasImageProxy={false}
@@ -85,8 +85,8 @@ exports[`YoutubeVideo should match init snapshot 1`] = `
                     className="video-thumbnail"
                     src="linkForThumbnail"
                   />
-                </Memo(ExternalImage)>
-              </Connect(Component)>
+                </ExternalImage>
+              </Connect(ExternalImage)>
               <div
                 className="block"
               >

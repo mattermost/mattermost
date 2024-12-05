@@ -86,7 +86,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
           <div
             className="panel-card"
           >
-            <Memo(TeamEditionRightPanel)
+            <TeamEditionRightPanel
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
@@ -190,7 +190,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
           <div
             className="panel-card"
           >
-            <Memo(TeamEditionRightPanel)
+            <TeamEditionRightPanel
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
@@ -253,7 +253,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -308,7 +308,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -388,7 +388,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -443,7 +443,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -511,7 +511,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -566,7 +566,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -634,7 +634,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -689,7 +689,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -757,7 +757,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -812,7 +812,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -880,7 +880,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -935,7 +935,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -997,7 +997,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -1028,7 +1028,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={true}
               license={
                 Object {
@@ -1102,7 +1102,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterLeftPanel)
+            <StarterLeftPanel
               currentPlan={
                 <div
                   className="current-plan-legend"
@@ -1150,7 +1150,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterRightPanel) />
+            <StarterRightPanel />
           </div>
           <div
             className="compare-plans-text"
@@ -1214,7 +1214,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterLeftPanel)
+            <StarterLeftPanel
               currentPlan={
                 <div
                   className="current-plan-legend"
@@ -1262,7 +1262,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterRightPanel) />
+            <StarterRightPanel />
           </div>
           <div
             className="compare-plans-text"
@@ -1369,7 +1369,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(TeamEditionRightPanel)
+            <TeamEditionRightPanel
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
@@ -1471,7 +1471,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(TeamEditionRightPanel)
+            <TeamEditionRightPanel
               handleRestart={[Function]}
               handleUpgrade={[Function]}
               openEEModal={[Function]}
@@ -1529,7 +1529,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterLeftPanel)
+            <StarterLeftPanel
               currentPlan={
                 <div
                   className="current-plan-legend"
@@ -1577,7 +1577,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(StarterRightPanel) />
+            <StarterRightPanel />
           </div>
           <div
             className="compare-plans-text"
@@ -1626,7 +1626,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -1682,7 +1682,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {
@@ -1751,7 +1751,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionLeftPanel)
+            <EnterpriseEditionLeftPanel
               fileInputRef={
                 Object {
                   "current": null,
@@ -1806,7 +1806,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
           <div
             className="panel-card"
           >
-            <Memo(EnterpriseEditionRightPanel)
+            <EnterpriseEditionRightPanel
               isTrialLicense={false}
               license={
                 Object {

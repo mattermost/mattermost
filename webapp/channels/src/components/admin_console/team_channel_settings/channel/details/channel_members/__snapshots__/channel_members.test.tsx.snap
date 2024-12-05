@@ -32,18 +32,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           "teamId": "team_id",
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="addChannelMembers"
       modalId="channel_invite"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
@@ -79,34 +72,34 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
               "channel_admin",
               "system_admin",
             ],
-            "name": <Memo(MemoizedFormattedMessage)
+            "name": <MemoizedFormattedMessage
               defaultMessage="Role"
               id="admin.user_grid.role"
             />,
             "values": Object {
               "channel_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Channel Admin"
                   id="admin.user_grid.channel_admin"
                 />,
                 "value": false,
               },
               "channel_user": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Member"
                   id="admin.user_item.member"
                 />,
                 "value": false,
               },
               "system_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="System Admin"
                   id="admin.user_grid.system_admin"
                 />,
                 "value": false,
               },
               "system_guest": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Guest"
                   id="admin.user_grid.guest"
                 />,
@@ -353,18 +346,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           "teamId": "team_id",
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="addChannelMembers"
       modalId="channel_invite"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
@@ -400,34 +386,34 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
               "channel_admin",
               "system_admin",
             ],
-            "name": <Memo(MemoizedFormattedMessage)
+            "name": <MemoizedFormattedMessage
               defaultMessage="Role"
               id="admin.user_grid.role"
             />,
             "values": Object {
               "channel_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Channel Admin"
                   id="admin.user_grid.channel_admin"
                 />,
                 "value": false,
               },
               "channel_user": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Member"
                   id="admin.user_item.member"
                 />,
                 "value": false,
               },
               "system_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="System Admin"
                   id="admin.user_grid.system_admin"
                 />,
                 "value": false,
               },
               "system_guest": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Guest"
                   id="admin.user_grid.guest"
                 />,

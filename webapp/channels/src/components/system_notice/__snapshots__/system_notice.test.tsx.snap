@@ -126,14 +126,14 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
         <i
           className="fa fa-eye"
         />
-        <FormattedMessage
+        <MemoizedFormattedMessage
           defaultMessage="Only visible to System Admins"
           id="system_notice.adminVisible"
         >
           <span>
             Only visible to System Admins
           </span>
-        </FormattedMessage>
+        </MemoizedFormattedMessage>
       </div>
       <div
         className="system-notice__footer"
@@ -143,28 +143,28 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -285,28 +285,28 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -425,28 +425,28 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -734,28 +734,28 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -911,28 +911,28 @@ exports[`components/SystemNotice should match snapshot for show function returni
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -1043,14 +1043,14 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>
@@ -1131,28 +1131,28 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
           id="systemnotice_remindme"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Remind Me Later"
             id="system_notice.remind_me"
           >
             <span>
               Remind Me Later
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
         <button
           className="btn btn-sm btn-tertiary"
           id="systemnotice_dontshow"
           onClick={[Function]}
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="Don't Show Again"
             id="system_notice.dont_show"
           >
             <span>
               Don't Show Again
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </button>
       </div>
     </div>

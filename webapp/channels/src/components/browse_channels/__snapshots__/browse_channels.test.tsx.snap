@@ -10,7 +10,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   compassDesign={true}
   enforceFocus={false}
   headerButton={
-    <Memo(TeamPermissionGate)
+    <TeamPermissionGate
       permissions={
         Array [
           "create_public_channel",
@@ -25,17 +25,17 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
         onClick={[Function]}
         type="button"
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Create New Channel"
           id="more_channels.create"
         />
       </button>
-    </Memo(TeamPermissionGate)>
+    </TeamPermissionGate>
   }
   id="browseChannelsModal"
   keyboardEscape={true}
   modalHeaderText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Browse Channels"
       id="more_channels.title"
     />
@@ -123,12 +123,12 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
         <p
           className="secondary-message"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Try searching different keywords, checking for typos or adjusting the filters."
             id="more_channels.searchError"
           />
         </p>
-        <Memo(TeamPermissionGate)
+        <TeamPermissionGate
           permissions={
             Array [
               "create_public_channel",
@@ -146,12 +146,12 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
             <i
               className="icon-plus"
             />
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Create New Channel"
               id="more_channels.create"
             />
           </button>
-        </Memo(TeamPermissionGate)>
+        </TeamPermissionGate>
       </React.Fragment>
     }
     rememberHideJoinedChannelsChecked={false}

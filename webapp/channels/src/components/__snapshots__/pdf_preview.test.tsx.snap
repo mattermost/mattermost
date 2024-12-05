@@ -4,12 +4,12 @@ exports[`component/PDFPreview should match snapshot, loading 1`] = `
 <div
   className="view-image__loading"
 >
-  <Memo(LoadingSpinner) />
+  <LoadingSpinner />
 </div>
 `;
 
 exports[`component/PDFPreview should match snapshot, not successful 1`] = `
-<Connect(Component)
+<Connect(FileInfoPreview)
   fileInfo={
     Object {
       "archived": false,

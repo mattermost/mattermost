@@ -6,7 +6,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
@@ -17,7 +17,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
   >
     <SettingDesktopHeader
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Security Settings"
           id="user.settings.security.title"
         />
@@ -26,13 +26,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       max={null}
       section="password"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Password"
           id="user.settings.security.password"
         />
@@ -67,11 +67,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       describe={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Email and Password"
           id="user.settings.security.emailPwd"
         />
@@ -87,18 +87,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <br />
     <ToggleModalButton
       className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAccessHistory"
       modalId="access_history"
     >
@@ -113,14 +102,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </ToggleModalButton>
     <ToggleModalButton
       className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
@@ -143,7 +125,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
@@ -154,7 +136,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
   >
     <SettingDesktopHeader
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Security Settings"
           id="user.settings.security.title"
         />
@@ -163,13 +145,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       max={null}
       section="password"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Password"
           id="user.settings.security.password"
         />
@@ -204,11 +186,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       describe={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Email and Password"
           id="user.settings.security.emailPwd"
         />
@@ -224,18 +206,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <br />
     <ToggleModalButton
       className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAccessHistory"
       modalId="access_history"
     >
@@ -250,14 +221,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </ToggleModalButton>
     <ToggleModalButton
       className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
@@ -280,7 +244,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
@@ -291,7 +255,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
   >
     <SettingDesktopHeader
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Security Settings"
           id="user.settings.security.title"
         />
@@ -300,13 +264,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       max={null}
       section="password"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Password"
           id="user.settings.security.password"
         />
@@ -341,11 +305,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       describe={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Email and Password"
           id="user.settings.security.emailPwd"
         />
@@ -361,18 +325,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <br />
     <ToggleModalButton
       className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAccessHistory"
       modalId="access_history"
     >
@@ -387,14 +340,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </ToggleModalButton>
     <ToggleModalButton
       className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
@@ -417,7 +363,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
@@ -428,7 +374,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
   >
     <SettingDesktopHeader
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Security Settings"
           id="user.settings.security.title"
         />
@@ -437,13 +383,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       max={null}
       section="password"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Password"
           id="user.settings.security.password"
         />
@@ -478,11 +424,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       describe={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Email and Password"
           id="user.settings.security.emailPwd"
         />
@@ -498,18 +444,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <br />
     <ToggleModalButton
       className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAccessHistory"
       modalId="access_history"
     >
@@ -524,14 +459,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </ToggleModalButton>
     <ToggleModalButton
       className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >
@@ -554,7 +482,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
@@ -565,7 +493,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
   >
     <SettingDesktopHeader
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Security Settings"
           id="user.settings.security.title"
         />
@@ -574,13 +502,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-dark first"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       max={null}
       section="password"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Password"
           id="user.settings.security.password"
         />
@@ -616,11 +544,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <div
       className="divider-light"
     />
-    <Memo(SettingItem)
+    <SettingItem
       active={false}
       areAllSectionsInactive={false}
       describe={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="OpenID"
           id="user.settings.security.openid"
         />
@@ -636,18 +564,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <br />
     <ToggleModalButton
       className="security-links color--link"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAccessHistory"
       modalId="access_history"
     >
@@ -662,14 +579,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </ToggleModalButton>
     <ToggleModalButton
       className="security-links color--link mt-2"
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="viewAndLogOutOfActiveSessions"
       modalId="activity_log"
     >

@@ -32,6 +32,6 @@ exports[`components/drafts/drafts_link should match snapshot 1`] = `
     }
   }
 >
-  <Memo(DraftsLink) />
+  <DraftsLink />
 </ContextProvider>
 `;

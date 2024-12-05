@@ -32,7 +32,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
     <form
       className="form-horizontal"
     >
-      <Memo(SystemPermissionGate)
+      <SystemPermissionGate
         permissions={
           Array [
             "manage_system",
@@ -94,7 +94,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
             </div>
           </div>
         </div>
-      </Memo(SystemPermissionGate)>
+      </SystemPermissionGate>
       <div
         className="form-group"
       >
@@ -264,7 +264,7 @@ https://test.com/callback2"
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "",
@@ -282,7 +282,7 @@ https://test.com/callback2"
             id="installed_oauth_apps.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveOauthApp"
           onClick={[Function]}
@@ -299,7 +299,7 @@ https://test.com/callback2"
             defaultMessage="Footer"
             id="Footer"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
         <div>
           renderExtra
         </div>
@@ -341,7 +341,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
     <form
       className="form-horizontal"
     >
-      <Memo(SystemPermissionGate)
+      <SystemPermissionGate
         permissions={
           Array [
             "manage_system",
@@ -403,7 +403,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             </div>
           </div>
         </div>
-      </Memo(SystemPermissionGate)>
+      </SystemPermissionGate>
       <div
         className="form-group"
       >
@@ -572,11 +572,11 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "serverError",
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="One or more callback URLs are required."
                 id="add_oauth_app.callbackUrlsRequired"
               />,
@@ -593,7 +593,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             id="installed_oauth_apps.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveOauthApp"
           onClick={[Function]}
@@ -610,7 +610,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             defaultMessage="Footer"
             id="Footer"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
         <div>
           renderExtra
         </div>

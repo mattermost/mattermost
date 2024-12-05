@@ -16,7 +16,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
     }
   }
 >
-  <Memo(GroupProfile)
+  <GroupProfile
     customID="groupDisplayName"
     isDisabled={true}
     name="GroupProfileAndSettings"
@@ -67,7 +67,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
     }
   }
 >
-  <Memo(GroupProfile)
+  <GroupProfile
     customID="groupDisplayName"
     isDisabled={true}
     name="GroupProfileAndSettings"
@@ -99,7 +99,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
       />
     </div>
   </div>
-  <Memo(GroupProfile)
+  <GroupProfile
     customID="groupMention"
     name="GroupProfileAndSettings"
     onChange={[MockFunction]}

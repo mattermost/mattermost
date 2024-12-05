@@ -9,7 +9,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Connect(FileThumbnail)
       fileInfo={
         Object {
           "archived": false,
@@ -50,7 +50,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           ranges={
             Array [
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Today"
                   id="date_separator.today"
                 />,
@@ -60,7 +60,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
                 ],
               },
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Yesterday"
                   id="date_separator.yesterday"
                 />,
@@ -103,7 +103,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Connect(FileThumbnail)
       fileInfo={
         Object {
           "archived": false,
@@ -134,10 +134,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Direct Message"
               id="search_item.file_tag.direct_message"
             />
@@ -153,7 +153,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           ranges={
             Array [
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Today"
                   id="date_separator.today"
                 />,
@@ -163,7 +163,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
                 ],
               },
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Yesterday"
                   id="date_separator.yesterday"
                 />,
@@ -206,7 +206,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Connect(FileThumbnail)
       fileInfo={
         Object {
           "archived": false,
@@ -237,10 +237,10 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Group Message"
               id="search_item.file_tag.group_message"
             />
@@ -256,7 +256,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           ranges={
             Array [
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Today"
                   id="date_separator.today"
                 />,
@@ -266,7 +266,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
                 ],
               },
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Yesterday"
                   id="date_separator.yesterday"
                 />,
@@ -309,7 +309,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Connect(FileThumbnail)
       fileInfo={
         Object {
           "archived": false,
@@ -340,7 +340,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       <div
         className="fileMetadata"
       >
-        <Memo(Tag)
+        <Tag
           className="file-search-channel-name"
           text="test"
         />
@@ -354,7 +354,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           ranges={
             Array [
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Today"
                   id="date_separator.today"
                 />,
@@ -364,7 +364,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
                 ],
               },
               Object {
-                "display": <Memo(MemoizedFormattedMessage)
+                "display": <MemoizedFormattedMessage
                   defaultMessage="Yesterday"
                   id="date_separator.yesterday"
                 />,

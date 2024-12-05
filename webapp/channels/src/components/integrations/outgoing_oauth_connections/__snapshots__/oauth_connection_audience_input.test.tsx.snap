@@ -94,14 +94,14 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
           <span
             className="outgoing-oauth-audience-match-message"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Not linked to an OAuth connection"
               id="add_outgoing_oauth_connection.not_connected"
             >
               <span>
                 Not linked to an OAuth connection
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </div>
       </OAuthConnectionAudienceInput>
@@ -204,14 +204,14 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
           <span
             className="outgoing-oauth-audience-match-message"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Not linked to an OAuth connection"
               id="add_outgoing_oauth_connection.not_connected"
             >
               <span>
                 Not linked to an OAuth connection
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </div>
       </OAuthConnectionAudienceInput>
@@ -314,14 +314,14 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
           <span
             className="outgoing-oauth-audience-match-message"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Not linked to an OAuth connection"
               id="add_outgoing_oauth_connection.not_connected"
             >
               <span>
                 Not linked to an OAuth connection
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </div>
       </OAuthConnectionAudienceInput>
@@ -424,14 +424,14 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
           <span
             className="outgoing-oauth-audience-match-message"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Not linked to an OAuth connection"
               id="add_outgoing_oauth_connection.not_connected"
             >
               <span>
                 Not linked to an OAuth connection
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </div>
       </OAuthConnectionAudienceInput>

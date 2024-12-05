@@ -11,8 +11,10 @@ exports[`components/custom_status/custom_status_emoji should match snapshot 1`] 
   <div
     className="statusSuggestion__icon"
   >
-    <Memo(RenderEmoji)
+    <RenderEmoji
+      emoji=""
       emojiName=""
+      emojiStyle={Object {}}
       size={20}
     />
   </div>
@@ -35,8 +37,10 @@ exports[`components/custom_status/custom_status_emoji should match snapshot with
   <div
     className="statusSuggestion__icon"
   >
-    <Memo(RenderEmoji)
+    <RenderEmoji
+      emoji=""
       emojiName=""
+      emojiStyle={Object {}}
       size={20}
     />
   </div>

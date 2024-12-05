@@ -11,8 +11,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
     onClick={[Function]}
     style={Object {}}
   >
-    <Memo(MenuGroup)>
-      <Memo(SystemPermissionGate)
+    <MenuGroup>
+      <SystemPermissionGate
         permissions={
           Array [
             "sysconsole_write_billing",
@@ -22,10 +22,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuCloudTrial
           id="menuCloudTrial"
         />
-      </Memo(SystemPermissionGate)>
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
-      <Memo(SystemPermissionGate)
+      </SystemPermissionGate>
+    </MenuGroup>
+    <MenuGroup>
+      <SystemPermissionGate
         permissions={
           Array [
             "sysconsole_write_about_edition_and_license",
@@ -35,9 +35,9 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(SystemPermissionGate)>
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+      </SystemPermissionGate>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemAction
         icon={
           <i
@@ -62,22 +62,15 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Saved messages"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
             "isContentProductSettings": false,
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <i
             className="fa fa-user"
@@ -94,14 +87,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
             "isContentProductSettings": true,
           }
         }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <i
             className="fa fa-cog"
@@ -112,9 +98,9 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Settings"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
-      <Memo(TeamPermissionGate)
+    </MenuGroup>
+    <MenuGroup>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -123,14 +109,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           icon={
             <i
               className="fa fa-user-plus"
@@ -141,8 +120,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Add Groups to Team"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "add_user_to_team",
@@ -152,14 +131,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           extraText="Add people to the team"
           icon={
             <i
@@ -172,10 +144,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Invite People"
         />
-      </Memo(TeamPermissionGate)>
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+    </MenuGroup>
+    <MenuGroup>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -184,14 +156,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           icon={
             <i
               className="fa fa-globe"
@@ -202,8 +167,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Team Settings"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -217,14 +182,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
               "teamID": "someteamid",
             }
           }
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           icon={
             <i
               className="fa fa-user-plus"
@@ -235,8 +193,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Groups"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "remove_user_from_team",
@@ -246,14 +204,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           icon={
             <i
               className="fa fa-users"
@@ -264,8 +215,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Members"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         invert={true}
         permissions={
           Array [
@@ -276,14 +227,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           icon={
             <i
               className="fa fa-users"
@@ -294,10 +238,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="View Members"
         />
-      </Memo(TeamPermissionGate)>
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
-      <Memo(SystemPermissionGate)
+      </TeamPermissionGate>
+    </MenuGroup>
+    <MenuGroup>
+      <SystemPermissionGate
         permissions={
           Array [
             "create_team",
@@ -315,7 +259,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           text="Create a Team"
           to="/create_team"
         />
-      </Memo(SystemPermissionGate)>
+      </SystemPermissionGate>
       <MenuItemLink
         icon={
           <i
@@ -328,22 +272,15 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         to="/select_team"
       />
       <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={<LeaveTeamIcon />}
         id="leaveTeam"
         modalId="leave_team"
         show={false}
         text="Leave Team"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemAction
         id="someplugin_pluginmenuitem"
         key="someplugin_pluginmenuitem"
@@ -351,16 +288,16 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="some plugin text"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemLink
         id="integrations"
         show={false}
         text="Integrations"
         to="/somename/integrations"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemExternalLink
         icon={
           <i
@@ -393,14 +330,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         url=""
       />
       <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         icon={
           <i
             className="fa fa-info"
@@ -411,8 +341,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="About Mattermost"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemAction
         icon={
           <i
@@ -424,7 +354,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Log Out"
       />
-    </Memo(MenuGroup)>
+    </MenuGroup>
   </ul>
 </div>
 `;
@@ -440,8 +370,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
     onClick={[Function]}
     style={Object {}}
   >
-    <Memo(MenuGroup)>
-      <Memo(TeamPermissionGate)
+    <MenuGroup>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -450,21 +380,14 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           id="addGroupsToTeam"
           modalId="add_groups_to_team"
           show={true}
           text="Add Groups to Team"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "add_user_to_team",
@@ -474,14 +397,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           extraText="Add people to the team"
           icon={false}
           id="invitePeople"
@@ -490,8 +406,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Invite People"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -500,21 +416,14 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           id="teamSettings"
           modalId="team_settings"
           show={true}
           text="Team Settings"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "manage_team",
@@ -528,21 +437,14 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "teamID": "someteamid",
             }
           }
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           id="manageGroups"
           modalId="manage_team_groups"
           show={true}
           text="Manage Groups"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         permissions={
           Array [
             "remove_user_from_team",
@@ -552,21 +454,14 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           id="manageMembers"
           modalId="team_members"
           show={true}
           text="Manage Members"
         />
-      </Memo(TeamPermissionGate)>
-      <Memo(TeamPermissionGate)
+      </TeamPermissionGate>
+      <TeamPermissionGate
         invert={true}
         permissions={
           Array [
@@ -577,20 +472,13 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
-          dialogType={
-            Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            }
-          }
+          dialogType={[Function]}
           id="viewMembers"
           modalId="team_members"
           show={true}
           text="View Members"
         />
-      </Memo(TeamPermissionGate)>
+      </TeamPermissionGate>
       <MenuItemLink
         id="joinTeam"
         show={true}
@@ -599,22 +487,15 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
       />
       <MenuItemToggleModalRedux
         className="destructive"
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
+        dialogType={[Function]}
         id="leaveTeam"
         modalId="leave_team"
         show={false}
         text="Leave Team"
       />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
-      <Memo(SystemPermissionGate)
+    </MenuGroup>
+    <MenuGroup>
+      <SystemPermissionGate
         permissions={
           Array [
             "create_team",
@@ -630,16 +511,16 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           text="Create a Team"
           to="/create_team"
         />
-      </Memo(SystemPermissionGate)>
-      <Memo(MenuGroup)>
+      </SystemPermissionGate>
+      <MenuGroup>
         <div
           className="MainMenu_dropdown-link"
         >
           <LearnAboutTeamsLink />
         </div>
-      </Memo(MenuGroup)>
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
+      </MenuGroup>
+    </MenuGroup>
+    <MenuGroup>
       <MenuItemAction
         icon={false}
         id="someplugin_pluginmenuitem"
@@ -648,7 +529,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         show={true}
         text="some plugin text"
       />
-    </Memo(MenuGroup)>
+    </MenuGroup>
   </ul>
 </div>
 `;

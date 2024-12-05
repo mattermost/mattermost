@@ -85,7 +85,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Edit"
               id="edit_channel_header_modal.previewHeader"
             />
@@ -215,7 +215,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Edit"
               id="edit_channel_header_modal.previewHeader"
             />
@@ -363,7 +363,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Edit"
               id="edit_channel_header_modal.previewHeader"
             />
@@ -503,7 +503,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Edit"
               id="edit_channel_header_modal.previewHeader"
             />
@@ -633,7 +633,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           previewMessageLink={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Edit"
               id="edit_channel_header_modal.previewHeader"
             />

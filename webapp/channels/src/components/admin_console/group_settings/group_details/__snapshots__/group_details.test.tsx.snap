@@ -8,7 +8,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -57,7 +57,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 id="add_team_or_channel"
                 type="button"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Add Team or Channel"
                   id="admin.group_settings.group_details.add_team_or_channel"
                 />
@@ -172,7 +172,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -221,7 +221,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 id="add_team_or_channel"
                 type="button"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Add Team or Channel"
                   id="admin.group_settings.group_details.add_team_or_channel"
                 />
@@ -335,7 +335,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -384,7 +384,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 id="add_team_or_channel"
                 type="button"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Add Team or Channel"
                   id="admin.group_settings.group_details.add_team_or_channel"
                 />
@@ -487,7 +487,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -536,7 +536,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 id="add_team_or_channel"
                 type="button"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Add Team or Channel"
                   id="admin.group_settings.group_details.add_team_or_channel"
                 />

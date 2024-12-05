@@ -6,7 +6,7 @@ exports[`components/VersionBar should match snapshot - bar rendered after build 
 <Connect(AnnouncementBar)
   message={
     <React.Fragment>
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="A new version of Mattermost is available."
         id="version_bar.new"
       />
@@ -18,7 +18,7 @@ exports[`components/VersionBar should match snapshot - bar rendered after build 
           }
         }
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Refresh the app now"
           id="version_bar.refresh"
         />

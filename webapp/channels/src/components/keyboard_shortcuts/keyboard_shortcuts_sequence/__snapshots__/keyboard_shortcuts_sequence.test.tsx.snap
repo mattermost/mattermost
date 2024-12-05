@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot when used for modal with description 1`] = `
-<Memo(KeyboardShortcutSequence)
+<KeyboardShortcutSequence
   shortcut={
     Object {
       "defaultMessage": "Keyboard shortcuts	⌘|/",
@@ -36,11 +36,11 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot wh
       </mark>
     </ShortcutKey>
   </div>
-</Memo(KeyboardShortcutSequence)>
+</KeyboardShortcutSequence>
 `;
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot with alternative shortcut 1`] = `
-<Memo(KeyboardShortcutSequence)
+<KeyboardShortcutSequence
   shortcut={
     Object {
       "defaultMessage": "Keyboard shortcuts	⌘||P	Ctrl|P",
@@ -106,11 +106,11 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should match snapshot wi
       </mark>
     </ShortcutKey>
   </div>
-</Memo(KeyboardShortcutSequence)>
+</KeyboardShortcutSequence>
 `;
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence hoisting description 1`] = `
-<Memo(KeyboardShortcutSequence)
+<KeyboardShortcutSequence
   hoistDescription={true}
   isInsideTooltip={true}
   shortcut={
@@ -145,11 +145,11 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence h
       </mark>
     </ShortcutKey>
   </div>
-</Memo(KeyboardShortcutSequence)>
+</KeyboardShortcutSequence>
 `;
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence without description 1`] = `
-<Memo(KeyboardShortcutSequence)
+<KeyboardShortcutSequence
   hideDescription={true}
   shortcut={
     Object {
@@ -182,11 +182,11 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence w
       </mark>
     </ShortcutKey>
   </div>
-</Memo(KeyboardShortcutSequence)>
+</KeyboardShortcutSequence>
 `;
 
 exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence without description 2`] = `
-<Memo(KeyboardShortcutSequence)
+<KeyboardShortcutSequence
   isInsideTooltip={true}
   shortcut={
     Object {
@@ -222,5 +222,5 @@ exports[`components/shortcuts/KeyboardShortcutsSequence should render sequence w
       </mark>
     </ShortcutKey>
   </div>
-</Memo(KeyboardShortcutSequence)>
+</KeyboardShortcutSequence>
 `;

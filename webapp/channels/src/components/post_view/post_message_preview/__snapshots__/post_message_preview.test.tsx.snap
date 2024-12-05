@@ -20,7 +20,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -106,7 +106,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -192,7 +192,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -298,7 +298,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -412,7 +412,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -503,7 +503,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="https://fakeicon.com/image.jpg"
@@ -594,7 +594,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"
@@ -682,7 +682,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_1/image?_=0"

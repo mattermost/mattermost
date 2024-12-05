@@ -78,7 +78,7 @@ exports[`components/suggestion/search_channel_suggestion should match snapshot, 
   teammateIsBot={false}
   term=""
 >
-  <Memo(Avatar)
+  <Avatar
     size="sm"
     url="/api/v4/users/DN/image?_=0"
   />

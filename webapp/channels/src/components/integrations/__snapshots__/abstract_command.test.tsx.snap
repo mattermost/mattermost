@@ -148,7 +148,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
@@ -439,7 +439,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "",
@@ -457,7 +457,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             id="add_command.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -474,7 +474,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             defaultMessage="Footer"
             id="Footer"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
         <div>
           renderExtra
         </div>
@@ -631,7 +631,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
@@ -922,7 +922,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "",
@@ -940,7 +940,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             id="add_command.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -951,7 +951,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           <span>
             Footer as string
           </span>
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
         <div>
           renderExtra
         </div>
@@ -1109,7 +1109,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
@@ -1400,11 +1400,11 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "server error",
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="A trigger word is required"
                 id="add_command.triggerRequired"
               />,
@@ -1421,7 +1421,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             id="add_command.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -1438,7 +1438,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             defaultMessage="Footer"
             id="Footer"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
         <div>
           renderExtra
         </div>

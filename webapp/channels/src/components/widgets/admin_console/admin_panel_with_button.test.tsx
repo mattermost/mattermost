@@ -37,7 +37,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
                   data-testid="test-button-text-default"
                   onClick={[MockFunction]}
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="test-button-text-default"
                     id="test-button-text-id"
                   />
@@ -80,7 +80,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
                   data-testid="test-button-text-default"
                   onClick={[Function]}
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="test-button-text-default"
                     id="test-button-text-id"
                   />

@@ -15,10 +15,10 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(BooleanSetting)
+    <SettingsGroup>
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
             id="admin.elasticsearch.enableIndexingDescription"
             values={
@@ -30,7 +30,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         id="enableIndexing"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch Indexing:"
             id="admin.elasticsearch.enableIndexingTitle"
           />
@@ -42,14 +42,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="The type of the search backend."
             id="admin.elasticsearch.backendDescription"
           />
         }
         id="backend"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Backend type:"
             id="admin.elasticsearch.backendTitle"
           />
@@ -66,7 +66,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>"
             id="admin.elasticsearch.connectionUrlDescription"
             values={
@@ -78,7 +78,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         id="connectionUrl"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Connection Address:"
             id="admin.elasticsearch.connectionUrlTitle"
           />
@@ -96,14 +96,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) Custom Certificate Authority certificates for the Elasticsearch server. Leave this empty to use the default CAs from the operating system."
             id="admin.elasticsearch.caDescription"
           />
         }
         id="ca"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="CA path:"
             id="admin.elasticsearch.caTitle"
           />
@@ -121,14 +121,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The client certificate for the connection to the Elasticsearch server in the PEM format."
             id="admin.elasticsearch.clientCertDescription"
           />
         }
         id="clientCert"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Client Certificate path:"
             id="admin.elasticsearch.clientCertTitle"
           />
@@ -146,14 +146,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The key for the client certificate in the PEM format."
             id="admin.elasticsearch.clientKeyDescription"
           />
         }
         id="clientKey"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Client Certificate Key path:"
             id="admin.elasticsearch.clientKeyTitle"
           />
@@ -168,17 +168,17 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value="test.key"
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority."
             id="admin.elasticsearch.skipTLSVerificationDescription"
           />
         }
         id="skipTLSVerification"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Skip TLS Verification:"
             id="admin.elasticsearch.skipTLSVerificationTitle"
           />
@@ -190,14 +190,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The username to authenticate to the Elasticsearch server."
             id="admin.elasticsearch.usernameDescription"
           />
         }
         id="username"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Username:"
             id="admin.elasticsearch.usernameTitle"
           />
@@ -215,14 +215,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The password to authenticate to the Elasticsearch server."
             id="admin.elasticsearch.passwordDescription"
           />
         }
         id="password"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Password:"
             id="admin.elasticsearch.passwordTitle"
           />
@@ -237,17 +237,17 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value="test"
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, sniffing finds and connects to all data nodes in your cluster automatically."
             id="admin.elasticsearch.sniffDescription"
           />
         }
         id="sniff"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Cluster Sniffing:"
             id="admin.elasticsearch.sniffTitle"
           />
@@ -258,7 +258,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       />
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Test Connection"
             id="admin.elasticsearch.elasticsearch_test_button"
           />
@@ -271,7 +271,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle \\"Enable Elasticsearch Indexing\\"."
             id="admin.elasticsearch.testHelpText"
           />
@@ -307,13 +307,13 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           >
             <Connect(JobTable)
               createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Index Now"
                   id="admin.elasticsearch.createJob.title"
                 />
               }
               createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete."
                   id="admin.elasticsearch.createJob.help"
                 />
@@ -327,7 +327,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       </div>
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Rebuild Channels Index"
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
@@ -340,7 +340,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
@@ -354,7 +354,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         id="rebuildChannelsIndexButton"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Rebuild Channels Index"
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
@@ -371,7 +371,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       />
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Index"
             id="admin.elasticsearch.purgeIndexesButton"
           />
@@ -384,7 +384,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt."
             id="admin.elasticsearch.purgeIndexesHelpText"
           />
@@ -392,7 +392,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         id="purgeIndexesSection"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Indexes:"
             id="admin.elasticsearch.purgeIndexesButton.label"
           />
@@ -410,14 +410,14 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <AdminTextSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When filled in, these indexes will be ignored during the purge, separated by commas."
             id="admin.elasticsearch.ignoredPurgeIndexesDescription"
           />
         }
         id="ignoredPurgeIndexes"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Indexes to skip while purging:"
             id="admin.elasticsearch.ignoredPurgeIndexes"
           />
@@ -431,17 +431,17 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         setByEnv={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
             id="admin.elasticsearch.enableSearchingDescription"
           />
         }
         id="enableSearching"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch for search queries:"
             id="admin.elasticsearch.enableSearchingTitle"
           />
@@ -450,17 +450,17 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
             id="admin.elasticsearch.enableAutocompleteDescription"
           />
         }
         id="enableAutocomplete"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch for autocomplete queries:"
             id="admin.elasticsearch.enableAutocompleteTitle"
           />
@@ -469,7 +469,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -478,7 +478,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -492,7 +492,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -517,10 +517,10 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(BooleanSetting)
+    <SettingsGroup>
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Elasticsearch for search queries\\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>"
             id="admin.elasticsearch.enableIndexingDescription"
             values={
@@ -532,7 +532,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         id="enableIndexing"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch Indexing:"
             id="admin.elasticsearch.enableIndexingTitle"
           />
@@ -544,14 +544,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="The type of the search backend."
             id="admin.elasticsearch.backendDescription"
           />
         }
         id="backend"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Backend type:"
             id="admin.elasticsearch.backendTitle"
           />
@@ -568,7 +568,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="The address of the Elasticsearch server. <link>Please see documentation with server setup instructions.</link>"
             id="admin.elasticsearch.connectionUrlDescription"
             values={
@@ -580,7 +580,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         id="connectionUrl"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Connection Address:"
             id="admin.elasticsearch.connectionUrlTitle"
           />
@@ -598,14 +598,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) Custom Certificate Authority certificates for the Elasticsearch server. Leave this empty to use the default CAs from the operating system."
             id="admin.elasticsearch.caDescription"
           />
         }
         id="ca"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="CA path:"
             id="admin.elasticsearch.caTitle"
           />
@@ -623,14 +623,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The client certificate for the connection to the Elasticsearch server in the PEM format."
             id="admin.elasticsearch.clientCertDescription"
           />
         }
         id="clientCert"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Client Certificate path:"
             id="admin.elasticsearch.clientCertTitle"
           />
@@ -648,14 +648,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The key for the client certificate in the PEM format."
             id="admin.elasticsearch.clientKeyDescription"
           />
         }
         id="clientKey"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Client Certificate Key path:"
             id="admin.elasticsearch.clientKeyTitle"
           />
@@ -670,17 +670,17 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value="test.key"
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority."
             id="admin.elasticsearch.skipTLSVerificationDescription"
           />
         }
         id="skipTLSVerification"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Skip TLS Verification:"
             id="admin.elasticsearch.skipTLSVerificationTitle"
           />
@@ -692,14 +692,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The username to authenticate to the Elasticsearch server."
             id="admin.elasticsearch.usernameDescription"
           />
         }
         id="username"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Username:"
             id="admin.elasticsearch.usernameTitle"
           />
@@ -717,14 +717,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="(Optional) The password to authenticate to the Elasticsearch server."
             id="admin.elasticsearch.passwordDescription"
           />
         }
         id="password"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Server Password:"
             id="admin.elasticsearch.passwordTitle"
           />
@@ -739,17 +739,17 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value="test"
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, sniffing finds and connects to all data nodes in your cluster automatically."
             id="admin.elasticsearch.sniffDescription"
           />
         }
         id="sniff"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Cluster Sniffing:"
             id="admin.elasticsearch.sniffTitle"
           />
@@ -760,7 +760,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       />
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Test Connection"
             id="admin.elasticsearch.elasticsearch_test_button"
           />
@@ -773,7 +773,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle \\"Enable Elasticsearch Indexing\\"."
             id="admin.elasticsearch.testHelpText"
           />
@@ -809,13 +809,13 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           >
             <Connect(JobTable)
               createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Index Now"
                   id="admin.elasticsearch.createJob.title"
                 />
               }
               createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete."
                   id="admin.elasticsearch.createJob.help"
                 />
@@ -828,7 +828,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       </div>
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Rebuild Channels Index"
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
@@ -841,7 +841,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
@@ -855,7 +855,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         id="rebuildChannelsIndexButton"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Rebuild Channels Index"
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
@@ -872,7 +872,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       />
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Index"
             id="admin.elasticsearch.purgeIndexesButton"
           />
@@ -885,7 +885,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt."
             id="admin.elasticsearch.purgeIndexesHelpText"
           />
@@ -893,7 +893,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         id="purgeIndexesSection"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Indexes:"
             id="admin.elasticsearch.purgeIndexesButton.label"
           />
@@ -911,14 +911,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <AdminTextSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When filled in, these indexes will be ignored during the purge, separated by commas."
             id="admin.elasticsearch.ignoredPurgeIndexesDescription"
           />
         }
         id="ignoredPurgeIndexes"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Indexes to skip while purging:"
             id="admin.elasticsearch.ignoredPurgeIndexes"
           />
@@ -932,17 +932,17 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         setByEnv={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
             id="admin.elasticsearch.enableSearchingDescription"
           />
         }
         id="enableSearching"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch for search queries:"
             id="admin.elasticsearch.enableSearchingTitle"
           />
@@ -951,17 +951,17 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={false}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
             id="admin.elasticsearch.enableAutocompleteDescription"
           />
         }
         id="enableAutocomplete"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Elasticsearch for autocomplete queries:"
             id="admin.elasticsearch.enableAutocompleteTitle"
           />
@@ -970,7 +970,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -979,7 +979,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -993,7 +993,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>

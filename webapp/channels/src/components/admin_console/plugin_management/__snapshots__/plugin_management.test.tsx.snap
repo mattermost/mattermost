@@ -21,13 +21,13 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -39,7 +39,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -48,10 +48,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -63,7 +63,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -72,17 +72,17 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -152,10 +152,10 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -167,7 +167,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -176,17 +176,17 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -199,7 +199,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -207,7 +207,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -241,7 +241,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -252,7 +252,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -266,7 +266,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -297,13 +297,13 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -315,7 +315,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -324,10 +324,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -339,7 +339,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -348,17 +348,17 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -428,10 +428,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -443,7 +443,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -452,17 +452,17 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -475,7 +475,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={true}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -483,7 +483,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -517,7 +517,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -528,7 +528,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -542,7 +542,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -573,7 +573,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -602,7 +602,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -613,7 +613,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -627,7 +627,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -658,13 +658,13 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -676,7 +676,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -685,10 +685,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -700,7 +700,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -709,17 +709,17 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -789,10 +789,10 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -804,7 +804,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -813,17 +813,17 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -836,7 +836,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={true}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -844,7 +844,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -878,7 +878,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -889,7 +889,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -903,7 +903,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -934,13 +934,13 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -952,7 +952,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -961,10 +961,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -976,7 +976,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -985,17 +985,17 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -1067,10 +1067,10 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -1082,7 +1082,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -1091,17 +1091,17 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -1114,7 +1114,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1122,7 +1122,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -1156,7 +1156,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1167,7 +1167,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -1181,7 +1181,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -1212,13 +1212,13 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -1230,7 +1230,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -1239,10 +1239,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -1254,7 +1254,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -1263,17 +1263,17 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -1343,10 +1343,10 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -1358,7 +1358,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -1367,17 +1367,17 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -1390,7 +1390,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1398,7 +1398,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -1436,7 +1436,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1447,7 +1447,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -1461,7 +1461,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -1492,13 +1492,13 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -1510,7 +1510,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -1519,10 +1519,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -1534,7 +1534,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -1543,17 +1543,17 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -1623,10 +1623,10 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -1638,7 +1638,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -1647,17 +1647,17 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -1670,7 +1670,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1678,7 +1678,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -1712,7 +1712,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1723,7 +1723,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -1737,7 +1737,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -1768,13 +1768,13 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -1786,7 +1786,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -1795,10 +1795,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -1810,7 +1810,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -1819,17 +1819,17 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -1901,10 +1901,10 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -1916,7 +1916,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -1925,17 +1925,17 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -1948,7 +1948,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1956,7 +1956,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -1965,7 +1965,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value="marketplace.example.com"
           />
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1976,7 +1976,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -1990,7 +1990,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -2021,13 +2021,13 @@ exports[`components/PluginManagement should match snapshot, text entered into th
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -2039,7 +2039,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -2048,10 +2048,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -2063,7 +2063,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -2072,17 +2072,17 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -2152,10 +2152,10 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -2167,7 +2167,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -2176,17 +2176,17 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -2199,7 +2199,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2207,7 +2207,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -2241,7 +2241,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2252,7 +2252,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -2266,7 +2266,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -2297,13 +2297,13 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -2315,7 +2315,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -2324,10 +2324,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -2339,7 +2339,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -2348,17 +2348,17 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -2430,10 +2430,10 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -2445,7 +2445,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -2454,17 +2454,17 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={true}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -2477,7 +2477,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             disabled={true}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Enable plugin uploads in config.json. See <link>documentation</link> to learn more."
                   id="admin.plugin.uploadDisabledDesc"
                   values={
@@ -2490,7 +2490,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -2524,7 +2524,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2535,7 +2535,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -2549,7 +2549,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -2580,13 +2580,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -2598,7 +2598,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -2607,10 +2607,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -2622,7 +2622,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -2631,17 +2631,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -2711,10 +2711,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -2726,7 +2726,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -2735,17 +2735,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -2758,7 +2758,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2766,7 +2766,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -2863,7 +2863,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2874,7 +2874,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -2888,7 +2888,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -2919,13 +2919,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -2937,7 +2937,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -2946,10 +2946,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -2961,7 +2961,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -2970,17 +2970,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -3050,10 +3050,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -3065,7 +3065,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -3074,17 +3074,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -3097,7 +3097,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3105,7 +3105,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -3170,7 +3170,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -3181,7 +3181,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -3195,7 +3195,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -3226,13 +3226,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -3244,7 +3244,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -3253,10 +3253,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -3268,7 +3268,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -3277,17 +3277,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -3357,10 +3357,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -3372,7 +3372,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -3381,17 +3381,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -3404,7 +3404,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3412,7 +3412,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -3477,7 +3477,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -3488,7 +3488,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -3502,7 +3502,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -3533,13 +3533,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -3551,7 +3551,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -3560,10 +3560,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -3575,7 +3575,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -3584,17 +3584,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -3664,10 +3664,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -3679,7 +3679,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -3688,17 +3688,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -3711,7 +3711,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3719,7 +3719,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -3784,7 +3784,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -3795,7 +3795,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -3809,7 +3809,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -3840,13 +3840,13 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
-          <Memo(BooleanSetting)
+          <BooleanSetting
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.enableDesc"
                 values={
@@ -3858,7 +3858,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enable"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Plugins: "
                 id="admin.plugins.settings.enable"
               />
@@ -3867,10 +3867,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                 id="admin.plugins.settings.requirePluginSignatureDesc"
                 values={
@@ -3882,7 +3882,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="requirePluginSignature"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Require Plugin Signature:"
                 id="admin.plugins.settings.requirePluginSignature"
               />
@@ -3891,17 +3891,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={false}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
             }
             id="automaticPrepackagedPlugins"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Automatic Prepackaged Plugins:"
                 id="admin.plugins.settings.automaticPrepackagedPlugins"
               />
@@ -3971,10 +3971,10 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </p>
             </div>
           </div>
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                 id="admin.plugins.settings.enableMarketplaceDesc"
                 values={
@@ -3986,7 +3986,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="enableMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Marketplace:"
                 id="admin.plugins.settings.enableMarketplace"
               />
@@ -3995,17 +3995,17 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             setByEnv={false}
             value={true}
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                 id="admin.plugins.settings.enableRemoteMarketplaceDesc"
               />
             }
             id="enableRemoteMarketplace"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Enable Remote Marketplace:"
                 id="admin.plugins.settings.enableRemoteMarketplace"
               />
@@ -4018,7 +4018,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -4026,7 +4026,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             id="marketplaceUrl"
             label={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Marketplace URL:"
                 id="admin.plugins.settings.marketplaceUrl"
               />
@@ -4123,7 +4123,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -4134,7 +4134,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -4148,7 +4148,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>

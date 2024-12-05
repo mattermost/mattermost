@@ -9,7 +9,7 @@ exports[`components/TextDismissableBar should match snapshot 1`] = `
       <i
         className="icon icon-information-outline"
       />
-      <Memo(Connect(Markdown))
+      <Connect(Markdown)
         message="sample text"
         options={
           Object {
@@ -33,7 +33,7 @@ exports[`components/TextDismissableBar should match snapshot, with an internal a
       <i
         className="icon icon-information-outline"
       />
-      <Memo(Connect(Markdown))
+      <Connect(Markdown)
         message="A [link](http://testurl.com/admin_console/) with an internal url and a [link](http://other-url.com/admin_console/) with an external url"
         options={
           Object {
@@ -58,7 +58,7 @@ exports[`components/TextDismissableBar should match snapshot, with an internal u
       <i
         className="icon icon-information-outline"
       />
-      <Memo(Connect(Markdown))
+      <Connect(Markdown)
         message="A [link](http://testurl.com/admin_console/) with an internal url"
         options={
           Object {
@@ -83,7 +83,7 @@ exports[`components/TextDismissableBar should match snapshot, with ean external 
       <i
         className="icon icon-information-outline"
       />
-      <Memo(Connect(Markdown))
+      <Connect(Markdown)
         message="A [link](http://otherurl.com/admin_console/) with an external url"
         options={
           Object {
@@ -108,7 +108,7 @@ exports[`components/TextDismissableBar should match snapshot, with link but with
       <i
         className="icon icon-information-outline"
       />
-      <Memo(Connect(Markdown))
+      <Connect(Markdown)
         message="A [link](http://testurl.com/admin_console/)"
         options={
           Object {
