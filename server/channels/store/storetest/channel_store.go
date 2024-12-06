@@ -153,6 +153,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("GetGroupAndDirectChannelsForUser", func(t *testing.T) { testGetGroupAndDirectChannelsForUser(t, rctx, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8233,4 +8234,56 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
 	})
+}
+
+func testGetGroupAndDirectChannelsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamId := model.NewId()
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	u3 := &model.User{}
+	u3.Email = MakeEmail()
+	u3.Nickname = model.NewId()
+	_, err = ss.User().Save(rctx, u3)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	require.NoError(t, nErr)
+
+	o1, err := ss.Channel().CreateDirectChannel(rctx, u1, u2)
+	require.NoError(t, err)
+
+	o2, err := ss.Channel().Save(rctx, &model.Channel{
+		Type:        model.ChannelTypeGroup,
+		Name:        model.GetGroupNameFromUserIds([]string{u1.Id, u2.Id, u3.Id}),
+		DisplayName: model.GetGroupDisplayNameFromUsers([]*model.User{u1, u2, u3}, true),
+	}, 100)
+	require.NoError(t, err)
+	cm := &model.ChannelMember{
+		UserId:      u1.Id,
+		ChannelId:   o2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: u1.IsGuest(),
+		SchemeUser:  !u1.IsGuest(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, cm)
+	require.NoError(t, err)
+
+	channels, err := ss.Channel().GetGroupAndDirectChannelsForUser(u1.Id, strings.Repeat("0", 26), 100, false)
+	require.NoError(t, err)
+	require.Len(t, channels, 2)
+	require.ElementsMatch(t, []string{channels[0].Id, channels[1].Id}, []string{o1.Id, o2.Id})
+
 }

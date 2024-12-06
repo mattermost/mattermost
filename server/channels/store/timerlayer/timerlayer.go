@@ -1391,6 +1391,22 @@ func (s *TimerLayerChannelStore) GetForPost(postID string) (*model.Channel, erro
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetGroupAndDirectChannelsForUser(userId string, afterId string, limit int, includeArchivedChannels bool) ([]*model.Channel, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetGroupAndDirectChannelsForUser(userId, afterId, limit, includeArchivedChannels)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetGroupAndDirectChannelsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetGuestCount(channelID string, allowFromCache bool) (int64, error) {
 	start := time.Now()
 

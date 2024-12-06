@@ -3619,6 +3619,7 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 	toUpdate.TeamId = gmConversionRequest.TeamID
 	toUpdate.Name = gmConversionRequest.Name
 	toUpdate.DisplayName = gmConversionRequest.DisplayName
+	toUpdate.Header = gmConversionRequest.Header
 
 	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
 	if appErr != nil {
@@ -3636,11 +3637,96 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 		return nil, appErr
 	}
 
-	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
-	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
+	if err := a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users); err != nil {
+		c.Logger().Warn("Failed to set sidebar categories for converted GM", mlog.Err(err))
+	}
+	if err := a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users); err != nil {
+		c.Logger().Warn("Failed to post message for converted GM", mlog.Err(err))
+	}
 
 	// the user conversion the GM becomes the channel admin.
-	_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	if convertedByUserId != "" {
+		_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+		if appErr != nil {
+			return nil, appErr
+		}
+	} else {
+		// if there is no one converting the GM, then everyone should become the channel admin.
+		for _, user := range users {
+			_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, user.Id, false, true, true)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+	}
+
+	return updatedChannel, nil
+}
+
+func (a *App) convertDirectMessageToChannel(c request.CTX, leavingUsername string, channelID string) (*model.Channel, *model.AppError) {
+	originalChannel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if originalChannel.Type != model.ChannelTypeDirect {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.original_channel_not_dm", nil, "", http.StatusBadRequest)
+	}
+
+	if leavingUsername == "" {
+		leavingUsername = i18n.T("app.channel.conversion.deleted_user")
+	}
+
+	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
+		InChannelId: channelID,
+		Page:        0,
+		PerPage:     2,
+	}, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var remainingUser *model.User
+	for _, user := range users {
+		if user.Username != leavingUsername {
+			remainingUser = user
+			break
+		}
+	}
+	if remainingUser == nil {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_remaining_user", nil, "", http.StatusBadRequest)
+	}
+	memberships, err := a.Srv().Store().Team().GetTeamsForUser(c, remainingUser.Id, "", false)
+	if err != nil {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_teams_for_user", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(memberships) == 0 {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_teams_for_user", nil, "", http.StatusNotFound)
+	}
+
+	toUpdate := originalChannel.DeepCopy()
+	toUpdate.Type = model.ChannelTypePrivate
+	toUpdate.TeamId = memberships[0].TeamId // we are taking the first team from the memberships
+	newName := "archived-" + strings.Join([]string{leavingUsername, remainingUser.Username}, "-")
+	toUpdate.Name = newName[:64]
+	toUpdate.DisplayName = leavingUsername
+
+	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	if err := a.setSidebarCategoriesForConvertedGroupMessage(c, &model.GroupMessageConversionRequestBody{
+		ChannelID: channelID,
+		TeamID:    originalChannel.TeamId,
+	}, users); err != nil {
+		c.Logger().Warn("Failed to set sidebar categories for converted DM", mlog.Err(err))
+	}
+
+	// make other user channel admin
+	_, appErr = a.UpdateChannelMemberSchemeRoles(c, channelID, remainingUser.Id, false, true, true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3711,6 +3797,15 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 		}
 	}
 
+	// we can't convert GM to a channel if the team is not common among all GM members
+	// since we are making this automagically, we are taking the first team from the common teams
+	if gmConversionRequest.TeamID == "" && len(commonTeams) > 0 {
+		gmConversionRequest.TeamID = commonTeams[0].Id
+		teamFound = true
+	} else if len(commonTeams) == 0 {
+		return model.NewAppError("validateForConvertGroupMessageToChannel", "app.channel.group_message_conversion.no_common_teams", nil, "", http.StatusBadRequest)
+	}
+
 	if !teamFound {
 		return model.NewAppError(
 			"validateForConvertGroupMessageToChannel",
@@ -3731,13 +3826,15 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 		)
 	}
 
-	channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
-	if appErr != nil {
-		return appErr
-	}
+	if convertedByUserId != "" {
+		channelMember, appErr := a.GetChannelMember(c, gmConversionRequest.ChannelID, convertedByUserId)
+		if appErr != nil {
+			return appErr
+		}
 
-	if channelMember == nil {
-		return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
+		if channelMember == nil {
+			return model.NewAppError("ConvertGroupMessageToChannel", "app.channel.group_message_conversion.channel_member_missing", nil, "", http.StatusNotFound)
+		}
 	}
 
 	// apply dummy changes to check validity
@@ -3749,6 +3846,13 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 }
 
 func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
+	if convertedByUserId == "" {
+		b, appErr := a.GetSystemBot(c)
+		if appErr != nil {
+			return appErr
+		}
+		convertedByUserId = b.UserId
+	}
 	convertedByUser, appErr := a.GetUser(convertedByUserId)
 	if appErr != nil {
 		return appErr

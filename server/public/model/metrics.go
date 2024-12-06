@@ -56,6 +56,7 @@ var (
 		"modal_content",
 		"other",
 	)
+
 	AcceptedTrueFalseLabels     = SliceToMapKey("true", "false")
 	AcceptedSplashScreenOrigins = SliceToMapKey("root", "team_controller")
 )

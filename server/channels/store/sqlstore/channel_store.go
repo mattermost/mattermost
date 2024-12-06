@@ -4337,6 +4337,38 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	return &team, nil
 }
 
+func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string, limit int, includeArchivedChannels bool) ([]*model.Channel, error) {
+	query := s.getQueryBuilder().
+		Select("ch.*").Distinct().
+		From("Channels ch, ChannelMembers cm").
+		Where(sq.And{
+			sq.Expr("cm.ChannelId = ch.Id"),
+			sq.Gt{"ch.Id": afterId},
+			sq.Or{sq.Eq{"ch.Type": model.ChannelTypeDirect}, sq.Eq{"ch.Type": model.ChannelTypeGroup}},
+			sq.Eq{"cm.UserId": userId},
+		}).
+		OrderBy("ch.Id").
+		Limit(uint64(limit))
+
+	if !includeArchivedChannels {
+		query = query.Where(
+			sq.Eq{"ch.DeleteAt": int(0)},
+		)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_tosql")
+	}
+
+	ch := []*model.Channel{}
+	if err2 := s.GetReplicaX().Select(&ch, queryString, args...); err2 != nil {
+		return nil, errors.Wrap(err2, "failed to find group and direct channels for user")
+	}
+
+	return ch, nil
+}
+
 func (s SqlChannelStore) IsReadOnlyChannel(channelID string) (bool, error) {
 	query := s.getQueryBuilder().Select("schemeid").From("channels").Where(sq.Eq{"id": channelID}).Limit(1)
 	squery, args, err := query.ToSql()
