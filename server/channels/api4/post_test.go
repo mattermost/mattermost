@@ -4118,10 +4118,57 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	//t.Run("edit history includes file metadata", func(t *testing.T) {
-	//	fileInfo, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
-	//	require.Nil(t, appErr)
-	//})
+	t.Run("edit history includes file metadata", func(t *testing.T) {
+		th.LoginBasic()
+		fileInfo1, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, appErr)
+
+		fileInfo2, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
+		}
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Contains(t, createdPost.FileIds, fileInfo1.Id)
+		require.Contains(t, createdPost.FileIds, fileInfo2.Id)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 1"),
+		}
+		_, response, err := client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 2"),
+		}
+		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 3"),
+		}
+		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		editHistory, resp, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		for _, editHistoryItem := range editHistory {
+			require.Len(t, editHistoryItem.FileIds, 2)
+			require.Contains(t, editHistoryItem.FileIds, fileInfo1.Id)
+			require.Contains(t, editHistoryItem.FileIds, fileInfo2.Id)
+		}
+	})
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
