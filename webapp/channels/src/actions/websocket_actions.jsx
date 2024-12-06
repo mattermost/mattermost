@@ -636,7 +636,7 @@ export function handleEvent(msg) {
             return;
         }
 
-        if (pluginEvents.hasOwnProperty(msg.event) && typeof pluginEvents[msg.event] === 'function') {
+        if (Object.hasOwn(pluginEvents, msg.event) && typeof pluginEvents[msg.event] === 'function') {
             pluginEvents[msg.event](msg);
         }
     });

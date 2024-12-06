@@ -38,7 +38,7 @@ export default function mergeObjects(a: Record<string, any>, b: Record<string, a
         }
 
         for (const key of Object.keys(b)) {
-            if (result.hasOwnProperty(key)) {
+            if (Object.hasOwn(result, key)) {
                 continue;
             }
 
