@@ -91,4 +91,4 @@ const MultiSelectSetting: React.FC<Props> = ({
     );
 };
 
-export default React.memo(MultiSelectSetting);
+export default MultiSelectSetting;

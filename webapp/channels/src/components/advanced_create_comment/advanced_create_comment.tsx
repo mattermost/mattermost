@@ -47,4 +47,4 @@ const AdvancedCreateComment = ({
     );
 };
 
-export default React.memo(AdvancedCreateComment);
+export default AdvancedCreateComment;

@@ -47,7 +47,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
         menuButton={
           Object {
             "children": <React.Fragment>
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Channel Type: All"
                 id="more_channels.show_all_channels"
               />
@@ -65,7 +65,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           id="channelsMoreDropdownAll"
           key="channelsMoreDropdownAll"
           labels={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="All channel types"
               id="suggestion.all"
             />
@@ -88,7 +88,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           id="channelsMoreDropdownPublic"
           key="channelsMoreDropdownPublic"
           labels={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Public channels"
               id="suggestion.public"
             />
@@ -106,7 +106,7 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
           id="channelsMoreDropdownPrivate"
           key="channelsMoreDropdownPrivate"
           labels={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Private channels"
               id="suggestion.private"
             />

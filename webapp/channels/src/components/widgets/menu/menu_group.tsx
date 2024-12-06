@@ -34,4 +34,4 @@ const MenuGroup = (props: Props) => {
     );
 };
 
-export default React.memo(MenuGroup);
+export default MenuGroup;

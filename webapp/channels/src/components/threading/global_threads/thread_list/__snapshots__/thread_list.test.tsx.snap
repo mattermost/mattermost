@@ -12,32 +12,32 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         <div
           className="tab-button-wrapper"
         >
-          <Memo(Button)
+          <Button
             className="Button___large Margined"
             isActive={true}
             onClick={[Function]}
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Followed threads"
               id="globalThreads.heading"
             />
-          </Memo(Button)>
+          </Button>
         </div>
         <div
           className="tab-button-wrapper"
           id="threads-list-unread-button"
         >
-          <Memo(Button)
+          <Button
             className="Button___large Margined"
             hasDot={true}
             isActive={false}
             onClick={[Function]}
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Unreads"
               id="threading.filters.unreads"
             />
-          </Memo(Button)>
+          </Button>
         </div>
       </React.Fragment>
     }
@@ -51,7 +51,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
           placement="top"
           title="Mark all as read"
         >
-          <Memo(Button)
+          <Button
             className="Button___large Button___icon"
             id="threads-list__mark-all-as-read"
             marginTop={true}
@@ -64,7 +64,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
                 size={18}
               />
             </span>
-          </Memo(Button)>
+          </Button>
         </WithTooltip>
       </div>
     }
@@ -73,7 +73,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
     className="threads"
     data-testid="threads_list"
   >
-    <Memo(VirtualizedThreadList)
+    <VirtualizedThreadList
       addNoMoreResultsItem={false}
       ids={
         Array [

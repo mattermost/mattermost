@@ -8,7 +8,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/compliance/data_retention_settings"
       />
@@ -242,7 +242,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Save"
           id="admin.data_retention.custom_policy.save"
         />
@@ -251,7 +251,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       onClick={[Function]}
       saving={false}
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/compliance/data_retention_settings"
     >
@@ -259,7 +259,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         defaultMessage="Cancel"
         id="admin.data_retention.custom_policy.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
   </div>
 </div>
 `;

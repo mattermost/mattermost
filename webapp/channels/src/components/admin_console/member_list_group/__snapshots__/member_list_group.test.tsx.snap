@@ -9,7 +9,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       Array [
         Object {
           "field": "name",
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.member_list_group.name"
           />,
@@ -22,7 +22,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
     onSearch={[MockFunction]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No users found"
         id="admin.member_list_group.notFound"
       />
@@ -528,7 +528,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       Array [
         Object {
           "field": "name",
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.member_list_group.name"
           />,
@@ -541,7 +541,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
     onSearch={[MockFunction]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No users found"
         id="admin.member_list_group.notFound"
       />

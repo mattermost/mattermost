@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/sidebar/sidebar_category/sidebar_category_menu should match snapshot and contain correct buttons 1`] = `
-<Memo(SidebarCategoryGenericMenu)
+<SidebarCategoryGenericMenu
   id="test_category_id"
 >
   <MarkAsUnreadItem
@@ -13,7 +13,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
   <MenuItem
     id="mute-test_category_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Category"
         id="sidebar_left.sidebar_category_menu.muteCategory"
       />
@@ -29,7 +29,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     aria-haspopup={true}
     id="rename-test_category_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Rename Category"
         id="sidebar_left.sidebar_category_menu.renameCategory"
       />
@@ -46,7 +46,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     id="delete-test_category_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Delete Category"
         id="sidebar_left.sidebar_category_menu.deleteCategory"
       />
@@ -62,7 +62,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
   <SubMenu
     id="sortChannels-test_category_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Sort"
         id="sidebar.sort"
       />
@@ -76,7 +76,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     menuId="sortChannels-test_category_id-menu"
     trailingElements={
       <React.Fragment>
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Alphabetically"
           id="user.settings.sidebar.sortAlpha"
         />
@@ -89,7 +89,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     <MenuItem
       id="sortAplhabetical-test_category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Alphabetically"
           id="user.settings.sidebar.sortAlpha"
         />
@@ -104,7 +104,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     <MenuItem
       id="sortByMostRecent-test_category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Recent Activity"
           id="sidebar.sortedByRecencyLabel"
         />
@@ -115,7 +115,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
     <MenuItem
       id="sortManual-test_category_id"
       labels={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Manually"
           id="sidebar.sortedManually"
         />
@@ -128,5 +128,5 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
   <CreateNewCategoryMenuItem
     id="test_category_id"
   />
-</Memo(SidebarCategoryGenericMenu)>
+</SidebarCategoryGenericMenu>
 `;

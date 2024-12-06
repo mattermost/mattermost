@@ -232,7 +232,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 <div
                   data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts"
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="Guests and members can not use channel mentions without the ability to create posts."
                     id="admin.channel_settings.channel_moderation.channelMentions.disabledBothDueToCreatePosts"
                   />
@@ -284,7 +284,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <Memo(CheckboxCheckedIcon) />
+      <CheckboxCheckedIcon />
     </button>
   </td>
   <td>
@@ -294,7 +294,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <Memo(CheckboxCheckedIcon) />
+      <CheckboxCheckedIcon />
     </button>
   </td>
 </tr>
@@ -328,7 +328,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <Memo(CheckboxCheckedIcon) />
+      <CheckboxCheckedIcon />
     </button>
   </td>
 </tr>
@@ -401,7 +401,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 <div
                   data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts"
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="Guests can not use channel mentions without the ability to create posts."
                     id="admin.channel_settings.channel_moderation.channelMentions.disabledGuestsDueToCreatePosts"
                   />
@@ -568,7 +568,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 <div
                   data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts"
                 >
-                  <Memo(MemoizedFormattedMessage)
+                  <MemoizedFormattedMessage
                     defaultMessage="Members can not use channel mentions without the ability to create posts."
                     id="admin.channel_settings.channel_moderation.channelMentions.disabledMemberDueToCreatePosts"
                   />

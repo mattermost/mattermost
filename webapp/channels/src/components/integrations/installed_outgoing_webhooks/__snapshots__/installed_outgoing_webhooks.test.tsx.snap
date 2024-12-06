@@ -228,19 +228,19 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
   addButtonId="addOutgoingWebhook"
   addLink="/test/integrations/outgoing_webhooks/add"
   addText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Add Outgoing Webhook"
       id="installed_outgoing_webhooks.add"
     />
   }
   emptyText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="No outgoing webhooks found"
       id="installed_outgoing_webhooks.empty"
     />
   }
   emptyTextSearch={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="No outgoing webhooks match <b>{searchTerm}</b>"
       id="installed_outgoing_webhooks.search.empty"
       values={
@@ -251,13 +251,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
     />
   }
   header={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Installed Outgoing Webhooks"
       id="installed_outgoing_webhooks.header"
     />
   }
   helpText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Use outgoing webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations."
       id="installed_outgoing_webhooks.help"
       values={
@@ -266,7 +266,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
             href="https://mattermost.com/marketplace"
             location="installed_outgoing_webhooks"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="App Directory"
               id="installed_outgoing_webhooks.help.appDirectory"
             />
@@ -275,7 +275,7 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
             href="https://mattermost.com/pl/setup-outgoing-webhooks"
             location="installed_outgoing_webhooks"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Build your own"
               id="installed_outgoing_webhooks.help.buildYourOwn"
             />

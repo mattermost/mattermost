@@ -62,25 +62,25 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
           addLink="/test/integrations/outgoing-oauth2-connections/add"
           addText="Add Outgoing OAuth Connection"
           emptyText={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No Outgoing OAuth Connections found"
               id="installed_outgoing_oauth_connections.empty"
             />
           }
           emptyTextSearch={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No Outgoing OAuth Connections match {searchTerm}"
               id="installed_outgoing_oauth_connections.emptySearch"
             />
           }
           header={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Outgoing OAuth Connections"
               id="installed_outgoing_oauth_connections.header"
             />
           }
           helpText={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Create {outgoingOauthConnections} to securely integrate bots and third-party apps with Mattermost."
               id="installed_outgoing_oauth_connections.help"
               values={
@@ -89,7 +89,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                     href="https://mattermost.com/pl/setup-oauth-2.0"
                     location="installed_outgoing_oauth_connections"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Outgoing OAuth Connections"
                       id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                     />
@@ -108,14 +108,14 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
               className="backstage-header"
             >
               <h1>
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="Outgoing OAuth Connections"
                   id="installed_outgoing_oauth_connections.header"
                 >
                   <span>
                     Outgoing OAuth Connections
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
               </h1>
               <Link
                 className="add-link"
@@ -169,7 +169,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
             <span
               className="backstage-list__help"
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Create {outgoingOauthConnections} to securely integrate bots and third-party apps with Mattermost."
                 id="installed_outgoing_oauth_connections.help"
                 values={
@@ -178,7 +178,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                       href="https://mattermost.com/pl/setup-oauth-2.0"
                       location="installed_outgoing_oauth_connections"
                     >
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Outgoing OAuth Connections"
                         id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                       />
@@ -200,19 +200,19 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                       rel="noopener noreferrer"
                       target="_blank"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="Outgoing OAuth Connections"
                         id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                       >
                         <span>
                           Outgoing OAuth Connections
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </a>
                   </ForwardRef>
                    to securely integrate bots and third-party apps with Mattermost.
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </span>
             <div
               className="backstage-list"
@@ -253,7 +253,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
               <div
                 className="backstage-footer__cell"
               >
-                <FormattedMessage
+                <MemoizedFormattedMessage
                   defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
                   id="backstage_list.paginatorCount"
                   values={
@@ -267,19 +267,19 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   <span>
                     0 - 0 of 0
                   </span>
-                </FormattedMessage>
+                </MemoizedFormattedMessage>
                 <button
                   aria-label="Previous"
                   className="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
                   onClick={[Function]}
                   type="button"
                 >
-                  <Memo(PreviousIcon)>
+                  <PreviousIcon>
                     <i
                       className="icon icon-chevron-left"
                       title="Previous Icon"
                     />
-                  </Memo(PreviousIcon)>
+                  </PreviousIcon>
                 </button>
                 <button
                   aria-label="Next"
@@ -287,12 +287,12 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                   onClick={[Function]}
                   type="button"
                 >
-                  <Memo(NextIcon)>
+                  <NextIcon>
                     <i
                       className="icon icon-chevron-right"
                       title="Next Icon"
                     />
-                  </Memo(NextIcon)>
+                  </NextIcon>
                 </button>
               </div>
             </div>

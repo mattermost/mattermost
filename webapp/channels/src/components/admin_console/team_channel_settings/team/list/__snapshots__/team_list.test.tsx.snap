@@ -10,7 +10,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.team_settings.team_list.nameHeader"
           />,
@@ -19,7 +19,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         Object {
           "field": "management",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Management"
             id="admin.team_settings.team_list.mappingHeader"
           />,
@@ -45,20 +45,20 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               "allow_open_invite",
               "invite_only",
             ],
-            "name": <Memo(MemoizedFormattedMessage)
+            "name": <MemoizedFormattedMessage
               defaultMessage="Management"
               id="admin.team_settings.team_list.mappingHeader"
             />,
             "values": Object {
               "allow_open_invite": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Anyone Can Join"
                   id="admin.team_settings.team_row.managementMethod.anyoneCanJoin"
                 />,
                 "value": false,
               },
               "invite_only": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Invite Only"
                   id="admin.team_settings.team_row.managementMethod.inviteOnly"
                 />,
@@ -74,7 +74,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
     onSearch={[Function]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No teams found"
         id="admin.team_settings.team_list.no_teams_found"
       />
@@ -91,7 +91,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/123"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -102,7 +102,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DNManagement"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -157,7 +157,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.team_settings.team_list.nameHeader"
           />,
@@ -166,7 +166,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
         Object {
           "field": "management",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Management"
             id="admin.team_settings.team_list.mappingHeader"
           />,
@@ -192,20 +192,20 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               "allow_open_invite",
               "invite_only",
             ],
-            "name": <Memo(MemoizedFormattedMessage)
+            "name": <MemoizedFormattedMessage
               defaultMessage="Management"
               id="admin.team_settings.team_list.mappingHeader"
             />,
             "values": Object {
               "allow_open_invite": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Anyone Can Join"
                   id="admin.team_settings.team_row.managementMethod.anyoneCanJoin"
                 />,
                 "value": false,
               },
               "invite_only": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Invite Only"
                   id="admin.team_settings.team_row.managementMethod.inviteOnly"
                 />,
@@ -221,7 +221,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
     onSearch={[Function]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No teams found"
         id="admin.team_settings.team_list.no_teams_found"
       />
@@ -238,7 +238,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id0"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -249,7 +249,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN0Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -289,7 +289,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id1"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -300,7 +300,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN1Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -340,7 +340,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id2"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -351,7 +351,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN2Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -391,7 +391,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id3"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -402,7 +402,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN3Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -442,7 +442,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id4"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -453,7 +453,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN4Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -493,7 +493,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id5"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -504,7 +504,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN5Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -544,7 +544,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id6"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -555,7 +555,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN6Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -595,7 +595,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id7"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -606,7 +606,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN7Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -646,7 +646,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id8"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -657,7 +657,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN8Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />
@@ -697,7 +697,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               <Link
                 to="/admin_console/user_management/teams/id9"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.team_settings.team_row.configure"
                 />
@@ -708,7 +708,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
               className="TeamList_managementText"
               data-testid="DN9Management"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Invite Only"
                 id="admin.team_settings.team_row.managementMethod.inviteOnly"
               />

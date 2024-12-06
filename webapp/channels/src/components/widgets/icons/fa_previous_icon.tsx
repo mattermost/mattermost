@@ -20,4 +20,4 @@ const PreviousIcon = ({additionalClassName}: Props) => {
     );
 };
 
-export default React.memo(PreviousIcon);
+export default PreviousIcon;

@@ -51,4 +51,4 @@ function FilterCheckbox({
     );
 }
 
-export default React.memo(FilterCheckbox);
+export default FilterCheckbox;

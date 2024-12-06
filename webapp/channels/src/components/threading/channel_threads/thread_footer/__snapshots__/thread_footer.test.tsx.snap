@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/threading/channel_threads/thread_footer should match snapshot when a single message is followed 1`] = `
-<Memo(ThreadFooter)
+<ThreadFooter
   threadId="singlemessageid"
 >
   <div
@@ -10,12 +10,12 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
     <div
       className="indicator"
     />
-    <Memo(FollowButton)
+    <FollowButton
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -32,14 +32,14 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
             Following
           </span>
         </button>
-      </Memo(Button)>
-    </Memo(FollowButton)>
+      </Button>
+    </FollowButton>
   </div>
-</Memo(ThreadFooter)>
+</ThreadFooter>
 `;
 
 exports[`components/threading/channel_threads/thread_footer should report total number of replies 1`] = `
-<Memo(ThreadFooter)
+<ThreadFooter
   threadId="postthreadid"
 >
   <div
@@ -48,7 +48,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
     <div
       className="indicator"
     />
-    <Memo(Avatars)
+    <Avatars
       size="sm"
       userIds={
         Array [
@@ -161,7 +161,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -194,7 +194,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -299,7 +299,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -332,7 +332,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -437,7 +437,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -470,7 +470,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -549,7 +549,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 ]
               }
             >
-              <Memo(Avatar)
+              <Avatar
                 onBlur={[Function]}
                 onClick={null}
                 onFocus={[Function]}
@@ -579,13 +579,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   }
                   tabIndex={0}
                 />
-              </Memo(Avatar)>
+              </Avatar>
             </OverlayTrigger>
           </OverlayTrigger>
         </WithTooltip>
       </div>
-    </Memo(Avatars)>
-    <Memo(Button)
+    </Avatars>
+    <Button
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -616,7 +616,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         <span
           className="Button_label"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
             id="threading.numReplies"
             values={
@@ -628,16 +628,16 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             <span>
               9 replies
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </span>
       </button>
-    </Memo(Button)>
-    <Memo(FollowButton)
+    </Button>
+    <FollowButton
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -654,8 +654,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             Following
           </span>
         </button>
-      </Memo(Button)>
-    </Memo(FollowButton)>
+      </Button>
+    </FollowButton>
     <Connect(injectIntl(Timestamp))
       day="numeric"
       units={
@@ -756,22 +756,22 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <span
             className="Timestamp separated alt-visible"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Last reply {formatted}"
               id="threading.footer.lastReplyAt"
               values={
                 Object {
-                  "formatted": <Memo(SemanticTime)
+                  "formatted": <SemanticTime
                     value={2019-04-01T23:31:44.000Z}
                   >
                     April 1, 2019
-                  </Memo(SemanticTime)>,
+                  </SemanticTime>,
                 }
               }
             >
               <span>
                 Last reply 
-                <Memo(SemanticTime)
+                <SemanticTime
                   key=".$.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
@@ -780,19 +780,19 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   >
                     April 1, 2019
                   </time>
-                </Memo(SemanticTime)>
+                </SemanticTime>
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </Timestamp>
       </injectIntl(Timestamp)>
     </Connect(injectIntl(Timestamp))>
   </div>
-</Memo(ThreadFooter)>
+</ThreadFooter>
 `;
 
 exports[`components/threading/channel_threads/thread_footer should show unread indicator 1`] = `
-<Memo(ThreadFooter)
+<ThreadFooter
   threadId="postthreadid"
 >
   <div
@@ -802,7 +802,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
       id="threadFooterIndicator"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}"
           id="threading.numNewMessages"
           values={
@@ -896,7 +896,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         </OverlayTrigger>
       </OverlayTrigger>
     </WithTooltip>
-    <Memo(Avatars)
+    <Avatars
       size="sm"
       userIds={
         Array [
@@ -1009,7 +1009,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -1042,7 +1042,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -1147,7 +1147,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -1180,7 +1180,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -1285,7 +1285,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       ]
                     }
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       onBlur={[Function]}
                       onClick={null}
                       onFocus={[Function]}
@@ -1318,7 +1318,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                         }
                         tabIndex={-1}
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </OverlayTrigger>
                 </OverlayTrigger>
               </WithTooltip>
@@ -1397,7 +1397,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 ]
               }
             >
-              <Memo(Avatar)
+              <Avatar
                 onBlur={[Function]}
                 onClick={null}
                 onFocus={[Function]}
@@ -1427,13 +1427,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   }
                   tabIndex={0}
                 />
-              </Memo(Avatar)>
+              </Avatar>
             </OverlayTrigger>
           </OverlayTrigger>
         </WithTooltip>
       </div>
-    </Memo(Avatars)>
-    <Memo(Button)
+    </Avatars>
+    <Button
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -1464,7 +1464,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         <span
           className="Button_label"
         >
-          <FormattedMessage
+          <MemoizedFormattedMessage
             defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
             id="threading.numReplies"
             values={
@@ -1476,16 +1476,16 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             <span>
               9 replies
             </span>
-          </FormattedMessage>
+          </MemoizedFormattedMessage>
         </span>
       </button>
-    </Memo(Button)>
-    <Memo(FollowButton)
+    </Button>
+    <FollowButton
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -1502,8 +1502,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             Following
           </span>
         </button>
-      </Memo(Button)>
-    </Memo(FollowButton)>
+      </Button>
+    </FollowButton>
     <Connect(injectIntl(Timestamp))
       day="numeric"
       units={
@@ -1604,22 +1604,22 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <span
             className="Timestamp separated alt-visible"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="Last reply {formatted}"
               id="threading.footer.lastReplyAt"
               values={
                 Object {
-                  "formatted": <Memo(SemanticTime)
+                  "formatted": <SemanticTime
                     value={2019-04-01T23:31:44.000Z}
                   >
                     April 1, 2019
-                  </Memo(SemanticTime)>,
+                  </SemanticTime>,
                 }
               }
             >
               <span>
                 Last reply 
-                <Memo(SemanticTime)
+                <SemanticTime
                   key=".$.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
@@ -1628,13 +1628,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   >
                     April 1, 2019
                   </time>
-                </Memo(SemanticTime)>
+                </SemanticTime>
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </span>
         </Timestamp>
       </injectIntl(Timestamp)>
     </Connect(injectIntl(Timestamp))>
   </div>
-</Memo(ThreadFooter)>
+</ThreadFooter>
 `;

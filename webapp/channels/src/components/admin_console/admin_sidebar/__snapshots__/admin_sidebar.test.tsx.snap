@@ -4,7 +4,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -61,7 +61,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -84,7 +84,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -141,7 +141,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -165,7 +165,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Groups"
                   id="admin.sidebar.groups"
                 />
@@ -189,7 +189,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
@@ -208,7 +208,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -232,7 +232,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
@@ -251,7 +251,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -275,7 +275,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="AD/LDAP"
                   id="admin.sidebar.ldap"
                 />
@@ -299,7 +299,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SAML 2.0"
                   id="admin.sidebar.saml"
                 />
@@ -323,7 +323,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="OpenID Connect"
                   id="admin.sidebar.openid"
                 />
@@ -347,7 +347,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Guest Access"
                   id="admin.sidebar.guest_access"
                 />
@@ -366,7 +366,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -377,7 +377,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -401,7 +401,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Compliance"
                 id="admin.sidebar.compliance"
               />
@@ -425,7 +425,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Data Retention Policy"
                   id="admin.sidebar.dataRetentionPolicy"
                 />
@@ -449,7 +449,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Compliance Export"
                   id="admin.sidebar.complianceExport"
                 />
@@ -473,7 +473,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Custom Terms of Service"
                   id="admin.sidebar.customTermsOfService"
                 />
@@ -491,7 +491,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -548,7 +548,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -559,7 +559,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -578,7 +578,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -589,7 +589,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -600,7 +600,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -611,7 +611,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -622,7 +622,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -641,7 +641,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -652,7 +652,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -663,7 +663,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -674,7 +674,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -685,7 +685,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -704,7 +704,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -715,7 +715,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -726,7 +726,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -737,7 +737,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -748,7 +748,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -759,7 +759,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -770,7 +770,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -781,7 +781,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -792,7 +792,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -803,7 +803,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -814,7 +814,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -825,7 +825,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -844,7 +844,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -855,7 +855,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -866,7 +866,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -877,7 +877,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -888,7 +888,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -899,7 +899,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -910,7 +910,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -921,7 +921,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -932,7 +932,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -943,7 +943,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -962,7 +962,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -973,7 +973,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -984,7 +984,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -995,7 +995,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -1006,7 +1006,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -1017,7 +1017,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="authentication.gitlab"
               name="authentication/gitlab"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
                 />
@@ -1036,7 +1036,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -1047,7 +1047,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -1071,7 +1071,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -1082,7 +1082,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -1093,7 +1093,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -1104,7 +1104,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -1115,7 +1115,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -1134,7 +1134,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -1145,7 +1145,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -1156,7 +1156,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -1167,7 +1167,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />
@@ -1185,7 +1185,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -1242,7 +1242,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -1253,7 +1253,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -1272,7 +1272,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -1283,7 +1283,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -1294,7 +1294,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -1305,7 +1305,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -1316,7 +1316,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -1335,7 +1335,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -1346,7 +1346,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -1357,7 +1357,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -1368,7 +1368,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -1379,7 +1379,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -1398,7 +1398,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -1409,7 +1409,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -1420,7 +1420,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -1431,7 +1431,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -1442,7 +1442,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -1453,7 +1453,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -1464,7 +1464,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -1475,7 +1475,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -1486,7 +1486,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -1497,7 +1497,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -1508,7 +1508,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -1519,7 +1519,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -1538,7 +1538,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -1549,7 +1549,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -1560,7 +1560,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -1571,7 +1571,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -1582,7 +1582,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -1593,7 +1593,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -1604,7 +1604,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -1615,7 +1615,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -1626,7 +1626,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -1637,7 +1637,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -1656,7 +1656,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -1667,7 +1667,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -1678,7 +1678,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -1689,7 +1689,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -1700,7 +1700,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -1711,7 +1711,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="authentication.gitlab"
               name="authentication/gitlab"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
                 />
@@ -1730,7 +1730,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -1741,7 +1741,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -1765,7 +1765,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -1776,7 +1776,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -1787,7 +1787,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -1798,7 +1798,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -1809,7 +1809,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -1828,7 +1828,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -1839,7 +1839,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -1850,7 +1850,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -1861,7 +1861,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />
@@ -1879,7 +1879,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -1934,7 +1934,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -1991,7 +1991,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -2002,7 +2002,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -2021,7 +2021,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -2032,7 +2032,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -2043,7 +2043,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -2054,7 +2054,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -2065,7 +2065,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -2084,7 +2084,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -2095,7 +2095,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -2106,7 +2106,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -2117,7 +2117,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -2128,7 +2128,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -2147,7 +2147,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -2158,7 +2158,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -2169,7 +2169,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -2180,7 +2180,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -2191,7 +2191,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -2202,7 +2202,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -2213,7 +2213,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -2224,7 +2224,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -2235,7 +2235,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -2246,7 +2246,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -2257,7 +2257,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -2268,7 +2268,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -2287,7 +2287,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -2298,7 +2298,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -2309,7 +2309,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -2320,7 +2320,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -2331,7 +2331,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -2342,7 +2342,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -2353,7 +2353,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -2364,7 +2364,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -2375,7 +2375,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -2386,7 +2386,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -2405,7 +2405,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -2416,7 +2416,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -2427,7 +2427,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -2438,7 +2438,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -2449,7 +2449,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -2460,7 +2460,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="authentication.gitlab"
               name="authentication/gitlab"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
                 />
@@ -2479,7 +2479,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -2490,7 +2490,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -2514,7 +2514,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -2525,7 +2525,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -2536,7 +2536,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -2547,7 +2547,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -2558,7 +2558,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -2577,7 +2577,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -2588,7 +2588,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -2599,7 +2599,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -2610,7 +2610,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />
@@ -2628,7 +2628,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -2685,7 +2685,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -2696,7 +2696,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -2715,7 +2715,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -2726,7 +2726,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -2737,7 +2737,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -2748,7 +2748,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -2759,7 +2759,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -2778,7 +2778,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -2789,7 +2789,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -2800,7 +2800,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -2811,7 +2811,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -2822,7 +2822,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -2841,7 +2841,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -2852,7 +2852,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -2863,7 +2863,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -2874,7 +2874,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -2885,7 +2885,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -2896,7 +2896,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -2907,7 +2907,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -2918,7 +2918,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -2929,7 +2929,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -2940,7 +2940,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -2951,7 +2951,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -2962,7 +2962,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -2981,7 +2981,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -2992,7 +2992,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -3003,7 +3003,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -3014,7 +3014,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -3025,7 +3025,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -3036,7 +3036,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -3047,7 +3047,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -3058,7 +3058,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -3069,7 +3069,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -3080,7 +3080,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -3099,7 +3099,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -3110,7 +3110,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -3121,7 +3121,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -3132,7 +3132,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -3143,7 +3143,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -3154,7 +3154,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="authentication.gitlab"
               name="authentication/gitlab"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
                 />
@@ -3173,7 +3173,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -3184,7 +3184,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -3208,7 +3208,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -3219,7 +3219,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -3230,7 +3230,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -3241,7 +3241,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -3252,7 +3252,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -3271,7 +3271,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -3282,7 +3282,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -3293,7 +3293,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -3304,7 +3304,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />
@@ -3322,7 +3322,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -3379,7 +3379,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -3390,7 +3390,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -3409,7 +3409,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -3420,7 +3420,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -3431,7 +3431,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -3442,7 +3442,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -3453,7 +3453,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -3472,7 +3472,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -3483,7 +3483,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -3494,7 +3494,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.groups"
               name="user_management/groups"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Groups"
                   id="admin.sidebar.groups"
                 />
@@ -3505,7 +3505,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -3516,7 +3516,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -3527,7 +3527,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -3538,7 +3538,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="user_management.system_roles"
               name="user_management/system_roles"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
@@ -3557,7 +3557,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -3568,7 +3568,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -3579,7 +3579,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -3590,7 +3590,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.elasticsearch"
               name="environment/elasticsearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Elasticsearch"
                   id="admin.sidebar.elasticsearch"
                 />
@@ -3601,7 +3601,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -3612,7 +3612,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -3623,7 +3623,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -3634,7 +3634,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -3645,7 +3645,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.high_availability"
               name="environment/high_availability"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="High Availability"
                   id="admin.sidebar.highAvailability"
                 />
@@ -3656,7 +3656,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.cache_settings"
               name="environment/cache_settings"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Cache Settings"
                   id="admin.cacheSettings.title"
                 />
@@ -3667,7 +3667,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -3678,7 +3678,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -3689,7 +3689,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -3700,7 +3700,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -3711,7 +3711,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -3730,7 +3730,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -3741,7 +3741,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -3752,7 +3752,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -3763,7 +3763,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -3774,7 +3774,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -3785,7 +3785,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.announcement_banner"
               name="site_config/announcement_banner"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
@@ -3796,7 +3796,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -3807,7 +3807,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -3818,7 +3818,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -3829,7 +3829,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -3840,7 +3840,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -3859,7 +3859,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -3870,7 +3870,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -3881,7 +3881,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -3892,7 +3892,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -3903,7 +3903,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -3914,7 +3914,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.ldap"
               name="authentication/ldap"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="AD/LDAP"
                   id="admin.sidebar.ldap"
                 />
@@ -3925,7 +3925,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.saml"
               name="authentication/saml"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SAML 2.0"
                   id="admin.sidebar.saml"
                 />
@@ -3936,7 +3936,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.oauth"
               name="authentication/oauth"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="OAuth 2.0"
                   id="admin.sidebar.oauth"
                 />
@@ -3947,7 +3947,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.openid"
               name="authentication/openid"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="OpenID Connect"
                   id="admin.sidebar.openid"
                 />
@@ -3958,7 +3958,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="authentication.guest_access"
               name="authentication/guest_access"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Guest Access"
                   id="admin.sidebar.guest_access"
                 />
@@ -3977,7 +3977,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -3988,7 +3988,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -4012,7 +4012,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -4023,7 +4023,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -4034,7 +4034,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -4045,7 +4045,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -4056,7 +4056,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -4075,7 +4075,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Compliance"
                 id="admin.sidebar.compliance"
               />
@@ -4086,7 +4086,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="compliance.data_retention"
               name="compliance/data_retention_settings"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Data Retention Policies"
                   id="admin.sidebar.dataRetentionSettingsPolicies"
                 />
@@ -4097,7 +4097,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="compliance.message_export"
               name="compliance/export"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Compliance Export"
                   id="admin.sidebar.complianceExport"
                 />
@@ -4108,7 +4108,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="compliance.audits"
               name="compliance/monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Compliance Monitoring"
                   id="admin.sidebar.complianceMonitoring"
                 />
@@ -4119,7 +4119,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="compliance.custom_terms_of_service"
               name="compliance/custom_terms_of_service"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Custom Terms of Service"
                   id="admin.sidebar.customTermsOfService"
                 />
@@ -4138,7 +4138,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -4149,7 +4149,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -4160,7 +4160,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -4171,7 +4171,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />
@@ -4189,7 +4189,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
 <div
   className="admin-sidebar"
 >
-  <Connect(Component) />
+  <Connect(SidebarHeader) />
   <div
     className="filter-container"
   >
@@ -4246,7 +4246,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="About"
                 id="admin.sidebar.about"
               />
@@ -4257,7 +4257,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="about.license"
               name="about/license"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
                 />
@@ -4276,7 +4276,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Reporting"
                 id="admin.sidebar.reporting"
               />
@@ -4287,7 +4287,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="reporting.workspace_optimization"
               name="reporting/workspace_optimization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Workspace Optimization"
                   id="admin.sidebar.workspaceOptimization"
                 />
@@ -4298,7 +4298,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="reporting.system_analytics"
               name="reporting/system_analytics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Site Statistics"
                   id="admin.sidebar.siteStatistics"
                 />
@@ -4309,7 +4309,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="reporting.team_statistics"
               name="reporting/team_statistics"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Team Statistics"
                   id="admin.sidebar.teamStatistics"
                 />
@@ -4320,7 +4320,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="reporting.server_logs"
               name="reporting/server_logs"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Server Logs"
                   id="admin.sidebar.logs"
                 />
@@ -4339,7 +4339,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="User Management"
                 id="admin.sidebar.userManagement"
               />
@@ -4350,7 +4350,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="user_management.system_users"
               name="user_management/users"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users"
                   id="admin.sidebar.users"
                 />
@@ -4374,7 +4374,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Groups"
                   id="admin.sidebar.groups"
                 />
@@ -4385,7 +4385,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="user_management.teams"
               name="user_management/teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.sidebar.teams"
                 />
@@ -4396,7 +4396,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="user_management.channel"
               name="user_management/channels"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Channels"
                   id="admin.sidebar.channels"
                 />
@@ -4407,7 +4407,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="user_management.permissions"
               name="user_management/permissions/"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
                 />
@@ -4431,7 +4431,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Delegated Granular Administration"
                   id="admin.sidebar.systemRoles"
                 />
@@ -4450,7 +4450,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Environment"
                 id="admin.sidebar.environment"
               />
@@ -4461,7 +4461,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.web_server"
               name="environment/web_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
                 />
@@ -4472,7 +4472,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.database"
               name="environment/database"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Database"
                   id="admin.sidebar.database"
                 />
@@ -4483,7 +4483,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.storage"
               name="environment/file_storage"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Storage"
                   id="admin.sidebar.fileStorage"
                 />
@@ -4494,7 +4494,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.image_proxy"
               name="environment/image_proxy"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Image Proxy"
                   id="admin.sidebar.imageProxy"
                 />
@@ -4505,7 +4505,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.smtp"
               name="environment/smtp"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SMTP"
                   id="admin.sidebar.smtp"
                 />
@@ -4516,7 +4516,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.push_notification_server"
               name="environment/push_notification_server"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Push Notification Server"
                   id="admin.sidebar.pushNotificationServer"
                 />
@@ -4527,7 +4527,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.rate_limiting"
               name="environment/rate_limiting"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Rate Limiting"
                   id="admin.sidebar.rateLimiting"
                 />
@@ -4538,7 +4538,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.logging"
               name="environment/logging"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Logging"
                   id="admin.sidebar.logging"
                 />
@@ -4549,7 +4549,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.session_lengths"
               name="environment/session_lengths"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Session Lengths"
                   id="admin.sidebar.sessionLengths"
                 />
@@ -4560,7 +4560,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.metrics"
               name="environment/performance_monitoring"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Performance Monitoring"
                   id="admin.sidebar.metrics"
                 />
@@ -4571,7 +4571,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="environment.developer"
               name="environment/developer"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Developer"
                   id="admin.sidebar.developer"
                 />
@@ -4590,7 +4590,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Site Configuration"
                 id="admin.sidebar.site"
               />
@@ -4601,7 +4601,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.customization"
               name="site_config/customization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Customization"
                   id="admin.sidebar.customization"
                 />
@@ -4612,7 +4612,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.localization"
               name="site_config/localization"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Localization"
                   id="admin.sidebar.localization"
                 />
@@ -4623,7 +4623,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.users_and_teams"
               name="site_config/users_and_teams"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Users and Teams"
                   id="admin.sidebar.usersAndTeams"
                 />
@@ -4634,7 +4634,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.notifications"
               name="environment/notifications"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
                 />
@@ -4658,7 +4658,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="System-wide Notifications"
                   id="admin.sidebar.announcement"
                 />
@@ -4669,7 +4669,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.emoji"
               name="site_config/emoji"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Emoji"
                   id="admin.sidebar.emoji"
                 />
@@ -4680,7 +4680,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.posts"
               name="site_config/posts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Posts"
                   id="admin.sidebar.posts"
                 />
@@ -4691,7 +4691,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.file_sharing_downloads"
               name="site_config/file_sharing_downloads"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="File Sharing and Downloads"
                   id="admin.sidebar.fileSharingDownloads"
                 />
@@ -4702,7 +4702,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.public_links"
               name="site_config/public_links"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Public Links"
                   id="admin.sidebar.publicLinks"
                 />
@@ -4713,7 +4713,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="site.notices"
               name="site_config/notices"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Notices"
                   id="admin.sidebar.notices"
                 />
@@ -4732,7 +4732,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Authentication"
                 id="admin.sidebar.authentication"
               />
@@ -4743,7 +4743,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="authentication.signup"
               name="authentication/signup"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Signup"
                   id="admin.sidebar.signup"
                 />
@@ -4754,7 +4754,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="authentication.email"
               name="authentication/email"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Email"
                   id="admin.sidebar.email"
                 />
@@ -4765,7 +4765,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="authentication.password"
               name="authentication/password"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Password"
                   id="admin.sidebar.password"
                 />
@@ -4776,7 +4776,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="authentication.mfa"
               name="authentication/mfa"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="MFA"
                   id="admin.sidebar.mfa"
                 />
@@ -4800,7 +4800,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="AD/LDAP"
                   id="admin.sidebar.ldap"
                 />
@@ -4824,7 +4824,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="SAML 2.0"
                   id="admin.sidebar.saml"
                 />
@@ -4835,7 +4835,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="authentication.oauth"
               name="authentication/oauth"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="OAuth 2.0"
                   id="admin.sidebar.oauth"
                 />
@@ -4859,7 +4859,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="OpenID Connect"
                   id="admin.sidebar.openid"
                 />
@@ -4883,7 +4883,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Guest Access"
                   id="admin.sidebar.guest_access"
                 />
@@ -4902,7 +4902,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Plugins"
                 id="admin.sidebar.plugins"
               />
@@ -4913,7 +4913,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="plugins.plugin_management"
               name="plugins/plugin_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Plugin Management"
                   id="admin.plugins.pluginManagement"
                 />
@@ -4937,7 +4937,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Integrations"
                 id="admin.sidebar.integrations"
               />
@@ -4948,7 +4948,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="integrations.integration_management"
               name="integrations/integration_management"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Integration Management"
                   id="admin.integrations.integrationManagement"
                 />
@@ -4959,7 +4959,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="integrations.bot_accounts"
               name="integrations/bot_accounts"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bot Accounts"
                   id="admin.integrations.botAccounts"
                 />
@@ -4970,7 +4970,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="integrations.gif"
               name="integrations/gif"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="GIF"
                   id="admin.sidebar.gif"
                 />
@@ -4981,7 +4981,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="integrations.cors"
               name="integrations/cors"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="CORS"
                   id="admin.sidebar.cors"
                 />
@@ -5000,7 +5000,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Compliance"
                 id="admin.sidebar.compliance"
               />
@@ -5024,7 +5024,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Data Retention Policy"
                   id="admin.sidebar.dataRetentionPolicy"
                 />
@@ -5048,7 +5048,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Compliance Export"
                   id="admin.sidebar.complianceExport"
                 />
@@ -5072,7 +5072,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 />
               }
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Custom Terms of Service"
                   id="admin.sidebar.customTermsOfService"
                 />
@@ -5091,7 +5091,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
             parentLink="/admin_console"
             sectionClass=""
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Experimental"
                 id="admin.sidebar.experimental"
               />
@@ -5102,7 +5102,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="experimental.experimental_features"
               name="experimental/features"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features"
                   id="admin.sidebar.experimentalFeatures"
                 />
@@ -5113,7 +5113,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="experimental.feature_flags"
               name="experimental/feature_flags"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
@@ -5124,7 +5124,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               key="experimental.bleve"
               name="experimental/blevesearch"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Bleve"
                   id="admin.sidebar.blevesearch"
                 />

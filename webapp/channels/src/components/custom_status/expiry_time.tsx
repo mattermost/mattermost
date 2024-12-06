@@ -78,4 +78,4 @@ ExpiryTime.defaultProps = {
     withinBrackets: false,
 };
 
-export default React.memo(ExpiryTime);
+export default ExpiryTime;

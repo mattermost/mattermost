@@ -39,4 +39,4 @@ const ColorSetting = (props: Props) => {
     );
 };
 
-export default React.memo(ColorSetting);
+export default ColorSetting;

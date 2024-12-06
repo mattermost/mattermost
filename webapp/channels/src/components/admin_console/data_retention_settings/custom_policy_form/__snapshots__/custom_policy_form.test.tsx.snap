@@ -8,7 +8,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/compliance/data_retention_settings"
       />
@@ -31,13 +31,13 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Give your policy a name and configure retention settings."
                 id="admin.data_retention.custom_policy.form.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Name and retention"
                 id="admin.data_retention.custom_policy.form.title"
               />
@@ -169,20 +169,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add teams"
                 id="admin.data_retention.custom_policy.team_selector.addTeams"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add teams that will follow this retention policy."
                 id="admin.data_retention.custom_policy.team_selector.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Assigned teams"
                 id="admin.data_retention.custom_policy.team_selector.title"
               />
@@ -207,20 +207,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add channels"
                 id="admin.data_retention.custom_policy.channel_selector.addChannels"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add channels that will follow this retention policy."
                 id="admin.data_retention.custom_policy.channel_selector.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Assigned channels"
                 id="admin.data_retention.custom_policy.channel_selector.title"
               />
@@ -245,7 +245,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Save"
           id="admin.data_retention.custom_policy.save"
         />
@@ -254,7 +254,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       onClick={[Function]}
       saving={false}
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/compliance/data_retention_settings"
     >
@@ -262,7 +262,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         defaultMessage="Cancel"
         id="admin.data_retention.custom_policy.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
   </div>
 </div>
 `;
@@ -275,7 +275,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/compliance/data_retention_settings"
       />
@@ -298,13 +298,13 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Give your policy a name and configure retention settings."
                 id="admin.data_retention.custom_policy.form.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Name and retention"
                 id="admin.data_retention.custom_policy.form.title"
               />
@@ -431,20 +431,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add teams"
                 id="admin.data_retention.custom_policy.team_selector.addTeams"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add teams that will follow this retention policy."
                 id="admin.data_retention.custom_policy.team_selector.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Assigned teams"
                 id="admin.data_retention.custom_policy.team_selector.title"
               />
@@ -470,20 +470,20 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         <CardHeader>
           <TitleAndButtonCardHeader
             buttonText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add channels"
                 id="admin.data_retention.custom_policy.channel_selector.addChannels"
               />
             }
             onClick={[Function]}
             subtitle={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Add channels that will follow this retention policy."
                 id="admin.data_retention.custom_policy.channel_selector.subTitle"
               />
             }
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Assigned channels"
                 id="admin.data_retention.custom_policy.channel_selector.title"
               />
@@ -509,7 +509,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
   >
     <SaveButton
       defaultMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Save"
           id="admin.data_retention.custom_policy.save"
         />
@@ -518,7 +518,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       onClick={[Function]}
       saving={false}
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/compliance/data_retention_settings"
     >
@@ -526,7 +526,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
         defaultMessage="Cancel"
         id="admin.data_retention.custom_policy.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
   </div>
 </div>
 `;

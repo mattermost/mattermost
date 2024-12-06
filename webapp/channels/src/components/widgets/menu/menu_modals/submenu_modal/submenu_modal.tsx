@@ -73,4 +73,4 @@ const SubMenuModal = ({
     );
 };
 
-export default React.memo(SubMenuModal);
+export default SubMenuModal;

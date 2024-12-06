@@ -8,7 +8,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -20,7 +20,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -30,13 +30,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -48,13 +48,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -66,11 +66,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -78,7 +78,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -90,13 +90,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -108,11 +108,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -120,7 +120,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -132,13 +132,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -150,13 +150,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -168,13 +168,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -186,13 +186,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -204,7 +204,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -218,7 +218,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Channel Display"
                       id="user.settings.display.channelDisplayTitle"
                     />
@@ -234,7 +234,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Full width"
                         id="user.settings.display.fullScreen"
                       />
@@ -252,7 +252,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Fixed width, centered"
                         id="user.settings.display.fixedWidthCentered"
                       />
@@ -261,7 +261,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Select the width of the center channel."
                       id="user.settings.display.channeldisplaymode"
                     />
@@ -273,7 +273,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Channel Display"
                 id="user.settings.display.channelDisplayTitle"
               />
@@ -283,7 +283,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -295,13 +295,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -313,12 +313,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -338,7 +338,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -361,7 +361,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -373,7 +373,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -383,13 +383,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -401,13 +401,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -419,11 +419,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -431,7 +431,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -443,13 +443,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -461,11 +461,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -473,7 +473,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -485,13 +485,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -503,13 +503,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -521,13 +521,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -539,7 +539,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -553,7 +553,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Click to open threads"
                       id="user.settings.display.clickToReply"
                     />
@@ -569,7 +569,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="On"
                         id="user.settings.sidebar.on"
                       />
@@ -587,7 +587,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Off"
                         id="user.settings.sidebar.off"
                       />
@@ -596,7 +596,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="When enabled, click anywhere on a message to open the reply thread."
                       id="user.settings.display.clickToReplyDescription"
                     />
@@ -608,7 +608,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Click to open threads"
                 id="user.settings.display.clickToReply"
               />
@@ -618,7 +618,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -630,13 +630,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -648,13 +648,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -666,12 +666,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -691,7 +691,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -714,7 +714,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -726,7 +726,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -736,13 +736,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -754,7 +754,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -768,7 +768,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Clock Display"
                       id="user.settings.display.clockDisplay"
                     />
@@ -784,7 +784,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="12-hour clock (example: 4:00 PM)"
                         id="user.settings.display.normalClock"
                       />
@@ -802,7 +802,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="24-hour clock (example: 16:00)"
                         id="user.settings.display.militaryClock"
                       />
@@ -811,7 +811,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Select how you prefer time displayed."
                       id="user.settings.display.preferTime"
                     />
@@ -823,7 +823,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Clock Display"
                 id="user.settings.display.clockDisplay"
               />
@@ -833,7 +833,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -845,11 +845,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -857,7 +857,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -869,13 +869,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -887,11 +887,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -899,7 +899,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -911,13 +911,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -929,13 +929,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -947,13 +947,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -965,13 +965,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -983,13 +983,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -1001,13 +1001,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -1019,12 +1019,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -1044,7 +1044,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -1067,7 +1067,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -1079,7 +1079,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -1089,13 +1089,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -1107,13 +1107,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -1125,11 +1125,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -1137,7 +1137,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -1149,13 +1149,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -1167,11 +1167,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -1179,7 +1179,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -1191,13 +1191,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -1209,7 +1209,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -1223,7 +1223,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Default Appearance of Image Previews"
                       id="user.settings.display.collapseDisplay"
                     />
@@ -1239,7 +1239,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Expanded"
                         id="user.settings.display.collapseOn"
                       />
@@ -1257,7 +1257,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Collapsed"
                         id="user.settings.display.collapseOff"
                       />
@@ -1266,7 +1266,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse."
                       id="user.settings.display.collapseDesc"
                     />
@@ -1278,7 +1278,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Default Appearance of Image Previews"
                 id="user.settings.display.collapseDisplay"
               />
@@ -1288,7 +1288,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -1300,13 +1300,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -1318,13 +1318,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -1336,13 +1336,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -1354,13 +1354,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -1372,12 +1372,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -1397,7 +1397,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -1420,7 +1420,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -1432,7 +1432,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -1442,13 +1442,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -1460,13 +1460,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -1478,11 +1478,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -1490,7 +1490,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -1502,13 +1502,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -1520,11 +1520,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -1532,7 +1532,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -1544,13 +1544,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -1562,13 +1562,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -1580,13 +1580,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -1598,13 +1598,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -1616,13 +1616,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -1634,13 +1634,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -1652,12 +1652,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -1677,7 +1677,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -1700,7 +1700,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -1712,7 +1712,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -1722,13 +1722,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -1740,13 +1740,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -1758,11 +1758,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -1770,7 +1770,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -1782,13 +1782,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -1800,11 +1800,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -1812,7 +1812,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -1824,13 +1824,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -1842,13 +1842,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -1860,13 +1860,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -1878,13 +1878,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -1896,13 +1896,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -1914,12 +1914,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -1939,7 +1939,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -1962,7 +1962,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -1974,7 +1974,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -1984,13 +1984,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -2002,13 +2002,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -2020,11 +2020,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -2032,7 +2032,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -2044,13 +2044,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -2062,11 +2062,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -2074,7 +2074,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -2086,7 +2086,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2100,7 +2100,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Website Link Previews"
                       id="user.settings.display.linkPreviewDisplay"
                     />
@@ -2116,7 +2116,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="On"
                         id="user.settings.display.linkPreviewOn"
                       />
@@ -2134,7 +2134,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Off"
                         id="user.settings.display.linkPreviewOff"
                       />
@@ -2143,7 +2143,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="When available, the first web link in a message will show a preview of the website content below the message."
                       id="user.settings.display.linkPreviewDesc"
                     />
@@ -2155,7 +2155,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Website Link Previews"
                 id="user.settings.display.linkPreviewDisplay"
               />
@@ -2165,7 +2165,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -2177,13 +2177,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -2195,13 +2195,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -2213,13 +2213,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -2231,13 +2231,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -2249,13 +2249,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -2267,12 +2267,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -2292,7 +2292,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -2315,7 +2315,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -2327,7 +2327,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -2337,13 +2337,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -2355,13 +2355,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -2373,11 +2373,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -2385,7 +2385,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -2397,13 +2397,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -2415,11 +2415,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -2427,7 +2427,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -2439,13 +2439,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -2457,13 +2457,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -2475,7 +2475,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={true}
         areAllSectionsInactive={false}
         max={
@@ -2489,7 +2489,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   <legend
                     className="form-legend hidden-label"
                   >
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Message Display"
                       id="user.settings.display.messageDisplayTitle"
                     />
@@ -2505,7 +2505,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Standard"
                         id="user.settings.display.messageDisplayClean"
                       />
@@ -2513,7 +2513,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       <span
                         className="font-weight--normal"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Easy to scan and read."
                           id="user.settings.display.messageDisplayCleanDes"
                         />
@@ -2532,7 +2532,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                         onChange={[Function]}
                         type="radio"
                       />
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Compact"
                         id="user.settings.display.messageDisplayCompact"
                       />
@@ -2540,7 +2540,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       <span
                         className="font-weight--normal"
                       >
-                        <Memo(MemoizedFormattedMessage)
+                        <MemoizedFormattedMessage
                           defaultMessage="Fit as many messages on the screen as we can."
                           id="user.settings.display.messageDisplayCompactDes"
                         />
@@ -2550,7 +2550,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                   </div>
                   <div>
                     <br />
-                    <Memo(MemoizedFormattedMessage)
+                    <MemoizedFormattedMessage
                       defaultMessage="Select how messages in a channel should be displayed."
                       id="user.settings.display.messageDisplayDescription"
                     />
@@ -2562,7 +2562,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             section=""
             submit={[Function]}
             title={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Message Display"
                 id="user.settings.display.messageDisplayTitle"
               />
@@ -2572,7 +2572,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -2584,13 +2584,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -2602,13 +2602,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -2620,13 +2620,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -2638,12 +2638,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -2663,7 +2663,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -2686,7 +2686,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -2698,7 +2698,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -2708,13 +2708,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -2726,13 +2726,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -2744,11 +2744,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -2756,7 +2756,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -2768,13 +2768,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -2786,11 +2786,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -2798,7 +2798,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -2810,13 +2810,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -2828,13 +2828,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -2846,13 +2846,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -2864,13 +2864,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -2882,13 +2882,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -2900,13 +2900,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -2918,12 +2918,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -2943,7 +2943,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -2966,7 +2966,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -2978,7 +2978,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -2988,13 +2988,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -3006,13 +3006,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -3024,11 +3024,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -3036,7 +3036,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -3048,13 +3048,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -3066,11 +3066,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -3078,7 +3078,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -3090,13 +3090,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -3108,13 +3108,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -3126,13 +3126,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -3144,13 +3144,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -3162,13 +3162,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -3180,13 +3180,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -3198,12 +3198,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -3223,7 +3223,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -3246,7 +3246,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -3258,7 +3258,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -3268,13 +3268,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -3286,13 +3286,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -3304,11 +3304,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -3316,7 +3316,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -3328,13 +3328,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -3346,11 +3346,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -3358,7 +3358,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -3370,13 +3370,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -3388,13 +3388,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -3406,13 +3406,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -3424,13 +3424,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -3442,13 +3442,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -3460,13 +3460,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -3478,12 +3478,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -3503,7 +3503,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -3526,7 +3526,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -3538,7 +3538,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -3560,13 +3560,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -3578,13 +3578,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -3596,11 +3596,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -3608,7 +3608,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -3620,13 +3620,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -3638,11 +3638,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -3650,7 +3650,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -3662,13 +3662,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -3680,13 +3680,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -3698,13 +3698,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -3716,13 +3716,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -3734,13 +3734,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -3752,13 +3752,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -3770,12 +3770,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -3795,7 +3795,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -3818,7 +3818,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -3830,7 +3830,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -3840,13 +3840,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -3858,13 +3858,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -3876,11 +3876,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -3888,7 +3888,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -3900,13 +3900,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -3918,11 +3918,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
@@ -3930,7 +3930,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         max={null}
         section="lastactive"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
           />
@@ -3942,13 +3942,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -3960,13 +3960,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -3978,13 +3978,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -3996,13 +3996,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -4014,13 +4014,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -4032,13 +4032,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -4050,12 +4050,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={false}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -4075,7 +4075,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />
@@ -4098,7 +4098,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
     text={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Display Settings"
         id="user.settings.display.title"
       />
@@ -4110,7 +4110,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
     <SettingDesktopHeader
       id="displaySettingsTitle"
       text={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Display Settings"
           id="user.settings.display.title"
         />
@@ -4120,13 +4120,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       className="divider-dark first"
     />
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapsed_reply_threads"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Threaded Discussions"
             id="user.settings.display.collapsedReplyThreadsTitle"
           />
@@ -4138,13 +4138,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="clock"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Clock Display"
             id="user.settings.display.clockDisplay"
           />
@@ -4156,11 +4156,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         describe={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
@@ -4168,7 +4168,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         max={null}
         section="name_format"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Teammate Name Display"
             id="user.settings.display.teammateNameDisplayTitle"
           />
@@ -4180,13 +4180,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="availabilityStatus"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Show user availability on posts"
             id="user.settings.display.availabilityStatusOnPostsTitle"
           />
@@ -4198,13 +4198,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="linkpreview"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
           />
@@ -4216,13 +4216,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="collapse"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Default Appearance of Image Previews"
             id="user.settings.display.collapseDisplay"
           />
@@ -4234,13 +4234,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="message_display"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Message Display"
             id="user.settings.display.messageDisplayTitle"
           />
@@ -4252,13 +4252,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="click_to_reply"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Click to open threads"
             id="user.settings.display.clickToReply"
           />
@@ -4270,13 +4270,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="channel_display_mode"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Channel Display"
             id="user.settings.display.channelDisplayTitle"
           />
@@ -4288,13 +4288,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         max={null}
         section="one_click_reactions_enabled"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
           />
@@ -4306,12 +4306,12 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       />
     </div>
     <div>
-      <Memo(SettingItem)
+      <SettingItem
         active={false}
         areAllSectionsInactive={true}
         describe="English (US)"
         max={
-          <Memo(Connect(injectIntl(ManageLanguage)))
+          <Connect(injectIntl(ManageLanguage))
             adminMode={false}
             locale="en"
             updateSection={[Function]}
@@ -4331,7 +4331,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
         }
         section="languages"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Language"
             id="user.settings.display.language"
           />

@@ -13,7 +13,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   }
 >
-  <Memo(TeamWarningBanner)
+  <TeamWarningBanner
     guests={
       Array [
         Object {
@@ -41,10 +41,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <FormattedList
             value={
               Array [
-                <Memo(Connect(Component))
+                <Connect(AtMention)
                   mentionName="user-0"
                 />,
-                <Memo(Connect(Component))
+                <Connect(AtMention)
                   mentionName="user-1"
                 />,
               ]
@@ -57,7 +57,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       message={false}
       mode="warning"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
           id="channel_invite.invite_team_members.title"
           values={
@@ -102,7 +102,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__title"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
               id="channel_invite.invite_team_members.title"
               values={
@@ -114,7 +114,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               <span>
                 2 users were not selected because they are not a part of this team
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
           <div
             className="AlertBanner__footerMessage"
@@ -123,21 +123,21 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               key=".0"
               value={
                 Array [
-                  <Memo(Connect(Component))
+                  <Connect(AtMention)
                     mentionName="user-0"
                   />,
-                  <Memo(Connect(Component))
+                  <Connect(AtMention)
                     mentionName="user-1"
                   />,
                 ]
               }
             >
               <span>
-                <Connect(Component)
+                <Connect(AtMention)
                   key="user-0"
                   mentionName="user-0"
                 >
-                  <Memo(AtMention)
+                  <AtMention
                     currentUserId="admin1"
                     getMissingMentionedUsers={[Function]}
                     groupsByName={Object {}}
@@ -145,13 +145,13 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(Component)>
+                </Connect(AtMention)>
                  and 
-                <Connect(Component)
+                <Connect(AtMention)
                   key="user-1"
                   mentionName="user-1"
                 >
-                  <Memo(AtMention)
+                  <AtMention
                     currentUserId="admin1"
                     getMissingMentionedUsers={[Function]}
                     groupsByName={Object {}}
@@ -159,7 +159,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(Component)>
+                </Connect(AtMention)>
               </span>
             </FormattedList>
              are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
@@ -167,7 +167,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamWarningBanner)>
+  </TeamWarningBanner>
 </Provider>
 `;
 
@@ -184,7 +184,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   }
 >
-  <Memo(TeamWarningBanner)
+  <TeamWarningBanner
     guests={Array []}
     teamId="team1"
     users={
@@ -215,10 +215,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <FormattedList
             value={
               Array [
-                <Memo(Connect(Component))
+                <Connect(AtMention)
                   mentionName="user-0"
                 />,
-                <Memo(Connect(Component))
+                <Connect(AtMention)
                   mentionName="user-1"
                 />,
               ]
@@ -233,7 +233,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       }
       mode="warning"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
           id="channel_invite.invite_team_members.title"
           values={
@@ -278,7 +278,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__title"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
               id="channel_invite.invite_team_members.title"
               values={
@@ -290,7 +290,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               <span>
                 2 users were not selected because they are not a part of this team
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
           <div
             className="AlertBanner__message"
@@ -300,21 +300,21 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               key=".1"
               value={
                 Array [
-                  <Memo(Connect(Component))
+                  <Connect(AtMention)
                     mentionName="user-0"
                   />,
-                  <Memo(Connect(Component))
+                  <Connect(AtMention)
                     mentionName="user-1"
                   />,
                 ]
               }
             >
               <span>
-                <Connect(Component)
+                <Connect(AtMention)
                   key="user-0"
                   mentionName="user-0"
                 >
-                  <Memo(AtMention)
+                  <AtMention
                     currentUserId="admin1"
                     getMissingMentionedUsers={[Function]}
                     groupsByName={Object {}}
@@ -322,13 +322,13 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(Component)>
+                </Connect(AtMention)>
                  and 
-                <Connect(Component)
+                <Connect(AtMention)
                   key="user-1"
                   mentionName="user-1"
                 >
-                  <Memo(AtMention)
+                  <AtMention
                     currentUserId="admin1"
                     getMissingMentionedUsers={[Function]}
                     groupsByName={Object {}}
@@ -336,7 +336,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(Component)>
+                </Connect(AtMention)>
               </span>
             </FormattedList>
              to this channel once they are members of the 
@@ -350,7 +350,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamWarningBanner)>
+  </TeamWarningBanner>
 </Provider>
 `;
 
@@ -367,7 +367,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   }
 >
-  <Memo(TeamWarningBanner)
+  <TeamWarningBanner
     guests={
       Array [
         Object {
@@ -455,7 +455,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     <AlertBanner
       footerMessage={
         Array [
-          <Memo(Connect(Component))
+          <Connect(AtMention)
             mentionName="user-0"
           />,
           " and ",
@@ -467,7 +467,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             <span
               className="add-others-link"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="{count} others"
                 id="channel_invite.invite_team_members.messageOthers"
                 values={
@@ -485,7 +485,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       message={false}
       mode="warning"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
           id="channel_invite.invite_team_members.title"
           values={
@@ -530,7 +530,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__title"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
               id="channel_invite.invite_team_members.title"
               values={
@@ -542,16 +542,16 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               <span>
                 11 users were not selected because they are not a part of this team
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
           <div
             className="AlertBanner__footerMessage"
           >
-            <Connect(Component)
+            <Connect(AtMention)
               key=".$user-0"
               mentionName="user-0"
             >
-              <Memo(AtMention)
+              <AtMention
                 currentUserId="admin1"
                 getMissingMentionedUsers={[Function]}
                 groupsByName={Object {}}
@@ -559,7 +559,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 teammateNameDisplay="username"
                 usersByUsername={Object {}}
               />
-            </Connect(Component)>
+            </Connect(AtMention)>
              and 
             <WithTooltip
               id="usernames-overflow"
@@ -642,7 +642,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     onMouseOut={[Function]}
                     onMouseOver={[Function]}
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="{count} others"
                       id="channel_invite.invite_team_members.messageOthers"
                       values={
@@ -654,7 +654,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                       <span>
                         10 others
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
                 </OverlayTrigger>
               </OverlayTrigger>
@@ -664,7 +664,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamWarningBanner)>
+  </TeamWarningBanner>
 </Provider>
 `;
 
@@ -681,7 +681,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   }
 >
-  <Memo(TeamWarningBanner)
+  <TeamWarningBanner
     guests={Array []}
     teamId="team1"
     users={
@@ -772,7 +772,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       message={
         Array [
           "You can add ",
-          <Memo(Connect(Component))
+          <Connect(AtMention)
             mentionName="user-0"
           />,
           " and ",
@@ -784,7 +784,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             <span
               className="add-others-link"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="{count} others"
                 id="channel_invite.invite_team_members.messageOthers"
                 values={
@@ -804,7 +804,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       }
       mode="warning"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
           id="channel_invite.invite_team_members.title"
           values={
@@ -849,7 +849,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__title"
           >
-            <FormattedMessage
+            <MemoizedFormattedMessage
               defaultMessage="{count, plural, =1 {1 user was} other {# users were}} not selected because they are not a part of this team"
               id="channel_invite.invite_team_members.title"
               values={
@@ -861,17 +861,17 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               <span>
                 11 users were not selected because they are not a part of this team
               </span>
-            </FormattedMessage>
+            </MemoizedFormattedMessage>
           </div>
           <div
             className="AlertBanner__message"
           >
             You can add 
-            <Connect(Component)
+            <Connect(AtMention)
               key=".$user-0"
               mentionName="user-0"
             >
-              <Memo(AtMention)
+              <AtMention
                 currentUserId="admin1"
                 getMissingMentionedUsers={[Function]}
                 groupsByName={Object {}}
@@ -879,7 +879,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 teammateNameDisplay="username"
                 usersByUsername={Object {}}
               />
-            </Connect(Component)>
+            </Connect(AtMention)>
              and 
             <WithTooltip
               id="usernames-overflow"
@@ -962,7 +962,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                     onMouseOut={[Function]}
                     onMouseOver={[Function]}
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="{count} others"
                       id="channel_invite.invite_team_members.messageOthers"
                       values={
@@ -974,7 +974,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                       <span>
                         10 others
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </span>
                 </OverlayTrigger>
               </OverlayTrigger>
@@ -990,7 +990,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
         </div>
       </div>
     </AlertBanner>
-  </Memo(TeamWarningBanner)>
+  </TeamWarningBanner>
 </Provider>
 `;
 
@@ -1007,7 +1007,7 @@ exports[`components/channel_invite_modal/team_warning_banner should return empty
     }
   }
 >
-  <Memo(TeamWarningBanner)
+  <TeamWarningBanner
     guests={Array []}
     teamId="team1"
     users={Array []}

@@ -10,7 +10,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.channel_settings.channel_list.nameHeader"
           />,
@@ -19,7 +19,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "team",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Team"
             id="admin.channel_settings.channel_list.teamHeader"
           />,
@@ -28,7 +28,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "management",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Management"
             id="admin.channel_settings.channel_list.managementHeader"
           />,
@@ -60,21 +60,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Channels",
             "values": Object {
               "deleted": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Archived"
                   id="admin.channel_list.archived"
                 />,
                 "value": false,
               },
               "private": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Private"
                   id="admin.channel_list.private"
                 />,
                 "value": false,
               },
               "public": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Public"
                   id="admin.channel_list.public"
                 />,
@@ -90,14 +90,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Management",
             "values": Object {
               "exclude_group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Manual Invites"
                   id="admin.channel_list.manual_invites"
                 />,
                 "value": false,
               },
               "group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Group Sync"
                   id="admin.channel_list.group_sync"
                 />,
@@ -110,15 +110,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               "team_ids",
             ],
             "name": "Teams",
-            "type": Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            },
+            "type": [Function],
             "values": Object {
               "team_ids": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.team_settings.title"
                 />,
@@ -134,7 +129,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     onSearch={[Function]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No channels found"
         id="admin.channel_settings.channel_list.no_channels_found"
       />
@@ -151,7 +146,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/123"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -161,7 +156,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -211,7 +206,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.channel_settings.channel_list.nameHeader"
           />,
@@ -220,7 +215,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "team",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Team"
             id="admin.channel_settings.channel_list.teamHeader"
           />,
@@ -229,7 +224,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "management",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Management"
             id="admin.channel_settings.channel_list.managementHeader"
           />,
@@ -261,21 +256,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Channels",
             "values": Object {
               "deleted": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Archived"
                   id="admin.channel_list.archived"
                 />,
                 "value": false,
               },
               "private": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Private"
                   id="admin.channel_list.private"
                 />,
                 "value": false,
               },
               "public": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Public"
                   id="admin.channel_list.public"
                 />,
@@ -291,14 +286,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Management",
             "values": Object {
               "exclude_group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Manual Invites"
                   id="admin.channel_list.manual_invites"
                 />,
                 "value": false,
               },
               "group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Group Sync"
                   id="admin.channel_list.group_sync"
                 />,
@@ -311,15 +306,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               "team_ids",
             ],
             "name": "Teams",
-            "type": Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            },
+            "type": [Function],
             "values": Object {
               "team_ids": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.team_settings.title"
                 />,
@@ -335,7 +325,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     onSearch={[Function]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No channels found"
         id="admin.channel_settings.channel_list.no_channels_found"
       />
@@ -352,7 +342,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id0"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -362,7 +352,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -397,7 +387,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id1"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -407,7 +397,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -442,7 +432,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id2"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -452,7 +442,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -487,7 +477,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id3"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -497,7 +487,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -532,7 +522,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id4"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -542,7 +532,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -577,7 +567,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id5"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -587,7 +577,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -622,7 +612,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id6"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -632,7 +622,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -667,7 +657,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id7"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -677,7 +667,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -712,7 +702,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id8"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -722,7 +712,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -757,7 +747,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/id9"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -767,7 +757,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />
@@ -817,7 +807,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.channel_settings.channel_list.nameHeader"
           />,
@@ -826,7 +816,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "team",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Team"
             id="admin.channel_settings.channel_list.teamHeader"
           />,
@@ -835,7 +825,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
         Object {
           "field": "management",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Management"
             id="admin.channel_settings.channel_list.managementHeader"
           />,
@@ -867,21 +857,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Channels",
             "values": Object {
               "deleted": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Archived"
                   id="admin.channel_list.archived"
                 />,
                 "value": false,
               },
               "private": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Private"
                   id="admin.channel_list.private"
                 />,
                 "value": false,
               },
               "public": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Public"
                   id="admin.channel_list.public"
                 />,
@@ -897,14 +887,14 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "name": "Management",
             "values": Object {
               "exclude_group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Manual Invites"
                   id="admin.channel_list.manual_invites"
                 />,
                 "value": false,
               },
               "group_constrained": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Group Sync"
                   id="admin.channel_list.group_sync"
                 />,
@@ -917,15 +907,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               "team_ids",
             ],
             "name": "Teams",
-            "type": Object {
-              "$$typeof": Symbol(react.memo),
-              "WrappedComponent": [Function],
-              "compare": null,
-              "type": [Function],
-            },
+            "type": [Function],
             "values": Object {
               "team_ids": Object {
-                "name": <Memo(MemoizedFormattedMessage)
+                "name": <MemoizedFormattedMessage
                   defaultMessage="Teams"
                   id="admin.team_settings.title"
                 />,
@@ -941,7 +926,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
     onSearch={[Function]}
     page={0}
     placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="No channels found"
         id="admin.channel_settings.channel_list.no_channels_found"
       />
@@ -958,7 +943,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               <Link
                 to="/admin_console/user_management/channels/123"
               >
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Edit"
                   id="admin.channel_settings.channel_row.configure"
                 />
@@ -968,7 +953,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
             "management": <span
               className="group-description adjusted row-content"
             >
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Manual Invites"
                 id="admin.channel_settings.channel_row.managementMethod.manual"
               />

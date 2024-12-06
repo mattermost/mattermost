@@ -5,7 +5,7 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
   id="recentMentions"
   placement="bottom"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Saved messages"
       id="channel_header.flagged"
     />

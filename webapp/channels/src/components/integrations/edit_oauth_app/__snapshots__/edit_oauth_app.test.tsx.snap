@@ -4,13 +4,13 @@ exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] 
 <ConfirmModal
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Update"
       id="update_command.update"
     />
   }
   message={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
       id="update_oauth_app.question"
     />
@@ -20,7 +20,7 @@ exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] 
   onConfirm={[Function]}
   show={false}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Edit OAuth 2.0 application"
       id="update_oauth_app.confirm"
     />
@@ -71,13 +71,13 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Update"
           id="update_command.update"
         />
       }
       message={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
           id="update_oauth_app.question"
         />
@@ -87,7 +87,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Edit OAuth 2.0 application"
           id="update_oauth_app.confirm"
         />
@@ -147,13 +147,13 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Update"
           id="update_command.update"
         />
       }
       message={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
           id="update_oauth_app.question"
         />
@@ -163,7 +163,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Edit OAuth 2.0 application"
           id="update_oauth_app.confirm"
         />
@@ -223,13 +223,13 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Update"
           id="update_command.update"
         />
       }
       message={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
           id="update_oauth_app.question"
         />
@@ -239,7 +239,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Edit OAuth 2.0 application"
           id="update_oauth_app.confirm"
         />

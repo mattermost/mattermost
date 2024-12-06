@@ -34,7 +34,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -336,13 +336,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Saving Config..."
           id="admin.saving"
         />
       }
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -350,11 +350,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -412,7 +412,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -744,13 +744,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Saving Config..."
           id="admin.saving"
         />
       }
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -758,11 +758,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -820,7 +820,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1154,13 +1154,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Saving Config..."
           id="admin.saving"
         />
       }
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -1168,11 +1168,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -1296,7 +1296,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1630,13 +1630,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
       onClick={[Function]}
       saving={false}
       savingMessage={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Saving Config..."
           id="admin.saving"
         />
       }
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -1644,11 +1644,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>

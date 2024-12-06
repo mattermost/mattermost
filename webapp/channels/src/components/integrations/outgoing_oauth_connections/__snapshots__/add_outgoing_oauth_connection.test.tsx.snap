@@ -117,14 +117,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                         href="/test/integrations/outgoing-oauth2-connections"
                         onClick={[Function]}
                       >
-                        <FormattedMessage
+                        <MemoizedFormattedMessage
                           defaultMessage="Outgoing OAuth Connections"
                           id="add_outgoing_oauth_connection.header"
                         >
                           <span>
                             Outgoing OAuth Connections
                           </span>
-                        </FormattedMessage>
+                        </MemoizedFormattedMessage>
                       </a>
                     </LinkAnchor>
                   </Link>
@@ -137,14 +137,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                       title="Breadcrumb Icon"
                     />
                   </span>
-                  <FormattedMessage
+                  <MemoizedFormattedMessage
                     defaultMessage="Add"
                     id="add_outgoing_oauth_connection.add"
                   >
                     <span>
                       Add
                     </span>
-                  </FormattedMessage>
+                  </MemoizedFormattedMessage>
                 </h1>
               </div>
             </BackstageHeader>
@@ -161,14 +161,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="control-label col-sm-4"
                     htmlFor="name"
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Name"
                       id="add_outgoing_oauth_connection.name.label"
                     >
                       <span>
                         Name
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                   <div
                     className="col-md-5 col-sm-8"
@@ -183,14 +183,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     <div
                       className="form__help"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="Specify the name for your OAuth connection."
                         id="add_outgoing_oauth_connection.name.help"
                       >
                         <span>
                           Specify the name for your OAuth connection.
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </div>
                   </div>
                 </div>
@@ -201,14 +201,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="control-label col-sm-4"
                     htmlFor="client_id"
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Client ID"
                       id="add_outgoing_oauth_connection.client_id.label"
                     >
                       <span>
                         Client ID
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                   <div
                     className="col-md-5 col-sm-8"
@@ -224,14 +224,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     <div
                       className="form__help"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="Specify the Client ID for your OAuth connection."
                         id="add_outgoing_oauth_connection.client_id.help"
                       >
                         <span>
                           Specify the Client ID for your OAuth connection.
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </div>
                   </div>
                 </div>
@@ -242,14 +242,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="control-label col-sm-4"
                     htmlFor="client_secret"
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Client Secret"
                       id="add_outgoing_oauth_connection.client_secret.label"
                     >
                       <span>
                         Client Secret
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                   <div
                     className="col-md-5 col-sm-8"
@@ -265,14 +265,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     <div
                       className="form__help"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="Specify the Client Secret for your OAuth connection."
                         id="add_outgoing_oauth_connection.client_secret.help"
                       >
                         <span>
                           Specify the Client Secret for your OAuth connection.
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </div>
                   </div>
                 </div>
@@ -283,14 +283,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="control-label col-sm-4"
                     htmlFor="oauth_token_url"
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="OAuth Token URL"
                       id="add_outgoing_oauth_connection.oauth_token_url.label"
                     >
                       <span>
                         OAuth Token URL
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                   <div
                     className="col-md-5 col-sm-8"
@@ -305,14 +305,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     <div
                       className="form__help"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="Specify the OAuth Token URL for your OAuth connection."
                         id="add_outgoing_oauth_connection.oauth_token_url.help"
                       >
                         <span>
                           Specify the OAuth Token URL for your OAuth connection.
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </div>
                     <div
                       className="outgoing-oauth-connection-validate-button-container"
@@ -328,14 +328,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                           onClick={[Function]}
                           type="button"
                         >
-                          <FormattedMessage
+                          <MemoizedFormattedMessage
                             defaultMessage="Validate Connection"
                             id="add_outgoing_oauth_connection.validate"
                           >
                             <span>
                               Validate Connection
                             </span>
-                          </FormattedMessage>
+                          </MemoizedFormattedMessage>
                         </button>
                       </ValidateButton>
                     </div>
@@ -348,14 +348,14 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="control-label col-sm-4"
                     htmlFor="audienceUrls"
                   >
-                    <FormattedMessage
+                    <MemoizedFormattedMessage
                       defaultMessage="Audience URLs (One Per Line)"
                       id="add_outgoing_oauth_connection.audienceUrls.label"
                     >
                       <span>
                         Audience URLs (One Per Line)
                       </span>
-                    </FormattedMessage>
+                    </MemoizedFormattedMessage>
                   </label>
                   <div
                     className="col-md-5 col-sm-8"
@@ -370,21 +370,21 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     <div
                       className="form__help"
                     >
-                      <FormattedMessage
+                      <MemoizedFormattedMessage
                         defaultMessage="The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://."
                         id="add_outgoing_oauth_connection.audienceUrls.help"
                       >
                         <span>
                           The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://.
                         </span>
-                      </FormattedMessage>
+                      </MemoizedFormattedMessage>
                     </div>
                   </div>
                 </div>
                 <div
                   className="backstage-form__footer"
                 >
-                  <Memo(FormError)
+                  <FormError
                     errors={
                       Array [
                         "",
@@ -407,18 +407,18 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                         href="/test/integrations/outgoing-oauth2-connections"
                         onClick={[Function]}
                       >
-                        <FormattedMessage
+                        <MemoizedFormattedMessage
                           defaultMessage="Cancel"
                           id="add_outgoing_oauth_connection.cancel"
                         >
                           <span>
                             Cancel
                           </span>
-                        </FormattedMessage>
+                        </MemoizedFormattedMessage>
                       </a>
                     </LinkAnchor>
                   </Link>
-                  <Memo(SpinnerButton)
+                  <SpinnerButton
                     className="btn btn-primary"
                     id="saveConnection"
                     onClick={[Function]}
@@ -433,28 +433,28 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                       onClick={[Function]}
                       type="submit"
                     >
-                      <Memo(LoadingWrapper)
+                      <LoadingWrapper
                         loading={false}
                         text="Saving..."
                       >
-                        <FormattedMessage
+                        <MemoizedFormattedMessage
                           defaultMessage="Save"
                           id="add_outgoing_oauth_connection.save"
                         >
                           <span>
                             Save
                           </span>
-                        </FormattedMessage>
-                      </Memo(LoadingWrapper)>
+                        </MemoizedFormattedMessage>
+                      </LoadingWrapper>
                     </button>
-                  </Memo(SpinnerButton)>
+                  </SpinnerButton>
                 </div>
               </form>
             </div>
             <div
               className="outgoing-oauth-connections-docs-link"
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
                 id="add_outgoing_oauth_connection.documentation_link"
                 values={
@@ -473,7 +473,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                   </a>
                   .
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </div>
             <ConfirmModal
               confirmButtonClass="btn btn-primary"

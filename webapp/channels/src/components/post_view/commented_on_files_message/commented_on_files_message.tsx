@@ -42,4 +42,4 @@ const CommentedOnFilesMessage = ({
     );
 };
 
-export default React.memo(CommentedOnFilesMessage);
+export default CommentedOnFilesMessage;

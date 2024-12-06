@@ -266,7 +266,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(PreviousIcon) />
+      <PreviousIcon />
     </button>
     <button
       className="btn btn-tertiary next "
@@ -274,7 +274,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(NextIcon) />
+      <NextIcon />
     </button>
   </div>
 </div>
@@ -509,7 +509,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(PreviousIcon) />
+      <PreviousIcon />
     </button>
     <button
       className="btn btn-tertiary next "
@@ -517,7 +517,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(NextIcon) />
+      <NextIcon />
     </button>
   </div>
 </div>
@@ -640,7 +640,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(PreviousIcon) />
+      <PreviousIcon />
     </button>
     <button
       className="btn btn-tertiary next disabled"
@@ -648,7 +648,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
       onClick={[Function]}
       type="button"
     >
-      <Memo(NextIcon) />
+      <NextIcon />
     </button>
   </div>
 </div>

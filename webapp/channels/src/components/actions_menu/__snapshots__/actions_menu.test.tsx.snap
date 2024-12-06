@@ -11,7 +11,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Message actions"
         id="post_info.tooltip.actions"
       />
@@ -62,7 +62,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Message actions"
         id="post_info.tooltip.actions"
       />
@@ -132,7 +132,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     id="center_post_id_1_tooltip"
     placement="top"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Message actions"
         id="post_info.tooltip.actions"
       />
@@ -158,7 +158,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     openLeft={true}
     openUp={false}
   >
-    <Memo(SystemPermissionGate)
+    <SystemPermissionGate
       key="visit-marketplace-permissions"
       permissions={
         Array [
@@ -203,7 +203,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
           </span>
         </button>
       </div>
-    </Memo(SystemPermissionGate)>
+    </SystemPermissionGate>
   </Menu>
 </MenuWrapper>
 `;

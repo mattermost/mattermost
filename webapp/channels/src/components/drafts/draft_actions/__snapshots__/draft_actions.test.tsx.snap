@@ -32,7 +32,7 @@ exports[`components/drafts/draft_actions should match snapshot 1`] = `
     }
   }
 >
-  <Memo(DraftActions)
+  <DraftActions
     canEdit={true}
     canSend={true}
     channelId=""

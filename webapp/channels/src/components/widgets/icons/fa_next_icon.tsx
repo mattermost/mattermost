@@ -23,4 +23,4 @@ const NextIcon = ({additionalClassName}: Props) => {
     );
 };
 
-export default React.memo(NextIcon);
+export default NextIcon;

@@ -579,4 +579,4 @@ const defaultProps: Partial<Props> = {
 
 Search.defaultProps = defaultProps;
 
-export default React.memo(Search);
+export default Search;

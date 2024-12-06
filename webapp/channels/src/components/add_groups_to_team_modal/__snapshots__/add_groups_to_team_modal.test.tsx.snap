@@ -120,7 +120,7 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
         <div
           id="numGroupsRemaining"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. "
             id="multiselect.numGroupsRemaining"
             values={
@@ -181,7 +181,7 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
       <span
         className="more-modal__name_sub"
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{num, number} {num, plural, one {member} other {members}}"
           id="numMembers"
           values={
@@ -232,7 +232,7 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
       <span
         className="more-modal__name_sub"
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{num, number} {num, plural, one {member} other {members}}"
           id="numMembers"
           values={

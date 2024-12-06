@@ -9,7 +9,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     key="previewArrowLeft"
     placement="bottom"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Close"
         id="generic.close"
       />
@@ -44,7 +44,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     key="publicLink"
     placement="bottom"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Next"
         id="generic.next"
       />

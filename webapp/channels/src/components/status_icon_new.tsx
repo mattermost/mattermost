@@ -25,4 +25,4 @@ const StatusIconNew = ({className = '', status = ''}: Props) => {
     return <i className={`${iconName} ${className}`}/>;
 };
 
-export default React.memo(StatusIconNew);
+export default StatusIconNew;

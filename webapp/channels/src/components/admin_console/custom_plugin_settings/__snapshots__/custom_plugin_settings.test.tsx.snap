@@ -18,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
         >
           <div
@@ -47,7 +47,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="setting_default"
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -61,7 +61,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             value={true}
           />
-          <Memo(DropdownSetting)
+          <DropdownSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -91,7 +91,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <Memo(RadioSetting)
+          <RadioSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -135,7 +135,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
             regenerateHelpText="This is help text for the regenerate button."
             regenerateText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Regenerate"
                 id="admin.regenerate"
               />
@@ -166,7 +166,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </form>
     </div>
   </div>
@@ -188,12 +188,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <Memo(FormError)
+        <FormError
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <Memo(FormError)
+        <FormError
           error={null}
         />
       </div>
@@ -240,12 +240,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <Memo(FormError)
+        <FormError
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <Memo(FormError)
+        <FormError
           error={null}
         />
       </div>
@@ -272,7 +272,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
         >
           <div
@@ -301,7 +301,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             type="text"
             value="fsdsdg"
           />
-          <Memo(BooleanSetting)
+          <BooleanSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -315,7 +315,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             setByEnv={false}
             value={false}
           />
-          <Memo(DropdownSetting)
+          <DropdownSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -345,7 +345,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <Memo(RadioSetting)
+          <RadioSetting
             disabled={false}
             helpText={
               <SchemaText
@@ -389,7 +389,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
             regenerateHelpText="This is help text for the regenerate button."
             regenerateText={
-              <Memo(MemoizedFormattedMessage)
+              <MemoizedFormattedMessage
                 defaultMessage="Regenerate"
                 id="admin.regenerate"
               />
@@ -420,7 +420,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </form>
     </div>
   </div>
@@ -442,12 +442,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         className="error-message"
         data-testid="errorMessage"
       >
-        <Memo(FormError)
+        <FormError
           error=""
           iconClassName="fa-exclamation-triangle"
           textClassName="has-warning"
         />
-        <Memo(FormError)
+        <FormError
           error={null}
         />
       </div>

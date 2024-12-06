@@ -122,7 +122,7 @@ exports[`components/post_view/PostAttachment should match snapshot, on deleted p
 
 exports[`components/post_view/PostAttachment should match snapshot, on deleted post 2`] = `
 <p>
-  <Memo(MemoizedFormattedMessage)
+  <MemoizedFormattedMessage
     defaultMessage="(message deleted)"
     id="post_body.deleted"
   />

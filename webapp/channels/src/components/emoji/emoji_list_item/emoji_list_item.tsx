@@ -89,4 +89,4 @@ const EmojiListItem = ({
     );
 };
 
-export default React.memo(EmojiListItem);
+export default EmojiListItem;

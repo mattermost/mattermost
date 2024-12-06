@@ -38,4 +38,4 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
     );
 };
 
-export default React.memo(PostEmoji);
+export default PostEmoji;

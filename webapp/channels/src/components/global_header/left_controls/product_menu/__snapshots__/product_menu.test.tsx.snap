@@ -54,11 +54,11 @@ exports[`components/global/product_switcher should have an active button state w
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>
@@ -118,11 +118,11 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>
@@ -182,11 +182,11 @@ exports[`components/global/product_switcher should match snapshot with product s
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>
@@ -246,11 +246,11 @@ exports[`components/global/product_switcher should match snapshot without licens
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>
@@ -310,11 +310,11 @@ exports[`components/global/product_switcher should render once when there are no
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>
@@ -374,11 +374,11 @@ exports[`components/global/product_switcher should render the correct amount of 
         isMessaging={true}
         onClick={[Function]}
       />
-      <Memo(MenuGroup)>
+      <MenuGroup>
         <MenuStartTrial
           id="startTrial"
         />
-      </Memo(MenuGroup)>
+      </MenuGroup>
     </Menu>
   </MenuWrapper>
 </div>

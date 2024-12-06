@@ -92,20 +92,20 @@ exports[`components/card/card should match snapshot when using header content an
         </div>
       }
       buttonText={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Add policy"
           id="admin.data_retention.customPolicies.addPolicy"
         />
       }
       onClick={[Function]}
       subtitle={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Customize how long specific teams and channels will keep messages."
           id="admin.data_retention.customPolicies.subTitle"
         />
       }
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Custom retention policies"
           id="admin.data_retention.customPolicies.title"
         />
@@ -136,13 +136,13 @@ exports[`components/card/card should match snapshot when using header content an
         </div>
       }
       subtitle={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Customize how long specific teams and channels will keep messages."
           id="admin.data_retention.customPolicies.subTitle"
         />
       }
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Custom retention policies"
           id="admin.data_retention.customPolicies.title"
         />

@@ -52,4 +52,4 @@ const ClusterTableContainer = () => {
     );
 };
 
-export default React.memo(ClusterTableContainer);
+export default ClusterTableContainer;

@@ -152,7 +152,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         valueWithImage={true}
         values={Array []}
       />
-      <Memo(TeamWarningBanner)
+      <TeamWarningBanner
         guests={Array []}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}
@@ -314,7 +314,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         valueWithImage={true}
         values={Array []}
       />
-      <Memo(TeamWarningBanner)
+      <TeamWarningBanner
         guests={Array []}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}
@@ -325,7 +325,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
 `;
 
 exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with userStatuses 1`] = `
-<Memo(GroupOption)
+<GroupOption
   addUserProfile={[MockFunction]}
   group={
     Object {
@@ -498,7 +498,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         valueWithImage={true}
         values={Array []}
       />
-      <Memo(TeamWarningBanner)
+      <TeamWarningBanner
         guests={Array []}
         teamId="eatxocwc3bg9ffo9xyybnj4omr"
         users={Array []}

@@ -39,7 +39,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can edit"
               id="admin.permissions.system_role_permissions.write.title"
             />
@@ -47,7 +47,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can add, edit and delete anything in this section."
               id="admin.permissions.system_role_permissions.write.description"
             />
@@ -65,7 +65,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Read only"
               id="admin.permissions.system_role_permissions.read.title"
             />
@@ -73,7 +73,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can view this section but can't edit anything in it"
               id="admin.permissions.system_role_permissions.read.description"
             />
@@ -91,7 +91,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No access"
               id="admin.permissions.system_role_permissions.no_access.title"
             />
@@ -99,7 +99,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No access to this section and it will be hidden in the navigation."
               id="admin.permissions.system_role_permissions.no_access.description"
             />
@@ -150,7 +150,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can edit"
               id="admin.permissions.system_role_permissions.write.title"
             />
@@ -158,7 +158,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can add, edit and delete anything in this section."
               id="admin.permissions.system_role_permissions.write.description"
             />
@@ -176,7 +176,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Read only"
               id="admin.permissions.system_role_permissions.read.title"
             />
@@ -184,7 +184,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Can view this section but can't edit anything in it"
               id="admin.permissions.system_role_permissions.read.description"
             />
@@ -202,7 +202,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_label"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No access"
               id="admin.permissions.system_role_permissions.no_access.title"
             />
@@ -210,7 +210,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
           <div
             className="PermissionSectionDropdownOptions_description"
           >
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="No access to this section and it will be hidden in the navigation."
               id="admin.permissions.system_role_permissions.no_access.description"
             />

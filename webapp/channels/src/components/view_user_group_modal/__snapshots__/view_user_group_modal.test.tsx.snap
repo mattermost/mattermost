@@ -30,7 +30,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
   role="dialog"
   show={true}
 >
-  <Connect(Component)
+  <Connect(ViewUserGroupModalHeader)
     backButtonAction={[MockFunction]}
     backButtonCallback={[MockFunction]}
     decrementMemberCount={[Function]}
@@ -90,7 +90,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
           }
         />
       </h2>
-      <Connect(Component)
+      <Connect(ViewUserGroupListItem)
         decrementMemberCount={[Function]}
         groupId="groupid123"
         key="user-1"
@@ -104,7 +104,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
           }
         }
       />
-      <Connect(Component)
+      <Connect(ViewUserGroupListItem)
         decrementMemberCount={[Function]}
         groupId="groupid123"
         key="user-2"

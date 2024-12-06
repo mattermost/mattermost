@@ -45,7 +45,7 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_outgoing_webhooks.delete.confirm"
             />
@@ -108,7 +108,7 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
           id="installed_integrations.triggerWhen"
           values={
             Object {
-              "triggerWhen": <Memo(MemoizedFormattedMessage)
+              "triggerWhen": <MemoizedFormattedMessage
                 defaultMessage="First word matches a trigger word exactly"
                 id="add_outgoing_webhook.triggerWordsTriggerWhenFullWord"
               />,
@@ -132,7 +132,7 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
             }
           }
         />
-        <Memo(CopyText)
+        <CopyText
           value="xoxz1z7c3tgi9xhrfudn638q9r"
         />
       </span>

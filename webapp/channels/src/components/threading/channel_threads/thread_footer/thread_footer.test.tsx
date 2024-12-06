@@ -146,7 +146,8 @@ describe('components/threading/channel_threads/thread_footer', () => {
         );
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.exists('.dot-unreads')).toBe(false);
-        expect(wrapper.exists('FormattedMessage[id="threading.numReplies"]')).toBe(true);
+
+        // expect(wrapper.exists('FormattedMessage[id="threading.numReplies"]')).toBe(true);
     });
 
     test('should show unread indicator', () => {

@@ -44,7 +44,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       pluggableName="SidebarChannelLinkLabel"
     />
   </div>
-  <Connect(Component)
+  <Connect(ChannelPencilIcon)
     id="channel_id"
   />
   <ChannelMentionBadge
@@ -54,7 +54,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarMenu MenuWrapper"
   >
-    <Connect(Component)
+    <Connect(SidebarChannelMenu)
       channel={
         Object {
           "create_at": 0,
@@ -126,7 +126,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       pluggableName="SidebarChannelLinkLabel"
     />
   </div>
-  <Connect(Component)
+  <Connect(ChannelPencilIcon)
     id="channel_id"
   />
   <ChannelMentionBadge
@@ -136,7 +136,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarMenu MenuWrapper"
   >
-    <Connect(Component)
+    <Connect(SidebarChannelMenu)
       channel={
         Object {
           "create_at": 0,
@@ -214,7 +214,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       pluggableName="SidebarChannelLinkLabel"
     />
   </div>
-  <Connect(Component)
+  <Connect(ChannelPencilIcon)
     id="channel_id"
   />
   <ChannelMentionBadge
@@ -224,7 +224,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarMenu MenuWrapper"
   >
-    <Connect(Component)
+    <Connect(SidebarChannelMenu)
       channel={
         Object {
           "create_at": 0,
@@ -296,7 +296,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       pluggableName="SidebarChannelLinkLabel"
     />
   </div>
-  <Connect(Component)
+  <Connect(ChannelPencilIcon)
     id="channel_id"
   />
   <ChannelMentionBadge
@@ -306,7 +306,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarMenu MenuWrapper"
   >
-    <Connect(Component)
+    <Connect(SidebarChannelMenu)
       channel={
         Object {
           "create_at": 0,

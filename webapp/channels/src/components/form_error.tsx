@@ -81,4 +81,4 @@ const FormError: React.FC<Props> = ({
     );
 };
 
-export default React.memo(FormError);
+export default FormError;

@@ -31,7 +31,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={false}
               onClick={[Function]}
             />,
@@ -156,7 +156,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={false}
               onClick={[Function]}
             />,
@@ -274,7 +274,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={true}
               onClick={[Function]}
             />,
@@ -399,7 +399,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={false}
               onClick={[Function]}
             />,
@@ -524,7 +524,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={false}
               onClick={[Function]}
             />,
@@ -649,7 +649,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
       additionalValues={
         Object {
           "guest_edit_post": Object {
-            "editTimeLimitButton": <Memo(Connect(EditPostTimeLimitButton))
+            "editTimeLimitButton": <Connect(EditPostTimeLimitButton)
               isDisabled={false}
               onClick={[Function]}
             />,

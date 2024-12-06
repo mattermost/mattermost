@@ -75,7 +75,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
         <div
           className="apps-form-modal-body-common apps-form-modal-body-loaded"
         >
-          <Memo(LoadingSpinner)
+          <LoadingSpinner
             style={
               Object {
                 "fontSize": "24px",
@@ -202,7 +202,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
             id="interactive_dialog.cancel"
           />
         </button>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           autoFocus={false}
           className="btn btn-primary save-button"
           id="appsModalSubmit"
@@ -220,7 +220,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
             defaultMessage="Submit"
             id="interactive_dialog.submit"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
       </div>
     </ModalFooter>
   </form>

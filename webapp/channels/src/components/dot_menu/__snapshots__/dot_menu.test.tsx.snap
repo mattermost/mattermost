@@ -361,7 +361,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="reply_to_post_post_id_1"
     id="reply_to_post_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Reply"
         id="post_info.reply"
       />
@@ -386,7 +386,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       <span
         className="dot-menu__item-new-badge"
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Forward"
           id="forward_post_button.label"
         />
@@ -408,7 +408,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="follow_post_thread_post_id_1"
     id="follow_post_thread_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Follow message"
         id="threading.threadMenu.followMessage"
       />
@@ -429,7 +429,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="unread_post_post_id_1"
     id="unread_post_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="post_info.unread"
       />
@@ -446,7 +446,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
       />
     }
   />
-  <Memo(PostReminderSubmenu)
+  <PostReminderSubmenu
     isMilitaryTime={false}
     post={
       Object {
@@ -481,7 +481,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="save_post_post_id_1"
     id="save_post_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Save"
         id="rhs_root.mobile.flag"
       />
@@ -502,7 +502,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="pin_post_post_id_1"
     id="pin_post_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Pin"
         id="post_info.pin"
       />
@@ -522,7 +522,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   <MenuItem
     id="move_thread_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Move Thread"
         id="post_info.move_thread"
       />
@@ -544,7 +544,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="permalink_post_id_1"
     id="permalink_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="post_info.permalink"
       />
@@ -566,7 +566,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="edit_post_post_id_1"
     id="edit_post_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Edit"
         id="post_info.edit"
       />
@@ -587,7 +587,7 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
     data-testid="copy_post_id_1"
     id="copy_post_id_1"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Text"
         id="post_info.copy"
       />

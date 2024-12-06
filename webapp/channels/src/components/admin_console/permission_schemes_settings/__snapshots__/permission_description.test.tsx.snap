@@ -31,7 +31,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
         <span
           className="inherit-link-wrapper"
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Inherited from <link>{name}</link>."
             id="admin.permissions.inherited_from"
             values={
@@ -122,7 +122,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
             <span
               className="inherit-link-wrapper"
             >
-              <FormattedMessage
+              <MemoizedFormattedMessage
                 defaultMessage="Inherited from <link>{name}</link>."
                 id="admin.permissions.inherited_from"
                 values={
@@ -141,7 +141,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
                   </a>
                   .
                 </span>
-              </FormattedMessage>
+              </MemoizedFormattedMessage>
             </span>
           </span>
         </OverlayTrigger>

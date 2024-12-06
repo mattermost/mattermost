@@ -16,7 +16,7 @@ exports[`components/threading/global_threads/thread_item should report total num
     <div
       className="ThreadItem__tags"
     >
-      <Memo(Tag)
+      <Tag
         onClick={[Function]}
         text="Team name"
       />
@@ -39,7 +39,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <ThreadMenu
       hasUnreads={false}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -49,22 +49,22 @@ exports[`components/threading/global_threads/thread_item should report total num
         id="threadActionMenu"
         placement="top"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
       >
-        <Memo(Button)
+        <Button
           className="Button___icon"
           marginTop={true}
         >
           <DotsVerticalIcon
             size={18}
           />
-        </Memo(Button)>
+        </Button>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </ThreadMenu>
   </div>
   <div
     aria-readonly="true"
@@ -93,7 +93,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <Avatars
       size="xs"
       userIds={
         Array [
@@ -141,7 +141,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
     <div
       className="ThreadItem__tags"
     >
-      <Memo(Tag)
+      <Tag
         onClick={[Function]}
         text="Team name"
       />
@@ -164,7 +164,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <ThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -174,22 +174,22 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threadActionMenu"
         placement="top"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
       >
-        <Memo(Button)
+        <Button
           className="Button___icon"
           marginTop={true}
         >
           <DotsVerticalIcon
             size={18}
           />
-        </Memo(Button)>
+        </Button>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </ThreadMenu>
   </div>
   <div
     aria-readonly="true"
@@ -218,7 +218,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <Avatars
       size="xs"
       userIds={
         Array [
@@ -264,7 +264,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
     <div
       className="ThreadItem__tags"
     >
-      <Memo(Tag)
+      <Tag
         onClick={[Function]}
         text="Team name"
       />
@@ -287,7 +287,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="menu-anchor alt-visible"
   >
-    <Memo(ThreadMenu)
+    <ThreadMenu
       hasUnreads={true}
       isFollowing={true}
       threadId="1y8hpek81byspd4enyk9mp1ncw"
@@ -297,22 +297,22 @@ exports[`components/threading/global_threads/thread_item should report unread me
         id="threadActionMenu"
         placement="top"
         title={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
       >
-        <Memo(Button)
+        <Button
           className="Button___icon"
           marginTop={true}
         >
           <DotsVerticalIcon
             size={18}
           />
-        </Memo(Button)>
+        </Button>
       </WithTooltip>
-    </Memo(ThreadMenu)>
+    </ThreadMenu>
   </div>
   <div
     aria-readonly="true"
@@ -341,7 +341,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   <div
     className="activity"
   >
-    <Memo(Avatars)
+    <Avatars
       size="xs"
       userIds={
         Array [

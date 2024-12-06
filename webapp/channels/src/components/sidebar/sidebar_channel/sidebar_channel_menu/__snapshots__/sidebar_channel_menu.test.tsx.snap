@@ -30,7 +30,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -45,7 +45,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -60,7 +60,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -73,7 +73,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -98,7 +98,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -114,7 +114,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -131,7 +131,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -176,7 +176,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -191,7 +191,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -206,7 +206,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -219,7 +219,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -244,7 +244,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -260,7 +260,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -277,7 +277,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -322,7 +322,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -337,7 +337,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -352,7 +352,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -365,7 +365,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -390,7 +390,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -406,7 +406,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -423,7 +423,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -468,7 +468,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -483,7 +483,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -498,7 +498,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Conversation"
         id="sidebar_left.sidebar_channel_menu.muteConversation"
       />
@@ -511,7 +511,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -537,7 +537,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Close Conversation"
         id="sidebar_left.sidebar_channel_menu.leaveConversation"
       />
@@ -582,7 +582,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -597,7 +597,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -612,7 +612,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -625,7 +625,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -650,7 +650,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -666,7 +666,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -711,7 +711,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -726,7 +726,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="unfavorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Unfavorite"
         id="sidebar_left.sidebar_channel_menu.unfavoriteChannel"
       />
@@ -741,7 +741,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -754,7 +754,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -779,7 +779,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -795,7 +795,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -812,7 +812,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -857,7 +857,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -872,7 +872,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -887,7 +887,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="unmute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Unmute Channel"
         id="sidebar_left.sidebar_channel_menu.unmuteChannel"
       />
@@ -900,7 +900,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -925,7 +925,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -941,7 +941,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -958,7 +958,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -1003,7 +1003,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -1018,7 +1018,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -1033,7 +1033,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -1046,7 +1046,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -1071,7 +1071,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -1087,7 +1087,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -1104,7 +1104,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -1149,7 +1149,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsUnread-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Unread"
         id="sidebar_left.sidebar_channel_menu.markAsUnread"
       />
@@ -1164,7 +1164,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -1179,7 +1179,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -1192,7 +1192,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -1217,7 +1217,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -1233,7 +1233,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -1250,7 +1250,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />
@@ -1295,7 +1295,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="markAsRead-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mark as Read"
         id="sidebar_left.sidebar_channel_menu.markAsRead"
       />
@@ -1310,7 +1310,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="favorite-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Favorite"
         id="sidebar_left.sidebar_channel_menu.favoriteChannel"
       />
@@ -1325,7 +1325,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="mute-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Mute Channel"
         id="sidebar_left.sidebar_channel_menu.muteChannel"
       />
@@ -1338,7 +1338,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     onClick={[Function]}
   />
   <MenuItemSeparator />
-  <Memo(ChannelMoveToSubMenu)
+  <ChannelMoveToSubMenu
     channel={
       Object {
         "create_at": 0,
@@ -1363,7 +1363,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <MenuItem
     id="copyLink-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Copy Link"
         id="sidebar_left.sidebar_channel_menu.copyLink"
       />
@@ -1379,7 +1379,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     aria-haspopup="true"
     id="addMembers-channel_id"
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Members"
         id="sidebar_left.sidebar_channel_menu.addMembers"
       />
@@ -1396,7 +1396,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
     id="leave-channel_id"
     isDestructive={true}
     labels={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Leave Channel"
         id="sidebar_left.sidebar_channel_menu.leaveChannel"
       />

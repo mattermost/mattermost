@@ -32,4 +32,4 @@ const IntegrationOption = ({image, title, description, link}: Props) => {
     );
 };
 
-export default React.memo(IntegrationOption);
+export default IntegrationOption;

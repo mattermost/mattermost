@@ -89,4 +89,4 @@ const ViewUserGroupListItem = (props: Props) => {
     );
 };
 
-export default React.memo(ViewUserGroupListItem);
+export default ViewUserGroupListItem;

@@ -69,4 +69,4 @@ function JoinPrivateChannelModal({channelName, onCancel, onExited, onJoin}: Prop
     );
 }
 
-export default React.memo(JoinPrivateChannelModal);
+export default JoinPrivateChannelModal;

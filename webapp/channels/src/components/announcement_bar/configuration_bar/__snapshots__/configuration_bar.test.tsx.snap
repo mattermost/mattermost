@@ -12,7 +12,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
           className="advisor-icon"
           src=""
         />
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{licenseSku} license is expired and some features may be disabled."
           id="announcement_bar.error.license_expired"
           values={
@@ -22,7 +22,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
           }
         />
       </React.Fragment>
-      <Memo(Connect(RenewalLink))
+      <Connect(RenewalLink)
         telemetryInfo={
           Object {
             "error": "renew_license_banner_fail",
@@ -39,7 +39,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
         className="advisor-icon"
         src=""
       />
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="{licenseSku} license is expired and some features may be disabled."
         id="announcement_bar.error.license_expired"
         values={
@@ -68,7 +68,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
           className="advisor-icon"
           src=""
         />
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="{licenseSku} license is expired and some features may be disabled."
           id="announcement_bar.error.license_expired"
           values={
@@ -78,7 +78,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
           }
         />
       </React.Fragment>
-      <Memo(Connect(RenewalLink))
+      <Connect(RenewalLink)
         telemetryInfo={
           Object {
             "error": "renew_license_banner_fail",
@@ -95,7 +95,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
         className="advisor-icon"
         src=""
       />
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="{licenseSku} license is expired and some features may be disabled."
         id="announcement_bar.error.license_expired"
         values={
@@ -118,7 +118,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, regular use
         className="advisor-icon"
         src=""
       />
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details."
         id="announcement_bar.error.past_grace"
         values={
@@ -151,7 +151,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
       </React.Fragment>
       <PurchaseLink
         buttonTextElement={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purchase a License Now"
             id="announcement_bar.error.purchase_a_license_now"
           />
@@ -189,7 +189,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
       </React.Fragment>
       <PurchaseLink
         buttonTextElement={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purchase a License Now"
             id="announcement_bar.error.purchase_a_license_now"
           />

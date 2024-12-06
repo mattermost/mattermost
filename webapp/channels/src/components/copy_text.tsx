@@ -50,4 +50,4 @@ const CopyText = ({
     );
 };
 
-export default React.memo(CopyText);
+export default CopyText;

@@ -13,7 +13,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
       key="zoomOut"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Zoom Out"
           id="view_image.zoom_out"
         />
@@ -32,7 +32,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
       key="zoomReset"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Reset Zoom"
           id="view_image.zoom_reset"
         />
@@ -51,7 +51,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
       key="zoomIn"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Zoom In"
           id="view_image.zoom_in"
         />

@@ -4,7 +4,7 @@ exports[`components/admin_console/workspace-optimization/chips_list should match
 <Fragment>
   <Chip
     additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Suggestions: {count}"
         id="admin.reporting.workspace_optimization.chip_suggestions"
         values={
@@ -19,7 +19,7 @@ exports[`components/admin_console/workspace-optimization/chips_list should match
   />
   <Chip
     additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Warnings: {count}"
         id="admin.reporting.workspace_optimization.chip_warnings"
         values={
@@ -34,7 +34,7 @@ exports[`components/admin_console/workspace-optimization/chips_list should match
   />
   <Chip
     additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Problems: {count}"
         id="admin.reporting.workspace_optimization.chip_problems"
         values={

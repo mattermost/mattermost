@@ -56,14 +56,14 @@ exports[`components/widgets/links/UpgradeLink should trigger telemetry call when
       className="upgradeLink"
       onClick={[Function]}
     >
-      <FormattedMessage
+      <MemoizedFormattedMessage
         defaultMessage="Upgrade now"
         id="upgradeLink.warn.upgrade_now"
       >
         <span>
           Upgrade now
         </span>
-      </FormattedMessage>
+      </MemoizedFormattedMessage>
     </button>
   </UpgradeLink>
 </Provider>

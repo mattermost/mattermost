@@ -135,4 +135,4 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
     );
 };
 
-export default React.memo(AddMembersButton);
+export default AddMembersButton;

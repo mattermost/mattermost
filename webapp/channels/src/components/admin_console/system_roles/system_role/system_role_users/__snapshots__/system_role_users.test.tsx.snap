@@ -105,19 +105,12 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
           "skipCommit": true,
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       disabled={false}
       id="addRoleMembers"
       modalId="add_user_to_role"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
@@ -143,7 +136,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.user_grid.name"
           />,
@@ -473,19 +466,12 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
           "skipCommit": true,
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       disabled={true}
       id="addRoleMembers"
       modalId="add_user_to_role"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
@@ -511,7 +497,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         Object {
           "field": "name",
           "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
+          "name": <MemoizedFormattedMessage
             defaultMessage="Name"
             id="admin.user_grid.name"
           />,

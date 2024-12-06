@@ -151,7 +151,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -437,7 +437,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
@@ -445,7 +445,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <a
       className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
@@ -459,7 +459,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -467,13 +467,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   <ConfirmModal
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Yes, Reset"
         id="admin.permissions.systemScheme.resetDefaultsConfirmationButton"
       />
     }
     message={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="This will reset all selections on this page to their default settings. Are you sure you want to reset?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
@@ -483,7 +483,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     onConfirm={[Function]}
     show={false}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Reset to Default?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalTitle"
       />
@@ -500,7 +500,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -787,7 +787,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
@@ -795,7 +795,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <a
       className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
@@ -809,7 +809,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -817,13 +817,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   <ConfirmModal
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Yes, Reset"
         id="admin.permissions.systemScheme.resetDefaultsConfirmationButton"
       />
     }
     message={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="This will reset all selections on this page to their default settings. Are you sure you want to reset?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
@@ -833,7 +833,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     onConfirm={[Function]}
     show={false}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Reset to Default?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalTitle"
       />
@@ -850,7 +850,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1137,7 +1137,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
@@ -1145,7 +1145,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <a
       className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
@@ -1159,7 +1159,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -1167,13 +1167,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   <ConfirmModal
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Yes, Reset"
         id="admin.permissions.systemScheme.resetDefaultsConfirmationButton"
       />
     }
     message={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="This will reset all selections on this page to their default settings. Are you sure you want to reset?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
@@ -1183,7 +1183,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     onConfirm={[Function]}
     show={false}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Reset to Default?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalTitle"
       />
@@ -1200,7 +1200,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(Component)
+      <Connect(BlockableLink)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1487,7 +1487,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(Component)
+    <Connect(BlockableLink)
       className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
@@ -1495,7 +1495,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(Component)>
+    </Connect(BlockableLink)>
     <a
       className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
@@ -1509,7 +1509,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     <div
       className="error-message"
     >
-      <Memo(FormError)
+      <FormError
         error={null}
       />
     </div>
@@ -1517,13 +1517,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   <ConfirmModal
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Yes, Reset"
         id="admin.permissions.systemScheme.resetDefaultsConfirmationButton"
       />
     }
     message={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="This will reset all selections on this page to their default settings. Are you sure you want to reset?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalBody"
       />
@@ -1533,7 +1533,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     onConfirm={[Function]}
     show={false}
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Reset to Default?"
         id="admin.permissions.systemScheme.resetDefaultsButtonModalTitle"
       />

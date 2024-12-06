@@ -134,13 +134,13 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                     date=""
                     error={false}
                     formattedButtonText={
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Return to workspace"
                         id="success_modal.return_to_workspace"
                       />
                     }
                     formattedSubtitle={
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="Your final bill will be prorated. Your workspace now has {plan} limits."
                         id="success_modal.subtitle"
                         values={
@@ -151,7 +151,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                       />
                     }
                     formattedTitle={
-                      <Memo(MemoizedFormattedMessage)
+                      <MemoizedFormattedMessage
                         defaultMessage="You are now subscribed to {selectedProductName}"
                         id="admin.billing.subscription.proratedPayment.title"
                         values={
@@ -268,7 +268,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                         <h3
                           className="IconMessage-h3"
                         >
-                          <FormattedMessage
+                          <MemoizedFormattedMessage
                             defaultMessage="You are now subscribed to {selectedProductName}"
                             id="admin.billing.subscription.proratedPayment.title"
                             values={
@@ -280,12 +280,12 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                             <span>
                               You are now subscribed to 
                             </span>
-                          </FormattedMessage>
+                          </MemoizedFormattedMessage>
                         </h3>
                         <div
                           className="IconMessage-sub"
                         >
-                          <FormattedMessage
+                          <MemoizedFormattedMessage
                             defaultMessage="Your final bill will be prorated. Your workspace now has {plan} limits."
                             id="success_modal.subtitle"
                             values={
@@ -297,7 +297,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                             <span>
                               Your final bill will be prorated. Your workspace now has  limits.
                             </span>
-                          </FormattedMessage>
+                          </MemoizedFormattedMessage>
                         </div>
                         <div
                           className="IconMessage-buttons"
@@ -309,14 +309,14 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
                               className="btn btn-primary Form-btn"
                               onClick={[Function]}
                             >
-                              <FormattedMessage
+                              <MemoizedFormattedMessage
                                 defaultMessage="Return to workspace"
                                 id="success_modal.return_to_workspace"
                               >
                                 <span>
                                   Return to workspace
                                 </span>
-                              </FormattedMessage>
+                              </MemoizedFormattedMessage>
                             </button>
                           </div>
                         </div>

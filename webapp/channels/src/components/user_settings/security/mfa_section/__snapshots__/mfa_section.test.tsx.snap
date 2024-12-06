@@ -5,14 +5,14 @@ exports[`MfaSection rendering should render nothing when MFA is not available 1`
 exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Active"
       id="user.settings.security.active"
     />
   }
   section="mfa"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />
@@ -24,14 +24,14 @@ exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = 
 exports[`MfaSection rendering when section is collapsed and MFA is not active 1`] = `
 <SettingItemMin
   describe={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Inactive"
       id="user.settings.security.inactive"
     />
   }
   section="mfa"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />
@@ -44,7 +44,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
 <SettingItemMax
   containerStyle=""
   extraInfo={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately."
       id="user.settings.mfa.requiredHelp"
     />
@@ -59,7 +59,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
         href="#"
         onClick={[Function]}
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Reset MFA on Account"
           id="user.settings.mfa.reset"
         />
@@ -71,7 +71,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
   section=""
   serverError={null}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />
@@ -84,7 +84,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
 <SettingItemMax
   containerStyle=""
   extraInfo={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account."
       id="user.settings.mfa.removeHelp"
     />
@@ -99,7 +99,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
         href="#"
         onClick={[Function]}
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Remove MFA from Account"
           id="user.settings.mfa.remove"
         />
@@ -111,7 +111,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
   section=""
   serverError={null}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />
@@ -124,7 +124,7 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
 <SettingItemMax
   containerStyle=""
   extraInfo={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
       id="user.settings.mfa.addHelp"
     />
@@ -139,7 +139,7 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
         href="#"
         onClick={[Function]}
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Add MFA to Account"
           id="user.settings.mfa.add"
         />
@@ -151,7 +151,7 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
   section=""
   serverError={null}
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />
@@ -164,7 +164,7 @@ exports[`MfaSection rendering when section is expanded with a server error 1`] =
 <SettingItemMax
   containerStyle=""
   extraInfo={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
       id="user.settings.mfa.addHelp"
     />
@@ -179,7 +179,7 @@ exports[`MfaSection rendering when section is expanded with a server error 1`] =
         href="#"
         onClick={[Function]}
       >
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Add MFA to Account"
           id="user.settings.mfa.add"
         />
@@ -191,7 +191,7 @@ exports[`MfaSection rendering when section is expanded with a server error 1`] =
   section=""
   serverError="An error has occurred"
   title={
-    <Memo(MemoizedFormattedMessage)
+    <MemoizedFormattedMessage
       defaultMessage="Multi-factor Authentication"
       id="user.settings.mfa.title"
     />

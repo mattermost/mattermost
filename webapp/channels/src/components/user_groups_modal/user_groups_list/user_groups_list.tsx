@@ -244,4 +244,4 @@ const UserGroupsList = (props: Props) => {
     );
 };
 
-export default React.memo(UserGroupsList);
+export default UserGroupsList;

@@ -45,7 +45,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
         id="shortcutsModalLabel"
       >
         <strong>
-          <Memo(KeyboardShortcutSequence)
+          <KeyboardShortcutSequence
             shortcut={
               Object {
                 "default": Object {
@@ -87,7 +87,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   Navigation
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -101,7 +101,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -115,7 +115,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -129,7 +129,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -143,7 +143,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -157,7 +157,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -171,7 +171,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -185,7 +185,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -199,7 +199,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -213,7 +213,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -227,7 +227,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -241,7 +241,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -255,7 +255,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -269,7 +269,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -283,7 +283,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -297,7 +297,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -336,7 +336,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Works inside an empty input field
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Edit last message in channel:	Up",
@@ -344,7 +344,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Reply to last message in channel:	Shift|Up",
@@ -352,7 +352,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -366,7 +366,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -380,7 +380,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -403,7 +403,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Autocomplete
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Username:	@|[a-z]|Tab",
@@ -411,7 +411,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Channel:	~|[a-z]|Tab",
@@ -419,7 +419,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Emoji:	:|[a-z]|Tab",
@@ -436,7 +436,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Formatting
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -450,7 +450,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -464,7 +464,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -487,7 +487,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Searching
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -510,7 +510,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Files
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -544,7 +544,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   Built-in Browser Commands
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -558,7 +558,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -572,7 +572,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -586,7 +586,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -608,7 +608,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                 >
                   Works inside an input field
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Highlight text to the previous line:	Shift|Up",
@@ -616,7 +616,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Highlight text to the next line:	Shift|Down",
@@ -624,7 +624,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Create a new line:	Shift|Enter",
@@ -692,7 +692,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
         id="shortcutsModalLabel"
       >
         <strong>
-          <Memo(KeyboardShortcutSequence)
+          <KeyboardShortcutSequence
             shortcut={
               Object {
                 "default": Object {
@@ -734,7 +734,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   Navigation
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -748,7 +748,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -762,7 +762,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -776,7 +776,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -790,7 +790,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -804,7 +804,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -818,7 +818,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -832,7 +832,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -846,7 +846,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -860,7 +860,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -874,7 +874,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -888,7 +888,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -902,7 +902,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -916,7 +916,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -930,7 +930,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -944,7 +944,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -983,7 +983,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Works inside an empty input field
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Edit last message in channel:	Up",
@@ -991,7 +991,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Reply to last message in channel:	Shift|Up",
@@ -999,7 +999,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1013,7 +1013,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1027,7 +1027,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1050,7 +1050,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Autocomplete
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Username:	@|[a-z]|Tab",
@@ -1058,7 +1058,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Channel:	~|[a-z]|Tab",
@@ -1066,7 +1066,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Emoji:	:|[a-z]|Tab",
@@ -1083,7 +1083,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Formatting
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1097,7 +1097,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1111,7 +1111,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1134,7 +1134,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Searching
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1157,7 +1157,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Files
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "default": Object {
@@ -1191,7 +1191,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   Built-in Browser Commands
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -1205,7 +1205,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -1219,7 +1219,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -1233,7 +1233,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   }
                 }
               />
-              <Memo(KeyboardShortcutSequence)
+              <KeyboardShortcutSequence
                 shortcut={
                   Object {
                     "default": Object {
@@ -1255,7 +1255,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Works inside an input field
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Highlight text to the previous line:	Shift|Up",
@@ -1263,7 +1263,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Highlight text to the next line:	Shift|Down",
@@ -1271,7 +1271,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   shortcut={
                     Object {
                       "defaultMessage": "Create a new line:	Shift|Enter",
@@ -1301,7 +1301,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Global
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsJoinCall"
                   shortcut={
                     Object {
@@ -1325,7 +1325,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Call widget
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsMuteToggle"
                   shortcut={
                     Object {
@@ -1340,7 +1340,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsRaiseHandToggle"
                   shortcut={
                     Object {
@@ -1355,7 +1355,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsShareScreenToggle"
                   shortcut={
                     Object {
@@ -1370,7 +1370,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsParticipantsListToggle"
                   shortcut={
                     Object {
@@ -1385,7 +1385,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                     }
                   }
                 />
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsLeaveCall"
                   shortcut={
                     Object {
@@ -1409,7 +1409,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                 >
                   Expanded view (pop-out window)
                 </h4>
-                <Memo(KeyboardShortcutSequence)
+                <KeyboardShortcutSequence
                   key="callsPushToTalk"
                   shortcut={
                     Object {

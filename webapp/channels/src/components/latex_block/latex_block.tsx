@@ -69,4 +69,4 @@ const LatexBlock = ({
     }
 };
 
-export default React.memo(LatexBlock);
+export default LatexBlock;

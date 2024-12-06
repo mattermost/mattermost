@@ -24,4 +24,4 @@ const MenuHeader = ({children, onClick}: Props) => {
     );
 };
 
-export default React.memo(MenuHeader);
+export default MenuHeader;

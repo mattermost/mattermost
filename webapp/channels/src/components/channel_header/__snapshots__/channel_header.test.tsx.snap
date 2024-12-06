@@ -23,7 +23,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle)
+          <ChannelHeaderTitle
             dmUser={
               Object {
                 "auth_service": "",
@@ -98,7 +98,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                   id="channel_header.lastActive"
                   values={
                     Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                      "timestamp": <Connect(injectIntl(Timestamp))
                         style="short"
                         units={
                           Array [
@@ -149,7 +149,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -182,7 +182,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -301,7 +301,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle)
+          <ChannelHeaderTitle
             dmUser={
               Object {
                 "auth_service": "",
@@ -402,7 +402,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -435,7 +435,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -554,7 +554,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -625,7 +625,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -658,7 +658,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -775,7 +775,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -846,7 +846,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -879,7 +879,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -996,7 +996,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -1067,7 +1067,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -1100,7 +1100,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -1217,7 +1217,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -1288,7 +1288,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -1321,7 +1321,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -1438,7 +1438,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -1509,7 +1509,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -1542,7 +1542,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -1659,7 +1659,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -1667,7 +1667,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               id="channelMutedTooltip"
               placement="bottom"
               title={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Unmute"
                   id="channelHeader.unmute"
                 />
@@ -1751,7 +1751,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -1784,7 +1784,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -1901,7 +1901,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -1972,7 +1972,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -2005,7 +2005,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -2122,7 +2122,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle)
+          <ChannelHeaderTitle
             dmUser={
               Object {
                 "auth_service": "",
@@ -2195,7 +2195,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                   id="channel_header.lastActive"
                   values={
                     Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                      "timestamp": <Connect(injectIntl(Timestamp))
                         style="short"
                         units={
                           Array [
@@ -2246,7 +2246,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -2279,7 +2279,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -2398,7 +2398,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle)
+          <ChannelHeaderTitle
             dmUser={
               Object {
                 "auth_service": "",
@@ -2471,7 +2471,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                   id="channel_header.lastActive"
                   values={
                     Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
+                      "timestamp": <Connect(injectIntl(Timestamp))
                         style="short"
                         units={
                           Array [
@@ -2490,7 +2490,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
               <div
                 className="custom-emoji__wrapper"
               >
-                <Memo(CustomStatusEmoji)
+                <CustomStatusEmoji
                   emojiStyle={
                     Object {
                       "margin": "0 4px 1px",
@@ -2542,7 +2542,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -2575,7 +2575,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -2694,7 +2694,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -2765,7 +2765,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -2798,7 +2798,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -2915,7 +2915,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -2986,7 +2986,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -3019,7 +3019,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -3136,7 +3136,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -3211,7 +3211,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -3248,7 +3248,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -3383,7 +3383,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -3454,7 +3454,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -3487,7 +3487,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={
@@ -3606,7 +3606,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <ChannelHeaderTitle />
           <div
             className="channel-header__icons"
           >
@@ -3694,7 +3694,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                 show={false}
                 target={null}
               >
-                <Memo(Popover)
+                <Popover
                   className="channel-header__popover"
                   id="header-popover"
                   placement="bottom"
@@ -3727,7 +3727,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                       }
                     />
                   </span>
-                </Memo(Popover)>
+                </Popover>
               </Overlay>
               <Connect(Markdown)
                 imageProps={

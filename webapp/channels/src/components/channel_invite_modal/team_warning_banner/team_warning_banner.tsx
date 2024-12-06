@@ -217,4 +217,4 @@ const TeamWarningBanner = (props: Props) => {
     );
 };
 
-export default React.memo(TeamWarningBanner);
+export default TeamWarningBanner;

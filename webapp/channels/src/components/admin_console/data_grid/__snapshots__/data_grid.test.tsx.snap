@@ -18,7 +18,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
     <div
       className="DataGrid_loading"
     >
-      <Memo(LoadingSpinner) />
+      <LoadingSpinner />
       <MemoizedFormattedMessage
         defaultMessage="Loading"
         id="admin.data_grid.loading"
@@ -57,7 +57,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
     className="DataGrid_rows"
     style={Object {}}
   >
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {
@@ -83,7 +83,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
         }
       }
     />
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {
@@ -109,7 +109,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
         }
       }
     />
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {
@@ -165,7 +165,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
     className="DataGrid_rows"
     style={Object {}}
   >
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {
@@ -188,7 +188,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
         }
       }
     />
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {
@@ -211,7 +211,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
         }
       }
     />
-    <Memo(DataGridRow)
+    <DataGridRow
       columns={
         Array [
           Object {

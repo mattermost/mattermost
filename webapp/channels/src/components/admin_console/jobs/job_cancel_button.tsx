@@ -41,4 +41,4 @@ const JobCancelButton = (props: Props): JSX.Element|null => {
     return cancelButton;
 };
 
-export default React.memo(JobCancelButton);
+export default JobCancelButton;

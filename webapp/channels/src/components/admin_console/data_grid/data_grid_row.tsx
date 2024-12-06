@@ -62,4 +62,4 @@ const DataGridRow = ({row, columns}: DataGridRowProps) => {
     );
 };
 
-export default React.memo(DataGridRow);
+export default DataGridRow;

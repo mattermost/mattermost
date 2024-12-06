@@ -54,7 +54,7 @@ exports[`components/post_view/post_list_row should render combined post 1`] = `
 `;
 
 exports[`components/post_view/post_list_row should render date line 1`] = `
-<Memo(DateSeparator)
+<DateSeparator
   date={1553106600000}
   key="1553106600000"
 />
@@ -93,7 +93,7 @@ exports[`components/post_view/post_list_row should render more messages loading 
 `;
 
 exports[`components/post_view/post_list_row should render new messages line 1`] = `
-<Memo(NewMessageSeparator)
+<NewMessageSeparator
   channelId="channel_id_1"
   newMessagesSeparatorActions={Array []}
   separatorId="start-of-new-messages-1553106600000"

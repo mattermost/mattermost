@@ -44,4 +44,4 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     );
 };
 
-export default React.memo(RevokeTokenButton);
+export default RevokeTokenButton;

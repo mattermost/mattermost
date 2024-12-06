@@ -232,4 +232,4 @@ const UserGroupsModal = (props: Props) => {
     );
 };
 
-export default React.memo(UserGroupsModal);
+export default UserGroupsModal;

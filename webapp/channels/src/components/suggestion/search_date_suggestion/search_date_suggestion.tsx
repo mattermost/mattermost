@@ -79,4 +79,4 @@ const SearchDateSuggestion = ({
         />
     );
 };
-export default React.memo(SearchDateSuggestion);
+export default SearchDateSuggestion;

@@ -61,7 +61,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_oauth_apps.delete.confirm"
             />
@@ -110,9 +110,9 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
         <strong>
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
-        <Memo(CopyText)
+        <CopyText
           tooltip={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy Client Id"
               id="integrations.copy_client_id"
             />
@@ -286,7 +286,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_oauth_apps.delete.confirm"
             />
@@ -295,7 +295,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         />
       </div>
     </div>
-    <Memo(FormError)
+    <FormError
       error="error"
     />
     <div
@@ -338,9 +338,9 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         <strong>
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
-        <Memo(CopyText)
+        <CopyText
           tooltip={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy Client Id"
               id="integrations.copy_client_id"
             />
@@ -465,7 +465,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
          - 
         <Connect(DeleteIntegrationLink)
           modalMessage={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="This action permanently deletes the OAuth 2.0 application and breaks any integrations using it. Are you sure you want to delete it?"
               id="installed_oauth_apps.delete.confirm"
             />
@@ -514,9 +514,9 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
         <strong>
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
-        <Memo(CopyText)
+        <CopyText
           tooltip={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Copy Client Id"
               id="integrations.copy_client_id"
             />

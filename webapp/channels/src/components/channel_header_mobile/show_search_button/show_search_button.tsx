@@ -35,4 +35,4 @@ const ShowSearchButton = ({actions}: Props) => {
         </button>
     );
 };
-export default React.memo(ShowSearchButton);
+export default ShowSearchButton;

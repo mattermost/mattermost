@@ -46,18 +46,11 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
           },
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
+      dialogType={[Function]}
       id="addGroupsToTeamToggle"
       modalId="add_groups_to_team"
     >
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Add Group"
         id="admin.team_settings.team_details.add_group"
       />
@@ -77,7 +70,7 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
     }
   }
 >
-  <Connect(Component)
+  <Connect(GroupList)
     groups={
       Array [
         Object {

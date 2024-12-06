@@ -8,7 +8,7 @@ exports[`components/PermalinkView should match snapshot 1`] = `
 `;
 
 exports[`components/PermalinkView should match snapshot with archived channel 1`] = `
-<Memo(PermalinkView)
+<PermalinkView
   actions={
     Object {
       "focusPost": [MockFunction] {
@@ -45,5 +45,5 @@ exports[`components/PermalinkView should match snapshot with archived channel 1`
     className="app__content"
     id="app-content"
   />
-</Memo(PermalinkView)>
+</PermalinkView>
 `;

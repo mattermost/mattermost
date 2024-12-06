@@ -349,4 +349,4 @@ const renderRemoveButton = (
     );
 };
 
-export default React.memo(EnterpriseEditionLeftPanel);
+export default EnterpriseEditionLeftPanel;

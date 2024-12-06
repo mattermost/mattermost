@@ -60,4 +60,4 @@ const BoolSetting = ({
     );
 };
 
-export default React.memo(BoolSetting);
+export default BoolSetting;

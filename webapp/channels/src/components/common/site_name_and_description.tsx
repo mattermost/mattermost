@@ -29,4 +29,4 @@ const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}
     );
 };
 
-export default React.memo(SiteNameAndDescription);
+export default SiteNameAndDescription;

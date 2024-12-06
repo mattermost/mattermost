@@ -1,0 +1,63 @@
+diff --git a/node_modules/react/cjs/react.development.js b/node_modules/react/cjs/react.development.js
+index 7f48126..c3524fe 100644
+--- a/node_modules/react/cjs/react.development.js
++++ b/node_modules/react/cjs/react.development.js
+@@ -1435,6 +1435,8 @@ function isValidElementType(type) {
+ }
+ 
+ function memo(type, compare) {
++    console.log('skipping memo react.development.js');
++    return type;
+   {
+     if (!isValidElementType(type)) {
+       error('memo: The first argument must be a component. Instead ' + 'received: %s', type === null ? 'null' : typeof type);
+diff --git a/node_modules/react/cjs/react.production.min.js b/node_modules/react/cjs/react.production.min.js
+index 9128695..14098e0 100644
+--- a/node_modules/react/cjs/react.production.min.js
++++ b/node_modules/react/cjs/react.production.min.js
+@@ -19,5 +19,5 @@ function Q(a){if(-1===a._status){var b=a._result;b=b();a._status=0;a._result=b;b
+ exports.Children={map:P,forEach:function(a,b,c){P(a,function(){b.apply(this,arguments)},c)},count:function(a){var b=0;P(a,function(){b++});return b},toArray:function(a){return P(a,function(a){return a})||[]},only:function(a){if(!L(a))throw Error(z(143));return a}};exports.Component=C;exports.PureComponent=E;exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=T;
+ exports.cloneElement=function(a,b,c){if(null===a||void 0===a)throw Error(z(267,a));var e=l({},a.props),d=a.key,k=a.ref,h=a._owner;if(null!=b){void 0!==b.ref&&(k=b.ref,h=G.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var g=a.type.defaultProps;for(f in b)H.call(b,f)&&!I.hasOwnProperty(f)&&(e[f]=void 0===b[f]&&void 0!==g?g[f]:b[f])}var f=arguments.length-2;if(1===f)e.children=c;else if(1<f){g=Array(f);for(var m=0;m<f;m++)g[m]=arguments[m+2];e.children=g}return{$$typeof:n,type:a.type,
+ key:d,ref:k,props:e,_owner:h}};exports.createContext=function(a,b){void 0===b&&(b=null);a={$$typeof:r,_calculateChangedBits:b,_currentValue:a,_currentValue2:a,_threadCount:0,Provider:null,Consumer:null};a.Provider={$$typeof:q,_context:a};return a.Consumer=a};exports.createElement=J;exports.createFactory=function(a){var b=J.bind(null,a);b.type=a;return b};exports.createRef=function(){return{current:null}};exports.forwardRef=function(a){return{$$typeof:t,render:a}};exports.isValidElement=L;
+-exports.lazy=function(a){return{$$typeof:v,_payload:{_status:-1,_result:a},_init:Q}};exports.memo=function(a,b){return{$$typeof:u,type:a,compare:void 0===b?null:b}};exports.useCallback=function(a,b){return S().useCallback(a,b)};exports.useContext=function(a,b){return S().useContext(a,b)};exports.useDebugValue=function(){};exports.useEffect=function(a,b){return S().useEffect(a,b)};exports.useImperativeHandle=function(a,b,c){return S().useImperativeHandle(a,b,c)};
++exports.lazy=function(a){return{$$typeof:v,_payload:{_status:-1,_result:a},_init:Q}};exports.memo=function(a,b){console.log('skipping memo react.production.min.js');return a;};exports.useCallback=function(a,b){return S().useCallback(a,b)};exports.useContext=function(a,b){return S().useContext(a,b)};exports.useDebugValue=function(){};exports.useEffect=function(a,b){return S().useEffect(a,b)};exports.useImperativeHandle=function(a,b,c){return S().useImperativeHandle(a,b,c)};
+ exports.useLayoutEffect=function(a,b){return S().useLayoutEffect(a,b)};exports.useMemo=function(a,b){return S().useMemo(a,b)};exports.useReducer=function(a,b,c){return S().useReducer(a,b,c)};exports.useRef=function(a){return S().useRef(a)};exports.useState=function(a){return S().useState(a)};exports.version="17.0.2";
+diff --git a/node_modules/react/umd/react.development.js b/node_modules/react/umd/react.development.js
+index 1124191..579dc4e 100644
+--- a/node_modules/react/umd/react.development.js
++++ b/node_modules/react/umd/react.development.js
+@@ -1460,6 +1460,8 @@
+   }
+ 
+   function memo(type, compare) {
++    console.log('skipping memo umd react.development.js');
++    return type;
+     {
+       if (!isValidElementType(type)) {
+         error('memo: The first argument must be a component. Instead ' + 'received: %s', type === null ? 'null' : typeof type);
+diff --git a/node_modules/react/umd/react.production.min.js b/node_modules/react/umd/react.production.min.js
+index 95f2ce7..fa408fc 100644
+--- a/node_modules/react/umd/react.production.min.js
++++ b/node_modules/react/umd/react.production.min.js
+@@ -26,6 +26,6 @@ c,O(r,a),null===p(q)&&a===p(r)&&(z?S():z=!0,G(Q,c-d))):(a.sortIndex=e,O(q,a),u||
+ get unstable_now(){return t},get unstable_forceFrameRate(){return V},unstable_Profiling:null},SchedulerTracing:{__proto__:null,__interactionsRef:null,__subscriberRef:null,unstable_clear:function(a){return a()},unstable_getCurrent:function(){return null},unstable_getThreadID:function(){return++Ea},unstable_trace:function(a,b,c){return c()},unstable_wrap:function(a){return a},unstable_subscribe:function(a){},unstable_unsubscribe:function(a){}}};c.Children={map:D,forEach:function(a,b,c){D(a,function(){b.apply(this,
+ arguments)},c)},count:function(a){var b=0;D(a,function(){b++});return b},toArray:function(a){return D(a,function(a){return a})||[]},only:function(a){if(!M(a))throw Error(y(143));return a}};c.Component=v;c.PureComponent=K;c.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=d;c.cloneElement=function(a,b,c){if(null===a||void 0===a)throw Error(y(267,a));var d=U({},a.props),e=a.key,g=a.ref,n=a._owner;if(null!=b){void 0!==b.ref&&(g=b.ref,n=L.current);void 0!==b.key&&(e=""+b.key);if(a.type&&a.type.defaultProps)var k=
+ a.type.defaultProps;for(h in b)ea.call(b,h)&&!fa.hasOwnProperty(h)&&(d[h]=void 0===b[h]&&void 0!==k?k[h]:b[h])}var h=arguments.length-2;if(1===h)d.children=c;else if(1<h){k=Array(h);for(var m=0;m<h;m++)k[m]=arguments[m+2];d.children=k}return{$$typeof:w,type:a.type,key:e,ref:g,props:d,_owner:n}};c.createContext=function(a,b){void 0===b&&(b=null);a={$$typeof:la,_calculateChangedBits:b,_currentValue:a,_currentValue2:a,_threadCount:0,Provider:null,Consumer:null};a.Provider={$$typeof:ka,_context:a};return a.Consumer=
+-a};c.createElement=ca;c.createFactory=function(a){var b=ca.bind(null,a);b.type=a;return b};c.createRef=function(){return{current:null}};c.forwardRef=function(a){return{$$typeof:ma,render:a}};c.isValidElement=M;c.lazy=function(a){return{$$typeof:oa,_payload:{_status:-1,_result:a},_init:xa}};c.memo=function(a,b){return{$$typeof:na,type:a,compare:void 0===b?null:b}};c.useCallback=function(a,b){return n().useCallback(a,b)};c.useContext=function(a,b){return n().useContext(a,b)};c.useDebugValue=function(a,
++a};c.createElement=ca;c.createFactory=function(a){var b=ca.bind(null,a);b.type=a;return b};c.createRef=function(){return{current:null}};c.forwardRef=function(a){return{$$typeof:ma,render:a}};c.isValidElement=M;c.lazy=function(a){return{$$typeof:oa,_payload:{_status:-1,_result:a},_init:xa}};c.memo=function(a,b){console.log('skipping memo umd/react.prod'); return a;};c.useCallback=function(a,b){return n().useCallback(a,b)};c.useContext=function(a,b){return n().useContext(a,b)};c.useDebugValue=function(a,
+ b){};c.useEffect=function(a,b){return n().useEffect(a,b)};c.useImperativeHandle=function(a,b,c){return n().useImperativeHandle(a,b,c)};c.useLayoutEffect=function(a,b){return n().useLayoutEffect(a,b)};c.useMemo=function(a,b){return n().useMemo(a,b)};c.useReducer=function(a,b,c){return n().useReducer(a,b,c)};c.useRef=function(a){return n().useRef(a)};c.useState=function(a){return n().useState(a)};c.version="17.0.2"});
+ })();
+diff --git a/node_modules/react/umd/react.profiling.min.js b/node_modules/react/umd/react.profiling.min.js
+index df2aad2..cddf82c 100644
+--- a/node_modules/react/umd/react.profiling.min.js
++++ b/node_modules/react/umd/react.profiling.min.js
+@@ -30,7 +30,7 @@ e)}finally{if(d.__count--,null!==k&&0===d.__count)k.onInteractionScheduledWorkCo
+ arguments[1]:0,e=p.current,d=y.current;if(null!==d)d.onWorkScheduled(e,c);e.forEach(function(a){a.__count++});var f=!1;b.cancel=function(){d=y.current;try{if(null!==d)d.onWorkCanceled(e,c)}finally{e.forEach(function(a){a.__count--;if(d&&0===a.__count)d.onInteractionScheduledWorkCompleted(a)})}};return b},unstable_subscribe:function(a){t.add(a);1===t.size&&(y.current={onInteractionScheduledWorkCompleted:Da,onInteractionTraced:Ca,onWorkCanceled:Ha,onWorkScheduled:Ea,onWorkStarted:Fa,onWorkStopped:Ga})},
+ unstable_unsubscribe:function(a){t.delete(a);0===t.size&&(y.current=null)}}};f.Children={map:I,forEach:function(a,b,c){I(a,function(){b.apply(this,arguments)},c)},count:function(a){var b=0;I(a,function(){b++});return b},toArray:function(a){return I(a,function(a){return a})||[]},only:function(a){if(!R(a))throw Error(D(143));return a}};f.Component=A;f.PureComponent=P;f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED=g;f.cloneElement=function(a,b,c){if(null===a||void 0===a)throw Error(D(267,a));var e=
+ Z({},a.props),d=a.key,f=a.ref,h=a._owner;if(null!=b){void 0!==b.ref&&(f=b.ref,h=Q.current);void 0!==b.key&&(d=""+b.key);if(a.type&&a.type.defaultProps)var k=a.type.defaultProps;for(g in b)ja.call(b,g)&&!ka.hasOwnProperty(g)&&(e[g]=void 0===b[g]&&void 0!==k?k[g]:b[g])}var g=arguments.length-2;if(1===g)e.children=c;else if(1<g){k=Array(g);for(var m=0;m<g;m++)k[m]=arguments[m+2];e.children=k}return{$$typeof:B,type:a.type,key:d,ref:f,props:e,_owner:h}};f.createContext=function(a,b){void 0===b&&(b=null);
+-a={$$typeof:pa,_calculateChangedBits:b,_currentValue:a,_currentValue2:a,_threadCount:0,Provider:null,Consumer:null};a.Provider={$$typeof:oa,_context:a};return a.Consumer=a};f.createElement=ia;f.createFactory=function(a){var b=ia.bind(null,a);b.type=a;return b};f.createRef=function(){return{current:null}};f.forwardRef=function(a){return{$$typeof:qa,render:a}};f.isValidElement=R;f.lazy=function(a){return{$$typeof:sa,_payload:{_status:-1,_result:a},_init:Ba}};f.memo=function(a,b){return{$$typeof:ra,
+-type:a,compare:void 0===b?null:b}};f.useCallback=function(a,b){return v().useCallback(a,b)};f.useContext=function(a,b){return v().useContext(a,b)};f.useDebugValue=function(a,b){};f.useEffect=function(a,b){return v().useEffect(a,b)};f.useImperativeHandle=function(a,b,c){return v().useImperativeHandle(a,b,c)};f.useLayoutEffect=function(a,b){return v().useLayoutEffect(a,b)};f.useMemo=function(a,b){return v().useMemo(a,b)};f.useReducer=function(a,b,c){return v().useReducer(a,b,c)};f.useRef=function(a){return v().useRef(a)};
++a={$$typeof:pa,_calculateChangedBits:b,_currentValue:a,_currentValue2:a,_threadCount:0,Provider:null,Consumer:null};a.Provider={$$typeof:oa,_context:a};return a.Consumer=a};f.createElement=ia;f.createFactory=function(a){var b=ia.bind(null,a);b.type=a;return b};f.createRef=function(){return{current:null}};f.forwardRef=function(a){return{$$typeof:qa,render:a}};f.isValidElement=R;f.lazy=function(a){return{$$typeof:sa,_payload:{_status:-1,_result:a},_init:Ba}};f.memo=function(a,b){console.log('skipping memo umd/react.prof'); return a;
++};f.useCallback=function(a,b){return v().useCallback(a,b)};f.useContext=function(a,b){return v().useContext(a,b)};f.useDebugValue=function(a,b){};f.useEffect=function(a,b){return v().useEffect(a,b)};f.useImperativeHandle=function(a,b,c){return v().useImperativeHandle(a,b,c)};f.useLayoutEffect=function(a,b){return v().useLayoutEffect(a,b)};f.useMemo=function(a,b){return v().useMemo(a,b)};f.useReducer=function(a,b,c){return v().useReducer(a,b,c)};f.useRef=function(a){return v().useRef(a)};
+ f.useState=function(a){return v().useState(a)};f.version="17.0.2"});
+ })();

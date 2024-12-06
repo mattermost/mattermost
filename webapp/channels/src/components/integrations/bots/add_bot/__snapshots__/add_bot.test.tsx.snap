@@ -320,7 +320,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           errors={
             Array [
               "",
@@ -337,13 +337,13 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             id="bots.manage.add.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           id="saveBot"
           onClick={[Function]}
           spinning={false}
           spinningText={
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="Creating..."
               id="bots.manage.add.creating"
             />
@@ -354,7 +354,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             defaultMessage="Create Bot Account"
             id="bots.manage.add.create"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
       </div>
     </form>
   </div>

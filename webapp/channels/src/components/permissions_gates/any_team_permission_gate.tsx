@@ -53,4 +53,4 @@ const AnyTeamPermissionGate = ({permissions, children, invert = false}: Props) =
     );
 };
 
-export default React.memo(AnyTeamPermissionGate);
+export default AnyTeamPermissionGate;

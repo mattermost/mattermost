@@ -12,7 +12,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -110,7 +110,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -211,7 +211,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -312,7 +312,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -413,7 +413,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -514,7 +514,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -615,7 +615,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />
@@ -716,7 +716,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
       id="files-filter-tooltip"
       placement="top"
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Filter"
           id="channel_info_rhs.menu.files.filter"
         />

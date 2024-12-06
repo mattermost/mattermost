@@ -4,18 +4,18 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
 <div
   className="file-preview-modal-header"
 >
-  <Memo(FilePreviewModalInfo)
+  <FilePreviewModalInfo
     filename="img.png"
     post={Object {}}
     showFileName={true}
   />
-  <Memo(FilePreviewModalMainNav)
+  <FilePreviewModalMainNav
     fileIndex={1}
     handleNext={[MockFunction]}
     handlePrev={[MockFunction]}
     totalFiles={3}
   />
-  <Memo(FilePreviewModalMainActions)
+  <FilePreviewModalMainActions
     canCopyContent={true}
     canDownloadFiles={true}
     content=""
@@ -46,6 +46,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     isExternalFile={false}
     isMobileView={false}
     onGetPublicLink={[MockFunction]}
+    showClose={true}
     showOnlyClose={false}
     showPublicLink={false}
     usedInside="Header"
@@ -57,7 +58,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
 <div
   className="file-preview-modal-header"
 >
-  <Memo(FilePreviewModalMainActions)
+  <FilePreviewModalMainActions
     canCopyContent={true}
     canDownloadFiles={true}
     content=""
@@ -88,11 +89,12 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     isExternalFile={false}
     isMobileView={true}
     onGetPublicLink={[MockFunction]}
+    showClose={true}
     showOnlyClose={true}
     showPublicLink={false}
     usedInside="Header"
   />
-  <Memo(FilePreviewModalMainNav)
+  <FilePreviewModalMainNav
     fileIndex={1}
     handleNext={[MockFunction]}
     handlePrev={[MockFunction]}

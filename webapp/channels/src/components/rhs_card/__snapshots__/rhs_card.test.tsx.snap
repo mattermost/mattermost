@@ -46,7 +46,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
             id="rhs_card.message_by"
             values={
               Object {
-                "avatar": <Memo(Connect(PostProfilePicture))
+                "avatar": <Connect(PostProfilePicture)
                   compactDisplay={false}
                   post={
                     Object {
@@ -77,7 +77,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
                   }
                   userId="user_id"
                 />,
-                "user": <Memo(Connect(UserProfile))
+                "user": <Connect(UserProfile)
                   disablePopover={true}
                   hideStatus={true}
                   userId="user_id"
@@ -152,7 +152,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
             id="rhs_card.message_by"
             values={
               Object {
-                "avatar": <Memo(Connect(PostProfilePicture))
+                "avatar": <Connect(PostProfilePicture)
                   compactDisplay={false}
                   post={
                     Object {
@@ -183,7 +183,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
                   }
                   userId="user_id"
                 />,
-                "user": <Memo(Connect(UserProfile))
+                "user": <Connect(UserProfile)
                   disablePopover={true}
                   hideStatus={true}
                   userId="user_id"
@@ -258,7 +258,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
             id="rhs_card.message_by"
             values={
               Object {
-                "avatar": <Memo(Connect(PostProfilePicture))
+                "avatar": <Connect(PostProfilePicture)
                   compactDisplay={false}
                   post={
                     Object {
@@ -289,7 +289,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
                   }
                   userId="user_id"
                 />,
-                "user": <Memo(Connect(UserProfile))
+                "user": <Connect(UserProfile)
                   disablePopover={true}
                   hideStatus={true}
                   userId="user_id"

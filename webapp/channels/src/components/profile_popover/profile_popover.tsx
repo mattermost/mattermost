@@ -242,4 +242,4 @@ function getDefaultChannelId(state: GlobalState) {
     return selectedPost.exists ? selectedPost.channel_id : getCurrentChannelId(state);
 }
 
-export default React.memo(ProfilePopover);
+export default ProfilePopover;

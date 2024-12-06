@@ -4,7 +4,7 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
 <div
   className="file-preview-modal-footer"
 >
-  <Memo(FilePreviewModalInfo)
+  <FilePreviewModalInfo
     filename="img.png"
     post={
       Object {
@@ -35,7 +35,7 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
     }
     showFileName={false}
   />
-  <Memo(FilePreviewModalMainActions)
+  <FilePreviewModalMainActions
     canCopyContent={false}
     canDownloadFiles={true}
     content=""
@@ -78,7 +78,7 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
 <div
   className="file-preview-modal-footer"
 >
-  <Memo(FilePreviewModalInfo)
+  <FilePreviewModalInfo
     filename="img.png"
     post={
       Object {
@@ -109,7 +109,7 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
     }
     showFileName={false}
   />
-  <Memo(FilePreviewModalMainActions)
+  <FilePreviewModalMainActions
     canCopyContent={false}
     canDownloadFiles={true}
     content=""

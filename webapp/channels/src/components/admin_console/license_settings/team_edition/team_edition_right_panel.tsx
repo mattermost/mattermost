@@ -192,4 +192,4 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     );
 };
 
-export default React.memo(TeamEditionRightPanel);
+export default TeamEditionRightPanel;

@@ -33,4 +33,4 @@ const SpinnerButton = ({
         </button>
     );
 };
-export default React.memo(SpinnerButton);
+export default SpinnerButton;

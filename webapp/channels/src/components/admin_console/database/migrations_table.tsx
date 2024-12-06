@@ -83,4 +83,4 @@ const MigrationsTable = ({
     );
 };
 
-export default React.memo(MigrationsTable);
+export default MigrationsTable;

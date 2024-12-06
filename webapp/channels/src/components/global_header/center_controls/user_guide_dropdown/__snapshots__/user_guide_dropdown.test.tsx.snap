@@ -11,7 +11,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="userGuideHelpTooltip"
     placement="bottom"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Help"
         id="channel_header.userHelpGuide"
       />
@@ -35,7 +35,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <Memo(MenuGroup)>
+    <MenuGroup>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -72,7 +72,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </Memo(MenuGroup)>
+    </MenuGroup>
   </Menu>
 </MenuWrapper>
 `;
@@ -88,7 +88,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="userGuideHelpTooltip"
     placement="bottom"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Help"
         id="channel_header.userHelpGuide"
       />
@@ -112,7 +112,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <Memo(MenuGroup)>
+    <MenuGroup>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -141,7 +141,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </Memo(MenuGroup)>
+    </MenuGroup>
   </Menu>
 </MenuWrapper>
 `;
@@ -157,7 +157,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="userGuideHelpTooltip"
     placement="bottom"
     title={
-      <Memo(MemoizedFormattedMessage)
+      <MemoizedFormattedMessage
         defaultMessage="Help"
         id="channel_header.userHelpGuide"
       />
@@ -181,7 +181,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <Memo(MenuGroup)>
+    <MenuGroup>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -226,7 +226,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Test Item"
       />
-    </Memo(MenuGroup)>
+    </MenuGroup>
   </Menu>
 </MenuWrapper>
 `;

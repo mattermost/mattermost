@@ -107,7 +107,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           error={null}
           type="backstage"
         />
@@ -120,7 +120,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
             id="add_emoji.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           data-testid="save-button"
           onClick={[Function]}
@@ -137,7 +137,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
       </div>
     </form>
   </div>
@@ -287,7 +287,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           error={null}
           type="backstage"
         />
@@ -300,7 +300,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
             id="add_emoji.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           data-testid="save-button"
           onClick={[Function]}
@@ -317,7 +317,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
       </div>
     </form>
   </div>
@@ -431,7 +431,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
       <div
         className="backstage-form__footer"
       >
-        <Memo(FormError)
+        <FormError
           error={null}
           type="backstage"
         />
@@ -444,7 +444,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
             id="add_emoji.cancel"
           />
         </Link>
-        <Memo(SpinnerButton)
+        <SpinnerButton
           className="btn btn-primary"
           data-testid="save-button"
           onClick={[Function]}
@@ -461,7 +461,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
             defaultMessage="Save"
             id="add_emoji.save"
           />
-        </Memo(SpinnerButton)>
+        </SpinnerButton>
       </div>
     </form>
   </div>

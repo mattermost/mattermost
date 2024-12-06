@@ -9,7 +9,7 @@ exports[`components/FileUpload should match snapshot 1`] = `
       id="upload-tooltip"
       placement="top"
       title={
-        <Memo(KeyboardShortcutSequence)
+        <KeyboardShortcutSequence
           hoistDescription={true}
           isInsideTooltip={true}
           shortcut={

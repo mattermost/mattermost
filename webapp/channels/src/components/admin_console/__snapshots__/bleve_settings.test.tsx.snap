@@ -15,10 +15,10 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         id="admin.bleve.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(BooleanSetting)
+    <SettingsGroup>
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. <link>Learn more about Bleve in our documentation.</link>"
             id="admin.bleve.enableIndexingDescription"
             values={
@@ -30,7 +30,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         id="enableIndexing"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve Indexing:"
             id="admin.bleve.enableIndexingTitle"
           />
@@ -41,14 +41,14 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
       />
       <AdminTextSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Directory path to use for store bleve indexes."
             id="admin.bleve.indexDirDescription"
           />
         }
         id="indexDir"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Index Directory:"
             id="admin.bleve.indexDirTitle"
           />
@@ -76,13 +76,13 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
           >
             <Connect(JobTable)
               createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Index Now"
                   id="admin.bleve.createJob.title"
                 />
               }
               createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="All users, channels and posts in the database will be indexed from oldest to newest. Bleve is available during indexing but search results may be incomplete until the indexing job is complete."
                   id="admin.bleve.createJob.help"
                 />
@@ -96,7 +96,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
       </div>
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Index"
             id="admin.bleve.purgeIndexesButton"
           />
@@ -109,7 +109,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purging will entirely remove the content of the Bleve index directory. Search results may be incomplete until a bulk index of the existing database is rebuilt."
             id="admin.bleve.purgeIndexesHelpText"
           />
@@ -117,7 +117,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         id="purgeIndexesSection"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Indexes:"
             id="admin.bleve.purgeIndexesButton.label"
           />
@@ -132,17 +132,17 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
           }
         }
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
             id="admin.bleve.enableSearchingDescription"
           />
         }
         id="enableSearching"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve for search queries:"
             id="admin.bleve.enableSearchingTitle"
           />
@@ -151,17 +151,17 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         setByEnv={false}
         value={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         disabled={true}
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Bleve will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
             id="admin.bleve.enableAutocompleteDescription"
           />
         }
         id="enableAutocomplete"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve for autocomplete queries:"
             id="admin.bleve.enableAutocompleteTitle"
           />
@@ -170,7 +170,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         setByEnv={false}
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -179,7 +179,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -193,7 +193,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>
@@ -218,10 +218,10 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         id="admin.bleve.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(BooleanSetting)
+    <SettingsGroup>
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. <link>Learn more about Bleve in our documentation.</link>"
             id="admin.bleve.enableIndexingDescription"
             values={
@@ -233,7 +233,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         id="enableIndexing"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve Indexing:"
             id="admin.bleve.enableIndexingTitle"
           />
@@ -244,14 +244,14 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
       />
       <AdminTextSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Directory path to use for store bleve indexes."
             id="admin.bleve.indexDirDescription"
           />
         }
         id="indexDir"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Index Directory:"
             id="admin.bleve.indexDirTitle"
           />
@@ -279,13 +279,13 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
           >
             <Connect(JobTable)
               createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="Index Now"
                   id="admin.bleve.createJob.title"
                 />
               }
               createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
+                <MemoizedFormattedMessage
                   defaultMessage="All users, channels and posts in the database will be indexed from oldest to newest. Bleve is available during indexing but search results may be incomplete until the indexing job is complete."
                   id="admin.bleve.createJob.help"
                 />
@@ -299,7 +299,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
       </div>
       <RequestButton
         buttonText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Index"
             id="admin.bleve.purgeIndexesButton"
           />
@@ -312,7 +312,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
           }
         }
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purging will entirely remove the content of the Bleve index directory. Search results may be incomplete until a bulk index of the existing database is rebuilt."
             id="admin.bleve.purgeIndexesHelpText"
           />
@@ -320,7 +320,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         id="purgeIndexesSection"
         includeDetailedError={false}
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Purge Indexes:"
             id="admin.bleve.purgeIndexesButton.label"
           />
@@ -335,16 +335,16 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
           }
         }
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used."
             id="admin.bleve.enableSearchingDescription"
           />
         }
         id="enableSearching"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve for search queries:"
             id="admin.bleve.enableSearchingTitle"
           />
@@ -353,16 +353,16 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value={false}
       />
-      <Memo(BooleanSetting)
+      <BooleanSetting
         helpText={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="When true, Bleve will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used."
             id="admin.bleve.enableAutocompleteDescription"
           />
         }
         id="enableAutocomplete"
         label={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Enable Bleve for autocomplete queries:"
             id="admin.bleve.enableAutocompleteTitle"
           />
@@ -371,7 +371,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         setByEnv={false}
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -380,7 +380,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         onClick={[Function]}
         saving={false}
         savingMessage={
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Saving Config..."
             id="admin.saving"
           />
@@ -394,7 +394,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         <div
           className="error-message"
         >
-          <Memo(FormError)
+          <FormError
             error={null}
           />
         </div>

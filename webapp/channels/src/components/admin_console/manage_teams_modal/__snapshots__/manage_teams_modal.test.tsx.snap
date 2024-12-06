@@ -54,7 +54,7 @@ exports[`ManageTeamsModal should match snapshot init 1`] = `
       <div
         className="manage-teams__user"
       >
-        <Memo(Avatar)
+        <Avatar
           size="lg"
           url="/api/v4/users/currentUserId/image?_=1234"
           username="currentUsername"

@@ -12,7 +12,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(LoadingWrapper)
+        <LoadingWrapper
           loading={false}
           text={
             Object {
@@ -21,16 +21,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
             }
           }
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </Memo(LoadingWrapper)>
+        </LoadingWrapper>
       }
       message={
         <div>
           <p>
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
               id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
               values={
@@ -47,7 +47,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Delete {scheme} scheme?"
           id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
           values={
@@ -135,7 +135,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(LoadingWrapper)
+        <LoadingWrapper
           loading={false}
           text={
             Object {
@@ -144,16 +144,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
             }
           }
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </Memo(LoadingWrapper)>
+        </LoadingWrapper>
       }
       message={
         <div>
           <p>
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
               id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
               values={
@@ -170,7 +170,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Delete {scheme} scheme?"
           id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
           values={
@@ -308,7 +308,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <Memo(LoadingWrapper)
+        <LoadingWrapper
           loading={false}
           text={
             Object {
@@ -317,16 +317,16 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
             }
           }
         >
-          <Memo(MemoizedFormattedMessage)
+          <MemoizedFormattedMessage
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </Memo(LoadingWrapper)>
+        </LoadingWrapper>
       }
       message={
         <div>
           <p>
-            <Memo(MemoizedFormattedMessage)
+            <MemoizedFormattedMessage
               defaultMessage="The permissions in the teams using this scheme will reset to the defaults in the System Scheme. Are you sure you want to delete the {schemeName} scheme?"
               id="admin.permissions.permissionsSchemeSummary.deleteConfirmQuestion"
               values={
@@ -343,7 +343,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       onConfirm={[Function]}
       show={false}
       title={
-        <Memo(MemoizedFormattedMessage)
+        <MemoizedFormattedMessage
           defaultMessage="Delete {scheme} scheme?"
           id="admin.permissions.permissionsSchemeSummary.deleteSchemeTitle"
           values={

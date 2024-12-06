@@ -60,7 +60,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot 1`]
               ranges={
                 Array [
                   Object {
-                    "display": <Memo(MemoizedFormattedMessage)
+                    "display": <MemoizedFormattedMessage
                       defaultMessage="Today"
                       id="date_separator.today"
                     />,
@@ -70,7 +70,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot 1`]
                     ],
                   },
                   Object {
-                    "display": <Memo(MemoizedFormattedMessage)
+                    "display": <MemoizedFormattedMessage
                       defaultMessage="Yesterday"
                       id="date_separator.yesterday"
                     />,
@@ -165,7 +165,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
               ranges={
                 Array [
                   Object {
-                    "display": <Memo(MemoizedFormattedMessage)
+                    "display": <MemoizedFormattedMessage
                       defaultMessage="Today"
                       id="date_separator.today"
                     />,
@@ -175,7 +175,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
                     ],
                   },
                   Object {
-                    "display": <Memo(MemoizedFormattedMessage)
+                    "display": <MemoizedFormattedMessage
                       defaultMessage="Yesterday"
                       id="date_separator.yesterday"
                     />,
@@ -205,7 +205,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
           <span
             className="profile-icon"
           >
-            <Memo(Avatar)
+            <Avatar
               className="avatar-post-preview"
               size="sm"
               url="/api/v4/users/user_id/image?_=0"

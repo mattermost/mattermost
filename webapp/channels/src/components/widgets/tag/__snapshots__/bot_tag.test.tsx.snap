@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/widgets/tag/BotTag should match the snapshot 1`] = `
-<Memo(Tag)
+<Tag
   className="BotTag test"
   size="xs"
   text="BOT"
