@@ -556,6 +556,10 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
         }
     }
 
+    handleChooseFileClick = () => {
+        this.fileInput.current?.click();
+    };
+
     handleUpload = () => {
         this.setState({lastMessage: null, serverError: null});
         const element = this.fileInput.current as HTMLInputElement;
@@ -1156,6 +1160,7 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
                                             <button
                                                 type='button'
                                                 className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                                onClick={this.handleChooseFileClick}
                                                 disabled={!enableUploadButton || this.props.isDisabled}
                                             >
                                                 <FormattedMessage
