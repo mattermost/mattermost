@@ -451,7 +451,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 	var messageBuilder strings.Builder
 
 	totalFailedMessages := len(userFailedMessages)
-	messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
+	messageHeader := T("app.scheduled_post.failed_messages", map[string]any{
 		"Count": totalFailedMessages,
 	})
 	messageBuilder.WriteString(messageHeader)
@@ -461,7 +461,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		channelName := channelNames[key.ChannelId]
 		errorReason := getErrorReason(T, key.ErrorCode)
 
-		detailedMessage := T("app.scheduled_post.failed_message_detail", map[string]interface{}{
+		detailedMessage := T("app.scheduled_post.failed_message_detail", map[string]any{
 			"Count":       count,
 			"ChannelName": channelName,
 			"ErrorReason": errorReason,

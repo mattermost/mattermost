@@ -186,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 	s.Run("Get value if the key points to a map element", func() {
 		outputConfig := &model.Config{}
 		pluginState := &model.PluginState{Enable: true}
-		pluginSettings := map[string]interface{}{
+		pluginSettings := map[string]any{
 			"test1": 1,
 			"test2": []string{"a", "b"},
 			"test3": map[string]string{"a": "b"},
@@ -194,7 +194,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		outputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": pluginState,
 		}
-		outputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		outputConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 
@@ -499,12 +499,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": {Enable: false},
 		}
-		pluginSettings := map[string]interface{}{
+		pluginSettings := map[string]any{
 			"test1": 1,
 			"test2": []string{"a", "b"},
-			"test3": map[string]interface{}{"a": "b"},
+			"test3": map[string]any{"a": "b"},
 		}
-		defaultConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		defaultConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 
@@ -513,7 +513,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		inputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": {Enable: true},
 		}
-		inputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+		inputConfig.PluginSettings.Plugins = map[string]map[string]any{
 			"com.mattermost.testplugin": pluginSettings,
 		}
 		s.client.
