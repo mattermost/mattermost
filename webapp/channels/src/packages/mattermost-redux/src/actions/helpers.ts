@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -75,7 +76,7 @@ export function bindClientFunc<Func extends(...args: any[]) => Promise<any>>({
     onSuccess?: ActionType | ActionType[];
     onFailure?: ActionType;
     params?: Parameters<Func>;
-}): ActionFuncAsync<Awaited<ReturnType<Func>>> {
+}): ActionFuncAsync<Awaited<ReturnType<Func>>, GlobalState> {
     return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));

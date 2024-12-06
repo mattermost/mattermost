@@ -16,7 +16,6 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
@@ -35,7 +34,7 @@ import {isUrlSafe, getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
@@ -47,9 +46,9 @@ export type ExecuteCommandReturnType = {
     appResponse?: AppCallResponse;
 }
 
-export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType, GlobalState> {
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<ExecuteCommandReturnType> {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
 
         let msg = message;
 
@@ -149,7 +148,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
         }
 
         if (appsEnabled(state)) {
-            const getGlobalState = () => getState() as GlobalState;
+            const getGlobalState = () => getState();
             const createErrorMessage = (errMessage: string) => {
                 return {error: {message: errMessage}};
             };

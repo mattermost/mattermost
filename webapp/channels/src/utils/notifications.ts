@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
-
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
+
+import type {ThunkActionFunc} from 'types/store';
 
 export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
