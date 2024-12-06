@@ -235,7 +235,7 @@ export async function loadPluginsIfNecessary() {
 
     // Remove old plugins
     Object.keys(oldManifests).forEach((id) => {
-        if (!newManifests.hasOwnProperty(id)) {
+        if (!Object.hasOwn(newManifests, id)) {
             const oldManifest = oldManifests[id];
             removePlugin(oldManifest);
         }

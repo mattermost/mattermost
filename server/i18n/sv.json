@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Kan inte hitta användaren."
+    "translation": "Kan inte hitta användaren {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Opassande kanalbehörigheter."
+    "translation": "Användaren {{.user}} har inte rätt behörighet till kanalen {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Denna webhook tillåts inte posta meddelanden i angiven kanal."
+    "translation": "Denna webhook tillåts inte posta meddelanden i kanal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kunde inte tolka inkommande data."
+    "translation": "Kunde inte tolka inkommande data för webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kan inte hitta kommandot."
+    "translation": "Kan inte hitta kommandot {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -3129,43 +3129,43 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Kunde inte hämta Elasticsearch-index"
+    "translation": "Kunde inte hämta {{.Backend}}-index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Kunde inte radera Elasticsearch-index"
+    "translation": "Kunde inte radera {{.Backend}}-index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för användare"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för användare"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för meddelnden"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för meddelnden"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för kanalerna"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för kanalerna"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Misslyckades med att sätta upp Elasticsearch-klienten"
+    "translation": "Misslyckades med att sätta upp {{.Backend}}-klienten"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker misslyckades då indexeringsjobbet gick fel"
+    "translation": "{{.Backend}} aggregator worker misslyckades då indexeringsjobbet gick fel"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att hitta index"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att hitta index"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att radera index"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att radera index"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4105,11 +4105,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Ett fel uppstod då kanalen hämtades."
+    "translation": "Ett fel uppstod när kanalen {{.channel_id}} eftersöktes."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Kunde inte hämta den existerande kanalen."
+    "translation": "Kunde inte hitta den existerande kanalen {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4418,10 +4418,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kan inte uppdatera webhook över flera team."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kunde inte tolka multipart-meddelandet i inkommande webbhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -7432,7 +7428,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch-mall för filer"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för filer"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8947,19 +8943,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kunde inte öppna nyckelfilen för klientcertifikatet för Elasticsearch"
+    "translation": "Kunde inte öppna nyckelfilen till klientcertifikatet för {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kunde inte öppna klientcertifikatfilen för Elasticsearch"
+    "translation": "Kunde inte öppna klientcertifikatfilen för {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Avkodningen av klientcertifikatet för Elasticsearch misslyckades"
+    "translation": "Avkodningen av klientcertifikatet för {{.Backend}} misslyckades"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kunde inte öppna CA-filen för Elasticsearch"
+    "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10228,5 +10224,13 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "Kunde inte skapa inbjudan till fjärrkluster"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Ogiltig förfrågan."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Misslyckades med att cacha inlägget efter deduplicerat av en klient som upprepat samma begäran."
   }
 ]

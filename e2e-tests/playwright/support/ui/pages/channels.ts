@@ -11,6 +11,7 @@ export default class ChannelsPage {
     readonly page: Page;
 
     readonly globalHeader;
+    readonly searchPopover;
     readonly centerView;
     readonly scheduledDraftDropdown;
     readonly scheduledDraftModal;
@@ -33,6 +34,7 @@ export default class ChannelsPage {
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
+        this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
@@ -69,11 +71,19 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                const prefix = channelName.startsWith('@') ? '/messages' : '';
+                const prefix = channelName.startsWith('@') ? '/messages' : '/channels';
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
         await this.page.goto(channelsUrl);
+    }
+
+    /**
+     * `postMessage` posts a message in the current channel
+     * @param message Message to post
+     */
+    async postMessage(message: string) {
+        await this.centerView.postCreate.postMessage(message);
     }
 }
 
