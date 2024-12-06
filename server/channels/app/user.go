@@ -43,6 +43,8 @@ const (
 	ImageProfilePixelDimension = 128
 )
 
+// CreateUserWithToken creates a user from the provided user object and token. The token must be valid and not expired.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -128,6 +130,8 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 	return ruser, nil
 }
 
+// CreateUserWithInviteId creates a user from an invite ID. The invite ID must be valid and not expired.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -174,6 +178,8 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 	return ruser, nil
 }
 
+// CreateUserAsAdmin creates a new user with system admin privileges.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	ruser, err := a.CreateUser(c, user)
 	if err != nil {
@@ -187,6 +193,8 @@ func (a *App) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string
 	return ruser, nil
 }
 
+// CreateUserFromSignup creates a user from a signup request. The user will be created with default permissions.
+// Returns the created user and nil on success, or nil and an error on failure.
 func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -211,6 +219,8 @@ func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect str
 	return ruser, nil
 }
 
+// IsUserSignUpAllowed determines if user signup is allowed according to system configuration.
+// Returns nil if signup is allowed, otherwise returns an appropriate error.
 func (a *App) IsUserSignUpAllowed() *model.AppError {
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -219,6 +229,8 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
+// IsFirstUserAccount returns true if this is the first account created on the system
+// based on the SYS_ADMIN_ROLE being assigned to the user.
 func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
@@ -339,6 +351,8 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
+// CreateOAuthUser creates a user from OAuth information. The user is created with roles determined by the
+// team and channel membership defaults set by the system admin.
 func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -407,6 +421,8 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 	return ruser, nil
 }
 
+// GetUser gets a user by their ID. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUser(userID)
 	if err != nil {
@@ -422,6 +438,8 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+// GetUsers gets users by a list of IDs. Returns the users found and nil if successful.
+// Returns nil and an error if unsuccessful.
 func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsers(userIDs)
 	if err != nil {
@@ -431,6 +449,8 @@ func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
 	return users, nil
 }
 
+// GetUserByUsername gets a user by their username. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
 	result, err := a.ch.srv.userService.GetUserByUsername(username)
 	if err != nil {
@@ -445,6 +465,8 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 	return result, nil
 }
 
+// GetUserByEmail gets a user by their email. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByEmail(email)
 	if err != nil {
@@ -459,6 +481,8 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
+// GetUserByRemoteID gets a user by their remote ID. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByRemoteID(remoteID)
 	if err != nil {
@@ -473,6 +497,8 @@ func (a *App) GetUserByRemoteID(remoteID string) (*model.User, *model.AppError) 
 	return user, nil
 }
 
+// GetUserByAuth gets a user by their auth data and auth service. Returns the user and nil if found.
+// Returns nil and an error if not found.
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUserByAuth(authData, authService)
 	if err != nil {
@@ -491,6 +517,8 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
+// GetUsersFromProfiles gets users based on the provided user options. Returns the users and nil on success.
+// Returns nil and an error on failure.
 func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
@@ -500,6 +528,8 @@ func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User
 	return users, nil
 }
 
+// GetUsersPage returns a page of users on the system. Page and perPage parameters restrict the number of users returned.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersPage(options, asAdmin)
 	if err != nil {
@@ -509,10 +539,14 @@ func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*mode
 	return users, nil
 }
 
+// GetUsersEtag returns a unique identifier for the current state of users in the system.
+// The identifier changes when a user is created, updated, or deleted.
 func (a *App) GetUsersEtag(restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersEtag(restrictionsHash)
 }
 
+// GetUsersInTeam returns a list of users who are members of the team.
+// The options parameter can be used to filter and paginate the results.
 func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersInTeam(options)
 	if err != nil {
@@ -522,6 +556,9 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return users, nil
 }
 
+// GetUsersNotInTeam returns a list of users who are not members of the specified team.
+// The groupConstrained parameter filters users based on group constraints.
+// Offset and limit parameters control pagination.
 func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -531,6 +568,8 @@ func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int
 	return users, nil
 }
 
+// GetUsersInTeamPage returns a page of users who are members of the specified team.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersInTeamPage(options, asAdmin)
 	if err != nil {
@@ -540,6 +579,9 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersNotInTeamPage gets a page of users who are not members of a team and applies the given restrictions.
+// Page and perPage parameters control pagination.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersNotInTeamPage(teamID, groupConstrained, page*perPage, perPage, asAdmin, viewRestrictions)
 	if err != nil {
@@ -549,14 +591,20 @@ func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page i
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInTeamEtag returns a unique identifier for the current state of users in the given team.
+// The identifier changes when a user is created, updated, deleted or when their team membership changes.
 func (a *App) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersInTeamEtag(teamID, restrictionsHash)
 }
 
+// GetUsersNotInTeamEtag returns a unique identifier for the current state of users not in the given team.
+// The identifier changes when a user is created, updated, deleted or when their team membership changes.
 func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
 	return a.ch.srv.userService.GetUsersNotInTeamEtag(teamID, restrictionsHash)
 }
 
+// GetUsersInChannel gets a list of users in the specified channel.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannel(options)
 	if err != nil {
@@ -566,6 +614,8 @@ func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *
 	return users, nil
 }
 
+// GetUsersInChannelByStatus gets a list of users in the specified channel, ordered by their status.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannelByStatus(options)
 	if err != nil {
@@ -575,6 +625,8 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
+// GetUsersInChannelByAdmin returns a list of users in the specified channel ordered by their admin status.
+// The options parameter can be used to specify pagination and other filters.
 func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesInChannelByAdmin(options)
 	if err != nil {
@@ -584,6 +636,8 @@ func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.
 	return users, nil
 }
 
+// GetUsersInChannelMap returns a map of users in the specified channel where the map key is the user ID.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -600,6 +654,8 @@ func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) 
 	return userMap, nil
 }
 
+// GetUsersInChannelPage returns a page of users in the specified channel.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -608,6 +664,8 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInChannelPageByStatus returns a page of users in the specified channel ordered by their status.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByStatus(options)
 	if err != nil {
@@ -616,6 +674,8 @@ func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdm
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersInChannelPageByAdmin returns a page of users in the specified channel ordered by their admin status.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByAdmin(options)
 	if err != nil {
@@ -624,6 +684,8 @@ func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmi
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersNotInChannel gets a page of users that are not in the specified channel and team.
+// Filters are optional and can be provided to filter the results further.
 func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetProfilesNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -633,6 +695,8 @@ func (a *App) GetUsersNotInChannel(teamID string, channelID string, groupConstra
 	return users, nil
 }
 
+// GetUsersNotInChannelMap gets a map of users that are not in the specified channel and team.
+// The map keys are user IDs and values are the user objects.
 func (a *App) GetUsersNotInChannelMap(teamID string, channelID string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
@@ -649,6 +713,8 @@ func (a *App) GetUsersNotInChannelMap(teamID string, channelID string, groupCons
 	return userMap, nil
 }
 
+// GetUsersNotInChannelPage gets a page of users that are not in the specified channel and team.
+// Page and perPage parameters control the pagination.
 func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersNotInChannel(teamID, channelID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
@@ -658,6 +724,8 @@ func (a *App) GetUsersNotInChannelPage(teamID string, channelID string, groupCon
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersWithoutTeamPage gets a page of users that are not members of any team.
+// The asAdmin parameter determines if the users should be sanitized.
 func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeamPage(options, asAdmin)
 	if err != nil {
@@ -667,6 +735,8 @@ func (a *App) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin boo
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
+// GetUsersWithoutTeam gets a list of users that are not members of any team.
+// Results can be filtered using the options parameter.
 func (a *App) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersWithoutTeam(options)
 	if err != nil {
@@ -696,6 +766,8 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return users, nil
 }
 
+// GetUsersByIds returns a list of users based on the provided user IDs. Returns the users and nil on success,
+// or nil and an error on failure.
 func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersByIds(userIDs, options)
 	if err != nil {
@@ -705,6 +777,8 @@ func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) (
 	return users, nil
 }
 
+// GetUsersByGroupChannelIds returns a map of channel IDs to user objects for the set of users in each group channel.
+// Returns the map and nil on success, or nil and an error on failure.
 func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(c.Session().UserId, channelIDs)
 	if err != nil {
@@ -717,6 +791,8 @@ func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAd
 	return usersByChannelId, nil
 }
 
+// GetUsersByUsernames returns a list of users based on the provided usernames, applying view restrictions if any.
+// Returns the users and nil on success, or nil and an error on failure.
 func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersByUsernames(usernames, &model.UserGetOptions{ViewRestrictions: viewRestrictions})
 	if err != nil {
@@ -733,6 +809,8 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 	return users
 }
 
+// GenerateMfaSecret generates an MFA secret for the user with the given ID. Returns the secret and nil on success,
+// or nil and an error if MFA is not enabled or there was an error generating the secret.
 func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
@@ -751,6 +829,8 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 	return mfaSecret, nil
 }
 
+// ActivateMfa activates multi-factor authentication for the user with the given ID using the provided token.
+// Returns nil on success, or an error if MFA is not enabled, the token is invalid, or there was an error activating MFA.
 func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
@@ -780,6 +860,8 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	return nil
 }
 
+// DeactivateMfa deactivates multi-factor authentication for the user with the given ID.
+// Returns nil on success, or an error if MFA could not be deactivated.
 func (a *App) DeactivateMfa(userID string) *model.AppError {
 	user, appErr := a.GetUser(userID)
 	if appErr != nil {
@@ -815,14 +897,20 @@ func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
 	return path, nil
 }
 
+// GetProfileImage gets the profile image for the given user. Returns the image data, whether it exists,
+// and any error that occurred while fetching the image.
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
 
+// GetDefaultProfileImage gets the default profile image for the given user.
+// Returns the image data and any error that occurred while generating the default image.
 func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
 	return a.ch.srv.GetDefaultProfileImage(user)
 }
 
+// UpdateDefaultProfileImage updates the user's profile image to the default image.
+// Returns an error if the default image could not be generated or saved.
 func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	img, appErr := a.GetDefaultProfileImage(user)
 	if appErr != nil {
@@ -843,6 +931,8 @@ func (a *App) UpdateDefaultProfileImage(c request.CTX, user *model.User) *model.
 	return nil
 }
 
+// SetDefaultProfileImage sets the user's profile image to the default image and notifies other users of the change.
+// Returns an error if the default image could not be set or if notifications could not be sent.
 func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	if err := a.UpdateDefaultProfileImage(c, user); err != nil {
 		c.Logger().Error("Failed to update default profile image for user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -865,6 +955,8 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	return nil
 }
 
+// SetProfileImage sets a user's profile image from a provided multipart.FileHeader.
+// Returns an error if the image cannot be opened or processed.
 func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
@@ -874,6 +966,9 @@ func (a *App) SetProfileImage(c request.CTX, userID string, imageData *multipart
 	return a.SetProfileImageFromMultiPartFile(c, userID, file)
 }
 
+// SetProfileImageFromMultiPartFile sets a user's profile image from a multipart.File.
+// Validates image dimensions and file size before setting the image.
+// Returns an error if the image exceeds size limits or cannot be processed.
 func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
 	if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
@@ -882,6 +977,9 @@ func (a *App) SetProfileImageFromMultiPartFile(c request.CTX, userID string, fil
 	return a.SetProfileImageFromFile(c, userID, file)
 }
 
+// AdjustImage processes an image file for use as a profile image.
+// Decodes the image, corrects orientation, and resizes to profile dimensions.
+// Returns the processed image as a bytes.Buffer or an error if processing fails.
 func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
 	img, _, err := a.ch.imgDecoder.Decode(file)
@@ -904,6 +1002,9 @@ func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	return buf, nil
 }
 
+// SetProfileImageFromFile sets a user's profile image from an io.Reader containing the image data.
+// Processes the image, saves it to storage, and triggers necessary cache invalidation and events.
+// Returns an error if the image cannot be processed or saved.
 func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
 	buf, err := a.AdjustImage(file)
 	if err != nil {
@@ -928,6 +1029,9 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	return nil
 }
 
+// UpdatePasswordAsUser updates a user's password after validating their current password.
+// This is used when a user updates their own password, as opposed to an admin update.
+// Returns an error if the current password is invalid or the new password cannot be set.
 func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1007,6 +1111,9 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 	return nil
 }
 
+// UpdateActive activates or deactivates a user. The provided user record will be updated
+// in memory and saved to the database. The returned user record will be the updated version.
+// If the active parameter is true and the user limit has been reached, an error will be returned.
 func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		exceeded, appErr := a.isHardUserLimitExceeded()
@@ -1081,6 +1188,8 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	return ruser, nil
 }
 
+// DeactivateGuests deactivates all guest account users and revokes all their sessions.
+// A WebSocket event will be broadcast announcing the deactivation.
 func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
@@ -1108,16 +1217,22 @@ func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	return nil
 }
 
+// GetSanitizeOptions returns the options to sanitize user data based on whether
+// the sanitization is being done for an admin or not.
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	return a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 }
 
+// SanitizeProfile sanitizes a user's profile data based on the provided admin status.
+// This will redact sensitive information if the sanitization is not done as an admin.
 func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	options := a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 
 	user.SanitizeProfile(options, asAdmin)
 }
 
+// UpdateUserAsUser updates a user's settings as if the change was made by that user.
+// This enforces certain permissions and restrictions that apply to users updating their own settings.
 func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
 	updatedUser, err := a.UpdateUser(c, user, true)
 	if err != nil {
@@ -1158,6 +1273,8 @@ func (a *App) CheckProviderAttributes(c request.CTX, user *model.User, patch *mo
 	return conflictField
 }
 
+// PatchUser applies the given patch to a user and returns the patched user.
+// If asAdmin is true, the patch is applied with admin level permissions.
 func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1174,6 +1291,8 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
+// UpdateUserAuth updates a user's authentication data (AuthData and AuthService) and returns
+// the updated auth data. Invalidates all other sessions for the user.
 func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1235,6 +1354,8 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	return nil
 }
 
+// UpdateUser updates an existing user in the database. If sendNotifications is true, notifications
+// will be sent to users and the client will be informed through WebSocket events.
 func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
@@ -1361,6 +1482,8 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return newUser, nil
 }
 
+// UpdateUserActive updates the active status of a user. If active is true, the user is activated.
+// If active is false, the user is deactivated and all their sessions are revoked.
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
@@ -1392,6 +1515,8 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 	return nil
 }
 
+// UpdateMfa activates or deactivates multi-factor authentication for a user.
+// The token parameter is required when activating MFA. Sends an email notification to the user.
 func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError {
 	if activate {
 		if err := a.ActivateMfa(userID, token); err != nil {
@@ -1418,6 +1543,8 @@ func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *mod
 	return nil
 }
 
+// UpdatePasswordByUserIdSendEmail updates a user's password and sends an email to notify them of the change.
+// Returns an error if the user cannot be found or the password cannot be updated.
 func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1427,6 +1554,8 @@ func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword
 	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
+// UpdatePassword updates a user's password. Validates the password meets length requirements.
+// Returns an error if the password is invalid or cannot be updated.
 func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
 	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
 		return err
@@ -1477,6 +1606,8 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 	return nil
 }
 
+// UpdatePasswordSendEmail updates a user's password and sends an email notification.
+// The method parameter is included in the email to identify how the password was changed.
 func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
 	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return err
@@ -1491,6 +1622,8 @@ func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPasswo
 	return nil
 }
 
+// UpdateHashedPasswordByUserId updates a user's hashed password directly by user ID.
+// This should only be used when you already have a properly hashed password.
 func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1500,6 +1633,8 @@ func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *mo
 	return a.UpdateHashedPassword(user, newHashedPassword)
 }
 
+// UpdateHashedPassword updates a user's password with an already-hashed password.
+// This should only be used when you already have a properly hashed password.
 func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
 	// remote/synthetic users cannot update password via any mechanism
 	if user.IsRemote() {
@@ -1515,6 +1650,8 @@ func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *
 	return nil
 }
 
+// ResetPasswordFromToken resets a user's password using a recovery token and updates any authentication data.
+// Returns an error if the token is invalid, expired, or if there was an error updating the password.
 func (a *App) ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError {
 	return a.resetPasswordFromToken(c, userSuppliedTokenString, newPassword, model.GetMillis())
 }
@@ -1569,6 +1706,8 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 	return nil
 }
 
+// SendPasswordReset sends a password recovery email to the specified email address.
+// Returns true if the email was sent successfully, false if the user was not found, and an error if there was a problem sending the email.
 func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) (bool, *model.AppError) {
 	user, err := a.GetUserByEmail(email)
 	if err != nil {
@@ -1597,6 +1736,9 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 	return result, nil
 }
 
+// CreatePasswordRecoveryToken creates a token that can be used to reset a user's password.
+// The token is valid for PasswordRecoverExpiryTime duration.
+// Returns the token if successful, or an error if the token could not be created.
 func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
@@ -1630,6 +1772,9 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 	return token, nil
 }
 
+// InvalidatePasswordRecoveryTokensForUser invalidates all password recovery tokens for a user.
+// This is typically called when a user changes their password or when tokens need to be invalidated for security reasons.
+// Returns an error if there was a problem invalidating the tokens.
 func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
 	tokens, err := a.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
 	if err != nil {
@@ -1658,6 +1803,8 @@ func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppE
 	return appErr
 }
 
+// GetPasswordRecoveryToken retrieves a password recovery token by token string.
+// Returns the token if valid and of the correct type, or an error if the token is invalid or of the wrong type.
 func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 	if err != nil {
@@ -1669,6 +1816,8 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	return rtoken, nil
 }
 
+// GetTokenById retrieves a token by its ID. Returns the token if found, or an error
+// if the token is invalid or could not be retrieved.
 func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 
@@ -1688,6 +1837,8 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
+// DeleteToken deletes the given token from the database.
+// Returns an error if the token could not be deleted.
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	err := a.Srv().Store().Token().Delete(token.Token)
 	if err != nil {
@@ -1696,6 +1847,8 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	return nil
 }
 
+// UpdateUserRoles updates a user's roles and sends a WebSocket event if specified.
+// Returns the updated user and nil on success, or nil and an error on failure.
 func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1706,6 +1859,9 @@ func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sen
 	return a.UpdateUserRolesWithUser(c, user, newRoles, sendWebSocketEvent)
 }
 
+// UpdateUserRolesWithUser updates roles for the given user and sends a WebSocket event if specified.
+// This differs from UpdateUserRoles by taking a user object directly instead of a user ID.
+// Returns the updated user and nil on success, or nil and an error on failure.
 func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
@@ -1774,6 +1930,9 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
+// PermanentDeleteUser permanently deletes a user and all their related information.
+// This includes the user's posts, files, reactions, and other associated data.
+// This action is irreversible. Returns an error if the deletion fails.
 func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
 	rctx.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SystemAdminRoleId) {
@@ -1905,6 +2064,7 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 	return nil
 }
 
+// PermanentDeleteAllUsers permanently deletes all users from the system. This is a destructive operation and should be used with caution.
 func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	users, err := a.Srv().Store().User().GetAll()
 	if err != nil {
@@ -1919,6 +2079,9 @@ func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	return nil
 }
 
+// SendEmailVerification sends an email verification token to a user's email address.
+// If newEmail is provided, the token will be sent to that address instead of the user's current email.
+// The redirect parameter specifies where to redirect the user after verification.
 func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError {
 	token, err := a.Srv().EmailService.CreateVerifyEmailToken(user.Id, newEmail)
 	if err != nil {
@@ -1949,6 +2112,8 @@ func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string)
 	return nil
 }
 
+// VerifyEmailFromToken verifies a user's email using a token received in an email.
+// Returns an error if the token is invalid, expired, or if there was a problem verifying the email.
 func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError {
 	token, err := a.GetVerifyEmailToken(userSuppliedTokenString)
 	if err != nil {
@@ -1993,6 +2158,8 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	return nil
 }
 
+// GetVerifyEmailToken retrieves an email verification token by token string.
+// Returns the token if valid and of the correct type, or an error otherwise.
 func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
 	rtoken, err := a.Srv().Store().Token().GetByToken(token)
 	if err != nil {
@@ -2031,6 +2198,8 @@ func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.Use
 	return stats, nil
 }
 
+// VerifyUserEmail marks a user's email as verified in the system.
+// This will update the user's EmailVerified field and trigger relevant notifications.
 func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	if _, err := a.Srv().Store().User().VerifyEmail(userID, email); err != nil {
 		return model.NewAppError("VerifyUserEmail", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2049,6 +2218,8 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 	return nil
 }
 
+// SearchUsers returns a list of users based on search criteria provided in props and options.
+// It can search across teams, channels, and groups depending on the props provided.
 func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	if props.WithoutTeam {
 		return a.SearchUsersWithoutTeam(props.Term, options)
@@ -2071,6 +2242,8 @@ func (a *App) SearchUsers(rctx request.CTX, props *model.UserSearch, options *mo
 	return a.SearchUsersInTeam(rctx, props.TeamId, props.Term, options)
 }
 
+// SearchUsersInChannel returns a list of users in the specified channel whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchInChannel(channelID, term, options)
@@ -2084,6 +2257,8 @@ func (a *App) SearchUsersInChannel(channelID string, term string, options *model
 	return users, nil
 }
 
+// SearchUsersNotInChannel returns a list of users not in the specified channel whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInChannel(teamID, channelID, term, options)
@@ -2098,6 +2273,8 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	return users, nil
 }
 
+// SearchUsersInTeam returns a list of users in the specified team whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 
@@ -2113,6 +2290,8 @@ func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *
 	return users, nil
 }
 
+// SearchUsersNotInTeam returns a list of users not in the specified team whose username, full name, or nickname
+// matches the search term. The search is case-insensitive.
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInTeam(notInTeamId, term, options)
@@ -2127,6 +2306,8 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 	return users, nil
 }
 
+// SearchUsersWithoutTeam returns a list of users who are not members of any team and match the search term.
+// Results can be filtered and paginated using the options parameter.
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchWithoutTeam(term, options)
@@ -2141,6 +2322,8 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 	return users, nil
 }
 
+// SearchUsersInGroup returns a list of users who are members of the specified group and match the search term.
+// The search is case-insensitive and applies to username, full name, and nickname fields.
 func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchInGroup(groupID, term, options)
@@ -2155,6 +2338,8 @@ func (a *App) SearchUsersInGroup(groupID string, term string, options *model.Use
 	return users, nil
 }
 
+// SearchUsersNotInGroup returns a list of users who are not members of the specified group and match the search term.
+// The search is case-insensitive and applies to username, full name, and nickname fields.
 func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store().User().SearchNotInGroup(groupID, term, options)
@@ -2169,6 +2354,9 @@ func (a *App) SearchUsersNotInGroup(groupID string, term string, options *model.
 	return users, nil
 }
 
+// AutocompleteUsersInChannel returns a list of users in and out of the specified channel for autocomplete purposes.
+// The result is divided into two lists: users in the channel and users not in the channel.
+// The search term is matched against username, full name, and nickname fields.
 func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
@@ -2188,6 +2376,9 @@ func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channe
 	return autocomplete, nil
 }
 
+// AutocompleteUsersInTeam returns a list of users in the specified team for autocomplete purposes.
+// The search term is matched against username, full name, and nickname fields.
+// Results can be filtered and paginated using the options parameter.
 func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	term = strings.TrimSpace(term)
 
@@ -2205,6 +2396,9 @@ func (a *App) AutocompleteUsersInTeam(rctx request.CTX, teamID string, term stri
 	return autocomplete, nil
 }
 
+// UpdateOAuthUserAttrs updates a user's attributes based on OAuth data received from the provider.
+// This is used to keep the user's information in sync with the OAuth provider's data.
+// Returns an error if the update fails or if there are validation errors.
 func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
@@ -2261,6 +2455,8 @@ func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *mode
 	return nil
 }
 
+// RestrictUsersGetByPermissions applies view restrictions to user get options based on the given user's permissions.
+// Returns the modified options and any error that occurred while getting the restrictions.
 func (a *App) RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
@@ -2317,6 +2513,8 @@ func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([
 	return nonMemberIds, nil
 }
 
+// RestrictUsersSearchByPermissions applies view restrictions to user search options based on the given user's permissions.
+// Returns the modified options and any error that occurred while getting the restrictions.
 func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
 	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
@@ -2327,6 +2525,9 @@ func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, opt
 	return options, nil
 }
 
+// UserCanSeeOtherUser checks if a user has permission to view another user's information.
+// Returns true if the user can see the other user, false otherwise.
+// Also returns an error if there was a problem checking the permissions.
 func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	if userID == otherUserId {
 		return true, nil
@@ -2373,6 +2574,9 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 	return belongs, nil
 }
 
+// GetViewUsersRestrictions returns the restrictions that should be applied when the given user tries to view other users.
+// The restrictions include which teams and channels the user has access to view.
+// Returns nil restrictions if the user has the permission to view all users.
 func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
 	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
 		return nil, nil
@@ -2512,6 +2716,8 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	return nil
 }
 
+// PublishUserTyping publishes a user typing WebSocket event with the provided user ID, channel ID and optional parent post ID.
+// Returns an error if there was a problem publishing the event.
 func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
@@ -2597,6 +2803,9 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 	return user, nil
 }
 
+// GetThreadsForUser gets all threads followed by or participated in by a user for the given team.
+// Returns a Threads object containing thread and count information based on the GetUserThreadsOpts provided.
+// The options parameter can filter and customize the results.
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
@@ -2682,6 +2891,8 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	return &result, nil
 }
 
+// GetThreadMembershipForUser gets a user's membership information for a specific thread.
+// Returns the ThreadMembership if found, or an error if the membership does not exist or could not be retrieved.
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {
 	threadMembership, nErr := a.Srv().Store().Thread().GetMembershipForUser(userId, threadId)
 	if nErr != nil {
@@ -2696,6 +2907,9 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
+// GetThreadForUser gets thread information for a specific user based on their thread membership.
+// The extended parameter determines whether to return additional thread details.
+// Returns the ThreadResponse if found, or an error if the thread does not exist or could not be retrieved.
 func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
 	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.IsPostPriorityEnabled())
 	if nErr != nil {
@@ -2713,6 +2927,9 @@ func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extende
 	return thread, nil
 }
 
+// UpdateThreadsReadForUser marks all threads as read for a user in a specific team.
+// Publishes a WebSocket event to notify clients of the update.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
@@ -2723,6 +2940,9 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	return nil
 }
 
+// UpdateThreadFollowForUser updates the follow state of a thread for a user.
+// Publishes a WebSocket event to notify clients of the update.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             state,
@@ -2751,6 +2971,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
+// UpdateThreadFollowForUserFromChannelAdd updates thread following state when a user is added to a channel.
+// This ensures proper thread following state and notifications for users joining channels with existing threads.
+// Returns an error if the update fails.
 func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
@@ -2812,6 +3035,9 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	return nil
 }
 
+// UpdateThreadReadForUserByPost marks a thread as read for a user up to a given post.
+// The post must belong to the specified thread.
+// Returns the updated thread and any error that occurred.
 func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
@@ -2825,6 +3051,9 @@ func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, use
 	return a.UpdateThreadReadForUser(c, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
 }
 
+// UpdateThreadReadForUser marks a thread as read for a user up to a given timestamp.
+// Updates unread mentions and replies, and publishes WebSocket events for the update.
+// Returns the updated thread and any error that occurred.
 func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -2884,6 +3113,9 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	return thread, nil
 }
 
+// GetUsersWithInvalidEmails returns a list of users whose email addresses do not match
+// the configured email domain restrictions. Results are paginated.
+// Returns the list of users and any error that occurred.
 func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store().User().GetUsersWithInvalidEmails(page, perPage, *a.Config().TeamSettings.RestrictCreationToDomains)
 	if err != nil {
@@ -2901,6 +3133,8 @@ func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
 }
 
+// UserIsFirstAdmin checks if the given user is the first admin user created on the system.
+// Returns true if the user is a system admin and has the earliest creation date among all system admins.
 func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	if !user.IsSystemAdmin() {
 		return false
