@@ -39,7 +39,6 @@ require (
 	github.com/klauspost/compress v1.17.9
 	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/lib/pq v1.10.9
-	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.21
@@ -50,6 +49,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.0.74
+	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 	github.com/opensearch-project/opensearch-go/v4 v4.3.0
 	github.com/opentracing/opentracing-go v1.2.0
@@ -164,6 +164,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
