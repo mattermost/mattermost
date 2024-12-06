@@ -22,6 +22,7 @@ describe('components/ChannelHeaderDropdown', () => {
         penultimateViewedChannelName: 'test-channel',
         pluginMenuItems: [],
         isLicensedForLDAPGroups: false,
+        isChannelBookmarksEnabled: false,
     };
     test('should match snapshot with no plugin items', () => {
         const wrapper = shallow(<ChannelHeaderDropdown {...defaultProps}/>);
