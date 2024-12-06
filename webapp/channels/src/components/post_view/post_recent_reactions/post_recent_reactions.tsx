@@ -9,7 +9,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 import {Locations} from 'utils/constants';
 
@@ -92,20 +92,16 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 permissions={[Permissions.ADD_REACTION]}
             >
                 <WithTooltip
-                    id='post_info.emoji.tooltip'
                     title={this.emojiName(emoji, this.props.locale)}
                     emoji={getEmojiName(emoji)}
-                    emojiStyle='large'
-                    placement='top'
+                    isEmojiLarge={true}
                 >
                     <div>
-                        <>
-                            <EmojiItem
-                                emoji={emoji}
-                                onItemClick={this.handleToggleEmoji}
-                                order={n}
-                            />
-                        </>
+                        <EmojiItem
+                            emoji={emoji}
+                            onItemClick={this.handleToggleEmoji}
+                            order={n}
+                        />
                     </div>
                 </WithTooltip>
             </ChannelPermissionGate>

@@ -1,10 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
-<WithTooltip
-  id="flagTooltip"
+<Memo(WithTooltip)
   key="flagtooltipkey"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Save Message"
@@ -22,14 +20,12 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
       className="icon icon--small"
     />
   </button>
-</WithTooltip>
+</Memo(WithTooltip)>
 `;
 
 exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
-<WithTooltip
-  id="flagTooltip"
+<Memo(WithTooltip)
   key="flagtooltipkeyflagged"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Remove from Saved"
@@ -47,5 +43,5 @@ exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
       className="icon icon--small icon--small-filled post-menu__item--selected"
     />
   </button>
-</WithTooltip>
+</Memo(WithTooltip)>
 `;

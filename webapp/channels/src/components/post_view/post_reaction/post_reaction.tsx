@@ -13,7 +13,7 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 import {Locations} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
@@ -91,9 +91,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         spaceRequiredBelow={spaceRequiredBelow}
                     />
                     <WithTooltip
-                        id='reaction-icon-tooltip'
                         title={messages.addReaction}
-                        placement='top'
                     >
                         <button
                             data-testid='post-reaction-emoji-icon'
