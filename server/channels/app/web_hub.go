@@ -53,7 +53,3 @@ func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64)
 func (a *App) SessionIsRegistered(session model.Session) bool {
 	return a.Srv().Platform().SessionIsRegistered(session)
 }
-
-func (a *App) CheckWebConn(userID, connectionID string) *platform.CheckConnResult {
-	return a.Srv().Platform().CheckWebConn(userID, connectionID)
-}
