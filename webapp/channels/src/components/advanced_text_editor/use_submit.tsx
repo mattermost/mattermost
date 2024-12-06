@@ -16,11 +16,12 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {CreatePostOptions} from 'actions/post_actions';
+import {unsetEditingPost, type CreatePostOptions} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
+import {editPost} from 'actions/views/posts';
 
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -65,6 +66,7 @@ const useSubmit = (
     afterOptimisticSubmit?: () => void,
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
+    isInEditMode?: boolean,
 ): [
         (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
         string | null,
@@ -168,9 +170,14 @@ const useSubmit = (
         };
 
         try {
-            const res = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
-            if (res.error) {
-                throw res.error;
+            let response;
+            if (isInEditMode) {
+                response = await dispatch(editPost(submittingDraft));
+            } else {
+                response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+            }
+            if (response?.error) {
+                throw response.error;
             }
 
             setServerError(null);
@@ -203,8 +210,14 @@ const useSubmit = (
             dispatch(scrollPostListToBottom());
         }
 
+        if (isInEditMode) {
+            dispatch(unsetEditingPost());
+        }
+
         isDraftSubmitting.current = false;
-    }, [draft,
+    }, [
+        dispatch,
+        draft,
         postError,
         isRootDeleted,
         serverError,
@@ -216,9 +229,9 @@ const useSubmit = (
         afterOptimisticSubmit,
         postId,
         showPostDeletedModal,
-        dispatch,
         handleDraftChange,
         channelId,
+        isInEditMode,
     ]);
 
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {

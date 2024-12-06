@@ -13,10 +13,7 @@ import {General} from 'mattermost-redux/constants';
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
-type StorageEntry = {
-    timestamp: Date;
-    data: any;
-}
+import type {StorageItem} from 'types/store/storage';
 
 function storage(state: Record<string, any> = {}, action: AnyAction) {
     switch (action.type) {
@@ -29,7 +26,7 @@ function storage(state: Record<string, any> = {}, action: AnyAction) {
         const nextState = {...state};
 
         for (const [key, value] of Object.entries(action.payload)) {
-            const nextValue = {...value as StorageEntry};
+            const nextValue = {...value as StorageItem};
             if (nextValue.timestamp && typeof nextValue.timestamp === 'string') {
                 nextValue.timestamp = new Date(nextValue.timestamp);
             }
