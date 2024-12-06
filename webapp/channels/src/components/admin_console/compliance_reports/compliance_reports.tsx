@@ -338,7 +338,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 </h4>
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='desc'>
                             <FormattedMessage
                                 id='admin.compliance_reports.desc'
                                 defaultMessage='Job Name:'
@@ -354,7 +354,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                         />
                     </div>
                     <div className='col-sm-3 col-md-2 form-group'>
-                        <label>
+                        <label htmlFor='from'>
                             <FormattedMessage
                                 id='admin.compliance_reports.from'
                                 defaultMessage='From:'
@@ -370,7 +370,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                         />
                     </div>
                     <div className='col-sm-3 col-md-2 form-group'>
-                        <label>
+                        <label htmlFor='to'>
                             <FormattedMessage
                                 id='admin.compliance_reports.to'
                                 defaultMessage='To:'
@@ -388,7 +388,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 </div>
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='emails'>
                             <FormattedMessage
                                 id='admin.compliance_reports.emails'
                                 defaultMessage='Emails:'
@@ -404,7 +404,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                         />
                     </div>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='keywords'>
                             <FormattedMessage
                                 id='admin.compliance_reports.keywords'
                                 defaultMessage='Keywords:'

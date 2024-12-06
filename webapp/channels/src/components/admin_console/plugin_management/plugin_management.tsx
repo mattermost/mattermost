@@ -24,6 +24,7 @@ import * as Utils from 'utils/utils';
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
+import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
 
@@ -556,6 +557,10 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
         }
     }
 
+    handleChooseFileClick = () => {
+        this.fileInput.current?.click();
+    };
+
     handleUpload = () => {
         this.setState({lastMessage: null, serverError: null});
         const element = this.fileInput.current as HTMLInputElement;
@@ -1018,18 +1023,15 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
 
         if (enable) {
             pluginsContainer = (
-                <div className='form-group'>
-                    <label className='control-label col-sm-4'>
-                        <FormattedMessage {...messages.installedTitle}/>
-                    </label>
-                    <div className='col-sm-8'>
-                        <p className='help-text'>
-                            <FormattedMessage {...messages.installedDesc}/>
-                        </p>
-                        <br/>
-                        {pluginsListContainer}
-                    </div>
-                </div>
+                <SettingSet
+                    label={<FormattedMessage {...messages.installedTitle}/>}
+                >
+                    <p className='help-text'>
+                        <FormattedMessage {...messages.installedDesc}/>
+                    </p>
+                    <br/>
+                    {pluginsListContainer}
+                </SettingSet>
             );
         }
 
@@ -1147,48 +1149,44 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
                                 />
-                                <div className='form-group'>
-                                    <label className='control-label col-sm-4'>
-                                        <FormattedMessage {...messages.uploadTitle}/>
-                                    </label>
-                                    <div className='col-sm-8'>
-                                        <div className='file__upload'>
-                                            <button
-                                                type='button'
-                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            >
-                                                <FormattedMessage
-                                                    id='admin.plugin.choose'
-                                                    defaultMessage='Choose File'
-                                                />
-                                            </button>
-                                            <input
-                                                ref={this.fileInput}
-                                                type='file'
-                                                accept='.gz'
-                                                onChange={this.handleUpload}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
-                                            />
-                                        </div>
+                                <SettingSet
+                                    helpText={uploadHelpText}
+                                    label={<FormattedMessage {...messages.uploadTitle}/>}
+                                >
+                                    <div className='file__upload'>
                                         <button
-                                            className={btnClass}
-                                            id='uploadPlugin'
-                                            disabled={!this.state.fileSelected}
-                                            onClick={this.handleSubmitUpload}
+                                            type='button'
+                                            className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                            onClick={this.handleChooseFileClick}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
                                         >
-                                            {uploadButtonText}
+                                            <FormattedMessage
+                                                id='admin.plugin.choose'
+                                                defaultMessage='Choose File'
+                                            />
                                         </button>
-                                        <div className='help-text m-0'>
-                                            {fileName}
-                                        </div>
-                                        {serverError}
-                                        {lastMessage}
-                                        <p className='help-text'>
-                                            {uploadHelpText}
-                                        </p>
+                                        <input
+                                            ref={this.fileInput}
+                                            type='file'
+                                            accept='.gz'
+                                            onChange={this.handleUpload}
+                                            disabled={!enableUploadButton || this.props.isDisabled}
+                                        />
                                     </div>
-                                </div>
+                                    <button
+                                        className={btnClass}
+                                        id='uploadPlugin'
+                                        disabled={!this.state.fileSelected}
+                                        onClick={this.handleSubmitUpload}
+                                    >
+                                        {uploadButtonText}
+                                    </button>
+                                    <div className='help-text m-0'>
+                                        {fileName}
+                                    </div>
+                                    {serverError}
+                                    {lastMessage}
+                                </SettingSet>
                                 <BooleanSetting
                                     id='enableMarketplace'
                                     label={<FormattedMessage {...messages.enableMarketplace}/>}
