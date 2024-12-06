@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
 
-const ProductBrandingTeamEditionContainer = styled.div`
+const ProductBrandingTeamEditionContainer = styled.span`
     display: flex;
     align-items: center;
 
@@ -21,7 +21,7 @@ const StyledLogo = styled(Logo)`
     }
 `;
 
-const Badge = styled.div`
+const Badge = styled.span`
     display: flex;
     align-self: center;
     padding: 2px 6px;
@@ -40,7 +40,7 @@ const Badge = styled.div`
 
 const ProductBrandingTeamEdition = (): JSX.Element => {
     return (
-        <ProductBrandingTeamEditionContainer tabIndex={0}>
+        <ProductBrandingTeamEditionContainer tabIndex={-1}>
             <StyledLogo
                 width={116}
                 height={20}
