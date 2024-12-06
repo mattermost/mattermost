@@ -982,7 +982,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1)
 		require.Equal(t, info.Id, fileInfos[0].Id)
@@ -1011,7 +1011,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info2.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 2)
 		require.Equal(t, info1.Id, fileInfos[1].Id)
@@ -1049,7 +1049,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
 		require.NoError(t, err)
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 2)
 		require.Equal(t, info2.Id, fileInfos[0].Id)

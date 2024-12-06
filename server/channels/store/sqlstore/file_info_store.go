@@ -132,7 +132,7 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted bool) ([]*model.FileInfo, error) {
+func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").

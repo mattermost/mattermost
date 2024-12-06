@@ -3582,10 +3582,10 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 		// now delete the file info, and it should still be include in edit history metadata
 		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
-		require.Nil(t, err)
+		edits, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
 
 		require.Len(t, edits, 3)
 

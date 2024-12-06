@@ -3913,7 +3913,7 @@ func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool) ([]*model.FileInfo, error) {
+func (s *OpenTracingLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -3922,7 +3922,7 @@ func (s *OpenTracingLayerFileInfoStore) GetByIds(ids []string, includeDeleted bo
 	}()
 
 	defer span.Finish()
-	result, err := s.FileInfoStore.GetByIds(ids, includeDeleted)
+	result, err := s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -4117,6 +4117,11 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	//t.Run("edit history includes file metadata", func(t *testing.T) {
+	//	fileInfo, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
+	//	require.Nil(t, appErr)
+	//})
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {

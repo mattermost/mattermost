@@ -4395,11 +4395,11 @@ func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 
 }
 
-func (s *RetryLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool) ([]*model.FileInfo, error) {
+func (s *RetryLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.GetByIds(ids, includeDeleted)
+		result, err := s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
