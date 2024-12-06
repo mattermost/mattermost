@@ -121,7 +121,11 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 	}
 
-	if job != nil && job.Data == nil {
+	if job == nil {
+		job = &model.Job{
+			Data: make(model.StringMap),
+		}
+	} else if job.Data == nil {
 		job.Data = make(model.StringMap)
 	}
 
@@ -948,14 +952,38 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 		for _, channel := range channels {
 			afterId = channel.Id
 
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
 			// Skip if there are no active members in the channel
 			if len(channel.Members) == 0 {
 				continue
 			}
 
-			// Skip deleted.
-			if channel.DeleteAt != 0 {
-				continue
+			// Skip if the channel member structure is not intact
+			switch channel.Type {
+			case model.ChannelTypeGroup:
+				groupMembers := make([]string, len(channel.Members))
+				for i, m := range channel.Members {
+					groupMembers[i] = m.UserId
+				}
+				if channel.Name != model.GetGroupNameFromUserIds(groupMembers) {
+					// this is the case of a group channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					ctx.Logger().Warn("Skipping group channels with partially deleted members", mlog.String("channel_id", channel.Id))
+					continue
+				}
+			case model.ChannelTypeDirect:
+				if _, u2 := channel.GetBothUsersForDM(); u2 != "" && len(channel.Members) == 1 {
+					// this is the case of a direct channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					ctx.Logger().Info("Skipping direct channel with one active member", mlog.String("channel_id", channel.Id), mlog.String("user_id", channel.Members[0].UserId))
+					continue
+				}
 			}
 
 			favoritedBy, err := a.buildFavoritedByList(channel.Id)
@@ -1074,12 +1102,17 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 		cnt += len(posts)
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
+		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
 			afterId = post.Id
 			postProcessCount++
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
+				continue
+			}
+
+			if _, ok := channelsToSkip[post.ChannelId]; ok {
 				continue
 			}
 
