@@ -2742,6 +2742,8 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	replyCount := int64(0)
 	if thread != nil {
 		replyCount = thread.ReplyCount
+		// The post is always modified since the UpdateAt always changes
+		a.Srv().Store().Post().InvalidateLastPostTimeCache(thread.ChannelId)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil, "")
 	message.Add("thread_id", threadID)
