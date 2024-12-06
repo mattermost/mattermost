@@ -151,8 +151,10 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 }
 
-const hourMillis int64 = 60 * 60 * 1000
-const dayMillis int64 = 24 * hourMillis
+const (
+	hourMillis int64 = 60 * 60 * 1000
+	dayMillis  int64 = 24 * hourMillis
+)
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	th := Setup(t)
@@ -222,7 +224,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 			UserId: model.NewId(),
 			Props: map[string]string{
 				model.UserAuthServiceIsSaml: "true",
-			}}
+			},
+		}
 		session, err := th.App.CreateSession(th.Context, session)
 		require.Nil(t, err)
 
@@ -284,7 +287,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		require.False(t, session.IsExpired())
 	})
 
-	var tests = []struct {
+	tests := []struct {
 		enabled bool
 		name    string
 		session *model.Session
@@ -493,5 +496,73 @@ func TestSetExtraSessionProps(t *testing.T) {
 		assert.Equal(t, session, storeSession)
 		assert.Equal(t, "true", updatedSession.Props["testProp"])
 		assert.Equal(t, "true", storeSession.Props["testProp"])
+	})
+}
+
+func TestCreateUserAccessTokenExpiresAt(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Enable user access tokens
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	// Create a test user
+	user := th.CreateUser()
+
+	t.Run("max expiry not set", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 0 })
+
+		// Token with no expiry
+		token1 := &model.UserAccessToken{
+			UserId: user.Id,
+		}
+		rtoken1, err := th.App.CreateUserAccessToken(th.Context, token1)
+		require.Nil(t, err)
+		require.Equal(t, int64(0), rtoken1.ExpiresAt)
+
+		// Token with custom expiry
+		customExpiry := model.GetMillis() + 60000 // 1 minute
+		token2 := &model.UserAccessToken{
+			UserId:    user.Id,
+			ExpiresAt: customExpiry,
+		}
+		rtoken2, err := th.App.CreateUserAccessToken(th.Context, token2)
+		require.Nil(t, err)
+		require.Equal(t, customExpiry, rtoken2.ExpiresAt)
+	})
+
+	t.Run("max expiry set", func(t *testing.T) {
+		maxExpiry := int64(60) // 1 minute max
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = maxExpiry })
+		maxExpiryMs := maxExpiry * 1000
+
+		// Token with no expiry should get max expiry
+		token1 := &model.UserAccessToken{
+			UserId: user.Id,
+		}
+		rtoken1, err := th.App.CreateUserAccessToken(th.Context, token1)
+		require.Nil(t, err)
+		require.Greater(t, rtoken1.ExpiresAt, model.GetMillis()+maxExpiryMs-1000) // Allow 1 second buffer
+		require.LessOrEqual(t, rtoken1.ExpiresAt, model.GetMillis()+maxExpiryMs)
+
+		// Token with expiry > max should get max expiry
+		token2 := &model.UserAccessToken{
+			UserId:    user.Id,
+			ExpiresAt: model.GetMillis() + (maxExpiryMs * 2), // 2x max
+		}
+		rtoken2, err := th.App.CreateUserAccessToken(th.Context, token2)
+		require.Nil(t, err)
+		require.Greater(t, rtoken2.ExpiresAt, model.GetMillis()+maxExpiryMs-1000) // Allow 1 second buffer
+		require.LessOrEqual(t, rtoken2.ExpiresAt, model.GetMillis()+maxExpiryMs)
+
+		// Token with expiry < max should keep its expiry
+		customExpiry := model.GetMillis() + 30000 // 30 seconds
+		token3 := &model.UserAccessToken{
+			UserId:    user.Id,
+			ExpiresAt: customExpiry,
+		}
+		rtoken3, err := th.App.CreateUserAccessToken(th.Context, token3)
+		require.Nil(t, err)
+		require.Equal(t, customExpiry, rtoken3.ExpiresAt)
 	})
 }
