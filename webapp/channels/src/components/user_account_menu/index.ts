@@ -25,10 +25,16 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState) {
         const currentUser = getCurrentUser(state);
         const userId = currentUser?.id;
+        const username = currentUser?.username;
+        const userFirstName = currentUser?.first_name;
+        const userLastName = currentUser?.last_name;
         const customStatus = getCustomStatus(state, userId);
 
         return {
             userId,
+            username,
+            userFirstName,
+            userLastName,
             profilePicture: Client4.getProfilePictureUrl(userId, currentUser?.last_picture_update),
             autoResetPref: get(state, Preferences.CATEGORY_AUTO_RESET_MANUAL_STATUS, userId, ''),
             status: getStatusForUserId(state, userId),

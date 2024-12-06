@@ -18,9 +18,13 @@ interface Props {
     status?: string;
 }
 
-export default function UserAccountMenuButton(props: Props) {
+export default function UserAccountMenuButton({
+    profilePicture,
+    openCustomStatusModal,
+    status,
+}: Props) {
     const statusIcon = useMemo(() => {
-        if (props.status && props.status === UserStatuses.ONLINE) {
+        if (status && status === UserStatuses.ONLINE) {
             return (
                 <CheckCircleIcon
                     size='16'
@@ -29,7 +33,7 @@ export default function UserAccountMenuButton(props: Props) {
             );
         }
 
-        if (props.status && props.status === UserStatuses.AWAY) {
+        if (status && status === UserStatuses.AWAY) {
             return (
                 <ClockIcon
                     size='16'
@@ -38,7 +42,7 @@ export default function UserAccountMenuButton(props: Props) {
             );
         }
 
-        if (props.status && props.status === UserStatuses.DND) {
+        if (status && status === UserStatuses.DND) {
             return (
                 <MinusCircleIcon
                     size='16'
@@ -47,7 +51,7 @@ export default function UserAccountMenuButton(props: Props) {
             );
         }
 
-        if (props.status && props.status === UserStatuses.OFFLINE) {
+        if (status && status === UserStatuses.OFFLINE) {
             return (
                 <RadioboxBlankIcon
                     size='16'
@@ -62,20 +66,20 @@ export default function UserAccountMenuButton(props: Props) {
                 className='userAccountMenu_awayMenuItem_icon'
             />
         );
-    }, [props.status]);
+    }, [status]);
 
     return (
-        <>
+        <span>
             <CustomStatusEmoji
                 showTooltip={true}
                 tooltipDirection={'bottom'}
                 emojiStyle={{marginRight: '6px'}}
                 aria-hidden={true}
-                onClick={props.openCustomStatusModal}
+                onClick={openCustomStatusModal}
             />
             <Avatar
                 size='sm'
-                url={props.profilePicture}
+                url={profilePicture}
                 aria-hidden={true}
             />
             <div
@@ -84,7 +88,7 @@ export default function UserAccountMenuButton(props: Props) {
             >
                 {statusIcon}
             </div>
-        </>
+        </span>
     );
 }
 

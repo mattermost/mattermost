@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {type MouseEvent, type KeyboardEvent} from 'react';
+import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
@@ -43,10 +44,6 @@ export default function UserAccountMenu(props: Props) {
 
     return (
         <Menu.Container
-            menu={{
-                id: 'userAccountMenu',
-                width: '264px',
-            }}
             menuButton={{
                 id: 'userAccountMenuButton',
                 class: classNames('userAccountMenu_menuButton', {
@@ -61,15 +58,25 @@ export default function UserAccountMenu(props: Props) {
                     />
                 ),
             }}
+            menu={{
+                id: 'userAccountMenu',
+                width: '264px',
+            }}
         >
             <UserAccountNameMenuItem
                 profilePicture={props.profilePicture}
             />
-            <UserAccountOutOfOfficeMenuItem
-                userId={props.userId}
-                shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
-                isStatusOutOfOffice={props.status === UserStatuses.OUT_OF_OFFICE}
-            />
+            <Menu.Separator/>
+            {props.status === UserStatuses.OUT_OF_OFFICE && (
+                <UserAccountOutOfOfficeMenuItem
+                    userId={props.userId}
+                    shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
+                    isStatusOutOfOffice={props.status === UserStatuses.OUT_OF_OFFICE}
+                />
+            )}
+            {props.status === UserStatuses.OUT_OF_OFFICE && (
+                <Menu.Separator/>
+            )}
             <UserAccountSetCustomStatusMenuItem
                 timezone={props.timezone}
                 customStatus={props.customStatus}
@@ -97,9 +104,11 @@ export default function UserAccountMenu(props: Props) {
                 shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
                 isStatusOffline={props.status === UserStatuses.OFFLINE}
             />
+            <Menu.Separator/>
             <UserAccountProfileMenuItem
                 userId={props.userId}
             />
+            <Menu.Separator/>
             <UserAccountLogoutMenuItem/>
         </Menu.Container>
     );

@@ -54,35 +54,32 @@ export default function UserAccountProfileMenuItem(props: Props) {
     }
 
     return (
-        <>
-            <Menu.Item
-                leadingElement={
-                    <AccountOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                }
-                labels={
-                    <FormattedMessage
-                        id='userAccountMenu.profileMenuItem.label'
-                        defaultMessage='Profile'
-                    />
-                }
-                trailingElements={isCompleteYourProfileTaskPending && (
-                    <div
-                        onClick={handleTourClick}
-                        className='userAccountMenu_profileMenuItem_tourWrapper'
-                    >
-                        <CompleteYourProfileTour/>
-                    </div>
-                )}
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.profileMenuItem.ariaLabel',
-                    defaultMessage: 'Click to open user settings',
-                })}
-                onClick={handleClick}
-            />
-            <Menu.Separator/>
-        </>
+        <Menu.Item
+            leadingElement={
+                <AccountOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            }
+            labels={
+                <FormattedMessage
+                    id='userAccountMenu.profileMenuItem.label'
+                    defaultMessage='Profile'
+                />
+            }
+            trailingElements={isCompleteYourProfileTaskPending && (
+                <div
+                    onClick={handleTourClick}
+                    className='userAccountMenu_profileMenuItem_tourWrapper'
+                >
+                    <CompleteYourProfileTour/>
+                </div>
+            )}
+            aria-label={formatMessage({
+                id: 'userAccountMenu.profileMenuItem.ariaLabel',
+                defaultMessage: 'Click to open user settings',
+            })}
+            onClick={handleClick}
+        />
     );
 }

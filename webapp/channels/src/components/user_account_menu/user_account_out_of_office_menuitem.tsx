@@ -50,40 +50,37 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
     }
 
     return (
-        <>
-            <Menu.Item
-                leadingElement={
-                    <CancelIcon
-                        size={18}
-                        aria-hidden='true'
+        <Menu.Item
+            leadingElement={
+                <CancelIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            }
+            labels={
+                <>
+                    <FormattedMessage
+                        id='userAccountMenu.oooMenuItem.primaryLabel'
+                        defaultMessage='Out of office'
                     />
-                }
-                labels={
-                    <>
-                        <FormattedMessage
-                            id='userAccountMenu.oooMenuItem.primaryLabel'
-                            defaultMessage='Out of office'
-                        />
-                        <FormattedMessage
-                            id='userAccountMenu.oooMenuItem.secondaryLabel'
-                            defaultMessage='Automatic replies are enabled'
-                        />
-                    </>
-                }
-                trailingElements={
-                    <CheckIcon
-                        size={16}
-                        className='userAccountMenu_menuItemTrailingCheckIcon'
-                        aria-hidden='true'
+                    <FormattedMessage
+                        id='userAccountMenu.oooMenuItem.secondaryLabel'
+                        defaultMessage='Automatic replies are enabled'
                     />
-                }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.oooMenuItem.ariaLabel',
-                    defaultMessage: 'Current status is out of office, click to set status as online',
-                })}
-                onClick={handleClick}
-            />
-            <Menu.Separator/>
-        </>
+                </>
+            }
+            trailingElements={
+                <CheckIcon
+                    size={16}
+                    className='userAccountMenu_menuItemTrailingCheckIcon'
+                    aria-hidden='true'
+                />
+            }
+            aria-label={formatMessage({
+                id: 'userAccountMenu.oooMenuItem.ariaLabel',
+                defaultMessage: 'Current status is out of office, click to set status as online',
+            })}
+            onClick={handleClick}
+        />
     );
 }

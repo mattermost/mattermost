@@ -26,10 +26,6 @@ export default function UserAccountNameMenuItem(props: Props) {
 
     const currentUser = useSelector(getCurrentUser);
 
-    if (!currentUser) {
-        return null;
-    }
-
     function handleClick() {
         dispatch(openModal({
             modalId: ModalIdentifiers.USER_SETTINGS,
@@ -39,15 +35,11 @@ export default function UserAccountNameMenuItem(props: Props) {
     }
 
     function getLabel() {
-        if (!currentUser) {
-            return <></>;
-        }
-
         if (
-            currentUser.first_name?.length > 0 ||
-            currentUser.last_name?.length > 0
+            currentUser?.first_name?.length > 0 ||
+            currentUser?.last_name?.length > 0
         ) {
-            const name = `${currentUser.first_name} ${currentUser.last_name}`?.trim();
+            const name = `${currentUser?.first_name} ${currentUser?.last_name}`?.trim();
 
             return (
                 <>
@@ -55,13 +47,13 @@ export default function UserAccountNameMenuItem(props: Props) {
                         {name}
                     </h2>
                     <span className='userAccountMenu_nameMenuItem_secondaryLabel'>
-                        {'@' + currentUser.username}
+                        {'@' + currentUser?.username}
                     </span>
                 </>
             );
         }
 
-        const username = `@${currentUser.username}`?.trim();
+        const username = `@${currentUser?.username}`?.trim();
 
         return (
             <h2 className='userAccountMenu_nameMenuItem_primaryLabel'>
@@ -71,27 +63,24 @@ export default function UserAccountNameMenuItem(props: Props) {
     }
 
     return (
-        <>
-            <Menu.Item
-                className='userAccountMenu_nameMenuItem'
-                leadingElement={
-                    <Avatar
-                        size='lg'
-                        url={props.profilePicture}
-                        aria-hidden='true'
-                    />
-                }
-                labels={getLabel()}
-                aria-label={formatMessage(
-                    {
-                        id: 'userAccountPopover.nameMenuItem.ariaLabel',
-                        defaultMessage: 'Logged in as {username}, click to open user settings',
-                    },
-                    {username: currentUser.username},
-                )}
-                onClick={handleClick}
-            />
-            <Menu.Separator/>
-        </>
+        <Menu.Item
+            className='userAccountMenu_nameMenuItem'
+            leadingElement={
+                <Avatar
+                    size='lg'
+                    url={props.profilePicture}
+                    aria-hidden='true'
+                />
+            }
+            labels={getLabel()}
+            aria-label={formatMessage(
+                {
+                    id: 'userAccountPopover.nameMenuItem.ariaLabel',
+                    defaultMessage: 'Logged in as {username}, click to open user settings',
+                },
+                {username: currentUser?.username},
+            )}
+            onClick={handleClick}
+        />
     );
 }
