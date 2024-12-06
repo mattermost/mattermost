@@ -224,16 +224,16 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         if (!this.state.saving) {
             if (this.state.submitError) {
                 errorMsg = (
-                    <label
+                    <span
                         id='add-user-to-channel-modal__invite-error'
                         className='modal__error has-error control-label'
                     >
                         {this.state.submitError}
-                    </label>
+                    </span>
                 );
             } else if (targetUserIsMemberOfSelectedChannel) {
                 errorMsg = (
-                    <label
+                    <span
                         id='add-user-to-channel-modal__user-is-member'
                         className='modal__error has-error control-label'
                     >
@@ -244,7 +244,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                                 name,
                             }}
                         />
-                    </label>
+                    </span>
                 );
             }
         }
@@ -317,7 +317,6 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                         </div>
                         <div>
                             {errorMsg}
-                            <br/>
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
