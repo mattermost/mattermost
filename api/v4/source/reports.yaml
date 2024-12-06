@@ -6,8 +6,6 @@
       description: >
         Get a list of paged users for admin reporting purposes, based on provided parameters.
         
-        Must be a system admin to invoke this API.
-        
         ##### Permissions
         
         Requires `sysconsole_read_user_management_users`.
@@ -110,9 +108,6 @@
       summary: Gets the full count of users that match the filter.
       description: >
         Get the full count of users admin reporting purposes, based on provided parameters.
-
-        
-        Must be a system admin to invoke this API.
         
         ##### Permissions
         
@@ -163,9 +158,6 @@
       summary: Starts a job to export the users to a report file.
       description: >
         Starts a job to export the users to a report file.
-
-        
-        Must be a system admin to invoke this API.
         
         ##### Permissions
         
