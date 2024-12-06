@@ -96,7 +96,7 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
               <div
                 aria-modal={true}
                 className="FullScreenModal"
-                role="dialog"
+                role="none"
                 tabIndex={-1}
               >
                 <button

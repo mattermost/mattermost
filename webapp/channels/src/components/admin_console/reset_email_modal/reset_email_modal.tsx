@@ -141,7 +141,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.doCancel}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='resetEmailModalLabel'
                 data-testid='resetEmailModal'
             >

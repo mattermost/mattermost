@@ -22,7 +22,7 @@ const PostDeletedModal = ({
             show={show}
             onHide={handleHide}
             onExited={onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='postDeletedModalLabel'
             data-testid='postDeletedModal'
         >

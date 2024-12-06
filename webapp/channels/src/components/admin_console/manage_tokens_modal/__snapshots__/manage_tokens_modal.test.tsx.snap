@@ -27,7 +27,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx in
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -123,7 +123,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -288,7 +288,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
