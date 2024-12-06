@@ -16,7 +16,7 @@ import BooleanSetting from './boolean_setting';
 import CheckboxSetting from './checkbox_setting';
 import type {BaseProps, BaseState} from './old_admin_settings';
 import OLDAdminSettings from './old_admin_settings';
-import Setting from './setting';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -199,7 +199,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                         setByEnv={this.isSetByEnv('PasswordSettings.MinimumLength')}
                         disabled={this.props.isDisabled}
                     />
-                    <Setting
+                    <SettingSet
                         label={<FormattedMessage {...messages.passwordRequirements}/>}
                     >
                         <div>
@@ -258,7 +258,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <br/>
                             {this.getSampleErrorMsg()}
                         </div>
-                    </Setting>
+                    </SettingSet>
                 </div>
                 {!this.props.config.ExperimentalSettings?.RestrictSystemAdmin &&
                 (
