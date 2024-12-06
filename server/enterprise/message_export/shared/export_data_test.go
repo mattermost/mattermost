@@ -393,6 +393,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test1",
 		UserType:  User,
 		JoinTime:  1,
+		LeaveTime: 7,
 	}, joins[0])
 	assert.Equal(t, JoinExport{
 		UserId:    "test2",
@@ -400,6 +401,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test2",
 		UserType:  User,
 		JoinTime:  2,
+		LeaveTime: 3,
 	}, joins[1])
 	assert.Equal(t, JoinExport{
 		UserId:    "test3",
@@ -407,6 +409,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test3",
 		UserType:  User,
 		JoinTime:  3,
+		LeaveTime: 7,
 	}, joins[2])
 	assert.Equal(t, JoinExport{
 		UserId:    "test4",
@@ -414,6 +417,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test4",
 		UserType:  User,
 		JoinTime:  4,
+		LeaveTime: 7,
 	}, joins[3])
 	assert.Equal(t, JoinExport{
 		UserId:    "test5",
@@ -421,6 +425,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test5",
 		UserType:  User,
 		JoinTime:  5,
+		LeaveTime: 6,
 	}, joins[4])
 	assert.Equal(t, JoinExport{
 		UserId:    "test6",
@@ -428,6 +433,7 @@ func TestGetJoinLeavePosts(t *testing.T) {
 		UserEmail: "test6",
 		UserType:  User,
 		JoinTime:  6,
+		LeaveTime: 7,
 	}, joins[5])
 
 	// remember that getJoinsAndLeaves sorts _for each channel_

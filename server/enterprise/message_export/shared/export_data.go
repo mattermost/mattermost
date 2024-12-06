@@ -37,9 +37,10 @@ type PostExport struct {
 
 	// when a message is edited, the EditedOriginalMsg points to the message Id that now has the newly edited message.
 	EditedNewMsgId string
-	Message        string          // the text body of the post
-	PreviewsPost   string          // the post id of the post that is previewed by the permalink preview feature
-	FileInfo       *model.FileInfo // if this was a file-related PostExport, FileInfo will contain that info. Otherwise, nil.
+	Message        string            // the text body of the post
+	PreviewsPost   string            // the post id of the post that is previewed by the permalink preview feature
+	Attachments    []*model.FileInfo // the post's attachments
+	FileInfo       *model.FileInfo   // if this was a file PostExport, FileInfo will contain that info. Otherwise, nil.
 }
 
 type FileUploadStartExport struct {
@@ -84,6 +85,9 @@ type JoinExport struct {
 	UserEmail string   // the email of the person that joined the channel
 	UserType  UserType // the type of the user that joined the channel
 	JoinTime  int64    // utc timestamp (seconds), time at which the user joined. Example: 1366611728
+
+	// when the user left (or batch endTime if they didn't leave). Only used by GlobalRelay
+	LeaveTime int64
 }
 
 type LeaveExport struct {
@@ -138,7 +142,6 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		}
 		var postExport PostExport
 		postExport, results = getPostExport(post, results)
-		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 
 		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
 		if err != nil {
@@ -148,6 +151,9 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		uploadStopsByChannel[channelId] = append(uploadStopsByChannel[channelId], stopUploads...)
 		deletedFilesByChannel[channelId] = append(deletedFilesByChannel[channelId], deleteFileMessages...)
 		filesByChannel[channelId] = append(filesByChannel[channelId], uploadedFiles...)
+
+		postExport.Attachments = uploadedFiles
+		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 
 		results.UploadedFiles += len(uploadStartsByChannel[channelId])
 		results.DeletedFiles += len(deletedFilesByChannel[channelId])
@@ -291,10 +297,10 @@ func getPostExport(post *model.MessageExport, results RunExportResults) (PostExp
 
 func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*model.ChannelMemberHistoryResult,
 	postAuthors map[string]ChannelMember) ([]JoinExport, []LeaveExport) {
-	var joinEvents []JoinExport
 	var leaveEvents []LeaveExport
 
 	joins, leaves := GetJoinsAndLeavesForChannel(startTime, endTime, channelMembersHistory, postAuthors)
+	joinsById := make(map[string]JoinExport, len(joins))
 	type StillMemberInfo struct {
 		time     int64
 		userType UserType
@@ -307,13 +313,14 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 		if join.IsBot {
 			userType = Bot
 		}
-		joinEvents = append(joinEvents, JoinExport{
+		joinsById[join.UserId] = JoinExport{
 			UserId:    join.UserId,
 			Username:  join.Username,
 			UserEmail: join.Email,
 			JoinTime:  join.Datetime,
 			UserType:  userType,
-		})
+			LeaveTime: endTime,
+		}
 		if value, ok := stillMember[join.Email]; !ok {
 			stillMember[join.Email] = StillMemberInfo{time: join.Datetime, userType: userType, userId: join.UserId, username: join.Username}
 		} else if join.Datetime > value.time {
@@ -335,6 +342,12 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 		if leave.Datetime > stillMember[leave.Email].time {
 			delete(stillMember, leave.Email)
 		}
+
+		// record their leave in their initial join
+		if join, ok := joinsById[leave.UserId]; ok {
+			join.LeaveTime = leave.Datetime
+			joinsById[leave.UserId] = join
+		}
 	}
 
 	// Closing-out the channel for Actiance (each join must have a matching leave).
@@ -347,6 +360,11 @@ func getJoinsAndLeaves(startTime int64, endTime int64, channelMembersHistory []*
 			UserType:  stillMember[email].userType,
 			ClosedOut: true,
 		})
+	}
+
+	joinEvents := make([]JoinExport, 0, len(joinsById))
+	for _, v := range joinsById {
+		joinEvents = append(joinEvents, v)
 	}
 
 	sort.Slice(joinEvents, func(i, j int) bool {

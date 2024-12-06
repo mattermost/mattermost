@@ -79,7 +79,7 @@ func participantToHTML(participant *ParticipantRow, t *templates.Container) (str
 		Props: map[string]any{
 			"Username":    participant.Username,
 			"UserType":    participant.UserType,
-			"Email":       participant.Email,
+			"Email":       participant.UserEmail,
 			"Joined":      TimestampConvert(participant.JoinTime),
 			"Left":        TimestampConvert(participant.LeaveTime),
 			"Duration":    durafmt.Parse(duration.Round(time.Minute)).String(),

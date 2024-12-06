@@ -574,7 +574,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					// clean some bad csrf if present
 					msg := global_relay_export.CleanTestOutput(data)
 
-					// Global relay needs to be updated to use Actiance logic. MM-61718
+					// Global relay needs to be updated to use Actiance logic. MM-62059
 					batchStartTime := batchTimes[batchNum].start
 					batchEndTime := batchTimes[batchNum].end
 					expectedBatchExport := []string{
@@ -825,7 +825,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		batches := ret.batches
 		cu := ret.createUpdateTimes
 
-		// Global relay needs to be updated to use Actiance logic. MM-61718
+		// Global relay needs to be updated to use Actiance logic. MM-62059
 		batchStartTime := batchTimes[0].start
 		batchEndTime := batchTimes[0].end
 
@@ -1088,7 +1088,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		jobStartTime := ret.start
 		batches := ret.batches
 
-		// Global relay needs to be updated to use Actiance logic. MM-61718
+		// Global relay needs to be updated to use Actiance logic. MM-62059
 		batchStartTime := batchTimes[0].start
 		batchEndTime := batchTimes[0].end
 
@@ -1444,7 +1444,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		//jobStartTime := ret.start
 		batches := ret.batches
 
-		// Global relay needs to be updated to use Actiance logic. MM-61718
+		// Global relay needs to be updated to use Actiance logic. MM-62059
 		batchStartTime := batchTimes[0].start
 		batchEndTime := batchTimes[0].end
 
@@ -1703,7 +1703,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 	t.Run("GlobalRelay e2e 5 - test delete and update semantics", func(t *testing.T) {
 		msgTmpl := "<li class=3D\"message\">\n    <span class=3D\"sent_time\">%s</span>\n    <span class=3D\"username\">@%s</span>\n    <span class=3D\"postusername\"></span>\n    <span class=3D\"usertype\">user</span>\n    <span class=3D\"email\">(%s):</span>\n    <span class=3D\"message\">%s</span>\n    <span class=3D\"previews_post\"></span>\n</li>\n"
 
-		assertContainsAllMsgs := func(msg string, allExpected []string) {
+		assertContainsAllMsgs := func(msg string, allExpected []string, tag string) {
 			for _, expected := range allExpected {
 				assert.Contains(t, msg, expected, "expected exported msg to contain: \n%s\n\nExported msg:\n%s\n", expected, msg)
 				if !strings.Contains(msg, expected) {
@@ -1718,7 +1718,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				}
 			}
 
-			assert.Equal(t, len(allExpected), numMessages)
+			assert.Equal(t, len(allExpected), numMessages, tag)
 		}
 
 		th := setup(t)
@@ -1739,9 +1739,9 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		allExpected := []string{
 			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
 		}
-		assertContainsAllMsgs(msg, allExpected)
+		assertContainsAllMsgs(msg, allExpected, "job 1")
 
-		// NOTE: GlobalRelay does not record deleted posts (see actiance above) MM-61718
+		// NOTE: GlobalRelay does not record deleted posts (see actiance above) MM-62059
 
 		//
 		// Job 2
@@ -1758,17 +1758,17 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		allExpected = []string{
 			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
 		}
-		assertContainsAllMsgs(msg, allExpected)
+		assertContainsAllMsgs(msg, allExpected, "job 2a")
 
 		data = readFirstFileFromZip(t, zipBytes2)
 		// clean some bad csrf if present
 		msg = global_relay_export.CleanTestOutput(data)
 
-		// should get message 0's create message (but not its delete message MM-61718)
+		// should get message 0's create message (but not its delete message MM-62059)
 		allExpected = []string{
 			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
 		}
-		assertContainsAllMsgs(msg, allExpected)
+		assertContainsAllMsgs(msg, allExpected, "job 2b")
 
 		//
 		// Job 3
@@ -1785,7 +1785,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			fmt.Sprintf(msgTmpl, conv(posts[0].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[0].Message),
 			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
 		}
-		assertContainsAllMsgs(msg, allExpected)
+		assertContainsAllMsgs(msg, allExpected, "job 3")
 
 		//
 		// Job 4
@@ -1798,17 +1798,12 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		// clean some bad csrf if present
 		msg = global_relay_export.CleanTestOutput(data)
 
-		// should get message 0's create message (but not its delete message MM-61718)
+		// should get message 0's create message (but not its delete message MM-62059)
 		allExpected = []string{
 			fmt.Sprintf(msgTmpl, conv(posts[2].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[2].Message),
-
-			// not the post deleted MM-61718 (andnot its created post, because that was in the previous job)
-
-			// should be post updated ONLY, (not its created post, because that was in the previous job), but doesn't work yet: MM-61718
-			fmt.Sprintf(msgTmpl, conv(posts[1].CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
 			fmt.Sprintf(msgTmpl, conv(updatedPost1.CreateAt), th.BasicUser.Username, th.BasicUser.Email, posts[1].Message),
 		}
-		assertContainsAllMsgs(msg, allExpected)
+		assertContainsAllMsgs(msg, allExpected, "job 4")
 	})
 
 	t.Run("CSV e2e 5 - test delete and update semantics", func(t *testing.T) {
