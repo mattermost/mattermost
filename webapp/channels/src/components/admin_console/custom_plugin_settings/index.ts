@@ -95,8 +95,10 @@ function makeGetPluginSchema() {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
                             settings = parsePluginSettings(section.settings);
+                        } else if (section.fallback) {
+                            settings = parsePluginSettings(section.settings);
                         } else {
-                            // Show warning banner for custom sections when the plugin is disabled.
+                            // Show warning banner for custom sections when the plugin is disabled and there's no fallback.
                             settings = [{
                                 key: key + 'disabledWarning',
                                 type: Constants.SettingsTypes.TYPE_BANNER,
@@ -134,8 +136,11 @@ function makeGetPluginSchema() {
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
-                if (plugin.settings_schema && plugin.settings_schema.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()])) {
-                    // If the plugin is composed of purely custom sections (e.g. Calls) and it's disabled (custom components are not found), we show a single warning.
+                const hasAllCustomSectionsDisabled = plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
+                const allCustomSectionsAllowFallback = plugin.settings_schema?.sections?.every((s) => s.custom && s.fallback);
+
+                if (plugin.settings_schema && hasAllCustomSectionsDisabled && !allCustomSectionsAllowFallback) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls), it's disabled (custom components are not found), and they don't allow a fallback, we show a single warning.
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
