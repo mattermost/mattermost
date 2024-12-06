@@ -7545,7 +7545,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Обговорення з {{.NumMessages}} повідомленнями переміщено до особистого/групового повідомлення\n"
+    "translation": "Обговорення з {{.NumMessages}} повідомленнями переміщено до Приватних/Групових повідомлень\n"
   },
   {
     "id": "api.file.list_directory.app_error",
@@ -8765,7 +8765,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
-    "translation": "Повідомлення було переміщено до приватного/групового повідомлення\n"
+    "translation": "Повідомлення було переміщено до Приватного/Групового повідомлення\n"
   },
   {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
