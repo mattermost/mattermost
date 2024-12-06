@@ -1459,6 +1459,29 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 	return data, nil
 }
 
+// GetForExport returns a team for export, where Teams.Id is equal to the teamID passed as parameter.
+func (s SqlTeamStore) GetForExport(teamID string) (*model.TeamForExport, error) {
+	data := model.TeamForExport{}
+	query, args, err := s.getQueryBuilder().
+		Select("Teams.*", "Schemes.Name as SchemeName").
+		From("Teams").
+		LeftJoin("Schemes ON Teams.SchemeId = Schemes.Id").
+		Where(sq.Eq{"Teams.Id": teamID}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+	if err = s.GetReplicaX().Get(&data, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", teamID)
+		}
+		return nil, errors.Wrapf(err, "failed to get Team with id=%s", teamID)
+	}
+
+	return &data, nil
+}
+
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
 //
 //nolint:unparam
