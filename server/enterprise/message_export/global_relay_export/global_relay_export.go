@@ -74,10 +74,10 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 	}
 
 	var attachmentsRemovedPostIDs []string
-	allExports := make(map[string][]*ChannelExport)
+	allExports := make(map[string][]*ChannelExport, len(exportData.Exports))
 
 	// save a pointer to the joins for each channel, to be used later in getParticipants
-	joinsByChannel := make(map[string][]shared.JoinExport)
+	joinsByChannel := make(map[string][]shared.JoinExport, len(exportData.Exports))
 
 	for _, channel := range exportData.Exports {
 		for _, post := range channel.Posts {
@@ -97,6 +97,8 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 	// export each channelExport (sometimes multiple channelExport per real channel)
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
+			// we need to make the participant list for each channelExport "batch" (multiple "batches"per real channel)
+			// because each batch will have its own number of messages for that participant.
 			channelExport.Participants = getParticipants(channelExport, joinsByChannel[channelExport.ChannelId])
 			channelExport.ExportedOn = p.JobStartTime
 
@@ -147,18 +149,19 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 
 // addToExports adds the post to the allExports collection. allExports keeps a map of channelId->[]*ChannelExport.
 // If a channelId has an existing []*ChannelExport, it adds post to the last ChannelExport in that list.
-// If the last ChannelExport is too big, it starts a new ChannelExport and appends it to the list.
+// If the last ChannelExport is too big, it starts a new ChannelExport and appends it to the list (a new "batch").
 func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, genericChannel shared.ChannelExport, post shared.PostExport) []string {
 	var channelExport *ChannelExport
 	var attachmentsRemovedPostIDs []string
 	if channelExports, present := allExports[*post.ChannelId]; !present {
 		// we found a new channel
 		channelExport = &ChannelExport{
-			ChannelId:       genericChannel.ChannelId,
-			ChannelName:     genericChannel.DisplayName,
-			ChannelType:     genericChannel.ChannelType,
-			StartTime:       genericChannel.StartTime,
-			EndTime:         genericChannel.EndTime,
+			ChannelId:   genericChannel.ChannelId,
+			ChannelName: genericChannel.DisplayName,
+			ChannelType: genericChannel.ChannelType,
+			StartTime:   genericChannel.StartTime,
+			EndTime:     genericChannel.EndTime,
+			// we can't preallocate sizes here because we don't know how many will be in this "batch"
 			Messages:        make([]Message, 0),
 			Participants:    make([]ParticipantRow, 0),
 			numUserMessages: make(map[string]int),
@@ -188,13 +191,15 @@ func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, gene
 		attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, *post.PostId)
 	}
 
+	// new "batch"
 	if postTooLargeForChannelBatch && !postAloneTooLargeToSend {
 		channelExport = &ChannelExport{
-			ChannelId:       genericChannel.ChannelId,
-			ChannelName:     genericChannel.DisplayName,
-			ChannelType:     genericChannel.ChannelType,
-			StartTime:       genericChannel.StartTime,
-			EndTime:         genericChannel.EndTime,
+			ChannelId:   genericChannel.ChannelId,
+			ChannelName: genericChannel.DisplayName,
+			ChannelType: genericChannel.ChannelType,
+			StartTime:   genericChannel.StartTime,
+			EndTime:     genericChannel.EndTime,
+			// we can't preallocate sizes here because we don't know how many will be in this "batch"
 			Messages:        make([]Message, 0),
 			Participants:    make([]ParticipantRow, 0),
 			numUserMessages: make(map[string]int),
@@ -305,9 +310,9 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 }
 
 func getParticipantEmails(channelExport *ChannelExport) []string {
-	participantEmails := make([]string, len(channelExport.Participants))
-	for i, participant := range channelExport.Participants {
-		participantEmails[i] = participant.UserEmail
+	participantEmails := make([]string, 0, len(channelExport.Participants))
+	for _, participant := range channelExport.Participants {
+		participantEmails = append(participantEmails, participant.UserEmail)
 	}
 	return participantEmails
 }
