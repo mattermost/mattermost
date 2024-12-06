@@ -312,7 +312,10 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                         className='col-sm-6 form-group'
                         key={'custom-theme-key' + index}
                     >
-                        <label className='custom-label'>
+                        <label
+                            className='custom-label'
+                            htmlFor='codeThemeSelect'
+                        >
                             <FormattedMessage {...messages[element.id]}/>
                         </label>
                         <div
@@ -403,7 +406,10 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
 
         const pasteBox = (
             <div className='col-sm-12'>
-                <label className='custom-label'>
+                <label
+                    className='custom-label'
+                    htmlFor='pasteBox'
+                >
                     <FormattedMessage
                         id='user.settings.custom_theme.copyPaste'
                         defaultMessage='Copy to share or paste theme colors here:'
