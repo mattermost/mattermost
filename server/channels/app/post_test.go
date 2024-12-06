@@ -3875,3 +3875,127 @@ func TestSendTestMessage(t *testing.T) {
 		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
 	})
 }
+
+func TestPopulateEditHistoryFileMetadata(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should populate file metadata for all posts", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+			return post
+		})
+
+		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+			return post
+		})
+
+		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+	})
+
+	t.Run("should populate file metadata even for deleted posts", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+			return post
+		})
+
+		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+			return post
+		})
+
+		_, appErr := th.App.DeletePost(th.Context, post1.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.DeletePost(th.Context, post2.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+	})
+
+	t.Run("should populate file metadata even for deleted fileInfos", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+			return post
+		})
+
+		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+			return post
+		})
+
+		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post1.Id)
+		require.NoError(t, err)
+
+		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post2.Id)
+		require.NoError(t, err)
+
+		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+		require.Greater(t, post1.Metadata.Files[0].DeleteAt, int64(0))
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+		require.Greater(t, post2.Metadata.Files[0].DeleteAt, int64(0))
+	})
+}
