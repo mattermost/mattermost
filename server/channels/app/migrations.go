@@ -706,7 +706,7 @@ func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
 					TeamID:      channel.TeamId,
 					Name:        "converted-" + model.NewId()[:7],
 					DisplayName: channel.DisplayName,
-					Header:      "This channel is automatically created from a group channel due to deletion of at least a member.",
+					Header:      "This channel was automatically created from a group conversation because at least one member was deleted.",
 				}
 				req.PrepareForAutoConversion()
 				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", req)
