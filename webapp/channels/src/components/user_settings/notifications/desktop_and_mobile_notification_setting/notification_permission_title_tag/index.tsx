@@ -4,6 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 import Tag from 'components/widgets/tag/tag';
 
 import {
@@ -15,6 +16,8 @@ import {
 
 export default function NotificationPermissionTitleTag() {
     const {formatMessage} = useIntl();
+
+    const [desktopNotificationPermission] = useDesktopAppNotificationPermission();
 
     if (!isNotificationAPISupported()) {
         return (
@@ -32,7 +35,8 @@ export default function NotificationPermissionTitleTag() {
 
     if (
         getNotificationPermission() === NotificationPermissionNeverGranted ||
-        getNotificationPermission() === NotificationPermissionDenied
+        getNotificationPermission() === NotificationPermissionDenied ||
+        desktopNotificationPermission === NotificationPermissionDenied
     ) {
         return (
             <Tag
