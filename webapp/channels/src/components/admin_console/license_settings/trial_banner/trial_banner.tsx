@@ -340,22 +340,21 @@ const TrialBanner = ({
                 {upgradeError && (
                     <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
-                                <span
-                                    dangerouslySetInnerHTML={{
-                                        __html: format(upgradeError),
-                                    }}
-                                />
-                            </label>
+                            <div
+                                className='as-bs-label control-label'
+                                dangerouslySetInnerHTML={{
+                                    __html: format(upgradeError),
+                                }}
+                            />
                         </div>
                     </div>
                 )}
                 {restartError && (
-                    <div className='col-sm-12'>
+                    <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
+                            <div className='as-bs-label control-label'>
                                 {restartError}
-                            </label>
+                            </div>
                         </div>
                     </div>
                 )}
