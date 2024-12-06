@@ -1805,9 +1805,8 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 				req := &model.GroupMessageConversionRequestBody{
 					ChannelID:   channel.Id,
 					TeamID:      channel.TeamId,
-					Name:        "converted-" + model.NewId()[:7],
 					DisplayName: channel.DisplayName,
-					Header:      "This channel is automatically created from a group channel due to deletion of at least a member.",
+					Header:      i18n.T("app.migrations.channel_conversion_header"),
 				}
 				req.PrepareForAutoConversion()
 				newCh, appErr = a.ConvertGroupMessageToChannel(rctx, "", req)

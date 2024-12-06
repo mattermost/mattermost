@@ -2874,6 +2874,43 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
 }
 
+func TestConvertDirectMessageToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should convert direct message to channel", func(t *testing.T) {
+		u := th.CreateUser()
+		dm := th.CreateDmChannel(u)
+
+		convertedChannel, appErr := th.App.convertDirectMessageToChannel(th.Context, u.Username, dm.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
+	})
+
+	t.Run("should not fail if leaving user is permanently deleted", func(t *testing.T) {
+		u := th.CreateUser()
+		dm := th.CreateDmChannel(u)
+
+		err := th.App.Srv().Store().User().PermanentDelete(th.Context, u.Id)
+		require.NoError(t, err)
+		// also simulate the user being removed from the channel
+		err = th.App.Srv().Store().Channel().PermanentDeleteMembersByUser(th.Context, u.Id)
+		require.NoError(t, err)
+
+		convertedChannel, appErr := th.App.convertDirectMessageToChannel(th.Context, u.Username, dm.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
+		require.Equal(t, th.BasicTeam.Id, convertedChannel.TeamId)
+
+		// Get converted channel members
+		members, err := th.App.Srv().Store().Channel().GetMembers(convertedChannel.Id, 0, 100)
+		require.NoError(t, err)
+
+		require.Len(t, members, 1)
+		require.Equal(t, th.BasicUser.Id, members[0].UserId)
+	})
+}
+
 func TestPatchChannelMembersNotifyProps(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

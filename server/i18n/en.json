@@ -4543,6 +4543,10 @@
     "translation": "Failed to retrieve the channel members."
   },
   {
+    "id": "app.channel.conversion.deleted_user",
+    "translation": "Deleted user"
+  },
+  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
   },
@@ -4569,6 +4573,14 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.direct_message_conversion.no_remaining_user",
+    "translation": "There is no remaning user to convert the direct channel to a private channel."
+  },
+  {
+    "id": "app.channel.direct_message_conversion.no_teams_for_user",
+    "translation": "Could not get teams memberships for user."
   },
   {
     "id": "app.channel.direct_message_conversion.original_channel_not_dm",
@@ -5877,6 +5889,10 @@
   {
     "id": "app.member_count",
     "translation": "error retrieving member count"
+  },
+  {
+    "id": "app.migrations.channel_conversion_header",
+    "translation": "This channel was automatically created from a group conversation because at least one member was deleted."
   },
   {
     "id": "app.notification.body.dm.subTitle",

@@ -3637,8 +3637,12 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 		return nil, appErr
 	}
 
-	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
-	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
+	if err := a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users); err != nil {
+		c.Logger().Warn("Failed to set sidebar categories for converted GM", mlog.Err(err))
+	}
+	if err := a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users); err != nil {
+		c.Logger().Warn("Failed to post message for converted GM", mlog.Err(err))
+	}
 
 	// the user conversion the GM becomes the channel admin.
 	if convertedByUserId != "" {
@@ -3647,7 +3651,7 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 			return nil, appErr
 		}
 	} else {
-		// if there is no one converting the GM, then the everyone should become the channel admin.
+		// if there is no one converting the GM, then everyone should become the channel admin.
 		for _, user := range users {
 			_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, user.Id, false, true, true)
 			if appErr != nil {
@@ -3670,18 +3674,7 @@ func (a *App) convertDirectMessageToChannel(c request.CTX, leavingUsername strin
 	}
 
 	if leavingUsername == "" {
-		leavingUsername = "Deleted User"
-	}
-
-	toUpdate := originalChannel.DeepCopy()
-	toUpdate.Type = model.ChannelTypePrivate
-	toUpdate.TeamId = originalChannel.TeamId
-	toUpdate.Name = originalChannel.Name
-	toUpdate.DisplayName = leavingUsername
-
-	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
-	if appErr != nil {
-		return nil, appErr
+		leavingUsername = i18n.T("app.channel.conversion.deleted_user")
 	}
 
 	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
@@ -3693,22 +3686,47 @@ func (a *App) convertDirectMessageToChannel(c request.CTX, leavingUsername strin
 		return nil, appErr
 	}
 
-	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
-
-	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, &model.GroupMessageConversionRequestBody{
-		TeamID: originalChannel.TeamId,
-	}, users)
-
-	var remainingUserId string
+	var remainingUser *model.User
 	for _, user := range users {
 		if user.Username != leavingUsername {
-			remainingUserId = user.Id
+			remainingUser = user
 			break
 		}
 	}
+	if remainingUser == nil {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_remaining_user", nil, "", http.StatusBadRequest)
+	}
+	memberships, err := a.Srv().Store().Team().GetTeamsForUser(c, remainingUser.Id, "", false)
+	if err != nil {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_teams_for_user", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(memberships) == 0 {
+		return nil, model.NewAppError("ConvertDirectMessageToChannel", "app.channel.direct_message_conversion.no_teams_for_user", nil, "", http.StatusNotFound)
+	}
+
+	toUpdate := originalChannel.DeepCopy()
+	toUpdate.Type = model.ChannelTypePrivate
+	toUpdate.TeamId = memberships[0].TeamId // we are taking the first team from the memberships
+	newName := "archived-" + strings.Join([]string{leavingUsername, remainingUser.Username}, "-")
+	toUpdate.Name = newName[:64]
+	toUpdate.DisplayName = leavingUsername
+
+	updatedChannel, appErr := a.UpdateChannel(c, toUpdate)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
+
+	if err := a.setSidebarCategoriesForConvertedGroupMessage(c, &model.GroupMessageConversionRequestBody{
+		ChannelID: channelID,
+		TeamID:    originalChannel.TeamId,
+	}, users); err != nil {
+		c.Logger().Warn("Failed to set sidebar categories for converted DM", mlog.Err(err))
+	}
 
 	// make other user channel admin
-	_, appErr = a.UpdateChannelMemberSchemeRoles(c, channelID, remainingUserId, false, true, true)
+	_, appErr = a.UpdateChannelMemberSchemeRoles(c, channelID, remainingUser.Id, false, true, true)
 	if appErr != nil {
 		return nil, appErr
 	}

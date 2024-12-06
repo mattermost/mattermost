@@ -4342,9 +4342,9 @@ func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string
 		Select("ch.*").Distinct().
 		From("Channels ch, ChannelMembers cm").
 		Where(sq.And{
-			sq.Eq{"cm.ChannelId": "ch.Id"},
+			sq.Expr("cm.ChannelId = ch.Id"),
 			sq.Gt{"ch.Id": afterId},
-			sq.Eq{"ch.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			sq.Or{sq.Eq{"ch.Type": model.ChannelTypeDirect}, sq.Eq{"ch.Type": model.ChannelTypeGroup}},
 			sq.Eq{"cm.UserId": userId},
 		}).
 		OrderBy("ch.Id").
@@ -4352,7 +4352,7 @@ func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string
 
 	if !includeArchivedChannels {
 		query = query.Where(
-			sq.Eq{"Channels.DeleteAt": int(0)},
+			sq.Eq{"ch.DeleteAt": int(0)},
 		)
 	}
 
@@ -4363,7 +4363,7 @@ func (s SqlChannelStore) GetGroupAndDirectChannelsForUser(userId, afterId string
 
 	ch := []*model.Channel{}
 	if err2 := s.GetReplicaX().Select(&ch, queryString, args...); err2 != nil {
-		return nil, errors.Wrap(err2, "failed to find group Channels")
+		return nil, errors.Wrap(err2, "failed to find group and direct channels for user")
 	}
 
 	return ch, nil

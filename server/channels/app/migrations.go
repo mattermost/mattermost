@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -704,9 +705,8 @@ func (s *Server) doConvertIncompleteGMsMigration(c request.CTX) error {
 				req := &model.GroupMessageConversionRequestBody{
 					ChannelID:   channel.Id,
 					TeamID:      channel.TeamId,
-					Name:        "converted-" + model.NewId()[:7],
 					DisplayName: channel.DisplayName,
-					Header:      "This channel was automatically created from a group conversation because at least one member was deleted.",
+					Header:      i18n.T("app.migrations.channel_conversion_header"),
 				}
 				req.PrepareForAutoConversion()
 				newCh, appErr = app.ConvertGroupMessageToChannel(c, "", req)
