@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -165,6 +166,12 @@ func TestClearCacheCluster(t *testing.T) {
 
 	lc.doClearCacheCluster(c)
 	assert.Len(t, cluster.GetMessages(), 1)
+	expectedMsg := &model.ClusterMessage{
+		Event:    model.ClusterEventInvalidateCacheForRoles,
+		SendType: model.ClusterSendBestEffort,
+		Data:     clearCacheMessageData,
+	}
+	require.Equal(t, expectedMsg, cluster.GetMessages()[0])
 
 	c = cache.NewLRU(&cache.CacheOptions{
 		Size:                   10,
