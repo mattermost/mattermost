@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"context"
+	"strings"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -543,4 +546,62 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	checkUsersIntegrity(ss, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
+}
+
+func GetAllValidUserIDsFromDMChannels(ss *SqlStore) ([]*model.User, error) {
+	records := []model.OrphanedRecord{}
+	dirtyIDs := []string{}
+	query, args, err := ss.getQueryBuilder().
+		Select().
+		Column("CT.ChannelName AS ParentId").
+		From("Channels AS CT").
+		Where(sq.Eq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect}}).
+		ToSql()
+
+	if err != nil {
+		mlog.Error("There is an error with the DM Channel Name query")
+		return nil, err
+	}
+
+	err = ss.GetMasterX().Select(&records, query, args...)
+	if err != nil {
+		mlog.Error("there us an issue fetching the records for DM Channel Names")
+		return nil, err
+	}
+
+	for k := range records {
+		dirtyIDs = append(dirtyIDs, *records[k].ParentId)
+	}
+
+	userIDs := []string{}
+
+	for _, v := range dirtyIDs {
+		temp := strings.Split(v, "_")
+		userIDs = append(userIDs, temp[0])
+	}
+
+	for k := range userIDs {
+		userIDs[k] = strings.TrimPrefix(userIDs[k], "<")
+		userIDs[k] = strings.TrimSuffix(userIDs[k], ">")
+	}
+
+	//TODO: Delete this comment
+	/* using SqlUserStore in lieu of UserStore because we have 2/3 things needed.  UserStore is an interface and I don't have an object on hand with all the methods needed to satisfy the interface contract. Both implement GetProfilebyIds()
+	 */
+
+	//TODO: Delete this comment
+	//this setup may be slightly off
+	userStore := SqlUserStore{
+		SqlStore:   ss,
+		usersQuery: sq.SelectBuilder(ss.getQueryBuilder()),
+	}
+
+	users, err := userStore.GetProfileByIds(context.Background(), userIDs, nil, false)
+
+	if err != nil {
+		mlog.Error("There is an issue with fetching valid users IDs")
+		return nil, err
+	}
+
+	return users, nil
 }
