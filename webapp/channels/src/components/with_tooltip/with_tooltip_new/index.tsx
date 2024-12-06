@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Placement} from '@floating-ui/react';
 import {
     useFloating,
     autoUpdate,
@@ -12,11 +13,11 @@ import {
     useInteractions,
     arrow,
     FloatingPortal,
-    autoPlacement,
     useTransitionStyles,
     FloatingArrow,
+    flip,
 } from '@floating-ui/react';
-import React, {useRef, useState, memo} from 'react';
+import React, {useRef, useState, memo, useMemo, cloneElement, isValidElement} from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
@@ -28,13 +29,13 @@ import type {ShortcutDefinition} from './tooltip_shortcut';
 
 import './tooltip.scss';
 
-const ARROW_WIDTH = 10;
-const ARROW_HEIGHT = 6;
-const ARROW_OFFSET = 8;
+const ARROW_WIDTH = 10; // in px
+const ARROW_HEIGHT = 6; // in px
+const ARROW_OFFSET = 8; // in px
 
-const TOOLTIP_REST_TIME_BEFORE_OPEN = 100;
-const TOOLTIP_APPEAR_DURATION = 250;
-const TOOLTIP_DISAPPEAR_DURATION = 200;
+const TOOLTIP_REST_TIME_BEFORE_OPEN = 400; // in ms
+const TOOLTIP_APPEAR_DURATION = 250; // in ms
+const TOOLTIP_DISAPPEAR_DURATION = 200; // in ms
 
 export const ShortcutKeys = {
     alt: defineMessage({
@@ -54,7 +55,6 @@ export const ShortcutKeys = {
 };
 
 interface Props {
-    children: ReactNode;
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
@@ -62,13 +62,29 @@ interface Props {
     shortcut?: ShortcutDefinition;
 
     /**
-     * @deprecated Do not use this except for special cases
-     * Callback when the tooltip appears
-     */
+     * Whether the tooltip should be vertical or horizontal, by default it is vertical
+     * This doesn't always guarantee the tooltip will be vertical, it just determines the initial placement and fallback placements
+    */
+    isVertical?: boolean;
+
+    /**
+    * @deprecated Do not use this except for special cases
+    * Callback when the tooltip appears
+   */
     onOpen?: () => void;
+    children: ReactNode;
 }
 
-function WithTooltip(props: Props) {
+function WithTooltip({
+    children,
+    title,
+    emoji,
+    isEmojiLarge = false,
+    hint,
+    shortcut,
+    isVertical = true,
+    onOpen,
+}: Props) {
     const [open, setOpen] = useState(false);
 
     const arrowRef = useRef(null);
@@ -76,21 +92,34 @@ function WithTooltip(props: Props) {
     function handleChange(open: boolean) {
         setOpen(open);
 
-        if (props.onOpen && open) {
-            props.onOpen();
+        if (onOpen && open) {
+            onOpen();
         }
     }
+
+    const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
+        let initial: Placement;
+        let fallback: Placement[];
+        if (isVertical) {
+            initial = 'top';
+            fallback = ['bottom', 'right', 'left'];
+        } else {
+            initial = 'right';
+            fallback = ['left', 'top', 'bottom'];
+        }
+        return {initial, fallback};
+    }, [isVertical]);
 
     const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
         open,
         onOpenChange: handleChange,
         whileElementsMounted: autoUpdate,
+        placement: placements.initial,
         middleware: [
-            autoPlacement({
-                crossAxis: true,
-                autoAlignment: true,
-            }),
             offset(ARROW_OFFSET),
+            flip({
+                fallbackPlacements: placements.fallback,
+            }),
             arrow({
                 element: arrowRef,
             }),
@@ -121,14 +150,22 @@ function WithTooltip(props: Props) {
         },
     });
 
+    if (!isValidElement(children)) {
+        // eslint-disable-next-line no-console
+        console.error('Children must be a valid React element for WithTooltip');
+        return null;
+    }
+
+    const trigger = cloneElement(children, {
+        ...getReferenceProps({
+            ref: setReference,
+            ...children.props,
+        }),
+    });
+
     return (
         <>
-            <span
-                ref={setReference}
-                {...getReferenceProps()}
-            >
-                {props.children}
-            </span>
+            {trigger}
             {isMounted && (
                 <FloatingPortal
                     id='root-portal' // This is the global portal container id
@@ -144,11 +181,11 @@ function WithTooltip(props: Props) {
                             style={transitionStyles}
                         >
                             <TooltipContent
-                                title={props.title}
-                                emoji={props.emoji}
-                                isEmojiLarge={props.isEmojiLarge}
-                                hint={props.hint}
-                                shortcut={props.shortcut}
+                                title={title}
+                                emoji={emoji}
+                                isEmojiLarge={isEmojiLarge}
+                                hint={hint}
+                                shortcut={shortcut}
                             />
                             <FloatingArrow
                                 ref={arrowRef}

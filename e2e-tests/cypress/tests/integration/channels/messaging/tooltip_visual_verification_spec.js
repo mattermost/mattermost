@@ -46,7 +46,7 @@ describe('Messaging', () => {
     function verifyToolTip(postId, targetElement, label) {
         cy.get(`#post_${postId}`).trigger('mouseover');
 
-        cy.get(targetElement).parent().should('be.visible').trigger('mouseenter', {force: true});
+        cy.get(targetElement).trigger('mouseenter', {force: true});
         cy.findByText(label).should('be.visible');
 
         cy.get(targetElement).trigger('mouseleave', {force: true});

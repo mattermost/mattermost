@@ -14,11 +14,7 @@ jest.mock('utils/user_agent', () => ({
 }));
 
 describe('TooltipShortcut', () => {
-    let isMacMock: jest.Mock;
-
-    beforeEach(() => {
-        isMacMock = jest.mocked(userAgentUtils.isMac);
-    });
+    const isMacMock = jest.mocked(userAgentUtils.isMac);
 
     afterEach(() => {
         jest.resetAllMocks();
