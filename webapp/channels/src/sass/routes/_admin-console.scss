@@ -1077,6 +1077,12 @@
     margin-bottom: 20px;
 }
 
+.password-settings__preview-heading {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
 #error-tooltip {
     .tooltip-inner {
         max-width: none;
