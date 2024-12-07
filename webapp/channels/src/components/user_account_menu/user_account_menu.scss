@@ -1,5 +1,13 @@
 @import "utils/_mixins";
 
+// This is the override we must do to align the menu as per UX guidelines
+// This is not ideal and should not be used as a reference for positioning menus
+// as it throws positioning out of wack
+.userAccountMenuRoot {
+    right: 4px !important;
+    left: unset !important;
+}
+
 #userAccountMenu {
     .userAccountMenu_nameMenuItem {
         align-items: center;
@@ -34,6 +42,13 @@
     .userAccountMenu_setCustomStatusMenuItem {
         .userAccountMenu_setCustomStatusMenuItem_icon > svg {
             fill: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        // This aligns the icon in the center, emoji icon is wrapped in a span
+        // thats why we need to align the span as well
+        >.leading-element, .userAccountMenu_setCustomStatusMenuItem_icon {
+            display: flex;
+            align-items: center;
         }
 
         .label-elements > span {
@@ -81,7 +96,7 @@
     background: transparent;
     margin-inline-start: 8px;
 
-    &:hover {
+    &:hover, &[aria-expanded='true'] {
         background: var(--sidebar-text-08);
 
         .userStatusIconWrapper {

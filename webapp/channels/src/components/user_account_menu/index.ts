@@ -13,7 +13,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
-import {makeGetCustomStatus, isCustomStatusExpired} from 'selectors/views/custom_status';
+import {makeGetCustomStatus, isCustomStatusExpired, isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,6 +40,7 @@ function makeMapStateToProps() {
             status: getStatusForUserId(state, userId),
             customStatus,
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
+            isCustomStatusEnabled: isCustomStatusEnabled(state),
             timezone: getCurrentTimezone(state),
         };
     };

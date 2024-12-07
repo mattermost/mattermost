@@ -12,6 +12,7 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 
 import UserAccountAwayMenuItem from './user_account_away_menuitem';
+import UserAccountCustomStatusMenuItem from './user_account_custom_status_menuitem';
 import UserAccountDndMenuItem from './user_account_dnd_menuitem';
 import UserAccountLogoutMenuItem from './user_account_logout_menuitem';
 import UserAccountMenuButton, {getMenuButtonAriaLabel} from './user_account_menuButton';
@@ -39,7 +40,7 @@ export default function UserAccountMenu(props: Props) {
         });
     }
 
-    const isCustomStatusSet = props.customStatus && !props.isCustomStatusExpired && (props.customStatus.text?.length > 0 || props.customStatus.emoji?.length > 0);
+    const isCustomStatusSet = !props.isCustomStatusExpired && props.customStatus && (props.customStatus.text?.length > 0 || props.customStatus.emoji?.length > 0);
     const shouldConfirmBeforeStatusChange = props.autoResetPref === '' && props.status === UserStatuses.OUT_OF_OFFICE;
 
     return (
@@ -62,6 +63,15 @@ export default function UserAccountMenu(props: Props) {
                 id: 'userAccountMenu',
                 width: '264px',
             }}
+            menuRootClass='userAccountMenuRoot'
+            anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
         >
             <UserAccountNameMenuItem
                 profilePicture={props.profilePicture}
@@ -77,12 +87,21 @@ export default function UserAccountMenu(props: Props) {
             {props.status === UserStatuses.OUT_OF_OFFICE && (
                 <Menu.Separator/>
             )}
-            <UserAccountSetCustomStatusMenuItem
-                timezone={props.timezone}
-                customStatus={props.customStatus}
-                isCustomStatusExpired={props.isCustomStatusExpired}
-                openCustomStatusModal={openCustomStatusModal}
-            />
+            {props.isCustomStatusEnabled && !isCustomStatusSet && (
+                <UserAccountSetCustomStatusMenuItem
+                    openCustomStatusModal={openCustomStatusModal}
+                />
+            )}
+            {props.isCustomStatusEnabled && isCustomStatusSet && (
+                <UserAccountCustomStatusMenuItem
+                    timezone={props.timezone}
+                    customStatus={props.customStatus}
+                    openCustomStatusModal={openCustomStatusModal}
+                />
+            )}
+            {props.isCustomStatusEnabled && (
+                <Menu.Separator/>
+            )}
             <UserAccountOnlineMenuItem
                 userId={props.userId}
                 shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}

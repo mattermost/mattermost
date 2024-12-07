@@ -55,7 +55,7 @@ type MenuProps = {
     'aria-label'?: string;
 
     /**
-     * @warning Make the styling of your components such a way that they dont need this handler
+     * @warning Make the styling of your components such a way that they don't need this handler
      */
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
@@ -85,6 +85,7 @@ interface Props {
         horizontal: HorizontalOrigin;
     };
     hideTooltipWhenDisabled?: boolean;
+    menuRootClass?: string;
 }
 
 /**
@@ -245,6 +246,9 @@ export function Menu(props: Props) {
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
+                    classes={{
+                        paper: props.menuRootClass,
+                    }}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
