@@ -3,6 +3,8 @@
 
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
+import type {Store} from 'redux';
+import type {Persistor} from 'redux-persist';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
 
@@ -14,15 +16,34 @@ import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
 
+import type {GlobalState} from 'types/store';
+
 function getAppReducers() {
     return require('../reducers'); // eslint-disable-line global-require
 }
+
+declare global {
+    interface Window {
+        Observable: typeof Observable;
+    }
+}
+
+type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
 
 window.Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
 
-export default function configureStore(preloadedState, additionalReducers) {
+interface LocalForageObservableChange {
+    key: string;
+    newValue: string;
+    oldValue: string | null;
+    crossTabNotification: boolean;
+}
+
+export default function configureStore(preloadedState?: DeepPartial<GlobalState>, additionalReducers?: Record<string, any>): Store<GlobalState> {
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
         appReducers: reducers,
@@ -31,7 +52,7 @@ export default function configureStore(preloadedState, additionalReducers) {
     });
 
     localForage.ready().then(() => {
-        const persistor = persistStore(store, null, () => {
+        const persistor: Persistor = persistStore(store, null, () => {
             store.dispatch({
                 type: General.STORE_REHYDRATION_COMPLETE,
                 complete: true,
@@ -51,23 +72,23 @@ export default function configureStore(preloadedState, additionalReducers) {
 
         // Rehydrate redux-persist when another tab changes localForage
         observable.subscribe({
-            next: (args) => {
-                if (!args.crossTabNotification) {
+            next: (value: LocalForageObservableChange) => {
+                if (!value.crossTabNotification) {
                     // Ignore changes made by this tab
                     return;
                 }
 
                 const keyPrefix = 'persist:';
 
-                if (!args.key.startsWith(keyPrefix)) {
+                if (!value.key.startsWith(keyPrefix)) {
                     // Ignore changes that weren't made by redux-persist
                     return;
                 }
 
-                const key = args.key.substring(keyPrefix.length);
-                const newValue = JSON.parse(args.newValue);
+                const key = value.key.substring(keyPrefix.length);
+                const newValue = JSON.parse(value.newValue);
 
-                const payload = {};
+                const payload: Record<string, any> = {};
 
                 for (const reducerKey of Object.keys(newValue)) {
                     if (reducerKey === '_persist') {
@@ -84,7 +105,7 @@ export default function configureStore(preloadedState, additionalReducers) {
                     payload,
                 });
             },
-        });
+        } as any);
 
         let purging = false;
 
@@ -110,7 +131,7 @@ export default function configureStore(preloadedState, additionalReducers) {
                 });
             }
         });
-    }).catch((e) => {
+    }).catch((e: Error) => {
         // eslint-disable-next-line no-console
         console.error('Failed to initialize localForage', e);
     });
@@ -121,11 +142,11 @@ export default function configureStore(preloadedState, additionalReducers) {
 /**
  * Migrates state.storage from redux-persist@4 to redux-persist@6
  */
-function migratePersistedState(store, persistor) {
+function migratePersistedState(store: Store<GlobalState>, persistor: Persistor): void {
     const oldKeyPrefix = 'reduxPersist:storage:';
 
-    const restoredState = {};
-    localForage.iterate((value, key) => {
+    const restoredState: Record<string, string> = {};
+    localForage.iterate((value: string, key: string) => {
         if (key && key.startsWith(oldKeyPrefix)) {
             restoredState[key.substring(oldKeyPrefix.length)] = value;
         }
@@ -140,7 +161,7 @@ function migratePersistedState(store, persistor) {
 
         persistor.pause();
 
-        const persistedState = {};
+        const persistedState: Record<string, any> = {};
 
         for (const [key, value] of Object.entries(restoredState)) {
             // eslint-disable-next-line no-console
