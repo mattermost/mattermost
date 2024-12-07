@@ -1,81 +1,70 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import MarkdownImageExpand from './markdown_image_expand';
 
 describe('components/MarkdownImageExpand', () => {
-    it('should match snapshot for collapsed embeds', () => {
-        const toggleHandler = jest.fn();
-        const imageCollapseHandler = jest.fn();
-        const wrapper = shallow(
+    const baseProps = {
+        alt: 'Some alt text',
+        postId: 'abc',
+        imageKey: '1',
+        onToggle: jest.fn(),
+        toggleInlineImageVisibility: jest.fn(),
+        children: 'An image to expand',
+    };
+
+    test('should render correctly when collapsed', () => {
+        render(
             <MarkdownImageExpand
-                alt={'Some alt text'}
-                postId={'abc'}
+                {...baseProps}
                 isExpanded={false}
-                imageKey={'1'}
-                onToggle={toggleHandler}
-                toggleInlineImageVisibility={imageCollapseHandler}
-            >{'An image to expand'}</MarkdownImageExpand>,
+            />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Some alt text')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toHaveClass('markdown-image-expand__expand-button');
+        expect(screen.queryByText('An image to expand')).not.toBeInTheDocument();
     });
 
-    it('should match snapshot for expanded embeds', () => {
-        const toggleHandler = jest.fn();
-        const imageCollapseHandler = jest.fn();
-        const wrapper = shallow(
+    test('should render correctly when expanded', () => {
+        render(
             <MarkdownImageExpand
-                alt={'Some alt text'}
-                postId={'abc'}
+                {...baseProps}
                 isExpanded={true}
-                imageKey={'1'}
-                onToggle={toggleHandler}
-                toggleInlineImageVisibility={imageCollapseHandler}
-            >{'An image to expand'}</MarkdownImageExpand>,
+            />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('An image to expand')).toBeInTheDocument();
+        expect(screen.getByRole('button')).toHaveClass('markdown-image-expand__collapse-button');
     });
 
-    it('should emit toggle action on collapse button click', () => {
-        const toggleHandler = jest.fn();
-        const imageCollapseHandler = jest.fn();
-        const wrapper = shallow(
+    test('should call toggle handler when collapse button is clicked', async () => {
+        render(
             <MarkdownImageExpand
-                alt={'Some alt text'}
-                postId={'abc'}
+                {...baseProps}
                 isExpanded={true}
-                imageKey={'1'}
-                onToggle={toggleHandler}
-                toggleInlineImageVisibility={imageCollapseHandler}
-            >{'An image to expand'}</MarkdownImageExpand>,
+            />,
         );
 
-        wrapper.find('.markdown-image-expand__collapse-button').simulate('click');
+        await userEvent.click(screen.getByRole('button'));
 
-        expect(imageCollapseHandler).toHaveBeenCalled();
+        expect(baseProps.toggleInlineImageVisibility).toHaveBeenCalledWith('abc', '1');
     });
 
-    it('should emit toggle action on expand button click', () => {
-        const toggleHandler = jest.fn();
-        const imageCollapseHandler = jest.fn();
-        const wrapper = shallow(
+    test('should call toggle handler when expand button is clicked', async () => {
+        render(
             <MarkdownImageExpand
-                alt={'Some alt text'}
-                postId={'abc'}
+                {...baseProps}
                 isExpanded={false}
-                imageKey={'1'}
-                onToggle={toggleHandler}
-                toggleInlineImageVisibility={imageCollapseHandler}
-            >{'An image to expand'}</MarkdownImageExpand>,
+            />,
         );
 
-        wrapper.find('.markdown-image-expand__expand-button').simulate('click');
+        await userEvent.click(screen.getByRole('button'));
 
-        expect(imageCollapseHandler).toHaveBeenCalled();
+        expect(baseProps.toggleInlineImageVisibility).toHaveBeenCalledWith('abc', '1');
     });
 });
