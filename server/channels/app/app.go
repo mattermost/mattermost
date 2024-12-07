@@ -87,6 +87,9 @@ func (a *App) SearchEngine() *searchengine.Broker {
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap
 }
+func (a *App) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return a.ch.srv.platform.LdapDiagnostic()
+}
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
