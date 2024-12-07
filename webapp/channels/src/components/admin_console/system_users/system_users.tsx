@@ -38,7 +38,7 @@ import './system_users.scss';
 
 import type {PropsFromRedux} from './index';
 
-type Props = PropsFromRedux;
+type Props = PropsFromRedux | {isDisabled?: boolean};
 
 export type TableOptions = {
     pageSize?: PaginationState['pageSize'];
@@ -412,6 +412,7 @@ function SystemUsers(props: Props) {
                     }
                     return (
                         <SystemUsersListAction
+                            readonly={props.isDisabled}
                             rowIndex={info.cell.row.index}
                             tableId={tableId}
                             user={info.row.original}
@@ -555,14 +556,17 @@ function SystemUsers(props: Props) {
                             filterStatus={props.tablePropertyFilterStatus}
                         />
                         <SystemUsersColumnTogglerMenu
+                            isDisabled={props.isDisabled}
                             isMySql={props.isMySql}
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
                         <SystemUsersDateRangeMenu
+                            isDisabled={props.isDisabled}
                             dateRange={props.tablePropertyDateRange}
                         />
                         <SystemUsersExport
+                            isDisabled={props.isDisabled}
                             currentUserId={props.currentUser.id}
                             usersLenght={userReports.length}
                         />
