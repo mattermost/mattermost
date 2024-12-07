@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelSearchOpts} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 import type {CursorPaginationDirection, ReportDuration} from '@mattermost/types/reports';
-import type {Team} from '@mattermost/types/teams';
+import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -37,6 +37,18 @@ export type AdminConsoleUserManagementTableProperties = {
     dateRange?: ReportDuration;
 };
 
+export type AdminConsoleTeamManagementTableProperties = {
+    pageIndex: number;
+    searchTerm: string;
+    searchOpts: TeamSearchOpts;
+};
+
+export type AdminConsoleChannelManagementTableProperties = {
+    pageIndex: number;
+    searchTerm: string;
+    searchOpts: ChannelSearchOpts;
+};
+
 export type ViewsState = {
     admin: {
         navigationBlock: {
@@ -46,6 +58,8 @@ export type ViewsState = {
         };
         needsLoggedInLimitReachedCheck: boolean;
         adminConsoleUserManagementTableProperties: AdminConsoleUserManagementTableProperties;
+        adminConsoleTeamManagementTableProperties: AdminConsoleTeamManagementTableProperties;
+        adminConsoleChannelManagementTableProperties: AdminConsoleChannelManagementTableProperties;
     };
 
     announcementBar: {

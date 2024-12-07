@@ -11,7 +11,7 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
+import type {AdminConsoleUserManagementTableProperties, AdminConsoleTeamManagementTableProperties, AdminConsoleChannelManagementTableProperties} from 'types/store/views';
 
 export function setNeedsLoggedInLimitReachedCheck(data: boolean) {
     return {
@@ -33,6 +33,40 @@ export function setAdminConsoleUsersManagementTableProperties(data?: Partial<Adm
 
     return {
         type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES,
+        data,
+    };
+}
+
+/**
+ * Action to set the properties of the admin console team management table. Only pass the properties you want to set/modify. If you pass no properties, the table properties will be cleared.
+ */
+export function setAdminConsoleTeamsManagementTableProperties(data?: Partial<AdminConsoleTeamManagementTableProperties>) {
+    if (!data) {
+        return {
+            type: ActionTypes.CLEAR_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES,
+            data: null,
+        };
+    }
+
+    return {
+        type: ActionTypes.SET_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES,
+        data,
+    };
+}
+
+/**
+ * Action to set the properties of the admin console user management table. Only pass the properties you want to set/modify. If you pass no properties, the table properties will be cleared.
+ */
+export function setAdminConsoleChannelsManagementTableProperties(data?: Partial<AdminConsoleChannelManagementTableProperties>) {
+    if (!data) {
+        return {
+            type: ActionTypes.CLEAR_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES,
+            data: null,
+        };
+    }
+
+    return {
+        type: ActionTypes.SET_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES,
         data,
     };
 }

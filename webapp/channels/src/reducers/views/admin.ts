@@ -10,7 +10,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
-import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
+import type {AdminConsoleUserManagementTableProperties, AdminConsoleTeamManagementTableProperties, AdminConsoleChannelManagementTableProperties} from 'types/store/views';
 
 const navigationBlockInitialState = {
     blocked: false,
@@ -86,8 +86,46 @@ export function adminConsoleUserManagementTableProperties(state = adminConsoleUs
     }
 }
 
+export const adminConsoleTeamManagementTablePropertiesInitialState: AdminConsoleTeamManagementTableProperties = {
+    pageIndex: 0,
+    searchTerm: '',
+    searchOpts: {},
+};
+
+export function adminConsoleTeamManagementTableProperties(state = adminConsoleTeamManagementTablePropertiesInitialState, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.SET_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES: {
+        return {...state, ...action.data};
+    }
+    case ActionTypes.CLEAR_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES:
+        return adminConsoleTeamManagementTablePropertiesInitialState;
+    default:
+        return state;
+    }
+}
+
+export const adminConsoleChannelManagementTablePropertiesInitialState: AdminConsoleChannelManagementTableProperties = {
+    pageIndex: 0,
+    searchTerm: '',
+    searchOpts: {},
+};
+
+export function adminConsoleChannelManagementTableProperties(state = adminConsoleChannelManagementTablePropertiesInitialState, action: AnyAction) {
+    switch (action.type) {
+    case ActionTypes.SET_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES: {
+        return {...state, ...action.data};
+    }
+    case ActionTypes.CLEAR_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES:
+        return adminConsoleChannelManagementTablePropertiesInitialState;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     navigationBlock,
     needsLoggedInLimitReachedCheck,
     adminConsoleUserManagementTableProperties,
+    adminConsoleTeamManagementTableProperties,
+    adminConsoleChannelManagementTableProperties,
 });

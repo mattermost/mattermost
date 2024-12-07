@@ -27,14 +27,17 @@ import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
+import type {AdminConsoleChannelManagementTableProperties} from 'types/store/views';
 
 export interface ChannelListProps {
     actions: {
         searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<ActionResult>;
+        setAdminConsoleChannelsManagementTableProperties(data?: Partial<AdminConsoleChannelManagementTableProperties>): void;
     };
     data: ChannelWithTeamData[];
     total: number;
+    tableProperties: AdminConsoleChannelManagementTableProperties;
 }
 
 interface ChannelListState {
@@ -44,7 +47,7 @@ interface ChannelListState {
     page: number;
     total: number;
     searchErrored: boolean;
-    filters: ChannelSearchOpts;
+    searchOpts: ChannelSearchOpts;
 }
 
 const ROW_HEIGHT = 40;
@@ -65,17 +68,17 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         super(props);
         this.state = {
             loading: false,
-            term: '',
+            term: props.tableProperties.searchTerm,
             channels: [],
-            page: 0,
+            page: props.tableProperties.pageIndex,
             total: 0,
             searchErrored: false,
-            filters: {},
+            searchOpts: props.tableProperties.searchOpts,
         };
     }
 
     componentDidMount() {
-        this.loadPage();
+        this.loadPage(this.state.page, this.state.term, this.state.searchOpts);
     }
 
     isSearching = (term: string, filters: ChannelSearchOpts) => {
@@ -83,21 +86,27 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
     };
 
     getPaginationProps = () => {
-        const {page, term, filters} = this.state;
-        const total = this.isSearching(term, filters) ? this.state.total : this.props.total;
+        const {page, term, searchOpts} = this.state;
+        const total = this.isSearching(term, searchOpts) ? this.state.total : this.props.total;
         const startCount = (page * PAGE_SIZE) + 1;
         let endCount = (page + 1) * PAGE_SIZE;
         endCount = endCount > total ? total : endCount;
         return {startCount, endCount, total};
     };
 
-    loadPage = async (page = 0, term = '', filters = {}) => {
-        this.setState({loading: true, term, filters});
-        if (this.isSearching(term, filters)) {
+    loadPage = async (page = 0, term = '', searchOpts = {}) => {
+        this.setState({loading: true, term, searchOpts});
+        this.props.actions.setAdminConsoleChannelsManagementTableProperties({
+            pageIndex: page,
+            searchTerm: term,
+            searchOpts,
+        });
+
+        if (this.isSearching(term, searchOpts)) {
             if (page > 0) {
-                this.searchChannels(page, term, filters);
+                this.searchChannels(page, term, searchOpts);
             } else {
-                this.searchChannelsDebounced(page, term, filters);
+                this.searchChannelsDebounced(page, term, searchOpts);
             }
             return;
         }
@@ -122,15 +131,19 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
     searchChannelsDebounced = debounce((page, term, filters = {}) => this.searchChannels(page, term, filters), 300, false, () => {});
 
     nextPage = () => {
-        this.loadPage(this.state.page + 1, this.state.term, this.state.filters);
+        this.loadPage(this.state.page + 1, this.state.term, this.state.searchOpts);
     };
 
     previousPage = () => {
+        this.props.actions.setAdminConsoleChannelsManagementTableProperties({
+            pageIndex: this.state.page - 1,
+        });
+
         this.setState({page: this.state.page - 1});
     };
 
     onSearch = async (term = '') => {
-        this.loadPage(0, term, this.state.filters);
+        this.loadPage(0, term, this.state.searchOpts);
     };
 
     getColumns = (): Column[] => {
@@ -182,9 +195,9 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
 
     getRows = (): Row[] => {
         const {data} = this.props;
-        const {channels, term, filters} = this.state;
+        const {channels, term, searchOpts} = this.state;
         const {startCount, endCount} = this.getPaginationProps();
-        let channelsToDisplay = this.isSearching(term, filters) ? channels : data;
+        let channelsToDisplay = this.isSearching(term, searchOpts) ? channels : data;
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
@@ -331,7 +344,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Teams'
                             />
                         ),
-                        value: [],
+                        value: this.state.searchOpts.team_ids || [],
                     },
                 },
                 keys: ['team_ids'],
@@ -347,7 +360,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Group Sync'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.group_constrained || false,
                     },
                     exclude_group_constrained: {
                         name: (
@@ -356,7 +369,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Manual Invites'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.exclude_group_constrained || false,
                     },
                 },
                 keys: ['group_constrained', 'exclude_group_constrained'],
@@ -371,7 +384,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Public'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.public || false,
                     },
                     private: {
                         name: (
@@ -380,7 +393,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Private'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.private || false,
                     },
                     deleted: {
                         name: (
@@ -389,7 +402,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                                 defaultMessage='Archived'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.deleted || false,
                     },
                 },
                 keys: ['public', 'private', 'deleted'],
