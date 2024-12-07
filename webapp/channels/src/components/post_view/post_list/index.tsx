@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {markChannelAsRead} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
+import {getCurrentChannel, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
@@ -18,6 +19,7 @@ import {
     loadPostsAround,
     syncPostsInChannel,
     loadLatestPosts,
+    goToLastViewedChannel,
 } from 'actions/views/channel';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -41,6 +43,12 @@ interface Props {
     channelId: string;
 }
 
+function isDeactivatedChannel(state: GlobalState, channelId: string) {
+    const teammate = getDirectTeammate(state, channelId);
+
+    return Boolean(teammate && teammate.delete_at);
+}
+
 function makeMapStateToProps() {
     const getPostsChunkAroundPost = makeGetPostsChunkAroundPost();
     const preparePostIdsForPostList = makePreparePostIdsForPostList();
@@ -58,6 +66,7 @@ function makeMapStateToProps() {
         const isPrefetchingInProcess = channelViewState.channelPrefetchStatus[channelId] === RequestStatus.STARTED;
         const limitedViews = getLimitedViews(state);
         const hasInaccessiblePosts = Boolean(limitedViews.channels[channelId]) || limitedViews.channels[channelId] === 0;
+        const channel = getCurrentChannel(state);
 
         const focusedPost = getPost(state, focusedPostId || '');
 
@@ -91,6 +100,8 @@ function makeMapStateToProps() {
 
         return {
             lastViewedAt,
+            deactivatedChannel: channel ? isDeactivatedChannel(state, channel.id) : false,
+            channelIsArchived: channel ? channel.delete_at !== 0 : false,
             isFirstLoad: isFirstLoad(state, channelId),
             formattedPostIds,
             atLatestPost,
@@ -115,6 +126,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             syncPostsInChannel,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
+            goToLastViewedChannel,
         }, dispatch),
     };
 }

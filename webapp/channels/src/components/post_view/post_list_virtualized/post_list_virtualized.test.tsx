@@ -22,6 +22,7 @@ describe('PostList', () => {
         changeUnreadChunkTimeStamp: jest.fn(),
         toggleShouldStartFromBottomWhenUnread: jest.fn(),
         updateNewMessagesAtInChannel: jest.fn(),
+        goToLastViewedChannel: jest.fn(),
     };
 
     const baseProps: ComponentProps<typeof PostList> = {
@@ -42,6 +43,8 @@ describe('PostList', () => {
         autoRetryEnable: false,
         lastViewedAt: 0,
         shouldStartFromBottomWhenUnread: false,
+        deactivatedChannel: false,
+        channelIsArchived: false,
         actions: baseActions,
     };
 
