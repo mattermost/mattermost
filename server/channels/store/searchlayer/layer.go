@@ -111,6 +111,32 @@ func (s *SearchStore) indexUser(rctx request.CTX, user *model.User) {
 	}
 }
 
+func (s *SearchStore) indexChannelsForTeam(rctx request.CTX, teamID string) {
+	var (
+		page     int
+		perPage  = 100
+		channels []*model.Channel
+	)
+
+	for {
+		cs, err := s.channel.GetPublicChannelsForTeam(teamID, page, perPage)
+		if err != nil {
+			rctx.Logger().Warn("Encountered error while retreiving public channels for indexing", mlog.String("team_id", teamID), mlog.Err(err))
+			return
+		}
+
+		channels = append(channels, cs...)
+
+		if len(channels) < perPage {
+			break
+		}
+	}
+
+	for _, channel := range channels {
+		s.channel.indexChannel(rctx, channel)
+	}
+}
+
 // Runs an indexing function synchronously or asynchronously depending on the engine
 func runIndexFn(rctx request.CTX, engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
 	if engine.IsIndexingSync() {
