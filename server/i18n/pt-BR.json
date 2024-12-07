@@ -2265,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falha ao atualizar conexão websocket."
+    "translation": "URL bloqueado por causa de CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -8974,5 +8974,53 @@
   {
     "id": "api.user.auth_switch.not_available.login_disabled.app_error",
     "translation": "A Transferência de Autenticação não está disponível porque nem o login por e-mail nem o login por nome de usuário estão ativados."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "O usuário não é um usuário OAuth ou SAML."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Falha ao analisar a solicitação"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "O login falhou porque os usuários remotos não têm permissão para fazer login."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Não é possível recuperar usuários para um canal arquivado"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Ocorreu um erro interno ao salvar a senha."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Você não pode modificar o status do usuário. O usuário é gerenciado pelo LDAP"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Não é possível recuperar publicações de um canal arquivado"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Não é possível obter confirmação de recebimento."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Não foi possível excluir a confirmação de recebimento."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
   }
 ]
