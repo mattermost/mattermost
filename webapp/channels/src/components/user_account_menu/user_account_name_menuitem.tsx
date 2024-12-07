@@ -15,11 +15,11 @@ import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-interface Props {
+interface Props extends Menu.FirstMenuItemProps {
     profilePicture?: string;
 }
 
-export default function UserAccountNameMenuItem(props: Props) {
+export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props) {
     const dispatch = useDispatch();
 
     const {formatMessage} = useIntl();
@@ -68,7 +68,7 @@ export default function UserAccountNameMenuItem(props: Props) {
             leadingElement={
                 <Avatar
                     size='lg'
-                    url={props.profilePicture}
+                    url={profilePicture}
                     aria-hidden='true'
                 />
             }
@@ -81,6 +81,7 @@ export default function UserAccountNameMenuItem(props: Props) {
                 {username: currentUser?.username},
             )}
             onClick={handleClick}
+            {...rest}
         />
     );
 }

@@ -108,7 +108,7 @@ export function Menu(props: Props) {
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
-    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
+    // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);

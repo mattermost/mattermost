@@ -90,6 +90,25 @@ export interface Props extends MuiMenuItemProps {
 }
 
 /**
+ * The props for the first menu item to be passed in.
+ * @example
+ * <Menu.Container>
+ *     <WrapperOfMenuFirstItem/> <-- Container passes the props to the first item
+ *     <Menu.Item/>
+ * </Menu.Container>
+ */
+export type FirstMenuItemProps = Omit<
+Props,
+| 'onClick'
+| 'leadingElement'
+| 'labels'
+| 'trailingElements'
+| 'isDestructive'
+| 'isLabelsRowLayout'
+| 'children'
+>;
+
+/**
  * To be used as a child of Menu component.
  * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
  *
