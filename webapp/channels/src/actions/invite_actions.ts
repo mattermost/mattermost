@@ -4,6 +4,7 @@
 import {defineMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
 import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -14,7 +15,7 @@ import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/c
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import {isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
 
@@ -157,17 +158,32 @@ export async function sendGuestInviteForUser(
     channels: Channel[],
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
 ): Promise<({sent: InviteResult} | {notSent: InviteResult})> {
+    
     if (!isGuest(user.roles)) {
+        if (isSystemAdmin(user.roles)) {
+            return {
+                notSent: {
+                    user,
+                    reason: defineMessage({
+                        id: 'invite.members.user-is-not-guest',
+                        defaultMessage:
+                            'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                    }),
+                },
+            };
+        }
         return {
             notSent: {
                 user,
                 reason: defineMessage({
-                    id: 'invite.members.user-is-not-guest',
-                    defaultMessage: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                    id: 'invite.members.user-is-not-guest-not-admin',
+                    defaultMessage:
+                        'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
                 }),
             },
         };
     }
+
     let memberOfAll = true;
     let memberOfAny = false;
 
@@ -223,12 +239,14 @@ export async function sendGuestInviteForUser(
             },
         };
     }
+
     return {
         sent: {
             user,
             reason: defineMessage({
                 id: 'invite.guests.new-member',
-                defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
+                defaultMessage:
+                    'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
                 values: {
                     count: channels.length,
                 },
@@ -249,7 +267,7 @@ export function sendGuestsInvites(
         const sent = [];
         const notSent = [];
         const members = getChannelMembersInChannels(state);
-        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members)));
+        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members, getState)));
 
         for (const result of results) {
             if ('sent' in result && result.sent) {
