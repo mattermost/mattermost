@@ -141,7 +141,7 @@ const ChannelHeaderTitle = ({
                             id='channel_header.menuAriaLabel'
                             className={classNames('channel-header__trigger style--none', { active: titleMenuOpen })}
                             aria-label={intl.formatMessage({ id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu' }).toLowerCase()}
-                            aria-expanded={titleMenuOpen ? 'true' : 'false'}
+                            aria-expanded={titleMenuOpen}
                             aria-controls='channelHeaderDropdownMenu'
                         >
                             {showTooltip ? (
