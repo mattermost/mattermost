@@ -29,7 +29,10 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 			continue
 		}
 
-		hook.Process(hookedEvent, webConn, args)
+		err := hook.Process(hookedEvent, webConn, args)
+		if err != nil {
+			mlog.Error("runBroadcastHooks: Error processing hook", mlog.String("hook_id", hookID), mlog.String("error", err.Error()))
+		}
 	}
 
 	return hookedEvent.Event()
