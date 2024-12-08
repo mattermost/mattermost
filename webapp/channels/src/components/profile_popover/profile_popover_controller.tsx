@@ -17,11 +17,16 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {A11yClassNames, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
+
+import {A11yClassNames} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ProfilePopover from './profile_popover';
 
@@ -76,6 +81,8 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+    const user = useSelector((state: GlobalState) => getUser(state, props.userId));
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -127,6 +134,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
                                 {...getFloatingProps()}
+                                aria-label={`${user.username}'s profile popover`}
                             >
                                 <ProfilePopover
                                     userId={props.userId}
