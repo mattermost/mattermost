@@ -9482,5 +9482,29 @@
   {
     "id": "app.last_accessible_file.app_error",
     "translation": "Erro ao buscar o último arquivo acessível"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Falha ao analisar o subcaminho do SiteURL"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Canal não encontrado"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Conteúdo da publicação inválido"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Ignorando a instalação do plug-in {{.Id}}, pois a versão existente é igual ou mais recente."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Não é possível obter o uso das equipes"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Não foi possível redefinir a posição de leitura para o início do pacote de plug-ins."
   }
 ]
