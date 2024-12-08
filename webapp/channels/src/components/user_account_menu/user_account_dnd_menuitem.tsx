@@ -160,7 +160,7 @@ export default function UserAccountDndMenuItem(props: Props) {
         } else if (diffDays === 1) {
             return formatMessage({
                 id: 'userAccountMenu.dndMenuItem.secondaryLabel.untilTomorrowSomeTime',
-                defaultMessage: 'Until Tomorrow {time}',
+                defaultMessage: 'Until tomorrow {time}',
             }, {
                 time: endTime.format('h:mm A'),
             });
@@ -177,14 +177,14 @@ export default function UserAccountDndMenuItem(props: Props) {
     const menuItemAriaLabel = useMemo(() => {
         if (!props.isStatusDnd) {
             return formatMessage({
-                id: 'userAccountMenu.dndMenuItem.ariaLabel.unchecked',
-                defaultMessage: 'Click to set status to "Do not disturb", it disables all notifications',
+                id: 'userAccountMenu.dndMenuItem.ariaLabelUnchecked',
+                defaultMessage: 'Set status as "Do not disturb", it disables all notifications',
             });
         }
 
         return formatMessage({
             id: 'userAccountMenu.dndMenuItem.ariaLabelChecked',
-            defaultMessage: 'Current status is set to "Do not disturb", {untilNthTime}',
+            defaultMessage: 'Status is "Do not disturb", {untilNthTime}',
         }, {
             untilNthTime: getSecondaryLabel(props.isStatusDnd, dndEndTime, props.timezone).toLowerCase(),
         });
@@ -233,7 +233,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.doNotClear.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to not ever clear',
+                    defaultMessage: 'Set status as "Do not disturb" and do not clear automatically',
                 })}
                 onClick={handleSubMenuItemClick}
             />
@@ -247,7 +247,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.30Minutes.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to clear after 30 minutes',
+                    defaultMessage: 'Set status as "Do not disturb" and clear after 30 minutes',
                 })}
                 onClick={handleSubMenuItemClick}
             />
@@ -261,7 +261,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.1Hour.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to clear after 1 hour',
+                    defaultMessage: 'Set status as "Do not disturb" and clear after 1 hour',
                 })}
                 onClick={handleSubMenuItemClick}
             />
@@ -275,7 +275,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.2Hours.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to clear after 2 hours',
+                    defaultMessage: 'Set status as "Do not disturb" and clear after 2 hours',
                 })}
                 onClick={handleSubMenuItemClick}
             />
@@ -289,7 +289,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.tomorrow.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to clear tomorrow at 9 AM',
+                    defaultMessage: 'Set status as "Do not disturb" and clear tomorrow at 9 AM',
                 })}
                 trailingElements={
                     <FormattedMessage
@@ -325,7 +325,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 }
                 aria-label={formatMessage({
                     id: 'userAccountMenu.dndSubMenuItem.custom.ariaLabel',
-                    defaultMessage: 'Click to set "Do not disturb" status to a custom date and time',
+                    defaultMessage: 'Set status as "Do not disturb" and clear at a custom date and time',
                 })}
                 onClick={openCustomTimePicker}
             />

@@ -75,8 +75,8 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
             labels={getLabel()}
             aria-label={formatMessage(
                 {
-                    id: 'userAccountPopover.nameMenuItem.ariaLabel',
-                    defaultMessage: 'Logged in as {username}, click to open user settings',
+                    id: 'userAccountMenu.nameMenuItem.ariaLabel',
+                    defaultMessage: 'Logged in as {username}. Open user\'s settings',
                 },
                 {username: currentUser?.username},
             )}

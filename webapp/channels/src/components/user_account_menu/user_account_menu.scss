@@ -46,13 +46,30 @@
 
         // This aligns the icon in the center, emoji icon is wrapped in a span
         // thats why we need to align the span as well
-        >.leading-element, .userAccountMenu_setCustomStatusMenuItem_icon {
+        > .leading-element, .userAccountMenu_setCustomStatusMenuItem_icon {
             display: flex;
             align-items: center;
         }
 
         .label-elements > span {
             color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+    }
+
+    .userAccountMenu_customStatusMenuItem {
+        &.hasTrailingElement {
+            .label-elements {
+                > span {
+                    max-width: 156px;
+                }
+            }
+        }
+
+        .label-elements {
+            > span {
+                max-width: 196px;
+                @include textEllipsis;
+            }
         }
     }
 
@@ -64,8 +81,6 @@
     .userAccountMenu_menuItemTrailingIconClear {
         font-size: 16px;
     }
-
-
 
     .userAccountMenu_profileMenuItem_tourWrapper {
         position: absolute;
@@ -96,7 +111,7 @@
     background: transparent;
     margin-inline-start: 8px;
 
-    &:hover, &[aria-expanded='true'] {
+    &:hover, &[aria-expanded="true"] {
         background: var(--sidebar-text-08);
 
         .userStatusIconWrapper {

@@ -69,7 +69,7 @@ export default function UserAccountMenuButton({
     }, [status]);
 
     return (
-        <span>
+        <>
             <CustomStatusEmoji
                 showTooltip={true}
                 tooltipDirection={'bottom'}
@@ -88,34 +88,34 @@ export default function UserAccountMenuButton({
             >
                 {statusIcon}
             </div>
-        </span>
+        </>
     );
 }
 
 const ariaLabelsDefineMessages = defineMessages({
     outOfOffice: {
         id: 'userAccountMenu.menuButton.ariaLabel.ooo',
-        defaultMessage: 'Current status is "Out of office". Click to open user account menu.',
+        defaultMessage: 'Status is "Out of office". Open user\'s account menu.',
     },
     online: {
         id: 'userAccountMenu.menuButton.ariaLabel.online',
-        defaultMessage: 'Current status is "Online". Click to open user account menu.',
+        defaultMessage: 'Status is "Online". Open user\'s account menu.',
     },
     away: {
         id: 'userAccountMenu.menuButton.ariaLabel.away',
-        defaultMessage: 'Current status is "Away". Click to open user account menu.',
+        defaultMessage: 'Status is "Away". Open user\'s account menu.',
     },
     dnd: {
         id: 'userAccountMenu.menuButton.ariaLabel.dnd',
-        defaultMessage: 'Current status is "Do not disturb". Click to open user account menu.',
+        defaultMessage: 'Status is "Do not disturb". Open user\'s account menu.',
     },
     offline: {
         id: 'userAccountMenu.menuButton.ariaLabel.offline',
-        defaultMessage: 'Current status is "Offline". Click to open user account menu.',
+        defaultMessage: 'Status is "Offline". Open user\'s account menu.',
     },
     notSet: {
         id: 'userAccountMenu.menuButton.ariaLabel',
-        defaultMessage: 'Click to open user account menu.',
+        defaultMessage: 'Open user\'s account menu.',
     },
 });
 

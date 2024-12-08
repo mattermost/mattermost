@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactElement, MouseEvent, TouchEvent, KeyboardEvent} from 'react';
+import classNames from 'classnames';
+import type {MouseEvent, TouchEvent, KeyboardEvent, ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -26,7 +27,7 @@ interface Props {
 }
 
 export default function UserAccountSetCustomStatusMenuItem(props: Props) {
-    const {formatMessage} = useIntl();
+    const {formatMessage, formatTime, formatDate} = useIntl();
     const dispatch = useDispatch();
 
     const showPulsatingDot = useSelector(showStatusDropdownPulsatingDot);
@@ -40,8 +41,8 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
     const hasStatusWithExpiry = props.customStatus?.duration !== CustomStatusDuration.DONT_CLEAR && props.customStatus?.expires_at;
     const hasStatusWithNoExpiry = props.customStatus?.duration === CustomStatusDuration.DONT_CLEAR;
 
-    let label: ReactElement;
-    let trailingElement = showPulsatingDot ? <PulsatingDot/> : (
+    let label;
+    let trailingElement: ReactNode = showPulsatingDot ? <PulsatingDot/> : (
         <WithTooltip
             id='userAccountMenu.setCustomStatusMenuItem.clearTooltip'
             placement='left'
@@ -49,7 +50,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         >
             <i
                 className='icon icon-close-circle userAccountMenu_menuItemTrailingIconClear'
-                aria-label={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clear', defaultMessage: 'Click to clear custom status'})}
+                aria-hidden='true'
                 onClick={handleClear}
             />
         </WithTooltip>
@@ -70,10 +71,10 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         );
         ariaLabel = formatMessage({
             id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndExpiry.ariaLabel',
-            defaultMessage: 'Custom status set as "{text}" and expires at {time}. Click to change.',
+            defaultMessage: 'Status is "{text}" and expires at {time}. Set a custom status.',
         }, {
             text: props.customStatus?.text,
-            time: props.customStatus?.expires_at,
+            time: `${formatTime(props.customStatus?.expires_at)} ${formatDate(props.customStatus?.expires_at)}`,
         });
     } else if (hasStatusWithText && hasStatusWithNoExpiry) {
         label = (
@@ -83,7 +84,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         );
         ariaLabel = formatMessage({
             id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndNoExpiry.ariaLabel',
-            defaultMessage: 'Custom status set as "{text}". Click to change.',
+            defaultMessage: 'Status is "{text}". Set a custom status.',
         }, {
             text: props.customStatus?.text,
         });
@@ -97,32 +98,34 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
         );
         ariaLabel = formatMessage({
             id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithExpiryAndNoText.ariaLabel',
-            defaultMessage: 'Custom status expires at {time}. Click to change.',
+            defaultMessage: 'Status expires at {time}. Set a custom status.',
         }, {
-            time: props.customStatus?.expires_at,
+            time: `${formatTime(props.customStatus?.expires_at)} ${formatDate(props.customStatus?.expires_at)}`,
         });
     } else {
         label = (
             <FormattedMessage
-                id='userAccountPopover.menuItem.setCustomStatus.noStatusTextSet'
-                defaultMessage='Set custom status text...'
+                id='userAccountMenu.setCustomStatusMenuItem.noStatusTextSet'
+                defaultMessage='Set custom status text'
             />
         );
         ariaLabel = formatMessage({
-            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithNoTextAndExpiry.ariaLabel',
-            defaultMessage: 'Click to set a custom status',
+            id: 'userAccountMenu.setCustomStatusMenuItem.noStatusTextSet',
+            defaultMessage: 'Set custom status text',
         });
-        trailingElement = showPulsatingDot ? <PulsatingDot/> : <></>;
+        trailingElement = showPulsatingDot ? <PulsatingDot/> : null;
     }
 
     return (
         <Menu.Item
+            className={classNames('userAccountMenu_customStatusMenuItem', {
+                hasTrailingElement: Boolean(trailingElement),
+            })}
             leadingElement={
                 <CustomStatusEmoji
                     showTooltip={false}
                     emojiStyle={{marginLeft: 0}}
                     emojiSize={16}
-                    aria-hidden='true'
                 />
             }
             labels={label}

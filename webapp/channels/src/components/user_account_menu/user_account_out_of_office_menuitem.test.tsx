@@ -16,7 +16,6 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
         defaultProps = {
             userId: TestHelper.getUserMock().id,
             shouldConfirmBeforeStatusChange: false,
-            isStatusOutOfOffice: true,
         };
     });
 

@@ -33,7 +33,7 @@ export default function UserAccountLogoutMenuItem() {
             }
             aria-label={formatMessage({
                 id: 'userAccountMenu.logoutMenuItem.ariaLabel',
-                defaultMessage: 'Click to log out from your account',
+                defaultMessage: 'Log out from the account',
             })}
             onClick={handleClick}
         />

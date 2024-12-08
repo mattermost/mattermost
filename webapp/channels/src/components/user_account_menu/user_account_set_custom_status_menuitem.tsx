@@ -3,7 +3,7 @@
 
 import type {MouseEvent, KeyboardEvent} from 'react';
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import * as Menu from 'components/menu';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
@@ -13,22 +13,21 @@ interface Props {
 }
 
 export default function UserAccountSetCustomStatusMenuItem(props: Props) {
-    const {formatMessage} = useIntl();
-
     return (
         <Menu.Item
             className='userAccountMenu_setCustomStatusMenuItem'
-            leadingElement={<EmojiIcon className='userAccountMenu_setCustomStatusMenuItem_icon'/>}
+            leadingElement={
+                <EmojiIcon
+                    className='userAccountMenu_setCustomStatusMenuItem_icon'
+                    aria-hidden='true'
+                />
+            }
             labels={
                 <FormattedMessage
                     id='userAccountMenu.setCustomStatusMenuItem.noStatusSet'
-                    defaultMessage='Set a custom status'
+                    defaultMessage='Set custom status'
                 />
             }
-            aria-label={formatMessage({
-                id: 'userAccountMenu.setCustomStatusMenuItem.noStatusSet.ariaLabel',
-                defaultMessage: 'Click to set a custom status',
-            })}
             onClick={props.openCustomStatusModal}
         />
     );

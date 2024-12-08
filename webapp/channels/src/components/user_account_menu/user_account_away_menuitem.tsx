@@ -63,13 +63,13 @@ export default function UserAccountAwayMenuItem(props: Props) {
         if (props.isStatusAway) {
             return formatMessage({
                 id: 'userAccountMenu.awayMenuItem.ariaLabelChecked',
-                defaultMessage: 'Current status is away',
+                defaultMessage: 'Status is "Away"',
             });
         }
 
         return formatMessage({
             id: 'userAccountMenu.awayMenuItem.ariaLabelUnchecked',
-            defaultMessage: 'Click to set status as away',
+            defaultMessage: 'Set status as "Away"',
         });
     }, [props.isStatusAway, formatMessage]);
 

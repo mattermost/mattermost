@@ -77,7 +77,7 @@ export default function UserAccountProfileMenuItem(props: Props) {
             )}
             aria-label={formatMessage({
                 id: 'userAccountMenu.profileMenuItem.ariaLabel',
-                defaultMessage: 'Click to open user settings',
+                defaultMessage: 'Open user\'s settings',
             })}
             onClick={handleClick}
         />

@@ -63,13 +63,13 @@ export default function UserAccountOfflineMenuItem(props: Props) {
         if (props.isStatusOffline) {
             return formatMessage({
                 id: 'userAccountMenu.offlineMenuItem.ariaLabelChecked',
-                defaultMessage: 'Current status is offline',
+                defaultMessage: 'Status is "Offline"',
             });
         }
 
         return formatMessage({
             id: 'userAccountMenu.offlineMenuItem.ariaLabelUnchecked',
-            defaultMessage: 'Click to set status as offline',
+            defaultMessage: 'Set status as "Offline"',
         });
     }, [props.isStatusOffline, formatMessage]);
 

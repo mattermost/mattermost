@@ -20,17 +20,12 @@ import {UserStatuses, ModalIdentifiers} from 'utils/constants';
 export interface Props {
     userId: UserProfile['id'];
     shouldConfirmBeforeStatusChange: boolean;
-    isStatusOutOfOffice: boolean;
 }
 
 export default function UserAccountOutOfOfficeMenuItem(props: Props) {
     const dispatch = useDispatch();
 
     const {formatMessage} = useIntl();
-
-    if (!props.isStatusOutOfOffice) {
-        return null;
-    }
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -78,7 +73,7 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
             }
             aria-label={formatMessage({
                 id: 'userAccountMenu.oooMenuItem.ariaLabel',
-                defaultMessage: 'Current status is out of office, click to set status as online',
+                defaultMessage: 'Status is "Out of office". Set status as "Online"',
             })}
             onClick={handleClick}
         />

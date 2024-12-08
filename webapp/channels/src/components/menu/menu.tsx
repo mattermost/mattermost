@@ -85,6 +85,10 @@ interface Props {
         horizontal: HorizontalOrigin;
     };
     hideTooltipWhenDisabled?: boolean;
+
+    /**
+     * @deprecated This is not needed except for cases where you want to override positioning completely.
+     */
     menuRootClass?: string;
 }
 

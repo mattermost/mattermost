@@ -81,7 +81,6 @@ export default function UserAccountMenu(props: Props) {
                 <UserAccountOutOfOfficeMenuItem
                     userId={props.userId}
                     shouldConfirmBeforeStatusChange={shouldConfirmBeforeStatusChange}
-                    isStatusOutOfOffice={props.status === UserStatuses.OUT_OF_OFFICE}
                 />
             )}
             {props.status === UserStatuses.OUT_OF_OFFICE && (
