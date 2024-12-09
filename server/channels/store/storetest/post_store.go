@@ -4314,8 +4314,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
-func testGetMaxPostSize(t *testing.T, rctx request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 }
 

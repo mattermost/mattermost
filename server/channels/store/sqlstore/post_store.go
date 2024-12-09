@@ -2619,17 +2619,14 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else {
-		mlog.Warn("No implementation found to determine the maximum supported post size")
+		mlog.Error("No implementation found to determine the maximum supported post size")
 	}
 
 	// Assume a worst-case representation of four bytes per rune.
 	maxPostSize := int(maxPostSizeBytes) / 4
 
-	// To maintain backwards compatibility, don't yield a maximum post
-	// size smaller than the previous limit, even though it wasn't
-	// actually possible to store 4000 runes in all cases.
-	if maxPostSize < model.PostMessageMaxRunesV1 {
-		maxPostSize = model.PostMessageMaxRunesV1
+	if maxPostSize < model.PostMessageMaxRunesV2 {
+		maxPostSize = model.PostMessageMaxRunesV2
 	}
 
 	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
