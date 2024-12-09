@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {ServerError} from '@mattermost/types/errors';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -12,7 +14,7 @@ import {logError} from './errors';
 
 type ActionType = string;
 const HTTP_UNAUTHORIZED = 401;
-export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc, getState: GetStateFunc) {
+export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc<AnyAction>, getState: GetStateFunc) {
     const {currentUserId} = getState().entities.users;
 
     if ('status_code' in err && err.status_code === HTTP_UNAUTHORIZED && err.url && err.url.indexOf('/login') === -1 && currentUserId) {
@@ -21,7 +23,7 @@ export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc,
     }
 }
 
-function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc) {
+function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc<AnyAction>) {
     if (type.indexOf('SUCCESS') === -1) { // we don't want to pass the data for the request types
         dispatch(requestSuccess(type, data));
     } else {
@@ -76,7 +78,7 @@ export function bindClientFunc<Func extends(...args: any[]) => Promise<any>>({
     onSuccess?: ActionType | ActionType[];
     onFailure?: ActionType;
     params?: Parameters<Func>;
-}): ActionFuncAsync<Awaited<ReturnType<Func>>, GlobalState> {
+}): ActionFuncAsync<Awaited<ReturnType<Func>>, GlobalState, AnyAction> {
     return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));
