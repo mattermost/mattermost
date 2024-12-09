@@ -66,9 +66,7 @@ func (o *WrappedObserver) Observe(v float64) {
 			mlog.Float("highest_bucket_value", o.buckets[len(o.buckets)-1]),
 		}
 		for k, v := range o.labels {
-			fields = append(fields,
-				mlog.String("label_name", k),
-				mlog.String("label_value", v))
+			fields = append(fields, mlog.String(k, v))
 		}
 		o.logger.Warn("Metric observation exceeded.", fields...)
 	}
