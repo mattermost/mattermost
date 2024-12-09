@@ -46,9 +46,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
       <span
         className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
-        <WithTooltip
-          id="single_image_view.copy_link_tooltip.text"
-          placement="top"
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Copy link"
@@ -66,10 +64,8 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
               size={20}
             />
           </button>
-        </WithTooltip>
-        <WithTooltip
-          id="single_image_view.download_tooltip.text"
-          placement="top"
+        </Memo(WithTooltip)>
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Download"
@@ -91,7 +87,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
               size={20}
             />
           </a>
-        </WithTooltip>
+        </Memo(WithTooltip)>
       </span>
     </figure>
   </div>
@@ -144,9 +140,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
       <span
         className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
-        <WithTooltip
-          id="single_image_view.copy_link_tooltip.text"
-          placement="top"
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Copy link"
@@ -164,10 +158,8 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
               size={20}
             />
           </button>
-        </WithTooltip>
-        <WithTooltip
-          id="single_image_view.download_tooltip.text"
-          placement="top"
+        </Memo(WithTooltip)>
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Download"
@@ -188,7 +180,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
               size={20}
             />
           </a>
-        </WithTooltip>
+        </Memo(WithTooltip)>
       </span>
     </figure>
   </div>
@@ -255,9 +247,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
       <span
         className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
-        <WithTooltip
-          id="single_image_view.copy_link_tooltip.text"
-          placement="top"
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Copy link"
@@ -275,10 +265,8 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
               size={20}
             />
           </button>
-        </WithTooltip>
-        <WithTooltip
-          id="single_image_view.download_tooltip.text"
-          placement="top"
+        </Memo(WithTooltip)>
+        <Memo(WithTooltip)
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Download"
@@ -299,7 +287,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
               size={20}
             />
           </a>
-        </WithTooltip>
+        </Memo(WithTooltip)>
       </span>
     </figure>
   </div>

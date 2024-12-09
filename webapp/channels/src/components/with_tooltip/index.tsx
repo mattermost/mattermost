@@ -17,6 +17,7 @@ import {
     FloatingArrow,
     flip,
 } from '@floating-ui/react';
+import classNames from 'classnames';
 import React, {useRef, useState, memo, useMemo, cloneElement, isValidElement} from 'react';
 import type {ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -66,6 +67,8 @@ interface Props {
      * This doesn't always guarantee the tooltip will be vertical, it just determines the initial placement and fallback placements
     */
     isVertical?: boolean;
+    tooltipContentContainerClassName?: string;
+    disabled?: boolean;
 
     /**
     * @deprecated Do not use this except for special cases
@@ -83,7 +86,9 @@ function WithTooltip({
     hint,
     shortcut,
     isVertical = true,
+    tooltipContentContainerClassName,
     onOpen,
+    disabled,
 }: Props) {
     const [open, setOpen] = useState(false);
 
@@ -111,7 +116,7 @@ function WithTooltip({
     }, [isVertical]);
 
     const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
-        open,
+        open: disabled ? false : open,
         onOpenChange: handleChange,
         whileElementsMounted: autoUpdate,
         placement: placements.initial,
@@ -177,7 +182,7 @@ function WithTooltip({
                         {...getFloatingProps()}
                     >
                         <div
-                            className='tooltipContentContainer'
+                            className={classNames('tooltipContentContainer', tooltipContentContainerClassName)}
                             style={transitionStyles}
                         >
                             <TooltipContent

@@ -21,15 +21,13 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
             key="table-entry-test1"
           >
             <td>
-              <WithTooltip
-                id="tip-table-entry-test1"
-                placement="top"
+              <Memo(WithTooltip)
                 title="test-tip1"
               >
                 <span>
                   test1
                 </span>
-              </WithTooltip>
+              </Memo(WithTooltip)>
             </td>
             <td>
               <p>
@@ -41,15 +39,13 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
             key="table-entry-test2"
           >
             <td>
-              <WithTooltip
-                id="tip-table-entry-test2"
-                placement="top"
+              <Memo(WithTooltip)
                 title="test-tip2"
               >
                 <span>
                   test2
                 </span>
-              </WithTooltip>
+              </Memo(WithTooltip)>
             </td>
             <td>
               <p>

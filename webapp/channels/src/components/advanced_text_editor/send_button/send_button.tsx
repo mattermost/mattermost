@@ -65,8 +65,6 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     return (
         <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled})}>
             <WithTooltip
-                placement='top'
-                id='send_post_now_tooltip'
                 title={formatMessage({id: 'create_post_button.option.send_now', defaultMessage: 'Send Now'})}
                 shortcut={sendNowKeyboardShortcutDescriptor}
                 disabled={disabled}
@@ -75,7 +73,6 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     className={classNames('SendMessageButton', {disabled}, {singleAction: !isScheduledPostEnabled})}
                     data-testid='SendMessageButton'
                     tabIndex={0}
-                    disabled={disabled}
                     aria-label={formatMessage({
                         id: 'create_post_button.option.send_now',
                         defaultMessage: 'Send Now',

@@ -4,9 +4,7 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
 <div
   className="SidebarFilters"
 >
-  <WithTooltip
-    id="channel-filter-tooltip"
-    placement="right"
+  <Memo(WithTooltip)
     shortcut={
       Object {
         "default": Array [
@@ -47,7 +45,7 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
         className="icon icon-filter-variant"
       />
     </a>
-  </WithTooltip>
+  </Memo(WithTooltip)>
 </div>
 `;
 
@@ -55,9 +53,7 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
 <div
   className="SidebarFilters"
 >
-  <WithTooltip
-    id="channel-filter-tooltip"
-    placement="right"
+  <Memo(WithTooltip)
     shortcut={
       Object {
         "default": Array [
@@ -98,6 +94,6 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
         className="icon icon-filter-variant"
       />
     </a>
-  </WithTooltip>
+  </Memo(WithTooltip)>
 </div>
 `;

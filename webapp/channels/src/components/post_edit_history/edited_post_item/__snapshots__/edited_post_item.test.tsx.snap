@@ -85,9 +85,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot 1`]
             />
           </span>
         </div>
-        <WithTooltip
-          id="editPostRestoreTooltip"
-          placement="left"
+        <Memo(WithTooltip)
           title="Restore this version"
         >
           <ForwardRef
@@ -98,7 +96,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot 1`]
             onClick={[Function]}
             size="sm"
           />
-        </WithTooltip>
+        </Memo(WithTooltip)>
       </div>
     </PostAriaLabelDiv>
   </div>

@@ -6,9 +6,7 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
   className="userGuideHelp"
   onToggle={[Function]}
 >
-  <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -26,7 +24,7 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
         className="icon"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -70,9 +68,7 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
   className="userGuideHelp"
   onToggle={[Function]}
 >
-  <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -90,7 +86,7 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
         className="icon"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"

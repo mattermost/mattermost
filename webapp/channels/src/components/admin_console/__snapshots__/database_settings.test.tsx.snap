@@ -413,9 +413,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -425,7 +423,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>

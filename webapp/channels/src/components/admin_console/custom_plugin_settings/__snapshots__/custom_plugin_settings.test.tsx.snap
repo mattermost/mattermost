@@ -179,9 +179,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <WithTooltip
-      id="error-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title=""
     >
       <div
@@ -197,7 +195,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           error={null}
         />
       </div>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </div>
 </div>
 `;
@@ -231,9 +229,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <WithTooltip
-      id="error-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title=""
     >
       <div
@@ -249,7 +245,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           error={null}
         />
       </div>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </div>
 </div>
 `;
@@ -433,9 +429,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       saving={false}
       savingMessage="Saving Config..."
     />
-    <WithTooltip
-      id="error-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title=""
     >
       <div
@@ -451,7 +445,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
           error={null}
         />
       </div>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </div>
 </div>
 `;

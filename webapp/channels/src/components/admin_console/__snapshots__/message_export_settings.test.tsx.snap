@@ -146,9 +146,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -158,7 +156,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -424,9 +422,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -436,7 +432,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -588,9 +584,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -600,7 +594,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -866,9 +860,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -878,7 +870,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>

@@ -1096,104 +1096,39 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <WithTooltip
-                                          id="name-id0"
-                                          placement="top"
+                                        <Memo(WithTooltip)
                                           title="Send message"
                                         >
-                                          <OverlayTrigger
-                                            defaultOverlayShown={false}
-                                            delay={400}
-                                            disabled={false}
-                                            overlay={<Unknown />}
-                                            placement="top"
-                                            trigger={
-                                              Array [
-                                                "hover",
-                                                "focus",
-                                              ]
-                                            }
+                                          <DMButton
+                                            aria-label="Send message to username0"
+                                            className="btn btn-icon btn-xs"
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            onMouseLeave={[Function]}
+                                            onMouseMove={[Function]}
+                                            onPointerDown={[Function]}
+                                            onPointerEnter={[Function]}
                                           >
-                                            <OverlayTrigger
-                                              defaultOverlayShown={false}
-                                              delay={400}
-                                              overlay={
-                                                <OverlayWrapper
-                                                  intl={
-                                                    Object {
-                                                      "$t": [Function],
-                                                      "defaultFormats": Object {},
-                                                      "defaultLocale": "en",
-                                                      "defaultRichTextElements": undefined,
-                                                      "fallbackOnEmptyString": true,
-                                                      "formatDate": [Function],
-                                                      "formatDateTimeRange": [Function],
-                                                      "formatDateToParts": [Function],
-                                                      "formatDisplayName": [Function],
-                                                      "formatList": [Function],
-                                                      "formatListToParts": [Function],
-                                                      "formatMessage": [Function],
-                                                      "formatNumber": [Function],
-                                                      "formatNumberToParts": [Function],
-                                                      "formatPlural": [Function],
-                                                      "formatRelativeTime": [Function],
-                                                      "formatTime": [Function],
-                                                      "formatTimeToParts": [Function],
-                                                      "formats": Object {},
-                                                      "formatters": Object {
-                                                        "getDateTimeFormat": [Function],
-                                                        "getDisplayNames": [Function],
-                                                        "getListFormat": [Function],
-                                                        "getMessageFormat": [Function],
-                                                        "getNumberFormat": [Function],
-                                                        "getPluralRules": [Function],
-                                                        "getRelativeTimeFormat": [Function],
-                                                      },
-                                                      "locale": "en",
-                                                      "messages": Object {},
-                                                      "onError": [Function],
-                                                      "onWarn": [Function],
-                                                      "textComponent": "span",
-                                                      "timeZone": "Etc/UTC",
-                                                      "wrapRichTextChunksInFragment": undefined,
-                                                    }
-                                                  }
-                                                />
-                                              }
-                                              placement="top"
-                                              trigger={
-                                                Array [
-                                                  "hover",
-                                                  "focus",
-                                                ]
-                                              }
+                                            <button
+                                              aria-label="Send message to username0"
+                                              className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
+                                              onBlur={[Function]}
+                                              onClick={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyDown={[Function]}
+                                              onMouseLeave={[Function]}
+                                              onMouseMove={[Function]}
+                                              onPointerDown={[Function]}
+                                              onPointerEnter={[Function]}
                                             >
-                                              <DMButton
-                                                aria-label="Send message to username0"
-                                                className="btn btn-icon btn-xs"
-                                                onBlur={[Function]}
-                                                onClick={[Function]}
-                                                onFocus={[Function]}
-                                                onMouseOut={[Function]}
-                                                onMouseOver={[Function]}
-                                              >
-                                                <button
-                                                  aria-label="Send message to username0"
-                                                  className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
-                                                  onBlur={[Function]}
-                                                  onClick={[Function]}
-                                                  onFocus={[Function]}
-                                                  onMouseOut={[Function]}
-                                                  onMouseOver={[Function]}
-                                                >
-                                                  <i
-                                                    className="icon icon-send"
-                                                  />
-                                                </button>
-                                              </DMButton>
-                                            </OverlayTrigger>
-                                          </OverlayTrigger>
-                                        </WithTooltip>
+                                              <i
+                                                className="icon icon-send"
+                                              />
+                                            </button>
+                                          </DMButton>
+                                        </Memo(WithTooltip)>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1340,104 +1275,39 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <WithTooltip
-                                          id="name-id1"
-                                          placement="top"
+                                        <Memo(WithTooltip)
                                           title="Send message"
                                         >
-                                          <OverlayTrigger
-                                            defaultOverlayShown={false}
-                                            delay={400}
-                                            disabled={false}
-                                            overlay={<Unknown />}
-                                            placement="top"
-                                            trigger={
-                                              Array [
-                                                "hover",
-                                                "focus",
-                                              ]
-                                            }
+                                          <DMButton
+                                            aria-label="Send message to username1"
+                                            className="btn btn-icon btn-xs"
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            onMouseLeave={[Function]}
+                                            onMouseMove={[Function]}
+                                            onPointerDown={[Function]}
+                                            onPointerEnter={[Function]}
                                           >
-                                            <OverlayTrigger
-                                              defaultOverlayShown={false}
-                                              delay={400}
-                                              overlay={
-                                                <OverlayWrapper
-                                                  intl={
-                                                    Object {
-                                                      "$t": [Function],
-                                                      "defaultFormats": Object {},
-                                                      "defaultLocale": "en",
-                                                      "defaultRichTextElements": undefined,
-                                                      "fallbackOnEmptyString": true,
-                                                      "formatDate": [Function],
-                                                      "formatDateTimeRange": [Function],
-                                                      "formatDateToParts": [Function],
-                                                      "formatDisplayName": [Function],
-                                                      "formatList": [Function],
-                                                      "formatListToParts": [Function],
-                                                      "formatMessage": [Function],
-                                                      "formatNumber": [Function],
-                                                      "formatNumberToParts": [Function],
-                                                      "formatPlural": [Function],
-                                                      "formatRelativeTime": [Function],
-                                                      "formatTime": [Function],
-                                                      "formatTimeToParts": [Function],
-                                                      "formats": Object {},
-                                                      "formatters": Object {
-                                                        "getDateTimeFormat": [Function],
-                                                        "getDisplayNames": [Function],
-                                                        "getListFormat": [Function],
-                                                        "getMessageFormat": [Function],
-                                                        "getNumberFormat": [Function],
-                                                        "getPluralRules": [Function],
-                                                        "getRelativeTimeFormat": [Function],
-                                                      },
-                                                      "locale": "en",
-                                                      "messages": Object {},
-                                                      "onError": [Function],
-                                                      "onWarn": [Function],
-                                                      "textComponent": "span",
-                                                      "timeZone": "Etc/UTC",
-                                                      "wrapRichTextChunksInFragment": undefined,
-                                                    }
-                                                  }
-                                                />
-                                              }
-                                              placement="top"
-                                              trigger={
-                                                Array [
-                                                  "hover",
-                                                  "focus",
-                                                ]
-                                              }
+                                            <button
+                                              aria-label="Send message to username1"
+                                              className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
+                                              onBlur={[Function]}
+                                              onClick={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyDown={[Function]}
+                                              onMouseLeave={[Function]}
+                                              onMouseMove={[Function]}
+                                              onPointerDown={[Function]}
+                                              onPointerEnter={[Function]}
                                             >
-                                              <DMButton
-                                                aria-label="Send message to username1"
-                                                className="btn btn-icon btn-xs"
-                                                onBlur={[Function]}
-                                                onClick={[Function]}
-                                                onFocus={[Function]}
-                                                onMouseOut={[Function]}
-                                                onMouseOver={[Function]}
-                                              >
-                                                <button
-                                                  aria-label="Send message to username1"
-                                                  className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
-                                                  onBlur={[Function]}
-                                                  onClick={[Function]}
-                                                  onFocus={[Function]}
-                                                  onMouseOut={[Function]}
-                                                  onMouseOver={[Function]}
-                                                >
-                                                  <i
-                                                    className="icon icon-send"
-                                                  />
-                                                </button>
-                                              </DMButton>
-                                            </OverlayTrigger>
-                                          </OverlayTrigger>
-                                        </WithTooltip>
+                                              <i
+                                                className="icon icon-send"
+                                              />
+                                            </button>
+                                          </DMButton>
+                                        </Memo(WithTooltip)>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1584,104 +1454,39 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <WithTooltip
-                                          id="name-id10"
-                                          placement="top"
+                                        <Memo(WithTooltip)
                                           title="Send message"
                                         >
-                                          <OverlayTrigger
-                                            defaultOverlayShown={false}
-                                            delay={400}
-                                            disabled={false}
-                                            overlay={<Unknown />}
-                                            placement="top"
-                                            trigger={
-                                              Array [
-                                                "hover",
-                                                "focus",
-                                              ]
-                                            }
+                                          <DMButton
+                                            aria-label="Send message to username10"
+                                            className="btn btn-icon btn-xs"
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            onMouseLeave={[Function]}
+                                            onMouseMove={[Function]}
+                                            onPointerDown={[Function]}
+                                            onPointerEnter={[Function]}
                                           >
-                                            <OverlayTrigger
-                                              defaultOverlayShown={false}
-                                              delay={400}
-                                              overlay={
-                                                <OverlayWrapper
-                                                  intl={
-                                                    Object {
-                                                      "$t": [Function],
-                                                      "defaultFormats": Object {},
-                                                      "defaultLocale": "en",
-                                                      "defaultRichTextElements": undefined,
-                                                      "fallbackOnEmptyString": true,
-                                                      "formatDate": [Function],
-                                                      "formatDateTimeRange": [Function],
-                                                      "formatDateToParts": [Function],
-                                                      "formatDisplayName": [Function],
-                                                      "formatList": [Function],
-                                                      "formatListToParts": [Function],
-                                                      "formatMessage": [Function],
-                                                      "formatNumber": [Function],
-                                                      "formatNumberToParts": [Function],
-                                                      "formatPlural": [Function],
-                                                      "formatRelativeTime": [Function],
-                                                      "formatTime": [Function],
-                                                      "formatTimeToParts": [Function],
-                                                      "formats": Object {},
-                                                      "formatters": Object {
-                                                        "getDateTimeFormat": [Function],
-                                                        "getDisplayNames": [Function],
-                                                        "getListFormat": [Function],
-                                                        "getMessageFormat": [Function],
-                                                        "getNumberFormat": [Function],
-                                                        "getPluralRules": [Function],
-                                                        "getRelativeTimeFormat": [Function],
-                                                      },
-                                                      "locale": "en",
-                                                      "messages": Object {},
-                                                      "onError": [Function],
-                                                      "onWarn": [Function],
-                                                      "textComponent": "span",
-                                                      "timeZone": "Etc/UTC",
-                                                      "wrapRichTextChunksInFragment": undefined,
-                                                    }
-                                                  }
-                                                />
-                                              }
-                                              placement="top"
-                                              trigger={
-                                                Array [
-                                                  "hover",
-                                                  "focus",
-                                                ]
-                                              }
+                                            <button
+                                              aria-label="Send message to username10"
+                                              className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
+                                              onBlur={[Function]}
+                                              onClick={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyDown={[Function]}
+                                              onMouseLeave={[Function]}
+                                              onMouseMove={[Function]}
+                                              onPointerDown={[Function]}
+                                              onPointerEnter={[Function]}
                                             >
-                                              <DMButton
-                                                aria-label="Send message to username10"
-                                                className="btn btn-icon btn-xs"
-                                                onBlur={[Function]}
-                                                onClick={[Function]}
-                                                onFocus={[Function]}
-                                                onMouseOut={[Function]}
-                                                onMouseOver={[Function]}
-                                              >
-                                                <button
-                                                  aria-label="Send message to username10"
-                                                  className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
-                                                  onBlur={[Function]}
-                                                  onClick={[Function]}
-                                                  onFocus={[Function]}
-                                                  onMouseOut={[Function]}
-                                                  onMouseOver={[Function]}
-                                                >
-                                                  <i
-                                                    className="icon icon-send"
-                                                  />
-                                                </button>
-                                              </DMButton>
-                                            </OverlayTrigger>
-                                          </OverlayTrigger>
-                                        </WithTooltip>
+                                              <i
+                                                className="icon icon-send"
+                                              />
+                                            </button>
+                                          </DMButton>
+                                        </Memo(WithTooltip)>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -1828,104 +1633,39 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <WithTooltip
-                                          id="name-id11"
-                                          placement="top"
+                                        <Memo(WithTooltip)
                                           title="Send message"
                                         >
-                                          <OverlayTrigger
-                                            defaultOverlayShown={false}
-                                            delay={400}
-                                            disabled={false}
-                                            overlay={<Unknown />}
-                                            placement="top"
-                                            trigger={
-                                              Array [
-                                                "hover",
-                                                "focus",
-                                              ]
-                                            }
+                                          <DMButton
+                                            aria-label="Send message to username11"
+                                            className="btn btn-icon btn-xs"
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            onMouseLeave={[Function]}
+                                            onMouseMove={[Function]}
+                                            onPointerDown={[Function]}
+                                            onPointerEnter={[Function]}
                                           >
-                                            <OverlayTrigger
-                                              defaultOverlayShown={false}
-                                              delay={400}
-                                              overlay={
-                                                <OverlayWrapper
-                                                  intl={
-                                                    Object {
-                                                      "$t": [Function],
-                                                      "defaultFormats": Object {},
-                                                      "defaultLocale": "en",
-                                                      "defaultRichTextElements": undefined,
-                                                      "fallbackOnEmptyString": true,
-                                                      "formatDate": [Function],
-                                                      "formatDateTimeRange": [Function],
-                                                      "formatDateToParts": [Function],
-                                                      "formatDisplayName": [Function],
-                                                      "formatList": [Function],
-                                                      "formatListToParts": [Function],
-                                                      "formatMessage": [Function],
-                                                      "formatNumber": [Function],
-                                                      "formatNumberToParts": [Function],
-                                                      "formatPlural": [Function],
-                                                      "formatRelativeTime": [Function],
-                                                      "formatTime": [Function],
-                                                      "formatTimeToParts": [Function],
-                                                      "formats": Object {},
-                                                      "formatters": Object {
-                                                        "getDateTimeFormat": [Function],
-                                                        "getDisplayNames": [Function],
-                                                        "getListFormat": [Function],
-                                                        "getMessageFormat": [Function],
-                                                        "getNumberFormat": [Function],
-                                                        "getPluralRules": [Function],
-                                                        "getRelativeTimeFormat": [Function],
-                                                      },
-                                                      "locale": "en",
-                                                      "messages": Object {},
-                                                      "onError": [Function],
-                                                      "onWarn": [Function],
-                                                      "textComponent": "span",
-                                                      "timeZone": "Etc/UTC",
-                                                      "wrapRichTextChunksInFragment": undefined,
-                                                    }
-                                                  }
-                                                />
-                                              }
-                                              placement="top"
-                                              trigger={
-                                                Array [
-                                                  "hover",
-                                                  "focus",
-                                                ]
-                                              }
+                                            <button
+                                              aria-label="Send message to username11"
+                                              className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
+                                              onBlur={[Function]}
+                                              onClick={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyDown={[Function]}
+                                              onMouseLeave={[Function]}
+                                              onMouseMove={[Function]}
+                                              onPointerDown={[Function]}
+                                              onPointerEnter={[Function]}
                                             >
-                                              <DMButton
-                                                aria-label="Send message to username11"
-                                                className="btn btn-icon btn-xs"
-                                                onBlur={[Function]}
-                                                onClick={[Function]}
-                                                onFocus={[Function]}
-                                                onMouseOut={[Function]}
-                                                onMouseOver={[Function]}
-                                              >
-                                                <button
-                                                  aria-label="Send message to username11"
-                                                  className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
-                                                  onBlur={[Function]}
-                                                  onClick={[Function]}
-                                                  onFocus={[Function]}
-                                                  onMouseOut={[Function]}
-                                                  onMouseOver={[Function]}
-                                                >
-                                                  <i
-                                                    className="icon icon-send"
-                                                  />
-                                                </button>
-                                              </DMButton>
-                                            </OverlayTrigger>
-                                          </OverlayTrigger>
-                                        </WithTooltip>
+                                              <i
+                                                className="icon icon-send"
+                                              />
+                                            </button>
+                                          </DMButton>
+                                        </Memo(WithTooltip)>
                                       </div>
                                     </DMContainer>
                                   </div>
@@ -2072,104 +1812,39 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                       <div
                                         className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                                       >
-                                        <WithTooltip
-                                          id="name-id12"
-                                          placement="top"
+                                        <Memo(WithTooltip)
                                           title="Send message"
                                         >
-                                          <OverlayTrigger
-                                            defaultOverlayShown={false}
-                                            delay={400}
-                                            disabled={false}
-                                            overlay={<Unknown />}
-                                            placement="top"
-                                            trigger={
-                                              Array [
-                                                "hover",
-                                                "focus",
-                                              ]
-                                            }
+                                          <DMButton
+                                            aria-label="Send message to username12"
+                                            className="btn btn-icon btn-xs"
+                                            onBlur={[Function]}
+                                            onClick={[Function]}
+                                            onFocus={[Function]}
+                                            onKeyDown={[Function]}
+                                            onMouseLeave={[Function]}
+                                            onMouseMove={[Function]}
+                                            onPointerDown={[Function]}
+                                            onPointerEnter={[Function]}
                                           >
-                                            <OverlayTrigger
-                                              defaultOverlayShown={false}
-                                              delay={400}
-                                              overlay={
-                                                <OverlayWrapper
-                                                  intl={
-                                                    Object {
-                                                      "$t": [Function],
-                                                      "defaultFormats": Object {},
-                                                      "defaultLocale": "en",
-                                                      "defaultRichTextElements": undefined,
-                                                      "fallbackOnEmptyString": true,
-                                                      "formatDate": [Function],
-                                                      "formatDateTimeRange": [Function],
-                                                      "formatDateToParts": [Function],
-                                                      "formatDisplayName": [Function],
-                                                      "formatList": [Function],
-                                                      "formatListToParts": [Function],
-                                                      "formatMessage": [Function],
-                                                      "formatNumber": [Function],
-                                                      "formatNumberToParts": [Function],
-                                                      "formatPlural": [Function],
-                                                      "formatRelativeTime": [Function],
-                                                      "formatTime": [Function],
-                                                      "formatTimeToParts": [Function],
-                                                      "formats": Object {},
-                                                      "formatters": Object {
-                                                        "getDateTimeFormat": [Function],
-                                                        "getDisplayNames": [Function],
-                                                        "getListFormat": [Function],
-                                                        "getMessageFormat": [Function],
-                                                        "getNumberFormat": [Function],
-                                                        "getPluralRules": [Function],
-                                                        "getRelativeTimeFormat": [Function],
-                                                      },
-                                                      "locale": "en",
-                                                      "messages": Object {},
-                                                      "onError": [Function],
-                                                      "onWarn": [Function],
-                                                      "textComponent": "span",
-                                                      "timeZone": "Etc/UTC",
-                                                      "wrapRichTextChunksInFragment": undefined,
-                                                    }
-                                                  }
-                                                />
-                                              }
-                                              placement="top"
-                                              trigger={
-                                                Array [
-                                                  "hover",
-                                                  "focus",
-                                                ]
-                                              }
+                                            <button
+                                              aria-label="Send message to username12"
+                                              className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
+                                              onBlur={[Function]}
+                                              onClick={[Function]}
+                                              onFocus={[Function]}
+                                              onKeyDown={[Function]}
+                                              onMouseLeave={[Function]}
+                                              onMouseMove={[Function]}
+                                              onPointerDown={[Function]}
+                                              onPointerEnter={[Function]}
                                             >
-                                              <DMButton
-                                                aria-label="Send message to username12"
-                                                className="btn btn-icon btn-xs"
-                                                onBlur={[Function]}
-                                                onClick={[Function]}
-                                                onFocus={[Function]}
-                                                onMouseOut={[Function]}
-                                                onMouseOver={[Function]}
-                                              >
-                                                <button
-                                                  aria-label="Send message to username12"
-                                                  className="DMButton-hIFgRF ecgFEo btn btn-icon btn-xs"
-                                                  onBlur={[Function]}
-                                                  onClick={[Function]}
-                                                  onFocus={[Function]}
-                                                  onMouseOut={[Function]}
-                                                  onMouseOver={[Function]}
-                                                >
-                                                  <i
-                                                    className="icon icon-send"
-                                                  />
-                                                </button>
-                                              </DMButton>
-                                            </OverlayTrigger>
-                                          </OverlayTrigger>
-                                        </WithTooltip>
+                                              <i
+                                                className="icon icon-send"
+                                              />
+                                            </button>
+                                          </DMButton>
+                                        </Memo(WithTooltip)>
                                       </div>
                                     </DMContainer>
                                   </div>
