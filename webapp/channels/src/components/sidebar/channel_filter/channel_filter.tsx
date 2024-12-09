@@ -32,7 +32,6 @@ const shortcut = {
 
 type Props = {
     intl: IntlShape;
-    hasMultipleTeams: boolean;
     unreadFilterEnabled: boolean;
     actions: {
         setUnreadFilterEnabled: (enabled: boolean) => void;
@@ -75,17 +74,15 @@ export class ChannelFilter extends React.PureComponent<Props> {
     };
 
     render() {
-        const {intl, unreadFilterEnabled, hasMultipleTeams} = this.props;
+        const {intl, unreadFilterEnabled} = this.props;
 
         const unreadsAriaLabel = intl.formatMessage({id: 'sidebar_left.channel_filter.filterUnreadAria', defaultMessage: 'unreads filter'});
 
         return (
             <div className='SidebarFilters'>
                 <WithTooltip
-                    id='channel-filter-tooltip'
                     title={unreadFilterEnabled ? messages.disableTooltip : messages.enableTooltip}
                     shortcut={shortcut}
-                    placement={hasMultipleTeams ? 'top' : 'right'}
                 >
                     <a
                         href='#'

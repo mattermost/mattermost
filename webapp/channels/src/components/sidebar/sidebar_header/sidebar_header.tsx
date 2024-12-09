@@ -126,9 +126,7 @@ const SidebarHeader = (props: Props) => {
                     className='SidebarHeaderMenuWrapper test-team-header'
                 >
                     <WithTooltip
-                        id='team-name__tooltip'
                         title={currentTeam.description ? currentTeam.description : currentTeam.display_name}
-                        placement='bottom'
                     >
                         <SidebarHeading>
                             <button className='style--none sidebar-header'>
