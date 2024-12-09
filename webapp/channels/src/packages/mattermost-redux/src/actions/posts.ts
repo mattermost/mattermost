@@ -180,7 +180,7 @@ export function createPost(
     post: Post,
     files: any[] = [],
     afterSubmit?: (response: any) => void,
-): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -512,7 +512,7 @@ export type SubmitReactionReturnType = {
     removedReaction?: boolean;
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -534,7 +534,7 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -1099,7 +1099,9 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
                 if (attachment.fields) {
                     for (const field of attachment.fields) {
-                        findNeededUsernamesAndGroups(field.value);
+                        if (typeof field.value === 'string') {
+                            findNeededUsernamesAndGroups(field.value);
+                        }
                     }
                 }
             }
