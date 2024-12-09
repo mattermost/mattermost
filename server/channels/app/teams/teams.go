@@ -52,7 +52,7 @@ func (ts *TeamService) createDefaultChannels(rctx request.CTX, teamID string) ([
 	for _, name := range defaultChannelNames {
 		var displayName string
 		if displayNameValue, ok := displayNames[name]; ok {
-			displayName = i18n.TDefault(displayNameValue, name)
+			displayName = displayNameValue
 		} else {
 			// If the default channel is experimental (from config.json)
 			// we don't have to translate
