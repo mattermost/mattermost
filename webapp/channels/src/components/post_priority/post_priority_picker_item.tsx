@@ -113,6 +113,9 @@ function ToggleItem({
             disabled={disabled}
             leadingElement={icon}
             tabIndex={-1}
+            role='menuitemcheckbox'
+            aria-checked={toggled}
+            aria-label={ariaLabel}
             trailingElements={<>
                 <Toggle
                     ariaLabel={ariaLabel}
@@ -121,6 +124,7 @@ function ToggleItem({
                     onToggle={onClick}
                     toggled={toggled}
                     toggleClassName='btn-toggle-primary'
+                    tabIndex={-1}
                 />
             </>}
             labels={<>

@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, {useCallback, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type { Channel } from '@mattermost/types/channels';
-import type { PostPriorityMetadata } from '@mattermost/types/posts';
-import { PostPriority } from '@mattermost/types/posts';
+import type {Channel} from '@mattermost/types/channels';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
-import { getChannel } from 'mattermost-redux/selectors/entities/channels';
-import { isPostPriorityEnabled as isPostPriorityEnabledSelector } from 'mattermost-redux/selectors/entities/posts';
-import { getUser } from 'mattermost-redux/selectors/entities/users';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isPostPriorityEnabled as isPostPriorityEnabledSelector} from 'mattermost-redux/selectors/entities/posts';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import { openModal } from 'actions/views/modals';
+import {openModal} from 'actions/views/modals';
 
 import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
 import PostPriorityPicker from 'components/post_priority/post_priority_picker';
 
-import Constants, { ModalIdentifiers } from 'utils/constants';
-import { hasRequestedPersistentNotifications, mentionsMinusSpecialMentionsInText, specialMentionsInText } from 'utils/post_utils';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+import {hasRequestedPersistentNotifications, mentionsMinusSpecialMentionsInText, specialMentionsInText} from 'utils/post_utils';
 
-import type { GlobalState } from 'types/store';
-import type { PostDraft } from 'types/store/draft';
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 import PriorityLabels from './priority_labels';
 
@@ -62,7 +62,7 @@ const usePriority = (
             return true;
         }
 
-        const { priority, persistent_notifications: persistentNotifications } = draft.metadata!.priority!;
+        const {priority, persistent_notifications: persistentNotifications} = draft.metadata!.priority!;
         if (priority !== PostPriority.URGENT || !persistentNotifications) {
             return true;
         }
@@ -97,7 +97,7 @@ const usePriority = (
             updatedDraft.metadata = {};
         }
 
-        handleDraftChange(updatedDraft, { instant: true });
+        handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();
     }, [focusTextbox, draft, handleDraftChange]);
 

@@ -17,6 +17,10 @@ import { IconContainer } from 'components/advanced_text_editor/formatting_bar/fo
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+
+
 import { Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer } from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
@@ -84,13 +88,22 @@ function PostPriorityPicker({
             requested_ack: requestedAck,
             persistent_notifications: persistentNotifications,
         });
-        onClose();
-    }, [onApply, onClose, persistentNotifications, priority, requestedAck]);
+        handleClose();
+    }, [onApply, handleClose, persistentNotifications, priority, requestedAck]);
+
+    const handleFooterButtonAction = useCallback((e: React.KeyboardEvent<HTMLButtonElement>, actionFn: () => void) => {
+        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
+            actionFn();
+        }
+    }, []);
 
     const menuItems = useMemo(() => [
         <MenuItem
             key='menu-item-priority-standard'
             id='menu-item-priority-standard'
+            role='menuitemradio'
+            aria-checked={!priority}
             onClick={makeOnSelectPriority()}
             trailingElements={!priority && <StyledCheckIcon size={18} />}
             leadingElement={<StandardIcon size={18} />}
@@ -104,6 +117,8 @@ function PostPriorityPicker({
         <MenuItem
             key='menu-item-priority-important'
             id='menu-item-priority-important'
+            role='menuitemradio'
+            aria-checked={priority === PostPriority.IMPORTANT}
             onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
             trailingElements={priority === PostPriority.IMPORTANT && <StyledCheckIcon size={18} />}
             leadingElement={<ImportantIcon size={18} />}
@@ -117,6 +132,8 @@ function PostPriorityPicker({
         <MenuItem
             key='menu-item-priority-urgent'
             id='menu-item-priority-urgent'
+            role='menuitemradio'
+            aria-checked={priority === PostPriority.URGENT}
             onClick={makeOnSelectPriority(PostPriority.URGENT)}
             trailingElements={priority === PostPriority.URGENT && <StyledCheckIcon size={18} />}
             leadingElement={<UrgentIcon size={18} />}
@@ -130,7 +147,10 @@ function PostPriorityPicker({
     ], [makeOnSelectPriority, priority]);
 
     const menuCheckboxItems = useMemo(() => (postAcknowledgementsEnabled || persistentNotificationsEnabled ? [
-        <Menu.Separator key='menu-item-checkbox-separator' />,
+        <Menu.Separator
+            key='menu-item-checkbox-separator'
+            component='li'
+        />,
         postAcknowledgementsEnabled ? (
             <ToggleItem
                 key='post_priority.requested_ack.item'
@@ -178,28 +198,33 @@ function PostPriorityPicker({
     ] : []), [formatMessage, handleAck, handlePersistentNotifications, interval, persistentNotifications, persistentNotificationsEnabled, postAcknowledgementsEnabled, priority, requestedAck]);
 
     const footer = useMemo(() => postAcknowledgementsEnabled &&
-        <Footer key='footer'>
-            <button
-                type='button'
-                className='PostPriorityPicker__cancel'
-                onClick={handleClose}
-            >
-                <FormattedMessage
-                    id='post_priority.picker.cancel'
-                    defaultMessage='Cancel'
-                />
-            </button>
-            <button
-                type='button'
-                className='PostPriorityPicker__apply'
-                onClick={handleApply}
-            >
-                <FormattedMessage
-                    id='post_priority.picker.apply'
-                    defaultMessage='Apply'
-                />
-            </button>
-        </Footer>, [handleApply, handleClose, postAcknowledgementsEnabled]);
+        <div>
+            <Menu.Separator />
+            <Footer key='footer'>
+                <button
+                    type='submit'
+                    className='PostPriorityPicker__cancel'
+                    onClick={handleClose}
+                    onKeyDown={(e) => handleFooterButtonAction(e, handleClose)}
+                >
+                    <FormattedMessage
+                        id='post_priority.picker.cancel'
+                        defaultMessage='Cancel'
+                    />
+                </button>
+                <button
+                    type='submit'
+                    className='PostPriorityPicker__apply'
+                    onClick={handleApply}
+                    onKeyDown={(e) => handleFooterButtonAction(e, handleApply)}
+                >
+                    <FormattedMessage
+                        id='post_priority.picker.apply'
+                        defaultMessage='Apply'
+                    />
+                </button>
+            </Footer>
+        </div>, [handleApply, handleClose, handleFooterButtonAction, postAcknowledgementsEnabled]);
 
     return (<CompassDesignProvider theme={theme}>
         <Menu.Container
@@ -224,13 +249,15 @@ function PostPriorityPicker({
                 id: 'post.priority.dropdown',
                 'aria-label': 'Post priority options',
                 width: 'max-content',
+                onToggle: setPickerOpen,
+                isMenuOpen: pickerOpen,
             }}
             menuButtonTooltip={{
                 text: messagePriority,
 
             }}
             menuHeader={
-                <>
+                <div>
                     <Header className='modal-title'>
                         {formatMessage({
                             id: 'post_priority.picker.header',
@@ -238,7 +265,7 @@ function PostPriorityPicker({
                         })}
                     </Header>
                     <Menu.Separator />
-                </>
+                </div>
             }
             anchorOrigin={{
                 vertical: 'top',
@@ -248,11 +275,7 @@ function PostPriorityPicker({
                 vertical: 'bottom',
                 horizontal: 'center',
             }}
-            menuFooter={
-                <>
-                    <Menu.Separator />
-                    {footer}
-                </>}
+            menuFooter={footer}
         >
             {
                 [...menuItems, ...menuCheckboxItems]
