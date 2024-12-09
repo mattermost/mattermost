@@ -64,7 +64,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
-	f.AppsEnabled = false
+	f.AppsEnabled = true
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
