@@ -75,6 +75,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     className={classNames('SendMessageButton', {disabled}, {singleAction: !isScheduledPostEnabled})}
                     data-testid='SendMessageButton'
                     tabIndex={0}
+                    disabled={disabled}
                     aria-label={formatMessage({
                         id: 'create_post_button.option.send_now',
                         defaultMessage: 'Send Now',
