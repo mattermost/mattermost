@@ -9,7 +9,7 @@ import type {IntlShape} from 'react-intl';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
