@@ -90,6 +90,25 @@ export interface Props extends MuiMenuItemProps {
 }
 
 /**
+ * The props for the first menu item to be passed in.
+ * @example
+ * <Menu.Container>
+ *     <WrapperOfMenuFirstItem/> <-- Container passes the props to the first item
+ *     <Menu.Item/>
+ * </Menu.Container>
+ */
+export type FirstMenuItemProps = Omit<
+Props,
+| 'onClick'
+| 'leadingElement'
+| 'labels'
+| 'trailingElements'
+| 'isDestructive'
+| 'isLabelsRowLayout'
+| 'children'
+>;
+
+/**
  * To be used as a child of Menu component.
  * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
  *
@@ -161,7 +180,11 @@ export function MenuItem(props: Props) {
     }
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    // we count after converting to array as it removes falsy values from labels.props.children
+    const hasSecondaryLabel = labels &&
+        labels.props &&
+        labels.props.children &&
+        Children.count(Children.toArray(labels.props.children)) === 2;
 
     return (
         <MenuItemStyled
