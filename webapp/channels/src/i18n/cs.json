@@ -4943,7 +4943,7 @@
   "self_hosted_signup.error_invalid_number": "Zadejte platný počet míst",
   "self_hosted_signup.error_max_seats": " nákup licence podporuje pouze nákupy do {num} míst",
   "self_hosted_signup.error_min_seats": "Váš pracovní prostor má aktuálně {num} uživatelů",
-  "self_hosted_signup.line_item_subtotal": "{num} míst × 12 měsíců",
+  "self_hosted_signup.line_item_subtotal": "{num} míst × 12 měsíců.",
   "self_hosted_signup.screening_description": "Zkontrolujeme věci na naší straně a ozveme se vám zpět do 3 dnů od schválení vaší licence. Mezitím prosím neváhejte i nadále používat bezplatnou verzi našeho produktu.",
   "self_hosted_signup.screening_title": "Vaše transakce se kontroluje",
   "self_hosted_signup.seats": "Místa",
