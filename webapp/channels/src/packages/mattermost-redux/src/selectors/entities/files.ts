@@ -55,7 +55,7 @@ export function getFilesForEditHistory(): (state: GlobalState, editHistoryPost: 
         (state: GlobalState, editHistoryPost: Post) => editHistoryPost,
         getCurrentUserLocale,
         (editHistoryPost, locale) => {
-            const fileInfos = editHistoryPost.metadata.files;
+            const fileInfos = [...editHistoryPost.metadata.files];
             return sortFileInfos(fileInfos, locale);
         },
     );

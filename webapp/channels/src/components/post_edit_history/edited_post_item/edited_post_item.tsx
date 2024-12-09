@@ -234,6 +234,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                             post={post}
                             handleFileDropdownOpened={() => {}}
                             isEditHistory={post.delete_at > 0}
+                            preventDownload={post.delete_at > 0}
                         />
                     }
                 </PostAriaLabelDiv>

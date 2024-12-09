@@ -18,7 +18,7 @@ import {isEmbedVisible} from 'selectors/posts';
 import type {GlobalState} from 'types/store';
 
 import FileAttachmentList from './file_attachment_list';
-import {FileInfo} from '@mattermost/types/lib/files';
+import {FileInfo} from '@mattermost/types/files';
 
 export type OwnProps = {
     post: Post;
@@ -26,6 +26,7 @@ export type OwnProps = {
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     isEditHistory?: boolean;
+    preventDownload?: boolean;
 }
 
 function makeMapStateToProps() {
@@ -33,10 +34,6 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
-
-        if (ownProps.isEditHistory) {
-            console.log({deleteAt: ownProps.post.delete_at, fileIDs: ownProps.post.file_ids, metadata: ownProps.post.metadata});
-        }
 
         var fileInfos: FileInfo[];
 
