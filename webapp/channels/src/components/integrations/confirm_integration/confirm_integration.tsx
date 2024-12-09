@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
 import type {Bot} from '@mattermost/types/bots';
@@ -96,7 +96,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-                <CopyText value={commandToken}/>
+                <CopyText
+                    label={messages.copyToken}
+                    value={commandToken}
+                />
             </p>
         );
     } else if (type === Constants.Integrations.INCOMING_WEBHOOK && incomingHook) {
@@ -136,7 +139,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-                <CopyText value={incomingHookToken}/>
+                <CopyText
+                    label={messages.copyToken}
+                    value={incomingHookToken}
+                />
             </p>
         );
     } else if (type === Constants.Integrations.OUTGOING_WEBHOOK && outgoingHook) {
@@ -176,7 +182,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-                <CopyText value={outgoingHookToken}/>
+                <CopyText
+                    label={messages.copyToken}
+                    value={outgoingHookToken}
+                />
             </p>
         );
     } else if (type === Constants.Integrations.OAUTH_APP && oauthApp) {
@@ -220,12 +229,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     }}
                 />
                 <CopyText
-                    tooltip={
-                        <FormattedMessage
-                            id='integrations.copy_client_id'
-                            defaultMessage='Copy Client Id'
-                        />
-                    }
+                    label={messages.copyClientId}
                     value={oauthAppToken}
                 />
                 <br/>
@@ -238,12 +242,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     }}
                 />
                 <CopyText
-                    tooltip={
-                        <FormattedMessage
-                            id='integrations.copy_client_secret'
-                            defaultMessage='Copy Client Secret'
-                        />
-                    }
+                    label={messages.copyClientSecret}
                     value={oauthAppSecret}
                 />
             </p>,
@@ -336,12 +335,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         }}
                     />
                     <CopyText
-                        tooltip={
-                            <FormattedMessage
-                                id='integrations.copy_username'
-                                defaultMessage='Copy Username'
-                            />
-                        }
+                        label={messages.copyUsername}
                         value={username || ''}
                     />
                     <br/>
@@ -420,7 +414,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                         b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-                <CopyText value={botToken}/>
+                <CopyText
+                    label={messages.copyToken}
+                    value={botToken}
+                />
                 <br/>
                 <br/>
                 <FormattedMessage
@@ -484,5 +481,24 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         </div>
     );
 };
+
+const messages = defineMessages({
+    copyClientId: {
+        id: 'integrations.copy_client_id',
+        defaultMessage: 'Copy Client Id',
+    },
+    copyClientSecret: {
+        id: 'integrations.copy_client_secret',
+        defaultMessage: 'Copy Client Secret',
+    },
+    copyToken: {
+        id: 'integrations.copy_token',
+        defaultMessage: 'Copy Token',
+    },
+    copyUsername: {
+        id: 'integrations.copy_username',
+        defaultMessage: 'Copy Username',
+    },
+});
 
 export default ConfirmIntegration;

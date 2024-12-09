@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
@@ -217,12 +217,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                     />
                     <strong>{this.state.clientSecret}</strong>
                     <CopyText
-                        tooltip={
-                            <FormattedMessage
-                                id='integrations.copy_client_secret'
-                                defaultMessage='Copy Client Secret'
-                            />
-                        }
+                        label={messages.copyClientSecret}
                         value={this.state.clientSecret}
                     />
                 </span>
@@ -312,12 +307,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                             />
                             <strong>{oauthApp.id}</strong>
                             <CopyText
-                                tooltip={
-                                    <FormattedMessage
-                                        id='integrations.copy_client_id'
-                                        defaultMessage='Copy Client Id'
-                                    />
-                                }
+                                label={messages.copyClientId}
                                 value={oauthApp.id}
                             />
                         </span>
@@ -360,3 +350,14 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
         );
     }
 }
+
+const messages = defineMessages({
+    copyClientId: {
+        id: 'integrations.copy_client_id',
+        defaultMessage: 'Copy Client Id',
+    },
+    copyClientSecret: {
+        id: 'integrations.copy_client_secret',
+        defaultMessage: 'Copy Client Secret',
+    },
+});
