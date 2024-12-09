@@ -44,7 +44,7 @@ const ModalController = ({
     const modalOutput = [];
 
     for (const modalId in modalState) {
-        if (modalState.hasOwnProperty(modalId)) {
+        if (Object.hasOwn(modalState, modalId)) {
             const modal = modalState[modalId];
             if (modal.open) {
                 const modalComponent = React.createElement(modal.dialogType, Object.assign({}, modal.dialogProps, {

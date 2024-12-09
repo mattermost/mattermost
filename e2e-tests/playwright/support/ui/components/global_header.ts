@@ -43,6 +43,11 @@ export default class GlobalHeader {
         await expect(this.searchBox).toBeVisible();
         await this.searchBox.click();
     }
+
+    async closeSearch() {
+        await expect(this.searchBox).toBeVisible();
+        await this.searchBox.getByTestId('input-clear').click();
+    }
 }
 
 export {GlobalHeader};

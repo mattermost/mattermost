@@ -241,7 +241,7 @@ export function reconnect() {
         dispatch(fetchAllMyTeamsChannels());
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
-        dispatch(loadProfilesForSidebar());
+        loadProfilesForSidebar();
 
         if (mostRecentPost) {
             dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
@@ -636,7 +636,7 @@ export function handleEvent(msg) {
             return;
         }
 
-        if (pluginEvents.hasOwnProperty(msg.event) && typeof pluginEvents[msg.event] === 'function') {
+        if (Object.hasOwn(pluginEvents, msg.event) && typeof pluginEvents[msg.event] === 'function') {
             pluginEvents[msg.event](msg);
         }
     });
@@ -1313,6 +1313,7 @@ export function handleStatusChangedEvent(msg) {
 function handleHelloEvent(msg) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
+    dispatch(setServerHostname(msg.data.server_hostname));
 }
 
 function handleReactionAddedEvent(msg) {
@@ -1330,6 +1331,13 @@ function setConnectionId(connectionId) {
     return {
         type: GeneralTypes.SET_CONNECTION_ID,
         payload: {connectionId},
+    };
+}
+
+function setServerHostname(serverHostname) {
+    return {
+        type: GeneralTypes.SET_SERVER_HOSTNAME,
+        payload: {serverHostname},
     };
 }
 
