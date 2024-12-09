@@ -14,10 +14,10 @@ import theme from '../../../fixtures/theme.json';
 
 describe('Status dropdown menu', () => {
     const statusTestCases = [
-        {text: 'Online', className: 'icon-check-circle', profileClassName: 'icon-check-circle'},
-        {text: 'Away', className: 'icon-clock'},
-        {text: 'Do not disturb', className: 'icon-minus-circle'},
-        {text: 'Offline', className: 'icon-circle-outline'},
+        {text: 'Online', className: 'userAccountMenu_onlineMenuItem_icon'},
+        {text: 'Away', className: 'userAccountMenu_awayMenuItem_icon'},
+        {text: 'Do not disturb', className: 'userAccountMenu_dndMenuItem_icon'},
+        {text: 'Offline', className: 'userAccountMenu_offlineMenuItem_icon'},
     ];
 
     before(() => {
@@ -39,9 +39,10 @@ describe('Status dropdown menu', () => {
 
         // * Verify all available statuses are shown with icon and text
         statusTestCases.forEach((tc) => {
-            cy.get('@userMenu').findByText(tc.text).
-                parent().
-                find('i').should('have.class', tc.className);
+            cy.uiGetStatusMenu().within(() => {
+                cy.findByText(tc.text).should('be.visible');
+                cy.get('svg').filter(`.${tc.className}`).should('have.length', 1);
+            });
         });
     });
 
@@ -82,10 +83,10 @@ describe('Status dropdown menu', () => {
 
     it('MM-T4914 Profile menu header is clickable, opens Profile settings', () => {
         // # Open user menu
-        cy.uiOpenUserMenu().as('userMenu');
-
-        // * Verify menu header is clickable
-        cy.get('@userMenu').get('.MenuHeader').should('have.css', 'cursor', 'pointer').click();
+        cy.uiOpenUserMenu().within(() => {
+            // * Verify menu header is clickable
+            cy.get('li').first().should('have.css', 'cursor', 'pointer').click();
+        });
 
         // * Verify click on header opens Profile settings modal
         cy.findByRole('dialog', {name: 'Profile'}).should('be.visible');
@@ -100,14 +101,14 @@ function stepThroughStatuses(statusTestCases = []) {
     statusTestCases.forEach((tc) => {
         // # Open user menu and click option
         if (tc.text === 'Do not disturb') {
-            cy.uiOpenDndStatusSubMenu().find('#dndTime-thirty_minutes_menuitem').click();
+            cy.uiOpenDndStatusSubMenuAndClick30Mins();
         } else {
             cy.uiOpenUserMenu(tc.text);
         }
 
         // # Verify correct status icon is shown on user's profile picture
-        cy.uiGetProfileHeader().
-            find('i').
-            and('have.class', tc.profileClassName || tc.className);
+        cy.uiGetSetStatusButton().within(() => {
+            cy.get('svg').filter(`.${tc.className}`).should('have.length', 1);
+        });
     });
 }

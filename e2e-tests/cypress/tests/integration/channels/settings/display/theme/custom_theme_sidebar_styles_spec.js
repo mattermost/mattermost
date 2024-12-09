@@ -101,7 +101,7 @@ describe('Custom Theme - Sidebar Styles', () => {
         cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.awayIndicator));
 
         // # Set user status to do not disturb
-        cy.uiGetPostTextBox().clear().type('/dnd{enter}');
+        cy.uiOpenDndStatusSubMenuAndClick30Mins();
 
         // * Check Do Not Disturb Indicator color
         cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.dndIndicator));

@@ -33,8 +33,8 @@ Cypress.Commands.add('uiGetSystemConsoleMainMenu', () => {
     return getMenu(SYSTEM_CONSOLE_MAIN_MENU);
 });
 
-Cypress.Commands.add('uiOpenDndStatusSubMenu', () => {
+Cypress.Commands.add('uiOpenDndStatusSubMenuAndClick30Mins', () => {
     cy.uiOpenUserMenu().findByText('Do not disturb').should('be.visible').trigger('mouseover');
 
-    return cy.get('#userAccountMenu.dndSubMenu').should('exist');
+    cy.findByText('30 mins').should('be.visible').click({force: true});
 });
