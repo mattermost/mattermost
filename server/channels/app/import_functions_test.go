@@ -748,18 +748,18 @@ func TestImportImportUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many users are in the database.
-	userCount, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+	userCount, cErr := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
-	require.NoError(t, err, "Failed to get user count.")
+	require.NoError(t, cErr, "Failed to get user count.")
 
 	t.Run("import an invalid user in dry-run", func(t *testing.T) {
 		data := imports.UserImportData{
 			Username: model.NewPointer(model.NewUsername()),
 		}
-		err = th.App.importUser(th.Context, &data, true)
-		require.Error(t, err, "Should have failed to import invalid user.")
+		appErr := th.App.importUser(th.Context, &data, true)
+		require.Error(t, appErr, "Should have failed to import invalid user.")
 
 		// Check that no more users are in the DB.
 		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
@@ -791,8 +791,8 @@ func TestImportImportUser(t *testing.T) {
 		data := imports.UserImportData{
 			Username: model.NewPointer(model.NewUsername()),
 		}
-		err = th.App.importUser(th.Context, &data, false)
-		require.Error(t, err, "Should have failed to import invalid user.")
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.Error(t, appErr, "Should have failed to import invalid user.")
 
 		// Check that no more users are in the DB.
 		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
@@ -966,12 +966,12 @@ func TestImportImportUser(t *testing.T) {
 
 	t.Run("import with team and channel memberships", func(t *testing.T) {
 		teamName := model.NewRandomTeamName()
-		appErr := th.App.importTeam(th.Context, &imports.TeamImportData{
+		tAppErr := th.App.importTeam(th.Context, &imports.TeamImportData{
 			Name:        &teamName,
 			DisplayName: model.NewPointer("Display Name"),
 			Type:        model.NewPointer("O"),
 		}, false)
-		require.Nil(t, appErr, "Failed to import team.")
+		require.Nil(t, tAppErr, "Failed to import team.")
 		team, appErr := th.App.GetTeamByName(teamName)
 		require.Nil(t, appErr, "Failed to get team from database.")
 
@@ -1507,7 +1507,7 @@ func TestImportImportUser(t *testing.T) {
 		// to the appropriate scheme-managed-role booleans.
 
 		// Mark the phase 2 permissions migration as completed.
-		err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
 		defer func() {
