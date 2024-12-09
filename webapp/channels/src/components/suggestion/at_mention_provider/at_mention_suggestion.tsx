@@ -34,7 +34,7 @@ interface Group extends Item {
     member_count: number;
 }
 
-const AtMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Item>>((props, ref) => {
+const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
     const {item} = props;
 
     const intl = useIntl();
