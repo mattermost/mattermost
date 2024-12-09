@@ -42,7 +42,7 @@ func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
-		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
+		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
 		return nil, err
 	}
 
