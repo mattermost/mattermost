@@ -26,7 +26,7 @@ export default function SettingSet({
                 {children}
                 {helpText ? (
                     <div
-                        data-textid={inputId + 'help-text'}
+                        data-testid={inputId + 'help-text'}
                         className='help-text'
                     >
                         {helpText}
