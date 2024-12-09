@@ -408,7 +408,14 @@ const AdvancedTextEditor = ({
         if (!showPreview) {
             focusTextbox();
         }
-    }, [showPreview, selectedPostFocussedAt]);
+    }, [showPreview]);
+
+    // Add useEffect to focus textbox when selectedPostFocussedAt changes
+    useEffect(() => {
+        if (selectedPostFocussedAt) {
+            focusTextbox();
+        }
+    }, [selectedPostFocussedAt, focusTextbox]);
 
     // Remove show preview when we switch channels or posts
     useEffect(() => {

@@ -65,8 +65,6 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
 
-    const {emitShortcutReactToLastPostFrom} = props.actions;
-
     const toggleEmojiPicker = useCallback(() => {
         setShowEmojiPicker(!showEmojiPicker);
         props.handleDropdownOpened!(!showEmojiPicker);
@@ -78,9 +76,10 @@ const PostOptions = (props: Props): JSX.Element => {
             (props.shortcutReactToLastPostEmittedFrom === locationToUse) &&
                 props.isPostHeaderVisible) {
             toggleEmojiPicker();
-            emitShortcutReactToLastPostFrom(Locations.NO_WHERE);
+            props.actions.emitShortcutReactToLastPostFrom(Locations.NO_WHERE);
         }
-    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, emitShortcutReactToLastPostFrom, props.location, props.isPostHeaderVisible, toggleEmojiPicker]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, props.location, props.isPostHeaderVisible]);
 
     const {
         channelIsArchived,
