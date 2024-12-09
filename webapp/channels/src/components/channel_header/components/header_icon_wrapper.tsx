@@ -47,8 +47,6 @@ const HeaderIconWrapper = (props: Props) => {
     return (
         <>
             <WithTooltip
-                id={buttonId + '-tooltip'}
-                placement='bottom'
                 title={isRhsOpen ? '' : tooltipText}
                 shortcut={tooltipShortcut}
             >
