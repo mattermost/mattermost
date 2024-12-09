@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useEffect} from 'react';
 import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -37,6 +37,20 @@ const PostReminders = {
 function PostReminderSubmenu(props: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            const firstMenuItem = document.getElementById(`remind_post_options_${PostReminders.THIRTY_MINUTES}`);
+            firstMenuItem?.focus();
+        });
+    
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true, // Not needed now but included to handle potential future DOM changes
+        });
+    
+        return () => observer.disconnect();
+    }, [props.post.id]);
 
     function handlePostReminderMenuClick(id: string) {
         if (id === PostReminders.CUSTOM) {
