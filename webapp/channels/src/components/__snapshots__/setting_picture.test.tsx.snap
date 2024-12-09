@@ -761,10 +761,8 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <WithTooltip
+          <Memo(WithTooltip)
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove This Icon"
@@ -791,7 +789,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 />
               </span>
             </button>
-          </WithTooltip>
+          </Memo(WithTooltip)>
         </div>
       </li>
       <div
@@ -920,10 +918,8 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <WithTooltip
+          <Memo(WithTooltip)
             disabled={false}
-            id="removeIcon"
-            placement="right"
             title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Remove Profile Picture"
@@ -950,7 +946,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 />
               </span>
             </button>
-          </WithTooltip>
+          </Memo(WithTooltip)>
         </div>
       </li>
       <div

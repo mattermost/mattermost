@@ -272,9 +272,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     >
       Team 8
     </span>
-    <WithTooltip
-      id="id-extra-teams-overlay"
-      placement="bottom"
+    <Memo(WithTooltip)
       title="Team 9, Team 10"
     >
       <span
@@ -291,7 +289,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           }
         />
       </span>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </div>
 </div>
 `;

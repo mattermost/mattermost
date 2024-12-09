@@ -74,9 +74,7 @@ const ChannelHeaderTitleFavorite = () => {
     return (
         <WithTooltip
             key={`isFavorite-${isFavorite}`}
-            id='favoriteTooltip'
             title={title}
-            placement='bottom'
         >
             <button
                 id='toggleFavorite'

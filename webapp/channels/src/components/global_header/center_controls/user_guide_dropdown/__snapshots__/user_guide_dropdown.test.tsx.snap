@@ -7,9 +7,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -28,7 +26,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -84,9 +82,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -105,7 +101,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -153,9 +149,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -174,7 +168,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"

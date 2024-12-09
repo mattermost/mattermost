@@ -30,9 +30,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -42,7 +40,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -78,9 +76,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -90,7 +86,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -126,9 +122,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -138,7 +132,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -174,9 +168,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -186,7 +178,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>

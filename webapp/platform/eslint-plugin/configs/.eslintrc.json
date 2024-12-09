@@ -382,11 +382,6 @@
         ],
         "paths": [
           {
-            "name": "react-bootstrap",
-            "importNames": ["OverlayTrigger"],
-            "message": "Use OverlayTrigger from '/components/overlay_trigger' instead."
-          },
-          {
             "name": "redux",
             "importNames": ["DeepPartial"],
             "message": "Use DeepPartial from '@mattermost/types/utilities instead."

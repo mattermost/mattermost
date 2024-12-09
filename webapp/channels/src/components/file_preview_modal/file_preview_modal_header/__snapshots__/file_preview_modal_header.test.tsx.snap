@@ -48,7 +48,6 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     onGetPublicLink={[MockFunction]}
     showOnlyClose={false}
     showPublicLink={false}
-    usedInside="Header"
   />
 </div>
 `;
@@ -90,7 +89,6 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     onGetPublicLink={[MockFunction]}
     showOnlyClose={true}
     showPublicLink={false}
-    usedInside="Header"
   />
   <Memo(FilePreviewModalMainNav)
     fileIndex={1}

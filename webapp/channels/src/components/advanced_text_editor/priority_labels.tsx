@@ -105,8 +105,6 @@ function PriorityLabels({
             )}
             {persistentNotifications && (
                 <WithTooltip
-                    id='post-priority-picker-persistent-notifications-tooltip'
-                    placement='top'
                     title={intl.formatMessage({
                         id: 'post_priority.persistent_notifications.tooltip',
                         defaultMessage: 'Persistent notifications will be sent',
@@ -120,8 +118,6 @@ function PriorityLabels({
             {requestedAck && (
                 <Acknowledgements hasError={hasError}>
                     <WithTooltip
-                        id='post-priority-picker-ack-tooltip'
-                        placement='top'
                         title={intl.formatMessage({
                             id: 'post_priority.request_acknowledgement.tooltip',
                             defaultMessage: 'Acknowledgement will be requested',
@@ -144,8 +140,6 @@ function PriorityLabels({
             )}
             {canRemove && (
                 <WithTooltip
-                    id='post-priority-picker-tooltip'
-                    placement='top'
                     title={intl.formatMessage({
                         id: 'post_priority.remove',
                         defaultMessage: 'Remove {priority}',

@@ -261,9 +261,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
         const copyLink = (
             <WithTooltip
-                id='single_image_view.copy_link_tooltip.text'
                 title={copyLinkTooltipText}
-                placement='top'
             >
                 <button
                     className={classNames('style--none', 'size-aware-image__copy_link', {
@@ -295,8 +293,6 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         );
         const download = (
             <WithTooltip
-                id='single_image_view.download_tooltip.text'
-                placement='top'
                 title={downloadTooltipText}
             >
                 <a

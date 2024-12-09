@@ -7,9 +7,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
   onToggle={[Function]}
   open={true}
 >
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"
@@ -29,7 +27,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
         className="icon icon-apps"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"
@@ -58,9 +56,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
   onToggle={[Function]}
   open={true}
 >
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"
@@ -80,7 +76,7 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
         className="icon icon-apps"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"
@@ -128,9 +124,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
   onToggle={[Function]}
   open={true}
 >
-  <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
+  <Memo(WithTooltip)
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"
@@ -150,7 +144,7 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
         className="icon icon-apps"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
   <Menu
     ariaLabel="Post extra options"
     id="center_actions_dropdown_post_id_1"

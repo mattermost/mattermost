@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/global/AtMentionsButton should match snapshot 1`] = `
-<WithTooltip
-  id="recentMentions"
-  placement="bottom"
+<Memo(WithTooltip)
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Saved messages"
@@ -22,5 +20,5 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     size="sm"
     toggled={false}
   />
-</WithTooltip>
+</Memo(WithTooltip)>
 `;

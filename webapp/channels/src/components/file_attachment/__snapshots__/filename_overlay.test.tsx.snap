@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
-<WithTooltip
-  id="file-name__tooltip"
-  placement="top"
+<Memo(WithTooltip)
   title="test_filename"
 >
   <a
@@ -17,7 +15,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
     />
     test_filename
   </a>
-</WithTooltip>
+</Memo(WithTooltip)>
 `;
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, standard but not downloadable 1`] = `
@@ -32,10 +30,13 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
 <div
   className="post-image__name"
 >
-  <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+  <Memo(WithTooltip)
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
@@ -45,7 +46,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
     >
       test_filename
     </ForwardRef>
-  </WithTooltip>
+  </Memo(WithTooltip)>
 </div>
 `;
 
@@ -53,10 +54,13 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
 <div
   className="post-image__name"
 >
-  <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+  <Memo(WithTooltip)
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
@@ -66,6 +70,6 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
     >
       <AttachmentIcon />
     </ForwardRef>
-  </WithTooltip>
+  </Memo(WithTooltip)>
 </div>
 `;

@@ -8,9 +8,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -28,7 +26,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -106,9 +104,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -129,7 +125,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -207,9 +203,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -230,7 +224,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -308,9 +302,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -331,7 +323,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -409,9 +401,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -432,7 +422,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -510,9 +500,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -533,7 +521,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -611,9 +599,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -634,7 +620,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
@@ -712,9 +698,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
     animationComponent={[Function]}
     className=""
   >
-    <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
+    <Memo(WithTooltip)
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -735,7 +719,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
           size={18}
         />
       </IconContainer>
-    </WithTooltip>
+    </Memo(WithTooltip)>
     <Menu
       ariaLabel="file menu"
       openLeft={true}
