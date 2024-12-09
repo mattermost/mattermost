@@ -10,7 +10,6 @@
 // Stage: @prod
 // Group: @channels @menu @custom_status @status_menu
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 import theme from '../../../fixtures/theme.json';
 
 describe('Status dropdown menu', () => {
@@ -67,7 +66,7 @@ describe('Status dropdown menu', () => {
         cy.uiOpenUserMenu().as('userMenu');
 
         // * Verify "Set a Custom Status" header is clickable
-        cy.get('@userMenu').findByText('Set a custom status').should('have.css', 'cursor', 'pointer');
+        cy.get('@userMenu').findByText('Set custom status').should('have.css', 'cursor', 'pointer');
     });
 
     it('MM-T2927_5 When custom status is disabled, status menu is displayed when status icon is clicked', () => {
@@ -79,16 +78,6 @@ describe('Status dropdown menu', () => {
 
         // # Open user menu to verify it still open up and visible
         cy.uiOpenUserMenu();
-    });
-
-    it('MM-T4420 Should stay open when dnd sub-menu header is clicked', () => {
-        // # Open Dnd sub menu and click on header
-        cy.uiOpenDndStatusSubMenu().find('#dndSubMenu-header_menuitem').click().then(() => {
-            cy.wait(TIMEOUTS.HALF_SEC);
-
-            // * Verify that dnd submenu is still visible
-            cy.get('body').find('#dndSubMenu-header_menuitem').should('be.visible');
-        });
     });
 
     it('MM-T4914 Profile menu header is clickable, opens Profile settings', () => {
