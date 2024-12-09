@@ -279,13 +279,11 @@ function SystemUsers(props: Props) {
                                 {getDisplayName(info.row.original) || ''}
                                 {isRemoteUser && (
                                     <SharedUserIndicator
-                                        id={`sharedUserIndicator-${info.row.original.id}`}
                                         title={formatMessage({id: 'admin.system_users.list.userIsRemote', defaultMessage: 'Remote user'})}
                                         ariaLabel={formatMessage({id: 'admin.system_users.list.userIsRemoteAriaLabel', defaultMessage: 'This is a remote user'})}
                                         role='img'
                                         className='icon-12'
                                         withTooltip={true}
-                                        placement='top'
                                     />
                                 )}
                             </div>
