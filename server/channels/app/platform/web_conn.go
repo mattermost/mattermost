@@ -656,6 +656,9 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 	return _isInDeadQueue(wc.deadQueue, seq)
 }
 
+// _hasMsgLoss is called from 2 places: wc.hasMsgLoss and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.hasMsgLoss from inside
+// ps.GetWSQueues
 func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64) bool {
 	var index int
 	// deadQueuePointer = 0 means either no msg written or the pointer
@@ -678,6 +681,9 @@ func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64)
 	return true
 }
 
+// _isInDeadQueue is called from 2 places: wc.isInDeadQueue and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.isInDeadQueue from inside
+// ps.GetWSQueues
 func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
