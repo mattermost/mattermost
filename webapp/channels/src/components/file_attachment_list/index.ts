@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
+import {getFilesForEditHistory, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
@@ -18,12 +18,14 @@ import {isEmbedVisible} from 'selectors/posts';
 import type {GlobalState} from 'types/store';
 
 import FileAttachmentList from './file_attachment_list';
+import {FileInfo} from '@mattermost/types/lib/files';
 
 export type OwnProps = {
     post: Post;
     compactDisplay?: boolean;
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    isEditHistory?: boolean;
 }
 
 function makeMapStateToProps() {
@@ -31,7 +33,18 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
-        const fileInfos = selectFilesForPost(state, postId);
+
+        if (ownProps.isEditHistory) {
+            console.log({deleteAt: ownProps.post.delete_at, fileIDs: ownProps.post.file_ids, metadata: ownProps.post.metadata});
+        }
+
+        var fileInfos: FileInfo[];
+
+        if (ownProps.isEditHistory) {
+            fileInfos = getFilesForEditHistory()(state, ownProps.post);
+        } else {
+            fileInfos = selectFilesForPost(state, postId);
+        }
 
         let fileCount = 0;
         if (ownProps.post.metadata && ownProps.post.metadata.files) {

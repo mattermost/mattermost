@@ -233,6 +233,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                         <FileAttachmentListContainer
                             post={post}
                             handleFileDropdownOpened={() => {}}
+                            isEditHistory={post.delete_at > 0}
                         />
                     }
                 </PostAriaLabelDiv>
