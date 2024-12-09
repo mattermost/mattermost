@@ -168,6 +168,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 {...otherProps}
                 role='textbox'
                 aria-label={placeholderAriaLabel}
+                aria-labelledby={`${id}_label`}
                 dir='auto'
                 disabled={disabled}
                 onChange={onChange}
