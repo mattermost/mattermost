@@ -11,6 +11,7 @@ function getInitialState() {
         lastConnectAt: 0,
         lastDisconnectAt: 0,
         connectionId: '',
+        serverHostname: '',
     };
 }
 
@@ -26,6 +27,7 @@ export default function reducer(state = getInitialState(), action: AnyAction) {
             ...state,
             connected: false,
             lastDisconnectAt: action.timestamp,
+            serverHostname: '',
         };
     }
 
@@ -41,6 +43,13 @@ export default function reducer(state = getInitialState(), action: AnyAction) {
         return {
             ...state,
             connectionId: action.payload.connectionId,
+        };
+    }
+
+    if (action.type === GeneralTypes.SET_SERVER_HOSTNAME) {
+        return {
+            ...state,
+            serverHostname: action.payload.serverHostname,
         };
     }
 

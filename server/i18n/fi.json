@@ -2208,10 +2208,6 @@
     "translation": "Ei voida päivittää webhookia tiimien välillä"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Ei voitu dekoodata sisääntulevan webhookin moniosaista sisältöä."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Joko trigger_words tai channel_id on asetettava"
   },

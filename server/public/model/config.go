@@ -1497,7 +1497,7 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"experimental_features,write_restrictable"`
+	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -2597,9 +2597,10 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale *string `access:"site_localization"`
-	DefaultClientLocale *string `access:"site_localization"`
-	AvailableLocales    *string `access:"site_localization"`
+	DefaultServerLocale       *string `access:"site_localization"`
+	DefaultClientLocale       *string `access:"site_localization"`
+	AvailableLocales          *string `access:"site_localization"`
+	EnableExperimentalLocales *bool   `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2613,6 +2614,10 @@ func (s *LocalizationSettings) SetDefaults() {
 
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = NewPointer("")
+	}
+
+	if s.EnableExperimentalLocales == nil {
+		s.EnableExperimentalLocales = NewPointer(false)
 	}
 }
 
