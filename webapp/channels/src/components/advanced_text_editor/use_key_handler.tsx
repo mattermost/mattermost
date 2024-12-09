@@ -9,7 +9,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {emitShortcutReactToLastPostFrom, unsetEditingPost} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
 import {replyToLatestPostInChannel} from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
@@ -47,6 +47,7 @@ const useKeyHandler = (
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
     toggleEmojiPicker: () => void,
+    isInEditMode?: boolean,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -172,6 +173,9 @@ const useKeyHandler = (
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             textboxRef.current?.blur();
+            if (isInEditMode) {
+                dispatch(unsetEditingPost());
+            }
         }
 
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);

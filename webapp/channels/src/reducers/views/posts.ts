@@ -1,28 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
+import type {AnyAction, Action} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
-const defaultState = {
-    post: {},
+import type {ViewsState} from 'types/store/views';
+
+const editingPostDefaultState: ViewsState['posts']['editingPost'] = {
     show: false,
+    postId: '',
+    refocusId: '',
+    isRHS: false,
 };
 
-function editingPost(state = defaultState, action: AnyAction) {
-    switch (action.type) {
-    case ActionTypes.TOGGLE_EDITING_POST:
-        return {
-            ...state,
-            ...action.data,
-        };
+type EditingPostAction = Action<
+    typeof ActionTypes.TOGGLE_EDITING_POST | typeof UserTypes.LOGOUT_SUCCESS
+> & { data: ViewsState['posts']['editingPost'] };
 
+function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefaultState, action: EditingPostAction) {
+    switch (action.type) {
+    case ActionTypes.TOGGLE_EDITING_POST: {
+        if (action.data.show) {
+            return {
+                ...state,
+                ...action.data,
+            };
+        }
+
+        return editingPostDefaultState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
-        return defaultState;
+        return editingPostDefaultState;
     default:
         return state;
     }

@@ -15,9 +15,10 @@ type Props = {
     teammateDisplayName: string;
     location: string;
     postId: string;
-}
+    isInEditMode: boolean;
+};
 
-export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId}: Props) {
+export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId, isInEditMode}: Props) {
     const {
         showRemoteUserHour,
         isScheduledPostEnabled,
@@ -25,27 +26,27 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
         teammateTimezone,
     } = useTimePostBoxIndicator(channelId);
 
+    if (isInEditMode) {
+        return null;
+    }
+
     return (
         <div className='postBoxIndicator'>
-            {
-                showRemoteUserHour &&
+            {showRemoteUserHour && (
                 <RemoteUserHour
                     displayName={teammateDisplayName}
                     timestamp={currentUserTimesStamp}
                     teammateTimezone={teammateTimezone}
                 />
-            }
-
-            {
-
-                isScheduledPostEnabled &&
+            )}
+            {isScheduledPostEnabled && (
                 <ScheduledPostIndicator
                     location={location}
                     channelId={channelId}
                     postId={postId}
                     remoteUserHourDisplayed={showRemoteUserHour}
                 />
-            }
+            )}
         </div>
     );
 }
