@@ -22,7 +22,7 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
     const hasAllowedThemes = allowedThemes.length > 1 || (allowedThemes[0] && allowedThemes[0].trim().length > 0);
 
     for (const k in Preferences.THEMES) {
-        if (Preferences.THEMES.hasOwnProperty(k)) {
+        if (Object.hasOwn(Preferences.THEMES, k)) {
             if (hasAllowedThemes && allowedThemes.indexOf(k) < 0) {
                 continue;
             }
