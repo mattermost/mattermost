@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
@@ -20,6 +20,7 @@ import Timestamp, {RelativeRanges} from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 import WithTooltip from 'components/with_tooltip';
+import FileAttachmentListContainer from 'components/file_attachment_list';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
@@ -27,6 +28,8 @@ import {imageURLForUser} from 'utils/utils';
 import RestorePostModal from '../restore_post_modal';
 
 import type {PropsFromRedux} from './index';
+
+import './edited_post_items.scss';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -212,7 +215,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                                 icon={open ? 'chevron-down' : 'chevron-right'}
                                 compact={true}
                                 aria-label='Toggle to see an old message.'
-                                className='edit-post-history__icon__button'
+                                className='edit-post-history__icon__button toggleCollapseButton'
                             />
                             <span className='edit-post-history__date'>
                                 <Timestamp
@@ -225,6 +228,13 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                         {restoreButton}
                     </div>
                     {open && messageContainer}
+                    {
+                        open &&
+                        <FileAttachmentListContainer
+                            post={post}
+                            handleFileDropdownOpened={() => {}}
+                        />
+                    }
                 </PostAriaLabelDiv>
             </div>
         </CompassThemeProvider>
