@@ -58,7 +58,7 @@ interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
-    hint?: string;
+    hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
 
     /**
