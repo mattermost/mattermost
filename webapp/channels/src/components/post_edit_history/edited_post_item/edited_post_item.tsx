@@ -77,7 +77,10 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         actions.openModal(restorePostModalData);
     }, [actions, post]);
 
-    const togglePost = () => setOpen((prevState) => !prevState);
+    const togglePost = () => {
+        console.log('togglePost');
+        setOpen((prevState) => !prevState);
+    };
 
     if (!post) {
         return null;
