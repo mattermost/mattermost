@@ -34,23 +34,23 @@ import (
 //go:embed testdata/actianceXMLHeader.tmpl
 var actianceXMLHeader string
 
-//go:embed testdata/batch1ch2.tmpl
-var batch1ch2tmpl string
+//go:embed testdata/actianceE2E1Batch1ch2.tmpl
+var actianceE2E1Batch1ch2tmpl string
 
-//go:embed testdata/batch1ch3.tmpl
-var batch1ch3tmpl string
+//go:embed testdata/actianceE2E1Batch1ch3.tmpl
+var actianceE2E1Batch1ch3tmpl string
 
-//go:embed testdata/batch2xml.tmpl
-var batch2xmptmpl string
+//go:embed testdata/actianceE2E1Batch2.tmpl
+var actianceE2E1Batch2tmpl string
 
-//go:embed testdata/batch3ch2.tmpl
-var batch3ch2tmpl string
+//go:embed testdata/actianceE2E1Batch3ch2.tmpl
+var actianceE2E1Batch3ch2tmpl string
 
-//go:embed testdata/batch3ch4.tmpl
-var batch3ch4tmpl string
+//go:embed testdata/actianceE2E1Batch3ch4.tmpl
+var actianceE2E1Batch3ch4tmpl string
 
-//go:embed testdata/e2eXml2.tmpl
-var e2eXml2 string
+//go:embed testdata/actianceE2E2.tmpl
+var actianceE2E2 string
 
 //go:embed testdata/grE2E1Batch1Summary.tmpl
 var grE2E1Batch1Summary string
@@ -456,19 +456,19 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// Expected data:
 				//  - batch1 has two channels, and we're not sure which will come first. What a pain.
 
-				batch1ch2 := fmt.Sprintf(batch1ch2tmpl, channel2.Id, start, jl[0].join, jl[1].join, jl[2].join,
+				batch1ch2 := fmt.Sprintf(actianceE2E1Batch1ch2tmpl, channel2.Id, start, jl[0].join, jl[1].join, jl[2].join,
 					posts[0].Id, createUpdateTimes[0], createUpdateTimes[0], createUpdateTimes[0],
 					posts[1].Id, createUpdateTimes[1], createUpdateTimes[1], createUpdateTimes[1],
 					posts[2].Id, createUpdateTimes[2], createUpdateTimes[2], createUpdateTimes[2],
 					jl[1].leave, jl[2].leave, createUpdateTimes[2], createUpdateTimes[2])
 
-				batch1ch3 := fmt.Sprintf(batch1ch3tmpl, channel3.Id, start, jl[6].join, jl[6].leave, createUpdateTimes[2])
+				batch1ch3 := fmt.Sprintf(actianceE2E1Batch1ch3tmpl, channel3.Id, start, jl[6].join, jl[6].leave, createUpdateTimes[2])
 
 				xmlHeader := strings.TrimSpace(actianceXMLHeader)
 				batch1Possibility1 := fmt.Sprintf(xmlHeader, batch1ch2, batch1ch3)
 				batch1Possibility2 := fmt.Sprintf(xmlHeader, batch1ch3, batch1ch2)
 
-				batch2xml := fmt.Sprintf(batch2xmptmpl, channel2.Id, createUpdateTimes[2], jl[0].join, jl[3].join,
+				batch2xml := fmt.Sprintf(actianceE2E1Batch2tmpl, channel2.Id, createUpdateTimes[2], jl[0].join, jl[3].join,
 					posts[3].Id, createUpdateTimes[3], createUpdateTimes[3], createUpdateTimes[3],
 					posts[4].Id, createUpdateTimes[4], createUpdateTimes[4], createUpdateTimes[4],
 					posts[5].Id, createUpdateTimes[5], createUpdateTimes[5], createUpdateTimes[5],
@@ -476,13 +476,13 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				batch2xml = strings.TrimSpace(batch2xml)
 
 				//  Batch3 has two channels, and we're not sure which will come first. What a pain.
-				batch3ch2 := fmt.Sprintf(batch3ch2tmpl, channel2.Id, createUpdateTimes[5], jl[0].join, jl[4].join, jl[5].join,
+				batch3ch2 := fmt.Sprintf(actianceE2E1Batch3ch2tmpl, channel2.Id, createUpdateTimes[5], jl[0].join, jl[4].join, jl[5].join,
 					posts[6].Id, createUpdateTimes[6], createUpdateTimes[6], createUpdateTimes[6],
 					posts[7].Id, createUpdateTimes[7], createUpdateTimes[7], createUpdateTimes[7],
 					posts[8].Id, createUpdateTimes[8], createUpdateTimes[8], createUpdateTimes[8],
 					jl[4].leave, jl[5].leave, jobEndTime, jobEndTime)
 
-				batch3ch4 := fmt.Sprintf(batch3ch4tmpl, channel4.Id, createUpdateTimes[5], jl[7].join, jobEndTime, jobEndTime)
+				batch3ch4 := fmt.Sprintf(actianceE2E1Batch3ch4tmpl, channel4.Id, createUpdateTimes[5], jl[7].join, jobEndTime, jobEndTime)
 
 				batch3Possibility1 := fmt.Sprintf(xmlHeader, batch3ch2, batch3ch4)
 
@@ -797,7 +797,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		batches := ret.batches
 
 		// Expected data:
-		batch1xml := fmt.Sprintf(strings.TrimSpace(e2eXml2), channel2.Id, start, jl[0].join, start,
+		batch1xml := fmt.Sprintf(strings.TrimSpace(actianceE2E2), channel2.Id, start, jl[0].join, start,
 			posts[0].Id, createUpdateTimes[0],
 			posts[1].Id, createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
