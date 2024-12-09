@@ -12,6 +12,8 @@ import WithTooltip from 'components/with_tooltip';
 import {AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
+import './default_announcement_bar.scss';
+
 type Props = {
     id?: string;
     showCloseButton: boolean;
