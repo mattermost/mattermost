@@ -33,7 +33,7 @@ exports[`components/SingleImageView permalink preview should render with permali
         <div
           className="image-permalink"
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className="image-permalink"
             dimensions={
               Object {
@@ -108,7 +108,7 @@ exports[`components/SingleImageView should match snapshot 1`] = `
         <div
           className=""
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className=""
             dimensions={
               Object {
@@ -183,7 +183,7 @@ exports[`components/SingleImageView should match snapshot 2`] = `
         <div
           className=""
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className=""
             dimensions={
               Object {
@@ -262,7 +262,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
         <div
           className=""
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className=""
             dimensions={
               Object {
@@ -341,7 +341,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
         <div
           className=""
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className=""
             dimensions={
               Object {
@@ -416,7 +416,7 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
         <div
           className=""
         >
-          <SizeAwareImage
+          <injectIntl(SizeAwareImage)
             className=""
             dimensions={
               Object {
