@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {Post} from '@mattermost/types/posts';
-
 
 function getAllFiles(state: GlobalState) {
     return state.entities.files.files;
@@ -49,16 +47,10 @@ export function makeGetFilesForPost(): (state: GlobalState, postId: string) => F
     );
 }
 
-export function getFilesForEditHistory(): (state: GlobalState, editHistoryPost: Post) => FileInfo[] {
-    return createSelector(
-        'getFilesForEditHistory',
-        (state: GlobalState, editHistoryPost: Post) => editHistoryPost,
-        getCurrentUserLocale,
-        (editHistoryPost, locale) => {
-            const fileInfos = [...editHistoryPost.metadata.files];
-            return sortFileInfos(fileInfos, locale);
-        },
-    );
+export function getFilesForEditHistory(state: GlobalState, editHistoryPost: Post): FileInfo[] {
+    const useLocal = getCurrentUserLocale(state);
+    const fileInfos = [...editHistoryPost.metadata.files];
+    return sortFileInfos(fileInfos, useLocal);
 }
 
 export const getSearchFilesResults: (state: GlobalState) => FileSearchResultItem[] = createSelector(

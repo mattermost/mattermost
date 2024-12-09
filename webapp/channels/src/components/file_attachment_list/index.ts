@@ -6,6 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {getFilesForEditHistory, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
@@ -18,7 +19,6 @@ import {isEmbedVisible} from 'selectors/posts';
 import type {GlobalState} from 'types/store';
 
 import FileAttachmentList from './file_attachment_list';
-import {FileInfo} from '@mattermost/types/files';
 
 export type OwnProps = {
     post: Post;
@@ -38,7 +38,7 @@ function makeMapStateToProps() {
         var fileInfos: FileInfo[];
 
         if (ownProps.isEditHistory) {
-            fileInfos = getFilesForEditHistory()(state, ownProps.post);
+            fileInfos = getFilesForEditHistory(state, ownProps.post);
         } else {
             fileInfos = selectFilesForPost(state, postId);
         }
