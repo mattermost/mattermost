@@ -103,6 +103,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -125,6 +126,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -240,6 +242,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -262,6 +265,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -377,6 +381,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -399,6 +404,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -514,6 +520,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -536,6 +543,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
@@ -652,6 +660,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="access_history"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Access History Icon"
       />
@@ -674,6 +683,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       modalId="activity_log"
     >
       <i
+        aria-hidden="true"
         className="fa fa-clock-o"
         title="Active Sessions Icon"
       />
