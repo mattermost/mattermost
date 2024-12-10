@@ -11,9 +11,8 @@ import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
-import ImportThemeModal from 'components/user_settings/display/user_settings_theme/import_theme_modal';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants} from 'utils/constants';
 import {applyTheme} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -28,7 +27,6 @@ type Props = {
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
     setRequireConfirm?: (requireConfirm: boolean) => void;
-    setEnforceFocus?: (enforceFocus: boolean) => void;
     allowCustomThemes: boolean;
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;
@@ -120,7 +118,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         let themeChanged = this.state.theme.length === theme.length;
         if (!themeChanged) {
             for (const field in theme) {
-                if (theme.hasOwnProperty(field)) {
+                if (Object.hasOwn(theme, field)) {
                     if (this.state.theme[field] !== theme[field]) {
                         themeChanged = true;
                         break;
@@ -145,18 +143,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         applyTheme(state.theme);
 
         this.props.setRequireConfirm?.(false);
-    };
-
-    handleImportModal = (): void => {
-        this.props.actions.openModal({
-            modalId: ModalIdentifiers.IMPORT_THEME_MODAL,
-            dialogType: ImportThemeModal,
-            dialogProps: {
-                callback: this.updateTheme,
-            },
-        });
-
-        this.props.setEnforceFocus?.(false);
     };
 
     handleUpdateSection = (section: string): void => this.props.updateSection(section);
@@ -259,24 +245,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 defaultMessage='See other themes'
                             />
                         </ExternalLink>
-                    </div>,
-                );
-
-                inputs.push(
-                    <div
-                        key='importSlackThemeButton'
-                        className='pt-2'
-                    >
-                        <button
-                            id='slackImportTheme'
-                            className='theme style--none color--link'
-                            onClick={this.handleImportModal}
-                        >
-                            <FormattedMessage
-                                id='user.settings.display.theme.import'
-                                defaultMessage='Import theme colors from Slack'
-                            />
-                        </button>
                     </div>,
                 );
             }

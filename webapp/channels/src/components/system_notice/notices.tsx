@@ -127,7 +127,7 @@ const notices: Notice[] = [
             const USERS_THRESHOLD = 10000;
 
             // If we don't have the analytics yet, don't show
-            if (!analytics?.hasOwnProperty('TOTAL_USERS')) {
+            if (!analytics || Object.hasOwn(analytics, 'TOTAL_USERS')) {
                 return false;
             }
 

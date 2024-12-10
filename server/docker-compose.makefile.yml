@@ -29,6 +29,7 @@ services:
     container_name: mattermost-minio
     ports:
       - "9000:9000"
+      - "9002:9002"
     extends:
         file: build/docker-compose.common.yml
         service: minio

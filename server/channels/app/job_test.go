@@ -25,7 +25,6 @@ func TestGetJob(t *testing.T) {
 
 	_, err := th.App.Srv().Store().Job().Save(status)
 	require.NoError(t, err)
-
 	defer func() {
 		_, err = th.App.Srv().Store().Job().Delete(status.Id)
 		require.NoError(t, err)
@@ -244,10 +243,9 @@ func TestGetJobByType(t *testing.T) {
 	for _, status := range statuses {
 		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
-
 		defer func() {
-			_, deleteErr := th.App.Srv().Store().Job().Delete(status.Id)
-			require.NoError(t, deleteErr)
+			_, err = th.App.Srv().Store().Job().Delete(status.Id)
+			require.NoError(t, err)
 		}()
 	}
 
@@ -293,8 +291,8 @@ func TestGetJobsByTypes(t *testing.T) {
 		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
 		defer func() {
-			_, deleteErr := th.App.Srv().Store().Job().Delete(status.Id)
-			require.NoError(t, deleteErr)
+			_, err = th.App.Srv().Store().Job().Delete(status.Id)
+			require.NoError(t, err)
 		}()
 	}
 
