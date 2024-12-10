@@ -305,7 +305,7 @@ func (ps *PlatformService) RemoveLicense() *model.AppError {
 	ps.SetLicense(nil)
 
 	if err := ps.ReloadConfig(); err != nil {
-		ps.logger.Warn("Failed to reload config", mlog.Err(err))
+		ps.logger.Warn("Failed to reload config after a license got removed", mlog.Err(err))
 	}
 	if err := ps.InvalidateAllCaches(); err != nil {
 		ps.logger.Warn("Failed to invalidate caches", mlog.Err(err))
