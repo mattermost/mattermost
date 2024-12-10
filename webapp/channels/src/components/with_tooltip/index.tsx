@@ -16,10 +16,11 @@ import {
     useTransitionStyles,
     FloatingArrow,
     flip,
+    useMergeRefs,
 } from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useRef, useState, memo, useMemo, cloneElement, isValidElement} from 'react';
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
@@ -75,7 +76,7 @@ interface Props {
     * Callback when the tooltip appears
    */
     onOpen?: () => void;
-    children: ReactNode;
+    children: ReactElement;
 }
 
 function WithTooltip({
@@ -158,12 +159,13 @@ function WithTooltip({
     if (!isValidElement(children)) {
         // eslint-disable-next-line no-console
         console.error('Children must be a valid React element for WithTooltip');
-        return null;
     }
+
+    const mergedRefs = useMergeRefs([(children as any)?.ref, setReference]);
 
     const trigger = cloneElement(children, {
         ...getReferenceProps({
-            ref: setReference,
+            ref: mergedRefs,
             ...children.props,
         }),
     });
