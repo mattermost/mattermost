@@ -50,11 +50,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-type postModifierFunc func(*model.Post) *model.Post
-
-func noOpPostModifier(post *model.Post) *model.Post {
-	return post
-}
+type PostOptions func(*model.Post)
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
@@ -451,11 +447,7 @@ func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2
 	return channel
 }
 
-func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
-	return th.CreatePostWithModifier(channel, noOpPostModifier)
-}
-
-func (th *TestHelper) CreatePostWithModifier(channel *model.Channel, postModifier postModifierFunc) *model.Post {
+func (th *TestHelper) CreatePost(channel *model.Channel, postOptions ...PostOptions) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -465,7 +457,9 @@ func (th *TestHelper) CreatePostWithModifier(channel *model.Channel, postModifie
 		CreateAt:  model.GetMillis() - 10000,
 	}
 
-	post = postModifier(post)
+	for _, option := range postOptions {
+		option(post)
+	}
 
 	var err *model.AppError
 	if post, err = th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {

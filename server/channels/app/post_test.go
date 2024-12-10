@@ -3895,14 +3895,12 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
-			return post
 		})
 
-		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
-			return post
 		})
 
 		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
@@ -3930,14 +3928,12 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
-			return post
 		})
 
-		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
-			return post
 		})
 
 		_, appErr := th.App.DeletePost(th.Context, post1.Id, th.BasicUser.Id)
@@ -3971,14 +3967,12 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
-			return post
 		})
 
-		post2 := th.CreatePostWithModifier(th.BasicChannel, func(post *model.Post) *model.Post {
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
-			return post
 		})
 
 		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post1.Id)
