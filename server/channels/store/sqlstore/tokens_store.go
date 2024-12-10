@@ -14,10 +14,20 @@ import (
 
 type SqlTokenStore struct {
 	*SqlStore
+
+	tokenSelectQuery sq.SelectBuilder
 }
 
 func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
-	return &SqlTokenStore{sqlStore}
+	s := SqlTokenStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tokenSelectQuery = s.getQueryBuilder().
+		Select("token", "createat", "type", "extra").
+		From("Tokens")
+
+	return &s
 }
 
 func (s SqlTokenStore) Save(token *model.Token) error {
@@ -48,9 +58,7 @@ func (s SqlTokenStore) Delete(token string) error {
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	var token model.Token
 
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Tokens").
+	query, args, err := s.tokenSelectQuery.
 		Where(sq.Eq{"Token": tokenString}).
 		ToSql()
 
@@ -73,9 +81,7 @@ func (s SqlTokenStore) Cleanup(expiryTime int64) {
 
 func (s SqlTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
 	tokens := []*model.Token{}
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Tokens").
+	query, args, err := s.tokenSelectQuery.
 		Where(sq.Eq{"Type": tokenType}).
 		ToSql()
 	if err != nil {
