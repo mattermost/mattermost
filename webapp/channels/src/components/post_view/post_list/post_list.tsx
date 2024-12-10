@@ -137,6 +137,9 @@ export interface Props {
     shouldStartFromBottomWhenUnread: boolean;
     hasInaccessiblePosts: boolean;
 
+    deactivatedChannel: boolean;
+    channelIsArchived: boolean;
+
     actions: {
 
         /*
@@ -167,6 +170,8 @@ export interface Props {
 
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
+
+        goToLastViewedChannel: () => Promise<ActionResult>;
     };
 }
 
@@ -185,6 +190,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         changeUnreadChunkTimeStamp: (lastViewedAt: number) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;
         toggleShouldStartFromBottomWhenUnread: () => void;
+        goToLastViewedChannel: () => Promise<ActionResult>;
     };
     private mounted: boolean | undefined;
 
@@ -209,6 +215,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             changeUnreadChunkTimeStamp: props.changeUnreadChunkTimeStamp,
             toggleShouldStartFromBottomWhenUnread: props.toggleShouldStartFromBottomWhenUnread,
             updateNewMessagesAtInChannel: this.props.actions.updateNewMessagesAtInChannel,
+            goToLastViewedChannel: this.props.actions.goToLastViewedChannel,
         };
     }
 
@@ -384,6 +391,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                         className='post-list__content'
                     >
                         <VirtPostList
+                            deactivatedChannel={this.props.deactivatedChannel}
+                            channelIsArchived={this.props.channelIsArchived}
                             loadingNewerPosts={this.state.loadingNewerPosts}
                             loadingOlderPosts={this.state.loadingOlderPosts}
                             atOldestPost={this.props.atOldestPost}

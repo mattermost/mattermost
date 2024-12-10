@@ -7,11 +7,7 @@ import {withRouter} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {
-    getCurrentChannel,
-    getMyChannelMembership,
-    isDeactivatedDirectChannel,
-} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
@@ -43,7 +39,6 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         channelId: channel ? channel.id : '',
-        deactivatedChannel: channel ? isDeactivatedDirectChannel(state, channel.id) : false,
         enableOnboardingFlow,
         channelIsArchived: channel ? channel.delete_at !== 0 : false,
         viewArchivedChannels,

@@ -10,7 +10,6 @@ import type {Props} from './channel_view';
 describe('components/channel_view', () => {
     const baseProps: Props = {
         channelId: 'channelId',
-        deactivatedChannel: false,
         history: {} as Props['history'],
         location: {} as Props['location'],
         match: {
@@ -39,16 +38,6 @@ describe('components/channel_view', () => {
             <ChannelView
                 {...baseProps}
                 channelIsArchived={true}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    it('Should match snapshot if channel is deactivated', () => {
-        const wrapper = shallow(
-            <ChannelView
-                {...baseProps}
-                deactivatedChannel={true}
             />,
         );
         expect(wrapper).toMatchSnapshot();
