@@ -55,7 +55,6 @@ const ToggleInfo = ({channel}: Props) => {
                 onClick={toggleRHS}
                 labels={text}
             />
-            <Menu.Separator/>
         </>
     );
 };

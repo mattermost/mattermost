@@ -19,13 +19,13 @@ import {Constants} from 'utils/constants';
 
 import MenuItemAddMembers from '../menu_items/add_channel_members/add_channel_members';
 import MenuItemArchiveChannel from '../menu_items/archive_channel/archive_channel';
+import MenuItemChannelSettings from '../menu_items/channel_settings/channel_settings';
 import MenuItemCloseChannel from '../menu_items/close_channel/close_channel';
-import MenuItemConvertToPrivate from '../menu_items/convert_public_to_private/convert_public_to_private';
-import MenuItemEditChannelData from '../menu_items/edit_channel_data/edit_channel_data';
 import MenuItemGroupsMenuItems from '../menu_items/groups/groups';
 import MenuItemLeaveChannel from '../menu_items/leave_channel/leave_channel';
 import MenuItemNotification from '../menu_items/notification/notification';
 import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs/open_members_rhs';
+import MenuItemPluginItems from '../menu_items/plugins_submenu/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
@@ -50,7 +50,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
 
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
-    const channelPropertiesPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
     const channelUnarchivePermission = Permissions.MANAGE_TEAM;
 
@@ -59,7 +58,25 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
             <MenuItemToggleInfo
                 channel={channel}
             />
-            <ChannelMoveToSubMenu channel={channel}/>
+            <MenuItemToggleMuteChannel
+                id='channelToggleMuteChannel'
+                user={user}
+                channel={channel}
+                isMuted={isMuted}
+            />
+            {!isArchived && (
+                <>
+                    <MenuItemNotification
+                        user={user}
+                        channel={channel}
+                    />
+                    <MenuItemChannelSettings
+                        isReadonly={isReadonly}
+                        isDefault={isDefault}
+                        channel={channel}
+                    />
+                </>
+            )}
             <Menu.Separator/>
             {isMobile && (
                 <>
@@ -70,22 +87,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                     <MenuItemViewPinnedPosts
                         channelID={channel.id}
                     />
+                    <Menu.Separator/>
                 </>
             )}
-            {!isArchived && (
-                <MenuItemNotification
-                    user={user}
-                    channel={channel}
-                />
-            )}
-
-            <MenuItemToggleMuteChannel
-                id='channelToggleMuteChannel'
-                user={user}
-                channel={channel}
-                isMuted={isMuted}
-            />
-            <Menu.Separator/>
 
             {(!isArchived && !isGroupConstrained && !isDefault) && (
                 <ChannelPermissionGate
@@ -158,38 +162,21 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                 </>
             )}
 
+            
+
             <Menu.Separator/>
-
-            {!isArchived && (
-                <ChannelPermissionGate
-                    channelId={channel.id}
-                    teamId={channel.team_id}
-                    permissions={[channelPropertiesPermission]}
-                >
-                    <MenuItemEditChannelData
-                        isReadonly={isReadonly}
-                        channel={channel}
-                    />
-                </ChannelPermissionGate>
-            )}
-
-            {!isArchived && !isDefault && channel.type === Constants.OPEN_CHANNEL && (
-                <ChannelPermissionGate
-                    channelId={channel.id}
-                    teamId={channel.team_id}
-                    permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE]}
-                >
-                    <MenuItemConvertToPrivate
-                        channel={channel}
-                    />
-                </ChannelPermissionGate>
-            )}
-
+            <ChannelMoveToSubMenu channel={channel}/>
+            <MenuItemPluginItems pluginItems={pluginItems}/>
+            <Menu.Separator/>
             {!isDefault && !isGuest(user.roles) && (
                 <MenuItemLeaveChannel
                     id='channelLeaveChannel'
                     channel={channel}
                 />
+            )}
+
+            {isArchived && (
+                <MenuItemCloseChannel/>
             )}
 
             {!isArchived && !isDefault && (
@@ -203,13 +190,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                     />
                 </ChannelPermissionGate>
             )}
-
-            {isArchived && (
-                <MenuItemCloseChannel/>
-            )}
-
-            <Menu.Separator/>
-            {pluginItems}
 
             {isArchived && !isDefault && (
                 <ChannelPermissionGate

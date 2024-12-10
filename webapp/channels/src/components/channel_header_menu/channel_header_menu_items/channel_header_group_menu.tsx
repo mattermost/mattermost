@@ -19,6 +19,7 @@ import CloseMessage from '../menu_items/close_message/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private/convert_gm_to_private';
 import EditConversationHeader from '../menu_items/edit_conversation_header/edit_conversation_header';
 import MenuItemNotification from '../menu_items/notification/notification';
+import MenuItemPluginItems from '../menu_items/plugins_submenu/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
@@ -38,8 +39,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
 
     return (
         <>
-            <ChannelMoveToSubMenu channel={channel}/>
-            <Menu.Separator/>
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel
@@ -51,18 +50,26 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     />
                 </>
             )}
-            { !isArchived && (
-                <MenuItemNotification
-                    user={user}
-                    channel={channel}
-                />
-            )}
             <MenuItemToggleMuteChannel
                 id='channelToggleMuteChannel'
                 user={user}
                 channel={channel}
                 isMuted={isMuted}
             />
+            { !isArchived && (
+                <MenuItemNotification
+                    user={user}
+                    channel={channel}
+                />
+            )}
+            <EditConversationHeader
+                channel={channel}
+            />
+            {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
+                <MenuItemConvertToPrivate
+                    channel={channel}
+                />
+            )}
             <Menu.Separator/>
             {(!isArchived && !isGroupConstrained) && (
                 <ChannelPermissionGate
@@ -74,23 +81,14 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     <Menu.Separator/>
                 </ChannelPermissionGate>
             )}
-
-            <EditConversationHeader
-                channel={channel}
-            />
-
-            {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
-                <MenuItemConvertToPrivate
-                    channel={channel}
-                />
-            )}
+            <Menu.Separator/>
+            <ChannelMoveToSubMenu channel={channel}/>
+            <MenuItemPluginItems pluginItems={pluginItems}/>
             <Menu.Separator/>
             <CloseMessage
                 currentUser={user}
                 channel={channel}
             />
-            <Menu.Separator/>
-            {pluginItems}
         </>
     );
 };

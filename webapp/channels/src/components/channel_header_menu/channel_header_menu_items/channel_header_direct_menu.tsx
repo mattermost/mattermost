@@ -12,6 +12,7 @@ import * as Menu from 'components/menu';
 
 import CloseMessage from '../menu_items/close_message/close_message';
 import EditConversationHeader from '../menu_items/edit_conversation_header/edit_conversation_header';
+import MenuItemPluginItems from '../menu_items/plugins_submenu/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
@@ -28,8 +29,12 @@ type Props = {
 const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {
     return (
         <>
-            <ChannelMoveToSubMenu channel={channel}/>
-            <Menu.Separator/>
+            <MenuItemToggleMuteChannel
+                id='channelToggleMuteChannel'
+                user={user}
+                channel={channel}
+                isMuted={isMuted}
+            />
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel
@@ -41,24 +46,17 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                     />
                 </>
             )}
-
-            <MenuItemToggleMuteChannel
-                id='channelToggleMuteChannel'
-                user={user}
-                channel={channel}
-                isMuted={isMuted}
-            />
-            <Menu.Separator/>
             <EditConversationHeader
                 channel={channel}
             />
+            <Menu.Separator/>
+            <ChannelMoveToSubMenu channel={channel}/>
+            <MenuItemPluginItems pluginItems={pluginItems}/>
             <Menu.Separator/>
             <CloseMessage
                 currentUser={user}
                 channel={channel}
             />
-            <Menu.Separator/>
-            {pluginItems}
         </>
     );
 };

@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -73,6 +74,7 @@ export default function CloseMessage(props: Props) {
     return (
         <Menu.Item
             id={id}
+            leadingElement={<CloseIcon color='#808080'/>}
             onClick={handleClose}
             labels={text}
         />
