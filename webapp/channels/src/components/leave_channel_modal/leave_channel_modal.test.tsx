@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import ConfirmModal from 'components/confirm_modal';
-import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
+import {renderWithContext} from 'tests/react_testing_utils';
+import LeaveChannelModal from './leave_channel_modal';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {
@@ -64,7 +65,7 @@ describe('components/LeaveChannelModal', () => {
         },
     };
 
-    test('should match snapshot, init', () => {
+    test('should match component state with given props', () => {
         const props = {
             channel: channels['town-square'],
             onExited: jest.fn(),
@@ -73,14 +74,20 @@ describe('components/LeaveChannelModal', () => {
             },
         };
 
-        const wrapper = shallow(
-            <LeaveChannelModal {...props}/>,
-        );
+        renderWithContext(<LeaveChannelModal {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText(/Leave Channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the channel/)).toBeInTheDocument();
+        
+        const confirmButton = screen.getByRole('button', {name: /yes, leave channel/i});
+        const cancelButton = screen.getByRole('button', {name: /cancel/i});
+        
+        expect(confirmButton).toBeInTheDocument();
+        expect(cancelButton).toBeInTheDocument();
     });
 
-    test('should fail to leave channel', () => {
+    test('should fail to leave channel', async () => {
+        const user = userEvent;
         const props = {
             channel: channels['channel-1'],
             actions: {
@@ -95,13 +102,12 @@ describe('components/LeaveChannelModal', () => {
             onExited: jest.fn(),
             callback: jest.fn(),
         };
-        const wrapper = shallow<typeof LeaveChannelModal>(
-            <LeaveChannelModal
-                {...props}
-            />,
-        );
 
-        wrapper.find(ConfirmModal).props().onConfirm?.(true);
+        renderWithContext(<LeaveChannelModal {...props}/>);
+
+        const confirmButton = screen.getByRole('button', {name: /yes/i});
+        await user.click(confirmButton);
+
         expect(props.actions.leaveChannel).toHaveBeenCalledTimes(1);
         expect(props.callback).toHaveBeenCalledTimes(0);
     });

@@ -75,7 +75,7 @@ const ChannelSelect = ({
     return (
         <select
             className='form-control'
-            value={value}
+            value={value || ''}
             onChange={onChange}
             id='channelSelect'
         >

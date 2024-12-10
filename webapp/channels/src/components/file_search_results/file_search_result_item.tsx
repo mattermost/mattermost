@@ -122,9 +122,11 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                 data-testid='search-item-container'
                 className='search-item__container'
             >
-                <button
+                <div
                     className={'FileSearchResultItem' + (this.state.keepOpen ? ' keep-open' : '')}
                     onClick={this.showPreview}
+                    role="button"
+                    tabIndex={0}
                 >
                     <FileThumbnail fileInfo={fileInfo}/>
                     <div className='fileData'>
@@ -147,19 +149,20 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     {this.props.fileInfo.post_id && (
                         <WithTooltip
                             id='file-name__tooltip'
-                            title={localizeMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
+                            title={localizeMessage('file_search_result_item.more_actions', 'More Actions')}
                             placement={'top'}
                         >
                             <MenuWrapper
                                 onToggle={this.keepOpen}
                                 stopPropagationOnToggle={true}
                             >
-                                <a
-                                    href='#'
+                                <button
+                                    type='button'
                                     className='action-icon dots-icon'
+                                    aria-label='More Actions'
                                 >
                                     <i className='icon icon-dots-vertical'/>
-                                </a>
+                                </button>
                                 <Menu
                                     ariaLabel={'file menu'}
                                     openLeft={true}
@@ -181,18 +184,19 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     )}
                     <WithTooltip
                         id='file-name__tooltip'
-                        title={localizeMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
+                        title={localizeMessage('file_search_result_item.download', 'Download')}
                         placement={'top'}
                     >
                         <a
                             className='action-icon download-icon'
                             href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
+                            aria-label='Download'
                         >
                             <i className='icon icon-download-outline'/>
                         </a>
                     </WithTooltip>
-                </button>
+                </div>
             </div>
         );
     }
