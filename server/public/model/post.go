@@ -75,6 +75,7 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
+	PostPropsForceNotification        = "force_notification"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -339,8 +340,9 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 }
 
 type CreatePostFlags struct {
-	TriggerWebhooks bool
-	SetOnline       bool
+	TriggerWebhooks   bool
+	SetOnline         bool
+	ForceNotification bool
 }
 
 type GetPostsSinceOptions struct {
@@ -435,7 +437,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {
@@ -500,6 +503,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
+		PostPropsForceNotification,
 	}
 
 	for _, member := range membersToSanitize {
@@ -523,17 +527,17 @@ func (o *Post) SanitizeInput() {
 }
 
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {
@@ -929,6 +933,10 @@ func (o *Post) GetRequestedAck() *bool {
 func (o *Post) IsUrgent() bool {
 	postPriority := o.GetPriority()
 	if postPriority == nil {
+		return false
+	}
+
+	if postPriority.Priority == nil {
 		return false
 	}
 

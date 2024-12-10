@@ -269,71 +269,71 @@ fullEmoji.forEach((emoji, index) => {
 });
 
 function trimPropertiesFromEmoji(emoji) {
-    if (emoji.hasOwnProperty('non_qualified')) {
+    if (Object.hasOwn(emoji, 'non_qualified')) {
         Reflect.deleteProperty(emoji, 'non_qualified');
     }
 
-    if (emoji.hasOwnProperty('docomo')) {
+    if (Object.hasOwn(emoji, 'docomo')) {
         Reflect.deleteProperty(emoji, 'docomo');
     }
 
-    if (emoji.hasOwnProperty('au')) {
+    if (Object.hasOwn(emoji, 'au')) {
         Reflect.deleteProperty(emoji, 'au');
     }
 
-    if (emoji.hasOwnProperty('softbank')) {
+    if (Object.hasOwn(emoji, 'softbank')) {
         Reflect.deleteProperty(emoji, 'softbank');
     }
 
-    if (emoji.hasOwnProperty('google')) {
+    if (Object.hasOwn(emoji, 'google')) {
         Reflect.deleteProperty(emoji, 'google');
     }
 
-    if (emoji.hasOwnProperty('sheet_x')) {
+    if (Object.hasOwn(emoji, 'sheet_x')) {
         Reflect.deleteProperty(emoji, 'sheet_x');
     }
 
-    if (emoji.hasOwnProperty('sheet_y')) {
+    if (Object.hasOwn(emoji, 'sheet_y')) {
         Reflect.deleteProperty(emoji, 'sheet_y');
     }
 
-    if (emoji.hasOwnProperty('added_in')) {
+    if (Object.hasOwn(emoji, 'added_in')) {
         Reflect.deleteProperty(emoji, 'added_in');
     }
 
-    if (emoji.hasOwnProperty('has_img_apple')) {
+    if (Object.hasOwn(emoji, 'has_img_apple')) {
         Reflect.deleteProperty(emoji, 'has_img_apple');
     }
 
-    if (emoji.hasOwnProperty('has_img_google')) {
+    if (Object.hasOwn(emoji, 'has_img_google')) {
         Reflect.deleteProperty(emoji, 'has_img_google');
     }
 
-    if (emoji.hasOwnProperty('has_img_twitter')) {
+    if (Object.hasOwn(emoji, 'has_img_twitter')) {
         Reflect.deleteProperty(emoji, 'has_img_twitter');
     }
 
-    if (emoji.hasOwnProperty('has_img_facebook')) {
+    if (Object.hasOwn(emoji, 'has_img_facebook')) {
         Reflect.deleteProperty(emoji, 'has_img_facebook');
     }
 
-    if (emoji.hasOwnProperty('source_index')) {
+    if (Object.hasOwn(emoji, 'source_index')) {
         Reflect.deleteProperty(emoji, 'source_index');
     }
 
-    if (emoji.hasOwnProperty('sort_order')) {
+    if (Object.hasOwn(emoji, 'sort_order')) {
         Reflect.deleteProperty(emoji, 'sort_order');
     }
 
-    if (emoji.hasOwnProperty('subcategory')) {
+    if (Object.hasOwn(emoji, 'subcategory')) {
         Reflect.deleteProperty(emoji, 'subcategory');
     }
 
-    if (emoji.hasOwnProperty('image')) {
+    if (Object.hasOwn(emoji, 'image')) {
         Reflect.deleteProperty(emoji, 'image');
     }
 
-    if (emoji.hasOwnProperty('fileName')) {
+    if (Object.hasOwn(emoji, 'fileName')) {
         Reflect.deleteProperty(emoji, 'fileName');
     }
 
@@ -433,19 +433,21 @@ for (const key of emojiFilePositions.keys()) {
     cssEmojis.push(`.emoji-${key} { background-position: ${emojiFilePositions.get(key)} }`);
 }
 
-const cssRules = `
-@charset "UTF-8";
-
-.emojisprite-preview {
+const cssRules = `.emojisprite-preview {
     width: ${EMOJI_SIZE_PADDED}px;
     max-width: none;
     height: ${EMOJI_SIZE_PADDED}px;
     background-repeat: no-repeat;
     cursor: pointer;
     -moz-transform: scale(0.5);
+    transform: scale(0.5);
     transform-origin: 0 0;
-    // Using zoom for now as it results in less blurry emojis on Chrome - MM-34178
-    zoom: 0.5;
+
+    @supports (zoom: 0.5) {
+        -moz-transform: none;
+        transform: none;
+        zoom: 0.5;
+    }
 }
 
 .emojisprite {
@@ -456,7 +458,7 @@ const cssRules = `
     border-radius: 18px;
     cursor: pointer;
     -moz-transform: scale(0.35);
-    zoom: 0.35;
+    transform: scale(0.35);
 }
 
 .emojisprite-loading {
@@ -468,7 +470,16 @@ const cssRules = `
     border-radius: 18px;
     cursor: pointer;
     -moz-transform: scale(0.35);
-    zoom: 0.35;
+    transform: scale(0.35);
+}
+
+@supports (zoom: 0.35) {
+    .emojisprite,
+    .emojisprite-loading {
+        -moz-transform: none;
+        transform: none;
+        zoom: 0.35;
+    }
 }
 
 ${cssCats.join('\n')}

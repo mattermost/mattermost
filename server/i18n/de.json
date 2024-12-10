@@ -2295,10 +2295,6 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Konnte die Multipart-Daten des eingehenden Webhooks nicht entschlüsseln."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Indexe nicht löschen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte die Indexe nicht löschen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte Indexe nicht abrufen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte Indexe nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
+    "translation": "{{.Backend}}-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
+    "translation": "Fehler beim Einrichten des {{.Backend}}-Client"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Konnte Elasticsearch-Index nicht löschen"
+    "translation": "Konnte {{.Backend}}-Index nicht löschen"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Konnte Elasticsearch-Index nicht abrufen"
+    "translation": "Konnte {{.Backend}}-Index nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4764,11 +4760,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 126+"
+    "translation": "Version 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5036,15 +5032,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Benutzer"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Benutzer"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Nachrichten"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Nachrichten"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Kanäle"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Kanäle"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -8231,7 +8227,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Konnte Elasticsearch Vorlage für Dateien nicht erstellen"
+    "translation": "Konnte {{.Backend}} Vorlage für Dateien nicht erstellen"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8923,7 +8919,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Du kannst in einem archivierten Kanal nicht bestätigen."
+    "translation": "Du kannst eine Bestätigung nicht in einem archivierten Kanal speichern."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8947,19 +8943,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Die Client-Schlüsseldatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Schlüsseldatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Die Client-Zertifikatsdatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Zertifikatsdatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Dekodierung des Client-Zertifikats für Elasticsearch fehlgeschlagen"
+    "translation": "Dekodierung des Client-Zertifikats für {{.Backend}} fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die CA-Datei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10196,5 +10192,219 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Die Nachricht konnte nicht dauerhaft gelöscht werden."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kann keinen direkten Kanal mit einem entfernten Benutzer erstellen"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kann keinen Gruppen-Kanal mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Der Inhalt der Lizenzdatei konnte nicht in den Puffer kopiert werden"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Konnte keine Einladung für Remote-Cluster erstellen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kann den Beitrag nicht in einer direkten- oder Gruppen-Nachricht mit entfernten Benutzern erstellen"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ungültige Remote-ID."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ungültiger Token."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ungültige URL der Website."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Die Funktion für zeitgesteuerte Beiträge ist deaktiviert"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Die Funktion \"Zeitgesteuerte Beiträge\" erfordert eine Lizenz"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Konnte den Bot nicht aktualisieren."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Der geplante Beitrag konnte nicht aus der Datenbank gelöscht werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu löschen."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Beim Abrufen der zeitgesteurten Beiträge ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Besitzer des Bots kann nicht gefunden werden"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Die Importdatenzeile hat den Typ \"bot\", aber das Bot-Objekt ist null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot-Besitzer fehlt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Du kannst keinen Beitrag in einem archivierten Channel planen."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Beim Speichern des zeitgesteuerten Beitrags ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Aktualisierter zeitgesteuerter Beitrag konnte nicht in der Datenbank gespeichert werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu aktualisieren."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Ein leerer Beitrag kann nicht zeitgesteuert werden. Ein zeitgesteuerter Beitrag muss mindestens eine Nachricht oder einen Dateianhang enthalten."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zeitgesteuerte Beiträge müssen eine ID haben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Die Nachricht kann nicht erstellt werden"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kann die System Bot-Direktnachricht nicht erhalten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kann den Benutzer nicht holen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Wenn du diese Testbenachrichtigung erhalten hast, hat es funktioniert!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kann den Systembot nicht holen"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Es ist nicht möglich, den Anfang der GIF-Daten zu suchen."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanal ist archiviert"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanal nicht gefunden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ungültiger Nachrichteninhalt"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Kein Mitglied des Kanals"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Keine Erlaubnis zum Posten im Kanal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Die Unterhaltung wurde gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Die Nachricht kann nicht gesendet werden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unbekannter Fehler"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privater Kanal"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}",
+      "other": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Benutzerkonto ist gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Benutzer existiert nicht"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Der Versand von einem geplanten Beitrag ist fehlgeschlagen.",
+      "other": "Der Versand von {{.Count}} geplanten Beiträgen ist fehlgeschlagen."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Geplante Beiträge für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unbekannter Kanal"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ungültige Speicherklasse {{.Value}}."
   }
 ]

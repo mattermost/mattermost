@@ -982,7 +982,7 @@ func TestCreatePost(t *testing.T) {
 		sqlStore := th.GetSqlStore()
 		sql := fmt.Sprintf("select count(*) from Posts where Id = '%[1]s' or OriginalId = '%[1]s';", previewPost.Id)
 		var val int64
-		err2 := sqlStore.GetMasterX().Get(&val, sql)
+		err2 := sqlStore.GetMaster().Get(&val, sql)
 		require.NoError(t, err2)
 
 		require.EqualValues(t, int64(1), val)
@@ -1177,6 +1177,37 @@ func TestCreatePost(t *testing.T) {
 		}
 
 		wg.Wait()
+	})
+
+	t.Run("should sanitize the force notifications prop if the flag is not set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		postToCreate.AddProp(model.PostPropsForceNotification, model.NewId())
+		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("should add the force notifications prop if the flag is set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		postToCreate := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
+		require.Nil(t, err)
+		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
 }
 
@@ -2992,7 +3023,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			AuthData:      ptrStr("bobbytables"),
+			AuthData:      model.NewPointer("bobbytables"),
 			AuthService:   "saml",
 			EmailVerified: true,
 		})
@@ -3737,5 +3768,15 @@ func TestPermanentDeletePost(t *testing.T) {
 		infos, sErr = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
 		require.NoError(t, sErr)
 		assert.Len(t, infos, 0)
+	})
+}
+
+func TestSendTestMessage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	t.Run("Should create the post with the correct prop", func(t *testing.T) {
+		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
+		assert.Nil(t, result)
+		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
 	})
 }

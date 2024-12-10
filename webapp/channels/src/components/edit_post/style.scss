@@ -1,0 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.post--editing__wrapper {
+    position: relative;
+
+    textarea, #edit_textbox_placeholder {
+        padding: 13px 16px 12px 16px;
+        padding-right: 50px;
+    }
+
+    .edit-post-footer {
+        &.has-error {
+            color: rgb(var(--dnd-indicator-rgb));
+        }
+    }
+}
