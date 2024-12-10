@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import PostReaction from './post_reaction';
+import PostReaction, {type PostReaction as PostReactionComponent} from './post_reaction';
 
 describe('components/post_view/PostReaction', () => {
     const baseProps = {
@@ -23,13 +23,13 @@ describe('components/post_view/PostReaction', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<PostReaction {...baseProps}/>);
+        const wrapper = shallowWithIntl(<PostReaction {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should call toggleReaction and toggleEmojiPicker on handleToggleEmoji', () => {
-        const wrapper = shallow(<PostReaction {...baseProps}/>);
-        const instance = wrapper.instance() as PostReaction;
+        const wrapper = shallowWithIntl(<PostReaction {...baseProps}/>);
+        const instance = wrapper.instance() as PostReactionComponent;
 
         instance.handleToggleEmoji(TestHelper.getCustomEmojiMock({name: 'smile'}));
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledTimes(1);
