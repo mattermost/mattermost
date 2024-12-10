@@ -1,19 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
+
 const defaultState = {
     post: {},
     show: false,
 };
 
-function editingPost(state = defaultState, action: AnyAction) {
+function editingPost(state = defaultState, action: MMAction) {
     switch (action.type) {
     case ActionTypes.TOGGLE_EDITING_POST:
         return {
@@ -28,7 +29,7 @@ function editingPost(state = defaultState, action: AnyAction) {
     }
 }
 
-function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: AnyAction) {
+function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_ATTACHMENT_MENU_ACTION: {
         const nextState = {...state};

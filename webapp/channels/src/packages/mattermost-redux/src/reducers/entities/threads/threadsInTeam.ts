@@ -7,6 +7,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import type {ExtraData} from './types';
@@ -242,7 +243,7 @@ function handleSingleTeamThreadRead(state: ThreadsState['unreadThreadsInTeam'], 
     };
 }
 
-export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, action: AnyAction, extra: ExtraData) => {
+export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, action: MMReduxAction, extra: ExtraData) => {
     switch (action.type) {
     case ThreadTypes.RECEIVED_THREAD:
         return handleReceivedThread(state, action, extra);
@@ -262,7 +263,7 @@ export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, 
     return state;
 };
 
-export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInTeam'] = {}, action: AnyAction, extra: ExtraData) => {
+export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInTeam'] = {}, action: MMReduxAction, extra: ExtraData) => {
     switch (action.type) {
     case ThreadTypes.READ_CHANGED_THREAD: {
         const {teamId} = action.data;
