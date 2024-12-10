@@ -72,7 +72,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		s.Require().NoError(err)
 
 		s.Require().NotEmpty(printer.GetLines())
-		s.Require().Equal(printer.GetLines()[0], map[string]interface{}{"status": "ok"})
+		s.Require().Equal(printer.GetLines()[0], map[string]any{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// we need to wait a bit for job creation

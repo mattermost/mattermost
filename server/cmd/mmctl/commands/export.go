@@ -205,7 +205,7 @@ func exportGeneratePresignedURLCmdF(c client.Client, command *cobra.Command, arg
 		return fmt.Errorf("failed to generate export link: %w", err)
 	}
 
-	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]interface{}{
+	printer.PrintT("Export link: {{.Link}}\nExpiration: {{.Expiration}}", map[string]any{
 		"Link":       presignedURL.URL,
 		"Expiration": presignedURL.Expiration.String(),
 	})

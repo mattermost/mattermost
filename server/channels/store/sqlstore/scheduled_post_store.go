@@ -48,8 +48,8 @@ func (s *SqlScheduledPostStore) columns(prefix string) []string {
 	}
 }
 
-func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []interface{} {
-	return []interface{}{
+func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []any {
+	return []any{
 		scheduledPost.Id,
 		scheduledPost.CreateAt,
 		scheduledPost.UpdateAt,
@@ -230,9 +230,9 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 	return nil
 }
 
-func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]interface{} {
+func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]any {
 	now := model.GetMillis()
-	return map[string]interface{}{
+	return map[string]any{
 		"UpdateAt":    now,
 		"Message":     scheduledPost.Message,
 		"Props":       model.StringInterfaceToJSON(scheduledPost.GetProps()),
