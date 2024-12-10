@@ -415,7 +415,6 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var initBasicOnce sync.Once
 var userCache struct {
 	SystemAdminUser   *model.User
 	SystemManagerUser *model.User
@@ -427,40 +426,27 @@ var userCache struct {
 func (th *TestHelper) InitLogin() *TestHelper {
 	th.waitForConnectivity()
 
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateUser()
-		_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		require.Nil(th.TB, appErr)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+	// create users
+	th.SystemAdminUser = th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(th.TB, appErr)
+	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
-		th.SystemManagerUser = th.CreateUser()
-		_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
-		require.Nil(th.TB, appErr)
-		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
-		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
+	th.SystemManagerUser = th.CreateUser()
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+	require.Nil(th.TB, appErr)
+	th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 
-		th.TeamAdminUser = th.CreateUser()
-		_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
-		require.Nil(th.TB, appErr)
-		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
-		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
+	th.TeamAdminUser = th.CreateUser()
+	_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+	require.Nil(th.TB, appErr)
+	th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.BasicUser = th.CreateUser()
+	th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
 
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.SystemManagerUser = userCache.SystemManagerUser.DeepCopy()
-	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
 
 	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
 	err := mainHelper.GetSQLStore().User().InsertUsers(users)
