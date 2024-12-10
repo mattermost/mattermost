@@ -1412,6 +1412,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
+		if replyData.Props != nil {
+			reply.Props = *replyData.Props
+		}
 		if replyData.Type != nil {
 			reply.Type = *replyData.Type
 		}
