@@ -4374,6 +4374,27 @@ func (s *RetryLayerFileInfoStore) DeleteForPost(c request.CTX, postID string) (s
 
 }
 
+func (s *RetryLayerFileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.DeleteForPostByIds(rctx, postId, fileIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 
 	tries := 0

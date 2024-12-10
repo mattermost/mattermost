@@ -105,7 +105,7 @@ type Post struct {
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids"`
 	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
@@ -437,7 +437,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {
