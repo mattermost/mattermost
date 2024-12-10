@@ -4,9 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
-	"fmt"
-
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -51,12 +48,18 @@ func (s SqlTokenStore) Delete(token string) error {
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	var token model.Token
 
-	if err := s.GetReplicaX().Get(&token, "SELECT * FROM Tokens WHERE Token = ?", tokenString); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
-		}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Tokens").
+		Where(sq.Eq{"Token": tokenString}).
+		ToSql()
 
-		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get token store")
+	}
+
+	if err := s.GetReplicaX().Select(&token, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get token store for tokenString=%s", tokenString)
 	}
 
 	return &token, nil
