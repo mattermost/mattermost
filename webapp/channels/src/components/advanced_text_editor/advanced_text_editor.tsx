@@ -613,13 +613,14 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            <PostBoxIndicator
-                channelId={channelId}
-                teammateDisplayName={teammateDisplayName}
-                location={location}
-                postId={postId}
-                isInEditMode={isInEditMode}
-            />
+            {isInEditMode && (
+                <PostBoxIndicator
+                    channelId={channelId}
+                    teammateDisplayName={teammateDisplayName}
+                    location={location}
+                    postId={postId}
+                />
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -719,10 +720,11 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
-            <EditPostFooter
-                onSave={noArgumentHandleSubmit}
-                isInEditMode={isInEditMode}
-            />
+            {isInEditMode && (
+                <EditPostFooter
+                    onSave={noArgumentHandleSubmit}
+                />
+            )}
             <Footer
                 postError={postError}
                 errorClass={errorClass}

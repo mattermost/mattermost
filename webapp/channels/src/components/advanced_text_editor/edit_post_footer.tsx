@@ -11,7 +11,6 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 import {isMac} from 'utils/user_agent';
 
 type Props = {
-    isInEditMode: boolean;
     onSave: () => void;
 }
 
@@ -23,10 +22,6 @@ export default function EditPostFooter(props: Props) {
 
     function handleCancel() {
         dispatch(unsetEditingPost());
-    }
-
-    if (!props.isInEditMode) {
-        return null;
     }
 
     return (

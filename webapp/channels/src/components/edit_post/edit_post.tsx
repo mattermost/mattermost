@@ -37,8 +37,6 @@ export default function EditPost() {
                 isInEditMode={true}
                 storageKey={storageKey}
                 placeholder={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}
-
-                // afterSubmit={afterSubmit}
             />
         </div>
     );
