@@ -48,6 +48,7 @@ type MenuButtonTooltipProps = {
     isVertical?: boolean;
     class?: string;
     text: string;
+    disabled?: boolean;
 }
 
 type MenuProps = {
@@ -84,7 +85,6 @@ interface Props {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
     };
-    hideTooltipWhenDisabled?: boolean;
 }
 
 /**
@@ -208,7 +208,7 @@ export function Menu(props: Props) {
                 <WithTooltip
                     title={props.menuButtonTooltip.text}
                     isVertical={props.menuButtonTooltip?.isVertical ?? true}
-                    disabled={props.hideTooltipWhenDisabled ? props.menuButton.disabled || isMenuOpen : isMenuOpen}
+                    disabled={isMenuOpen || props.menuButton?.disabled}
                 >
                     {triggerElement}
                 </WithTooltip>

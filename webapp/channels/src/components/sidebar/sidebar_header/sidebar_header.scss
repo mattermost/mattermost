@@ -1,0 +1,26 @@
+.sidebarHeader {
+    color: var(--sidebar-text);
+    cursor: pointer;
+    display: flex;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    font-family: Metropolis, sans-serif;
+    margin: 0;
+
+    .title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .icon-chevron-down {
+        margin-left: -3px;
+        margin-right: -1px;
+    }
+
+    #SidebarContainer & {
+        font-family: Metropolis, sans-serif;
+    }
+}
