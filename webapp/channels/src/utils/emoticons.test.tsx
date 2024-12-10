@@ -28,63 +28,63 @@ describe('Emoticons', () => {
         };
         Array.prototype.concat(...Object.values(emoticonPatterns)).forEach((emoticon) => {
             test(`text sequence '${emoticon}' should be recognized as an emoticon`, () => {
-                expect(Emoticons.handleEmoticons(emoticon, new Map())).toEqual('$MM_EMOTICON0$');
+                expect(Emoticons.handleEmoticons(emoticon, new Map(), true)).toEqual('$MM_EMOTICON0$');
             });
         });
 
         // test various uses of emoticons
         test('should replace emoticons with tokens', () => {
-            expect(Emoticons.handleEmoticons(':goat: :dash:', new Map())).
+            expect(Emoticons.handleEmoticons(':goat: :dash:', new Map(), true)).
                 toEqual('$MM_EMOTICON0$ $MM_EMOTICON1$');
         });
 
         test('should replace emoticons not separated by whitespace', () => {
-            expect(Emoticons.handleEmoticons(':goat::dash:', new Map())).
+            expect(Emoticons.handleEmoticons(':goat::dash:', new Map(), true)).
                 toEqual('$MM_EMOTICON0$$MM_EMOTICON1$');
         });
 
         test('should replace emoticons separated by punctuation', () => {
-            expect(Emoticons.handleEmoticons('/:goat:..:dash:)', new Map())).
+            expect(Emoticons.handleEmoticons('/:goat:..:dash:)', new Map(), true)).
                 toEqual('/$MM_EMOTICON0$..$MM_EMOTICON1$)');
         });
 
         test('should replace emoticons separated by text', () => {
-            expect(Emoticons.handleEmoticons('asdf:goat:asdf:dash:asdf', new Map())).
+            expect(Emoticons.handleEmoticons('asdf:goat:asdf:dash:asdf', new Map(), true)).
                 toEqual('asdf$MM_EMOTICON0$asdf$MM_EMOTICON1$asdf');
         });
 
         test('shouldn\'t replace invalid emoticons', () => {
-            expect(Emoticons.handleEmoticons(':goat : : dash:', new Map())).
+            expect(Emoticons.handleEmoticons(':goat : : dash:', new Map(), true)).
                 toEqual(':goat : : dash:');
         });
 
         test('should allow comma immediately following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons(':),', new Map())).
+            expect(Emoticons.handleEmoticons(':),', new Map(), true)).
                 toEqual('$MM_EMOTICON0$,');
         });
 
         test('should allow comma immediately following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons(':P,', new Map())).
+            expect(Emoticons.handleEmoticons(':P,', new Map(), true)).
                 toEqual('$MM_EMOTICON0$,');
         });
 
         test('should allow punctuation immediately following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons(':)!', new Map())).
+            expect(Emoticons.handleEmoticons(':)!', new Map(), true)).
                 toEqual('$MM_EMOTICON0$!');
         });
 
         test('should allow punctuation immediately following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons(':P!', new Map())).
+            expect(Emoticons.handleEmoticons(':P!', new Map(), true)).
                 toEqual('$MM_EMOTICON0$!');
         });
 
         test('should allow punctuation immediately before and following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons('":)"', new Map())).
+            expect(Emoticons.handleEmoticons('":)"', new Map(), true)).
                 toEqual('"$MM_EMOTICON0$"');
         });
 
         test('should allow punctuation immediately before and following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons('":P"', new Map())).
+            expect(Emoticons.handleEmoticons('":P"', new Map(), true)).
                 toEqual('"$MM_EMOTICON0$"');
         });
     });
