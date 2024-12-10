@@ -3128,14 +3128,13 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	t.Skip("MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
-		// Asserting that the error message is present in the log
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
 		require.NoError(t, err)
+		// Asserting that the error message is present in the log
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 	}()
 
 	cli := th.CreateClient()
