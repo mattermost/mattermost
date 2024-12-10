@@ -19,6 +19,7 @@ const actionsProp = {
     markChannelAsRead: jest.fn(),
     updateNewMessagesAtInChannel: jest.fn(),
     toggleShouldStartFromBottomWhenUnread: jest.fn(),
+    goToLastViewedChannel: jest.fn(),
 };
 
 const lastViewedAt = 1532345226632;
@@ -47,6 +48,8 @@ const baseProps = {
     isMobileView: false,
     hasInaccessiblePosts: false,
     shouldStartFromBottomWhenUnread: false,
+    deactivatedChannel: false,
+    channelIsArchived: false,
 };
 
 describe('components/post_view/post_list', () => {
