@@ -1169,7 +1169,7 @@ func TestGetPublicFile(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
 
-func TestSearchFiles(t *testing.T) {
+func TestSearchFilesInTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1317,4 +1317,62 @@ func TestSearchFiles(t *testing.T) {
 	_, resp, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "#sgtitlereview", false)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSearchFilesAcrossTeams(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
+		})
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	client := th.Client
+
+	var teams [2]*model.Team
+	var channels [2]*model.Channel
+	for i := 0; i < 2; i++ {
+		teams[i] = th.CreateTeam()
+		channels[i] = th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, teams[i].Id)
+
+		th.LinkUserToTeam(th.BasicUser, teams[i])
+		th.AddUserToChannel(th.BasicUser, channels[i])
+
+		filename := "search for fileInfo"
+		fileInfo, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
+		require.Nil(t, appErr)
+
+		th.CreatePostInChannelWithFiles(channels[i], fileInfo)
+	}
+
+	terms := "search"
+
+	// BasicUser should have access to all the files
+	fileInfos, _, err := client.SearchFilesAcrossTeams(context.Background(), terms, false)
+	require.NoError(t, err)
+	require.Len(t, fileInfos.Order, 2, "wrong search")
+
+	// a new user that only belongs to the first team should only get one result
+	newUser := th.CreateUser()
+	th.LinkUserToTeam(newUser, teams[0])
+	th.AddUserToChannel(newUser, channels[0])
+	th.UnlinkUserFromTeam(th.BasicUser, teams[1])
+
+	_, err = th.Client.Logout(context.Background())
+	require.NoError(t, err)
+	_, _, err = th.Client.Login(context.Background(), newUser.Email, newUser.Password)
+	require.NoError(t, err)
+
+	fileInfos, _, err = client.SearchFilesAcrossTeams(context.Background(), terms, false)
+	require.NoError(t, err)
+	require.Len(t, fileInfos.Order, 1, "wrong search")
+	require.Equal(t, fileInfos.FileInfos[fileInfos.Order[0]].ChannelId, channels[0].Id, "wrong search")
 }

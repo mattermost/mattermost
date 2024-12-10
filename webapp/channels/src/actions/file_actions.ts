@@ -10,11 +10,12 @@ import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
+
+import type {ThunkActionFunc} from 'types/store';
 
 export interface UploadFile {
     file: File;

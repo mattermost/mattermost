@@ -30,8 +30,8 @@ func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
 }
 
-func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
-	return w.orig.GetMasterX()
+func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
+	return w.orig.GetMaster()
 }
 
 func (w *StoreTestWrapper) DriverName() string {

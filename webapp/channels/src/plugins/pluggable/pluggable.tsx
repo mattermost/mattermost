@@ -64,7 +64,7 @@ export default function Pluggable(props: Props): JSX.Element | null {
         ...otherProps
     } = props;
 
-    if (!pluggableName || !Object.hasOwnProperty.call(components, pluggableName)) {
+    if (!pluggableName || !Object.hasOwn(components, pluggableName)) {
         return null;
     }
 
@@ -123,8 +123,8 @@ export default function Pluggable(props: Props): JSX.Element | null {
     }
 
     return (
-        <React.Fragment>
+        <>
             {content}
-        </React.Fragment>
+        </>
     );
 }
