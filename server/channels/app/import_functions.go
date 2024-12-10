@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -340,8 +341,12 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
 	rctx.Logger().Info("Validating user", fields...)
+	var basePath string
+	if a.Config().FileSettings.Directory != nil {
+		basePath = *a.Config().FileSettings.Directory
+	}
 
-	if err := imports.ValidateUserImportData(data); err != nil {
+	if err := imports.ValidateUserImportData(data, basePath); err != nil {
 		return err
 	}
 
@@ -630,7 +635,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	}
 
 	if data.Avatar.ProfileImage != nil {
-		appErr := a.importProfileImage(rctx, savedUser.Id, &data.Avatar)
+		appErr := a.importProfileImage(rctx, savedUser.Id, &data.Avatar, basePath)
 		if appErr != nil {
 			return appErr
 		}
@@ -921,8 +926,13 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 		savedBot = bot
 	}
 
+	var basePath string
+	if a.Config().FileSettings.Directory != nil {
+		basePath = *a.Config().FileSettings.Directory
+	}
+
 	if data.Avatar.ProfileImage != nil {
-		appErr := a.importProfileImage(rctx, savedBot.UserId, &data.Avatar)
+		appErr := a.importProfileImage(rctx, savedBot.UserId, &data.Avatar, basePath)
 		if appErr != nil {
 			return appErr
 		}
@@ -931,7 +941,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	return nil
 }
 
-func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.Avatar) *model.AppError {
+func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.Avatar, basePath string) *model.AppError {
 	var file io.ReadSeeker
 	var err error
 	if data.ProfileImageData != nil {
@@ -951,7 +961,7 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 			}
 		}
 	} else {
-		file, err = os.Open(*data.ProfileImage)
+		file, err = os.Open(filepath.Join(basePath, *data.ProfileImage))
 		if err != nil {
 			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {

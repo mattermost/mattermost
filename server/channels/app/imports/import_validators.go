@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -189,9 +190,10 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
-func ValidateUserImportData(data *UserImportData) *model.AppError {
+func ValidateUserImportData(data *UserImportData, basePath string) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
-		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+		dataPath := filepath.Join(basePath, *data.ProfileImage)
+		if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
 		} else if err != nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
