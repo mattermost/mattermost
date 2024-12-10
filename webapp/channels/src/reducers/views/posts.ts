@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction, Action} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {ViewsState} from 'types/store/views';
 
 const editingPostDefaultState: ViewsState['posts']['editingPost'] = {
@@ -17,11 +17,7 @@ const editingPostDefaultState: ViewsState['posts']['editingPost'] = {
     isRHS: false,
 };
 
-type EditingPostAction = Action<
-    typeof ActionTypes.TOGGLE_EDITING_POST | typeof UserTypes.LOGOUT_SUCCESS
-> & { data: ViewsState['posts']['editingPost'] };
-
-function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefaultState, action: EditingPostAction) {
+function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefaultState, action: MMAction) {
     switch (action.type) {
     case ActionTypes.TOGGLE_EDITING_POST: {
         if (action.data.show) {
@@ -40,7 +36,7 @@ function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefa
     }
 }
 
-function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: AnyAction) {
+function menuActions(state: {[postId: string]: {[actionId: string]: {text: string; value: string}}} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SELECT_ATTACHMENT_MENU_ACTION: {
         const nextState = {...state};
