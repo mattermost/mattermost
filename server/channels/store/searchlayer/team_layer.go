@@ -18,6 +18,7 @@ func (s SearchTeamStore) SaveMember(rctx request.CTX, teamMember *model.TeamMemb
 	member, err := s.TeamStore.SaveMember(rctx, teamMember, maxUsersPerTeam)
 	if err == nil {
 		s.rootStore.indexUserFromID(rctx, member.UserId)
+		s.rootStore.indexChannelsForTeam(rctx, member.TeamId)
 	}
 	return member, err
 }
@@ -34,12 +35,20 @@ func (s SearchTeamStore) RemoveMember(rctx request.CTX, teamId string, userId st
 	err := s.TeamStore.RemoveMember(rctx, teamId, userId)
 	if err == nil {
 		s.rootStore.indexUserFromID(rctx, userId)
+		s.rootStore.indexChannelsForTeam(rctx, teamId)
 	}
 	return err
 }
 
 func (s SearchTeamStore) RemoveAllMembersByUser(rctx request.CTX, userId string) error {
-	err := s.TeamStore.RemoveAllMembersByUser(rctx, userId)
+	memberships, err := s.TeamStore.GetTeamsForUser(rctx, userId, "", true)
+	if err != nil {
+		return err
+	}
+	for _, membership := range memberships {
+		s.rootStore.indexChannelsForTeam(rctx, membership.TeamId)
+	}
+	err = s.TeamStore.RemoveAllMembersByUser(rctx, userId)
 	if err == nil {
 		s.rootStore.indexUserFromID(rctx, userId)
 	}
