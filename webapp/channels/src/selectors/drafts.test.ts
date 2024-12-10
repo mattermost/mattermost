@@ -180,7 +180,7 @@ describe('makeGetDraft', () => {
                 timestamp: Date.now(),
                 value: draft2,
             },
-        }}} as GlobalState;
+        }}} as unknown as GlobalState;
     });
 
     test('should return a draft with the correct fields', () => {
