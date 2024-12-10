@@ -10,7 +10,6 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -20,7 +19,7 @@ import JoinPrivateChannelModal from 'components/join_private_channel_modal';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 import {getHistory} from './browser_history';
 import {cleanUpUrlable} from './url';

@@ -141,7 +141,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 		}
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
+		driver, err = ps.WithInstance(ss.GetMaster().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
