@@ -218,7 +218,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		ps.logger.Warn("Failed to reload config after a new license was loaded", mlog.Err(err))
 	}
 	if err := ps.InvalidateAllCaches(); err != nil {
-		ps.logger.Warn("Failed to invalidate caches", mlog.Err(err))
+		ps.logger.Warn("Failed to invalidate caches after a new license was loaded", mlog.Err(err))
 	}
 
 	return &license, nil
