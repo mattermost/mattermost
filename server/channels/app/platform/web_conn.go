@@ -780,7 +780,10 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		wc.Platform.logger.Error("Could not get hostname", mlog.Err(err))
+		wc.Platform.logger.Warn("Could not get hostname",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Err(err))
 		// return without the hostname in the message
 		return msg
 	}
