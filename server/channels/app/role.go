@@ -271,7 +271,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	return nil
 }
 
-func RemoveRoles(rolesToRemove []string, roles string) string {
+func removeRoles(rolesToRemove []string, roles string) string {
 	roleList := strings.Fields(roles)
 	newRoles := make([]string, 0)
 

@@ -110,8 +110,10 @@ func SkipPostInitialization() Option {
 	}
 }
 
-type AppOption func(a *App)
-type AppOptionCreator func() []AppOption
+type (
+	AppOption        func(a *App)
+	AppOptionCreator func() []AppOption
+)
 
 func ServerConnector(ch *Channels) AppOption {
 	return func(a *App) {
